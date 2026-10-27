@@ -130,9 +130,27 @@ body.nav .toolbar { margin: 6px 0; } body.nav .toolbar button { padding: 2px 8px
 body.nav .card { padding: 8px 9px; } body.nav .card h3 { margin-top: 2px; }
 body.nav .list { max-height: none; }
 body.nav .list li { padding: 4px 8px; }
-body.nav .list.arch li { display: flex; align-items: center; gap: 6px; }
-body.nav .list.arch li .line { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-body.nav .list.arch li.selected .muted { color: inherit; }
+/* the architecture table (0.11.1): Component, State and Pending always whole; Type, Layer, Container
+   shrink, then go (Container first) as the sidebar narrows; under the three, the table scrolls sideways */
+.arch-wrap { overflow-x: auto; margin: 6px 0; border: 1px solid var(--vscode-panel-border); border-radius: 3px; }
+table.arch { width: 100%; border-collapse: collapse; }
+table.arch th, table.arch td { padding: 4px 7px; white-space: nowrap; }
+table.arch th { font-weight: 600; color: var(--vscode-descriptionForeground); }
+table.arch .c-id, table.arch .c-state, table.arch .c-pending { width: 1%; }
+table.arch .c-pending { text-align: center; }
+/* too narrow for the three: Component gives way (cut with "…", whole in the row's tooltip), then the table scrolls */
+table.arch .c-id .cut { max-width: max(80px, calc(100vw - 240px)); overflow: hidden; text-overflow: ellipsis; }
+table.arch .c-type, table.arch .c-layer, table.arch .c-container { max-width: 0; overflow: hidden; text-overflow: ellipsis;
+  color: var(--vscode-descriptionForeground); }
+table.arch tbody tr { cursor: pointer; }
+table.arch tbody tr:hover { background: var(--vscode-list-hoverBackground); }
+table.arch tbody tr.selected { background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); }
+table.arch tbody tr.selected td { color: inherit; }
+table.arch tbody tr.pending td.c-id { box-shadow: inset 3px 0 0 var(--vscode-charts-orange, #d18616); }
+table.arch tbody tr.done td.c-id { box-shadow: inset 3px 0 0 var(--vscode-charts-green, #388a34); }
+@media (max-width: 560px) { table.arch .c-container { display: none; } }
+@media (max-width: 470px) { table.arch .c-layer { display: none; } }
+@media (max-width: 380px) { table.arch .c-type { display: none; } }
 body.nav .strip { flex-wrap: wrap; gap: 4px; }
 body.nav footer.hint { margin-top: 8px; }
 /* the editor tab */
@@ -159,6 +177,7 @@ body.editor .detail-only > .card.result .card-body { max-height: calc(100vh - 17
 .tabs.views .tab.current { background: var(--archvow); border-color: var(--archvow); color: #fff; font-weight: 600; }
 .tabs.views .tab.has-pending:not(.current) { border-color: var(--vscode-charts-orange, #d18616); }
 .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.split.single { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
 .cards { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .item-card { border: 1px solid var(--vscode-panel-border); border-radius: 4px; padding: 8px 11px; cursor: pointer; background: var(--vscode-editorWidget-background); }
@@ -187,3 +206,4 @@ body.editor .detail-only > .card.result .card-body { max-height: calc(100vh - 17
 .split-answer .more { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--vscode-panel-border); }
 .split-answer .confirm, .split-answer .card.result { margin-top: 6px; }
 .split-list > .row { margin-top: 8px; }
+@media (max-width: 300px) { table.arch th, table.arch td { padding: 4px 4px; } }

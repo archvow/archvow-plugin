@@ -297,15 +297,29 @@
       return `<div class="card"><h3>${esc(t('Architecture unavailable', 'Architecture indisponible'))}</h3><p>${esc(S.welcomeError || t('Loading architecture…', "Chargement de l'architecture…"))}</p></div>`;
     }
     const name = str(S.spec.system, 'name') || t('Project architecture', 'Architecture du projet');
-    // the sidebar is narrow: one line per component (type, layer, state in the line and its tooltip)
-    const rows = S.rows.map((r) => `<li data-a="openComponentRow" data-id="${esc(r.id)}" class="${r.pending ? 'pending' : 'done'} ${r.id === ui.component ? 'selected' : ''}"
-  title="${esc([r.type, r.layer, r.container, localizedState(r.state)].filter((x) => x).join(' · ') + (r.state === 'drift' ? ' — ' + t('The code differs from its vow', 'Le code diffère de sa vow') : ''))}">
-  <span class="line"><b>${esc(r.id)}</b> <span class="muted">· ${esc(r.type)} · ${esc(localizedState(r.state))}</span></span>${r.pending ? `<span class="count">${r.pending}</span>` : '<span class="ok">✓</span>'}</li>`).join('');
+    // the same table as IntelliJ's: Component, State and Pending always shown; Type, Layer and Container
+    // while the sidebar has room (workspace.css hides Container first, then Layer, then Type), the whole
+    // row in its tooltip; narrower than the three, the table scrolls sideways
+    const heads = [['c-id', t('Component', 'Composant')], ['c-type', 'Type'], ['c-layer', t('Layer', 'Couche')],
+      ['c-container', t('Container', 'Conteneur')], ['c-state', t('State', 'État')], ['c-pending', t('Pending', 'En attente')]];
+    const rows = S.rows.map((r) => `<tr data-a="openComponentRow" data-id="${esc(r.id)}" class="${r.pending ? 'pending' : 'done'} ${r.id === ui.component ? 'selected' : ''}"
+  title="${esc([r.id, r.type, r.layer, r.container, localizedState(r.state)].filter((x) => x).join(' · ') + (r.state === 'drift' ? ' — ' + t('The code differs from its vow', 'Le code diffère de sa vow') : ''))}">
+  <td class="c-id"><div class="cut"><b>${esc(r.id)}</b></div></td><td class="c-type">${esc(r.type)}</td><td class="c-layer">${esc(r.layer)}</td><td class="c-container">${esc(r.container)}</td>
+  <td class="c-state ${stateTone(r.state)}">${esc(localizedState(r.state))}</td><td class="c-pending">${r.pending ? `<span class="count">${r.pending}</span>` : '<span class="ok">✓</span>'}</td></tr>`).join('');
     return `<div class="card"><h3>${esc(name)}</h3>
   <p class="muted">${S.rows.length} ${esc(t('components', 'composants'))} · ${S.work.pending.length} ${esc(t('pending', 'en attente'))} · ${S.work.resolved.length} ${esc(t('resolved', 'traités'))}</p>
-  ${S.rows.length ? `<ul class="list items arch" data-scroll="architecture">${rows}</ul>
+  ${S.rows.length ? `<div class="arch-wrap" data-scroll="architecture"><table class="arch"><thead><tr>${heads.map(([c, l]) => `<th class="${c}">${esc(l)}</th>`).join('')}</tr></thead>
+  <tbody>${rows}</tbody></table></div>
   <p class="muted">${esc(t('Click a component to open it in the editor.', "Clique sur un composant pour l'ouvrir dans l'éditeur."))}</p>`
     : `<p>${esc(t('No components declared in the specification. Open Components or create one.', 'Aucun composant déclaré dans la spécification. Ouvre Composants ou crée-en un.'))}</p>`}</div>`;
+  }
+
+  /** The colour of a state, as in IntelliJ's table: done green, drift or missing amber. */
+  function stateTone(raw) {
+    const key = (raw || '').toLowerCase();
+    if (['implemented', 'verified', 'tested'].includes(key)) return 'tone-good';
+    if (['drift', 'drifted', 'missing', 'blocked', 'failed', 'error'].includes(key)) return 'tone-warn';
+    return 'muted';
   }
 
   function checksView() {
@@ -442,8 +456,10 @@
       localizedState(str(view, 'status'))].filter((x) => x).join(' · ');
   }
 
-  /** The items of a view on the left, the selected one's answer panel on the right (stacked when narrow). */
+  /** The items of a view on the left, the selected one's answer panel on the right (stacked when narrow);
+   *  a view with no item shows "Nothing to display." alone, without an answer panel. */
   function split(left, right) {
+    if (!right) return `<div class="split single"><div class="split-list">${left}</div></div>`;
     return `<div class="split"><div class="split-list">${left}</div><aside class="split-answer">${right}</aside></div>`;
   }
 
@@ -564,7 +580,7 @@
           btn(t('Save answer', 'Enregistrer la réponse'), 'decide', attrs({ action: 'decision make' })), 'decision')
         + confirmation('decision') + resultCard('decision');
     }
-    return split(left, right);
+    return split(left, rows.length ? right : '');
   }
 
   function questionsView(view) {
@@ -589,7 +605,7 @@
           btn(t('Save answer', 'Enregistrer la réponse'), 'answerQuestion'), 'question')
         + confirmation('question') + resultCard('question');
     }
-    return split(left, right);
+    return split(left, rows.length ? right : '');
   }
 
   function safetyView(view, d) {
@@ -649,7 +665,7 @@
       right = answerHead(`${t('Safety', 'Sécurité')} S${str(row, 'number')}${str(row, 'guide_word') ? ' · ' + str(row, 'guide_word') : ''}`, status, !pending)
         + block + editor + more + confirmation('safety') + resultCard('safety');
     }
-    return split(left, right);
+    return split(left, rows.length ? right : '');
   }
 
   function assumptionsView(view) {
@@ -671,7 +687,7 @@
         + (pending ? `<div class="answer-actions"><span></span><span class="row">${btn(t('Reject', 'Rejeter'), 'openCommand', attrs({ command: 'assumption reject', component: ui.component, number: str(row, 'number') }), false, 'secondary')}
   ${btn(t('Accept', 'Accepter'), 'openCommand', attrs({ command: 'assumption accept', component: ui.component, number: str(row, 'number') }))}</span></div>` : '');
     }
-    return split(left, right);
+    return split(left, rows.length ? right : '');
   }
 
   function readable(v) {

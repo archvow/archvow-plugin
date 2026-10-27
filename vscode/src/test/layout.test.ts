@@ -136,9 +136,29 @@ test('the items as cards on the left, the selected one answered on the right (0.
   assert.match(html, /<li class="item-card selected open" data-a="sel" data-kind="decision" data-key="D3">/);
   assert.match(html, /<div class="card-open">● Open<\/div>/);
   // the four views whose items are answered are split; the answer heading says what is answered
-  assert.equal(page.match(/return split\(left, right\);/g)?.length, 4);
+  assert.equal(page.match(/return split\(left, rows\.length \? right : ''\);/g)?.length, 4);
+  // a view with no item: "Nothing to display." alone, no answer panel (0.11.1)
+  const splitSource = page.match(/function split\(left, right\) \{[\s\S]*?\n  \}/);
+  assert.ok(splitSource, 'split() is in the page');
+  const split = new Function(`${splitSource[0]}; return split;`)();
+  assert.equal(split('<ul class="cards"><li class="muted empty">Nothing to display.</li></ul>', ''),
+    '<div class="split single"><div class="split-list"><ul class="cards"><li class="muted empty">Nothing to display.</li></ul></div></div>');
+  assert.match(split('L', 'R'), /<aside class="split-answer">R<\/aside>/);
+  assert.equal(cards('question', [], (r: { key: string }) => r.key, () => ({})), '<ul class="cards" data-scroll="cards-question"><li class="muted empty">Nothing to display.</li></ul>');
   assert.match(page, /t\(`Answer decision \$\{number\}`, `Répondre à la décision \$\{number\}`\)/);
   const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
   assert.match(css, /\.split \{ display: grid; grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\);/);
   assert.match(css, /@media \(max-width: 760px\) \{ \.split \{ grid-template-columns: minmax\(0, 1fr\); \} \}/);
+});
+
+test('the sidebar architecture table: Component, State and Pending always shown, as in IntelliJ (0.11.1)', () => {
+  assert.match(page, /<table class="arch"><thead>/);
+  for (const c of ['c-id', 'c-type', 'c-layer', 'c-container', 'c-state', 'c-pending']) assert.match(page, new RegExp(`<td class="${c}[ "]`));
+  const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
+  assert.match(css, /\.arch-wrap \{ overflow-x: auto;/);
+  assert.match(css, /table\.arch \.c-id, table\.arch \.c-state, table\.arch \.c-pending \{ width: 1%; \}/);
+  // the optional columns go first, Container before Layer before Type; never the three others
+  const hidden = [...css.matchAll(/@media \(max-width: (\d+)px\) \{ table\.arch \.(c-[a-z]+) \{ display: none; \} \}/g)].map((m) => [m[2], Number(m[1])]);
+  assert.deepEqual(hidden.map(([c]) => c), ['c-container', 'c-layer', 'c-type']);
+  assert.ok(hidden[0][1] > hidden[1][1] && hidden[1][1] > hidden[2][1]);
 });

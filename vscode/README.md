@@ -55,7 +55,7 @@ IntelliJ plugin's, tested against it (`../contract/`).
 ```bash
 npm ci
 npm test            # the .vow reader against the Java one, the grammar, the CLI runner, the workspace's rules
-npm run package     # -> ../dist/archvow-0.11.0.vsix
+npm run package     # -> ../dist/archvow-0.11.1.vsix
 ```
 
 Install: Extensions view > `...` > **Install from VSIX...**. For a team, a private registry (a

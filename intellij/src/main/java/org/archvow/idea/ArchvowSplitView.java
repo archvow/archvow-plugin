@@ -17,8 +17,9 @@ final class ArchvowSplitView {
 
     private ArchvowSplitView() { }
 
-    /** {@code items} left (or above), {@code answer} right (or below), in a box with a border. */
-    static JPanel create(JComponent items, JComponent answer) {
+    /** {@code items} left (or above), {@code answer} right (or below), in a box with a border; while
+     *  {@code list} has no item the answer panel is gone and the items take the whole width. */
+    static JPanel create(JList<?> list, JComponent items, JComponent answer) {
         JPanel box = new JPanel(new BorderLayout());
         box.setName("archvow.answer");
         box.setBorder(BorderFactory.createCompoundBorder(
@@ -29,7 +30,56 @@ final class ArchvowSplitView {
         JPanel panel = new JPanel(new Layout());
         panel.add(items);
         panel.add(box);
+        Runnable follow = () -> {
+            boolean any = list.getModel().getSize() > 0;
+            if (box.isVisible() == any) return;
+            box.setVisible(any);
+            panel.revalidate();
+            panel.repaint();
+        };
+        onChange(list, follow);
+        follow.run();
         return panel;
+    }
+
+    /**
+     * The cards of a view: {@code scroll} (the list in its scroll pane), or {@code emptyText} ("Nothing to
+     * display.") while the list has no item, as on the VS Code page.
+     */
+    static JPanel cards(JList<?> list, JScrollPane scroll, java.util.function.Supplier<String> emptyText) {
+        CardLayout cards = new CardLayout();
+        JPanel panel = new JPanel(cards);
+        panel.setOpaque(false);
+        JLabel empty = new JLabel();
+        empty.setName("archvow.empty");
+        empty.setVerticalAlignment(SwingConstants.TOP);
+        empty.setBorder(BorderFactory.createEmptyBorder(6, 4, 6, 4));
+        Color muted = UIManager.getColor("Label.disabledForeground");
+        if (muted != null) empty.setForeground(muted);
+        panel.add(scroll, "cards");
+        panel.add(empty, "empty");
+        Runnable follow = () -> {
+            boolean any = list.getModel().getSize() > 0;
+            empty.setText(emptyText.get());
+            cards.show(panel, any ? "cards" : "empty");
+        };
+        onChange(list, follow);
+        follow.run();
+        return panel;
+    }
+
+    /** Whether the cards of {@link #cards} show their empty text. */
+    static boolean showsEmpty(JPanel cards) {
+        for (Component c : cards.getComponents()) if (c.isVisible()) return "archvow.empty".equals(c.getName());
+        return false;
+    }
+
+    private static void onChange(JList<?> list, Runnable follow) {
+        list.getModel().addListDataListener(new javax.swing.event.ListDataListener() {
+            @Override public void intervalAdded(javax.swing.event.ListDataEvent e) { follow.run(); }
+            @Override public void intervalRemoved(javax.swing.event.ListDataEvent e) { follow.run(); }
+            @Override public void contentsChanged(javax.swing.event.ListDataEvent e) { follow.run(); }
+        });
     }
 
     /** Whether a split view of this width shows its two parts side by side. */
@@ -63,7 +113,10 @@ final class ArchvowSplitView {
             int height = Math.max(0, parent.getHeight() - in.top - in.bottom);
             Component items = parent.getComponent(0);
             Component answer = parent.getComponent(1);
-            if (sideBySide(width)) {
+            if (!answer.isVisible()) {
+                // no item: "Nothing to display." over the whole view
+                items.setBounds(x, y, width, height);
+            } else if (sideBySide(width)) {
                 int left = (width - GAP) / 2;
                 items.setBounds(x, y, left, height);
                 answer.setBounds(x + left + GAP, y, width - left - GAP, height);

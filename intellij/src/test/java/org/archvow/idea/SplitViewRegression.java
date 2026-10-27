@@ -33,11 +33,14 @@ public final class SplitViewRegression {
 
     public static void main(String[] args) {
         // side by side from SIDE_BY_SIDE pixels, else the answer under the items
-        JScrollPane items = new JScrollPane(new JList<>(new String[] {"1", "2", "3"}));
+        DefaultListModel<String> model = new DefaultListModel<>();
+        for (String n : List.of("1", "2", "3")) model.addElement(n);
+        JList<String> itemList = new JList<>(model);
+        JScrollPane items = new JScrollPane(itemList);
         items.setPreferredSize(new Dimension(300, 150));
         JPanel answer = new JPanel();
         answer.setPreferredSize(new Dimension(300, 260));
-        JPanel split = ArchvowSplitView.create(items, answer);
+        JPanel split = ArchvowSplitView.create(itemList, items, answer);
         Component box = split.getComponent(1);
         check("archvow.answer".equals(box.getName()) && SwingUtilities.isDescendingFrom(answer, box), "the answer panel is boxed");
         split.setSize(900, 500);
@@ -53,6 +56,24 @@ public final class SplitViewRegression {
         right = in(box, split);
         check(left.width == 560 && right.width == 560 && right.y >= left.y + left.height, "stacked at 560: " + left + " / " + right);
         check(left.height == 150, "the items at their height when it is under 2/5: " + left.height);
+        // a view with no item: "Nothing to display." over the whole view, no answer panel (0.11.1)
+        model.clear();
+        split.setSize(900, 500);
+        layout(split);
+        check(!box.isVisible() && in(items, split).width == 900, "no item, no answer panel: " + in(items, split));
+        model.addElement("1");
+        layout(split);
+        check(box.isVisible() && in(items, split).width < 900, "an item again: the answer panel is back");
+        DefaultListModel<String> none = new DefaultListModel<>();
+        JList<String> emptyList = new JList<>(none);
+        JPanel cardsPanel = ArchvowSplitView.cards(emptyList, new JScrollPane(emptyList), () -> "Nothing to display.");
+        check(ArchvowSplitView.showsEmpty(cardsPanel), "the cards say there is nothing");
+        JLabel emptyText = null;
+        for (Component c : cardsPanel.getComponents()) if (c instanceof JLabel l) emptyText = l;
+        check(emptyText != null && "Nothing to display.".equals(emptyText.getText()), "the empty text");
+        none.addElement("P1");
+        check(!ArchvowSplitView.showsEmpty(cardsPanel), "the cards come back with an item");
+
         check(ArchvowSplitView.sideBySide(ArchvowSplitView.SIDE_BY_SIDE) && !ArchvowSplitView.sideBySide(ArchvowSplitView.SIDE_BY_SIDE - 1),
             "the threshold");
 

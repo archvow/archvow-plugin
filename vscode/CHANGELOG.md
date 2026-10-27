@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.1 - 2026-10-27
+
+- **The architecture table in the sidebar** is now the same table as IntelliJ's: Component, Type, Layer,
+  Container, **State**, Pending (State was cut off at the end of the one-line rows). Component, State and
+  Pending always show: as the sidebar narrows, Container goes first, then Layer, then Type (the row's
+  tooltip still says them all), then Component's names are cut with "…"; only under about 250 px does
+  the table scroll sideways.
+- **A view with no item** (Questions of a component with none...) shows *Nothing to display.* alone: no
+  answer panel ("Select a question.") next to it.
+- Tests: 46. Checked in Chromium at sidebar widths 600, 500, 420, 330, 300 (French), 250 and 220.
+
 ## 0.11.0 - 2026-10-27
 
 - **A component in two panels** (the 0.7.0 mockup v2): its head over the whole width (name and open

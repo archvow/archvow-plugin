@@ -785,6 +785,20 @@ final class ArchvowPanel extends JPanel {
         counts.add(pendingBadge);
         counts.add(resolvedBadge);
         bar.add(counts, BorderLayout.EAST);
+        // a narrow tool window: the counters go under the title rather than over it
+        bar.addComponentListener(new ComponentAdapter() {
+            @Override public void componentResized(ComponentEvent e) {
+                Insets in = bar.getInsets();
+                boolean fits = bar.getWidth() - in.left - in.right >= title.getPreferredSize().width + 8 + counts.getPreferredSize().width;
+                Object where = ((BorderLayout) bar.getLayout()).getConstraints(counts);
+                Object wanted = fits ? BorderLayout.EAST : BorderLayout.SOUTH;
+                if (wanted.equals(where)) return;
+                bar.remove(counts);
+                ((FlowLayout) counts.getLayout()).setAlignment(fits ? FlowLayout.RIGHT : FlowLayout.LEFT);
+                bar.add(counts, wanted);
+                bar.revalidate();
+            }
+        });
         return bar;
     }
 
@@ -1092,7 +1106,7 @@ final class ArchvowPanel extends JPanel {
                 if (e.getClickCount() == 2) decisionAnswer.requestFocusInWindow();
             }
         });
-        JScrollPane decisionsScroll = cardsScroll(decisionsList);
+        JPanel decisionsScroll = cardsScroll(decisionsList);
         answerField(decisionAnswer);
         decisionAnswerLabel = translated(new JLabel(), "Your answer or proposal", "Votre réponse ou proposition");
         decisionAnswerLabel.setFont(decisionAnswerLabel.getFont().deriveFont(Font.BOLD, 12f));
@@ -1117,7 +1131,7 @@ final class ArchvowPanel extends JPanel {
         // The question, the field and its buttons stay together; the full text stays selectable above the field.
         // No fixed height on the editor: it grows when the inline confirmation appears.
         addComponentView(viewBar, detailCards, 0, ArchvowI18n.text(project, "Decisions", "Décisions"),
-            ArchvowSplitView.create(decisionsScroll, compactSections(answerHeading(decisionDetails), decisionEditor,
+            ArchvowSplitView.create(decisionsList, decisionsScroll, compactSections(answerHeading(decisionDetails), decisionEditor,
                 decisionInlineResultCard)));
 
         // Personal, operational and compliance questions (P1/O2/C1) are also
@@ -1131,7 +1145,7 @@ final class ArchvowPanel extends JPanel {
                 if (e.getClickCount() == 2) questionAnswer.requestFocusInWindow();
             }
         });
-        JScrollPane questionsScroll = cardsScroll(questionList);
+        JPanel questionsScroll = cardsScroll(questionList);
         answerField(questionAnswer);
         JScrollPane qAnswerScroll = scroll(questionAnswer);
         qAnswerScroll.setPreferredSize(new Dimension(150, 96));
@@ -1145,14 +1159,14 @@ final class ArchvowPanel extends JPanel {
         questionInlineResultCard = inlineResultCard(questionInlineResult, () -> questionInlineResultCard.setVisible(false));
         questionInlineResultCard.setVisible(false);
         addComponentView(viewBar, detailCards, 1, "Questions",
-            ArchvowSplitView.create(questionsScroll, compactSections(answerHeading(questionDetails), questionEditor,
+            ArchvowSplitView.create(questionList, questionsScroll, compactSections(answerHeading(questionDetails), questionEditor,
                 questionInlineResultCard)));
 
         safetyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         safetyList.setCellRenderer(new ArchvowItemCards.Renderer());
         safetyList.setFixedCellHeight(ArchvowItemCards.HEIGHT);
         safetyList.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) showSafety(); });
-        JScrollPane safetyScroll = cardsScroll(safetyList);
+        JPanel safetyScroll = cardsScroll(safetyList);
         answerField(safetyInput);
         JPanel safetyHeading = new JPanel(new BorderLayout(6, 0));
         safetyInputLabel.setText(ArchvowI18n.text(project, "Hazard description or reason", "Danger ou justification"));
@@ -1195,7 +1209,7 @@ final class ArchvowPanel extends JPanel {
         safetyInlineResultCard = inlineResultCard(safetyInlineResult, () -> safetyInlineResultCard.setVisible(false));
         safetyInlineResultCard.setVisible(false);
         addComponentView(viewBar, detailCards, 2, ArchvowI18n.text(project, "Safety", "Sécurité"),
-            ArchvowSplitView.create(safetyScroll, compactSections(answerHeading(safetyDetails), safetyEditor,
+            ArchvowSplitView.create(safetyList, safetyScroll, compactSections(answerHeading(safetyDetails), safetyEditor,
                 safetyInlineResultCard)));
 
         assumptionList.setCellRenderer(new ArchvowItemCards.Renderer());
@@ -1214,7 +1228,7 @@ final class ArchvowPanel extends JPanel {
         assumptionRejectButton.addActionListener(e -> reviewSelectedAssumption("assumption reject"));
         JPanel assumptionActions = answerButtons(List.of(), assumptionRejectButton, assumptionAcceptButton);
         addComponentView(viewBar, detailCards, 3, ArchvowI18n.text(project, "Assumptions", "Hypothèses"),
-            ArchvowSplitView.create(assumptionItems, compactSections(answerHeading(assumptionDetails), assumptionActions)));
+            ArchvowSplitView.create(assumptionList, assumptionItems, compactSections(answerHeading(assumptionDetails), assumptionActions)));
         addComponentView(viewBar, detailCards, 4, ArchvowI18n.text(project, "Rules", "Règles"), rulesPanel());
         addComponentView(viewBar, detailCards, 5, ArchvowI18n.text(project, "Tasks", "Tâches"), dataPanel());
         addComponentView(viewBar, detailCards, 6, "Full vow", scroll(vowDetails));
@@ -3627,13 +3641,14 @@ final class ArchvowPanel extends JPanel {
         JOptionPane.showMessageDialog(this, text, "Archvow", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    /** The cards of a view, on the left of its split view: no frame, no horizontal scroll. */
-    private static JScrollPane cardsScroll(JList<?> list) {
+    /** The cards of a view, on the left of its split view: no frame, no horizontal scroll; "Nothing to
+     *  display." while the view has no item (ArchvowSplitView.cards). */
+    private JPanel cardsScroll(JList<?> list) {
         list.setOpaque(false);
         JScrollPane pane = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         pane.setBorder(BorderFactory.createEmptyBorder());
         pane.setMinimumSize(new Dimension(0, 80));
-        return pane;
+        return ArchvowSplitView.cards(list, pane, () -> ArchvowI18n.text(project, "Nothing to display.", "Rien à afficher."));
     }
 
     /** An answer field: wrapped lines, the editor's monospaced font. */

@@ -2,6 +2,21 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.11.1 - 2026-10-27
+
+- **The Overview architecture table keeps Component, State and Pending in view** in a narrow tool
+  window (everything was cut to "fo...", "p..."): the columns get their width from their text
+  (`ArchvowArchitectureView.columnWidths`); Container goes first, then Layer, then Type (each row's
+  tooltip says them all), then Component's names are cut with "…"; only then does the table scroll
+  sideways. The same table as VS Code's.
+- *Project status* and its two counters no longer overlap in a narrow tool window: the counters go under it.
+- **A view with no item** shows *Nothing to display.*, as in VS Code, and no answer panel (it showed
+  "Select a question." with an empty field and Save answer): `ArchvowSplitView.cards` and `create` follow
+  the list.
+- Tests: `ArchitectureViewRegression` (the widths at 800, 500, 420, 300, 270, 240, 200 px),
+  `SplitViewRegression` (the empty view and its way back). 31 headless regressions pass; run in a Swing
+  frame with the tool window at 300 and 470 px.
+
 ## 0.11.0 - 2026-10-27
 
 - **A component in two panels**, as in VS Code: the head over the whole width (name and open items,

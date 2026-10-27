@@ -39,6 +39,13 @@ final class ArchvowArchitectureView extends JPanel {
     private final JLabel notice = new JLabel();
     private final InventoryTableModel model = new InventoryTableModel();
     private final JTable table = new JTable(model);
+    private final JScrollPane scroll;
+    /** Column order: Component, Type, Layer, Container, State, Pending. */
+    static final int COMPONENT = 0, STATE = 4, PENDING = 5;
+    /** The narrowest Component column before the table scrolls sideways. */
+    static final int COMPONENT_MIN = 80;
+    /** The optional columns, the first kept longest: Type, then Layer, then Container. */
+    private static final int[] OPTIONAL = {1, 2, 3};
     private boolean french;
     private Consumer<String> openComponent = id -> {};
 
@@ -61,7 +68,8 @@ final class ArchvowArchitectureView extends JPanel {
         table.setRowHeight(Math.max(30, table.getRowHeight()));
         table.setShowGrid(false);
         table.setFillsViewportHeight(true);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        // the widths follow the room (fitColumns): Component, State and Pending always whole
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.setDefaultRenderer(Object.class, new StatusRenderer());
         table.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
@@ -70,8 +78,11 @@ final class ArchvowArchitectureView extends JPanel {
                 if (row >= 0 && row < model.rows.size()) openComponent.accept(model.rows.get(row).id());
             }
         });
-        JScrollPane scroll = new JScrollPane(table);
+        scroll = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getViewport().addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) { fitColumns(); }
+        });
         add(scroll, BorderLayout.CENTER);
         showLoading("Loading architecture…");
     }
@@ -137,17 +148,71 @@ final class ArchvowArchitectureView extends JPanel {
             notice.setText(fr ? "Double-clique sur un composant pour l'ouvrir."
                 : "Double-click a component to open it.");
         }
-        TableColumnModel columns = table.getColumnModel();
-        if (columns.getColumnCount() == 6) {
-            columns.getColumn(0).setPreferredWidth(200);
-            columns.getColumn(1).setPreferredWidth(130);
-            columns.getColumn(2).setPreferredWidth(120);
-            columns.getColumn(3).setPreferredWidth(130);
-            columns.getColumn(4).setPreferredWidth(120);
-            columns.getColumn(5).setPreferredWidth(90);
-        }
+        fitColumns();
         revalidate();
         repaint();
+    }
+
+    /**
+     * The widths for {@code available} pixels, from each column's natural width (its header and its
+     * longest text): Component, State and Pending always at theirs; Type, then Layer, then Container
+     * while they fit at theirs (a hidden one gets 0: the row's tooltip still says it); what is left goes
+     * to the columns shown. Narrower than the three: Component narrows (to {@link #COMPONENT_MIN}), then the
+     * table scrolls sideways.
+     */
+    static int[] columnWidths(int available, int[] natural) {
+        int[] widths = new int[natural.length];
+        widths[COMPONENT] = natural[COMPONENT];
+        widths[STATE] = natural[STATE];
+        widths[PENDING] = natural[PENDING];
+        int used = widths[COMPONENT] + widths[STATE] + widths[PENDING];
+        if (used > available) {
+            // too narrow for the three: Component gives way (its names cut with "…", whole in the tooltip)
+            // down to COMPONENT_MIN, so State and Pending stay in view; under that, the table scrolls
+            widths[COMPONENT] = Math.max(Math.min(natural[COMPONENT], COMPONENT_MIN), available - widths[STATE] - widths[PENDING]);
+            return widths;
+        }
+        List<Integer> shown = new ArrayList<>(List.of(COMPONENT));
+        for (int column : OPTIONAL) {
+            if (used + natural[column] > available) break;
+            widths[column] = natural[column];
+            used += natural[column];
+            shown.add(column);
+        }
+        int extra = Math.max(0, available - used);
+        for (int i = 0; i < shown.size(); i++) widths[shown.get(i)] += extra / shown.size() + (i == 0 ? extra % shown.size() : 0);
+        return widths;
+    }
+
+    /** Applies {@link #columnWidths} to the table for the width of its viewport. */
+    private void fitColumns() {
+        TableColumnModel columns = table.getColumnModel();
+        if (columns.getColumnCount() != 6) return;
+        java.awt.FontMetrics body = table.getFontMetrics(table.getFont());
+        java.awt.FontMetrics head = table.getTableHeader() == null ? body
+            : table.getTableHeader().getFontMetrics(table.getTableHeader().getFont());
+        int[] natural = new int[6];
+        int[] cap = {260, 170, 150, 170, 170, 110};
+        for (int c = 0; c < 6; c++) {
+            int width = head.stringWidth(model.getColumnName(c));
+            for (int r = 0; r < model.getRowCount(); r++) width = Math.max(width, body.stringWidth(String.valueOf(model.getValueAt(r, c))));
+            natural[c] = Math.min(cap[c], width + 22);
+        }
+        int available = scroll.getViewport().getWidth();
+        if (available <= 0) available = 640;
+        int[] widths = columnWidths(available, natural);
+        int total = 0;
+        for (int c = 0; c < 6; c++) {
+            javax.swing.table.TableColumn column = columns.getColumn(c);
+            column.setMinWidth(0);
+            column.setMaxWidth(widths[c] == 0 ? 0 : Integer.MAX_VALUE);
+            column.setPreferredWidth(widths[c]);
+            column.setWidth(widths[c]);
+            total += widths[c];
+        }
+        table.setPreferredScrollableViewportSize(new java.awt.Dimension(total, table.getPreferredScrollableViewportSize().height));
+        table.setPreferredSize(null);
+        table.revalidate();
     }
 
     int componentCount() { return model.getRowCount(); }
@@ -228,7 +293,10 @@ final class ArchvowArchitectureView extends JPanel {
                     "The implementation no longer matches the component specification.");
                 if (!selected) setForeground(french ? new Color(182, 103, 32) : new Color(203, 136, 44));
             } else {
-                setToolTipText(null); // JTable renderers are reused between all rows.
+                // the whole row, also what a hidden column holds (a narrow tool window)
+                Row r = model.rows.get(list.convertRowIndexToModel(row));
+                setToolTipText(String.join(" · ", java.util.stream.Stream.of(r.id(), r.type(), r.layer(), r.container(), r.state())
+                    .filter(x -> x != null && !x.isBlank()).toList()));
             }
             setHorizontalAlignment(column == 5 ? SwingConstants.CENTER : SwingConstants.LEFT);
             setBorder(BorderFactory.createEmptyBorder(1, 8, 1, 8));
