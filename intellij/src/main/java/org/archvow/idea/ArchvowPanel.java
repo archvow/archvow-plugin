@@ -239,6 +239,13 @@ final class ArchvowPanel extends JPanel {
     /** The editor tab: what Overview's last command was, for its title. */
     private String resultLabel = "";
     private final JLabel detailKind = new JLabel();
+    /** The editor tab: back to the component a command was opened from ("← clean_orders"). */
+    private final JButton backButton = new JButton();
+    /** That component and its view (Decisions...), or null: the tool window chose what the tab shows. */
+    private String backComponent;
+    private int backView;
+    /** A command opened from the tool window (no way back to a component). */
+    private boolean fromToolWindow;
     /** Lives as long as this panel (the project's, or the editor tab's): the vow watcher hangs on it. */
     private final Disposable lifetime = Disposer.newDisposable("Archvow workspace");
 
@@ -390,6 +397,12 @@ final class ArchvowPanel extends JPanel {
             BorderFactory.createEmptyBorder(8, 10, 10, 10)));
 
         JPanel brand = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        if (role == Role.DETAIL) {
+            // Back to the component a command was opened from (Edit spec, + Question...), 0.11.3
+            backButton.setVisible(false);
+            backButton.addActionListener(e -> goBack());
+            brand.add(backButton);
+        }
         brand.add(logoLabel);
         JPanel titles = new JPanel();
         titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
@@ -411,7 +424,7 @@ final class ArchvowPanel extends JPanel {
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
         languageLabel = new JLabel(ArchvowI18n.text(project,"Language","Langue"));
-        right.add(languageLabel);
+        // the language is chosen at the bottom of Overview (0.11.3): the header keeps room for the name
         languageMode.setRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -419,7 +432,6 @@ final class ArchvowPanel extends JPanel {
                 return this;
             }
         });
-        right.add(languageMode);
         if (role == Role.DETAIL) {
             // the editor tab names what it shows; the language is chosen in the tool window
             languageLabel.setVisible(false);
@@ -443,7 +455,8 @@ final class ArchvowPanel extends JPanel {
         languageRefreshers.add(() -> logs.setToolTipText(ArchvowI18n.text(project,
             "Open Archvow session log", "Ouvrir le journal Archvow")));
 
-        header.add(brand, BorderLayout.WEST);
+        // the name takes what is left of the width (cut, never drawn under the buttons)
+        header.add(brand, BorderLayout.CENTER);
         header.add(right, BorderLayout.EAST);
         return header;
     }
@@ -519,6 +532,7 @@ final class ArchvowPanel extends JPanel {
     /** The editor tab: shows a component (a click in the tool window). */
     void showComponent(String id) {
         if (id == null || id.isBlank()) return;
+        backComponent = null;
         rootLayout.show(rootCards, "workspace");
         tabs.setSelectedIndex(1);
         if (componentViewNav != null && componentViewNav.activeIndex() == 7) selectComponentView(0);
@@ -550,6 +564,7 @@ final class ArchvowPanel extends JPanel {
 
     /** The editor tab: runs a command asked in the tool window's Overview, its result in the tab. */
     void runFromOverview(String label, List<String> args, String stdin, boolean refreshAfter) {
+        backComponent = null;
         rootLayout.show(rootCards, "workspace");
         resultLabel = label;
         tabs.setSelectedIndex(0);
@@ -627,6 +642,11 @@ final class ArchvowPanel extends JPanel {
             what = resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
         }
         detailKind.setText("ARCHVOW · " + kind.toUpperCase(java.util.Locale.ROOT));
+        backButton.setVisible(backComponent != null && index != 1);
+        if (backComponent != null) {
+            backButton.setText("← " + backComponent);
+            backButton.setToolTipText(ArchvowI18n.text(project, "Back to " + backComponent, "Retour à " + backComponent));
+        }
         if (brandTitle != null) brandTitle.setText(index == 2 ? "archvow " + what : what);
         // a component's name is the heading of its head, with its open items (buildComponentHtml)
         boolean named = index == 1 && !component.isBlank() && (componentViewNav == null || componentViewNav.activeIndex() != 7);
@@ -756,8 +776,8 @@ final class ArchvowPanel extends JPanel {
         if (brandSubtitle != null) brandSubtitle.setVisible(!detail && width >= 850);
         if (brandTitle != null) brandTitle.setFont(brandTitle.getFont().deriveFont(Font.BOLD, width < 510 ? 16f : 23f));
         logoLabel.setIcon(loadLogoIcon(width < 510 ? 32 : 48, width < 510 ? 32 : 48));
-        if (languageLabel != null) languageLabel.setVisible(!detail && width >= 700);
-        languageMode.setVisible(!detail && width >= 450);
+        if (languageLabel != null) languageLabel.setVisible(!detail);
+        languageMode.setVisible(!detail);
         if (quickCountPanel != null) quickCountPanel.setVisible(true);
         revalidate();
         repaint();
@@ -1043,6 +1063,11 @@ final class ArchvowPanel extends JPanel {
         testArchvowButton.addActionListener(e -> executeDirect("version", List.of("--version"), null, false));
         actions.add(openSettingsButton);
         panel.add(actions, BorderLayout.EAST);
+        // the language, here rather than in the header (it cut the project's name in a narrow tool window)
+        JPanel language = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        if (languageLabel != null) language.add(languageLabel);
+        language.add(languageMode);
+        panel.add(language, BorderLayout.NORTH);
         // The full Python help and test are available in Settings → Tools → Archvow.
         return panel;
     }
@@ -2013,10 +2038,17 @@ final class ArchvowPanel extends JPanel {
         }
         rootLayout.show(rootCards, "workspace");
         String knownComponent = selectedComponent == null ? "" : selectedComponent.id;
+        if (role == Role.DETAIL) {
+            // from a component (Edit spec, + Question, Accept...): Back returns to it; from the tool window: none
+            boolean onComponent = tabs.getSelectedIndex() == 1 && !knownComponent.isBlank()
+                && (componentViewNav == null || componentViewNav.activeIndex() != 7);
+            if (fromToolWindow) backComponent = null;
+            else if (onComponent) { backComponent = knownComponent; backView = componentViewNav == null ? 0 : componentViewNav.activeIndex(); }
+        }
         String target = initial == null ? knownComponent : initial.getOrDefault("component", knownComponent);
         JsonObject snapshot = componentSnapshots.get(target);
         Map<String, String> known = new java.util.LinkedHashMap<>(
-            ArchvowCommandPrefill.prepare(name, initial, knownComponent, snapshot));
+            ArchvowCommandPrefill.prepare(name, initial, knownComponent, snapshot, componentEntry(target)));
         if ("component add".equals(name) && !known.containsKey("container")) {
             // The currently selected component supplies a grounded container, not a
             // made-up new component name/description.
@@ -2045,7 +2077,29 @@ final class ArchvowPanel extends JPanel {
     }
 
     /** The editor tab: a command chosen in the tool window (its form, prefilled with what is known). */
-    void showCommand(String name, Map<String, String> initial) { openCommand(name, initial); }
+    void showCommand(String name, Map<String, String> initial) {
+        fromToolWindow = true;
+        try { openCommand(name, initial); } finally { fromToolWindow = false; }
+    }
+
+    /** The component's entry in the spec (module, ticket, owners...), or null. */
+    private JsonObject componentEntry(String id) {
+        for (JsonObject c : ArchvowGrammar.objects(manifest, "containers"))
+            for (JsonObject x : ArchvowGrammar.objects(c, "components"))
+                if (id != null && id.equals(ArchvowGrammar.str(x, "id"))) return x;
+        return null;
+    }
+
+    /** Back: the component a command was opened from, on the view it was on. */
+    private void goBack() {
+        String id = backComponent;
+        int view = backView;
+        backComponent = null;
+        if (id == null) return;
+        showComponent(id);
+        selectComponentView(view);
+        afterSelectionChange();
+    }
 
     private void executeDirect(String label, List<String> args, String stdin, boolean refreshAfter) {
         executeDirect(label, args, stdin, refreshAfter, false);
@@ -3638,6 +3692,11 @@ final class ArchvowPanel extends JPanel {
         action.run(selectedComponent);
     }
     private void message(String text) {
+        // a long or several-line text (what was tried, archvow's own error): a dialog sized to it, copiable
+        if (text != null && (text.length() > 140 || text.strip().contains("\n"))) {
+            ArchvowTextDialog.show(this, "Archvow", text, null, ArchvowI18n.isFrench(project));
+            return;
+        }
         JOptionPane.showMessageDialog(this, text, "Archvow", JOptionPane.INFORMATION_MESSAGE);
     }
 

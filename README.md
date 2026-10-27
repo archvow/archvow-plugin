@@ -9,7 +9,7 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `contract/` | what both plugins and the archvow CLI agree on: the sample vows, the CLI's JSON, the `.vow` reader's tokens and problems | `contract/tools/regenerate.py`, `./gradlew contractDump` |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.11.2.zip, dist/archvow-0.11.2.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.11.3.zip, dist/archvow-0.11.3.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -51,6 +51,6 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 
 ## Versions
 
-Both plugins have the same version (0.11.2), their own, not archvow's. They read `.vow` format 1 and run
+Both plugins have the same version (0.11.3), their own, not archvow's. They read `.vow` format 1 and run
 the archvow CLI 1.16 (`contract/cli/version.txt`, the version the contract was recorded from); each says
 when the installed archvow is another major.minor (archvow keeps no backward compatibility).

@@ -128,13 +128,13 @@ public final class ArchvowSettingsConfigurable implements Configurable {
     }
 
     private void explainPythonField() {
-        JOptionPane.showMessageDialog(panel,
+        ArchvowTextDialog.show(panel, "Archvow Python configuration",
             "Recommended value / Valeur recommandée:\n\n"
                 + "  /path/to/venv/bin/python3\n\n"
                 + "Accepted for backward compatibility / Accepté pour compatibilité :\n\n"
                 + "  python3 -m archvow\n\n"
                 + "Do not add other arguments in this field. / Ne pas ajouter d'autres arguments dans ce champ.",
-            "Archvow Python configuration", JOptionPane.INFORMATION_MESSAGE);
+            null, ArchvowI18n.isFrench(project));
     }
 
     /** Test: the same search as the commands (the IDE's interpreter, the Python, the executable), with these fields. */
@@ -144,6 +144,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         boolean useIde = useProjectInterpreter.isSelected();
         String root = project.getBasePath();
         test.setEnabled(false);
+        String[] command = {""};
         new SwingWorker<String, Void>() {
             @Override protected String doInBackground() {
                 try {
@@ -155,6 +156,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
                     if (probe.chosen() == null) return probe.report();
                     List<String> argv = ArchvowProcessCommand.build(probe.chosen().executable(), probe.chosen().python(),
                         root, List.of("--version"));
+                    command[0] = ArchvowTextDialog.commandLine(argv);
                     ProcessBuilder builder = new ProcessBuilder(argv).redirectErrorStream(true);
                     ArchvowCli.prepare(builder, argv, root);
                     Process process = builder.start();
@@ -164,7 +166,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
                     }
                     String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                     return "Found in / Trouvé dans : " + probe.chosen().source() + " (" + probe.chosen().program() + ")\n"
-                        + "Command / Commande: " + String.join(" ", argv) + "\n"
+                        + "Command / Commande: " + command[0] + "\n"
                         + "Exit code / Code: " + process.exitValue() + "\n\n"
                         + output.strip();
                 } catch (Exception error) {
@@ -174,8 +176,10 @@ public final class ArchvowSettingsConfigurable implements Configurable {
             }
             @Override protected void done() {
                 test.setEnabled(true);
-                try { JOptionPane.showMessageDialog(panel, get(), "Test Archvow", JOptionPane.INFORMATION_MESSAGE); }
-                catch (Exception e) { JOptionPane.showMessageDialog(panel, e.toString(), "Test Archvow", JOptionPane.ERROR_MESSAGE); }
+                // a dialog sized to its text, the text selectable, the command copiable (0.11.3)
+                String text;
+                try { text = get(); } catch (Exception e) { text = e.toString(); }
+                ArchvowTextDialog.show(panel, "Test Archvow", text, command[0], ArchvowI18n.isFrench(project));
             }
         }.execute();
     }

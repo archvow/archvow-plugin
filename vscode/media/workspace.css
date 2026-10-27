@@ -207,3 +207,14 @@ body.editor .detail-only > .card.result .card-body { max-height: calc(100vh - 17
 .split-answer .confirm, .split-answer .card.result { margin-top: 6px; }
 .split-list > .row { margin-top: 8px; }
 @media (max-width: 300px) { table.arch th, table.arch td { padding: 4px 4px; } }
+
+/* 0.11.3: a card shows one line of its question and one of its answer, cut with "…" (the whole in its
+   tooltip and in the answer panel), as in IntelliJ */
+.item-card .card-q, .item-card .card-a, .item-card .card-open, .item-card .card-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the header never cuts a button: the name gives way */
+.top { flex-wrap: nowrap; } .top .brand { min-width: 0; } .top .brand > div { min-width: 0; }
+.top .project, .top .title, .top .kind { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top .right { flex-shrink: 0; flex-wrap: nowrap; }
+svg.glyph { width: 15px; height: 15px; display: block; }
+button.icon { display: inline-flex; align-items: center; justify-content: center; padding: 3px 7px; }
+button.back { white-space: nowrap; flex-shrink: 0; }

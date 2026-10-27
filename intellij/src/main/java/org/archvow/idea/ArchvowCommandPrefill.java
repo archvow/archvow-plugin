@@ -12,6 +12,16 @@ final class ArchvowCommandPrefill {
 
     static Map<String, String> prepare(String command, Map<String, String> requested,
                                        String selectedComponent, JsonObject componentSnapshot) {
+        return prepare(command, requested, selectedComponent, componentSnapshot, null);
+    }
+
+    /**
+     * As above; {@code specEntry} is the component in the spec (show --json): its ticket, owners, group,
+     * brief... which `show <component>` does not give. Edit spec opens with every field the component
+     * already has, so a person sees what is there and changes what he wants (0.11.3).
+     */
+    static Map<String, String> prepare(String command, Map<String, String> requested,
+                                       String selectedComponent, JsonObject componentSnapshot, JsonObject specEntry) {
         Map<String, String> data = new LinkedHashMap<>();
         if (requested != null) data.putAll(requested);
         // Never overwrite the target supplied by an issue; the currently selected tree
@@ -26,9 +36,14 @@ final class ArchvowCommandPrefill {
             // additional properties. Only a generic "Edit spec" action loads existing fields.
             boolean specific = data.keySet().stream().anyMatch(k -> !"component".equals(k));
             if (!specific) {
-                for (String property : new String[]{"description", "spec", "signature", "uses"}) {
-                    String known = printable(componentSnapshot.get(property));
-                    if (!known.isBlank()) data.put(property, known);
+                // field of the form <- where its value is: show <component>, then the spec's entry
+                String[][] fields = {{"description", "description"}, {"spec", "spec"}, {"signature", "signature"},
+                    {"uses", "uses"}, {"group", "group"}, {"owners", "owners"}, {"source", "from"}, {"source", "brief"}};
+                for (String[] field : fields) {
+                    if (data.containsKey(field[0])) continue;
+                    String known = printable(componentSnapshot.get(field[1]));
+                    if (known.isBlank() && specEntry != null) known = printable(specEntry.get(field[1]));
+                    if (!known.isBlank()) data.put(field[0], known);
                 }
             }
         }

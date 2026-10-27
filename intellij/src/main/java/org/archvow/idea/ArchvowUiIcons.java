@@ -100,7 +100,15 @@ final class ArchvowUiIcons {
                 g.setStroke(new BasicStroke(1.55f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 switch (kind) {
                     case "refresh" -> {
-                        g.drawArc(2, 2, 10, 10, 45, 280); line(g, 11, 2, 11, 6); line(g, 11, 2, 7, 2);
+                        // a circle turning clockwise: open at the top right, its arrowhead at the top (0.11.3;
+                        // the former one read as a "C"). The same drawing as the VS Code page's REFRESH icon.
+                        g.draw(new java.awt.geom.Arc2D.Double(2, 2, 10, 10, 20, -300, java.awt.geom.Arc2D.OPEN));
+                        Path2D head = new Path2D.Double();
+                        head.moveTo(10.23, 2.50);
+                        head.lineTo(7.63, 0.01);
+                        head.lineTo(6.93, 3.95);
+                        head.closePath();
+                        g.fill(head);
                     }
                     case "check" -> { circle(g, 1.8, 1.8, 10.3); line(g, 4.5, 7, 6.6, 9); line(g, 6.6, 9, 10, 5.2); }
                     case "arrow" -> { line(g, 2, 7, 11, 7); line(g, 8, 4, 11, 7); line(g, 8, 10, 11, 7); }

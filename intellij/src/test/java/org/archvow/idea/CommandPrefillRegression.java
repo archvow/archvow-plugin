@@ -30,7 +30,19 @@ public final class CommandPrefillRegression {
         assertEqual("schema",other.get("component"));
         if (ArchvowCommandPrefill.prepare("component add", Map.of("type", "schema"), "sales_reader", component).containsKey("component"))
             throw new AssertionError("component add has no component argument");
-        System.out.println("OK: 5 grounded prefill scenarios");
+        // Edit spec from a component (0.11.3): what show <component> does not give comes from the spec's entry
+        JsonObject entry = JsonParser.parseString("{\"id\":\"sales_reader\",\"spec\":\"FATTRIB-12\",\"group\":\"readers\","
+            + "\"owners\":[\"@alice\",\"@data-team\"],\"from\":\"briefs/sales.md#reader\"}").getAsJsonObject();
+        Map<String,String> whole = ArchvowCommandPrefill.prepare("component edit", Map.of("component", "sales_reader"), "", component, entry);
+        assertEqual("FATTRIB-12", whole.get("spec"));
+        assertEqual("readers", whole.get("group"));
+        assertEqual("@alice,@data-team", whole.get("owners"));
+        assertEqual("briefs/sales.md#reader", whole.get("source"));
+        assertEqual("Read partitioned data", whole.get("description"));
+        Map<String,String> fix = ArchvowCommandPrefill.prepare("component edit",
+            Map.of("component", "sales_reader", "uses", "config"), "", component, entry);
+        if (fix.containsKey("spec") || fix.containsKey("owners")) throw new AssertionError("a specific fix stays specific: " + fix);
+        System.out.println("OK: 7 grounded prefill scenarios");
     }
     static void assertEqual(String expected, String actual) {
         if (!expected.equals(actual)) throw new AssertionError("Expected " + expected + "; got " + actual);

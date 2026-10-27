@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.11.3 - 2026-10-27
+
+- **Back** in the editor tab: a command opened from a component (Edit spec, + Question, + Rule,
+  + Component, Accept / Reject an assumption, Add invariant...) shows **← <component>** in the tab's
+  header; it returns to that component, on the view it was on. A component or a command chosen in the
+  sidebar, or an Overview command, has no Back.
+- **Edit spec opens with every field the component has**: from `show <component>` (description, uses)
+  and from its entry in the spec (ticket, owners, group, brief; signature when there is one), as the
+  IntelliJ plugin. A specific fix (from a diagnostic) still fills only its own field.
+- **The cards show one line** of their question and one of their answer, cut with "…" (whole in the
+  tooltip and in the answer panel on the right), as in IntelliJ.
+- **Reload** is a drawn icon (a circle turning clockwise, the same as in IntelliJ) instead of the "↻"
+  character; the header never cuts its buttons (the name gives way).
+- Tests: 50. Checked in Chromium: one-line cards, Edit spec -> "← clean_orders" -> back on Safety.
+
 ## 0.11.2 - 2026-10-27
 
 - **archvow is looked for in the project's Python interpreter first**: the one the Python extension uses

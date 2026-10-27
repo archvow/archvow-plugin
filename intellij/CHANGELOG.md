@@ -2,6 +2,24 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.11.3 - 2026-10-27
+
+- **The tool window's header no longer cuts the project's name** (the language box drew over it): the
+  language is chosen at the bottom of Overview, next to Open settings; the name takes what is left of
+  the width, never drawn under the buttons. **Reload** is a new drawn icon (a circle turning clockwise,
+  open at the top right; the former one read as a "C"), the same as VS Code's.
+- **Back** in the editor tab: a command opened from a component (Edit spec, + Question, + Rule, Accept /
+  Reject, Add invariant...) shows **← <component>** left of the logo; it returns to that component, on
+  the view it was on. Nothing to go back to after a choice in the tool window.
+- **Edit spec opens with every field the component has** (`ArchvowCommandPrefill`): description and uses
+  from `show <component>`, the ticket (--spec), owners, group and brief (--from) from its entry in the
+  spec (they were left empty), the signature when there is one. A diagnostic's specific fix stays specific.
+- **Test Archvow and long messages** (`ArchvowTextDialog`): a dialog sized to its text (it was one line as
+  wide as the screen), the text selectable, **Copy command** (the exact command line, quoted for a
+  terminal), Copy, Close. Also for the Python help and for what was tried when archvow is not found.
+- Tests: `TextDialogRegression`, `CommandPrefillRegression` (7 cases); 33 headless regressions pass; run in
+  a Swing frame: Edit spec from Safety -> "← orders_reader" -> back on Safety; the header at 330 px.
+
 ## 0.11.2 - 2026-10-27
 
 - **archvow is looked for in the project's Python interpreter first** (PyCharm: Settings > Project >

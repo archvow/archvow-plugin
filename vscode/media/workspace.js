@@ -20,6 +20,8 @@
     component: '', view: 0, filter: 'all',
     sel: { decision: '', question: '', safety: '', assumption: '', data: '', other: -1 },
     otherList: 0, drafts: {}, severity: {}, results: {}, raw: {}, confirm: null,
+    /** The editor tab: the component (and its view) a command was opened from, for Back; null without. */
+    back: null, backArmed: null,
     command: NAV ? '' : 'check', commandFilter: '', form: {}, formHelp: '',
     catalog: null, catalogSource: '', initTemplate: '', initAnswers: {}, initTouched: {}, advanced: false,
     base: 'origin/main', checkSel: 0, explained: {},
@@ -34,9 +36,19 @@
   const str = (o, k) => (o && o[k] !== null && o[k] !== undefined ? (typeof o[k] === 'object' ? JSON.stringify(o[k]) : String(o[k])) : '');
   const list = (o, k) => (o && Array.isArray(o[k]) ? o[k].filter((x) => x && typeof x === 'object') : []);
   const short = (s, n) => (s.length <= n ? s : s.substring(0, n - 1) + '…');
-  const post = (m) => vscode.postMessage(m);
+  const post = (m) => {
+    // a command opened from a component (Edit spec, + Question, Accept...): the editor tab can go back to it
+    if (!NAV && ui.mode === 'component' && ui.component && ui.view !== 7 && (m.type === 'openCommand' || m.type === 'choose')) {
+      ui.backArmed = { component: ui.component, view: ui.view };
+    }
+    vscode.postMessage(m);
+  };
   const btn = (label, action, extra = '', disabled = false, cls = '') =>
     `<button class="${cls}" data-a="${action}" ${extra} ${disabled ? 'disabled' : ''}>${esc(label)}</button>`;
+  /** A circle turning clockwise, open at the top right, its arrowhead at the top: Reload (the IntelliJ plugin draws the same). */
+  const REFRESH = '<svg class="glyph" viewBox="0 0 14 14" aria-hidden="true"><path d="M11.70 5.29 A5 5 0 1 1 7.87 2.08" fill="none" '
+    + 'stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/><path d="M10.23 2.50 L7.63 0.01 L6.93 3.95 Z" fill="currentColor"/></svg>';
+  const iconBtn = (svg, action, title) => `<button class="icon" data-a="${action}" title="${esc(title)}" aria-label="${esc(title)}">${svg}</button>`;
   const attrs = (o) => Object.entries(o).map(([k, v]) => `data-${k}="${esc(v)}"`).join(' ');
   const snapshot = () => (S && ui.component ? S.snapshots[ui.component] : null);
   const derived = () => (S && ui.component ? S.derived[ui.component] : null);
@@ -66,6 +78,7 @@
       case 'select':
         ui.forceWorkspace = true;
         ui.mode = 'component';
+        ui.back = null;
         if (ui.view === 7) ui.view = 0;
         selectComponent(m.component, false);
         if (m.clarify) chooseNext();
@@ -84,7 +97,7 @@
         break;
       case 'running':
         ui.results[m.target] = { running: true, args: m.args };
-        if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; }
+        if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; ui.back = null; }
         break;
       case 'result':
         ui.results[m.target] = { html: m.html, raw: m.raw, args: m.args, ok: m.ok, label: m.label };
@@ -98,6 +111,8 @@
         break;
       case 'openCommand':
         ui.forceWorkspace = true;
+        ui.back = ui.backArmed;
+        ui.backArmed = null;
         ui.mode = 'command';
         setCommand(m.command, m.values || {}, m.help || '');
         break;
@@ -170,7 +185,7 @@
   }
 
   function header() {
-    const reload = btn('↻', 'refresh', `title="${esc(t('Reload Archvow', 'Recharger Archvow'))}"`, false, 'icon');
+    const reload = iconBtn(REFRESH, 'refresh', t('Reload Archvow', 'Recharger Archvow'));
     const log = btn('☷', 'log', `title="${esc(t('Open Archvow session log', 'Ouvrir le journal Archvow'))}"`, false, 'icon');
     const progress = S.loading ? `<div class="progress">⏳ ${esc(S.loading)}</div>` : '';
     if (NAV) {
@@ -185,8 +200,9 @@
       : ui.mode === 'result' ? t('Result', 'Résultat') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
     const named = ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot();
+    const back = ui.back && ui.mode !== 'component' ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.component)}">← ${esc(ui.back.component)}</button>` : '';
     return `<header class="top ${named ? 'slim' : ''}">
-  <div class="brand"><img src="${esc(window.ARCHVOW_LOGO)}" alt="" class="logo">
+  <div class="brand">${back}<img src="${esc(window.ARCHVOW_LOGO)}" alt="" class="logo">
     <div><div class="kind">${esc(kind ? 'Archvow · ' + kind : 'Archvow')}</div>${named ? '' : `<div class="title">${esc(what || t('Specifications → understandable components', 'Des specs aux composants compréhensibles'))}</div>`}
     <div class="project" title="${esc(S.project.root)}">⌂ ${esc(S.project.name)}</div></div></div>
   <div class="right">${reload}${log}</div></header>${progress}`;
@@ -263,7 +279,7 @@
       'Conseil uniquement. Archvow ne change pas automatiquement de branche Git.'))}">${esc(t(`⚠ You are on ${S.branch}. For development, create a feature branch (e.g. feature/my-change) first.`,
       `⚠ Branche ${S.branch} : crée une branche de fonctionnalité (ex. feature/ma-modification) avant de développer.`))}</div>` : '';
     const toolbar = [
-      btn('↻', 'refresh', '', false, 'icon'),
+      iconBtn(REFRESH, 'refresh', t('Reload Archvow', 'Recharger Archvow')),
       btn('Check', 'run', attrs({ label: 'check', args: 'check --json', target: 'overview' })),
       btn('Next', 'run', attrs({ label: 'next', args: 'next --json', target: 'overview' })),
       btn('Full check', 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' })),
@@ -469,9 +485,9 @@
       const key = label(row, i);
       const c = card(row, i);
       return `<li class="item-card ${ui.sel[kind] === key ? 'selected' : ''} ${c.open ? 'open' : 'done'}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}">
-  <div class="card-q"><b>${esc(c.number)}</b> · ${esc(c.title)}</div>
+  <div class="card-q" title="${esc(c.title)}"><b>${esc(c.number)}</b> · ${esc(c.title)}</div>
   ${c.open ? `<div class="card-open">● ${esc(c.state || t('Open', 'Ouvert'))}</div>${c.note ? `<div class="card-note">${esc(short(c.note, 160))}</div>` : ''}`
-    : `<div class="card-a">${esc(short(c.answer || c.state || t('Resolved', 'Traité'), 220))}</div>`}
+    : `<div class="card-a" title="${esc(c.answer || '')}">${esc(short(c.answer || c.state || t('Resolved', 'Traité'), 220))}</div>`}
   ${c.by ? `<div class="card-by muted">${esc(c.by)}</div>` : ''}</li>`;
     }).join('') || `<li class="muted empty">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>`;
   }
@@ -1096,6 +1112,14 @@
 
   const actions = {
     tab: (e) => { ui.tab = e.dataset.tab; },
+    back: () => {
+      // the component the command was opened from, on its view: the extension shows it again (and reads it)
+      const to = ui.back;
+      ui.back = null;
+      if (!to) return;
+      ui.view = to.view;
+      post({ type: 'show', component: to.component });
+    },
     overSub: (e) => { ui.overSub = e.dataset.sub; },
     refresh: () => post({ type: 'refresh' }),
     log: () => post({ type: 'log' }),

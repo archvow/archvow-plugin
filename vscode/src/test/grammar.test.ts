@@ -4,6 +4,7 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
+import { prefill } from '../grammar';
 import * as oniguruma from 'vscode-oniguruma';
 import * as textmate from 'vscode-textmate';
 import { tokenize, TokenKind } from '../vow/scanner';
@@ -60,4 +61,14 @@ test('every keyword of every sample vow has the scope of its depth', async () =>
     assert.ok(header.scopes.includes('keyword.other.header.vow'), `${file}: the first line`);
   }
   assert.ok(keywords > 1000, `${keywords} keywords`);
+});
+
+test('Edit spec from a component: every field it has, the spec entry giving what show does not (0.11.3)', () => {
+  const snapshot = { component: 'sales_reader', description: 'Read partitioned data', uses: ['config', 'sales_schema'] };
+  const entry = { id: 'sales_reader', spec: 'FATTRIB-12', group: 'readers', owners: ['@alice', '@data-team'], from: 'briefs/sales.md#reader' };
+  const whole = prefill('component edit', { component: 'sales_reader' }, '', snapshot, entry);
+  assert.deepEqual(whole, { component: 'sales_reader', description: 'Read partitioned data', spec: 'FATTRIB-12', uses: 'config,sales_schema',
+    group: 'readers', owners: '@alice,@data-team', source: 'briefs/sales.md#reader' });
+  const fix = prefill('component edit', { component: 'sales_reader', uses: 'config' }, '', snapshot, entry);
+  assert.deepEqual(fix, { component: 'sales_reader', uses: 'config' });
 });

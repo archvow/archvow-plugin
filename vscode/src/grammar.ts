@@ -145,17 +145,25 @@ export function printable(value: unknown): string {
  * The fields a command form starts with: what was asked, the selected component, and for a plain
  * "Edit spec" the component's current description, ticket, signature and uses. Nothing is guessed.
  */
+/**
+ * The known fields of a command opened from a component. Edit spec gets every field the component has:
+ * from `show <component>`, then from its entry in the spec (`specEntry`: ticket, owners, group, brief),
+ * as the IntelliJ plugin (ArchvowCommandPrefill, 0.11.3). A specific fix (a diagnostic's) stays specific.
+ */
 export function prefill(command: string, requested: Record<string, string>, selected: string,
-  snapshot: Record<string, unknown> | undefined): Record<string, string> {
+  snapshot: Record<string, unknown> | undefined, specEntry?: Record<string, unknown>): Record<string, string> {
   const data: Record<string, string> = { ...requested };
   if (USES_COMPONENT.has(command) && !data.component && selected) data.component = selected;
   const target = data.component ?? '';
   if (command === 'component edit' && snapshot && target === snapshot.component) {
     const specific = Object.keys(data).some((k) => k !== 'component');
     if (!specific) {
-      for (const property of ['description', 'spec', 'signature', 'uses']) {
-        const known = printable(snapshot[property]);
-        if (known) data[property] = known;
+      const fields: [string, string][] = [['description', 'description'], ['spec', 'spec'], ['signature', 'signature'],
+        ['uses', 'uses'], ['group', 'group'], ['owners', 'owners'], ['source', 'from'], ['source', 'brief']];
+      for (const [field, key] of fields) {
+        if (field in data) continue;
+        const known = printable(snapshot[key]) || (specEntry ? printable(specEntry[key]) : '');
+        if (known) data[field] = known;
       }
     }
   }

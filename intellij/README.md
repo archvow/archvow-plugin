@@ -53,7 +53,7 @@ You need a JDK 21. IntelliJ's own runtime is one:
 ```bash
 cd intellij
 export JAVA_HOME="/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home"   # or IntelliJ IDEA CE.app, PyCharm.app...
-./gradlew buildPlugin        # -> build/distributions/archvow-intellij-0.11.2.zip
+./gradlew buildPlugin        # -> build/distributions/archvow-intellij-0.11.3.zip
 ./gradlew check              # coreTest (the .vow reader) + workspaceTest (the workspace's plain classes)
 ./gradlew runIde             # optional: a sandbox IntelliJ with the plugin, to try it
 ```
@@ -68,13 +68,13 @@ mirror. If that IntelliJ version cannot be downloaded, put your own version ther
 
 ## Install
 
-Settings > Plugins > gear icon > **Install Plugin from Disk...** > `build/distributions/archvow-intellij-0.11.2.zip`,
+Settings > Plugins > gear icon > **Install Plugin from Disk...** > `build/distributions/archvow-intellij-0.11.3.zip`,
 then restart. For a team: a company plugin repository (an `updatePlugins.xml` on an internal server,
 Settings > Plugins > gear icon > Manage Plugin Repositories), so nobody downloads from outside.
 
 ## Check it once installed
 
-- [ ] Settings > Plugins lists **one** archvow plugin, version 0.11.2.
+- [ ] Settings > Plugins lists **one** archvow plugin, version 0.11.3.
 - [ ] The Archvow tool window opens on the left on a project with `.archvow/`, lists its components, and
       Check shows its result in the editor tab and the diagnostics in Check & Gates.
 - [ ] A click on a component opens the tab *archvow: <component>*; a click on another one shows it in the
@@ -105,5 +105,5 @@ time-out, cancel), `ArchvowGrammar` reads the command grammar (`src/main/resourc
 exported from archvow's own parser by `tools/export_cli.py`), `ArchvowPanel` is the workspace, the
 `Archvow*View` classes are its views. `src/main/resources/META-INF/plugin.xml` registers both parts.
 
-The plugin has its own version (0.11.2); it reads `.vow` format 1 and runs the archvow CLI 1.16 (the version of
+The plugin has its own version (0.11.3); it reads `.vow` format 1 and runs the archvow CLI 1.16 (the version of
 `../contract/cli/version.txt`; the workspace says when the installed archvow is another one).

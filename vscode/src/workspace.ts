@@ -723,7 +723,8 @@ export class ArchvowProject {
     const fr = this.state.fr;
     const target = values.component ?? selected;
     const snapshot = this.state.snapshots[target];
-    const known = prefill(name, values, selected, snapshot);
+    const entry = objects(this.state.spec, 'containers').flatMap((c) => objects(c, 'components')).find((x) => str(x, 'id') === target);
+    const known = prefill(name, values, selected, snapshot, entry);
     if (name === 'component add' && !known.container && selected) {
       const container = objects(this.state.spec, 'containers').find((c) => objects(c, 'components').some((x) => str(x, 'id') === selected));
       if (container) known.container = str(container, 'id');

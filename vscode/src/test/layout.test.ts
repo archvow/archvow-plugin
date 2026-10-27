@@ -131,7 +131,7 @@ test('the items as cards on the left, the selected one answered on the right (0.
   const html = cards('decision', rows, (r: { number: number }) => 'D' + r.number, (r: Record<string, string>) => ({
     number: String(r.number), title: r.question, open: !r.answer, answer: r.answer || '', by: r.answer ? `${r.by} · ${r.on}` : '' }));
   assert.match(html, /<li class="item-card  done" data-a="sel" data-kind="decision" data-key="D1">/);
-  assert.match(html, /<div class="card-a">Fail with a clear error: a missing input is an operations problem<\/div>/);
+  assert.match(html, /<div class="card-a" title="Fail with a clear error: a missing input is an operations problem">Fail with a clear error: a missing input is an operations problem<\/div>/);
   assert.match(html, /<div class="card-by muted">architect@example\.com · 2026-10-08<\/div>/);
   assert.match(html, /<li class="item-card selected open" data-a="sel" data-kind="decision" data-key="D3">/);
   assert.match(html, /<div class="card-open">● Open<\/div>/);
@@ -161,4 +161,18 @@ test('the sidebar architecture table: Component, State and Pending always shown,
   const hidden = [...css.matchAll(/@media \(max-width: (\d+)px\) \{ table\.arch \.(c-[a-z]+) \{ display: none; \} \}/g)].map((m) => [m[2], Number(m[1])]);
   assert.deepEqual(hidden.map(([c]) => c), ['c-container', 'c-layer', 'c-type']);
   assert.ok(hidden[0][1] > hidden[1][1] && hidden[1][1] > hidden[2][1]);
+});
+
+test('the editor tab goes back to the component a command was opened from (0.11.3)', () => {
+  // armed when the page asks for a command from a component, kept when the command opens, cleared otherwise
+  assert.match(page, /if \(!NAV && ui\.mode === 'component' && ui\.component && ui\.view !== 7 && \(m\.type === 'openCommand' \|\| m\.type === 'choose'\)\)/);
+  assert.match(page, /case 'openCommand':\s*ui\.forceWorkspace = true;\s*ui\.back = ui\.backArmed;\s*ui\.backArmed = null;/);
+  assert.match(page, /case 'select':\s*ui\.forceWorkspace = true;\s*ui\.mode = 'component';\s*ui\.back = null;/);
+  assert.match(page, /<button class="secondary back" data-a="back"/);
+  assert.match(page, /ui\.view = to\.view;\s*post\(\{ type: 'show', component: to\.component \}\);/);
+  // the cards: one line each, whole in the tooltip; Reload drawn, not a "↻" character
+  const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
+  assert.match(css, /\.item-card \.card-q, \.item-card \.card-a, \.item-card \.card-open, \.item-card \.card-note \{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; \}/);
+  assert.equal(page.includes("btn('↻'"), false);
+  assert.equal(page.match(/iconBtn\(REFRESH, 'refresh'/g)?.length, 2);
 });
