@@ -29,6 +29,27 @@ public final class UsesAndFileRegression {
             "relative path");
         check("src/x.py".equals(ArchvowLinks.relative("C:\\work\\sales\\", "C:\\work\\sales\\src\\x.py")), "Windows path");
         check(ArchvowLinks.relative("/work/sales", "/work/other/x.py").isEmpty(), "outside the project");
+        JsonObject withExamples = new JsonObject();
+        JsonArray examples = new JsonArray();
+        JsonObject ok = new JsonObject();
+        ok.addProperty("name", "SALES-5-negative");
+        ok.addProperty("ticket", "SALES-5");
+        ok.addProperty("folder", "tests/examples/clean_orders/SALES-5-negative");
+        ok.addProperty("level", "unit");
+        ok.addProperty("tested", true);
+        ok.addProperty("unchanged", true);
+        JsonObject changed = ok.deepCopy();
+        changed.addProperty("name", "SALES-7-late");
+        changed.addProperty("unchanged", false);
+        examples.add(ok);
+        examples.add(changed);
+        withExamples.add("examples", examples);
+        String shown = ArchvowLinks.examplesHtml(withExamples, false);
+        check(shown.contains("✓ SALES-5-negative</b> (SALES-5) - tests/examples/clean_orders/SALES-5-negative/ · unit · tested"),
+            "tested example: " + shown);
+        check(shown.contains("✖ SALES-7-late</b>") && shown.contains("files changed since recorded (ARCH055)"), "changed files");
+        check(ArchvowLinks.examplesHtml(withExamples, true).contains("Exemples métier"), "French title");
+        check(ArchvowLinks.examplesHtml(new JsonObject(), false).isEmpty(), "no examples: nothing");
         check("src/x.py:42".equals(ArchvowLinks.showArgument("src/x.py", 42))
             && "src/x.py".equals(ArchvowLinks.showArgument("src/x.py", 0)), "show argument");
     }

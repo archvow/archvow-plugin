@@ -21,7 +21,7 @@ agent, a `git checkout`). English or French: **Language** at the bottom of Overv
 
 ## Set up
 
-1. archvow installed: `archvow --version` in a terminal. The extension knows archvow 1.15 and says so
+1. archvow installed: `archvow --version` in a terminal. The extension knows archvow 1.16 and says so
    when the installed one is another version.
 2. If `archvow` is not on the PATH VS Code sees, set **archvow.python** to the Python that has it
    (`/path/venv/bin/python3`: the extension runs `<python> -m archvow`), or **archvow.executable** to
@@ -37,7 +37,7 @@ agent, a `git checkout`). English or French: **Language** at the bottom of Overv
 | `archvow.checkOnSave` | true | `archvow check --file` on each saved Python file |
 | `archvow.language` | `auto` | the workspace's language: VS Code's, `en` or `fr` |
 
-archvow 1.15 runs its person-only commands (decisions, hazards, rules...) only for a person: the
+archvow 1.16 runs its person-only commands (decisions, hazards, rules...) only for a person: the
 extension's commands come from VS Code, not from an AI agent, so they pass. If archvow stops one
 (ARCH051, ARCH052, ARCH054), the workspace shows archvow's message as it is.
 
@@ -55,7 +55,7 @@ IntelliJ plugin's, tested against it (`../contract/`).
 ```bash
 npm ci
 npm test            # the .vow reader against the Java one, the grammar, the CLI runner, the workspace's rules
-npm run package     # -> ../dist/archvow-0.9.0.vsix
+npm run package     # -> ../dist/archvow-0.10.0.vsix
 ```
 
 Install: Extensions view > `...` > **Install from VSIX...**. For a team, a private registry (a

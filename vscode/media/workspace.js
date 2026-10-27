@@ -410,7 +410,7 @@
     else if (!view) body = `<p class="muted">${esc(t('Loading', 'Chargement'))}: ${esc(ui.component)}…</p>`;
     else body = [decisionsView, questionsView, safetyView, assumptionsView, rulesView, tasksView, vowView][ui.view](view, d);
     const head = view ? `<div class="component-head"><h2>${esc(ui.component)}</h2><span class="muted">${esc(str(view, 'type'))} · ${esc(localizedState(str(view, 'status')))}</span>
-  <p>${esc(str(view, 'description'))}</p>${links(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
+  <p>${esc(str(view, 'description'))}</p>${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     return `${head}<div class="section-head"><b>Actions</b> <span class="muted">${esc(t('Available on this component', 'Disponibles sur ce composant'))}</span></div>
   <div class="row wrap">${actions.join('')}</div>
@@ -427,6 +427,21 @@
     const parts = [uses.length ? `${esc(t('Uses', 'Utilise'))}: ${uses.map(link).join(', ')}` : '',
       usedBy.length ? `${esc(t('Used by', 'Utilisé par'))}: ${usedBy.map(link).join(', ')}` : ''].filter(Boolean);
     return parts.length ? `<p class="links muted small">${parts.join('  ·  ')}</p>` : '';
+  }
+
+  /** The component's business examples (show --json `examples`): ✓ when its test is marked and its files
+   *  are the recorded ones, else what is missing (ARCH056, ARCH055). As the IntelliJ details show them. */
+  function examples(view) {
+    const rows = list(view, 'examples');
+    if (!rows.length) return '';
+    const item = (e) => {
+      const ok = e.tested === true && e.unchanged !== false;
+      const why = e.unchanged === false ? t('files changed since recorded (ARCH055)', 'fichiers modifiés depuis leur enregistrement (ARCH055)')
+        : e.tested === true ? t('tested', 'testé') : t('no marked test yet (ARCH056)', 'pas encore de test marqué (ARCH056)');
+      const tip = `${str(e, 'folder')}/ · ${str(e, 'level')} · ${why}`;
+      return `<span class="${ok ? 'ok' : 'tone-warn'}" title="${esc(tip)}">${ok ? '✓' : '✖'} ${esc(str(e, 'name'))}${str(e, 'ticket') ? ` (${esc(str(e, 'ticket'))})` : ''}</span>`;
+    };
+    return `<p class="examples small">${esc(t('Examples', 'Exemples'))}: ${rows.map(item).join('  ·  ')}</p>`;
   }
 
   /** Why the component's total can exceed a view's count (as the IntelliJ workspace says). */

@@ -10,7 +10,7 @@ system
 
 # --- containers
 container invoicing
-  template python-app@1.15.0
+  template python-app@1.16.0
   package invoicing
   path src/invoicing
 

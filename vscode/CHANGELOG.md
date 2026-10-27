@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 - 2026-10-27
+
+- On archvow 1.16: the contract is recorded from archvow 1.16.0. The Commands list has **example add**
+  and **example remove** (business examples, built from archvow's parser with no code change);
+  `show --json` gains `examples`.
+- A component's head lists its business examples: ✓ when its test is marked and its files are the
+  recorded ones, ✖ with the reason in the tooltip (no marked test yet, ARCH056; files changed, ARCH055).
+- Tests: 43.
+
 ## 0.9.0 - 2026-10-27
 
 - On archvow 1.15: the contract is recorded from archvow 1.15.0. `show <component> --json` gains

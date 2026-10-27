@@ -2,6 +2,15 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.10.0 - 2026-10-27
+
+- On archvow 1.16: the contract is recorded from archvow 1.16.0 (`example add|remove` in the command
+  forms, `examples` in `show --json`); `expected.json` rewritten by `DumpContract`.
+- A component's details list its business examples (`ArchvowLinks.examplesHtml`): ✓ tested and
+  unchanged, or ✖ with the reason (ARCH056, ARCH055). The vow viewer colours `example` and `fingerprint`.
+- Checked as for 0.9.0: `CoreTests`, the 29 headless regressions (`UsesAndFileRegression` covers the
+  examples); `./gradlew check buildPlugin` and `runIde` on your machine.
+
 ## 0.9.0 - 2026-10-27
 
 - On archvow 1.15: the contract is recorded from archvow 1.15.0 (`show --json` gains `uses`, `used_by`,

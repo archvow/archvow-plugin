@@ -80,3 +80,22 @@ test('"Show archvow for this file" on an editor tab and in the editor: archvow s
   assert.match(extension, /registerCommand\('archvow\.showFile'/);
   assert.match(host, /\['show', line > 0 \? `\$\{relative\}:\$\{line\}` : relative, '--json'\]/);
 });
+
+test('a component shows its business examples (show --json `examples`): tested and unchanged, or what is missing', () => {
+  const source = page.match(/function examples\(view\) \{[\s\S]*?\n  \}/);
+  assert.ok(source, 'examples() is in the page');
+  const esc = (x: string) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const list = (o: Record<string, unknown>, k: string) => (Array.isArray(o[k]) ? (o[k] as unknown[]) : []);
+  const str = (o: Record<string, unknown>, k: string) => (o[k] === undefined || o[k] === null ? '' : String(o[k]));
+  const examples = new Function('t', 'esc', 'list', 'str', `${source[0]}; return examples;`)((en: string) => en, esc, list, str);
+  const folder = 'tests/examples/clean_orders/SALES-5-negative';
+  const html = examples({ examples: [
+    { name: 'SALES-5-negative', ticket: 'SALES-5', level: 'unit', folder, tested: true, unchanged: true },
+    { name: 'SALES-6-empty', level: 'unit', folder, tested: false, unchanged: true },
+    { name: 'SALES-7-late', level: 'integration', folder, tested: true, unchanged: false }] });
+  assert.match(html, /<span class="ok" title="[^"]*· unit · tested">✓ SALES-5-negative \(SALES-5\)<\/span>/);
+  assert.match(html, /<span class="tone-warn" title="[^"]*no marked test yet \(ARCH056\)">✖ SALES-6-empty<\/span>/);
+  assert.match(html, /files changed since recorded \(ARCH055\)">✖ SALES-7-late/);
+  assert.equal(examples({ examples: [] }), '');
+  assert.match(page, /\$\{links\(view\)\}\$\{examples\(view\)\}/);
+});

@@ -46,6 +46,36 @@ final class ArchvowLinks {
         return parts.isEmpty() ? "" : "<p style='color:#6B7280'>" + String.join("&nbsp;&nbsp;·&nbsp;&nbsp;", parts) + "</p>";
     }
 
+    /** The component's business examples (show --json {@code examples}) as HTML: each one tested and its
+     *  files unchanged (✓), or what is missing - no marked test (ARCH056), files changed (ARCH055). */
+    static String examplesHtml(JsonObject view, boolean french) {
+        if (view == null || !view.has("examples") || !view.get("examples").isJsonArray()) return "";
+        List<String> rows = new ArrayList<>();
+        for (JsonElement e : view.getAsJsonArray("examples")) {
+            if (e == null || !e.isJsonObject()) continue;
+            JsonObject example = e.getAsJsonObject();
+            boolean tested = flag(example, "tested", false);
+            boolean unchanged = flag(example, "unchanged", true);
+            String why = !unchanged ? (french ? "fichiers modifiés depuis leur enregistrement (ARCH055)" : "files changed since recorded (ARCH055)")
+                : tested ? (french ? "testé" : "tested")
+                : (french ? "pas encore de test marqué (ARCH056)" : "no marked test yet (ARCH056)");
+            String ticket = text(example, "ticket");
+            rows.add("<li><b>" + ((tested && unchanged) ? "✓ " : "✖ ") + escape(text(example, "name")) + "</b>"
+                + (ticket.isBlank() ? "" : " (" + escape(ticket) + ")") + " - " + escape(text(example, "folder")) + "/ · "
+                + escape(text(example, "level")) + " · " + escape(why) + "</li>");
+        }
+        return rows.isEmpty() ? "" : "<p><b>" + (french ? "Exemples métier" : "Business examples") + "</b></p><ul>"
+            + String.join("", rows) + "</ul>";
+    }
+
+    private static boolean flag(JsonObject o, String key, boolean otherwise) {
+        return o.has(key) && o.get(key).isJsonPrimitive() ? o.get(key).getAsBoolean() : otherwise;
+    }
+
+    private static String text(JsonObject o, String key) {
+        return o.has(key) && o.get(key).isJsonPrimitive() ? o.get(key).getAsString() : "";
+    }
+
     /** The component a link opens ("component:clean_orders" -> "clean_orders"), or "" for another link. */
     static String component(String link) {
         return link != null && link.startsWith(SCHEME) ? link.substring(SCHEME.length()) : "";

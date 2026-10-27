@@ -1607,6 +1607,103 @@
     },
     {
       "path": [
+        "example",
+        "add"
+      ],
+      "description": "Record an example whose files are in tests/examples/<component>/<example>/ (input/ and expected/); run again after its files change.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its folder name: letters, digits, - and _, often the ticket first",
+          "metavar": "example"
+        },
+        {
+          "name": "spec",
+          "flags": [
+            "-s",
+            "--spec"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the ticket it comes from (e.g. the Jira story)",
+          "metavar": "TICKET"
+        }
+      ]
+    },
+    {
+      "path": [
+        "example",
+        "remove"
+      ],
+      "description": "Remove an example from the spec (its files stay; asks first).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the example, as archvow show <component> lists it",
+          "metavar": "example"
+        },
+        {
+          "name": "yes",
+          "flags": [
+            "--yes"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "do not ask for confirmation (scripts)",
+          "metavar": "yes"
+        }
+      ]
+    },
+    {
+      "path": [
         "prompt"
       ],
       "description": "Print a component's spec card as a task for an AI assistant.",

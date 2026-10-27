@@ -2415,6 +2415,7 @@ final class ArchvowPanel extends JPanel {
         StringBuilder html = new StringBuilder(htmlHead());
         html.append("<h2>").append(escape(id)).append("</h2>");
         html.append(ArchvowLinks.html(data, ArchvowI18n.isFrench(project)));
+        html.append(ArchvowLinks.examplesHtml(data, ArchvowI18n.isFrench(project)));
         List<JsonObject> decisions = ArchvowGrammar.objects(data,"decisions");
         html.append(sectionHeader(ArchvowI18n.text(project,"Decisions", "Décisions"), decisions.size()));
         for (JsonObject d : decisions) html.append(decisionBlock(d));

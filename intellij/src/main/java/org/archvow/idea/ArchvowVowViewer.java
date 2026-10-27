@@ -21,7 +21,7 @@ final class ArchvowVowViewer {
         "vow", "name", "type", "layer", "module", "ticket", "description", "uses",
         "symbol", "kind", "signature", "decision", "question", "answer", "by", "on",
         "hazard", "severity", "invariant", "prevents", "rule", "assumptions",
-        "status", "safety", "columns", "personal", "tasks", "missing", "operations");
+        "status", "safety", "columns", "personal", "tasks", "missing", "operations", "example", "fingerprint");
     private static final Pattern QUOTED = Pattern.compile("\"(?:[^\"\\\\]|\\\\.)*\"");
     private static final Pattern FIRST_WORD = Pattern.compile("(?s)^(\\s*)([a-z][a-z_]*)(.*)$");
 
