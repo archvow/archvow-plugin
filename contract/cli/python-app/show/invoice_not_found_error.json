@@ -1,0 +1,45 @@
+{
+  "component": "invoice_not_found_error",
+  "type": "error",
+  "known_columns": [],
+  "description": "No invoice with this number",
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?",
+      "answer": "Exit code 3",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?",
+      "answer": "A short fixed message, without personal data or secrets",
+      "suggested": "A short fixed message, without personal data or secrets",
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "exposed",
+      "question": "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?",
+      "status": "answered",
+      "dismissed": "Its message is fixed and names only the invoice number the user typed"
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

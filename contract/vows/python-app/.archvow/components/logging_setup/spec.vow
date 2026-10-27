@@ -1,0 +1,23 @@
+vow 1 component logging_setup
+# archvow vow of logging_setup - what it must be and do; archvow check holds the code to it.
+# Read: archvow show logging_setup. Change: archvow specify logging_setup. Never edit by hand.
+name logging_setup
+type foundation
+layer p0_common
+module invoicing.p0_common.logging_setup
+description "Configures logging once, for the entry points (level from the config, one line per event, never a secret or personal data)."
+uses []
+
+# --- symbols
+symbol setup_logging
+  kind function
+  signature "(level: str = \"INFO\") -> None"
+
+# --- decisions
+decision 1
+  question "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?"
+  answer "stderr, one line per event: time, level, message"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:49.235795+00:00
+
+assumptions []

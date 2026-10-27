@@ -1,0 +1,108 @@
+# archvow for IntelliJ IDEA
+
+One plugin for archvow in IntelliJ IDEA and the other JetBrains IDEs (PyCharm included), 2024.3 and
+later. It has two parts:
+
+- **the workspace** (`org.archvow.idea`): the components of the project, their decisions, questions,
+  safety, rules, tasks and checks, read from the archvow CLI (`show`, `next`, `check --json`). Every
+  change runs an archvow command, after a confirmation: the plugin never writes a vow itself.
+- **the `.vow` language** (`org.archvow.vow`): editor support for `.archvow/spec.vow`,
+  `.archvow/components/<component>/spec.vow` and `.archvow/proposals.vow`.
+
+It replaces the two former plugins, `archvow-intellij` (the workspace, id `org.archvow.intellij`) and
+`vow-plugin-intellij` (the language, id `com.archvow.intellij`). The id is the workspace's, so an installed
+workspace updates in place. **Uninstall the former vow plugin** (Settings > Plugins > archvow, the one
+with version 0.4.x) before installing this one: both declare the `.vow` file type.
+
+## The workspace
+
+| Where | What |
+|---|---|
+| Tool window **Archvow** (left; **Tools > Show Archvow**) | Overview, Components (the tree) and Commands (the list): what you choose there opens in **one** editor tab, *archvow: clean_orders*, reused for the next component or command (close it, and the next click opens it again) |
+| Overview | the architecture (containers, layers, components with their status), Check & Gates (`check --json`, every diagnostic with its rule), Next |
+| Components (the editor tab) | per component: decisions (answer, propose, accept), questions, safety (hazards, invariants), assumptions, rules, columns and tasks, the full `spec.vow`; Open Spec / Open Code |
+| Commands (the editor tab) | a form for each archvow command, built from the CLI's own parser; read-only commands run at once, changes ask for a confirmation |
+| Settings > Tools > Archvow | the archvow executable, or the Python that has archvow installed (`python3 -m archvow`), the time-out, the language (English / French / the IDE's) |
+
+The archvow CLI must be installed (`archvow --version` in a terminal). The plugin runs it in the project
+folder, never through a shell, one command at a time.
+
+## The `.vow` language
+
+| What | How |
+|---|---|
+| File type and icon | every `*.vow` file, with archvow's icon (green; a lighter green in dark themes) |
+| Highlighting | the first line; keywords, one colour per depth - the general rule of the format: not indented (`name`, `type`, `uses`, `decision`, `hazard`), indented once (`question`, `answer`, `by`, `on`, `kind`, a column), twice, three times and deeper; ids (`H1`, `INV2`, `R1`), text in quotes, numbers, `true`/`false`/`null`, people (`@alice`, `alice@acme.com`), dates, lists, JSON, comments. Colours: Settings > Editor > Color Scheme > Vow |
+| Errors as you read | what keeps archvow from reading the vow (indentation, tabs, quotes, lists, the first line, JSON), with its line; warnings for a key with no value, or a key repeated where only items repeat |
+| Folding | every block, at any depth |
+| Structure | the Structure tool window (Alt+7 / Cmd+7) shows the blocks and lines as indented |
+| Comments | Ctrl+/ (Cmd+/) adds or removes `# ` |
+| Ctrl+click (Cmd+click) | a component in `uses [...]` or `components [...]` opens its `spec.vow`; a hazard in `prevents [H1, clean_orders.H2]` jumps to its line; the value of `module` opens the Python file |
+| Banner | over each vow: which archvow command changes it |
+| Markdown | ```` ```vow ```` blocks in `.md` files are highlighted the same way (the Markdown plugin injects the language named after the fence) |
+
+The language knows the **format**, not a list of keywords: any keyword is accepted at any depth, so a
+new keyword in archvow, or a company's own, needs no new plugin. What each keyword means is checked by
+`archvow check`.
+
+## Build
+
+You need a JDK 21. IntelliJ's own runtime is one:
+
+```bash
+cd intellij
+export JAVA_HOME="/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home"   # or IntelliJ IDEA CE.app, PyCharm.app...
+./gradlew buildPlugin        # -> build/distributions/archvow-intellij-0.8.0.zip
+./gradlew check              # coreTest (the .vow reader) + workspaceTest (the workspace's plain classes)
+./gradlew runIde             # optional: a sandbox IntelliJ with the plugin, to try it
+```
+
+Or, from the repository root, `./build.sh` builds this plugin and the VS Code extension into `dist/`.
+
+The first build downloads Gradle and the IntelliJ Platform it compiles against (`platformVersion` in
+`gradle.properties`, 2024.3.5). Behind a company proxy, set it in `~/.gradle/gradle.properties`
+(`systemProp.https.proxyHost=...`). For a build with no outside source, point
+`distributionUrl` (gradle/wrapper/gradle-wrapper.properties) and the repositories at the company's
+mirror. If that IntelliJ version cannot be downloaded, put your own version there (Help > About).
+
+## Install
+
+Settings > Plugins > gear icon > **Install Plugin from Disk...** > `build/distributions/archvow-intellij-0.8.0.zip`,
+then restart. For a team: a company plugin repository (an `updatePlugins.xml` on an internal server,
+Settings > Plugins > gear icon > Manage Plugin Repositories), so nobody downloads from outside.
+
+## Check it once installed
+
+- [ ] Settings > Plugins lists **one** archvow plugin, version 0.8.0.
+- [ ] The Archvow tool window opens on the left on a project with `.archvow/`, lists its components, and
+      Check shows its result in the editor tab and the diagnostics in Check & Gates.
+- [ ] A click on a component opens the tab *archvow: <component>*; a click on another one shows it in the
+      same tab (no second tab); a command in Commands opens its form in that tab too. If you installed an
+      earlier version, the tool window may stay where it was: drag its icon to the left once.
+- [ ] A `spec.vow` shows the vow icon, the colours and the banner.
+- [ ] `name`, `decision` (not indented), `question`, `by` (indented once) and `components` under a
+      rule's `scope` (twice) have three different colours; Settings > Editor > Color Scheme > Vow >
+      Keyword changes each depth.
+- [ ] Indent a line by 3 spaces: an error with the line; undo: it goes.
+- [ ] Fold a `hazard H1` block; the Structure tool window lists the blocks.
+- [ ] Cmd+click on a name in `uses [...]`: its `spec.vow` opens.
+- [ ] In a Markdown file, a ```` ```vow ```` block is coloured like a `.vow` file.
+
+## How it is built
+
+`src/main/java/org/archvow/vow/core/` reads the `.vow` text in plain Java, with no IntelliJ class:
+`VowScanner` (tokens for highlighting, restartable at any token), `VowDocument` (the tree of blocks and
+the problems), `VowValues`, `VowJson`, `VowLinks`. It is tested on its own (`coreTest`): every token of
+every sample vow, restarting anywhere, the problems with their messages. It was also compared with
+archvow's Python reader on 3 000 random vows. The VS Code extension has the same reader in TypeScript;
+`../contract/` holds what both must agree on (see the repository README). The rest of
+`src/main/java/org/archvow/vow/` is the thin IntelliJ layer: file type, lexer, parser (one element per
+line), highlighter, colour page, annotator, folding, structure view, references, banner.
+
+`src/main/java/org/archvow/idea/` is the workspace: `ArchvowCli` runs the CLI (no shell, project folder,
+time-out, cancel), `ArchvowGrammar` reads the command grammar (`src/main/resources/archvow/commands.json`,
+exported from archvow's own parser by `tools/export_cli.py`), `ArchvowPanel` is the workspace, the
+`Archvow*View` classes are its views. `src/main/resources/META-INF/plugin.xml` registers both parts.
+
+The plugin has its own version (0.8.0); it reads `.vow` format 1 and runs the archvow CLI 1.14 (the version of
+`../contract/cli/version.txt`; the workspace says when the installed archvow is another one).

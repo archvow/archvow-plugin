@@ -1,0 +1,248 @@
+{
+  "component": "clean_orders",
+  "type": "transformation",
+  "known_columns": [],
+  "description": "Keep only the valid rows: order_id not null and amount >= 0",
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which rows does it keep (filter conditions), or all of them?",
+      "answer": "Rows where order_id is not null and amount >= 0",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+      "answer": "The schema columns, unchanged",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+      "answer": "No grouping",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+      "answer": "No join",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 5,
+      "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+      "answer": "Return an empty DataFrame with the output schema",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 6,
+      "question": "Null values in key columns: drop, keep, or fail?",
+      "answer": "Drop rows with a null order_id",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 7,
+      "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+      "answer": "Keep one row per order_id",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 8,
+      "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+      "answer": "Drop rows where amount is negative",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 9,
+      "question": "Extra input columns not in the schema: drop silently or fail?",
+      "answer": "Drop them: output only the schema columns",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "Input missing, empty or late: what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "an absent, empty or late input is processed as if it were complete",
+        "invariant": "Return an empty DataFrame with the output schema (decision 5)",
+        "decision": {
+          "number": 5,
+          "answer": "Return an empty DataFrame with the output schema"
+        }
+      }
+    },
+    {
+      "number": 2,
+      "guide_word": "more",
+      "question": "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
+        "invariant": "Keep one row per order_id (decision 7)",
+        "decision": {
+          "number": 7,
+          "answer": "Keep one row per order_id"
+        }
+      }
+    },
+    {
+      "number": 3,
+      "guide_word": "less",
+      "question": "Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen?",
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "clean_orders.H1",
+          "severity": "high",
+          "description": "A valid input row is dropped",
+          "suggested": false,
+          "prevented_by": [
+            {
+              "id": "clean_orders.INV1",
+              "statement": "every input row with an order_id and amount >= 0 appears in the output",
+              "verify": "property_test",
+              "tested": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "guide_word": "wrong",
+      "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a null, negative or out-of-range value reaches the output",
+        "invariant": "Drop rows where amount is negative (decision 8)",
+        "decision": {
+          "number": 8,
+          "answer": "Drop rows where amount is negative"
+        }
+      }
+    },
+    {
+      "number": 5,
+      "guide_word": "exposed",
+      "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "personal or secret data is written where it must not be",
+        "invariant": "personal and secret columns never reach the output"
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": [
+    {
+      "task": "T1",
+      "core": true,
+      "done": false,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "1",
+          "text": "Which rows does it keep (filter conditions), or all of them?",
+          "answer": "Rows where order_id is not null and amount >= 0",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "2",
+          "text": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+          "answer": "The schema columns, unchanged",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "3",
+          "text": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+          "answer": "No grouping",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "4",
+          "text": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+          "answer": "No join",
+          "done": false
+        }
+      ],
+      "summary": "the file and its public API, decisions 1-4"
+    },
+    {
+      "task": "T2",
+      "core": false,
+      "done": false,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "5",
+          "text": "Empty input: return an empty DataFrame with the output schema, or fail?",
+          "answer": "Return an empty DataFrame with the output schema",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "6",
+          "text": "Null values in key columns: drop, keep, or fail?",
+          "answer": "Drop rows with a null order_id",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "7",
+          "text": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+          "answer": "Keep one row per order_id",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "8",
+          "text": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+          "answer": "Drop rows where amount is negative",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "9",
+          "text": "Extra input columns not in the schema: drop silently or fail?",
+          "answer": "Drop them: output only the schema columns",
+          "done": false
+        },
+        {
+          "kind": "invariant",
+          "key": "clean_orders.INV1",
+          "text": "every input row with an order_id and amount >= 0 appears in the output",
+          "answer": null,
+          "done": false
+        }
+      ],
+      "summary": "decisions 5-9, clean_orders.INV1"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "component": "create_order",
+  "type": "service",
+  "known_columns": [
+    {
+      "component": "order_model",
+      "columns": [
+        "amount",
+        "customer",
+        "id",
+        "status"
+      ]
+    },
+    {
+      "component": "new_order_model",
+      "columns": [
+        "amount"
+      ]
+    }
+  ],
+  "description": "Create a pending order for the current customer and save it",
+  "status": "verified",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "What does it do, step by step (read, check, change, save, call)?",
+      "answer": "Build a pending order with the next id, save it, return it",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Something it needs does not exist: which domain error?",
+      "answer": "Not applicable: it needs nothing that may be missing",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
+      "answer": "Two orders: a retry is a new order (customers cancel the extra one)",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "Who may perform it, and is that checked here or in the router?",
+      "answer": "Any authenticated customer, for themselves; checked by the router",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 5,
+      "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
+      "answer": "One save, nothing else to undo",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {
+      "customer": "personal"
+    },
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+      "status": "answered",
+      "dismissed": "No outside dependency: the repository is in memory, in the same process"
+    },
+    {
+      "number": 2,
+      "guide_word": "repeated",
+      "question": "Sent twice (a client retries or submits twice): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a retried request is applied twice",
+        "invariant": "Two orders: a retry is a new order (customers cancel the extra one) (decision 3)",
+        "decision": {
+          "number": 3,
+          "answer": "Two orders: a retry is a new order (customers cancel the extra one)"
+        }
+      }
+    },
+    {
+      "number": 3,
+      "guide_word": "partial",
+      "question": "A change half applied (saved here, not there; a failure mid-transaction): what must never happen?",
+      "status": "answered",
+      "dismissed": "One write to one in-memory store: nothing is saved in two places"
+    },
+    {
+      "number": 4,
+      "guide_word": "concurrent",
+      "question": "Two requests change the same data at the same time (lost update, negative stock): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "two simultaneous changes overwrite each other",
+        "invariant": "concurrent changes to the same record never lose an update"
+      }
+    },
+    {
+      "number": 5,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+        "invariant": "Any authenticated customer, for themselves; checked by the router (decision 4)",
+        "decision": {
+          "number": 4,
+          "answer": "Any authenticated customer, for themselves; checked by the router"
+        }
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

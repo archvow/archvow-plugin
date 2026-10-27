@@ -1,0 +1,501 @@
+{
+  "schema_version": 2,
+  "system": {
+    "name": "invoicing",
+    "description": "Marks invoices paid, from the command line"
+  },
+  "containers": [
+    {
+      "id": "invoicing",
+      "template": "python-app@1.14.0",
+      "package": "invoicing",
+      "path": "src/invoicing",
+      "components": [
+        {
+          "id": "config",
+          "name": "config",
+          "type": "foundation",
+          "layer": "p0_common",
+          "module": "invoicing.p0_common.config",
+          "description": "The program's settings, read from the environment and the command line, never from code.",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "Config",
+              "kind": "class"
+            },
+            {
+              "name": "load_config",
+              "kind": "function",
+              "signature": "(environ: Mapping[str, str] | None = None) -> Config"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?",
+              "answer": "data_dir: str (required), log_level: str = \"INFO\"",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:48.666456+00:00"
+            },
+            {
+              "question": "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?",
+              "answer": "None",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:48.945785+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "logging_setup",
+          "name": "logging_setup",
+          "type": "foundation",
+          "layer": "p0_common",
+          "module": "invoicing.p0_common.logging_setup",
+          "description": "Configures logging once, for the entry points (level from the config, one line per event, never a secret or personal data).",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "setup_logging",
+              "kind": "function",
+              "signature": "(level: str = \"INFO\") -> None"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?",
+              "answer": "stderr, one line per event: time, level, message",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:49.235795+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "invoice_model",
+          "name": "invoice",
+          "type": "model",
+          "layer": "p1_domain",
+          "module": "invoicing.p1_domain.invoice_model",
+          "spec": "US-001",
+          "description": "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "Invoice",
+              "kind": "class"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?",
+              "answer": "All fields required",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:49.515640+00:00"
+            },
+            {
+              "question": "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?",
+              "answer": "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:49.798659+00:00"
+            },
+            {
+              "question": "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?",
+              "answer": "None",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:50.138638+00:00"
+            },
+            {
+              "question": "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?",
+              "answer": "Frozen: a change builds a new one (dataclasses.replace)",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:50.522554+00:00"
+            }
+          ],
+          "assumptions": [],
+          "columns": {
+            "amount": "none",
+            "customer": "personal",
+            "number": "none",
+            "status": "none"
+          }
+        },
+        {
+          "id": "invoice_not_found_error",
+          "name": "invoice_not_found",
+          "type": "error",
+          "layer": "p1_domain",
+          "module": "invoicing.p1_domain.invoice_not_found_error",
+          "spec": "US-001",
+          "description": "No invoice with this number",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "InvoiceNotFoundError",
+              "kind": "class"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?",
+              "answer": "Exit code 3",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:50.822682+00:00"
+            },
+            {
+              "question": "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?",
+              "answer": "A short fixed message, without personal data or secrets",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:51.141043+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "invoices_repository",
+          "name": "invoices",
+          "type": "repository",
+          "layer": "p2_io",
+          "module": "invoicing.p2_io.invoices_repository",
+          "spec": "US-001",
+          "description": "Stores and finds invoices, one JSON file per invoice in the data folder",
+          "uses": [
+            "invoice_model"
+          ],
+          "symbols": [
+            {
+              "name": "InvoicesRepository",
+              "kind": "class"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?",
+              "answer": "One file NUMBER.json in data_dir, the fields of the invoice, amount as a string",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:51.531837+00:00"
+            },
+            {
+              "question": "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?",
+              "answer": "Return None; the service raises the domain error",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:51.850312+00:00"
+            },
+            {
+              "question": "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?",
+              "answer": "Write to a temporary file next to it, then rename it",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:52.163044+00:00"
+            },
+            {
+              "question": "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?",
+              "answer": "The last one wins: marking paid twice gives the same file",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:52.567662+00:00"
+            }
+          ],
+          "assumptions": [],
+          "answers": {
+            "P.retention": {
+              "answer": "10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:21:02.537432+00:00"
+            },
+            "P.location": {
+              "answer": "The company's file server, in France",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:21:02.820664+00:00"
+            }
+          }
+        },
+        {
+          "id": "mark_paid",
+          "name": "mark_paid",
+          "type": "service",
+          "layer": "p3_services",
+          "module": "invoicing.p3_services.mark_paid",
+          "spec": "US-001",
+          "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
+          "uses": [
+            "invoice_model",
+            "invoice_not_found_error",
+            "invoices_repository"
+          ],
+          "symbols": [
+            {
+              "name": "mark_paid",
+              "kind": "function",
+              "signature": "(data_dir: Path, number: str) -> Invoice"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
+              "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:52.845862+00:00"
+            },
+            {
+              "question": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
+              "answer": "InvoiceNotFoundError",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:53.155922+00:00"
+            },
+            {
+              "question": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
+              "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:53.455983+00:00"
+            },
+            {
+              "question": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
+              "answer": "Only one change, one save: nothing to undo",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:53.785062+00:00"
+            }
+          ],
+          "assumptions": [],
+          "answers": {
+            "P.purpose": {
+              "answer": "To record which customers paid their invoices, for the finance team",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:21:01.953151+00:00"
+            },
+            "P.legal_basis": {
+              "answer": "Contract: the customer's purchase",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:21:02.230748+00:00"
+            }
+          }
+        },
+        {
+          "id": "invoices_cli",
+          "name": "invoices",
+          "type": "cli",
+          "layer": "p4_entrypoints",
+          "module": "invoicing.p4_entrypoints.invoices_cli",
+          "spec": "US-001",
+          "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
+          "uses": [
+            "mark_paid",
+            "invoice_not_found_error"
+          ],
+          "symbols": [
+            {
+              "name": "main",
+              "kind": "function",
+              "signature": "(argv: Sequence[str] | None = None) -> int"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?",
+              "answer": "Exit code 2 with the usage message (argparse)",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:54.114836+00:00"
+            },
+            {
+              "question": "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?",
+              "answer": "0 ok, 1 error, 2 bad arguments, 3 not found",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:54.414007+00:00"
+            },
+            {
+              "question": "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?",
+              "answer": "The invoice on one line on stdout; errors on stderr",
+              "by": "noreply@anthropic.com",
+              "on": "2026-10-21T16:20:54.764143+00:00"
+            }
+          ],
+          "assumptions": []
+        }
+      ]
+    }
+  ],
+  "rules": {},
+  "language": "en",
+  "ai_tools": [
+    "claude-code"
+  ],
+  "dependencies": [],
+  "compliance": [
+    "gdpr",
+    "tst"
+  ],
+  "mode": "strict",
+  "families": [
+    "all"
+  ],
+  "init_answers": {
+    "language": "en",
+    "python_version": "3.12",
+    "line_length": "88",
+    "platform": "gitlab",
+    "ci": "auto",
+    "architects": "@acme/architects",
+    "sonar": "no",
+    "auto_approve": "yes",
+    "sandbox": "yes",
+    "git_hooks": "githooks",
+    "branch_naming": "gitflow",
+    "pip_index_url": "",
+    "ci_image": ""
+  },
+  "hazards": [
+    {
+      "component": "invoice_model",
+      "id": "invoice_model.H1",
+      "guide_word": "wrong",
+      "severity": "high",
+      "description": "An invoice with a negative amount is accepted",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:56.484566+00:00"
+    },
+    {
+      "component": "invoices_repository",
+      "id": "invoices_repository.H1",
+      "guide_word": "partial",
+      "severity": "high",
+      "description": "An invoice file is half written",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:55.133888+00:00"
+    },
+    {
+      "component": "mark_paid",
+      "id": "mark_paid.H1",
+      "guide_word": "repeated",
+      "severity": "high",
+      "description": "Paying twice changes the invoice twice",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:55.830391+00:00"
+    }
+  ],
+  "invariants": [
+    {
+      "component": "invoice_model",
+      "id": "invoice_model.INV1",
+      "statement": "every invoice has an amount of zero or more",
+      "mitigates": [
+        "invoice_model.H1"
+      ],
+      "verify": "example_test",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:56.927386+00:00"
+    },
+    {
+      "component": "invoices_repository",
+      "id": "invoices_repository.INV1",
+      "statement": "an invoice file is complete or absent",
+      "mitigates": [
+        "invoices_repository.H1"
+      ],
+      "verify": "example_test",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:55.452690+00:00"
+    },
+    {
+      "component": "mark_paid",
+      "id": "mark_paid.INV1",
+      "statement": "marking an invoice paid twice gives the same invoice as once",
+      "mitigates": [
+        "mark_paid.H1"
+      ],
+      "verify": "example_test",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:56.155074+00:00"
+    }
+  ],
+  "dismissed": [
+    {
+      "component": "invoice_model",
+      "guide_word": "exposed",
+      "rationale": "Invoices hold no secret; the customer name is printed only to the person who runs the command",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:57.296944+00:00"
+    },
+    {
+      "component": "invoice_not_found_error",
+      "guide_word": "exposed",
+      "rationale": "Its message is fixed and names only the invoice number the user typed",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:57.667154+00:00"
+    },
+    {
+      "component": "invoices_cli",
+      "guide_word": "wrong",
+      "rationale": "argparse refuses bad arguments with exit code 2 (decision 1)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:58.002144+00:00"
+    },
+    {
+      "component": "invoices_cli",
+      "guide_word": "exposed",
+      "rationale": "It prints only the invoice the user asked for, to that user",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:58.249873+00:00"
+    },
+    {
+      "component": "invoices_repository",
+      "guide_word": "missing",
+      "rationale": "A missing file is reported as None, the service raises InvoiceNotFoundError (decision 2)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:58.493972+00:00"
+    },
+    {
+      "component": "invoices_repository",
+      "guide_word": "more",
+      "rationale": "It reads one invoice at a time, by number",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:58.793526+00:00"
+    },
+    {
+      "component": "invoices_repository",
+      "guide_word": "stale",
+      "rationale": "Nothing is cached: every call reads the file",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:59.104422+00:00"
+    },
+    {
+      "component": "invoices_repository",
+      "guide_word": "concurrent",
+      "rationale": "Concurrent writes give the same paid invoice (decision 4)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:59.429100+00:00"
+    },
+    {
+      "component": "invoices_repository",
+      "guide_word": "exposed",
+      "rationale": "Files stay in the data folder; nothing is logged",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:20:59.727068+00:00"
+    },
+    {
+      "component": "mark_paid",
+      "guide_word": "missing",
+      "rationale": "InvoiceNotFoundError (decision 2)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:21:00.044915+00:00"
+    },
+    {
+      "component": "mark_paid",
+      "guide_word": "partial",
+      "rationale": "One save, written completely or not at all (invoices_repository.INV1)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:21:00.407268+00:00"
+    },
+    {
+      "component": "mark_paid",
+      "guide_word": "concurrent",
+      "rationale": "Two runs write the same paid invoice (decision 3)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:21:00.799379+00:00"
+    },
+    {
+      "component": "mark_paid",
+      "guide_word": "exposed",
+      "rationale": "Nothing is logged or printed here",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:21:01.113855+00:00"
+    }
+  ]
+}

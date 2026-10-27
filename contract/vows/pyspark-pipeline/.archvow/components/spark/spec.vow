@@ -1,0 +1,23 @@
+vow 1 component spark
+# archvow vow of spark - what it must be and do; archvow check holds the code to it.
+# Read: archvow show spark. Change: archvow specify spark. Never edit by hand.
+name spark
+type foundation
+layer p0_common
+module my_pipeline.p0_common.spark
+description "Single factory for SparkSession objects."
+uses []
+
+# --- symbols
+symbol get_spark_session
+  kind function
+  signature "(app_name: str, master: str | None = None) -> SparkSession"
+
+# --- decisions
+decision 1
+  question "Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none?"
+  answer "spark.sql.session.timeZone=UTC, nothing else"
+  by architect@example.com
+  on 2026-10-08T13:06:23.887902+00:00
+
+assumptions []

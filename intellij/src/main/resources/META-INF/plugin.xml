@@ -1,0 +1,62 @@
+<idea-plugin>
+  <!-- One plugin for archvow in JetBrains IDEs: the archvow workspace (components, decisions, safety,
+       checks; every change goes through the archvow CLI) and the .vow language (highlighting by depth,
+       errors, folding, structure, links). The id is the workspace's former id, so an installed
+       workspace updates in place; the former vow plugin (com.archvow.intellij) must be uninstalled. -->
+  <id>org.archvow.intellij</id>
+  <name>archvow</name>
+  <vendor>archvow</vendor>
+  <description><![CDATA[
+    archvow in the IDE.
+    <ul>
+      <li><b>Workspace</b>: the Archvow tool window (left) holds Overview, Components and Commands; a
+          component or a command opens in one editor tab, reused for the next one. The components of the
+          project, their decisions, questions, safety and checks, read from the archvow CLI (<code>show</code>,
+          <code>next</code>, <code>check --json</code>); every change runs an archvow command, after a confirmation.</li>
+      <li><b>.vow files</b> (<code>spec.vow</code>, <code>proposals.vow</code>): highlighting with one colour per
+          depth, errors and warnings with their line, folding, Structure, Ctrl+/ comments, Ctrl+click on a
+          component in <code>uses</code>, a hazard in <code>prevents</code>, the Python file of <code>module</code>,
+          a banner naming the command that changes the file, <code>```vow</code> blocks in Markdown.</li>
+    </ul>
+  ]]></description>
+
+  <depends>com.intellij.modules.platform</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- the .vow language (org.archvow.vow) -->
+    <fileType name="vow" implementationClass="org.archvow.vow.VowFileType" fieldName="INSTANCE"
+              language="vow" extensions="vow"/>
+    <lang.parserDefinition language="vow" implementationClass="org.archvow.vow.VowParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="vow" implementationClass="org.archvow.vow.VowSyntaxHighlighterFactory"/>
+    <colorSettingsPage implementation="org.archvow.vow.VowColorSettingsPage"/>
+    <!-- the keyword colours, one per depth, set for the bundled schemes: some schemes leave the fallbacks uncoloured -->
+    <additionalTextAttributes scheme="Default" file="colorSchemes/VowDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorSchemes/VowDarcula.xml"/>
+    <lang.commenter language="vow" implementationClass="org.archvow.vow.VowCommenter"/>
+    <lang.foldingBuilder language="vow" implementationClass="org.archvow.vow.VowFoldingBuilder"/>
+    <lang.psiStructureViewFactory language="vow" implementationClass="org.archvow.vow.VowStructureViewFactory"/>
+    <annotator language="vow" implementationClass="org.archvow.vow.VowAnnotator"/>
+    <editorNotificationProvider implementation="org.archvow.vow.VowEditorNotification"/>
+
+    <!-- the archvow workspace (org.archvow.idea) -->
+    <notificationGroup id="Archvow" displayType="BALLOON"/>
+    <fileEditorProvider implementation="org.archvow.idea.ArchvowEditorProvider"/>
+    <postStartupActivity implementation="org.archvow.idea.ArchvowOpenOnStartup"/>
+    <!-- the navigation (Overview, Components, Commands) on the left; what is chosen opens in ONE editor tab -->
+    <toolWindow id="Archvow" anchor="left" icon="/icons/archvowToolWindow.svg"
+                factoryClass="org.archvow.idea.ArchvowToolWindowFactory"/>
+    <editorTabTitleProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>
+    <fileIconProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>
+    <projectConfigurable instance="org.archvow.idea.ArchvowSettingsConfigurable" id="org.archvow.settings"
+                         parentId="tools" displayName="Archvow"/>
+  </extensions>
+
+  <actions>
+    <action id="Archvow.Show" class="org.archvow.idea.ShowArchvowAction"
+            text="Show Archvow" description="Show the Archvow tool window: Overview, Components, Commands">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </action>
+    <action id="Archvow.Refresh" class="org.archvow.idea.RefreshArchvowAction" text="Refresh Archvow"
+            description="Reload the archvow specs and checks"/>
+  </actions>
+</idea-plugin>

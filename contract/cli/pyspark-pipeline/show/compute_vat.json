@@ -1,0 +1,269 @@
+{
+  "component": "compute_vat",
+  "type": "transformation",
+  "known_columns": [],
+  "description": "Add the column vat = amount * 0.2",
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which rows does it keep (filter conditions), or all of them?",
+      "answer": "All rows",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+      "answer": "The input columns plus vat decimal(18,2) = amount * 0.2, not null",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+      "answer": "No grouping",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+      "answer": "No join",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 5,
+      "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+      "answer": "Return an empty DataFrame with the output schema",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 6,
+      "question": "Null values in key columns: drop, keep, or fail?",
+      "answer": "Not possible here: clean_orders runs first",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 7,
+      "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+      "answer": "Not possible here: clean_orders runs first",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 8,
+      "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+      "answer": "Not possible here: clean_orders runs first",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 9,
+      "question": "Extra input columns not in the schema: drop silently or fail?",
+      "answer": "Keep them unchanged",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [
+    {
+      "id": "R1",
+      "text": "vat is rounded half-up to 2 decimals",
+      "scope": "compute_vat"
+    }
+  ],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "Input missing, empty or late: what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "an absent, empty or late input is processed as if it were complete",
+        "invariant": "Return an empty DataFrame with the output schema (decision 5)",
+        "decision": {
+          "number": 5,
+          "answer": "Return an empty DataFrame with the output schema"
+        }
+      }
+    },
+    {
+      "number": 2,
+      "guide_word": "more",
+      "question": "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
+        "invariant": "Not possible here: clean_orders runs first (decision 7)",
+        "decision": {
+          "number": 7,
+          "answer": "Not possible here: clean_orders runs first"
+        }
+      }
+    },
+    {
+      "number": 3,
+      "guide_word": "less",
+      "question": "Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a valid row is silently dropped",
+        "invariant": "All rows (decision 1)",
+        "decision": {
+          "number": 1,
+          "answer": "All rows"
+        }
+      }
+    },
+    {
+      "number": 4,
+      "guide_word": "wrong",
+      "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "compute_vat.H1",
+          "severity": "high",
+          "description": "vat is computed wrongly",
+          "suggested": false,
+          "prevented_by": [
+            {
+              "id": "compute_vat.INV1",
+              "statement": "vat = amount * 0.2 for every row",
+              "verify": "property_test",
+              "tested": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "guide_word": "exposed",
+      "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "personal or secret data is written where it must not be",
+        "invariant": "personal and secret columns never reach the output"
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": [
+    {
+      "task": "T1",
+      "core": true,
+      "done": false,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "1",
+          "text": "Which rows does it keep (filter conditions), or all of them?",
+          "answer": "All rows",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "2",
+          "text": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+          "answer": "The input columns plus vat decimal(18,2) = amount * 0.2, not null",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "3",
+          "text": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+          "answer": "No grouping",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "4",
+          "text": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+          "answer": "No join",
+          "done": false
+        }
+      ],
+      "summary": "the file and its public API, decisions 1-4"
+    },
+    {
+      "task": "T2",
+      "core": false,
+      "done": false,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "5",
+          "text": "Empty input: return an empty DataFrame with the output schema, or fail?",
+          "answer": "Return an empty DataFrame with the output schema",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "6",
+          "text": "Null values in key columns: drop, keep, or fail?",
+          "answer": "Not possible here: clean_orders runs first",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "7",
+          "text": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+          "answer": "Not possible here: clean_orders runs first",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "8",
+          "text": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+          "answer": "Not possible here: clean_orders runs first",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "9",
+          "text": "Extra input columns not in the schema: drop silently or fail?",
+          "answer": "Keep them unchanged",
+          "done": false
+        },
+        {
+          "kind": "rule",
+          "key": "R1",
+          "text": "vat is rounded half-up to 2 decimals",
+          "answer": null,
+          "done": false
+        }
+      ],
+      "summary": "decisions 5-9, rule R1"
+    },
+    {
+      "task": "T3",
+      "core": false,
+      "done": false,
+      "items": [
+        {
+          "kind": "invariant",
+          "key": "compute_vat.INV1",
+          "text": "vat = amount * 0.2 for every row",
+          "answer": null,
+          "done": false
+        }
+      ],
+      "summary": "compute_vat.INV1"
+    }
+  ]
+}

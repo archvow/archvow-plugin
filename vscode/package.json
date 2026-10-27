@@ -1,0 +1,286 @@
+{
+  "name": "archvow",
+  "displayName": "archvow",
+  "description": "archvow in VS Code, the same workspace as in IntelliJ: the sidebar holds Overview (architecture, checks, pending work), Components (the tree) and Commands (every archvow command); a component or a command opens in one editor tab, reused for the next one. archvow check in the Problems view, and the .vow language.",
+  "version": "0.8.0",
+  "publisher": "archvow",
+  "license": "UNLICENSED",
+  "private": true,
+  "icon": "media/archvow.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:.archvow/spec.vow",
+    "onLanguage:vow"
+  ],
+  "main": "./out/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In an untrusted workspace only the .vow language works: archvow commands run only in a trusted workspace."
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "vow",
+        "aliases": [
+          "Vow",
+          "vow"
+        ],
+        "extensions": [
+          ".vow"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./media/vow.svg",
+          "dark": "./media/vow_dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vow",
+        "scopeName": "source.vow",
+        "path": "./syntaxes/vow.tmLanguage.json"
+      },
+      {
+        "scopeName": "markdown.vow.codeblock",
+        "path": "./syntaxes/vow.markdown.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.vow": "vow"
+        }
+      }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "vowKey0",
+        "description": "A keyword that is not indented (name, type, uses, decision, hazard)"
+      },
+      {
+        "id": "vowKey1",
+        "description": "A keyword indented once (question, answer, by, on, kind, a column)"
+      },
+      {
+        "id": "vowKey2",
+        "description": "A keyword indented twice"
+      },
+      {
+        "id": "vowKey3",
+        "description": "A keyword indented three times or more"
+      },
+      {
+        "id": "vowId",
+        "description": "An id: H1, INV2, R1, clean_orders.H1"
+      },
+      {
+        "id": "vowPerson",
+        "description": "A person or group: @alice, @acme/architects, alice@acme.com"
+      },
+      {
+        "id": "vowDate",
+        "description": "A date or a date-time"
+      }
+    ],
+    "configurationDefaults": {
+      "[vow]": {
+        "editor.semanticHighlighting.enabled": true,
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.detectIndentation": false
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "archvow",
+          "title": "archvow",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "archvow": [
+        {
+          "type": "webview",
+          "id": "archvow.workspace",
+          "name": "Workspace",
+          "contextualTitle": "archvow",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "archvow.open",
+        "title": "Show the workspace",
+        "category": "archvow",
+        "icon": "$(window)"
+      },
+      {
+        "command": "archvow.refresh",
+        "title": "Refresh",
+        "category": "archvow",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "archvow.check",
+        "title": "Check the project",
+        "category": "archvow",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "archvow.openComponent",
+        "title": "Open a component",
+        "category": "archvow"
+      },
+      {
+        "command": "archvow.openSpec",
+        "title": "Open Spec",
+        "category": "archvow",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "archvow.openCode",
+        "title": "Open Code",
+        "category": "archvow",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "archvow.copyPrompt",
+        "title": "Copy the AI instruction",
+        "category": "archvow",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "archvow.showOutput",
+        "title": "Show the archvow log",
+        "category": "archvow"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "archvow.check",
+          "when": "view == archvow.workspace",
+          "group": "navigation@1"
+        },
+        {
+          "command": "archvow.refresh",
+          "when": "view == archvow.workspace",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "archvow.openSpec",
+          "when": "false"
+        },
+        {
+          "command": "archvow.openCode",
+          "when": "false"
+        },
+        {
+          "command": "archvow.copyPrompt",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "archvow",
+      "properties": {
+        "archvow.executable": {
+          "type": "string",
+          "default": "archvow",
+          "scope": "machine-overridable",
+          "markdownDescription": "The `archvow` command (a name on the PATH or a full path). Ignored when `#archvow.python#` is set."
+        },
+        "archvow.python": {
+          "type": "string",
+          "default": "",
+          "scope": "machine-overridable",
+          "markdownDescription": "A Python that has archvow installed (e.g. `/path/venv/bin/python3`): the extension runs `<python> -m archvow`."
+        },
+        "archvow.timeoutSeconds": {
+          "type": "number",
+          "default": 180,
+          "minimum": 5,
+          "description": "How long one archvow command may run before it is stopped."
+        },
+        "archvow.checkOnSave": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Run `archvow check --file` on a Python file when it is saved, and show its problems."
+        },
+        "archvow.language": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "fr"
+          ],
+          "enumDescriptions": [
+            "The language of VS Code",
+            "English",
+            "Français"
+          ],
+          "default": "auto",
+          "description": "The language of the workspace (archvow's own messages stay as archvow prints them)."
+        }
+      }
+    },
+    "semanticTokenScopes": [
+      {
+        "language": "vow",
+        "scopes": {
+          "vowKey0": [
+            "keyword.control.depth0.vow"
+          ],
+          "vowKey1": [
+            "entity.name.tag.depth1.vow"
+          ],
+          "vowKey2": [
+            "support.type.property-name.depth2.vow"
+          ],
+          "vowKey3": [
+            "entity.other.attribute-name.depth3.vow"
+          ],
+          "vowId": [
+            "constant.other.id.vow"
+          ],
+          "vowPerson": [
+            "variable.other.person.vow"
+          ],
+          "vowDate": [
+            "constant.numeric.date.vow"
+          ]
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "npm run clean && node scripts/sync-contract.js && tsc -p .",
+    "watch": "tsc -watch -p .",
+    "test": "npm run compile && node --test \"out/test/*.test.js\"",
+    "package": "node -e \"require('fs').mkdirSync('../dist',{recursive:true})\" && npm run compile && vsce package --no-dependencies --skip-license --allow-missing-repository --out ../dist/",
+    "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "3.9.2",
+    "typescript": "5.9.3",
+    "vscode-oniguruma": "2.0.1",
+    "vscode-textmate": "9.3.2"
+  }
+}

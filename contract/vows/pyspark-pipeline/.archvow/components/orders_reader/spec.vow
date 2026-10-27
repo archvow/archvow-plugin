@@ -1,0 +1,36 @@
+vow 1 component orders_reader
+# archvow vow of orders_reader - what it must be and do; archvow check holds the code to it.
+# Read: archvow show orders_reader. Change: archvow specify orders_reader. Never edit by hand.
+name orders
+type reader
+layer p2_io
+module my_pipeline.p2_io.orders_reader
+ticket US-001
+description "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA"
+uses [orders_schema]
+
+# --- symbols
+symbol read_orders
+  kind function
+  signature "(spark: SparkSession, path: str) -> DataFrame"
+
+# --- decisions
+decision 1
+  question "The path does not exist or is empty: fail or return an empty DataFrame?"
+  answer "Fail with a clear error: a missing input is an operations problem"
+  by architect@example.com
+  on 2026-10-08T13:06:24.141832+00:00
+
+decision 2
+  question "Records not matching the schema: fail, drop, or quarantine?"
+  answer "Fail the job (FAILFAST): a malformed file must be fixed upstream"
+  by architect@example.com
+  on 2026-10-08T13:06:24.189462+00:00
+
+decision 3
+  question "Which partitions / dates are read, and what if the latest one is missing?"
+  answer "Everything under the given path, no partitions"
+  by architect@example.com
+  on 2026-10-08T13:06:24.237829+00:00
+
+assumptions []

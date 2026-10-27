@@ -1,0 +1,35 @@
+vow 1 component order_not_found_error
+# archvow vow of order_not_found_error - what it must be and do; archvow check holds the code to it.
+# Read: archvow show order_not_found_error. Change: archvow specify order_not_found_error. Never edit by hand.
+name order_not_found
+type error
+layer p1_domain
+module orders_api.p1_domain.order_not_found_error
+ticket US-001
+description "The order does not exist, or belongs to another customer"
+uses []
+
+# --- symbols
+symbol OrderNotFoundError
+  kind class
+
+# --- decisions
+decision 1
+  question "Which HTTP status does the app answer with it (404, 409, 422...)?"
+  answer "404 Not Found"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 2
+  question "What does its message say - and never say (internal ids, personal data, whether the resource exists)?"
+  answer "\"Order not found\" - never the id's owner, never whether it exists"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+assumptions []
+
+# --- not applicable
+not_applicable exposed
+  because "Its message names nothing but the fact that no order was found"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00

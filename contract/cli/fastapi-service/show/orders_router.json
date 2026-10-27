@@ -1,0 +1,230 @@
+{
+  "component": "orders_router",
+  "type": "router",
+  "known_columns": [
+    {
+      "component": "order_model",
+      "columns": [
+        "amount",
+        "customer",
+        "id",
+        "status"
+      ]
+    },
+    {
+      "component": "new_order_model",
+      "columns": [
+        "amount"
+      ]
+    }
+  ],
+  "description": "The order API",
+  "status": "verified",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?",
+      "answer": "Authenticated customers (get_current_user), each only on their own orders",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Status codes: success, not found, conflict, forbidden - and the error body format?",
+      "answer": "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Invalid input: FastAPI's 422, or 400 with your own error format?",
+      "answer": "FastAPI's 422",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "Lists: pagination, default and maximum page size - or no list route?",
+      "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 5,
+      "question": "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?",
+      "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {
+      "customer": "personal"
+    },
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [
+    {
+      "key": "P1",
+      "set": "P",
+      "title": "Personal data",
+      "id": "purpose",
+      "rule": "GDPR002",
+      "question": "Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
+      "answer": "Take and show the orders of each customer, for that customer only",
+      "by": "architect@example.com",
+      "on": "2026-10-12T00:46:55.799694+00:00"
+    },
+    {
+      "key": "P2",
+      "set": "P",
+      "title": "Personal data",
+      "id": "legal_basis",
+      "rule": "GDPR002",
+      "question": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
+      "answer": "Contract: the customer's orders (terms of sale)",
+      "by": "architect@example.com",
+      "on": "2026-10-12T00:46:56.107070+00:00"
+    }
+  ],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "orders_router.H1",
+          "severity": "critical",
+          "description": "A customer reads another customer's order",
+          "suggested": false,
+          "prevented_by": [
+            {
+              "id": "orders_router.INV1",
+              "statement": "a customer only ever reads their own orders",
+              "verify": "property_test",
+              "tested": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "guide_word": "more",
+      "question": "Too much (unbounded results, duplicated records, a flood of requests): what must never happen?",
+      "status": "answered",
+      "dismissed": "No route returns a list; each answer is one order"
+    },
+    {
+      "number": 3,
+      "guide_word": "wrong",
+      "question": "Wrong input (invalid values, out of range, an illegal state change): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "invalid input is accepted and saved",
+        "invariant": "FastAPI's 422 (decision 3)",
+        "decision": {
+          "number": 3,
+          "answer": "FastAPI's 422"
+        }
+      }
+    },
+    {
+      "number": 4,
+      "guide_word": "repeated",
+      "question": "Sent twice (a client retries or submits twice): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a retried request is applied twice",
+        "invariant": "No list route; POST repeated: two orders (no idempotency key yet) (decision 5)",
+        "decision": {
+          "number": 5,
+          "answer": "No list route; POST repeated: two orders (no idempotency key yet)"
+        }
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": [
+    {
+      "task": "T1",
+      "core": true,
+      "done": true,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "1",
+          "text": "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?",
+          "answer": "Authenticated customers (get_current_user), each only on their own orders",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "2",
+          "text": "Status codes: success, not found, conflict, forbidden - and the error body format?",
+          "answer": "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "3",
+          "text": "Invalid input: FastAPI's 422, or 400 with your own error format?",
+          "answer": "FastAPI's 422",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "4",
+          "text": "Lists: pagination, default and maximum page size - or no list route?",
+          "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "5",
+          "text": "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?",
+          "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+          "done": true
+        },
+        {
+          "kind": "invariant",
+          "key": "orders_router.INV1",
+          "text": "a customer only ever reads their own orders",
+          "answer": null,
+          "done": true
+        }
+      ],
+      "summary": "the file and its public API, decisions 1-5, orders_router.INV1"
+    },
+    {
+      "task": "T2",
+      "core": false,
+      "done": true,
+      "items": [
+        {
+          "kind": "question",
+          "key": "P1",
+          "text": "Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
+          "answer": "Take and show the orders of each customer, for that customer only",
+          "done": true
+        },
+        {
+          "kind": "question",
+          "key": "P2",
+          "text": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
+          "answer": "Contract: the customer's orders (terms of sale)",
+          "done": true
+        }
+      ],
+      "summary": "decisions P1, P2"
+    }
+  ]
+}

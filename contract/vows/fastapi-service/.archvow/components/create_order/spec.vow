@@ -1,0 +1,74 @@
+vow 1 component create_order
+# archvow vow of create_order - what it must be and do; archvow check holds the code to it.
+# Read: archvow show create_order. Change: archvow specify create_order. Never edit by hand.
+name create_order
+type service
+layer p3_services
+module orders_api.p3_services.create_order
+ticket US-001
+description "Create a pending order for the current customer and save it"
+uses [order_model, new_order_model, orders_repository]
+
+# --- symbols
+symbol create_order
+  kind function
+
+# --- decisions
+decision 1
+  question "What does it do, step by step (read, check, change, save, call)?"
+  answer "Build a pending order with the next id, save it, return it"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 2
+  question "Something it needs does not exist: which domain error?"
+  answer "Not applicable: it needs nothing that may be missing"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 3
+  question "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?"
+  answer "Two orders: a retry is a new order (customers cancel the extra one)"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 4
+  question "Who may perform it, and is that checked here or in the router?"
+  answer "Any authenticated customer, for themselves; checked by the router"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 5
+  question "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?"
+  answer "One save, nothing else to undo"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+assumptions []
+
+# --- hazards
+hazard H1
+  guide_word wrong
+  severity high
+  never "An order is saved with an amount of zero or less"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+# --- invariants
+invariant INV1
+  always "every saved order has an amount greater than zero"
+  prevents [H1]
+  verified_by property_test
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+# --- not applicable
+not_applicable missing
+  because "No outside dependency: the repository is in memory, in the same process"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+not_applicable partial
+  because "One write to one in-memory store: nothing is saved in two places"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00

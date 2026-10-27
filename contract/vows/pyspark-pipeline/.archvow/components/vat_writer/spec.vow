@@ -1,0 +1,64 @@
+vow 1 component vat_writer
+# archvow vow of vat_writer - what it must be and do; archvow check holds the code to it.
+# Read: archvow show vat_writer. Change: archvow specify vat_writer. Never edit by hand.
+name vat
+type writer
+layer p2_io
+module my_pipeline.p2_io.vat_writer
+ticket US-003
+description "Write the orders with their VAT as parquet"
+uses []
+
+# --- symbols
+symbol write_vat
+  kind function
+  signature "(df: DataFrame, path: str) -> None"
+
+# --- decisions
+decision 1
+  question "Output already exists: overwrite, append, or fail?"
+  answer "Overwrite"
+  by architect@example.com
+  on 2026-10-08T13:06:25.528816+00:00
+
+decision 2
+  question "A failure mid-write: how is a partial output prevented or detected?"
+  answer "Write to a temporary folder next to the output, then rename it"
+  by architect@example.com
+  on 2026-10-08T13:06:25.580782+00:00
+
+decision 3
+  question "Re-running the same input: must the output be identical (idempotent)?"
+  answer "Yes: the same input gives the same output"
+  by architect@example.com
+  on 2026-10-08T13:06:25.637628+00:00
+
+decision 4
+  question "Partitioning columns and file format?"
+  answer "Parquet, not partitioned"
+  by architect@example.com
+  on 2026-10-08T13:06:25.691110+00:00
+
+decision 5
+  question "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?"
+  answer "No table: parquet files at the output path"
+  by architect@example.com
+  on 2026-10-08T21:41:29.424434+00:00
+
+assumptions []
+
+# --- hazards
+hazard H1
+  guide_word partial
+  severity critical
+  never "Downstream reads a half-written output"
+  by architect@example.com
+  on 2026-10-08T13:06:26.379916+00:00
+
+# --- invariants
+invariant INV1
+  always "the output folder is complete or absent"
+  prevents [H1]
+  verified_by runtime
+  by architect@example.com
+  on 2026-10-08T13:06:26.451398+00:00

@@ -1,0 +1,75 @@
+[
+  {
+    "component": "config",
+    "type": "foundation",
+    "readiness": "ready",
+    "invariants": 0,
+    "tokens": 559
+  },
+  {
+    "component": "spark",
+    "type": "foundation",
+    "readiness": "ready",
+    "invariants": 0,
+    "tokens": 523
+  },
+  {
+    "component": "clean_orders",
+    "type": "transformation",
+    "readiness": "ready - task 1 of 2",
+    "invariants": 1,
+    "tasks": {
+      "total": 2,
+      "done": 0,
+      "next": "T1"
+    },
+    "tokens": 1187
+  },
+  {
+    "component": "compute_vat",
+    "type": "transformation",
+    "readiness": "ready - task 1 of 3",
+    "invariants": 1,
+    "tasks": {
+      "total": 3,
+      "done": 0,
+      "next": "T1"
+    },
+    "tokens": 1187
+  },
+  {
+    "component": "orders_schema",
+    "type": "schema",
+    "readiness": "ready",
+    "invariants": 0,
+    "tokens": 797
+  },
+  {
+    "component": "orders_reader",
+    "type": "reader",
+    "readiness": "waiting for orders_schema",
+    "invariants": 0,
+    "tokens": 814
+  },
+  {
+    "component": "vat_writer",
+    "type": "writer",
+    "readiness": "ready",
+    "invariants": 1,
+    "tokens": 905
+  },
+  {
+    "component": "my_pipeline_job",
+    "type": "job",
+    "readiness": "waiting for orders_reader, clean_orders, compute_vat, vat_writer",
+    "invariants": 0,
+    "tokens": 856
+  },
+  {
+    "component": "my_pipeline_main",
+    "type": "entrypoint",
+    "readiness": "waiting for my_pipeline_job",
+    "invariants": 0,
+    "tokens": 801
+  }
+]

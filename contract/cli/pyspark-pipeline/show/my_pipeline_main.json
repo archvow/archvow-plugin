@@ -1,0 +1,57 @@
+{
+  "component": "my_pipeline_main",
+  "type": "entrypoint",
+  "known_columns": [],
+  "description": "Command line: --input PATH (the input folder), --output PATH (the output folder)",
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Invalid arguments: which exit code and message?",
+      "answer": "Exit code 2 with a usage message",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which exit codes signal which failures to the scheduler?",
+      "answer": "0 success, 1 job failure, 2 invalid arguments",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "wrong",
+      "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a null, negative or out-of-range value reaches the output",
+        "invariant": "Exit code 2 with a usage message (decision 1)",
+        "decision": {
+          "number": 1,
+          "answer": "Exit code 2 with a usage message"
+        }
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": [],
+  "run": {
+    "component": "my_pipeline_main",
+    "ready": false,
+    "line": "Not ready to run yet: my_pipeline_main needs config (planned), spark (planned), orders_schema (planned), orders_reader (planned), clean_orders (planned), compute_vat (planned), vat_writer (planned), my_pipeline_job (planned), my_pipeline_main (planned)"
+  }
+}

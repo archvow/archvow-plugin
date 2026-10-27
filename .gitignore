@@ -1,0 +1,14 @@
+dist/
+# IntelliJ / Gradle
+.gradle/
+.intellijPlatform/
+.kotlin/
+.idea/
+build/
+out/
+*.iml
+# VS Code extension
+node_modules/
+vscode/out/
+*.vsix
+__pycache__/

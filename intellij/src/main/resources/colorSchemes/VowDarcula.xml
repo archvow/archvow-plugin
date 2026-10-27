@@ -1,0 +1,24 @@
+<!-- Vow keywords in Darcula and the dark schemes based on it, one colour per depth: 0 yellow bold, 1 soft green, 2 blue, 3+ pink. -->
+<list>
+  <option name="VOW_KEY_0">
+    <value>
+      <option name="FOREGROUND" value="ffc66d"/>
+      <option name="FONT_TYPE" value="1"/>
+    </value>
+  </option>
+  <option name="VOW_KEY_1">
+    <value>
+      <option name="FOREGROUND" value="8fc78a"/>
+    </value>
+  </option>
+  <option name="VOW_KEY_2">
+    <value>
+      <option name="FOREGROUND" value="56a8f5"/>
+    </value>
+  </option>
+  <option name="VOW_KEY_3">
+    <value>
+      <option name="FOREGROUND" value="c77dbb"/>
+    </value>
+  </option>
+</list>

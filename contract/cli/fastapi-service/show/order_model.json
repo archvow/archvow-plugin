@@ -1,0 +1,99 @@
+{
+  "component": "order_model",
+  "type": "model",
+  "known_columns": [
+    {
+      "component": "order_model",
+      "columns": [
+        "amount",
+        "customer",
+        "id",
+        "status"
+      ]
+    }
+  ],
+  "description": "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled",
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which fields are required, and which are optional (with which default)?",
+      "answer": "All fields required",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
+      "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
+      "answer": "None: the customer id is returned only to its owner",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [
+    {
+      "name": "amount",
+      "class": "none",
+      "in_code": true
+    },
+    {
+      "name": "customer",
+      "class": "personal",
+      "in_code": true
+    },
+    {
+      "name": "id",
+      "class": "none",
+      "in_code": true
+    },
+    {
+      "name": "status",
+      "class": "none",
+      "in_code": true
+    }
+  ],
+  "declares_columns": true,
+  "personal": {
+    "handles": {
+      "customer": "personal"
+    },
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "wrong",
+      "question": "Wrong input (invalid values, out of range, an illegal state change): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "invalid input is accepted and saved",
+        "invariant": "amount >= 0 with 2 decimals; status pending, paid or cancelled (decision 2)",
+        "decision": {
+          "number": 2,
+          "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled"
+        }
+      }
+    },
+    {
+      "number": 2,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "answered",
+      "dismissed": "orders hold no personal data beyond the customer id"
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

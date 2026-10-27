@@ -1,0 +1,87 @@
+{
+  "component": "my_pipeline_job",
+  "type": "job",
+  "known_columns": [],
+  "description": "Read the orders, clean them, compute their VAT, write the result",
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "One input is missing: skip the run, fail, or run with partial data?",
+      "answer": "Fail",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Retries: how many, and is a retry safe?",
+      "answer": "No automatic retry; a re-run is safe (the writer overwrites)",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Which run date / partition does the job process, and who decides it?",
+      "answer": "No run date: the job processes the input it is given",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "Input missing, empty or late: what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "an absent, empty or late input is processed as if it were complete",
+        "invariant": "Fail (decision 1)",
+        "decision": {
+          "number": 1,
+          "answer": "Fail"
+        }
+      }
+    },
+    {
+      "number": 2,
+      "guide_word": "repeated",
+      "question": "Run twice (a re-run or a retry): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a re-run gives a different or duplicated result",
+        "invariant": "No automatic retry; a re-run is safe (the writer overwrites) (decision 2)",
+        "decision": {
+          "number": 2,
+          "answer": "No automatic retry; a re-run is safe (the writer overwrites)"
+        }
+      }
+    },
+    {
+      "number": 3,
+      "guide_word": "stale",
+      "question": "Old data treated as today's (the job reads the wrong date): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "old data is processed as if it were current",
+        "invariant": "No run date: the job processes the input it is given (decision 3)",
+        "decision": {
+          "number": 3,
+          "answer": "No run date: the job processes the input it is given"
+        }
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

@@ -1,0 +1,38 @@
+package org.archvow.idea;
+
+import com.google.gson.*;
+import java.util.Map;
+
+/** Prefill must use real known values and never erase a diagnostic fix. */
+public final class CommandPrefillRegression {
+    public static void main(String[] args) {
+        JsonObject component = new JsonObject();
+        component.addProperty("component", "sales_reader");
+        component.addProperty("description", "Read partitioned data");
+        component.addProperty("signature", "(spark, path) -> DataFrame");
+        JsonArray uses = new JsonArray();
+        uses.add(new JsonPrimitive("config"));
+        uses.add(new JsonPrimitive("sales_schema"));
+        component.add("uses", uses);
+        Map<String,String> generic = ArchvowCommandPrefill.prepare("component edit", Map.of("component", "sales_reader"), "other", component);
+        assertEqual("Read partitioned data",generic.get("description"));
+        assertEqual("config,sales_schema",generic.get("uses"));
+        assertEqual("(spark, path) -> DataFrame",generic.get("signature"));
+        Map<String,String> diagnostic = ArchvowCommandPrefill.prepare("component edit",
+            Map.of("component", "sales_reader", "signature", "(spark,path,date) -> DataFrame"), "other", component);
+        assertEqual("(spark,path,date) -> DataFrame",diagnostic.get("signature"));
+        if (diagnostic.containsKey("description") || diagnostic.containsKey("uses"))
+            throw new AssertionError("specific diagnostic must not add unrelated mutations");
+        Map<String,String> contextual = ArchvowCommandPrefill.prepare("column set", Map.of("names", "email"), "sales_reader", component);
+        assertEqual("sales_reader",contextual.get("component"));
+        assertEqual("email",contextual.get("names"));
+        Map<String,String> other = ArchvowCommandPrefill.prepare("invariant add", Map.of("component", "schema", "prevents", "H1"), "sales_reader", component);
+        assertEqual("schema",other.get("component"));
+        if (ArchvowCommandPrefill.prepare("component add", Map.of("type", "schema"), "sales_reader", component).containsKey("component"))
+            throw new AssertionError("component add has no component argument");
+        System.out.println("OK: 5 grounded prefill scenarios");
+    }
+    static void assertEqual(String expected, String actual) {
+        if (!expected.equals(actual)) throw new AssertionError("Expected " + expected + "; got " + actual);
+    }
+}

@@ -1,0 +1,2150 @@
+{
+  "commands": [
+    {
+      "path": [
+        "init"
+      ],
+      "description": "Add archvow specs and guards to a repository (no source folders).",
+      "json": false,
+      "parameters": [
+        {
+          "name": "package",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "snake_case Python package the code will live in (also the project name)",
+          "metavar": "package"
+        },
+        {
+          "name": "template",
+          "flags": [
+            "-t",
+            "--template"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "architecture template: a name (default: python-app; list: archvow catalog) or the folder of a company template; a company template is copied into .archvow/templates/",
+          "metavar": "TEMPLATE"
+        },
+        {
+          "name": "description",
+          "flags": [
+            "-d",
+            "--description"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the system does, in one line: goes into the vow, the README and every spec card (default: the package name)",
+          "metavar": "TEXT"
+        },
+        {
+          "name": "answer",
+          "flags": [
+            "-a",
+            "--answer"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": true,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "answer one of the template's questions (repeatable); the keys are listed below",
+          "metavar": "KEY=VALUE"
+        },
+        {
+          "name": "dir",
+          "flags": [
+            "--dir"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "repository root (default: current folder)",
+          "metavar": "dir"
+        },
+        {
+          "name": "src",
+          "flags": [
+            "--src"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "source root (default: src)",
+          "metavar": "src"
+        },
+        {
+          "name": "force",
+          "flags": [
+            "--force"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "in a folder that is already a project: rewrite the generated files from the template (AGENTS.md, CI, hooks...). A committed spec is always kept; to start over, git rm -r .archvow and commit",
+          "metavar": "force"
+        },
+        {
+          "name": "no_git",
+          "flags": [
+            "--no-git"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "do not create a Git repository (default: one is created, branch main)",
+          "metavar": "no_git"
+        },
+        {
+          "name": "no_input",
+          "flags": [
+            "--no-input"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "never ask: in a terminal, init asks the main questions no -a answered (scripts and CI are never asked)",
+          "metavar": "no_input"
+        },
+        {
+          "name": "adopt",
+          "flags": [
+            "--adopt"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "existing code: propose `layer_paths` from folder and file names (core, models, crud, services, api...) so the files stay where they are; written into .archvow/spec.vow and printed for the architects to review (with --force in a project: adds the files not mapped yet)",
+          "metavar": "adopt"
+        }
+      ]
+    },
+    {
+      "path": [
+        "catalog"
+      ],
+      "description": "List templates, their init answers and component types.",
+      "json": true,
+      "parameters": []
+    },
+    {
+      "path": [
+        "component",
+        "add"
+      ],
+      "description": "Specify a component (writes the spec, never code).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "type",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component type (listed below)",
+          "metavar": "type"
+        },
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "short snake_case name; the type turns it into the component id (below)",
+          "metavar": "name"
+        },
+        {
+          "name": "description",
+          "flags": [
+            "-d",
+            "--description"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the component must do - the instruction the AI assistant or developer implements, with the details that matter (change it with archvow component edit)",
+          "metavar": "TEXT"
+        },
+        {
+          "name": "spec",
+          "flags": [
+            "-s",
+            "--spec"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "ticket or user story it implements, e.g. US-001",
+          "metavar": "TICKET"
+        },
+        {
+          "name": "uses",
+          "flags": [
+            "-u",
+            "--uses"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "comma-separated ids of the components it uses",
+          "metavar": "IDS"
+        },
+        {
+          "name": "kind",
+          "flags": [
+            "-k",
+            "--kind"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "for the types that have kinds (listed below): what it reads or writes, e.g. a reader of files (the default), a table, a database (jdbc), a connector or custom code; fixed once added (remove and add again to change it)",
+          "metavar": "KIND"
+        },
+        {
+          "name": "signature",
+          "flags": [
+            "--signature"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "replace the public function's signature (only for the types that allow it, listed below; e.g. a second input)",
+          "metavar": "signature"
+        },
+        {
+          "name": "container",
+          "flags": [
+            "--container"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "container id, when the project has several (default: the first)",
+          "metavar": "container"
+        },
+        {
+          "name": "group",
+          "flags": [
+            "-g",
+            "--group"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "a folder inside the layer, to organise many components, e.g. orders: <layer>/orders/<file>.py and tests/<layer>/orders/test_<id>.py",
+          "metavar": "GROUP"
+        },
+        {
+          "name": "route",
+          "flags": [
+            "-r",
+            "--route"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": true,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "for a router: one route, \"<function>: <METHOD> <path>\" (repeatable), e.g. \"get_order: GET /orders/{order_id}\"",
+          "metavar": "ROUTE"
+        },
+        {
+          "name": "source",
+          "flags": [
+            "--from"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "metavar": "BRIEF"
+        },
+        {
+          "name": "file",
+          "flags": [
+            "--file"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "adopt an existing module where it is (path from the project root): its layer comes from `layer_paths`, its symbols are the public functions, classes, constants and routes the file has today",
+          "metavar": "PATH"
+        }
+      ]
+    },
+    {
+      "path": [
+        "component",
+        "edit"
+      ],
+      "description": "Change a component's description, ticket, dependencies or signature.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "description",
+          "flags": [
+            "-d",
+            "--description"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the new description (what gets implemented)",
+          "metavar": "TEXT"
+        },
+        {
+          "name": "spec",
+          "flags": [
+            "-s",
+            "--spec"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the new ticket or user story",
+          "metavar": "TICKET"
+        },
+        {
+          "name": "uses",
+          "flags": [
+            "-u",
+            "--uses"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the complete new list, comma-separated ('' for none)",
+          "metavar": "IDS"
+        },
+        {
+          "name": "signature",
+          "flags": [
+            "--signature"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "only for types with an overridable signature",
+          "metavar": "signature"
+        },
+        {
+          "name": "group",
+          "flags": [
+            "-g",
+            "--group"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "move it to another folder inside its layer ('' for none); then git mv its files",
+          "metavar": "GROUP"
+        },
+        {
+          "name": "route",
+          "flags": [
+            "-r",
+            "--route"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": true,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "for a router: the complete new list of routes, one -r each",
+          "metavar": "ROUTE"
+        },
+        {
+          "name": "owners",
+          "flags": [
+            "--owners"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "who approves changes to its vow besides the architects: @user, @group (several with spaces or commas; '' for the architects only). Written in CODEOWNERS; a weakened guard still needs the architects (ARCH020)",
+          "metavar": "WHO"
+        },
+        {
+          "name": "source",
+          "flags": [
+            "--from"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "metavar": "BRIEF"
+        }
+      ]
+    },
+    {
+      "path": [
+        "component",
+        "remove"
+      ],
+      "description": "Remove a component with its decisions, hazards and invariants (asks first).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "yes",
+          "flags": [
+            "--yes"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "do not ask for confirmation (scripts)",
+          "metavar": "yes"
+        }
+      ]
+    },
+    {
+      "path": [
+        "show"
+      ],
+      "description": "Everything about a component on one screen (the whole project: archvow next).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "one component, or a rule R1",
+          "metavar": "component"
+        },
+        {
+          "name": "item",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "one of its hazards or invariants",
+          "metavar": "H<n>|INV<n>"
+        }
+      ]
+    },
+    {
+      "path": [
+        "specify"
+      ],
+      "description": "Answer what is still open, one question at a time (in a terminal).",
+      "json": false,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "only this component (default: all)",
+          "metavar": "component"
+        }
+      ]
+    },
+    {
+      "path": [
+        "question",
+        "add"
+      ],
+      "description": "Record an open question (blocks implementation until answered).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "question",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question; a person answers it with archvow decision make",
+          "metavar": "question"
+        },
+        {
+          "name": "source",
+          "flags": [
+            "--from"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "metavar": "BRIEF"
+        }
+      ]
+    },
+    {
+      "path": [
+        "question",
+        "remove"
+      ],
+      "description": "Remove a question a person added, with its answer (asks first; the template's questions stay).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "number",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question's number, as archvow show prints it",
+          "metavar": "number"
+        },
+        {
+          "name": "yes",
+          "flags": [
+            "--yes"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "do not ask for confirmation (scripts)",
+          "metavar": "yes"
+        }
+      ]
+    },
+    {
+      "path": [
+        "decision",
+        "make"
+      ],
+      "description": "Answer questions by number (archvow show lists them).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it (with --type: the question's number)",
+          "metavar": "component"
+        },
+        {
+          "name": "question",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "the question's number in archvow show: 1, 3,4, P1 or O2 (with --type: the answer)",
+          "metavar": "number"
+        },
+        {
+          "name": "answer",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "the decision, in plain words; it becomes a test (none: the template's suggested answer, when it gives one)",
+          "metavar": "answer"
+        },
+        {
+          "name": "type",
+          "flags": [
+            "--type"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "answer the question once for every component of this type, today's and later ones (an architect's decision; a component's own answer still wins)",
+          "metavar": "TYPE"
+        },
+        {
+          "name": "unset",
+          "flags": [
+            "--unset"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "with --type: no longer answer it for the whole type (each component answers it again)",
+          "metavar": "unset"
+        }
+      ]
+    },
+    {
+      "path": [
+        "decision",
+        "propose"
+      ],
+      "description": "The AI's answer to an open question, for a person to review (mode guided or free).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "question",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question's number in archvow show",
+          "metavar": "number"
+        },
+        {
+          "name": "answer",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the answer the AI chose, in plain words",
+          "metavar": "answer"
+        }
+      ]
+    },
+    {
+      "path": [
+        "decision",
+        "accept"
+      ],
+      "description": "Accept what the AI proposed: it becomes a decision (a person, never the AI).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "number",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question's number in archvow show",
+          "metavar": "number"
+        }
+      ]
+    },
+    {
+      "path": [
+        "decision",
+        "add"
+      ],
+      "description": "Add a question the template does not ask, with its answer.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "question",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the new question",
+          "metavar": "question"
+        },
+        {
+          "name": "answer",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the decision, in plain words; it becomes a test",
+          "metavar": "answer"
+        },
+        {
+          "name": "source",
+          "flags": [
+            "--from"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "metavar": "BRIEF"
+        }
+      ]
+    },
+    {
+      "path": [
+        "rule",
+        "add"
+      ],
+      "description": "Record a rule for one or more components, a type, or all.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "words",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": true,
+          "optionalValue": false,
+          "choices": [],
+          "help": "<component>[,<component>...] \"rule\", or only \"rule\" with --type/--all",
+          "metavar": "ARG"
+        },
+        {
+          "name": "type",
+          "flags": [
+            "--type"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "every component of this type, including later ones",
+          "metavar": "TYPE"
+        },
+        {
+          "name": "all",
+          "flags": [
+            "--all"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "every component",
+          "metavar": "all"
+        },
+        {
+          "name": "source",
+          "flags": [
+            "--from"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "metavar": "BRIEF"
+        }
+      ]
+    },
+    {
+      "path": [
+        "rule",
+        "edit"
+      ],
+      "description": "Change a rule's text (its scope stays).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "id",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the rule's id, e.g. R3",
+          "metavar": "RULE"
+        },
+        {
+          "name": "text",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the new text",
+          "metavar": "text"
+        }
+      ]
+    },
+    {
+      "path": [
+        "rule",
+        "remove"
+      ],
+      "description": "Remove a rule (asks first).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "id",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the rule's id, e.g. R3",
+          "metavar": "RULE"
+        },
+        {
+          "name": "yes",
+          "flags": [
+            "--yes"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "do not ask for confirmation (scripts)",
+          "metavar": "yes"
+        }
+      ]
+    },
+    {
+      "path": [
+        "assumption",
+        "add"
+      ],
+      "description": "Record an implementer assumption (blocks until accepted).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "text",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the implementer assumed",
+          "metavar": "text"
+        }
+      ]
+    },
+    {
+      "path": [
+        "assumption",
+        "accept"
+      ],
+      "description": "Accept assumption number N (a person, never the AI).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "number",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "assumption number, as archvow show shows it",
+          "metavar": "number"
+        }
+      ]
+    },
+    {
+      "path": [
+        "assumption",
+        "reject"
+      ],
+      "description": "Reject assumption number N (a person, never the AI).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "number",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "assumption number, as archvow show shows it",
+          "metavar": "number"
+        }
+      ]
+    },
+    {
+      "path": [
+        "brief",
+        "accept"
+      ],
+      "description": "The brief changed and what was drawn from it is reviewed: record its new text (a person, never the AI).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "brief",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "briefs/<file>.md, or briefs/<file>.md#<section>",
+          "metavar": "BRIEF"
+        }
+      ]
+    },
+    {
+      "path": [
+        "hazard",
+        "add"
+      ],
+      "description": "Record what must never happen.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, or 'system' for the whole system",
+          "metavar": "component"
+        },
+        {
+          "name": "guide_word",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the safety question's number in archvow show, S2 or 2 (or its guide word, listed below)",
+          "metavar": "number"
+        },
+        {
+          "name": "severity",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ],
+          "help": "critical | high | medium | low",
+          "metavar": "severity"
+        },
+        {
+          "name": "description",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "what must never happen, in plain words (default: the suggestion archvow show shows; for critical or high, its invariant is added too)",
+          "metavar": "description"
+        }
+      ]
+    },
+    {
+      "path": [
+        "hazard",
+        "dismiss"
+      ],
+      "description": "Record that a guide word does not apply, and why.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, or 'system'",
+          "metavar": "component"
+        },
+        {
+          "name": "guide_word",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the safety question's number in archvow show, S2 or 2 (or its guide word, listed below); several: S2,S4",
+          "metavar": "number"
+        },
+        {
+          "name": "rationale",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "why it cannot happen here",
+          "metavar": "rationale"
+        }
+      ]
+    },
+    {
+      "path": [
+        "hazard",
+        "remove"
+      ],
+      "description": "Remove a hazard, or undo a \"not applicable\" (asks first).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "id",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the component (then H<n> or S<n>), or the hazard's id <component>.H1",
+          "metavar": "WHAT"
+        },
+        {
+          "name": "question",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "with a component: its hazard H<n>, or the safety question S<n> marked not applicable",
+          "metavar": "H<n>|S<n>"
+        },
+        {
+          "name": "yes",
+          "flags": [
+            "--yes"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "do not ask for confirmation (scripts)",
+          "metavar": "yes"
+        }
+      ]
+    },
+    {
+      "path": [
+        "invariant",
+        "add"
+      ],
+      "description": "Add an invariant guarding one or more hazards.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, or 'system'",
+          "metavar": "component"
+        },
+        {
+          "name": "statement",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the property, in plain words; it must be checkable",
+          "metavar": "statement"
+        },
+        {
+          "name": "prevents",
+          "flags": [
+            "--prevents"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the hazard(s) it prevents: H1 (this component's), orders_reader.H1 (another's) (default: the component's one hazard that no invariant prevents yet)",
+          "metavar": "IDS"
+        },
+        {
+          "name": "verify",
+          "flags": [
+            "--verify"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "static",
+            "example_test",
+            "property_test",
+            "runtime",
+            "model_check",
+            "proof"
+          ],
+          "help": "==SUPPRESS==",
+          "metavar": "METHOD"
+        },
+        {
+          "name": "evidence",
+          "flags": [
+            "--evidence"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "==SUPPRESS==",
+          "metavar": "FILE"
+        },
+        {
+          "name": "rule",
+          "flags": [
+            "--rule"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "==SUPPRESS==",
+          "metavar": "rule"
+        }
+      ]
+    },
+    {
+      "path": [
+        "invariant",
+        "remove"
+      ],
+      "description": "Remove an invariant (never the last guard of a critical or high hazard; asks first).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "id",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the component, then INV<n> (or the id <component>.INV1)",
+          "metavar": "WHAT"
+        },
+        {
+          "name": "more",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "the invariant's number in that component, e.g. INV1",
+          "metavar": "INV<n>"
+        },
+        {
+          "name": "yes",
+          "flags": [
+            "--yes"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "do not ask for confirmation (scripts)",
+          "metavar": "yes"
+        }
+      ]
+    },
+    {
+      "path": [
+        "column",
+        "set"
+      ],
+      "description": "Classify columns: personal, special (GDPR art. 9) or none.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "a schema or model component (classes); any component for --removes / --pseudonymises",
+          "metavar": "component"
+        },
+        {
+          "name": "names",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "column names, separated by commas",
+          "metavar": "names"
+        },
+        {
+          "name": "kind",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [
+            "personal",
+            "special",
+            "none"
+          ],
+          "help": "personal | special | none",
+          "metavar": "kind"
+        },
+        {
+          "name": "removes",
+          "flags": [
+            "--removes"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "this component drops these columns",
+          "metavar": "removes"
+        },
+        {
+          "name": "pseudonymises",
+          "flags": [
+            "--pseudonymises"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "this component pseudonymises or encrypts them",
+          "metavar": "pseudonymises"
+        }
+      ]
+    },
+    {
+      "path": [
+        "dependency",
+        "add"
+      ],
+      "description": "Record a package of requirements.txt in the register.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the package, as requirements.txt names it",
+          "metavar": "name"
+        },
+        {
+          "name": "supplier",
+          "flags": [
+            "--supplier"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "who provides and maintains it",
+          "metavar": "WHO"
+        },
+        {
+          "name": "licence",
+          "flags": [
+            "--licence"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its licence (SPDX name, e.g. Apache-2.0, MIT)",
+          "metavar": "SPDX"
+        },
+        {
+          "name": "criticality",
+          "flags": [
+            "--criticality"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "critical",
+            "important",
+            "minor"
+          ],
+          "help": "critical (the service stops without it; pinned with ==) | important | minor",
+          "metavar": "LEVEL"
+        }
+      ]
+    },
+    {
+      "path": [
+        "dependency",
+        "remove"
+      ],
+      "description": "Remove a package from the register.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the package",
+          "metavar": "name"
+        }
+      ]
+    },
+    {
+      "path": [
+        "prompt"
+      ],
+      "description": "Print a component's spec card as a task for an AI assistant.",
+      "json": false,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
+        },
+        {
+          "name": "task",
+          "flags": [
+            "--task"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "a card cut into tasks (archvow show lists them): task N instead of the next open one",
+          "metavar": "N"
+        },
+        {
+          "name": "clarify",
+          "flags": [
+            "--clarify"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "ask the AI to list ambiguities as questions instead (it answers none)",
+          "metavar": "clarify"
+        }
+      ]
+    },
+    {
+      "path": [
+        "next"
+      ],
+      "description": "Planned components in build order, with what each one waits for.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "base",
+          "flags": [
+            "--base"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the branch the merge request targets (main, origin/main): counts the change against its review budget (ARCH022); when it is full, nothing more is ready",
+          "metavar": "REF"
+        }
+      ]
+    },
+    {
+      "path": [
+        "check"
+      ],
+      "description": "Verify the code against the spec (exit 1 on errors).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "file",
+          "flags": [
+            "--file"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "only report violations for this file (an IDE, or an AI checking the file it writes)",
+          "metavar": "file"
+        },
+        {
+          "name": "stdin",
+          "flags": [
+            "--stdin"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "read --file content from stdin (unsaved buffer)",
+          "metavar": "stdin"
+        },
+        {
+          "name": "base",
+          "flags": [
+            "--base"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "git ref to compare guards with, e.g. origin/main",
+          "metavar": "REF"
+        },
+        {
+          "name": "accept_weakening",
+          "flags": [
+            "--accept-weakening"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "report ARCH020 as a warning (pass only after architect approval)",
+          "metavar": "accept_weakening"
+        },
+        {
+          "name": "complete",
+          "flags": [
+            "--complete"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "also fail on planned components not built yet (release gate)",
+          "metavar": "complete"
+        },
+        {
+          "name": "all",
+          "flags": [
+            "--all"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "list every warning one by one (by default the open safety questions, ARCH035, and the tests not marked with their decision or rule, ARCH038, are counted on one line)",
+          "metavar": "all"
+        },
+        {
+          "name": "test_report",
+          "flags": [
+            "--test-report"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "pytest's JUnit report (pytest --junitxml=...): every invariant's test must have run and passed (DORA004)",
+          "metavar": "JUNIT_XML"
+        }
+      ]
+    },
+    {
+      "path": [
+        "review"
+      ],
+      "description": "Have an approved AI reviewer review the change, without a person (CI; it never changes code).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "base",
+          "flags": [
+            "--base"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the branch the merge request targets, e.g. origin/main: the components changed since then are reviewed",
+          "metavar": "REF"
+        },
+        {
+          "name": "acknowledged",
+          "flags": [
+            "--acknowledged"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "a person has read the report: HIGH findings no longer fail (CI passes it when the merge request has the label review-acknowledged)",
+          "metavar": "acknowledged"
+        }
+      ]
+    },
+    {
+      "path": [
+        "freeze"
+      ],
+      "description": "Accept today's violations; only new ones fail from now on.",
+      "json": true,
+      "parameters": []
+    },
+    {
+      "path": [
+        "audit"
+      ],
+      "description": "Who recorded each decision, hazard and invariant, cross-checked with Git.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "strict",
+          "flags": [
+            "--strict"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "exit 1 if any record is flagged",
+          "metavar": "strict"
+        }
+      ]
+    },
+    {
+      "path": [
+        "changes"
+      ],
+      "description": "What a release contains, merge by merge: ticket, spec, components, tests, who merged and approved.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "start",
+          "flags": [
+            "--from"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the previous release (a tag or a commit)",
+          "metavar": "REF"
+        },
+        {
+          "name": "end",
+          "flags": [
+            "--to"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the release (default: HEAD)",
+          "metavar": "REF"
+        },
+        {
+          "name": "markdown",
+          "flags": [
+            "--markdown"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "Markdown output",
+          "metavar": "markdown"
+        }
+      ]
+    },
+    {
+      "path": [
+        "diff"
+      ],
+      "description": "Spec changes since a branch, in plain words (merge-request report).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "base",
+          "flags": [
+            "--base"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "git ref, e.g. origin/main",
+          "metavar": "REF"
+        },
+        {
+          "name": "markdown",
+          "flags": [
+            "--markdown"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "Markdown output for merge-request reports",
+          "metavar": "markdown"
+        }
+      ]
+    },
+    {
+      "path": [
+        "doctor"
+      ],
+      "description": "Check this machine's setup for the project, with the fix for each problem.",
+      "json": true,
+      "parameters": []
+    },
+    {
+      "path": [
+        "completion"
+      ],
+      "description": "Tab completion for your shell (zsh, bash or powershell).",
+      "json": false,
+      "parameters": [
+        {
+          "name": "shell",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "zsh",
+            "bash",
+            "powershell"
+          ],
+          "help": "the shell to complete in",
+          "metavar": "shell"
+        },
+        {
+          "name": "install",
+          "flags": [
+            "--install"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "write the script to ~/.archvow-completion.<ext> and load it from the shell's startup file (once); it works even when archvow is not on the PATH yet when the shell starts",
+          "metavar": "install"
+        }
+      ]
+    },
+    {
+      "path": [
+        "docs"
+      ],
+      "description": "Regenerate the specs (committed) and the status report (local).",
+      "json": false,
+      "parameters": [
+        {
+          "name": "check",
+          "flags": [
+            "--check"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "fail if committed specs are stale or edited by hand (CI)",
+          "metavar": "check"
+        }
+      ]
+    },
+    {
+      "path": [
+        "template",
+        "new"
+      ],
+      "description": "Create a template that extends another one.",
+      "json": false,
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "name of the new template",
+          "metavar": "name"
+        },
+        {
+          "name": "extends",
+          "flags": [
+            "--extends"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "template it builds on",
+          "metavar": "TEMPLATE"
+        },
+        {
+          "name": "dir",
+          "flags": [
+            "--dir"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "catalog folder to create it in (a company template; no project needed). Default: the current project's .archvow/templates/",
+          "metavar": "FOLDER"
+        },
+        {
+          "name": "description",
+          "flags": [
+            "-d",
+            "--description"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the template is for (one line)",
+          "metavar": "TEXT"
+        },
+        {
+          "name": "answer",
+          "flags": [
+            "-a",
+            "--answer"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": true,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "a company default for an init answer, repeatable (-a ci=jenkins -a sonar=yes); a project can still override it",
+          "metavar": "KEY=VALUE"
+        },
+        {
+          "name": "allowed_paths",
+          "flags": [
+            "--allowed-paths"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "top folders of Python files that are not components, comma-separated (devops,tools): no ARCH015 there; added to the base's",
+          "metavar": "FOLDERS"
+        },
+        {
+          "name": "verbatim_folders",
+          "flags": [
+            "--verbatim-folders"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "folders of files/ copied exactly as they are, .j2 included, comma-separated (templates,deploy/ansible)",
+          "metavar": "FOLDERS"
+        },
+        {
+          "name": "layer",
+          "flags": [
+            "--layer"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": true,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "rename a layer's folder, repeatable (--layer p1_domain=domain): src/<package>/domain/, tests/domain/; the others keep the base's",
+          "metavar": "LAYER=FOLDER"
+        },
+        {
+          "name": "no_input",
+          "flags": [
+            "--no-input"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "never ask: without options, the settings stay commented examples",
+          "metavar": "no_input"
+        }
+      ]
+    }
+  ]
+}

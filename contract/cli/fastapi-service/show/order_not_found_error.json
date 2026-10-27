@@ -1,0 +1,45 @@
+{
+  "component": "order_not_found_error",
+  "type": "error",
+  "known_columns": [],
+  "description": "The order does not exist, or belongs to another customer",
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which HTTP status does the app answer with it (404, 409, 422...)?",
+      "answer": "404 Not Found",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "What does its message say - and never say (internal ids, personal data, whether the resource exists)?",
+      "answer": "\"Order not found\" - never the id's owner, never whether it exists",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "answered",
+      "dismissed": "Its message names nothing but the fact that no order was found"
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

@@ -1,0 +1,413 @@
+{
+  "ok": true,
+  "errors": 0,
+  "warnings": 20,
+  "violations": [
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'clean_orders': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_orders",
+      "file": ".archvow/components/clean_orders/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'clean_orders': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show clean_orders",
+      "file": ".archvow/components/clean_orders/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'clean_orders': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show clean_orders",
+      "file": ".archvow/components/clean_orders/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'clean_orders': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show clean_orders",
+      "file": ".archvow/components/clean_orders/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'compute_vat': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show compute_vat",
+      "file": ".archvow/components/compute_vat/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'compute_vat': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show compute_vat",
+      "file": ".archvow/components/compute_vat/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'compute_vat': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show compute_vat",
+      "file": ".archvow/components/compute_vat/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'compute_vat': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show compute_vat",
+      "file": ".archvow/components/compute_vat/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'my_pipeline_job': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show my_pipeline_job",
+      "file": ".archvow/components/my_pipeline_job/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'my_pipeline_job': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show my_pipeline_job",
+      "file": ".archvow/components/my_pipeline_job/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'my_pipeline_job': safety question S3 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show my_pipeline_job",
+      "file": ".archvow/components/my_pipeline_job/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'my_pipeline_main': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show my_pipeline_main",
+      "file": ".archvow/components/my_pipeline_main/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show orders_reader",
+      "file": ".archvow/components/orders_reader/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show orders_reader",
+      "file": ".archvow/components/orders_reader/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show orders_reader",
+      "file": ".archvow/components/orders_reader/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show orders_reader",
+      "file": ".archvow/components/orders_reader/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_schema': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show orders_schema",
+      "file": ".archvow/components/orders_schema/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'vat_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show vat_writer",
+      "file": ".archvow/components/vat_writer/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'vat_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show vat_writer",
+      "file": ".archvow/components/vat_writer/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH019",
+      "severity": "warning",
+      "message": "'vat_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit vat_writer -u <name>_schema",
+      "file": ".archvow/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Component without the data contract its type works on (a reader without its schema)"
+    }
+  ],
+  "statuses": [
+    {
+      "container": "my_pipeline",
+      "component": "config",
+      "symbol": "JobConfig",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "spark",
+      "symbol": "get_spark_session",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "clean_orders",
+      "symbol": "clean_orders",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "compute_vat",
+      "symbol": "compute_vat",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "orders_schema",
+      "symbol": "ORDERS_SCHEMA",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "orders_reader",
+      "symbol": "read_orders",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "vat_writer",
+      "symbol": "write_vat",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "my_pipeline_job",
+      "symbol": "run_my_pipeline",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "my_pipeline_main",
+      "symbol": "main",
+      "status": "planned",
+      "reason": ""
+    }
+  ],
+  "suppressed": [],
+  "changes": [],
+  "components": [
+    {
+      "container": "my_pipeline",
+      "component": "config",
+      "type": "foundation",
+      "layer": "p0_common",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "my_pipeline",
+      "component": "spark",
+      "type": "foundation",
+      "layer": "p0_common",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "my_pipeline",
+      "component": "clean_orders",
+      "type": "transformation",
+      "layer": "p1_domain",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 1,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 1
+    },
+    {
+      "container": "my_pipeline",
+      "component": "compute_vat",
+      "type": "transformation",
+      "layer": "p1_domain",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 1,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 1
+    },
+    {
+      "container": "my_pipeline",
+      "component": "orders_schema",
+      "type": "schema",
+      "layer": "p1_domain",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "my_pipeline",
+      "component": "orders_reader",
+      "type": "reader",
+      "layer": "p2_io",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "my_pipeline",
+      "component": "vat_writer",
+      "type": "writer",
+      "layer": "p2_io",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 1,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 1
+    },
+    {
+      "container": "my_pipeline",
+      "component": "my_pipeline_job",
+      "type": "job",
+      "layer": "p3_jobs",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "my_pipeline",
+      "component": "my_pipeline_main",
+      "type": "entrypoint",
+      "layer": "p4_entrypoints",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    }
+  ],
+  "invariants": [
+    {
+      "id": "clean_orders.INV1",
+      "component": "clean_orders",
+      "statement": "every input row with an order_id and amount >= 0 appears in the output",
+      "verify": "property_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "compute_vat.INV1",
+      "component": "compute_vat",
+      "statement": "vat = amount * 0.2 for every row",
+      "verify": "property_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "vat_writer.INV1",
+      "component": "vat_writer",
+      "statement": "the output folder is complete or absent",
+      "verify": "runtime",
+      "verified": false,
+      "evidence": [],
+      "severity": "critical"
+    }
+  ],
+  "frozen": 0,
+  "stale_frozen": [],
+  "budget": null,
+  "safety": {
+    "answered": 4,
+    "total": 23
+  },
+  "counts": {
+    "ARCH035": 19,
+    "ARCH019": 1
+  }
+}

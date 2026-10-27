@@ -1,0 +1,37 @@
+{
+  "component": "config",
+  "type": "foundation",
+  "known_columns": [],
+  "description": "Immutable job configuration passed from entry points to jobs.",
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which fields does JobConfig hold (name: type, required or default value)?",
+      "answer": "input_path: str and output_path: str, both required; a frozen dataclass",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "What happens when a value is missing or invalid (which exception, raised where)?",
+      "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [],
+  "assumptions": [],
+  "tasks": []
+}

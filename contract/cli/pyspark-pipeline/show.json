@@ -1,0 +1,542 @@
+{
+  "schema_version": 2,
+  "system": {
+    "name": "my_pipeline",
+    "description": "PySpark pipeline for my_pipeline"
+  },
+  "containers": [
+    {
+      "id": "my_pipeline",
+      "template": "pyspark-pipeline@1.14.0",
+      "package": "my_pipeline",
+      "path": "src/my_pipeline",
+      "components": [
+        {
+          "id": "config",
+          "name": "config",
+          "type": "foundation",
+          "layer": "p0_common",
+          "module": "my_pipeline.p0_common.config",
+          "description": "Immutable job configuration passed from entry points to jobs.",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "JobConfig",
+              "kind": "class"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Which fields does JobConfig hold (name: type, required or default value)?",
+              "answer": "input_path: str and output_path: str, both required; a frozen dataclass",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:23.938480+00:00"
+            },
+            {
+              "question": "What happens when a value is missing or invalid (which exception, raised where)?",
+              "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.000829+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "spark",
+          "name": "spark",
+          "type": "foundation",
+          "layer": "p0_common",
+          "module": "my_pipeline.p0_common.spark",
+          "description": "Single factory for SparkSession objects.",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "get_spark_session",
+              "kind": "function",
+              "signature": "(app_name: str, master: str | None = None) -> SparkSession"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none?",
+              "answer": "spark.sql.session.timeZone=UTC, nothing else",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:23.887902+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "clean_orders",
+          "name": "clean_orders",
+          "type": "transformation",
+          "layer": "p1_domain",
+          "module": "my_pipeline.p1_domain.clean_orders",
+          "spec": "US-002",
+          "description": "Keep only the valid rows: order_id not null and amount >= 0",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "clean_orders",
+              "kind": "function",
+              "signature": "(df: DataFrame) -> DataFrame"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Which rows does it keep (filter conditions), or all of them?",
+              "answer": "Rows where order_id is not null and amount >= 0",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.289189+00:00"
+            },
+            {
+              "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+              "answer": "The schema columns, unchanged",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.343938+00:00"
+            },
+            {
+              "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+              "answer": "No grouping",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.412714+00:00"
+            },
+            {
+              "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+              "answer": "No join",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.487443+00:00"
+            },
+            {
+              "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+              "answer": "Return an empty DataFrame with the output schema",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.545560+00:00"
+            },
+            {
+              "question": "Null values in key columns: drop, keep, or fail?",
+              "answer": "Drop rows with a null order_id",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.601449+00:00"
+            },
+            {
+              "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+              "answer": "Keep one row per order_id",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.650108+00:00"
+            },
+            {
+              "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+              "answer": "Drop rows where amount is negative",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.700551+00:00"
+            },
+            {
+              "question": "Extra input columns not in the schema: drop silently or fail?",
+              "answer": "Drop them: output only the schema columns",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.782343+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "compute_vat",
+          "name": "compute_vat",
+          "type": "transformation",
+          "layer": "p1_domain",
+          "module": "my_pipeline.p1_domain.compute_vat",
+          "spec": "US-002",
+          "description": "Add the column vat = amount * 0.2",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "compute_vat",
+              "kind": "function",
+              "signature": "(df: DataFrame) -> DataFrame"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Which rows does it keep (filter conditions), or all of them?",
+              "answer": "All rows",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.833535+00:00"
+            },
+            {
+              "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+              "answer": "The input columns plus vat decimal(18,2) = amount * 0.2, not null",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.885979+00:00"
+            },
+            {
+              "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+              "answer": "No grouping",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.936127+00:00"
+            },
+            {
+              "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+              "answer": "No join",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.986387+00:00"
+            },
+            {
+              "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+              "answer": "Return an empty DataFrame with the output schema",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.038557+00:00"
+            },
+            {
+              "question": "Null values in key columns: drop, keep, or fail?",
+              "answer": "Not possible here: clean_orders runs first",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.122165+00:00"
+            },
+            {
+              "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+              "answer": "Not possible here: clean_orders runs first",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.205767+00:00"
+            },
+            {
+              "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+              "answer": "Not possible here: clean_orders runs first",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.290202+00:00"
+            },
+            {
+              "question": "Extra input columns not in the schema: drop silently or fail?",
+              "answer": "Keep them unchanged",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.374756+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "orders_schema",
+          "name": "orders",
+          "type": "schema",
+          "layer": "p1_domain",
+          "module": "my_pipeline.p1_domain.orders_schema",
+          "spec": "US-001",
+          "description": "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "ORDERS_SCHEMA",
+              "kind": "constant",
+              "annotation": "T.StructType"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Which columns are nullable, and which must never be null?",
+              "answer": "order_id and amount are never null; customer_id may be null",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.047585+00:00"
+            },
+            {
+              "question": "Which columns hold personal data, and where may they flow?",
+              "answer": "None: the input holds no personal data",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.096826+00:00"
+            }
+          ],
+          "assumptions": [],
+          "columns": {
+            "amount": "none",
+            "customer_id": "none",
+            "order_date": "none",
+            "order_id": "none"
+          }
+        },
+        {
+          "id": "orders_reader",
+          "name": "orders",
+          "type": "reader",
+          "layer": "p2_io",
+          "module": "my_pipeline.p2_io.orders_reader",
+          "spec": "US-001",
+          "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
+          "uses": [
+            "orders_schema"
+          ],
+          "symbols": [
+            {
+              "name": "read_orders",
+              "kind": "function",
+              "signature": "(spark: SparkSession, path: str) -> DataFrame"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "The path does not exist or is empty: fail or return an empty DataFrame?",
+              "answer": "Fail with a clear error: a missing input is an operations problem",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.141832+00:00"
+            },
+            {
+              "question": "Records not matching the schema: fail, drop, or quarantine?",
+              "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.189462+00:00"
+            },
+            {
+              "question": "Which partitions / dates are read, and what if the latest one is missing?",
+              "answer": "Everything under the given path, no partitions",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:24.237829+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "vat_writer",
+          "name": "vat",
+          "type": "writer",
+          "layer": "p2_io",
+          "module": "my_pipeline.p2_io.vat_writer",
+          "spec": "US-003",
+          "description": "Write the orders with their VAT as parquet",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "write_vat",
+              "kind": "function",
+              "signature": "(df: DataFrame, path: str) -> None"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Output already exists: overwrite, append, or fail?",
+              "answer": "Overwrite",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.528816+00:00"
+            },
+            {
+              "question": "A failure mid-write: how is a partial output prevented or detected?",
+              "answer": "Write to a temporary folder next to the output, then rename it",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.580782+00:00"
+            },
+            {
+              "question": "Re-running the same input: must the output be identical (idempotent)?",
+              "answer": "Yes: the same input gives the same output",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.637628+00:00"
+            },
+            {
+              "question": "Partitioning columns and file format?",
+              "answer": "Parquet, not partitioned",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.691110+00:00"
+            },
+            {
+              "question": "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?",
+              "answer": "No table: parquet files at the output path",
+              "by": "architect@example.com",
+              "on": "2026-10-08T21:41:29.424434+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "my_pipeline_job",
+          "name": "my_pipeline",
+          "type": "job",
+          "layer": "p3_jobs",
+          "module": "my_pipeline.p3_jobs.my_pipeline_job",
+          "spec": "US-003",
+          "description": "Read the orders, clean them, compute their VAT, write the result",
+          "uses": [
+            "orders_reader",
+            "clean_orders",
+            "compute_vat",
+            "vat_writer"
+          ],
+          "symbols": [
+            {
+              "name": "run_my_pipeline",
+              "kind": "function",
+              "signature": "(spark: SparkSession, config: JobConfig) -> None"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "One input is missing: skip the run, fail, or run with partial data?",
+              "answer": "Fail",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.742043+00:00"
+            },
+            {
+              "question": "Retries: how many, and is a retry safe?",
+              "answer": "No automatic retry; a re-run is safe (the writer overwrites)",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.836475+00:00"
+            },
+            {
+              "question": "Which run date / partition does the job process, and who decides it?",
+              "answer": "No run date: the job processes the input it is given",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.917216+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "my_pipeline_main",
+          "name": "my_pipeline",
+          "type": "entrypoint",
+          "layer": "p4_entrypoints",
+          "module": "my_pipeline.p4_entrypoints.my_pipeline_main",
+          "spec": "US-003",
+          "description": "Command line: --input PATH (the input folder), --output PATH (the output folder)",
+          "uses": [
+            "my_pipeline_job"
+          ],
+          "symbols": [
+            {
+              "name": "main",
+              "kind": "function",
+              "signature": "(argv: Sequence[str] | None = None) -> int"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Invalid arguments: which exit code and message?",
+              "answer": "Exit code 2 with a usage message",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:25.985654+00:00"
+            },
+            {
+              "question": "Which exit codes signal which failures to the scheduler?",
+              "answer": "0 success, 1 job failure, 2 invalid arguments",
+              "by": "architect@example.com",
+              "on": "2026-10-08T13:06:26.064705+00:00"
+            }
+          ],
+          "assumptions": []
+        }
+      ]
+    }
+  ],
+  "rules": {},
+  "language": "en",
+  "ai_tools": [
+    "claude-code"
+  ],
+  "dependencies": [],
+  "init_answers": {
+    "language": "en",
+    "python_version": "3.10",
+    "line_length": "88",
+    "platform": "gitlab",
+    "ci": "auto",
+    "architects": "@my-team",
+    "sonar": "no",
+    "auto_approve": "yes",
+    "sandbox": "yes",
+    "git_hooks": "githooks",
+    "branch_naming": "gitflow",
+    "pip_index_url": "",
+    "ci_image": "",
+    "spark_version": "3.5",
+    "scheduler": "none"
+  },
+  "project_rules": [
+    {
+      "id": "R1",
+      "text": "vat is rounded half-up to 2 decimals",
+      "scope": {
+        "components": [
+          "compute_vat"
+        ]
+      },
+      "by": "architect@example.com",
+      "on": "2026-10-08T13:06:25.458727+00:00"
+    }
+  ],
+  "compliance": [
+    "gdpr",
+    "tst"
+  ],
+  "mode": "strict",
+  "families": [
+    "all"
+  ],
+  "hazards": [
+    {
+      "component": "clean_orders",
+      "id": "clean_orders.H1",
+      "guide_word": "less",
+      "severity": "high",
+      "description": "A valid input row is dropped",
+      "by": "architect@example.com",
+      "on": "2026-10-08T13:06:26.136877+00:00"
+    },
+    {
+      "component": "compute_vat",
+      "id": "compute_vat.H1",
+      "guide_word": "wrong",
+      "severity": "high",
+      "description": "vat is computed wrongly",
+      "by": "architect@example.com",
+      "on": "2026-10-08T13:06:26.242983+00:00"
+    },
+    {
+      "component": "vat_writer",
+      "id": "vat_writer.H1",
+      "guide_word": "partial",
+      "severity": "critical",
+      "description": "Downstream reads a half-written output",
+      "by": "architect@example.com",
+      "on": "2026-10-08T13:06:26.379916+00:00"
+    }
+  ],
+  "invariants": [
+    {
+      "component": "clean_orders",
+      "id": "clean_orders.INV1",
+      "statement": "every input row with an order_id and amount >= 0 appears in the output",
+      "mitigates": [
+        "clean_orders.H1"
+      ],
+      "verify": "property_test",
+      "by": "architect@example.com",
+      "on": "2026-10-08T13:06:26.187286+00:00"
+    },
+    {
+      "component": "compute_vat",
+      "id": "compute_vat.INV1",
+      "statement": "vat = amount * 0.2 for every row",
+      "mitigates": [
+        "compute_vat.H1"
+      ],
+      "verify": "property_test",
+      "by": "architect@example.com",
+      "on": "2026-10-08T13:06:26.312399+00:00"
+    },
+    {
+      "component": "vat_writer",
+      "id": "vat_writer.INV1",
+      "statement": "the output folder is complete or absent",
+      "mitigates": [
+        "vat_writer.H1"
+      ],
+      "verify": "runtime",
+      "by": "architect@example.com",
+      "on": "2026-10-08T13:06:26.451398+00:00"
+    }
+  ],
+  "dismissed": [
+    {
+      "component": "orders_schema",
+      "guide_word": "exposed",
+      "rationale": "the input holds no personal data",
+      "by": "architect@example.com",
+      "on": "2026-10-08T13:06:26.537197+00:00"
+    }
+  ]
+}

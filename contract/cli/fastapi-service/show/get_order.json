@@ -1,0 +1,120 @@
+{
+  "component": "get_order",
+  "type": "service",
+  "known_columns": [
+    {
+      "component": "order_model",
+      "columns": [
+        "amount",
+        "customer",
+        "id",
+        "status"
+      ]
+    }
+  ],
+  "description": "Return one order of the current customer",
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "What does it do, step by step (read, check, change, save, call)?",
+      "answer": "Find the order; check it belongs to the customer; return it",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Something it needs does not exist: which domain error?",
+      "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
+      "answer": "Same result: it only reads",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "Who may perform it, and is that checked here or in the router?",
+      "answer": "The owner only; checked here",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 5,
+      "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
+      "answer": "Nothing to undo: it only reads",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {
+      "customer": "personal"
+    },
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a request fails badly when a dependency is down or the resource does not exist",
+        "invariant": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing (decision 2)",
+        "decision": {
+          "number": 2,
+          "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing"
+        }
+      }
+    },
+    {
+      "number": 2,
+      "guide_word": "repeated",
+      "question": "Sent twice (a client retries or submits twice): what must never happen?",
+      "status": "answered",
+      "dismissed": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+    },
+    {
+      "number": 3,
+      "guide_word": "partial",
+      "question": "A change half applied (saved here, not there; a failure mid-transaction): what must never happen?",
+      "status": "answered",
+      "dismissed": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+    },
+    {
+      "number": 4,
+      "guide_word": "concurrent",
+      "question": "Two requests change the same data at the same time (lost update, negative stock): what must never happen?",
+      "status": "answered",
+      "dismissed": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+    },
+    {
+      "number": 5,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+        "invariant": "The owner only; checked here (decision 4)",
+        "decision": {
+          "number": 4,
+          "answer": "The owner only; checked here"
+        }
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

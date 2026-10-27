@@ -1,0 +1,86 @@
+{
+  "component": "new_order_model",
+  "type": "model",
+  "known_columns": [
+    {
+      "component": "new_order_model",
+      "columns": [
+        "amount"
+      ]
+    }
+  ],
+  "description": "What a customer sends to create an order: amount Decimal > 0",
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which fields are required, and which are optional (with which default)?",
+      "answer": "amount required",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
+      "answer": "amount > 0 with at most 2 decimals",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
+      "answer": "None",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [
+    {
+      "name": "amount",
+      "class": "none",
+      "in_code": true
+    }
+  ],
+  "declares_columns": true,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "wrong",
+      "question": "Wrong input (invalid values, out of range, an illegal state change): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "invalid input is accepted and saved",
+        "invariant": "amount > 0 with at most 2 decimals (decision 2)",
+        "decision": {
+          "number": 2,
+          "answer": "amount > 0 with at most 2 decimals"
+        }
+      }
+    },
+    {
+      "number": 2,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+        "invariant": "None (decision 3)",
+        "decision": {
+          "number": 3,
+          "answer": "None"
+        }
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

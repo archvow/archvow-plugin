@@ -1,0 +1,37 @@
+{
+  "component": "settings",
+  "type": "foundation",
+  "known_columns": [],
+  "description": "The service's settings, read from the environment (pydantic-settings), never from code.",
+  "status": "implemented",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which settings, with which defaults (name: type = default), and which are required?",
+      "answer": "app_name: str = 'orders'; nothing else yet",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which settings are secrets (never logged, never in a response), and where do they come from?",
+      "answer": "No secret yet",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [],
+  "assumptions": [],
+  "tasks": []
+}

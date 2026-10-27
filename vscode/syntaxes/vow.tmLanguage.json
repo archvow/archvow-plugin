@@ -1,0 +1,131 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Vow",
+  "scopeName": "source.vow",
+  "comment": "The .vow format: one keyword colour per depth (two spaces a level), like the semantic tokens of the extension and the IntelliJ plugin.",
+  "patterns": [
+    {
+      "match": "^\\s*#.*$",
+      "name": "comment.line.number-sign.vow"
+    },
+    {
+      "match": "\\A(vow)(?:\\s+(\\S+))?(?:\\s+(\\S+))?(?:\\s+(\\S+))?",
+      "captures": {
+        "1": {
+          "name": "keyword.other.header.vow"
+        },
+        "2": {
+          "name": "constant.numeric.version.vow"
+        },
+        "3": {
+          "name": "storage.type.kind.vow"
+        },
+        "4": {
+          "name": "entity.name.section.vow"
+        }
+      }
+    },
+    {
+      "begin": "^((?:\"(?:[^\"\\\\]|\\\\.)*\"|[A-Za-z_][A-Za-z0-9_./\\-]*))(?=\\s|$)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.depth0.vow"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#values"
+        }
+      ]
+    },
+    {
+      "begin": "^ {2}((?:\"(?:[^\"\\\\]|\\\\.)*\"|[A-Za-z_][A-Za-z0-9_./\\-]*))(?=\\s|$)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.tag.depth1.vow"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#values"
+        }
+      ]
+    },
+    {
+      "begin": "^ {4}((?:\"(?:[^\"\\\\]|\\\\.)*\"|[A-Za-z_][A-Za-z0-9_./\\-]*))(?=\\s|$)",
+      "beginCaptures": {
+        "1": {
+          "name": "support.type.property-name.depth2.vow"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#values"
+        }
+      ]
+    },
+    {
+      "begin": "^ {6,}((?:\"(?:[^\"\\\\]|\\\\.)*\"|[A-Za-z_][A-Za-z0-9_./\\-]*))(?=\\s|$)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.other.attribute-name.depth3.vow"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#values"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "string": {
+      "match": "\"(?:[^\"\\\\]|\\\\.)*\"?",
+      "name": "string.quoted.double.vow"
+    },
+    "values": {
+      "patterns": [
+        {
+          "include": "#string"
+        },
+        {
+          "match": "(?<![\\w@.\\-])=\\s.*$",
+          "name": "meta.json.vow",
+          "captures": {}
+        },
+        {
+          "match": "\\b(?:true|false|null)\\b",
+          "name": "constant.language.vow"
+        },
+        {
+          "match": "(?<![\\w@])\\d{4}-\\d{2}-\\d{2}(?:T[0-9:.]+(?:Z|[+-]\\d{2}:\\d{2})?)?(?![\\w@])",
+          "name": "constant.numeric.date.vow"
+        },
+        {
+          "match": "(?<![\\w@.\\-])-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?(?![\\w@.\\-])",
+          "name": "constant.numeric.vow"
+        },
+        {
+          "match": "(?<![\\w.])@[A-Za-z0-9_.\\-]+(?:/[A-Za-z0-9_.\\-]+)*|(?<![\\w.+\\-])[A-Za-z0-9_.+\\-]+@[A-Za-z0-9\\-]+(?:\\.[A-Za-z0-9\\-]+)+",
+          "name": "variable.other.person.vow"
+        },
+        {
+          "match": "(?<![\\w.])(?:[a-z][a-z0-9_]*\\.)?[A-Z]+[0-9]+(?![\\w.])",
+          "name": "constant.other.id.vow"
+        },
+        {
+          "match": "[\\[\\],]",
+          "name": "punctuation.separator.vow"
+        },
+        {
+          "match": "\\{\\}",
+          "name": "punctuation.definition.group.vow"
+        }
+      ]
+    }
+  }
+}

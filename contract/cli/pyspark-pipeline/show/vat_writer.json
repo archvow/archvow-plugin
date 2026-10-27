@@ -1,0 +1,107 @@
+{
+  "component": "vat_writer",
+  "type": "writer",
+  "known_columns": [],
+  "description": "Write the orders with their VAT as parquet",
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Output already exists: overwrite, append, or fail?",
+      "answer": "Overwrite",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "A failure mid-write: how is a partial output prevented or detected?",
+      "answer": "Write to a temporary folder next to the output, then rename it",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Re-running the same input: must the output be identical (idempotent)?",
+      "answer": "Yes: the same input gives the same output",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "Partitioning columns and file format?",
+      "answer": "Parquet, not partitioned",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 5,
+      "question": "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?",
+      "answer": "No table: parquet files at the output path",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [
+    "schema"
+  ],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "partial",
+      "question": "Half-written output (a failure in the middle of a write): what must never happen?",
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "vat_writer.H1",
+          "severity": "critical",
+          "description": "Downstream reads a half-written output",
+          "suggested": false,
+          "prevented_by": [
+            {
+              "id": "vat_writer.INV1",
+              "statement": "the output folder is complete or absent",
+              "verify": "runtime",
+              "tested": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "guide_word": "repeated",
+      "question": "Run twice (a re-run or a retry): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a re-run gives a different or duplicated result",
+        "invariant": "Yes: the same input gives the same output (decision 3)",
+        "decision": {
+          "number": 3,
+          "answer": "Yes: the same input gives the same output"
+        }
+      }
+    },
+    {
+      "number": 3,
+      "guide_word": "exposed",
+      "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "personal or secret data is written where it must not be",
+        "invariant": "personal and secret columns never reach the output"
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

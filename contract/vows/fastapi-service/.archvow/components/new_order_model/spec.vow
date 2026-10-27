@@ -1,0 +1,37 @@
+vow 1 component new_order_model
+# archvow vow of new_order_model - what it must be and do; archvow check holds the code to it.
+# Read: archvow show new_order_model. Change: archvow specify new_order_model. Never edit by hand.
+name new_order
+type model
+layer p1_domain
+module orders_api.p1_domain.new_order_model
+ticket US-001
+description "What a customer sends to create an order: amount Decimal > 0"
+uses []
+
+# --- symbols
+symbol NewOrder
+  kind class
+
+# --- decisions
+decision 1
+  question "Which fields are required, and which are optional (with which default)?"
+  answer "amount required"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 2
+  question "Which values are valid for each field (ranges, formats, lengths, allowed states)?"
+  answer "amount > 0 with at most 2 decimals"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 3
+  question "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?"
+  answer "None"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+assumptions []
+columns
+  amount none

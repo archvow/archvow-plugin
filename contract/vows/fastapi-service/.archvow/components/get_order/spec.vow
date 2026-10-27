@@ -1,0 +1,63 @@
+vow 1 component get_order
+# archvow vow of get_order - what it must be and do; archvow check holds the code to it.
+# Read: archvow show get_order. Change: archvow specify get_order. Never edit by hand.
+name get_order
+type service
+layer p3_services
+module orders_api.p3_services.get_order
+ticket US-001
+description "Return one order of the current customer"
+uses [order_model, order_not_found_error, orders_repository]
+
+# --- symbols
+symbol get_order
+  kind function
+
+# --- decisions
+decision 1
+  question "What does it do, step by step (read, check, change, save, call)?"
+  answer "Find the order; check it belongs to the customer; return it"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 2
+  question "Something it needs does not exist: which domain error?"
+  answer "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 3
+  question "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?"
+  answer "Same result: it only reads"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 4
+  question "Who may perform it, and is that checked here or in the router?"
+  answer "The owner only; checked here"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 5
+  question "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?"
+  answer "Nothing to undo: it only reads"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+assumptions []
+
+# --- not applicable
+not_applicable repeated
+  because "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+not_applicable partial
+  because "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+not_applicable concurrent
+  because "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00

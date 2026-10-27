@@ -1,0 +1,48 @@
+vow 1 component main
+# archvow vow of main - what it must be and do; archvow check holds the code to it.
+# Read: archvow show main. Change: archvow specify main. Never edit by hand.
+name main
+type app
+layer p4_api
+module orders_api.p4_api.main
+ticket US-001
+description "The service: the order routes under /v1, domain errors mapped to HTTP statuses"
+uses [orders_router, order_not_found_error]
+
+# --- symbols
+symbol create_app
+  kind function
+  signature "() -> FastAPI"
+
+# --- decisions
+decision 1
+  question "Which routers, under which prefix (e.g. /v1)?"
+  answer "orders_router under /v1"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 2
+  question "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?"
+  answer "OrderNotFoundError -> 404, as decided by the error"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 3
+  question "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?"
+  answer "Nothing to start or stop yet"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 4
+  question "CORS: which origins may call it from a browser - or none?"
+  answer "No CORS: not called from browsers"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+assumptions []
+
+# --- not applicable
+not_applicable missing
+  because "Builds the app only: it calls nothing that can be down"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00

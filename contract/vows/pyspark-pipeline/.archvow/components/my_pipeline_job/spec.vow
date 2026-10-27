@@ -1,0 +1,36 @@
+vow 1 component my_pipeline_job
+# archvow vow of my_pipeline_job - what it must be and do; archvow check holds the code to it.
+# Read: archvow show my_pipeline_job. Change: archvow specify my_pipeline_job. Never edit by hand.
+name my_pipeline
+type job
+layer p3_jobs
+module my_pipeline.p3_jobs.my_pipeline_job
+ticket US-003
+description "Read the orders, clean them, compute their VAT, write the result"
+uses [orders_reader, clean_orders, compute_vat, vat_writer]
+
+# --- symbols
+symbol run_my_pipeline
+  kind function
+  signature "(spark: SparkSession, config: JobConfig) -> None"
+
+# --- decisions
+decision 1
+  question "One input is missing: skip the run, fail, or run with partial data?"
+  answer "Fail"
+  by architect@example.com
+  on 2026-10-08T13:06:25.742043+00:00
+
+decision 2
+  question "Retries: how many, and is a retry safe?"
+  answer "No automatic retry; a re-run is safe (the writer overwrites)"
+  by architect@example.com
+  on 2026-10-08T13:06:25.836475+00:00
+
+decision 3
+  question "Which run date / partition does the job process, and who decides it?"
+  answer "No run date: the job processes the input it is given"
+  by architect@example.com
+  on 2026-10-08T13:06:25.917216+00:00
+
+assumptions []

@@ -1,0 +1,55 @@
+{
+  "component": "get_current_user",
+  "type": "dependency",
+  "known_columns": [],
+  "description": "The authenticated customer's id, from the X-Customer header",
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "What does it provide, and for how long (one request, the whole app)?",
+      "answer": "The customer id (str) from the X-Customer header, for one request",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end?",
+      "answer": "Header missing or empty: 401 Unauthorized",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+      "status": "answered",
+      "dismissed": "Reads a request header only: it calls nothing that can be down"
+    },
+    {
+      "number": 2,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+        "invariant": "a user only reads and changes their own data, and secrets never appear in a response or a log"
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}

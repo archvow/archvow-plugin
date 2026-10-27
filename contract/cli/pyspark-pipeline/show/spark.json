@@ -1,0 +1,30 @@
+{
+  "component": "spark",
+  "type": "foundation",
+  "known_columns": [],
+  "description": "Single factory for SparkSession objects.",
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none?",
+      "answer": "spark.sql.session.timeZone=UTC, nothing else",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [],
+  "assumptions": [],
+  "tasks": []
+}

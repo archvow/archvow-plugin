@@ -1,0 +1,202 @@
+{
+  "ok": true,
+  "errors": 0,
+  "warnings": 0,
+  "violations": [],
+  "statuses": [
+    {
+      "container": "invoicing",
+      "component": "config",
+      "symbol": "Config",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "invoicing",
+      "component": "config",
+      "symbol": "load_config",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "invoicing",
+      "component": "logging_setup",
+      "symbol": "setup_logging",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "invoicing",
+      "component": "invoice_model",
+      "symbol": "Invoice",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "invoicing",
+      "component": "invoice_not_found_error",
+      "symbol": "InvoiceNotFoundError",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "invoicing",
+      "component": "invoices_repository",
+      "symbol": "InvoicesRepository",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "invoicing",
+      "component": "mark_paid",
+      "symbol": "mark_paid",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "invoicing",
+      "component": "invoices_cli",
+      "symbol": "main",
+      "status": "implemented",
+      "reason": ""
+    }
+  ],
+  "suppressed": [],
+  "changes": [],
+  "components": [
+    {
+      "container": "invoicing",
+      "component": "config",
+      "type": "foundation",
+      "layer": "p0_common",
+      "status": "implemented",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "invoicing",
+      "component": "logging_setup",
+      "type": "foundation",
+      "layer": "p0_common",
+      "status": "implemented",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "invoicing",
+      "component": "invoice_model",
+      "type": "model",
+      "layer": "p1_domain",
+      "status": "verified",
+      "tested": true,
+      "invariants_total": 1,
+      "invariants_verified": 1,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 1
+    },
+    {
+      "container": "invoicing",
+      "component": "invoice_not_found_error",
+      "type": "error",
+      "layer": "p1_domain",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "invoicing",
+      "component": "invoices_repository",
+      "type": "repository",
+      "layer": "p2_io",
+      "status": "verified",
+      "tested": true,
+      "invariants_total": 1,
+      "invariants_verified": 1,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 1
+    },
+    {
+      "container": "invoicing",
+      "component": "mark_paid",
+      "type": "service",
+      "layer": "p3_services",
+      "status": "verified",
+      "tested": true,
+      "invariants_total": 1,
+      "invariants_verified": 1,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 1
+    },
+    {
+      "container": "invoicing",
+      "component": "invoices_cli",
+      "type": "cli",
+      "layer": "p4_entrypoints",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    }
+  ],
+  "invariants": [
+    {
+      "id": "invoice_model.INV1",
+      "component": "invoice_model",
+      "statement": "every invoice has an amount of zero or more",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p1_domain/test_invoice_model.py::test_a_negative_amount_is_refused"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "invoices_repository.INV1",
+      "component": "invoices_repository",
+      "statement": "an invoice file is complete or absent",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p2_io/test_invoices_repository.py::test_a_failed_write_leaves_the_old_file"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "mark_paid.INV1",
+      "component": "mark_paid",
+      "statement": "marking an invoice paid twice gives the same invoice as once",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+      ],
+      "severity": "high"
+    }
+  ],
+  "frozen": 0,
+  "stale_frozen": [],
+  "budget": null,
+  "safety": {
+    "answered": 16,
+    "total": 16
+  },
+  "counts": {}
+}

@@ -1,0 +1,24 @@
+<!-- Vow keywords in the light scheme (Default) and the light schemes based on it, one colour per depth: 0 teal bold, 1 burnt orange, 2 steel blue, 3+ olive. -->
+<list>
+  <option name="VOW_KEY_0">
+    <value>
+      <option name="FOREGROUND" value="00627a"/>
+      <option name="FONT_TYPE" value="1"/>
+    </value>
+  </option>
+  <option name="VOW_KEY_1">
+    <value>
+      <option name="FOREGROUND" value="b3541e"/>
+    </value>
+  </option>
+  <option name="VOW_KEY_2">
+    <value>
+      <option name="FOREGROUND" value="4a6ea9"/>
+    </value>
+  </option>
+  <option name="VOW_KEY_3">
+    <value>
+      <option name="FOREGROUND" value="6e6e2d"/>
+    </value>
+  </option>
+</list>

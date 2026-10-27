@@ -1,0 +1,403 @@
+{
+  "ok": true,
+  "errors": 0,
+  "warnings": 15,
+  "violations": [
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'create_order': safety question S2 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show create_order",
+      "file": ".archvow/components/create_order/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'create_order': safety question S4 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show create_order",
+      "file": ".archvow/components/create_order/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'create_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show create_order",
+      "file": ".archvow/components/create_order/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'get_current_user': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_current_user",
+      "file": ".archvow/components/get_current_user/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'get_order': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show get_order",
+      "file": ".archvow/components/get_order/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'get_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_order",
+      "file": ".archvow/components/get_order/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'main': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show main",
+      "file": ".archvow/components/main/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'new_order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show new_order_model",
+      "file": ".archvow/components/new_order_model/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'new_order_model': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show new_order_model",
+      "file": ".archvow/components/new_order_model/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show order_model",
+      "file": ".archvow/components/order_model/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_repository': safety question S2 not answered (more) - Too much (unbounded results, duplicated records, a flood of requests): what must never happen? -> archvow show orders_repository",
+      "file": ".archvow/components/orders_repository/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_repository': safety question S5 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show orders_repository",
+      "file": ".archvow/components/orders_repository/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_repository': safety question S6 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show orders_repository",
+      "file": ".archvow/components/orders_repository/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_router': safety question S3 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show orders_router",
+      "file": ".archvow/components/orders_router/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'orders_router': safety question S4 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show orders_router",
+      "file": ".archvow/components/orders_router/spec.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+    }
+  ],
+  "statuses": [
+    {
+      "container": "orders_api",
+      "component": "get_current_user",
+      "symbol": "get_current_user",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "settings",
+      "symbol": "Settings",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "settings",
+      "symbol": "get_settings",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "new_order_model",
+      "symbol": "NewOrder",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "order_model",
+      "symbol": "Order",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "order_not_found_error",
+      "symbol": "OrderNotFoundError",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "orders_repository",
+      "symbol": "OrdersRepository",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "create_order",
+      "symbol": "create_order",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "get_order",
+      "symbol": "get_order",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "main",
+      "symbol": "create_app",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "orders_router",
+      "symbol": "router",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "orders_router",
+      "symbol": "post_order",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
+      "component": "orders_router",
+      "symbol": "read_order",
+      "status": "implemented",
+      "reason": ""
+    }
+  ],
+  "suppressed": [],
+  "changes": [],
+  "components": [
+    {
+      "container": "orders_api",
+      "component": "get_current_user",
+      "type": "dependency",
+      "layer": "p0_common",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "settings",
+      "type": "foundation",
+      "layer": "p0_common",
+      "status": "implemented",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "new_order_model",
+      "type": "model",
+      "layer": "p1_domain",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "order_model",
+      "type": "model",
+      "layer": "p1_domain",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "order_not_found_error",
+      "type": "error",
+      "layer": "p1_domain",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "orders_repository",
+      "type": "repository",
+      "layer": "p2_io",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "create_order",
+      "type": "service",
+      "layer": "p3_services",
+      "status": "verified",
+      "tested": true,
+      "invariants_total": 1,
+      "invariants_verified": 1,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 1
+    },
+    {
+      "container": "orders_api",
+      "component": "get_order",
+      "type": "service",
+      "layer": "p3_services",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "main",
+      "type": "app",
+      "layer": "p4_api",
+      "status": "tested",
+      "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "orders_router",
+      "type": "router",
+      "layer": "p4_api",
+      "status": "verified",
+      "tested": true,
+      "invariants_total": 1,
+      "invariants_verified": 1,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 1
+    }
+  ],
+  "invariants": [
+    {
+      "id": "create_order.INV1",
+      "component": "create_order",
+      "statement": "every saved order has an amount greater than zero",
+      "verify": "property_test",
+      "verified": true,
+      "evidence": [
+        "tests/p3_services/test_create_order.py::test_every_saved_order_has_an_amount_greater_than_zero"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "orders_router.INV1",
+      "component": "orders_router",
+      "statement": "a customer only ever reads their own orders",
+      "verify": "property_test",
+      "verified": true,
+      "evidence": [
+        "tests/p4_api/test_orders_router.py::test_a_customer_only_reads_their_own_orders"
+      ],
+      "severity": "critical"
+    }
+  ],
+  "frozen": 0,
+  "stale_frozen": [],
+  "budget": null,
+  "safety": {
+    "answered": 14,
+    "total": 29
+  },
+  "counts": {
+    "ARCH035": 15
+  }
+}

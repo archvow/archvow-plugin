@@ -1,0 +1,88 @@
+vow 1 component clean_orders
+# archvow vow of clean_orders - what it must be and do; archvow check holds the code to it.
+# Read: archvow show clean_orders. Change: archvow specify clean_orders. Never edit by hand.
+name clean_orders
+type transformation
+layer p1_domain
+module my_pipeline.p1_domain.clean_orders
+ticket US-002
+description "Keep only the valid rows: order_id not null and amount >= 0"
+uses []
+
+# --- symbols
+symbol clean_orders
+  kind function
+  signature "(df: DataFrame) -> DataFrame"
+
+# --- decisions
+decision 1
+  question "Which rows does it keep (filter conditions), or all of them?"
+  answer "Rows where order_id is not null and amount >= 0"
+  by architect@example.com
+  on 2026-10-08T13:06:24.289189+00:00
+
+decision 2
+  question "Which output columns does it produce, and how is each one computed (type, nullable)?"
+  answer "The schema columns, unchanged"
+  by architect@example.com
+  on 2026-10-08T13:06:24.343938+00:00
+
+decision 3
+  question "Does it group rows? By which keys, with which aggregates - or no grouping?"
+  answer "No grouping"
+  by architect@example.com
+  on 2026-10-08T13:06:24.412714+00:00
+
+decision 4
+  question "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")"
+  answer "No join"
+  by architect@example.com
+  on 2026-10-08T13:06:24.487443+00:00
+
+decision 5
+  question "Empty input: return an empty DataFrame with the output schema, or fail?"
+  answer "Return an empty DataFrame with the output schema"
+  by architect@example.com
+  on 2026-10-08T13:06:24.545560+00:00
+
+decision 6
+  question "Null values in key columns: drop, keep, or fail?"
+  answer "Drop rows with a null order_id"
+  by architect@example.com
+  on 2026-10-08T13:06:24.601449+00:00
+
+decision 7
+  question "Duplicate keys in the input: keep first, keep last, aggregate, or fail?"
+  answer "Keep one row per order_id"
+  by architect@example.com
+  on 2026-10-08T13:06:24.650108+00:00
+
+decision 8
+  question "Negative or out-of-range values: keep, clamp, drop, or fail?"
+  answer "Drop rows where amount is negative"
+  by architect@example.com
+  on 2026-10-08T13:06:24.700551+00:00
+
+decision 9
+  question "Extra input columns not in the schema: drop silently or fail?"
+  answer "Drop them: output only the schema columns"
+  by architect@example.com
+  on 2026-10-08T13:06:24.782343+00:00
+
+assumptions []
+
+# --- hazards
+hazard H1
+  guide_word less
+  severity high
+  never "A valid input row is dropped"
+  by architect@example.com
+  on 2026-10-08T13:06:26.136877+00:00
+
+# --- invariants
+invariant INV1
+  always "every input row with an order_id and amount >= 0 appears in the output"
+  prevents [H1]
+  verified_by property_test
+  by architect@example.com
+  on 2026-10-08T13:06:26.187286+00:00

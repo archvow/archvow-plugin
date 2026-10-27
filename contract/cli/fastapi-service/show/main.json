@@ -1,0 +1,76 @@
+{
+  "component": "main",
+  "type": "app",
+  "known_columns": [],
+  "description": "The service: the order routes under /v1, domain errors mapped to HTTP statuses",
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which routers, under which prefix (e.g. /v1)?",
+      "answer": "orders_router under /v1",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?",
+      "answer": "OrderNotFoundError -> 404, as decided by the error",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?",
+      "answer": "Nothing to start or stop yet",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "CORS: which origins may call it from a browser - or none?",
+      "answer": "No CORS: not called from browsers",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {
+      "customer": "personal"
+    },
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+      "status": "answered",
+      "dismissed": "Builds the app only: it calls nothing that can be down"
+    },
+    {
+      "number": 2,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+        "invariant": "a user only reads and changes their own data, and secrets never appear in a response or a log"
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": [],
+  "run": {
+    "component": "main",
+    "ready": true,
+    "line": "Try it locally: make run, then curl localhost:8000<prefix>/orders/<order_id>"
+  }
+}

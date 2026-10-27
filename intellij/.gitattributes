@@ -1,0 +1,4 @@
+# Gradle wrapper: the Windows script keeps CRLF on checkout, the Unix one LF; the jar is binary
+gradlew.bat text eol=crlf
+gradlew text eol=lf
+*.jar binary

@@ -1,0 +1,107 @@
+{
+  "component": "orders_reader",
+  "type": "reader",
+  "known_columns": [
+    {
+      "component": "orders_schema",
+      "columns": [
+        "amount",
+        "customer_id",
+        "order_date",
+        "order_id"
+      ]
+    }
+  ],
+  "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "The path does not exist or is empty: fail or return an empty DataFrame?",
+      "answer": "Fail with a clear error: a missing input is an operations problem",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Records not matching the schema: fail, drop, or quarantine?",
+      "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream",
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Which partitions / dates are read, and what if the latest one is missing?",
+      "answer": "Everything under the given path, no partitions",
+      "suggested": null,
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "Input missing, empty or late: what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "an absent, empty or late input is processed as if it were complete",
+        "invariant": "Fail with a clear error: a missing input is an operations problem (decision 1)",
+        "decision": {
+          "number": 1,
+          "answer": "Fail with a clear error: a missing input is an operations problem"
+        }
+      }
+    },
+    {
+      "number": 2,
+      "guide_word": "more",
+      "question": "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
+        "invariant": "the output has at most one row per key"
+      }
+    },
+    {
+      "number": 3,
+      "guide_word": "wrong",
+      "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a null, negative or out-of-range value reaches the output",
+        "invariant": "Fail the job (FAILFAST): a malformed file must be fixed upstream (decision 2)",
+        "decision": {
+          "number": 2,
+          "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream"
+        }
+      }
+    },
+    {
+      "number": 4,
+      "guide_word": "stale",
+      "question": "Old data treated as today's (the job reads the wrong date): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "old data is processed as if it were current",
+        "invariant": "Everything under the given path, no partitions (decision 3)",
+        "decision": {
+          "number": 3,
+          "answer": "Everything under the given path, no partitions"
+        }
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": []
+}
