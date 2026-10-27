@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.11.4 - 2026-10-27
+
+- **A wiki for the plugins' maintainers** (`wiki/` at the repository's root, French, English in
+  `wiki/en/`), on the model of archvow's: how both plugins are built, every file, every flow and why.
+- **`wiki.test.ts`**: `npm test` fails when the wiki no longer follows the code (a page without its
+  English twin, a dead link, a file, an `Archvow*` / `Vow*` class or a `function()` named in a page that
+  no longer exists). 55 tests pass.
+- Nothing changes in the extension itself; the IntelliJ plugin's text sizes and branch advice are fixed
+  in this version (same number for both plugins).
+
 ## 0.11.3 - 2026-10-27
 
 - **Back** in the editor tab: a command opened from a component (Edit spec, + Question, + Rule,

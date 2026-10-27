@@ -7,9 +7,10 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `intellij/` | the plugin for IntelliJ IDEA, PyCharm and the other JetBrains IDEs: the archvow workspace and the `.vow` language, in one plugin | Gradle, JDK 21 |
 | `vscode/` | the extension for VS Code: the same workspace: Overview, Components and Commands in the sidebar, what is chosen in one editor tab, `archvow check` in the Problems view, the `.vow` language | npm, Node 20+ |
 | `contract/` | what both plugins and the archvow CLI agree on: the sample vows, the CLI's JSON, the `.vow` reader's tokens and problems | `contract/tools/regenerate.py`, `./gradlew contractDump` |
+| `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.11.3.zip, dist/archvow-0.11.3.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.11.4.zip, dist/archvow-0.11.4.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -51,6 +52,6 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 
 ## Versions
 
-Both plugins have the same version (0.11.3), their own, not archvow's. They read `.vow` format 1 and run
+Both plugins have the same version (0.11.4), their own, not archvow's. They read `.vow` format 1 and run
 the archvow CLI 1.16 (`contract/cli/version.txt`, the version the contract was recorded from); each says
 when the installed archvow is another major.minor (archvow keeps no backward compatibility).

@@ -2,6 +2,23 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.11.4 - 2026-10-27
+
+- **The branch advice is shown whole in a narrow tool window** ("You are on main: create a feature
+  branch..." was cut at the panel's edge): it wraps over as many lines as it needs (`ArchvowWrapLabel`,
+  a read-only text that wraps to the panel's width).
+- **Text at the IDE's size everywhere** (the result of Doctor, Check, Audit, Next... and a component's
+  head were far too large): Swing reads a CSS `px` as 1.3 point, and `<h2>`/`<h3>` added more. Every HTML
+  the plugin shows now starts from `ArchvowHtml.body` (the IDE's font, in points), titles from
+  `ArchvowHtml.heading` (slightly larger, no `<h1>`-`<h6>`), relative sizes from `ArchvowHtml.size`.
+- **A wiki for the plugins' maintainers** (`wiki/`, French, English in `wiki/en/`), on the model of
+  archvow's: reading guide, big picture, layout, contract, running archvow, sidebar and tab, Overview, a
+  component, commands, the `.vow` language, problems, languages and look, tests, releasing, recipes,
+  design decisions, glossary. `npm test` checks it follows the code (`wiki.test.ts`).
+- Tests: `TextSizeRegression` (the IDE's size, no `px` or heading tags in Doctor, Check and an empty
+  result, the advice wrapped at 260 px); 34 headless regressions pass; seen in a Swing frame: Doctor at
+  the IDE's size, the advice on four lines at 300 px.
+
 ## 0.11.3 - 2026-10-27
 
 - **The tool window's header no longer cuts the project's name** (the language box drew over it): the

@@ -437,16 +437,14 @@ final class ArchvowResultFormatter {
     }
 
     private static StringBuilder begin(Palette p) {
-        return new StringBuilder("<html><body style='font-family:sans-serif;font-size:12px;color:")
-            .append(p.foreground).append(";background-color:").append(p.bg).append(";'>");
+        // sizes from the IDE's font, in pt (ArchvowHtml): "12px" and h3/h4 drew text far larger than the IDE's
+        return new StringBuilder(ArchvowHtml.body(p.foreground, p.bg));
     }
     private static void heading(StringBuilder out, Palette p, String title, String accent) {
-        out.append("<h3 style='color:").append(accent).append(";margin:4px 0 8px 0;'>")
-            .append(esc(title)).append("</h3>");
+        out.append(ArchvowHtml.heading(esc(title), 1.1, "color:" + accent + "; margin:4px 0 8px 0;"));
     }
     private static void section(StringBuilder out, Palette p, String label) {
-        out.append("<h4 style='margin:12px 0 5px 0;color:").append(p.foreground).append(";'>")
-            .append(esc(label)).append("</h4>");
+        out.append(ArchvowHtml.heading(esc(label), 1.0, "margin:12px 0 5px 0; color:" + p.foreground + ";"));
     }
     private static void summary(StringBuilder out, Palette p, List<String> chips) {
         out.append("<table cellspacing='5' cellpadding='6'><tr>");

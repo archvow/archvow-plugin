@@ -182,7 +182,8 @@ final class ArchvowPanel extends JPanel {
     private final JLabel projectInfoLabel = new JLabel();
     private final JLabel componentPendingExplanation = new JLabel();
     private final JLabel gitBranchLabel = new JLabel();
-    private final JLabel featureBranchWarning = new JLabel();
+    /** On main / master / develop: the advice to make a feature branch, on as many lines as it needs (0.11.4). */
+    private final ArchvowWrapLabel featureBranchWarning = new ArchvowWrapLabel();
     private ArchvowConfirmPanel commandConfirmation;
     private ArchvowConfirmPanel componentConfirmation;
     private JPanel decisionConfirmSlot, questionConfirmSlot, safetyConfirmSlot;
@@ -719,7 +720,7 @@ final class ArchvowPanel extends JPanel {
         }
         String extra = customError == null || customError.isBlank() ? "" :
             "<p style='color:" + (darkTheme() ? "#FF9CAB" : "#A52440") + ";'>" + escape(customError) + "</p>";
-        welcomeText.setText(htmlHead() + "<h2>" + escape(title) + "</h2><p>" + escape(detail)
+        welcomeText.setText(htmlHead() + ArchvowHtml.heading(escape(title), 1.3, "margin:4px 0 8px 0;") + "<p>" + escape(detail)
             + "</p><p><small>" + escape(status.root()) + "</small></p>" + extra + "</body></html>");
         welcomeText.setCaretPosition(0);
         welcomeInit.setEnabled(status.canInitialize());
@@ -2427,7 +2428,7 @@ final class ArchvowPanel extends JPanel {
     }
 
     private String sectionHeader(String title, int count) {
-        return "<h3 style='margin:14px 0 8px 0;'>" + escape(title) + " " + chip(Integer.toString(count), "#F4F5F7", "#455468") + "</h3>";
+        return ArchvowHtml.heading(escape(title) + " " + chip(Integer.toString(count), "#F4F5F7", "#455468"), 1.1, "margin:14px 0 8px 0;");
     }
 
     private String emptyState() {
@@ -2457,7 +2458,7 @@ final class ArchvowPanel extends JPanel {
                 ArchvowGrammar.str(entry, "spec").isBlank() ? "" : "ticket " + ArchvowGrammar.str(entry, "spec"),
                 ArchvowGrammar.str(data, "status"))) if (!part.isBlank()) meta.add(part);
         StringBuilder html = new StringBuilder(htmlBareHead());
-        html.append("<div style='font-size:20px'><b>").append(escape(id)).append("</b>&nbsp;&nbsp;<span style='font-size:11px'>")
+        html.append("<div style='").append(ArchvowHtml.size(1.6)).append("'><b>").append(escape(id)).append("</b>&nbsp;&nbsp;<span style='").append(ArchvowHtml.size(0.85)).append("'>")
             .append(badge).append("</span></div>");
         html.append("<div style='color:").append(mutedHex()).append("; margin-top:2px'>").append(escape(String.join(" · ", meta))).append("</div>");
         String description = ArchvowGrammar.str(data, "description");
@@ -2621,7 +2622,7 @@ final class ArchvowPanel extends JPanel {
             : htmlBare(answerHead(answer.isBlank() ? ArchvowI18n.text(project, "Answer question ", "Répondre à la question ") + key
                     : "Question " + key, answer.isBlank() ? "" : ArchvowI18n.text(project, "● ANSWERED", "● RÉPONDUE"))
                 + (about.isBlank() ? "" : "<div style='color:" + mutedHex() + "'>" + escape(about) + "</div>")
-                + "<p style='font-size:115%; margin-top:4px'>" + escape(q) + "</p>"
+                + "<p style='" + ArchvowHtml.size(1.15) + "; margin-top:4px'>" + escape(q) + "</p>"
                 + (recorded.isBlank() ? "" : "<div style='color:" + mutedHex() + "'>"
                     + escape(ArchvowI18n.text(project, "Recorded by ", "Enregistrée par ") + recorded) + "</div>")));
         questionDetails.setCaretPosition(0);
@@ -2669,7 +2670,7 @@ final class ArchvowPanel extends JPanel {
                 ? ArchvowI18n.text(project, "Review assumption ", "Examiner l'hypothèse ") + number
                 : ArchvowI18n.text(project, "Assumption ", "Hypothèse ") + number,
             pending ? "" : "● " + state.toUpperCase(java.util.Locale.ROOT))
-            + "<p style='font-size:115%; margin-top:4px'>" + escape(ArchvowGrammar.str(row, "text")) + "</p>"));
+            + "<p style='" + ArchvowHtml.size(1.15) + "; margin-top:4px'>" + escape(ArchvowGrammar.str(row, "text")) + "</p>"));
         assumptionDetails.setCaretPosition(0);
     }
 
@@ -3426,7 +3427,7 @@ final class ArchvowPanel extends JPanel {
             quickSecondary.setVisible(false);
             return;
         }
-        quickDetails.setText(htmlHead() + "<h3>" + escape(item.title) + "</h3>"
+        quickDetails.setText(htmlHead() + ArchvowHtml.heading(escape(item.title), 1.1, "margin:4px 0 6px 0;")
             + chip(item.pending ? ArchvowI18n.text(project,"Pending","En attente") :
                 ArchvowI18n.text(project,"Resolved","Traité"),
                 item.pending ? "#FFF1D7" : "#E5F4EA", item.pending ? "#9B6818" : "#13835B")
@@ -3867,14 +3868,11 @@ final class ArchvowPanel extends JPanel {
         return panel;
     }
     private static String htmlHead() {
-        return "<html><body style='font-family:sans-serif; font-size:12px; color:"
-            + (darkTheme() ? "#DBE3EC" : "#243044") + "; background-color:"
-            + (darkTheme() ? "#292B30" : "#FFFFFF") + ";'>";
+        return ArchvowHtml.body(darkTheme() ? "#DBE3EC" : "#243044", darkTheme() ? "#292B30" : "#FFFFFF");
     }
     /** As htmlHead, on the panel's own background (the component head, the answer panels). */
     private static String htmlBareHead() {
-        return "<html><body style='font-family:sans-serif; font-size:12px; color:"
-            + (darkTheme() ? "#DBE3EC" : "#243044") + ";'>";
+        return ArchvowHtml.body(darkTheme() ? "#DBE3EC" : "#243044", null);
     }
     private static String htmlBare(String body) {
         return htmlBareHead() + body + "</body></html>";
@@ -3888,7 +3886,7 @@ final class ArchvowPanel extends JPanel {
     }
     /** An answer panel's heading as HTML: "ANSWER QUESTION P1", then its state in green. */
     private static String answerHead(String text, String state) {
-        return "<div style='color:" + mutedHex() + "; font-size:90%; letter-spacing:1px'><b>"
+        return "<div style='color:" + mutedHex() + "; " + ArchvowHtml.size(0.9) + "'><b>"
             + escape(text.toUpperCase(java.util.Locale.ROOT)) + "</b>"
             + (state.isBlank() ? "" : "&nbsp;&nbsp;&nbsp;<b style='color:" + (darkTheme() ? "#74D5A7" : "#0F8451") + "'>" + escape(state) + "</b>")
             + "</div>";

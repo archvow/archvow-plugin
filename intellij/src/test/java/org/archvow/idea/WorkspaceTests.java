@@ -40,6 +40,7 @@ public final class WorkspaceTests {
         run("TaskPromptRegression", () -> TaskPromptRegression.main(NONE));
         run("UsesAndFileRegression", () -> UsesAndFileRegression.main(NONE));
         run("TextDialogRegression", () -> TextDialogRegression.main(NONE));
+        run("TextSizeRegression", () -> TextSizeRegression.main(NONE));
         run("ToolWindowLayoutRegression", () -> ToolWindowLayoutRegression.main(NONE));
         run("UiPolishRegression", () -> UiPolishRegression.main(NONE));
         run("ViewNavigationRegression", () -> ViewNavigationRegression.main(NONE));
