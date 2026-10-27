@@ -54,3 +54,29 @@ test('Check shows the count per rule archvow gives (check --json `counts`), as I
   assert.equal(byRule({}), '');
   assert.match(page, /<p class="by-rule">/);
 });
+
+test('a component shows what it uses and what uses it (show --json `uses`, `used_by`), as IntelliJ does', () => {
+  const source = page.match(/function links\(view\) \{[\s\S]*?\n  \}/);
+  assert.ok(source, 'links() is in the page');
+  const esc = (x: string) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const list = (o: Record<string, unknown>, k: string) => (Array.isArray(o[k]) ? (o[k] as unknown[]) : []);
+  const links = new Function('t', 'esc', 'list', `${source[0]}; return links;`)((en: string) => en, esc, list);
+  const cli = path.resolve(ROOT, '..', 'contract', 'cli', 'pyspark-pipeline', 'show');
+  const view = JSON.parse(fs.readFileSync(path.join(cli, 'orders_reader.json'), 'utf8'));
+  assert.deepEqual(view.used_by, ['my_pipeline_job']);
+  assert.equal(links(view), '<p class="links muted small">Uses: <span class="link" data-a="pick" data-id="orders_schema">orders_schema</span>'
+    + '  ·  Used by: <span class="link" data-a="pick" data-id="my_pipeline_job">my_pipeline_job</span></p>');
+  assert.equal(links({ uses: [], used_by: [] }), '');
+  assert.match(page, /\$\{links\(view\)\}/);
+});
+
+test('"Show archvow for this file" on an editor tab and in the editor: archvow show <file>:<line>', () => {
+  const commands = manifest.contributes.commands.map((c: { command: string }) => c.command);
+  assert.ok(commands.includes('archvow.showFile'));
+  for (const where of ['editor/title/context', 'editor/context']) {
+    assert.deepEqual(manifest.contributes.menus[where].map((m: { command: string }) => m.command), ['archvow.showFile']);
+  }
+  const extension = fs.readFileSync(path.join(ROOT, 'src', 'extension.ts'), 'utf8');
+  assert.match(extension, /registerCommand\('archvow\.showFile'/);
+  assert.match(host, /\['show', line > 0 \? `\$\{relative\}:\$\{line\}` : relative, '--json'\]/);
+});

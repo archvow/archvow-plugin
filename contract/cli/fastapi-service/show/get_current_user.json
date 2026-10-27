@@ -1,8 +1,29 @@
 {
   "component": "get_current_user",
   "type": "dependency",
+  "layer": "p0_common",
   "known_columns": [],
   "description": "The authenticated customer's id, from the X-Customer header",
+  "uses": [],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p0_common/test_get_current_user.py::test_the_header_gives_the_customer"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p0_common/test_get_current_user.py::test_a_missing_header_is_401"
+      ]
+    }
+  ],
   "status": "tested",
   "decisions": [
     {
@@ -10,6 +31,8 @@
       "question": "What does it provide, and for how long (one request, the whole app)?",
       "answer": "The customer id (str) from the X-Customer header, for one request",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -17,6 +40,8 @@
       "question": "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end?",
       "answer": "Header missing or empty: 401 Unauthorized",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     }
   ],

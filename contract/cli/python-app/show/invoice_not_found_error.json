@@ -1,8 +1,32 @@
 {
   "component": "invoice_not_found_error",
   "type": "error",
+  "layer": "p1_domain",
   "known_columns": [],
   "description": "No invoice with this number",
+  "uses": [],
+  "used_by": [
+    "mark_paid",
+    "invoices_cli"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p1_domain/test_invoice_not_found_error.py::test_it_carries_the_number_for_exit_code_3"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p1_domain/test_invoice_not_found_error.py::test_its_message_names_only_the_number"
+      ]
+    }
+  ],
   "status": "tested",
   "decisions": [
     {
@@ -10,6 +34,8 @@
       "question": "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?",
       "answer": "Exit code 3",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -17,6 +43,8 @@
       "question": "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?",
       "answer": "A short fixed message, without personal data or secrets",
       "suggested": "A short fixed message, without personal data or secrets",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     }
   ],

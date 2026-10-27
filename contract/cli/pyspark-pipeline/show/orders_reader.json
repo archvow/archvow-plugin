@@ -1,6 +1,7 @@
 {
   "component": "orders_reader",
   "type": "reader",
+  "layer": "p2_io",
   "known_columns": [
     {
       "component": "orders_schema",
@@ -13,6 +14,32 @@
     }
   ],
   "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
+  "uses": [
+    "orders_schema"
+  ],
+  "used_by": [
+    "my_pipeline_job"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": []
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": []
+    }
+  ],
   "status": "planned",
   "decisions": [
     {
@@ -20,6 +47,8 @@
       "question": "The path does not exist or is empty: fail or return an empty DataFrame?",
       "answer": "Fail with a clear error: a missing input is an operations problem",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -27,6 +56,8 @@
       "question": "Records not matching the schema: fail, drop, or quarantine?",
       "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -34,6 +65,8 @@
       "question": "Which partitions / dates are read, and what if the latest one is missing?",
       "answer": "Everything under the given path, no partitions",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     }
   ],

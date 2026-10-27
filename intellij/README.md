@@ -21,6 +21,7 @@ with version 0.4.x) before installing this one: both declare the `.vow` file typ
 | Tool window **Archvow** (left; **Tools > Show Archvow**) | Overview, Components (the tree) and Commands (the list): what you choose there opens in **one** editor tab, *archvow: clean_orders*, reused for the next component or command (close it, and the next click opens it again) |
 | Overview | the architecture (containers, layers, components with their status), Check & Gates (`check --json`, every diagnostic with its rule), Next |
 | Components (the editor tab) | per component: decisions (answer, propose, accept), questions, safety (hazards, invariants), assumptions, rules, columns and tasks, the full `spec.vow`; Open Spec / Open Code |
+| Right-click in an editor, or on its tab | **Show Archvow for This File**: `archvow show <file>:<line>` - the component that owns the file opens in the editor tab; its details start with *Uses ... · Used by ...*, each name a link |
 | Commands (the editor tab) | a form for each archvow command, built from the CLI's own parser; read-only commands run at once, changes ask for a confirmation |
 | Settings > Tools > Archvow | the archvow executable, or the Python that has archvow installed (`python3 -m archvow`), the time-out, the language (English / French / the IDE's) |
 
@@ -52,7 +53,7 @@ You need a JDK 21. IntelliJ's own runtime is one:
 ```bash
 cd intellij
 export JAVA_HOME="/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home"   # or IntelliJ IDEA CE.app, PyCharm.app...
-./gradlew buildPlugin        # -> build/distributions/archvow-intellij-0.8.0.zip
+./gradlew buildPlugin        # -> build/distributions/archvow-intellij-0.9.0.zip
 ./gradlew check              # coreTest (the .vow reader) + workspaceTest (the workspace's plain classes)
 ./gradlew runIde             # optional: a sandbox IntelliJ with the plugin, to try it
 ```
@@ -67,13 +68,13 @@ mirror. If that IntelliJ version cannot be downloaded, put your own version ther
 
 ## Install
 
-Settings > Plugins > gear icon > **Install Plugin from Disk...** > `build/distributions/archvow-intellij-0.8.0.zip`,
+Settings > Plugins > gear icon > **Install Plugin from Disk...** > `build/distributions/archvow-intellij-0.9.0.zip`,
 then restart. For a team: a company plugin repository (an `updatePlugins.xml` on an internal server,
 Settings > Plugins > gear icon > Manage Plugin Repositories), so nobody downloads from outside.
 
 ## Check it once installed
 
-- [ ] Settings > Plugins lists **one** archvow plugin, version 0.8.0.
+- [ ] Settings > Plugins lists **one** archvow plugin, version 0.9.0.
 - [ ] The Archvow tool window opens on the left on a project with `.archvow/`, lists its components, and
       Check shows its result in the editor tab and the diagnostics in Check & Gates.
 - [ ] A click on a component opens the tab *archvow: <component>*; a click on another one shows it in the
@@ -104,5 +105,5 @@ time-out, cancel), `ArchvowGrammar` reads the command grammar (`src/main/resourc
 exported from archvow's own parser by `tools/export_cli.py`), `ArchvowPanel` is the workspace, the
 `Archvow*View` classes are its views. `src/main/resources/META-INF/plugin.xml` registers both parts.
 
-The plugin has its own version (0.8.0); it reads `.vow` format 1 and runs the archvow CLI 1.14 (the version of
+The plugin has its own version (0.9.0); it reads `.vow` format 1 and runs the archvow CLI 1.15 (the version of
 `../contract/cli/version.txt`; the workspace says when the installed archvow is another one).

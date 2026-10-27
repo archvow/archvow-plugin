@@ -1,6 +1,7 @@
 {
   "component": "invoice_model",
   "type": "model",
+  "layer": "p1_domain",
   "known_columns": [
     {
       "component": "invoice_model",
@@ -13,6 +14,53 @@
     }
   ],
   "description": "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid",
+  "uses": [],
+  "used_by": [
+    "invoices_repository",
+    "mark_paid"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p1_domain/test_invoice_model.py::test_all_fields_are_required"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p1_domain/test_invoice_model.py::test_values_follow_the_rules"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p1_domain/test_invoice_model.py::test_no_field_is_secret"
+      ]
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": [
+        "tests/p1_domain/test_invoice_model.py::test_an_invoice_is_frozen"
+      ]
+    },
+    {
+      "item": "invoice_model.INV1",
+      "kind": "invariant",
+      "key": "INVOICE_MODEL.INV1",
+      "tests": [
+        "tests/p1_domain/test_invoice_model.py::test_a_negative_amount_is_refused"
+      ]
+    }
+  ],
   "status": "verified",
   "decisions": [
     {
@@ -20,6 +68,8 @@
       "question": "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?",
       "answer": "All fields required",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -27,6 +77,8 @@
       "question": "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?",
       "answer": "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -34,6 +86,8 @@
       "question": "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?",
       "answer": "None",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -41,6 +95,8 @@
       "question": "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?",
       "answer": "Frozen: a change builds a new one (dataclasses.replace)",
       "suggested": "Frozen: a change builds a new one (dataclasses.replace)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     }
   ],

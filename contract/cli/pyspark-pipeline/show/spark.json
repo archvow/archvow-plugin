@@ -1,8 +1,19 @@
 {
   "component": "spark",
   "type": "foundation",
+  "layer": "p0_common",
   "known_columns": [],
   "description": "Single factory for SparkSession objects.",
+  "uses": [],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    }
+  ],
   "status": "planned",
   "decisions": [
     {
@@ -10,6 +21,8 @@
       "question": "Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none?",
       "answer": "spark.sql.session.timeZone=UTC, nothing else",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     }
   ],

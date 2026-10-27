@@ -2,6 +2,22 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.9.0 - 2026-10-27
+
+- On archvow 1.15: the contract is recorded from archvow 1.15.0 (`show --json` gains `uses`, `used_by`,
+  `evidence`; `show <file>[:<line>]` is new). `contract/vow-reader/expected.json` rewritten by
+  `DumpContract` (the samples' template version changed).
+- A component's details start with **Uses ... · Used by ...**, each name a link that opens that
+  component (`ArchvowLinks`, the same line as VS Code).
+- **Show Archvow for This File** (`ShowFileArchvowAction`), on the editor's and the editor tab's context
+  menus: `archvow show <file>:<line>` (the caret's line), then the component in the Archvow editor tab;
+  a file no component owns gets archvow's hint.
+- Checked here without Gradle (JetBrains hosts are not reachable): `CoreTests` (182 584 checks on 29
+  vows), the 29 workspace regressions that need no IntelliJ classes (new: `UsesAndFileRegression`),
+  compiled with javac and run headless, and `ShowFileArchvowAction` compiled against stubs of the
+  IntelliJ API it uses. The panel's two additions are not compiled here: `./gradlew check buildPlugin`
+  and `runIde` on your machine.
+
 ## 0.8.0 - 2026-10-26
 
 - On archvow 1.14: the contract is recorded from archvow 1.14.0. The command forms follow it with no

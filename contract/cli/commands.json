@@ -529,7 +529,7 @@
           "multiToken": false,
           "optionalValue": true,
           "choices": [],
-          "help": "one component, or a rule R1",
+          "help": "one component, a rule R1, or a file (file.py or file.py:<line>)",
           "metavar": "component"
         },
         {

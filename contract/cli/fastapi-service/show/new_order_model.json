@@ -1,6 +1,7 @@
 {
   "component": "new_order_model",
   "type": "model",
+  "layer": "p1_domain",
   "known_columns": [
     {
       "component": "new_order_model",
@@ -10,6 +11,37 @@
     }
   ],
   "description": "What a customer sends to create an order: amount Decimal > 0",
+  "uses": [],
+  "used_by": [
+    "create_order",
+    "orders_router"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p1_domain/test_new_order_model.py::test_a_positive_amount"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p1_domain/test_new_order_model.py::test_other_amounts_are_refused"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p1_domain/test_new_order_model.py::test_a_positive_amount"
+      ]
+    }
+  ],
   "status": "tested",
   "decisions": [
     {
@@ -17,6 +49,8 @@
       "question": "Which fields are required, and which are optional (with which default)?",
       "answer": "amount required",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -24,6 +58,8 @@
       "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
       "answer": "amount > 0 with at most 2 decimals",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -31,6 +67,8 @@
       "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
       "answer": "None",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     }
   ],

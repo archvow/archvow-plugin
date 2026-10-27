@@ -1,8 +1,27 @@
 {
   "component": "my_pipeline_main",
   "type": "entrypoint",
+  "layer": "p4_entrypoints",
   "known_columns": [],
   "description": "Command line: --input PATH (the input folder), --output PATH (the output folder)",
+  "uses": [
+    "my_pipeline_job"
+  ],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": []
+    }
+  ],
   "status": "planned",
   "decisions": [
     {
@@ -10,6 +29,8 @@
       "question": "Invalid arguments: which exit code and message?",
       "answer": "Exit code 2 with a usage message",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -17,6 +38,8 @@
       "question": "Which exit codes signal which failures to the scheduler?",
       "answer": "0 success, 1 job failure, 2 invalid arguments",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     }
   ],

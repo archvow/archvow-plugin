@@ -113,6 +113,14 @@ final class ArchvowPanel extends JPanel {
     private JButton welcomeInit;
     private ArchvowProjectReadiness.Status projectStatus;
     private final JEditorPane componentDetails = htmlPane();
+    {
+        // "Uses ...  ·  Used by ..." under the component's name: each name opens that component (ArchvowLinks)
+        componentDetails.addHyperlinkListener(event -> {
+            if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
+            String target = ArchvowLinks.component(event.getDescription());
+            if (!target.isBlank()) showComponent(target);
+        });
+    }
     private final JTextPane decisionDetails = ArchvowDecisionView.create();
     private final JTextPane safetyDetails = ArchvowSafetyView.create();
     private final JEditorPane questionDetails = htmlPane();
@@ -521,6 +529,19 @@ final class ArchvowPanel extends JPanel {
             }
         }
         afterSelectionChange();
+    }
+
+    /** The editor tab: archvow show <file>[:<line>] (ShowFileArchvowAction), then the component that owns
+     *  the file; a file no component owns gets archvow's hint (the component add ... --file to run). */
+    void showFile(String relative, int line) {
+        cli.execute("Show " + relative, List.of("show", ArchvowLinks.showArgument(relative, line), "--json"), null, result -> {
+            JsonObject data = ArchvowGrammar.parseObject(result.stdout);
+            String id = data == null ? "" : ArchvowGrammar.str(data, "component");
+            if (!id.isBlank()) { showComponent(id); return; }
+            String hint = data == null ? result.output : ArchvowGrammar.str(data, "hint");
+            message(hint.isBlank() ? ArchvowI18n.text(project, "No component owns this file.",
+                "Aucun composant ne possède ce fichier.") : hint);
+        });
     }
 
     /** The editor tab: runs a command asked in the tool window's Overview, its result in the tab. */
@@ -2393,6 +2414,7 @@ final class ArchvowPanel extends JPanel {
         String id = ArchvowGrammar.str(data,"component");
         StringBuilder html = new StringBuilder(htmlHead());
         html.append("<h2>").append(escape(id)).append("</h2>");
+        html.append(ArchvowLinks.html(data, ArchvowI18n.isFrench(project)));
         List<JsonObject> decisions = ArchvowGrammar.objects(data,"decisions");
         html.append(sectionHeader(ArchvowI18n.text(project,"Decisions", "Décisions"), decisions.size()));
         for (JsonObject d : decisions) html.append(decisionBlock(d));

@@ -1,6 +1,7 @@
 {
   "component": "create_order",
   "type": "service",
+  "layer": "p3_services",
   "known_columns": [
     {
       "component": "order_model",
@@ -19,6 +20,64 @@
     }
   ],
   "description": "Create a pending order for the current customer and save it",
+  "uses": [
+    "order_model",
+    "new_order_model",
+    "orders_repository"
+  ],
+  "used_by": [
+    "orders_router"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p3_services/test_create_order.py::test_a_retry_is_a_new_order"
+      ]
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": [
+        "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+      ]
+    },
+    {
+      "item": "decision 5",
+      "kind": "decision",
+      "key": "5",
+      "tests": [
+        "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+      ]
+    },
+    {
+      "item": "create_order.INV1",
+      "kind": "invariant",
+      "key": "CREATE_ORDER.INV1",
+      "tests": [
+        "tests/p3_services/test_create_order.py::test_every_saved_order_has_an_amount_greater_than_zero"
+      ]
+    }
+  ],
   "status": "verified",
   "decisions": [
     {
@@ -26,6 +85,8 @@
       "question": "What does it do, step by step (read, check, change, save, call)?",
       "answer": "Build a pending order with the next id, save it, return it",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -33,6 +94,8 @@
       "question": "Something it needs does not exist: which domain error?",
       "answer": "Not applicable: it needs nothing that may be missing",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -40,6 +103,8 @@
       "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
       "answer": "Two orders: a retry is a new order (customers cancel the extra one)",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -47,6 +112,8 @@
       "question": "Who may perform it, and is that checked here or in the router?",
       "answer": "Any authenticated customer, for themselves; checked by the router",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -54,6 +121,8 @@
       "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
       "answer": "One save, nothing else to undo",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     }
   ],

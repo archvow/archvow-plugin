@@ -2,7 +2,7 @@
   "name": "archvow",
   "displayName": "archvow",
   "description": "archvow in VS Code, the same workspace as in IntelliJ: the sidebar holds Overview (architecture, checks, pending work), Components (the tree) and Commands (every archvow command); a component or a command opens in one editor tab, reused for the next one. archvow check in the Problems view, and the .vow language.",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "publisher": "archvow",
   "license": "UNLICENSED",
   "private": true,
@@ -166,6 +166,12 @@
         "command": "archvow.showOutput",
         "title": "Show the archvow log",
         "category": "archvow"
+      },
+      {
+        "command": "archvow.showFile",
+        "title": "Show archvow for this file",
+        "category": "archvow",
+        "icon": "$(symbol-structure)"
       }
     ],
     "menus": {
@@ -193,6 +199,20 @@
         {
           "command": "archvow.copyPrompt",
           "when": "false"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "archvow.showFile",
+          "when": "archvow.project && resourceScheme == file",
+          "group": "archvow@1"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "archvow.showFile",
+          "when": "archvow.project && resourceScheme == file",
+          "group": "archvow@1"
         }
       ]
     },

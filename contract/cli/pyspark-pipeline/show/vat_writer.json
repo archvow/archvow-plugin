@@ -1,8 +1,51 @@
 {
   "component": "vat_writer",
   "type": "writer",
+  "layer": "p2_io",
   "known_columns": [],
   "description": "Write the orders with their VAT as parquet",
+  "uses": [],
+  "used_by": [
+    "my_pipeline_job"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": []
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": []
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": []
+    },
+    {
+      "item": "decision 5",
+      "kind": "decision",
+      "key": "5",
+      "tests": []
+    },
+    {
+      "item": "vat_writer.INV1",
+      "kind": "invariant",
+      "key": "VAT_WRITER.INV1",
+      "tests": []
+    }
+  ],
   "status": "planned",
   "decisions": [
     {
@@ -10,6 +53,8 @@
       "question": "Output already exists: overwrite, append, or fail?",
       "answer": "Overwrite",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -17,6 +62,8 @@
       "question": "A failure mid-write: how is a partial output prevented or detected?",
       "answer": "Write to a temporary folder next to the output, then rename it",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -24,6 +71,8 @@
       "question": "Re-running the same input: must the output be identical (idempotent)?",
       "answer": "Yes: the same input gives the same output",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -31,6 +80,8 @@
       "question": "Partitioning columns and file format?",
       "answer": "Parquet, not partitioned",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -38,6 +89,8 @@
       "question": "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?",
       "answer": "No table: parquet files at the output path",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     }
   ],

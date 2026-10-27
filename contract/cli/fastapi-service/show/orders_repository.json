@@ -1,6 +1,7 @@
 {
   "component": "orders_repository",
   "type": "repository",
+  "layer": "p2_io",
   "known_columns": [
     {
       "component": "order_model",
@@ -13,6 +14,47 @@
     }
   ],
   "description": "Stores and finds orders (in memory to start)",
+  "uses": [
+    "order_model"
+  ],
+  "used_by": [
+    "create_order",
+    "get_order"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p2_io/test_orders_repository.py::test_store_and_find"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p2_io/test_orders_repository.py::test_store_and_find"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p2_io/test_orders_repository.py::test_store_and_find"
+      ]
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": [
+        "tests/p2_io/test_orders_repository.py::test_store_and_find"
+      ]
+    }
+  ],
   "status": "tested",
   "decisions": [
     {
@@ -20,6 +62,8 @@
       "question": "Not found: return None, or raise which domain error?",
       "answer": "Return None",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -27,6 +71,8 @@
       "question": "Who opens and commits the transaction (the service, never the repository)?",
       "answer": "No transaction: memory; the service decides what is saved",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -34,6 +80,8 @@
       "question": "Two updates of the same record at the same time: last write wins, a version check, or a lock?",
       "answer": "Last write wins: an order is only created, never updated yet",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -41,6 +89,8 @@
       "question": "Which queries can return many rows, and what is their maximum?",
       "answer": "None: no list query yet",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     }
   ],

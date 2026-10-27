@@ -56,6 +56,11 @@
             text="Show Archvow" description="Show the Archvow tool window: Overview, Components, Commands">
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </action>
+    <action id="Archvow.ShowFile" class="org.archvow.idea.ShowFileArchvowAction" text="Show Archvow for This File"
+            description="The component that owns this file: what it uses, what uses it, the test behind each decision (archvow show &lt;file&gt;:&lt;line&gt;)">
+      <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    </action>
     <action id="Archvow.Refresh" class="org.archvow.idea.RefreshArchvowAction" text="Refresh Archvow"
             description="Reload the archvow specs and checks"/>
   </actions>

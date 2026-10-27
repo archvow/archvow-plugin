@@ -142,3 +142,6 @@ body.editor .logo { width: 40px; height: 40px; }
 body.editor .title { font-size: 1.45em; }
 body.editor .component-head h2 { display: none; } /* the name is the tab's heading */
 body.editor .detail-only > .card.result .card-body { max-height: calc(100vh - 170px); }
+
+/* what a component uses and what uses it: each name opens that component */
+.links .link { cursor: pointer; text-decoration: underline; color: var(--vscode-textLink-foreground); }

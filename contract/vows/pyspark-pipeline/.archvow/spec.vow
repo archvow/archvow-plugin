@@ -10,7 +10,7 @@ system
 
 # --- containers
 container my_pipeline
-  template pyspark-pipeline@1.14.0
+  template pyspark-pipeline@1.15.0
   package my_pipeline
   path src/my_pipeline
 

@@ -1,8 +1,32 @@
 {
   "component": "order_not_found_error",
   "type": "error",
+  "layer": "p1_domain",
   "known_columns": [],
   "description": "The order does not exist, or belongs to another customer",
+  "uses": [],
+  "used_by": [
+    "get_order",
+    "main"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p1_domain/test_order_not_found_error.py::test_it_is_an_exception_with_a_plain_message"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p1_domain/test_order_not_found_error.py::test_it_is_an_exception_with_a_plain_message"
+      ]
+    }
+  ],
   "status": "tested",
   "decisions": [
     {
@@ -10,6 +34,8 @@
       "question": "Which HTTP status does the app answer with it (404, 409, 422...)?",
       "answer": "404 Not Found",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -17,6 +43,8 @@
       "question": "What does its message say - and never say (internal ids, personal data, whether the resource exists)?",
       "answer": "\"Order not found\" - never the id's owner, never whether it exists",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     }
   ],

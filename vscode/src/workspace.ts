@@ -304,6 +304,25 @@ export class ArchvowProject {
     void this.reloadComponent(component);
   }
 
+  /** `archvow show <file>[:<line>]`: the component that owns a file, shown in the editor tab; a file no
+   *  component owns gets archvow's own hint (the `component add ... --file` to run). */
+  async showFile(file: string, line: number): Promise<void> {
+    if (!file.startsWith(this.root + path.sep)) {
+      void vscode.window.showInformationMessage(tr(this.state.fr, 'This file is not in the archvow project.', "Ce fichier n'est pas dans le projet archvow."));
+      return;
+    }
+    const relative = path.relative(this.root, file).split(path.sep).join('/');
+    const result = await this.cli.run(['show', line > 0 ? `${relative}:${line}` : relative, '--json']);
+    const view = parse(result.stdout);
+    const component = view === null ? '' : str(view, 'component');
+    if (component) {
+      this.show(component);
+      return;
+    }
+    const hint = view === null ? (result.startError ?? result.stderr).trim() : str(view, 'hint');
+    void vscode.window.showInformationMessage(hint || tr(this.state.fr, 'No component owns this file.', "Aucun composant ne possède ce fichier."));
+  }
+
   /** The editor tab, opened if it is closed; revealed without taking the focus from the sidebar. */
   private editor(): vscode.WebviewPanel {
     if (this.panel !== undefined) {

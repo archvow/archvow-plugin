@@ -1,6 +1,7 @@
 {
   "component": "invoices_repository",
   "type": "repository",
+  "layer": "p2_io",
   "known_columns": [
     {
       "component": "invoice_model",
@@ -13,6 +14,54 @@
     }
   ],
   "description": "Stores and finds invoices, one JSON file per invoice in the data folder",
+  "uses": [
+    "invoice_model"
+  ],
+  "used_by": [
+    "mark_paid"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p2_io/test_invoices_repository.py::test_one_json_file_per_invoice"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p2_io/test_invoices_repository.py::test_a_missing_invoice_is_none"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p2_io/test_invoices_repository.py::test_a_failed_write_leaves_the_old_file"
+      ]
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": [
+        "tests/p2_io/test_invoices_repository.py::test_the_last_write_wins"
+      ]
+    },
+    {
+      "item": "invoices_repository.INV1",
+      "kind": "invariant",
+      "key": "INVOICES_REPOSITORY.INV1",
+      "tests": [
+        "tests/p2_io/test_invoices_repository.py::test_a_failed_write_leaves_the_old_file"
+      ]
+    }
+  ],
   "status": "verified",
   "decisions": [
     {
@@ -20,6 +69,8 @@
       "question": "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?",
       "answer": "One file NUMBER.json in data_dir, the fields of the invoice, amount as a string",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -27,6 +78,8 @@
       "question": "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?",
       "answer": "Return None; the service raises the domain error",
       "suggested": "Return None; the service raises the domain error",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -34,6 +87,8 @@
       "question": "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?",
       "answer": "Write to a temporary file next to it, then rename it",
       "suggested": "Write to a temporary file next to it, then rename it",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -41,6 +96,8 @@
       "question": "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?",
       "answer": "The last one wins: marking paid twice gives the same file",
       "suggested": "The second one is refused",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     }
   ],

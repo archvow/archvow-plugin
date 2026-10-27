@@ -73,6 +73,13 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('archvow.openCode', (arg?: unknown) => withProject((p) => { const id = componentId(arg); return id ? p.openCode(id) : undefined; })),
     vscode.commands.registerCommand('archvow.copyPrompt', (arg?: unknown) => withProject((p) => { const id = componentId(arg); return id ? p.copyPrompt(id) : undefined; })),
     vscode.commands.registerCommand('archvow.showOutput', () => log.show()),
+    vscode.commands.registerCommand('archvow.showFile', (uri?: vscode.Uri) => withProject((p) => {
+      const editor = vscode.window.activeTextEditor;
+      const target = uri ?? editor?.document.uri;
+      if (target === undefined || target.scheme !== 'file') return undefined;
+      const same = editor !== undefined && editor.document.uri.toString() === target.toString();
+      return p.showFile(target.fsPath, same ? editor.selection.active.line + 1 : 0);
+    })),
     vscode.workspace.onDidGrantWorkspaceTrust(() => { if (findRoot() !== null && (hasVow(findRoot()) || pendingView)) start(); }),
   );
   // a project with a vow: read it at once, so the sidebar and the Problems view fill without a click

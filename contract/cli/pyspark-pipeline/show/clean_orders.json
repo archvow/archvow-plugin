@@ -1,8 +1,75 @@
 {
   "component": "clean_orders",
   "type": "transformation",
+  "layer": "p1_domain",
   "known_columns": [],
   "description": "Keep only the valid rows: order_id not null and amount >= 0",
+  "uses": [],
+  "used_by": [
+    "my_pipeline_job"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": []
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": []
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": []
+    },
+    {
+      "item": "decision 5",
+      "kind": "decision",
+      "key": "5",
+      "tests": []
+    },
+    {
+      "item": "decision 6",
+      "kind": "decision",
+      "key": "6",
+      "tests": []
+    },
+    {
+      "item": "decision 7",
+      "kind": "decision",
+      "key": "7",
+      "tests": []
+    },
+    {
+      "item": "decision 8",
+      "kind": "decision",
+      "key": "8",
+      "tests": []
+    },
+    {
+      "item": "decision 9",
+      "kind": "decision",
+      "key": "9",
+      "tests": []
+    },
+    {
+      "item": "clean_orders.INV1",
+      "kind": "invariant",
+      "key": "CLEAN_ORDERS.INV1",
+      "tests": []
+    }
+  ],
   "status": "planned",
   "decisions": [
     {
@@ -10,6 +77,8 @@
       "question": "Which rows does it keep (filter conditions), or all of them?",
       "answer": "Rows where order_id is not null and amount >= 0",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -17,6 +86,8 @@
       "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
       "answer": "The schema columns, unchanged",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -24,6 +95,8 @@
       "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
       "answer": "No grouping",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -31,6 +104,8 @@
       "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
       "answer": "No join",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -38,6 +113,8 @@
       "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
       "answer": "Return an empty DataFrame with the output schema",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -45,6 +122,8 @@
       "question": "Null values in key columns: drop, keep, or fail?",
       "answer": "Drop rows with a null order_id",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -52,6 +131,8 @@
       "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
       "answer": "Keep one row per order_id",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -59,6 +140,8 @@
       "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
       "answer": "Drop rows where amount is negative",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -66,6 +149,8 @@
       "question": "Extra input columns not in the schema: drop silently or fail?",
       "answer": "Drop them: output only the schema columns",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     }
   ],

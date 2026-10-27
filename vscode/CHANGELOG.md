@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.9.0 - 2026-10-27
+
+- On archvow 1.15: the contract is recorded from archvow 1.15.0. `show <component> --json` gains
+  `uses`, `used_by`, `evidence` and, on each decision made, `by` / `on`; `show <file>[:<line>]` is new.
+- A component's head shows **Uses ... · Used by ...** (`uses`, `used_by`): each name opens that
+  component - what a change to it may break. The same line as IntelliJ.
+- **archvow: Show archvow for this file**, on an editor's context menu and on its tab's: runs `archvow
+  show <file>:<line>` (the line of the cursor) and opens the component that owns the file; a file no
+  component owns gets archvow's hint (the `component add ... --file` to run).
+- Tests: 42 (layout.test.ts runs the page's `links()` on archvow's recorded `show` of the pyspark example,
+  and checks the command and its two menus).
+
 ## 0.8.0 - 2026-10-26
 
 - On archvow 1.14: the contract is recorded from archvow 1.14.0 (`contract/tools/regenerate.py`). The

@@ -1,8 +1,48 @@
 {
   "component": "main",
   "type": "app",
+  "layer": "p4_api",
   "known_columns": [],
   "description": "The service: the order routes under /v1, domain errors mapped to HTTP statuses",
+  "uses": [
+    "orders_router",
+    "order_not_found_error"
+  ],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p4_api/test_main.py::test_routes_under_v1"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p4_api/test_main.py::test_routes_under_v1"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p4_api/test_main.py::test_routes_under_v1"
+      ]
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": [
+        "tests/p4_api/test_main.py::test_routes_under_v1"
+      ]
+    }
+  ],
   "status": "tested",
   "decisions": [
     {
@@ -10,6 +50,8 @@
       "question": "Which routers, under which prefix (e.g. /v1)?",
       "answer": "orders_router under /v1",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -17,6 +59,8 @@
       "question": "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?",
       "answer": "OrderNotFoundError -> 404, as decided by the error",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -24,6 +68,8 @@
       "question": "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?",
       "answer": "Nothing to start or stop yet",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -31,6 +77,8 @@
       "question": "CORS: which origins may call it from a browser - or none?",
       "answer": "No CORS: not called from browsers",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     }
   ],

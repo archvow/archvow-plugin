@@ -410,12 +410,23 @@
     else if (!view) body = `<p class="muted">${esc(t('Loading', 'Chargement'))}: ${esc(ui.component)}…</p>`;
     else body = [decisionsView, questionsView, safetyView, assumptionsView, rulesView, tasksView, vowView][ui.view](view, d);
     const head = view ? `<div class="component-head"><h2>${esc(ui.component)}</h2><span class="muted">${esc(str(view, 'type'))} · ${esc(localizedState(str(view, 'status')))}</span>
-  <p>${esc(str(view, 'description'))}</p>${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
+  <p>${esc(str(view, 'description'))}</p>${links(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     return `${head}<div class="section-head"><b>Actions</b> <span class="muted">${esc(t('Available on this component', 'Disponibles sur ce composant'))}</span></div>
   <div class="row wrap">${actions.join('')}</div>
   <div class="section-head"><b>Vows</b></div><nav class="tabs views">${viewBar}</nav>${pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
+  }
+
+  /** What the component uses and what uses it (show --json `uses`, `used_by`), each one a link: what a
+   *  change to it may break. As the IntelliJ component header shows it. */
+  function links(view) {
+    const link = (id) => `<span class="link" data-a="pick" data-id="${esc(id)}">${esc(id)}</span>`;
+    const uses = list(view, 'uses').map(String);
+    const usedBy = list(view, 'used_by').map(String);
+    const parts = [uses.length ? `${esc(t('Uses', 'Utilise'))}: ${uses.map(link).join(', ')}` : '',
+      usedBy.length ? `${esc(t('Used by', 'Utilisé par'))}: ${usedBy.map(link).join(', ')}` : ''].filter(Boolean);
+    return parts.length ? `<p class="links muted small">${parts.join('  ·  ')}</p>` : '';
   }
 
   /** Why the component's total can exceed a view's count (as the IntelliJ workspace says). */

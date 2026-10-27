@@ -1,8 +1,40 @@
 {
   "component": "invoices_cli",
   "type": "cli",
+  "layer": "p4_entrypoints",
   "known_columns": [],
   "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
+  "uses": [
+    "mark_paid",
+    "invoice_not_found_error"
+  ],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p4_entrypoints/test_invoices_cli.py::test_bad_arguments_exit_with_2"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p4_entrypoints/test_invoices_cli.py::test_exit_codes"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p4_entrypoints/test_invoices_cli.py::test_the_invoice_on_stdout_errors_on_stderr"
+      ]
+    }
+  ],
   "status": "tested",
   "decisions": [
     {
@@ -10,6 +42,8 @@
       "question": "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?",
       "answer": "Exit code 2 with the usage message (argparse)",
       "suggested": "Exit code 2 with the usage message (argparse)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -17,6 +51,8 @@
       "question": "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?",
       "answer": "0 ok, 1 error, 2 bad arguments, 3 not found",
       "suggested": "0 ok, 1 error, 2 bad arguments",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -24,6 +60,8 @@
       "question": "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?",
       "answer": "The invoice on one line on stdout; errors on stderr",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     }
   ],

@@ -1,6 +1,7 @@
 {
   "component": "orders_router",
   "type": "router",
+  "layer": "p4_api",
   "known_columns": [
     {
       "component": "order_model",
@@ -19,6 +20,65 @@
     }
   ],
   "description": "The order API",
+  "uses": [
+    "create_order",
+    "get_order",
+    "order_model",
+    "new_order_model"
+  ],
+  "used_by": [
+    "main"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p4_api/test_orders_router.py::test_a_customer_only_reads_their_own_orders"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p4_api/test_orders_router.py::test_create_then_read"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p4_api/test_orders_router.py::test_errors"
+      ]
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": [
+        "tests/p4_api/test_orders_router.py::test_create_then_read"
+      ]
+    },
+    {
+      "item": "decision 5",
+      "kind": "decision",
+      "key": "5",
+      "tests": [
+        "tests/p4_api/test_orders_router.py::test_create_then_read"
+      ]
+    },
+    {
+      "item": "orders_router.INV1",
+      "kind": "invariant",
+      "key": "ORDERS_ROUTER.INV1",
+      "tests": [
+        "tests/p4_api/test_orders_router.py::test_a_customer_only_reads_their_own_orders"
+      ]
+    }
+  ],
   "status": "verified",
   "decisions": [
     {
@@ -26,6 +86,8 @@
       "question": "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?",
       "answer": "Authenticated customers (get_current_user), each only on their own orders",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -33,6 +95,8 @@
       "question": "Status codes: success, not found, conflict, forbidden - and the error body format?",
       "answer": "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -40,6 +104,8 @@
       "question": "Invalid input: FastAPI's 422, or 400 with your own error format?",
       "answer": "FastAPI's 422",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -47,6 +113,8 @@
       "question": "Lists: pagination, default and maximum page size - or no list route?",
       "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     },
     {
@@ -54,6 +122,8 @@
       "question": "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?",
       "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
       "proposed": null
     }
   ],

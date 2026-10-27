@@ -1,8 +1,25 @@
 {
   "component": "config",
   "type": "foundation",
+  "layer": "p0_common",
   "known_columns": [],
   "description": "The program's settings, read from the environment and the command line, never from code.",
+  "uses": [],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": []
+    }
+  ],
   "status": "implemented",
   "decisions": [
     {
@@ -10,6 +27,8 @@
       "question": "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?",
       "answer": "data_dir: str (required), log_level: str = \"INFO\"",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -17,6 +36,8 @@
       "question": "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?",
       "answer": "None",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     }
   ],

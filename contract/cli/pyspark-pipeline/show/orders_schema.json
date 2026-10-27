@@ -1,6 +1,7 @@
 {
   "component": "orders_schema",
   "type": "schema",
+  "layer": "p1_domain",
   "known_columns": [
     {
       "component": "orders_schema",
@@ -13,6 +14,24 @@
     }
   ],
   "description": "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date",
+  "uses": [],
+  "used_by": [
+    "orders_reader"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": []
+    }
+  ],
   "status": "planned",
   "decisions": [
     {
@@ -20,6 +39,8 @@
       "question": "Which columns are nullable, and which must never be null?",
       "answer": "order_id and amount are never null; customer_id may be null",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     },
     {
@@ -27,6 +48,8 @@
       "question": "Which columns hold personal data, and where may they flow?",
       "answer": "None: the input holds no personal data",
       "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-08",
       "proposed": null
     }
   ],

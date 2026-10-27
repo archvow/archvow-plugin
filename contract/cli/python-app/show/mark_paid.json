@@ -1,6 +1,7 @@
 {
   "component": "mark_paid",
   "type": "service",
+  "layer": "p3_services",
   "known_columns": [
     {
       "component": "invoice_model",
@@ -13,6 +14,56 @@
     }
   ],
   "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
+  "uses": [
+    "invoice_model",
+    "invoice_not_found_error",
+    "invoices_repository"
+  ],
+  "used_by": [
+    "invoices_cli"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_a_sent_invoice_becomes_paid_and_a_draft_is_refused"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_an_unknown_invoice_is_not_found"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+      ]
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+      ]
+    },
+    {
+      "item": "mark_paid.INV1",
+      "kind": "invariant",
+      "key": "MARK_PAID.INV1",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+      ]
+    }
+  ],
   "status": "verified",
   "decisions": [
     {
@@ -20,6 +71,8 @@
       "question": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
       "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -27,6 +80,8 @@
       "question": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
       "answer": "InvoiceNotFoundError",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -34,6 +89,8 @@
       "question": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
       "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
       "suggested": "The same result, no duplicate effect",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     },
     {
@@ -41,6 +98,8 @@
       "question": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
       "answer": "Only one change, one save: nothing to undo",
       "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
       "proposed": null
     }
   ],

@@ -2,7 +2,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "1.14.0",
+      "version": "1.15.0",
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
@@ -478,11 +478,11 @@
           "signature_overridable": false
         }
       },
-      "source": "/tmp/claude-0/-home-claude/d2055be8-e9b6-52af-b5e0-6e526ec39af0/scratchpad/src/archvow/src/archvow/packs/fastapi-service"
+      "source": "/home/claude/archvow/src/archvow/packs/fastapi-service"
     },
     {
       "name": "pyspark-pipeline",
-      "version": "1.14.0",
+      "version": "1.15.0",
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -929,11 +929,11 @@
           "signature_overridable": false
         }
       },
-      "source": "/tmp/claude-0/-home-claude/d2055be8-e9b6-52af-b5e0-6e526ec39af0/scratchpad/src/archvow/src/archvow/packs/pyspark-pipeline"
+      "source": "/home/claude/archvow/src/archvow/packs/pyspark-pipeline"
     },
     {
       "name": "python-app",
-      "version": "1.14.0",
+      "version": "1.15.0",
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",
@@ -1366,7 +1366,7 @@
           "signature_overridable": false
         }
       },
-      "source": "/tmp/claude-0/-home-claude/d2055be8-e9b6-52af-b5e0-6e526ec39af0/scratchpad/src/archvow/src/archvow/packs/python-app"
+      "source": "/home/claude/archvow/src/archvow/packs/python-app"
     }
   ]
 }
