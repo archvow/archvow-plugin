@@ -127,16 +127,16 @@ final class ArchvowPanel extends JPanel {
     private final JTextArea questionAnswer = new JTextArea(3, 30);
     private final JEditorPane questionInlineResult = htmlPane();
     private JPanel questionInlineResultCard;
-    private final DefaultListModel<String> questionModel = new DefaultListModel<>();
-    private final JList<String> questionList = new JList<>(questionModel);
+    private final DefaultListModel<ArchvowItemCards.Card> questionModel = new DefaultListModel<>();
+    private final JList<ArchvowItemCards.Card> questionList = new JList<>(questionModel);
     private final JTextArea decisionAnswer = new JTextArea(3, 30);
     private final JTextArea safetyInput = new JTextArea(3, 30);
     private final JComboBox<String> safetySeverity = new JComboBox<>(new String[] {"high", "critical", "medium", "low"});
-    private final JButton decideInline = new JButton();
+    private final JButton decideInline = ArchvowSplitView.primary("");
     private final JButton proposeInline = new JButton();
     private final JButton acceptInline = new JButton();
     private final JButton suggestedInline = new JButton();
-    private final JButton hazardInline = new JButton();
+    private final JButton hazardInline = ArchvowSplitView.primary("");
     private final JButton dismissInline = new JButton();
     private final JLabel safetyInputLabel = new JLabel();
     private final JEditorPane decisionInlineResult = htmlPane();
@@ -144,9 +144,9 @@ final class ArchvowPanel extends JPanel {
     private JPanel decisionInlineResultCard, safetyInlineResultCard;
     private final JEditorPane commandQuestionPreview = htmlPane();
     private final JEditorPane assumptionDetails = htmlPane();
-    private final DefaultListModel<String> assumptionModel = new DefaultListModel<>();
-    private final JList<String> assumptionList = new JList<>(assumptionModel);
-    private final JButton assumptionAcceptButton = new JButton();
+    private final DefaultListModel<ArchvowItemCards.Card> assumptionModel = new DefaultListModel<>();
+    private final JList<ArchvowItemCards.Card> assumptionList = new JList<>(assumptionModel);
+    private final JButton assumptionAcceptButton = ArchvowSplitView.primary("");
     private final JButton assumptionRejectButton = new JButton();
     private final DefaultListModel<ArchvowDataView.Item> dataActionModel = new DefaultListModel<>();
     private final JList<ArchvowDataView.Item> dataActionList = new JList<>(dataActionModel);
@@ -161,10 +161,14 @@ final class ArchvowPanel extends JPanel {
     private final JTextPane rulesOnlyDetails = ArchvowDataView.create();
     private final JTextPane rulesDetails = ArchvowDataView.create();
     private final JTextPane vowDetails = ArchvowVowViewer.create();
-    private final DefaultListModel<String> decisionsModel = new DefaultListModel<>();
-    private final JList<String> decisionsList = new JList<>(decisionsModel);
-    private final DefaultListModel<String> safetyModel = new DefaultListModel<>();
-    private final JList<String> safetyList = new JList<>(safetyModel);
+    private final DefaultListModel<ArchvowItemCards.Card> decisionsModel = new DefaultListModel<>();
+    private final JList<ArchvowItemCards.Card> decisionsList = new JList<>(decisionsModel);
+    private final DefaultListModel<ArchvowItemCards.Card> safetyModel = new DefaultListModel<>();
+    private final JList<ArchvowItemCards.Card> safetyList = new JList<>(safetyModel);
+    /** The component the views were last drawn for: another one starts each view on its first open item. */
+    private String renderedComponent = "";
+    /** The safety answer field, its heading and buttons: shown for an open safety question only. */
+    private List<JComponent> safetyEditorParts = List.of();
     private final DefaultMutableTreeNode componentsRoot = new DefaultMutableTreeNode("Architecture");
     private final JTree componentsTree = new JTree(componentsRoot);
     private String componentFilter = "all";
@@ -624,6 +628,9 @@ final class ArchvowPanel extends JPanel {
         }
         detailKind.setText("ARCHVOW · " + kind.toUpperCase(java.util.Locale.ROOT));
         if (brandTitle != null) brandTitle.setText(index == 2 ? "archvow " + what : what);
+        // a component's name is the heading of its head, with its open items (buildComponentHtml)
+        boolean named = index == 1 && !component.isBlank() && (componentViewNav == null || componentViewNav.activeIndex() != 7);
+        if (brandTitle != null) brandTitle.setVisible(!named);
         ArchvowEditorTab.setTitle(project, "archvow: " + what);
         ArchvowPanel nav = navigation();
         if (nav != null) nav.follow(index == 1 ? component : null, index == 2 ? command : null);
@@ -1047,17 +1054,21 @@ final class ArchvowPanel extends JPanel {
         });
         ArchvowOverflowBar actions = new ArchvowOverflowBar(
             ArchvowI18n.text(project, "More actions ▾", "Autres actions ▾"));
-        actions.addAction(button(ArchvowI18n.text(project, "Clarify", "Clarifier"), this::guidedNext));
+        JButton clarify = ArchvowSplitView.primary(ArchvowI18n.text(project, "Clarify", "Clarifier"));
+        clarify.setToolTipText(ArchvowI18n.text(project, "The first open decision, question or safety question",
+            "La première décision, question ou question de sécurité ouverte"));
+        clarify.addActionListener(e -> guidedNext());
+        actions.addAction(clarify);
         actions.addAction(button(ArchvowI18n.text(project, "Open spec", "Ouvrir la spec"), this::openSpec));
         actions.addAction(button(ArchvowI18n.text(project, "Open code", "Ouvrir le code"), this::openCode));
         actions.addAction(button(ArchvowI18n.text(project, "Edit spec", "Modifier la spec"),
             () -> withComponent(c -> openCommand("component edit", Map.of("component", c.id)))));
         actions.addAction(button(ArchvowI18n.text(project, "AI prompt", "Instruction IA"), () -> withComponent(c -> executeDirect("prompt", List.of("prompt", c.id), null, false))));
-        actions.addAction(button(ArchvowI18n.text(project, "Add question", "Ajouter une question"),
+        actions.addAction(button(ArchvowI18n.text(project, "+ Question", "+ Question"),
             () -> withComponent(c -> openCommand("question add", Map.of("component", c.id)))));
-        actions.addAction(button(ArchvowI18n.text(project, "Add rule", "Ajouter une règle"),
+        actions.addAction(button(ArchvowI18n.text(project, "+ Rule", "+ Règle"),
             () -> withComponent(c -> openCommand("rule add", Map.of("words", c.id + "\n")))));
-        actions.addAction(button(ArchvowI18n.text(project, "Add component", "Ajouter un composant"),
+        actions.addAction(button(ArchvowI18n.text(project, "+ Component", "+ Composant"),
             () -> openCommand("component add", Map.of())));
 
         JPanel detailCards = new JPanel(componentViewLayout);
@@ -1069,28 +1080,24 @@ final class ArchvowPanel extends JPanel {
         componentViewNav = viewBar;
         /* Explicit navigation buttons + CardLayout avoid a custom tab-strip UI and keep
            clicks reliable on all IDE themes, widths, and scale factors. */
-        JPanel decisionPanel = new JPanel(new BorderLayout(5, 6));
+        /* Decisions, Questions, Safety, Assumptions: the items as cards on the left, the selected one's
+           answer panel on the right (ArchvowSplitView, stacked when the tab is narrow). When a component
+           opens, each view starts on its first open item (renderComponent). */
         decisionsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        decisionsList.setCellRenderer(new QuestionListRenderer());
-        decisionsList.setFixedCellHeight(40);
+        decisionsList.setCellRenderer(new ArchvowItemCards.Renderer());
+        decisionsList.setFixedCellHeight(ArchvowItemCards.HEIGHT);
         decisionsList.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) showDecision(); });
         decisionsList.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (e.getClickCount() == 2) decisionAnswer.requestFocusInWindow();
             }
         });
-        JScrollPane decisionsScroll = scroll(decisionsList);
-        decisionsScroll.setPreferredSize(new Dimension(260, 170));
-        decisionsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        decisionsScroll.setMinimumSize(new Dimension(0, 65));
-        decisionAnswer.setLineWrap(true);
-        decisionAnswer.setWrapStyleWord(true);
-        decisionAnswer.setBorder(BorderFactory.createEmptyBorder(6, 7, 6, 7));
+        JScrollPane decisionsScroll = cardsScroll(decisionsList);
+        answerField(decisionAnswer);
         decisionAnswerLabel = translated(new JLabel(), "Your answer or proposal", "Votre réponse ou proposition");
         decisionAnswerLabel.setFont(decisionAnswerLabel.getFont().deriveFont(Font.BOLD, 12f));
         JScrollPane answerScroll = scroll(decisionAnswer);
-        answerScroll.setPreferredSize(new Dimension(150, 75));
-        JPanel decisionButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+        answerScroll.setPreferredSize(new Dimension(150, 96));
         decideInline.setText(ArchvowI18n.text(project, "Save answer", "Enregistrer la réponse"));
         proposeInline.setText(ArchvowI18n.text(project, "Propose", "Proposer"));
         acceptInline.setText(ArchvowI18n.text(project, "Accept proposal", "Accepter la proposition"));
@@ -1099,44 +1106,24 @@ final class ArchvowPanel extends JPanel {
         proposeInline.addActionListener(e -> submitInlineDecision("decision propose"));
         acceptInline.addActionListener(e -> submitInlineDecision("decision accept"));
         suggestedInline.addActionListener(e -> fillSuggestedAnswer());
-        decisionButtons.add(decideInline);
-        decisionButtons.add(proposeInline);
-        decisionButtons.add(acceptInline);
-        decisionButtons.add(suggestedInline);
-        JScrollPane decisionButtonsScroll = new JScrollPane(decisionButtons,
-            JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        decisionButtonsScroll.setBorder(BorderFactory.createEmptyBorder());
-        decisionButtonsScroll.setPreferredSize(new Dimension(0, 49));
+        JPanel decisionButtons = answerButtons(List.of(proposeInline, acceptInline, suggestedInline),
+            cancelButton(this::showDecision), decideInline);
         decisionConfirmSlot = new JPanel(new BorderLayout());
         decisionConfirmSlot.setOpaque(false);
         JPanel decisionEditor = ArchvowAnswerEditor.create(decisionAnswerLabel, answerScroll,
-            decisionButtonsScroll, decisionConfirmSlot);
+            decisionButtons, decisionConfirmSlot);
         decisionInlineResultCard = inlineResultCard(decisionInlineResult, () -> decisionInlineResultCard.setVisible(false));
-        JPanel decisionBottom = new JPanel(new BorderLayout(0, 5));
-        JScrollPane decisionTextScroll = scroll(decisionDetails);
-        decisionTextScroll.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(borderColor()),
-            ArchvowI18n.text(project, "Details", "Détails")));
-        languageRefreshers.add(() -> decisionTextScroll.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(borderColor()), ArchvowI18n.text(project, "Details", "Détails"))));
-        decisionTextScroll.setPreferredSize(new Dimension(180, 125));
-        decisionBottom.add(decisionTextScroll, BorderLayout.NORTH);
-        decisionBottom.add(decisionEditor, BorderLayout.CENTER);
-        decisionBottom.add(decisionInlineResultCard, BorderLayout.SOUTH);
         decisionInlineResultCard.setVisible(false);
-        // No vertical splitter: keep the question, answer and actions together at the top.
-        // The complete text remains selectable in the read-only details field.
-        // No fixed height on the editor: it grows when the inline confirmation appears. A fixed
-        // height squeezed the answer field to nothing and drew its label over "Save answer".
-        decisionPanel.add(compactSections(decisionsScroll, decisionTextScroll, decisionEditor,
-            decisionInlineResultCard), BorderLayout.CENTER);
-        addComponentView(viewBar, detailCards, 0, ArchvowI18n.text(project, "Decisions", "Décisions"), decisionPanel);
+        // The question, the field and its buttons stay together; the full text stays selectable above the field.
+        // No fixed height on the editor: it grows when the inline confirmation appears.
+        addComponentView(viewBar, detailCards, 0, ArchvowI18n.text(project, "Decisions", "Décisions"),
+            ArchvowSplitView.create(decisionsScroll, compactSections(answerHeading(decisionDetails), decisionEditor,
+                decisionInlineResultCard)));
 
         // Personal, operational and compliance questions (P1/O2/C1) are also
         // answerable directly, without switching to the Commands tab.
-        JPanel questionsPanel = new JPanel(new BorderLayout(5, 6));
-        questionList.setCellRenderer(new QuestionListRenderer());
-        questionList.setFixedCellHeight(40);
+        questionList.setCellRenderer(new ArchvowItemCards.Renderer());
+        questionList.setFixedCellHeight(ArchvowItemCards.HEIGHT);
         questionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         questionList.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) showQuestion(); });
         questionList.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -1144,110 +1131,90 @@ final class ArchvowPanel extends JPanel {
                 if (e.getClickCount() == 2) questionAnswer.requestFocusInWindow();
             }
         });
-        JScrollPane questionsScroll = scroll(questionList);
-        questionsScroll.setPreferredSize(new Dimension(240, 170));
-        questionsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        questionAnswer.setLineWrap(true);
-        questionAnswer.setWrapStyleWord(true);
+        JScrollPane questionsScroll = cardsScroll(questionList);
+        answerField(questionAnswer);
         JScrollPane qAnswerScroll = scroll(questionAnswer);
-        qAnswerScroll.setPreferredSize(new Dimension(150, 75));
+        qAnswerScroll.setPreferredSize(new Dimension(150, 96));
         questionConfirmSlot = new JPanel(new BorderLayout());
         questionConfirmSlot.setOpaque(false);
-        JPanel questionSaveRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
-        questionSaveRow.add(button(ArchvowI18n.text(project, "Answer this question", "Répondre à cette question"), this::submitInlineQuestion));
+        JButton saveQuestion = ArchvowSplitView.primary(ArchvowI18n.text(project, "Save answer", "Enregistrer la réponse"));
+        saveQuestion.addActionListener(e -> submitInlineQuestion());
         JPanel questionEditor = ArchvowAnswerEditor.create(
             new JLabel(ArchvowI18n.text(project, "Your answer", "Votre réponse")), qAnswerScroll,
-            questionSaveRow, questionConfirmSlot);
+            answerButtons(List.of(), cancelButton(this::showQuestion), saveQuestion), questionConfirmSlot);
         questionInlineResultCard = inlineResultCard(questionInlineResult, () -> questionInlineResultCard.setVisible(false));
-        JPanel questionBottom = new JPanel(new BorderLayout(0, 5));
-        JScrollPane qDetailsScroll = scroll(questionDetails);
-        qDetailsScroll.setPreferredSize(new Dimension(180, 125));
-        labelDetails(qDetailsScroll);
-        questionBottom.add(qDetailsScroll, BorderLayout.NORTH);
-        questionBottom.add(questionEditor, BorderLayout.CENTER);
-        questionBottom.add(questionInlineResultCard, BorderLayout.SOUTH);
         questionInlineResultCard.setVisible(false);
-        questionsPanel.add(compactSections(questionsScroll, qDetailsScroll, questionEditor,
-            questionInlineResultCard), BorderLayout.CENTER);
-        addComponentView(viewBar, detailCards, 1, "Questions", questionsPanel);
+        addComponentView(viewBar, detailCards, 1, "Questions",
+            ArchvowSplitView.create(questionsScroll, compactSections(answerHeading(questionDetails), questionEditor,
+                questionInlineResultCard)));
 
-        JPanel safetyPanel = new JPanel(new BorderLayout(5, 6));
         safetyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        safetyList.setCellRenderer(new QuestionListRenderer());
-        safetyList.setFixedCellHeight(40);
+        safetyList.setCellRenderer(new ArchvowItemCards.Renderer());
+        safetyList.setFixedCellHeight(ArchvowItemCards.HEIGHT);
         safetyList.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) showSafety(); });
-        JScrollPane safetyScroll = scroll(safetyList);
-        safetyScroll.setPreferredSize(new Dimension(260, 170));
-        safetyScroll.setMinimumSize(new Dimension(0, 65));
-        safetyScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        safetyInput.setLineWrap(true);
-        safetyInput.setWrapStyleWord(true);
-        JPanel safetyHeading = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        JScrollPane safetyScroll = cardsScroll(safetyList);
+        answerField(safetyInput);
+        JPanel safetyHeading = new JPanel(new BorderLayout(6, 0));
         safetyInputLabel.setText(ArchvowI18n.text(project, "Hazard description or reason", "Danger ou justification"));
-        safetyHeading.add(safetyInputLabel);
-        safetyHeading.add(new JLabel(ArchvowI18n.text(project, "Severity", "Sévérité")));
-        safetyHeading.add(safetySeverity);
+        safetyInputLabel.setFont(safetyInputLabel.getFont().deriveFont(Font.BOLD, 12f));
+        safetyHeading.add(safetyInputLabel, BorderLayout.WEST);
+        JPanel severity = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        severity.add(new JLabel(ArchvowI18n.text(project, "Severity", "Sévérité")));
+        severity.add(safetySeverity);
+        safetyHeading.add(severity, BorderLayout.EAST);
         JScrollPane safetyInputScroll = scroll(safetyInput);
-        safetyInputScroll.setPreferredSize(new Dimension(150, 75));
-        JPanel safetyActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+        safetyInputScroll.setPreferredSize(new Dimension(150, 96));
         hazardInline.setText(ArchvowI18n.text(project, "Declare hazard", "Déclarer un danger"));
         dismissInline.setText(ArchvowI18n.text(project, "Not applicable", "Non applicable"));
         hazardInline.addActionListener(e -> submitInlineSafety(false));
         dismissInline.addActionListener(e -> submitInlineSafety(true));
-        safetyActions.add(hazardInline);
-        safetyActions.add(dismissInline);
         safetySuggestedButton.setText(ArchvowI18n.text(project, "Use proposed hazard + invariant", "Utiliser danger + invariant proposés"));
         safetySuggestedButton.addActionListener(e -> submitSuggestedSafety());
-        safetyActions.add(safetySuggestedButton);
         safetyInvariantButton.setText(ArchvowI18n.text(project, "Add required invariant", "Ajouter l'invariant requis"));
         safetyInvariantButton.addActionListener(e -> openSelectedSafetyInvariant());
-        safetyActions.add(safetyInvariantButton);
-        safetyActions.add(button(ArchvowI18n.text(project,"Add invariant…","Ajouter un invariant…"),
-            this::openAnySelectedSafetyInvariant));
+        JButton addInvariant = button(ArchvowI18n.text(project,"Add invariant…","Ajouter un invariant…"),
+            this::openAnySelectedSafetyInvariant);
         JButton removeHazard = button(ArchvowI18n.text(project,"Remove hazard…","Supprimer un danger…"),
             () -> removeSelectedSafetyArtifact(false));
         JButton removeInvariant = button(ArchvowI18n.text(project,"Remove invariant…","Supprimer un invariant…"),
             () -> removeSelectedSafetyArtifact(true));
-        safetyActions.add(removeHazard);
-        safetyActions.add(removeInvariant);
+        JButton safetyCancel = cancelButton(this::showSafety);
+        JPanel safetyActions = answerButtons(List.of(dismissInline, safetySuggestedButton), safetyCancel, hazardInline);
+        // what can be done on a question already answered: under the field, apart
+        JPanel safetyMore = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+        for (JButton more : List.of(safetyInvariantButton, addInvariant, removeHazard, removeInvariant)) safetyMore.add(more);
+        safetyMore.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, borderColor()),
+            BorderFactory.createEmptyBorder(4, 0, 0, 0)));
+        JPanel safetyButtons = new JPanel(new BorderLayout(0, 6));
+        safetyButtons.add(safetyActions, BorderLayout.NORTH);
+        safetyButtons.add(safetyMore, BorderLayout.SOUTH);
         safetyConfirmSlot = new JPanel(new BorderLayout());
         safetyConfirmSlot.setOpaque(false);
-        JPanel safetyEditor = ArchvowAnswerEditor.create(safetyHeading, safetyInputScroll, safetyActions, safetyConfirmSlot);
+        safetyEditorParts = List.of(safetyHeading, safetyInputScroll, safetyActions);
+        JPanel safetyEditor = ArchvowAnswerEditor.create(safetyHeading, safetyInputScroll, safetyButtons, safetyConfirmSlot);
         safetyInlineResultCard = inlineResultCard(safetyInlineResult, () -> safetyInlineResultCard.setVisible(false));
-        JPanel safetyBottom = new JPanel(new BorderLayout(0, 5));
-        JScrollPane safetyTextScroll = scroll(safetyDetails);
-        safetyTextScroll.setPreferredSize(new Dimension(180, 165));
-        labelDetails(safetyTextScroll);
-        safetyBottom.add(safetyTextScroll, BorderLayout.NORTH);
-        safetyBottom.add(safetyEditor, BorderLayout.CENTER);
-        safetyBottom.add(safetyInlineResultCard, BorderLayout.SOUTH);
         safetyInlineResultCard.setVisible(false);
-        safetyPanel.add(compactSections(safetyScroll, safetyTextScroll, safetyEditor,
-            safetyInlineResultCard), BorderLayout.CENTER);
-        addComponentView(viewBar, detailCards, 2, ArchvowI18n.text(project, "Safety", "Sécurité"), safetyPanel);
+        addComponentView(viewBar, detailCards, 2, ArchvowI18n.text(project, "Safety", "Sécurité"),
+            ArchvowSplitView.create(safetyScroll, compactSections(answerHeading(safetyDetails), safetyEditor,
+                safetyInlineResultCard)));
 
-        JPanel assumptions = new JPanel(new BorderLayout(0, 6));
-        assumptionList.setCellRenderer(new QuestionListRenderer());
-        assumptionList.setFixedCellHeight(40);
+        assumptionList.setCellRenderer(new ArchvowItemCards.Renderer());
+        assumptionList.setFixedCellHeight(ArchvowItemCards.HEIGHT);
         assumptionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         assumptionList.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) showAssumption(); });
-        JScrollPane assumptionsScroll = scroll(assumptionList);
-        assumptionsScroll.setPreferredSize(new Dimension(200, 175));
-        assumptionsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        JScrollPane assumptionPreview = scroll(assumptionDetails);
-        assumptionPreview.setPreferredSize(new Dimension(200, 130));
-        labelDetails(assumptionPreview);
+        JPanel assumptionItems = new JPanel(new BorderLayout(0, 6));
+        assumptionItems.add(cardsScroll(assumptionList), BorderLayout.CENTER);
+        JPanel addAssumption = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        addAssumption.add(button(ArchvowI18n.text(project, "+ Assumption", "+ Hypothèse"),
+            () -> withComponent(c -> openCommand("assumption add", Map.of("component", c.id)))));
+        assumptionItems.add(addAssumption, BorderLayout.SOUTH);
         assumptionAcceptButton.setText(ArchvowI18n.text(project, "Accept", "Accepter"));
         assumptionRejectButton.setText(ArchvowI18n.text(project, "Reject", "Rejeter"));
         assumptionAcceptButton.addActionListener(e -> reviewSelectedAssumption("assumption accept"));
         assumptionRejectButton.addActionListener(e -> reviewSelectedAssumption("assumption reject"));
-        JPanel assumptionActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
-        assumptionActions.add(assumptionAcceptButton);
-        assumptionActions.add(assumptionRejectButton);
-        assumptionActions.add(button(ArchvowI18n.text(project, "Add assumption", "Ajouter une hypothèse"),
-            () -> withComponent(c -> openCommand("assumption add", Map.of("component", c.id)))));
-        assumptions.add(compactSections(assumptionsScroll, assumptionPreview, assumptionActions), BorderLayout.CENTER);
-        addComponentView(viewBar, detailCards, 3, ArchvowI18n.text(project, "Assumptions", "Hypothèses"), assumptions);
+        JPanel assumptionActions = answerButtons(List.of(), assumptionRejectButton, assumptionAcceptButton);
+        addComponentView(viewBar, detailCards, 3, ArchvowI18n.text(project, "Assumptions", "Hypothèses"),
+            ArchvowSplitView.create(assumptionItems, compactSections(answerHeading(assumptionDetails), assumptionActions)));
         addComponentView(viewBar, detailCards, 4, ArchvowI18n.text(project, "Rules", "Règles"), rulesPanel());
         addComponentView(viewBar, detailCards, 5, ArchvowI18n.text(project, "Tasks", "Tâches"), dataPanel());
         addComponentView(viewBar, detailCards, 6, "Full vow", scroll(vowDetails));
@@ -1268,13 +1235,28 @@ final class ArchvowPanel extends JPanel {
                 label.setText(subtitle ? ArchvowI18n.text(project, "Available on this component", "Disponibles sur ce composant") : "Actions");
             }
         });
-        rightTop.add(actionsHeading, BorderLayout.NORTH);
+        // the component's head over the whole width (name, open items, place, description, links), then its
+        // actions; the "Actions" and "Vows" headings are gone (0.11.0), as on the VS Code page
+        actionsHeading.setVisible(false);
+        JPanel head = new JPanel(new BorderLayout()) {
+            @Override public Dimension getPreferredSize() {
+                int width = getParent() == null ? 0 : getParent().getWidth();
+                if (width <= 0) return super.getPreferredSize();
+                componentDetails.setSize(width, Short.MAX_VALUE);
+                return new Dimension(width, componentDetails.getPreferredSize().height);
+            }
+        };
+        componentDetails.setOpaque(false);
+        componentDetails.setBorder(BorderFactory.createEmptyBorder(4, 6, 0, 6));
+        head.setOpaque(false);
+        head.add(componentDetails, BorderLayout.CENTER);
+        rightTop.add(head, BorderLayout.NORTH);
         rightTop.add(actionStrip, BorderLayout.SOUTH);
         JPanel viewsHeader = new JPanel(new BorderLayout(0, 3));
         // One spec.vow per component; these sections also include checks and project issues.
         vowsLabel = translated(new JLabel(), "Vows", "Vows");
         vowsLabel.setFont(vowsLabel.getFont().deriveFont(Font.BOLD, 13f));
-        viewsHeader.add(vowsLabel, BorderLayout.NORTH);
+        vowsLabel.setVisible(false);
         viewsHeader.add(viewBar, BorderLayout.CENTER);
         componentPendingExplanation.setForeground(darkTheme() ? new Color(177, 187, 199) : new Color(94, 106, 120));
         componentPendingExplanation.setFont(componentPendingExplanation.getFont().deriveFont(11f));
@@ -1358,27 +1340,16 @@ final class ArchvowPanel extends JPanel {
             ArchvowMotion.updateViewButton(button);
         }
         if (componentViewNav != null) componentViewNav.setActive(index);
+        // Other / Project is the project's, not the component's: no component head over it
+        componentDetails.setVisible(index != 7);
         componentViewCards.revalidate();
         componentViewCards.repaint();
+        if (constructed && role == Role.DETAIL) afterSelectionChange();
     }
 
-    /** Compact vertical flow: no large empty lower pane and no detached answer field. */
+    /** An answer panel: its sections one under the other at their height, scrolled when taller (ArchvowSplitView.stack). */
     private static JScrollPane compactSections(JComponent... sections) {
-        JPanel stack = new JPanel();
-        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
-        for (JComponent section : sections) {
-            section.setAlignmentX(Component.LEFT_ALIGNMENT);
-            // Preferred height grows when an inline confirmation appears.
-            // A fixed maximum here previously clipped Confirm / Cancel below the buttons.
-            section.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-            stack.add(section);
-            stack.add(Box.createVerticalStrut(7));
-        }
-        JScrollPane pane = new JScrollPane(stack,
-            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        pane.setBorder(BorderFactory.createEmptyBorder());
-        return pane;
+        return ArchvowSplitView.stack(sections);
     }
 
     private JComponent rulesPanel() {
@@ -2291,40 +2262,20 @@ final class ArchvowPanel extends JPanel {
         if (constructed && role == Role.DETAIL) SwingUtilities.invokeLater(this::afterSelectionChange);
         componentDetails.setText(buildComponentHtml(data));
         componentDetails.setCaretPosition(0);
-        String previousDecision = selectedRecord("decisions", decisionsList.getSelectedIndex()) == null ? ""
-            : ArchvowGrammar.str(selectedRecord("decisions", decisionsList.getSelectedIndex()), "number");
-        String previousSafety = selectedRecord("safety", safetyList.getSelectedIndex()) == null ? ""
-            : ArchvowGrammar.str(selectedRecord("safety", safetyList.getSelectedIndex()), "number");
-        String previousQuestion = selectedRecord("questions", questionList.getSelectedIndex()) == null ? ""
-            : ArchvowGrammar.str(selectedRecord("questions", questionList.getSelectedIndex()), "key");
-        decisionsModel.clear();
-        for (JsonObject d : ArchvowGrammar.objects(data, "decisions")) {
-            String status = ArchvowGrammar.str(d, "answer").isBlank() ? ArchvowI18n.text(project, "OPEN", "OUVERT") : ArchvowI18n.text(project, "RESOLVED", "TRAITÉ");
-            decisionsModel.addElement("D" + ArchvowGrammar.str(d, "number") + " [" + status + "] " + shorten(ArchvowGrammar.str(d, "question"), 190));
-        }
-        questionModel.clear();
-        for (JsonObject q : ArchvowGrammar.objects(data, "questions")) {
-            String id = ArchvowGrammar.str(q, "key");
-            if (id.isBlank()) id = ArchvowGrammar.str(q, "number");
-            String status = ArchvowGrammar.str(q, "answer").isBlank()
-                ? ArchvowI18n.text(project, "OPEN", "OUVERT") : ArchvowI18n.text(project, "RESOLVED", "TRAITÉ");
-            questionModel.addElement(id + " [" + status + "] " + ArchvowGrammar.str(q, "question"));
-        }
-        safetyModel.clear();
-        for (JsonObject q : ArchvowGrammar.objects(data, "safety")) {
-            safetyModel.addElement("S" + ArchvowGrammar.str(q, "number") + " [" + ArchvowSafetyState.status(q) + "] "
-                + ArchvowGrammar.str(q, "question"));
-        }
-        assumptionModel.clear();
-        for (JsonObject assumption : ArchvowGrammar.objects(data, "assumptions")) {
-            String status = ArchvowGrammar.str(assumption, "status").toLowerCase(java.util.Locale.ROOT);
-            boolean closed = "accepted".equals(status) || "rejected".equals(status);
-            String text = ArchvowGrammar.str(assumption, "text");
-            assumptionModel.addElement("A" + ArchvowGrammar.str(assumption, "number") +
-                " [" + (closed ? status.toUpperCase(java.util.Locale.ROOT) : "OPEN") + "] " + text);
-        }
-        if (!assumptionModel.isEmpty()) assumptionList.setSelectedIndex(0);
-        else assumptionList.clearSelection();
+        // the same component drawn again (after an answer, a reload): each view keeps its card; another
+        // component: each view starts on its first open item, the answer panel ready
+        String id = ArchvowGrammar.str(data, "component");
+        boolean another = !id.equals(renderedComponent);
+        renderedComponent = id;
+        boolean fr = ArchvowI18n.isFrench(project);
+        fill(decisionsList, decisionsModel, ArchvowGrammar.objects(data, "decisions").stream()
+            .map(d -> ArchvowItemCards.decision(d, fr)).toList(), another);
+        fill(questionList, questionModel, ArchvowGrammar.objects(data, "questions").stream()
+            .map(q -> ArchvowItemCards.question(q, fr)).toList(), another);
+        fill(safetyList, safetyModel, ArchvowGrammar.objects(data, "safety").stream()
+            .map(q -> ArchvowItemCards.safety(q, fr)).toList(), another);
+        fill(assumptionList, assumptionModel, ArchvowGrammar.objects(data, "assumptions").stream()
+            .map(a -> ArchvowItemCards.assumption(a, fr)).toList(), another);
         showAssumption();
         ArchvowDataView.renderRules(rulesOnlyDetails, data, ArchvowI18n.isFrench(project));
         ArchvowDataView.render(rulesDetails, data, ArchvowI18n.isFrench(project));
@@ -2335,20 +2286,25 @@ final class ArchvowPanel extends JPanel {
         rulesDetails.setCaretPosition(0);
         rulesOnlyDetails.setCaretPosition(0);
         vowDetails.setCaretPosition(0);
-        selectRecordByNumber(decisionsList, ArchvowGrammar.objects(data, "decisions"), previousDecision);
-        selectRecordByNumber(safetyList, ArchvowGrammar.objects(data, "safety"), previousSafety);
-        int questionIndex = 0;
-        for (int i = 0; i < ArchvowGrammar.objects(data, "questions").size(); i++) {
-            JsonObject q = ArchvowGrammar.objects(data, "questions").get(i);
-            if (!previousQuestion.isBlank() && previousQuestion.equals(ArchvowGrammar.str(q, "key"))) questionIndex = i;
-        }
-        if (!questionModel.isEmpty()) questionList.setSelectedIndex(questionIndex);
-        else questionList.clearSelection();
         showDecision();
         showSafety();
         showQuestion();
         refreshViewStatus(data);
         updateComponentPendingExplanation();
+    }
+
+    /** A view's cards, its selection kept (same component) or on its first open item (another one). */
+    private static void fill(JList<ArchvowItemCards.Card> list, DefaultListModel<ArchvowItemCards.Card> model,
+                             List<ArchvowItemCards.Card> cards, boolean another) {
+        ArchvowItemCards.Card previous = list.getSelectedValue();
+        model.clear();
+        for (ArchvowItemCards.Card card : cards) model.addElement(card);
+        int first = ArchvowItemCards.firstOpen(cards);
+        int index = another || previous == null ? first : ArchvowItemCards.indexOf(cards, previous.number(), first);
+        if (index >= 0) {
+            list.setSelectedIndex(index);
+            list.ensureIndexIsVisible(index);
+        } else list.clearSelection();
     }
 
     private void refreshViewStatus(JsonObject data) {
@@ -2410,25 +2366,42 @@ final class ArchvowPanel extends JPanel {
         return "<div style='padding:8px 0; color:#66707D;'>" + escape(ArchvowI18n.text(project, "Nothing to display.", "Rien à afficher.")) + "</div>";
     }
 
+    /** The component's head in the editor tab, over the whole width: its name and open items, then
+     *  type · layer · module · ticket · state, its description, what it uses and what uses it (links),
+     *  its business examples. The VS Code page shows the same head (componentDetail()). */
     private String buildComponentHtml(JsonObject data) {
         String id = ArchvowGrammar.str(data,"component");
-        StringBuilder html = new StringBuilder(htmlHead());
-        html.append("<h2>").append(escape(id)).append("</h2>");
-        html.append(ArchvowLinks.html(data, ArchvowI18n.isFrench(project)));
-        html.append(ArchvowLinks.examplesHtml(data, ArchvowI18n.isFrench(project)));
-        List<JsonObject> decisions = ArchvowGrammar.objects(data,"decisions");
-        html.append(sectionHeader(ArchvowI18n.text(project,"Decisions", "Décisions"), decisions.size()));
-        for (JsonObject d : decisions) html.append(decisionBlock(d));
-        List<JsonObject> safety = ArchvowGrammar.objects(data,"safety");
-        html.append(sectionHeader(ArchvowI18n.text(project,"Safety questions", "Questions de sécurité"), safety.size()));
-        for (JsonObject q : safety) html.append(safetyBlock(q));
-        for (String key : List.of("questions", "assumptions", "rules", "missing")) {
-            List<JsonObject> items = ArchvowGrammar.objects(data,key);
-            html.append(sectionHeader(key.substring(0,1).toUpperCase() + key.substring(1), items.size()));
-            for (JsonObject item : items) {
-                html.append("<p>• ").append(escape(firstMeaningfulLabel(item))).append("</p>");
-            }
-        }
+        boolean fr = ArchvowI18n.isFrench(project);
+        JsonObject entry = null;
+        for (JsonObject c : ArchvowGrammar.objects(manifest, "containers"))
+            for (JsonObject x : ArchvowGrammar.objects(c, "components"))
+                if (id.equals(ArchvowGrammar.str(x, "id"))) entry = x;
+        int open = pendingByComponent.getOrDefault(id, 0);
+        String badge = open > 0
+            ? "<span style='background-color:" + (darkTheme() ? "#4A3B16" : "#FFF1D7") + "; color:" + (darkTheme() ? "#EBB55A" : "#9B6818") + "'>&nbsp;"
+                + open + " " + escape(open == 1 ? ArchvowI18n.text(project, "open item", "élément ouvert")
+                    : ArchvowI18n.text(project, "open items", "éléments ouverts")) + "&nbsp;</span>"
+            : "<span style='color:" + (darkTheme() ? "#74D5A7" : "#0F8451") + "'>✓ " + escape(ArchvowI18n.text(project, "resolved", "traité")) + "</span>";
+        java.util.List<String> meta = new ArrayList<>();
+        for (String part : List.of(ArchvowGrammar.str(data, "type"),
+                ArchvowGrammar.str(data, "layer").isBlank() ? ArchvowGrammar.str(entry, "layer") : ArchvowGrammar.str(data, "layer"),
+                ArchvowGrammar.str(entry, "module").isBlank() ? "" : "module " + ArchvowGrammar.str(entry, "module"),
+                ArchvowGrammar.str(entry, "spec").isBlank() ? "" : "ticket " + ArchvowGrammar.str(entry, "spec"),
+                ArchvowGrammar.str(data, "status"))) if (!part.isBlank()) meta.add(part);
+        StringBuilder html = new StringBuilder(htmlBareHead());
+        html.append("<div style='font-size:20px'><b>").append(escape(id)).append("</b>&nbsp;&nbsp;<span style='font-size:11px'>")
+            .append(badge).append("</span></div>");
+        html.append("<div style='color:").append(mutedHex()).append("; margin-top:2px'>").append(escape(String.join(" · ", meta))).append("</div>");
+        String description = ArchvowGrammar.str(data, "description");
+        if (!description.isBlank()) html.append("<p style='margin-top:6px'>").append(escape(description)).append("</p>");
+        html.append(ArchvowLinks.html(data, fr));
+        html.append(ArchvowLinks.examplesHtml(data, fr));
+        java.util.List<String> missing = new ArrayList<>();
+        if (data != null && data.has("missing") && data.get("missing").isJsonArray())
+            for (com.google.gson.JsonElement m : data.getAsJsonArray("missing"))
+                missing.add(m.isJsonPrimitive() ? m.getAsString() : m.toString());
+        if (!missing.isEmpty()) html.append("<p style='color:#B07E24'>").append(escape(ArchvowI18n.text(project, "Missing", "Manquant")))
+            .append(": ").append(escape(String.join(", ", missing))).append("</p>");
         return html.append("</body></html>").toString();
     }
 
@@ -2532,7 +2505,7 @@ final class ArchvowPanel extends JPanel {
         List<JsonObject> rows = ArchvowGrammar.objects(selectedView, key);
         return index >= 0 && index < rows.size() ? rows.get(index) : null;
     }
-    private static void selectRecordByNumber(JList<String> list, List<JsonObject> rows, String number) {
+    private static void selectRecordByNumber(JList<?> list, List<JsonObject> rows, String number) {
         int selected = 0;
         if (!number.isBlank()) {
             for (int i = 0; i < rows.size(); i++) {
@@ -2554,6 +2527,9 @@ final class ArchvowPanel extends JPanel {
         acceptInline.setEnabled(available && ArchvowGrammar.str(row, "answer").isBlank()
             && !ArchvowGrammar.str(row, "proposed").isBlank());
         suggestedInline.setEnabled(available && !ArchvowGrammar.str(row, "suggested").isBlank());
+        // only what applies to this decision is offered next to Cancel / Save answer
+        for (JButton other : List.of(proposeInline, acceptInline, suggestedInline)) other.setVisible(other.isEnabled());
+        proposeInline.getParent().revalidate();
         if (available) {
             String answer = ArchvowGrammar.str(row, "answer");
             String suggestion = ArchvowGrammar.str(row, "proposed");
@@ -2568,13 +2544,19 @@ final class ArchvowPanel extends JPanel {
         String q = row == null ? "" : ArchvowGrammar.str(row, "question");
         String answer = row == null ? "" : ArchvowGrammar.str(row, "answer");
         String key = row == null ? "" : ArchvowGrammar.str(row, "key");
-        questionDetails.setText(row == null ? htmlMessage("<i>" + escape(ArchvowI18n.text(project,
+        String about = row == null ? "" : String.join(" · ", java.util.stream.Stream.of(ArchvowGrammar.str(row, "title"),
+            ArchvowGrammar.str(row, "rule")).filter(x -> !x.isBlank()).toList());
+        String recorded = row == null || answer.isBlank() ? "" : ArchvowItemCards.byOn(row);
+        if (key.isBlank() && row != null) key = ArchvowGrammar.str(row, "number");
+        questionDetails.setText(row == null ? htmlBare("<i>" + escape(ArchvowI18n.text(project,
             "Select a question.", "Sélectionne une question.")) + "</i>")
-            : htmlMessage(chip(key, "#E7EDFA", "#1E63B8")
-                + chip(answer.isBlank() ? ArchvowI18n.text(project, "Open", "Ouverte") : ArchvowI18n.text(project, "Answered", "Répondue"),
-                    answer.isBlank() ? "#FFF1D7" : "#E5F4EA", answer.isBlank() ? "#9B6818" : "#13835B")
-                + "<p><b>" + escape(q) + "</b></p>"
-                + (answer.isBlank() ? "" : "<p>" + escape(ArchvowI18n.text(project, "Answer", "Réponse")) + ": " + escape(answer) + "</p>")));
+            : htmlBare(answerHead(answer.isBlank() ? ArchvowI18n.text(project, "Answer question ", "Répondre à la question ") + key
+                    : "Question " + key, answer.isBlank() ? "" : ArchvowI18n.text(project, "● ANSWERED", "● RÉPONDUE"))
+                + (about.isBlank() ? "" : "<div style='color:" + mutedHex() + "'>" + escape(about) + "</div>")
+                + "<p style='font-size:115%; margin-top:4px'>" + escape(q) + "</p>"
+                + (recorded.isBlank() ? "" : "<div style='color:" + mutedHex() + "'>"
+                    + escape(ArchvowI18n.text(project, "Recorded by ", "Enregistrée par ") + recorded) + "</div>")));
+        questionDetails.setCaretPosition(0);
         questionAnswer.setEnabled(row != null);
         questionAnswer.setText(!answer.isBlank() ? answer : ArchvowGrammar.str(row, "suggested"));
         if (questionInlineResultCard != null) questionInlineResultCard.setVisible(false);
@@ -2607,17 +2589,19 @@ final class ArchvowPanel extends JPanel {
         boolean pending = row != null && !state.equals("accepted") && !state.equals("rejected");
         assumptionAcceptButton.setEnabled(pending);
         assumptionRejectButton.setEnabled(pending);
+        assumptionAcceptButton.setVisible(pending);
+        assumptionRejectButton.setVisible(pending);
         if (row == null) {
-            assumptionDetails.setText(htmlMessage("<i>" + escape(ArchvowI18n.text(project,
+            assumptionDetails.setText(htmlBare("<i>" + escape(ArchvowI18n.text(project,
                 "No assumption selected.", "Aucune hypothèse sélectionnée.")) + "</i>"));
             return;
         }
-        String color = pending ? "#B07E24" : "#13835B";
-        assumptionDetails.setText(htmlMessage("<div style='border-left:4px solid " + color + "; padding:8px;'>"
-            + chip("A" + ArchvowGrammar.str(row, "number"), "#E7EDFA", "#1E63B8")
-            + chip(pending ? ArchvowI18n.text(project,"Pending","En attente") : state,
-                pending ? "#FFF1D7" : "#E5F4EA", color)
-            + "<p>" + escape(ArchvowGrammar.str(row, "text")) + "</p></div>"));
+        String number = "A" + ArchvowGrammar.str(row, "number");
+        assumptionDetails.setText(htmlBare(answerHead(pending
+                ? ArchvowI18n.text(project, "Review assumption ", "Examiner l'hypothèse ") + number
+                : ArchvowI18n.text(project, "Assumption ", "Hypothèse ") + number,
+            pending ? "" : "● " + state.toUpperCase(java.util.Locale.ROOT))
+            + "<p style='font-size:115%; margin-top:4px'>" + escape(ArchvowGrammar.str(row, "text")) + "</p>"));
         assumptionDetails.setCaretPosition(0);
     }
 
@@ -2698,6 +2682,7 @@ final class ArchvowPanel extends JPanel {
         safetyInput.setEnabled(open);
         safetySeverity.setEnabled(open);
         safetyInput.setText(open ? ArchvowSafetyState.suggestedHazard(row) : "");
+        for (JComponent part : safetyEditorParts) part.setVisible(open);
         safetySuggestedButton.setEnabled(open && !ArchvowSafetyState.suggestedHazard(row).isBlank());
         safetyInvariantButton.setEnabled(missingInvariant);
         safetyInvariantButton.setVisible(missingInvariant);
@@ -3642,51 +3627,56 @@ final class ArchvowPanel extends JPanel {
         JOptionPane.showMessageDialog(this, text, "Archvow", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    /** Compact one-line previews; selection opens the complete text in Details below. */
-    private static final class QuestionListRenderer extends JPanel implements ListCellRenderer<String> {
-        private final JLabel text = new JLabel();
-        QuestionListRenderer() {
-            super(new BorderLayout());
-            text.setOpaque(false);
-            text.setFont(UIManager.getFont("Label.font"));
-            add(text, BorderLayout.CENTER);
-        }
-        @Override public Component getListCellRendererComponent(JList<? extends String> list, String value,
-                int index, boolean selected, boolean hasFocus) {
-            String full = value == null ? "" : value.replace('\n', ' ').replaceAll("\\s+", " ").trim();
-            int available = Math.max(130, list.getWidth() - 35);
-            java.awt.FontMetrics metrics = text.getFontMetrics(text.getFont());
-            String preview = full;
-            while (preview.length() > 12 && metrics.stringWidth(preview) > available) {
-                preview = preview.substring(0, preview.length() - 3);
+    /** The cards of a view, on the left of its split view: no frame, no horizontal scroll. */
+    private static JScrollPane cardsScroll(JList<?> list) {
+        list.setOpaque(false);
+        JScrollPane pane = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        pane.setBorder(BorderFactory.createEmptyBorder());
+        pane.setMinimumSize(new Dimension(0, 80));
+        return pane;
+    }
+
+    /** An answer field: wrapped lines, the editor's monospaced font. */
+    private static void answerField(JTextArea field) {
+        field.setLineWrap(true);
+        field.setWrapStyleWord(true);
+        field.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        field.setBorder(BorderFactory.createEmptyBorder(6, 7, 6, 7));
+    }
+
+    /** The top of an answer panel: what is answered and its question, at the height of its text (at most 280). */
+    private static JComponent answerHeading(JComponent detail) {
+        detail.setBorder(BorderFactory.createEmptyBorder(2, 2, 6, 2));
+        detail.setOpaque(false);
+        JScrollPane pane = new JScrollPane(detail, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
+            @Override public Dimension getPreferredSize() {
+                int width = Math.max(200, getWidth() > 0 ? getWidth() : 360);
+                detail.setSize(width, Short.MAX_VALUE);
+                return new Dimension(width, Math.min(Math.max(detail.getPreferredSize().height + 4, 48), 280));
             }
-            if (!preview.equals(full)) preview = preview.stripTrailing() + "…";
-            text.setText(preview);
-            text.setToolTipText(full);
-            float hover = ArchvowMotion.hoverLevel(list, index);
-            String state = value == null ? "" : value.toUpperCase(java.util.Locale.ROOT);
-            boolean pending = state.contains("[OPEN]") || state.contains("[OUVERT") ||
-                state.contains("[PENDING]") || state.contains("[PROPOSED]") || state.contains("[NEEDS INVARIANT]");
-            boolean resolved = state.contains("[RESOLVED]") || state.contains("[TRAIT") ||
-                state.contains("[ANSWERED]") || state.contains("[ACCEPTED]") || state.contains("[REJECTED]");
-            Color statusColor = pending ? (darkTheme() ? new Color(235, 181, 90) : new Color(190, 126, 27)) :
-                resolved ? (darkTheme() ? new Color(96, 207, 143) : new Color(29, 149, 83)) :
-                ArchvowMotion.accent();
-            // Status is readable even without selection. Hover removes the background tint;
-            // the selected-row styling is intentionally left unchanged.
-            Color bg = ArchvowStatusPalette.rowBackground(list.getBackground(), statusColor, selected, hover);
-            Color fg = selected ? (darkTheme() ? Color.WHITE : new Color(23, 51, 93)) : list.getForeground();
-            setBackground(bg);
-            text.setForeground(fg);
-            setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, selected ? 4 : 3, 0, 0,
-                    selected ? statusColor :
-                        ArchvowMotion.blend(list.getBackground(), statusColor, .72)),
-                BorderFactory.createEmptyBorder(8, 9, 8, 9)));
-            int width = Math.max(160, list.getWidth() - 24);
-            setPreferredSize(new Dimension(width, 38));
-            return this;
-        }
+        };
+        pane.setBorder(BorderFactory.createEmptyBorder());
+        pane.setOpaque(false);
+        pane.getViewport().setOpaque(false);
+        return pane;
+    }
+
+    /** The buttons under an answer field: Cancel and the main one on the right, the others on the left. */
+    private static JPanel answerButtons(List<JButton> others, JButton cancel, JButton main) {
+        java.util.List<JComponent> right = new ArrayList<>();
+        if (cancel != null) right.add(cancel);
+        right.add(main);
+        return ArchvowSplitView.actions(new ArrayList<>(others), right);
+    }
+
+    /** Cancel: no confirmation left open, the field back to the recorded text. */
+    private JButton cancelButton(Runnable restore) {
+        JButton cancel = button(ArchvowI18n.text(project, "Cancel", "Annuler"), () -> {
+            if (componentConfirmation != null) componentConfirmation.hideConfirmation();
+            restore.run();
+        });
+        cancel.setToolTipText(ArchvowI18n.text(project, "Put back the recorded text", "Remettre le texte enregistré"));
+        return cancel;
     }
 
     private static JTextArea area() {
@@ -3807,6 +3797,14 @@ final class ArchvowPanel extends JPanel {
             + (darkTheme() ? "#DBE3EC" : "#243044") + "; background-color:"
             + (darkTheme() ? "#292B30" : "#FFFFFF") + ";'>";
     }
+    /** As htmlHead, on the panel's own background (the component head, the answer panels). */
+    private static String htmlBareHead() {
+        return "<html><body style='font-family:sans-serif; font-size:12px; color:"
+            + (darkTheme() ? "#DBE3EC" : "#243044") + ";'>";
+    }
+    private static String htmlBare(String body) {
+        return htmlBareHead() + body + "</body></html>";
+    }
     private static String htmlMessage(String body) {
         return htmlHead() + body + "</body></html>";
     }
@@ -3814,6 +3812,18 @@ final class ArchvowPanel extends JPanel {
         if (text == null) return "";
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
+    /** An answer panel's heading as HTML: "ANSWER QUESTION P1", then its state in green. */
+    private static String answerHead(String text, String state) {
+        return "<div style='color:" + mutedHex() + "; font-size:90%; letter-spacing:1px'><b>"
+            + escape(text.toUpperCase(java.util.Locale.ROOT)) + "</b>"
+            + (state.isBlank() ? "" : "&nbsp;&nbsp;&nbsp;<b style='color:" + (darkTheme() ? "#74D5A7" : "#0F8451") + "'>" + escape(state) + "</b>")
+            + "</div>";
+    }
+
+    private static String mutedHex() {
+        return darkTheme() ? "#A4B1C0" : "#5D6A7B";
+    }
+
     private static String chip(String label, String bg, String fg) {
         return "<span style='display:inline-block; margin:0 8px 8px 0; padding:4px 10px; border-radius:12px; background:" + bg + "; color:" + fg + ";'><b>" + escape(label) + "</b></span>";
     }

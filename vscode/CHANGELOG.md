@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.11.0 - 2026-10-27
+
+- **A component in two panels** (the 0.7.0 mockup v2): its head over the whole width (name and open
+  items, *type · layer · module · ticket · state*, description, Uses · Used by, examples), the actions
+  (*Clarify*, Open spec, Open code, Edit spec, AI prompt, + Question, + Rule, + Component) and the view
+  chips; under them, for Decisions, Questions, Safety and Assumptions, **the items as cards on the left**
+  (*3 · question*, then the recorded answer in green with who and when, or *● Open* in amber) and **the
+  selected one's answer panel on the right**: *ANSWER DECISION 3*, the question, the AI proposal or
+  suggestion, the field (monospaced), the other actions on the left and **Cancel / Save answer** on the
+  right, the confirmation under them. Under 760 px the answer panel goes under the cards.
+- **A component opens on its first open item**, in each of those views: the answer panel is ready. Back
+  on the same component (after an answer, a reload) a view keeps its card; Clarify still jumps to the
+  first open decision, question or safety question.
+- Cancel puts back the recorded text and closes a confirmation left open. Propose, Accept proposal and
+  Use suggestion show only when they apply; a safety question already answered shows no field.
+- The *Actions* and *Vows* headings are gone; the editor tab's header no longer repeats the component's
+  name. Other / Project shows no component head.
+- Tests: 45 (`layout.test.ts`: the first open item, the cards, the split and its narrow layout). Checked
+  in Chromium: the sidebar and the tab side by side on archvow's recorded outputs (orders_reader with its
+  decision 3 open): opens on D3, another component on its own first open item, a card clicked and kept,
+  Cancel, Save answer -> confirmation -> `decision make`, Safety, Questions, Assumptions, 1000 px stacked,
+  English and French.
+
 ## 0.10.0 - 2026-10-27
 
 - On archvow 1.16: the contract is recorded from archvow 1.16.0. The Commands list has **example add**

@@ -14,5 +14,5 @@ zip:
 
 release: bundle zip
 
-run:
+patch:
 	./apply_patch.sh $(NAME)-*

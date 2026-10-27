@@ -6,7 +6,8 @@ import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 
-/** Compact, selectable decision detail. Never changes the recorded vow. */
+/** The heading of a decision's answer panel: "ANSWER DECISION 3", the question, who recorded the answer and
+ *  when, the AI proposal. Selectable; never changes the recorded vow (the answer is in the field under it). */
 final class ArchvowDecisionView {
     private ArchvowDecisionView() { }
 
@@ -24,7 +25,6 @@ final class ArchvowDecisionView {
         Color secondary = dark ? new Color(164, 177, 192) : new Color(93, 106, 123);
         Color blue = dark ? new Color(128, 187, 249) : new Color(35, 102, 188);
         Color green = dark ? new Color(116, 213, 167) : new Color(15, 132, 81);
-        Color amber = dark ? new Color(244, 193, 110) : new Color(167, 104, 16);
         try {
             doc.remove(0, doc.getLength());
             if (row == null) {
@@ -32,20 +32,26 @@ final class ArchvowDecisionView {
                 return;
             }
             boolean pending = ArchvowGrammar.str(row, "answer").isBlank();
-            add(doc, (fr ? "DÉTAILS" : "DETAILS") + "   ", blue, true, 15);
-            add(doc, "D" + ArchvowGrammar.str(row, "number") + "   ", body, true, 13);
-            add(doc, pending ? (fr ? "● EN ATTENTE" : "● PENDING") : (fr ? "● TRAITÉ" : "● RESOLVED"), pending ? amber : green, true, 12);
-            add(doc, "\n\n" + (fr ? "QUESTION" : "QUESTION") + "\n", secondary, true, 11);
-            add(doc, ArchvowGrammar.str(row, "question"), body, false, 14);
-            String answer = ArchvowGrammar.str(row, "answer");
-            if (!answer.isBlank()) {
-                add(doc, "\n\n" + (fr ? "RÉPONSE ENREGISTRÉE" : "RECORDED ANSWER") + "\n", green, true, 11);
-                add(doc, answer, body, false, 13);
+            String number = ArchvowGrammar.str(row, "number");
+            // the answer panel's heading (the split view's right side): what is answered, then the question
+            add(doc, pending ? (fr ? "RÉPONDRE À LA DÉCISION " : "ANSWER DECISION ") + number
+                : (fr ? "DÉCISION " : "DECISION ") + number, secondary, true, 11);
+            if (!pending) add(doc, "   " + (fr ? "● TRAITÉE" : "● ANSWERED"), green, true, 11);
+            add(doc, "\n", secondary, false, 6);
+            add(doc, ArchvowGrammar.str(row, "question"), body, false, 15);
+            String recorded = ArchvowItemCards.byOn(row);
+            if (!pending && !recorded.isBlank()) {
+                add(doc, "\n" + (fr ? "Enregistrée par " : "Recorded by ") + recorded, secondary, false, 11);
             }
             String proposed = ArchvowGrammar.str(row, "proposed");
             if (!proposed.isBlank()) {
                 add(doc, "\n\n" + (fr ? "PROPOSITION IA" : "AI PROPOSAL") + "\n", blue, true, 11);
                 add(doc, proposed, body, false, 13);
+            }
+            String suggested = ArchvowGrammar.str(row, "suggested");
+            if (pending && !suggested.isBlank()) {
+                add(doc, "\n\n" + (fr ? "SUGGÉRÉ" : "SUGGESTED") + "\n", secondary, true, 11);
+                add(doc, suggested, body, false, 13);
             }
         } catch (BadLocationException ignored) {
             pane.setText(fr ? "Impossible d'afficher la décision." : "Unable to show decision.");

@@ -183,9 +183,11 @@
       : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'result' ? ui.resultLabel : '';
     const kind = ui.mode === 'component' ? t('Component', 'Composant') : ui.mode === 'command' ? t('Command', 'Commande')
       : ui.mode === 'result' ? t('Result', 'Résultat') : '';
-    return `<header class="top">
+    // a component's name is the heading of its page, with its open items (componentDetail)
+    const named = ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot();
+    return `<header class="top ${named ? 'slim' : ''}">
   <div class="brand"><img src="${esc(window.ARCHVOW_LOGO)}" alt="" class="logo">
-    <div><div class="kind">${esc(kind ? 'Archvow · ' + kind : 'Archvow')}</div><div class="title">${esc(what || t('Specifications → understandable components', 'Des specs aux composants compréhensibles'))}</div>
+    <div><div class="kind">${esc(kind ? 'Archvow · ' + kind : 'Archvow')}</div>${named ? '' : `<div class="title">${esc(what || t('Specifications → understandable components', 'Des specs aux composants compréhensibles'))}</div>`}
     <div class="project" title="${esc(S.project.root)}">⌂ ${esc(S.project.name)}</div></div></div>
   <div class="right">${reload}${log}</div></header>${progress}`;
   }
@@ -388,12 +390,15 @@
 
   function componentDetail() {
     const actions = [
-      btn(t('Clarify', 'Clarifier'), 'clarify'), btn(t('Open spec', 'Ouvrir la spec'), 'openSpec'), btn(t('Open code', 'Ouvrir le code'), 'openCode'),
-      btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component })),
-      btn(t('AI prompt', 'Instruction IA'), 'aiPrompt'),
-      btn(t('Add question', 'Ajouter une question'), 'openCommand', attrs({ command: 'question add', component: ui.component })),
-      btn(t('Add rule', 'Ajouter une règle'), 'addRule'),
-      btn(t('Add component', 'Ajouter un composant'), 'openCommand', attrs({ command: 'component add' })),
+      btn(t('Clarify', 'Clarifier'), 'clarify'), btn(t('Open spec', 'Ouvrir la spec'), 'openSpec', '', false, 'secondary'),
+      btn(t('Open code', 'Ouvrir le code'), 'openCode', '', false, 'secondary'),
+      btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }), false, 'secondary'),
+      btn(t('AI prompt', 'Instruction IA'), 'aiPrompt', '', false, 'secondary'),
+      btn(t('+ Question', '+ Question'), 'openCommand', attrs({ command: 'question add', component: ui.component })
+        + ` title="${esc(t('Add a question to this component', 'Ajouter une question à ce composant'))}"`, false, 'secondary'),
+      btn(t('+ Rule', '+ Règle'), 'addRule', `title="${esc(t('Add a rule on this component', 'Ajouter une règle sur ce composant'))}"`, false, 'secondary'),
+      btn(t('+ Component', '+ Composant'), 'openCommand', attrs({ command: 'component add' })
+        + ` title="${esc(t('Add a component', 'Ajouter un composant'))}"`, false, 'secondary'),
     ];
     const view = snapshot();
     const d = derived();
@@ -409,13 +414,58 @@
     else if (!ui.component) body = `<p class="muted">${esc(t('Select a component in the Archvow sidebar.', 'Sélectionne un composant dans le panneau Archvow.'))}</p>`;
     else if (!view) body = `<p class="muted">${esc(t('Loading', 'Chargement'))}: ${esc(ui.component)}…</p>`;
     else body = [decisionsView, questionsView, safetyView, assumptionsView, rulesView, tasksView, vowView][ui.view](view, d);
-    const head = view ? `<div class="component-head"><h2>${esc(ui.component)}</h2><span class="muted">${esc(str(view, 'type'))} · ${esc(localizedState(str(view, 'status')))}</span>
-  <p>${esc(str(view, 'description'))}</p>${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
+    // Other / Project is the project's, not the component's: no component head over it (as in IntelliJ)
+    const head = view && ui.view !== 7 ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}</h2><p class="meta muted">${esc(meta(view))}</p>
+  <p class="description">${esc(str(view, 'description'))}</p>${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
-    return `${head}<div class="section-head"><b>Actions</b> <span class="muted">${esc(t('Available on this component', 'Disponibles sur ce composant'))}</span></div>
-  <div class="row wrap">${actions.join('')}</div>
-  <div class="section-head"><b>Vows</b></div><nav class="tabs views">${viewBar}</nav>${pendingExplanation()}
+    // the head, the actions and the view chips over the whole width; under them, for the views whose
+    // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
+    return `${head}<div class="row wrap actions">${actions.join('')}</div>
+  <nav class="tabs views">${viewBar}</nav>${pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
+  }
+
+  /** "1 open item" next to the component's name (the count the sidebar shows), "✓ resolved" without. */
+  function openBadge(id) {
+    if (!id || !S || !S.snapshots[id]) return '';
+    const n = (S.work.pendingByComponent || {})[id] || 0;
+    if (!n) return `<span class="badge-done">✓ ${esc(t('resolved', 'traité'))}</span>`;
+    return `<span class="badge-open">${n} ${esc(n === 1 ? t('open item', 'élément ouvert') : t('open items', 'éléments ouverts'))}</span>`;
+  }
+
+  /** type · layer · module · ticket · status: the component's place, from show --json and the spec. */
+  function meta(view) {
+    const entry = list(S.spec, 'containers').flatMap((c) => list(c, 'components')).find((x) => str(x, 'id') === ui.component) || {};
+    return [str(view, 'type'), str(view, 'layer') || str(entry, 'layer'),
+      str(entry, 'module') ? 'module ' + str(entry, 'module') : '',
+      str(entry, 'spec') ? t('ticket ', 'ticket ') + str(entry, 'spec') : '',
+      localizedState(str(view, 'status'))].filter((x) => x).join(' · ');
+  }
+
+  /** The items of a view on the left, the selected one's answer panel on the right (stacked when narrow). */
+  function split(left, right) {
+    return `<div class="split"><div class="split-list">${left}</div><aside class="split-answer">${right}</aside></div>`;
+  }
+
+  /** The items as cards: "n · question", then the recorded answer (green) with who and when, or "● Open". */
+  function cards(kind, rows, label, card) {
+    return `<ul class="cards" data-scroll="cards-${kind}">${rows.map((row, i) => {
+      const key = label(row, i);
+      const c = card(row, i);
+      return `<li class="item-card ${ui.sel[kind] === key ? 'selected' : ''} ${c.open ? 'open' : 'done'}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}">
+  <div class="card-q"><b>${esc(c.number)}</b> · ${esc(c.title)}</div>
+  ${c.open ? `<div class="card-open">● ${esc(c.state || t('Open', 'Ouvert'))}</div>${c.note ? `<div class="card-note">${esc(short(c.note, 160))}</div>` : ''}`
+    : `<div class="card-a">${esc(short(c.answer || c.state || t('Resolved', 'Traité'), 220))}</div>`}
+  ${c.by ? `<div class="card-by muted">${esc(c.by)}</div>` : ''}</li>`;
+    }).join('') || `<li class="muted empty">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>`;
+  }
+
+  /** "architect@example.com · 2026-10-08": who recorded an answer, and the day. */
+  const byOn = (row) => [str(row, 'by'), str(row, 'on').substring(0, 10)].filter((x) => x).join(' · ');
+
+  /** The answer panel's heading: "ANSWER DECISION 3", "DECISION 1 · ANSWERED". */
+  function answerHead(text, state, good) {
+    return `<div class="answer-head"><span>${esc(text)}</span>${state ? ` <b class="${good ? 'tone-good' : 'tone-warn'}">${esc(state)}</b>` : ''}</div>`;
   }
 
   /** What the component uses and what uses it (show --json `uses`, `used_by`), each one a link: what a
@@ -463,19 +513,13 @@
       : `${total} pending for ${ui.component} · ${data} in Data & tasks` + (other ? ` · ${other} in Other / Project` : ''))}</p>`;
   }
 
-  function selectList(kind, rows, label, status, pendingOf) {
-    return `<ul class="list items" data-scroll="list-${kind}">${rows.map((row, i) => {
-      const key = label(row, i);
-      return `<li class="${ui.sel[kind] === key ? 'selected' : ''} ${pendingOf(row, i) ? 'pending' : 'done'}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}"><b>${esc(key)}</b> [${esc(status(row, i))}] ${esc(short(str(row, 'question') || str(row, 'text'), 190))}</li>`;
-    }).join('') || `<li class="muted">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>`;
-  }
-
-  function current(kind, rows, label) {
+  /** The selected row of a view; none yet (a component just opened): the first open one, else the first. */
+  function current(kind, rows, label, isOpen) {
     if (!rows.length) return null;
     let i = rows.findIndex((r, n) => label(r, n) === ui.sel[kind]);
     if (i < 0) {
-      i = 0;
-      ui.sel[kind] = label(rows[0], 0);
+      i = Math.max(0, rows.findIndex((r, n) => isOpen(r, n)));
+      ui.sel[kind] = label(rows[i], i);
     }
     return rows[i];
   }
@@ -484,107 +528,128 @@
     return key in ui.drafts ? ui.drafts[key] : initial;
   }
 
+  /** The answer field and its buttons: secondary ones on the left, Cancel and the main one on the right. */
+  function answerEditor(key, initial, placeholder, secondary, save, target, disabled = false) {
+    return `<textarea class="answer-field" rows="5" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" placeholder="${esc(placeholder)}" ${disabled ? 'disabled' : ''}>${esc(draft(key, initial))}</textarea>
+  <div class="answer-actions"><span class="row wrap">${secondary}</span>
+  <span class="row">${btn(t('Cancel', 'Annuler'), 'cancelDraft', attrs({ key, target }) + ` title="${esc(t('Put back the recorded text', 'Remettre le texte enregistré'))}"`, disabled, 'secondary')}${save}</span></div>`;
+  }
+
   function decisionsView(view) {
     const rows = list(view, 'decisions');
     const label = (r) => 'D' + str(r, 'number');
-    const row = current('decision', rows, label);
-    const open = t('OPEN', 'OUVERT');
-    const done = t('RESOLVED', 'TRAITÉ');
-    let detail = `<p class="muted">${esc(t('Select a decision.', 'Sélectionne une décision.'))}</p>`;
-    let editor = '';
+    const isOpen = (r) => !str(r, 'answer');
+    const row = current('decision', rows, label, isOpen);
+    const left = cards('decision', rows, label, (r) => ({ number: str(r, 'number'), title: str(r, 'question'), open: isOpen(r), answer: str(r, 'answer'),
+      by: isOpen(r) ? '' : byOn(r), note: str(r, 'proposed') ? t('AI proposal: ', 'Proposition IA : ') + str(r, 'proposed') : '' }));
+    let right = `<p class="muted">${esc(t('Select a decision.', 'Sélectionne une décision.'))}</p>`;
     if (row) {
+      const number = str(row, 'number');
       const answer = str(row, 'answer');
       const proposed = str(row, 'proposed');
       const suggested = str(row, 'suggested');
       const pending = !answer;
-      detail = `<div class="details"><b class="tone-blue">${esc(t('DETAILS', 'DÉTAILS'))}</b> <b>D${esc(str(row, 'number'))}</b> <b class="${pending ? 'tone-warn' : 'tone-good'}">● ${esc(pending ? t('PENDING', 'EN ATTENTE') : t('RESOLVED', 'TRAITÉ'))}</b>
-  <h5>QUESTION</h5><p>${esc(str(row, 'question'))}</p>
-  ${answer ? `<h5 class="tone-good">${esc(t('RECORDED ANSWER', 'RÉPONSE ENREGISTRÉE'))}</h5><p>${esc(answer)}</p>` : ''}
-  ${proposed ? `<h5 class="tone-blue">${esc(t('AI PROPOSAL', 'PROPOSITION IA'))}</h5><p>${esc(proposed)}</p>` : ''}
-  ${suggested && pending ? `<h5 class="muted">${esc(t('SUGGESTED', 'SUGGÉRÉ'))}</h5><p>${esc(suggested)}</p>` : ''}</div>`;
-      const key = `d:${ui.component}:${str(row, 'number')}`;
-      editor = `<div class="editor"><label class="editor-label">${esc(t('Your answer or proposal', 'Votre réponse ou proposition'))}</label>
-  <textarea rows="4" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}">${esc(draft(key, answer || proposed || suggested))}</textarea>
-  <div class="row wrap">${btn(t('Save answer', 'Enregistrer la réponse'), 'decide', attrs({ action: 'decision make' }))}
-  ${btn(t('Propose', 'Proposer'), 'decide', attrs({ action: 'decision propose' }), !pending, 'secondary')}
-  ${btn(t('Accept proposal', 'Accepter la proposition'), 'decide', attrs({ action: 'decision accept' }), !(pending && proposed), 'secondary')}
-  ${btn(t('Use suggestion', 'Utiliser la suggestion'), 'useSuggestion', '', !suggested, 'secondary')}</div>
-  ${confirmation('decision')}</div>`;
+      const key = `d:${ui.component}:${number}`;
+      const secondary = [pending ? btn(t('Propose', 'Proposer'), 'decide', attrs({ action: 'decision propose' })
+        + ` title="${esc(t('Record the text as a proposal, not yet the answer', 'Enregistrer le texte comme proposition, pas encore comme réponse'))}"`, false, 'secondary') : '',
+      pending && proposed ? btn(t('Accept proposal', 'Accepter la proposition'), 'decide', attrs({ action: 'decision accept' }), false, 'secondary') : '',
+      suggested ? btn(t('Use suggestion', 'Utiliser la suggestion'), 'useSuggestion', '', false, 'secondary') : ''].join('');
+      right = answerHead(pending ? t(`Answer decision ${number}`, `Répondre à la décision ${number}`) : t(`Decision ${number}`, `Décision ${number}`),
+        pending ? '' : t('ANSWERED', 'TRAITÉE'), true)
+        + `<p class="answer-q">${esc(str(row, 'question'))}</p>`
+        + (answer && byOn(row) ? `<p class="muted small">${esc(t('Recorded by ', 'Enregistrée par ') + byOn(row))}</p>` : '')
+        + (proposed ? `<p class="hint"><b class="tone-blue">${esc(t('AI proposal', 'Proposition IA'))}</b> ${esc(proposed)}</p>` : '')
+        + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)}</p>` : '')
+        + answerEditor(key, answer || proposed || suggested, t('Your answer or proposal', 'Votre réponse ou proposition'), secondary,
+          btn(t('Save answer', 'Enregistrer la réponse'), 'decide', attrs({ action: 'decision make' })), 'decision')
+        + confirmation('decision') + resultCard('decision');
     }
-    return selectList('decision', rows, label, (r) => (str(r, 'answer') ? done : open), (r) => !str(r, 'answer')) + detail + editor + resultCard('decision');
+    return split(left, right);
   }
 
   function questionsView(view) {
     const rows = list(view, 'questions');
     const label = (r) => str(r, 'key') || str(r, 'number');
-    const row = current('question', rows, label);
-    let detail = `<p class="muted">${esc(t('Select a question.', 'Sélectionne une question.'))}</p>`;
-    let editor = '';
+    const isOpen = (r) => !str(r, 'answer');
+    const row = current('question', rows, label, isOpen);
+    const left = cards('question', rows, label, (r) => ({ number: label(r), title: str(r, 'question'), open: isOpen(r), answer: str(r, 'answer'),
+      by: isOpen(r) ? '' : byOn(r) }));
+    let right = `<p class="muted">${esc(t('Select a question.', 'Sélectionne une question.'))}</p>`;
     if (row) {
       const answer = str(row, 'answer');
-      detail = `<div class="details">${chip(label(row), 'blue')}${chip(answer ? t('Answered', 'Répondue') : t('Open', 'Ouverte'), answer ? 'good' : 'warn')}
-  ${str(row, 'title') ? `<span class="muted"> ${esc(str(row, 'title'))}${str(row, 'rule') ? ' · ' + esc(str(row, 'rule')) : ''}</span>` : ''}
-  <p><b>${esc(str(row, 'question'))}</b></p>${answer ? `<p>${esc(t('Answer', 'Réponse'))}: ${esc(answer)}</p>` : ''}</div>`;
+      const pending = !answer;
       const key = `q:${ui.component}:${label(row)}`;
-      editor = `<div class="editor"><label class="editor-label">${esc(t('Your answer', 'Votre réponse'))}</label>
-  <textarea rows="4" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}">${esc(draft(key, answer || str(row, 'suggested')))}</textarea>
-  <div class="row">${btn(t('Answer this question', 'Répondre à cette question'), 'answerQuestion')}</div>${confirmation('question')}</div>`;
+      const about = [str(row, 'title'), str(row, 'rule')].filter((x) => x).join(' · ');
+      right = answerHead(pending ? t(`Answer question ${label(row)}`, `Répondre à la question ${label(row)}`) : `Question ${label(row)}`,
+        pending ? '' : t('ANSWERED', 'RÉPONDUE'), true)
+        + (about ? `<p class="muted small">${esc(about)}</p>` : '')
+        + `<p class="answer-q">${esc(str(row, 'question'))}</p>`
+        + (answer && byOn(row) ? `<p class="muted small">${esc(t('Recorded by ', 'Enregistrée par ') + byOn(row))}</p>` : '')
+        + answerEditor(key, answer || str(row, 'suggested'), t('Your answer', 'Votre réponse'), '',
+          btn(t('Save answer', 'Enregistrer la réponse'), 'answerQuestion'), 'question')
+        + confirmation('question') + resultCard('question');
     }
-    return selectList('question', rows, label, (r) => (str(r, 'answer') ? t('RESOLVED', 'TRAITÉ') : t('OPEN', 'OUVERT')), (r) => !str(r, 'answer'))
-      + detail + editor + resultCard('question');
+    return split(left, right);
   }
 
   function safetyView(view, d) {
     const rows = list(view, 'safety');
     const label = (r) => 'S' + str(r, 'number');
     const statusOf = (r, i) => (d && d.safety[i] ? d.safety[i].status : str(r, 'status'));
-    const row = current('safety', rows, label);
-    let detail = `<p class="muted">${esc(t('Select a safety question to see details.', 'Choisis une question de sécurité pour afficher les détails.'))}</p>`;
-    let editor = '';
+    const isOpen = (r, i) => statusOf(r, i) !== 'RESOLVED';
+    const row = current('safety', rows, label, isOpen);
+    const recorded = (r) => {
+      const hazard = list(r, 'hazards')[0];
+      if (str(r, 'dismissed')) return t('Not applicable: ', 'Non applicable : ') + str(r, 'dismissed');
+      return hazard ? `${t('Hazard', 'Danger')} ${str(hazard, 'id')} · ${str(hazard, 'severity')}: ${str(hazard, 'description')}` : '';
+    };
+    const left = cards('safety', rows, label, (r, i) => ({ number: label(r), title: str(r, 'question'), open: isOpen(r, i),
+      state: isOpen(r, i) ? statusOf(r, i) : '', answer: recorded(r), note: isOpen(r, i) ? recorded(r) : '' }));
+    let right = `<p class="muted">${esc(t('Select a safety question to see details.', 'Choisis une question de sécurité pour afficher les détails.'))}</p>`;
     if (row) {
       const i = rows.indexOf(row);
       const status = statusOf(row, i);
       const pending = status !== 'RESOLVED';
       const suggestion = row.suggestion || {};
       const hazards = list(row, 'hazards');
-      let block = `<div class="details ${pending ? 'pending' : 'done'}"><b class="${pending ? 'tone-warn' : 'tone-good'}">S${esc(str(row, 'number'))} · ${esc(status)}</b> <span class="muted">${esc(str(row, 'guide_word'))}</span>
-  <p><b>${esc(str(row, 'question'))}</b></p>`;
-      if (str(suggestion, 'hazard')) block += `<h5 class="muted">${esc(t('Proposed hazard', 'Danger proposé'))}</h5><p>${esc(str(suggestion, 'hazard'))}</p>`;
-      if (str(suggestion, 'invariant')) block += `<h5 class="muted">${esc(t('Proposed invariant', 'Invariant proposé'))}</h5><p>${esc(str(suggestion, 'invariant'))}</p>`;
+      let block = `<p class="answer-q">${esc(str(row, 'question'))}</p>`;
+      if (str(suggestion, 'hazard')) block += `<p class="hint"><b>${esc(t('Proposed hazard', 'Danger proposé'))}</b> ${esc(str(suggestion, 'hazard'))}</p>`;
+      if (str(suggestion, 'invariant')) block += `<p class="hint"><b>${esc(t('Proposed invariant', 'Invariant proposé'))}</b> ${esc(str(suggestion, 'invariant'))}</p>`;
       if (!hazards.length && !str(suggestion, 'hazard') && str(row, 'status').toLowerCase() === 'open') {
         block += `<p class="tone-warn"><b>${esc(t('No hazard recorded yet. Declare one or mark the question not applicable.', "Aucun danger déclaré. Déclare un danger ou indique que la question ne s'applique pas."))}</b></p>`;
       }
       for (const h of hazards) {
         const guards = list(h, 'prevented_by');
-        block += `<hr><p><b>${esc(t('Hazard', 'Danger'))} ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b><br>${esc(str(h, 'description'))}</p>`;
+        block += `<div class="recorded"><p><b>${esc(t('Hazard', 'Danger'))} ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b><br>${esc(str(h, 'description'))}</p>`;
         for (const g of guards) {
-          block += `<p class="tone-warn">↳ <b>Invariant ${esc(str(g, 'id'))}</b> <span class="body">${esc(str(g, 'statement'))}</span>${g.tested === false ? ` <span class="muted">[${esc(t('test not verified', 'test non vérifié'))}]</span>` : ''}</p>`;
+          block += `<p class="tone-good">↳ <b>Invariant ${esc(str(g, 'id'))}</b> <span class="body">${esc(str(g, 'statement'))}</span>${g.tested === false ? ` <span class="muted">[${esc(t('test not verified', 'test non vérifié'))}]</span>` : ''}</p>`;
         }
         if (!guards.length && ['high', 'critical'].includes(str(h, 'severity').toLowerCase())) {
           block += `<p class="tone-warn"><b>ARCH030 — ${esc(t('An invariant is required before this hazard can be considered protected.', 'Un invariant est obligatoire pour que ce danger soit considéré protégé.'))}</b></p>`;
         }
+        block += '</div>';
       }
-      if (str(row, 'dismissed')) block += `<p><b>${esc(t('Not applicable', 'Non applicable'))}:</b> ${esc(str(row, 'dismissed'))}</p>`;
-      detail = block + '</div>';
+      if (str(row, 'dismissed')) block += `<div class="recorded"><p><b>${esc(t('Not applicable', 'Non applicable'))}:</b> ${esc(str(row, 'dismissed'))}</p></div>`;
       const open = str(row, 'status').toLowerCase() === 'open';
       const missing = d && d.safety[i] ? d.safety[i].unprotected : '';
       const key = `s:${ui.component}:${str(row, 'number')}`;
       const severity = ui.severity[key] || 'high';
       const proposed = !!str(suggestion, 'hazard');
-      editor = `<div class="editor"><div class="row"><label class="editor-label">${esc(t('Hazard description or reason', 'Danger ou justification'))}</label>
-  <label>${esc(t('Severity', 'Sévérité'))} <select data-change="severity" data-key="${esc(key)}" ${open ? '' : 'disabled'}>${['critical', 'high', 'medium', 'low'].map((s) => `<option ${s === severity ? 'selected' : ''}>${s}</option>`).join('')}</select></label></div>
-  <textarea rows="3" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" ${open ? '' : 'disabled'}>${esc(draft(key, open ? str(suggestion, 'hazard') : ''))}</textarea>
-  <div class="row wrap">${btn(t('Declare hazard', 'Déclarer un danger'), 'safety', attrs({ action: 'hazard add' }), !open)}
-  ${btn(t('Not applicable', 'Non applicable'), 'safety', attrs({ action: 'hazard dismiss' }), !open, 'secondary')}
-  ${open && proposed ? btn(str(suggestion, 'invariant') ? t('Use proposed hazard + invariant', 'Utiliser danger + invariant proposés') : t('Use proposed hazard', 'Utiliser le danger proposé'),
-    'safety', attrs({ action: 'hazard suggested' }) + ` title="${esc(d && d.safety[i] ? d.safety[i].preview : '')}"`, false, 'secondary') : ''}
-  ${missing ? btn(t('Add required invariant', "Ajouter l'invariant requis"), 'choose', attrs({ purpose: 'invariant add', only: 'true' })) : ''}
-  ${btn(t('Add invariant…', 'Ajouter un invariant…'), 'choose', attrs({ purpose: 'invariant add' }), false, 'secondary')}
-  ${btn(t('Remove hazard…', 'Supprimer un danger…'), 'choose', attrs({ purpose: 'hazard remove' }), false, 'secondary')}
-  ${btn(t('Remove invariant…', 'Supprimer un invariant…'), 'choose', attrs({ purpose: 'invariant remove' }), false, 'secondary')}</div>
-  ${confirmation('safety')}</div>`;
+      const editor = open ? `<div class="row answer-label"><span>${esc(t('Hazard description or reason', 'Danger ou justification'))}</span>
+  <label>${esc(t('Severity', 'Sévérité'))} <select data-change="severity" data-key="${esc(key)}">${['critical', 'high', 'medium', 'low'].map((s) => `<option ${s === severity ? 'selected' : ''}>${s}</option>`).join('')}</select></label></div>`
+        + answerEditor(key, str(suggestion, 'hazard'), t('What must never happen, or why it cannot', "Ce qui ne doit jamais arriver, ou pourquoi c'est impossible"),
+          btn(t('Not applicable', 'Non applicable'), 'safety', attrs({ action: 'hazard dismiss' }), false, 'secondary')
+          + (proposed ? btn(str(suggestion, 'invariant') ? t('Use proposed hazard + invariant', 'Utiliser danger + invariant proposés') : t('Use proposed hazard', 'Utiliser le danger proposé'),
+            'safety', attrs({ action: 'hazard suggested' }) + ` title="${esc(d && d.safety[i] ? d.safety[i].preview : '')}"`, false, 'secondary') : ''),
+          btn(t('Declare hazard', 'Déclarer un danger'), 'safety', attrs({ action: 'hazard add' })), 'safety') : '';
+      const more = `<div class="row wrap more">${missing ? btn(t('Add required invariant', "Ajouter l'invariant requis"), 'choose', attrs({ purpose: 'invariant add', only: 'true' })) : ''}
+  ${btn(t('Add invariant…', 'Ajouter un invariant…'), 'choose', attrs({ purpose: 'invariant add' }), false, 'secondary small')}
+  ${btn(t('Remove hazard…', 'Supprimer un danger…'), 'choose', attrs({ purpose: 'hazard remove' }), false, 'secondary small')}
+  ${btn(t('Remove invariant…', 'Supprimer un invariant…'), 'choose', attrs({ purpose: 'invariant remove' }), false, 'secondary small')}</div>`;
+      right = answerHead(`${t('Safety', 'Sécurité')} S${str(row, 'number')}${str(row, 'guide_word') ? ' · ' + str(row, 'guide_word') : ''}`, status, !pending)
+        + block + editor + more + confirmation('safety') + resultCard('safety');
     }
-    return selectList('safety', rows, label, statusOf, (r, i) => statusOf(r, i) !== 'RESOLVED') + detail + editor + resultCard('safety');
+    return split(left, right);
   }
 
   function assumptionsView(view) {
@@ -592,16 +657,21 @@
     const label = (r) => 'A' + str(r, 'number');
     const state = (r) => str(r, 'status').toLowerCase();
     const closed = (r) => state(r) === 'accepted' || state(r) === 'rejected';
-    const row = current('assumption', rows, label);
-    let detail = `<p class="muted">${esc(t('No assumption selected.', 'Aucune hypothèse sélectionnée.'))}</p>`;
+    const row = current('assumption', rows, label, (r) => !closed(r));
+    const left = cards('assumption', rows, label, (r) => ({ number: label(r), title: str(r, 'text'), open: !closed(r),
+      state: t('To review', 'À examiner'), answer: state(r) === 'accepted' ? t('Accepted', 'Acceptée') : t('Rejected', 'Rejetée'), by: closed(r) ? byOn(r) : '' }))
+      + `<div class="row">${btn(t('+ Assumption', '+ Hypothèse'), 'openCommand', attrs({ command: 'assumption add', component: ui.component })
+        + ` title="${esc(t('Add an assumption', 'Ajouter une hypothèse'))}"`, false, 'secondary small')}</div>`;
+    let right = `<p class="muted">${esc(t('No assumption selected.', 'Aucune hypothèse sélectionnée.'))}</p>`;
     if (row) {
-      detail = `<div class="details ${closed(row) ? 'done' : 'pending'}">${chip(label(row), 'blue')}${chip(closed(row) ? state(row) : t('Pending', 'En attente'), closed(row) ? 'good' : 'warn')}<p>${esc(str(row, 'text'))}</p></div>`;
+      const pending = !closed(row);
+      right = answerHead(pending ? t(`Review assumption ${label(row)}`, `Examiner l'hypothèse ${label(row)}`) : t(`Assumption ${label(row)}`, `Hypothèse ${label(row)}`),
+        pending ? '' : state(row).toUpperCase(), state(row) === 'accepted')
+        + `<p class="answer-q">${esc(str(row, 'text'))}</p>`
+        + (pending ? `<div class="answer-actions"><span></span><span class="row">${btn(t('Reject', 'Rejeter'), 'openCommand', attrs({ command: 'assumption reject', component: ui.component, number: str(row, 'number') }), false, 'secondary')}
+  ${btn(t('Accept', 'Accepter'), 'openCommand', attrs({ command: 'assumption accept', component: ui.component, number: str(row, 'number') }))}</span></div>` : '');
     }
-    const pending = row && !closed(row);
-    return selectList('assumption', rows, label, (r) => (closed(r) ? state(r).toUpperCase() : 'OPEN'), (r) => !closed(r)) + detail
-      + `<div class="row">${btn(t('Accept', 'Accepter'), 'openCommand', attrs({ command: 'assumption accept', component: ui.component, number: row ? str(row, 'number') : '' }), !pending)}
-  ${btn(t('Reject', 'Rejeter'), 'openCommand', attrs({ command: 'assumption reject', component: ui.component, number: row ? str(row, 'number') : '' }), !pending, 'secondary')}
-  ${btn(t('Add assumption', 'Ajouter une hypothèse'), 'openCommand', attrs({ command: 'assumption add', component: ui.component }), false, 'secondary')}</div>`;
+    return split(left, right);
   }
 
   function readable(v) {
@@ -855,6 +925,11 @@
       post({ type: 'cancelled', token: ui.confirm.token });
       ui.confirm = null;
     }
+    if (ui.component !== id) {
+      // another component: its views start on their first open item (current())
+      for (const kind of ['decision', 'question', 'safety', 'assumption', 'data']) ui.sel[kind] = '';
+      for (const kind of ['decision', 'question', 'safety', 'assumption']) delete ui.results[kind];
+    }
     ui.component = id;
     if (reload) post({ type: 'selectComponent', component: id });
   }
@@ -1034,8 +1109,9 @@
       post({ type: 'quickList', index });
     },
     checkSel: (e) => { ui.checkSel = Number(e.dataset.i); },
-    openComponentRow: (e) => { ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
-    pick: (e) => { ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
+    // the sidebar marks its choice at once; the editor tab changes component when the extension says so
+    openComponentRow: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
+    pick: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
     filter: (e) => { ui.filter = e.dataset.filter; },
     view: (e) => {
       const i = Number(e.dataset.i);
@@ -1089,6 +1165,13 @@
       }
       post({ type: 'inline', action, component: ui.component, number: str(row, 'number'), answer, question: str(row, 'question'), proposed: str(row, 'proposed') });
     },
+    cancelDraft: (e) => {
+      delete ui.drafts[e.dataset.key];
+      if (ui.confirm && ui.confirm.target === e.dataset.target) {
+        post({ type: 'cancelled', token: ui.confirm.token });
+        ui.confirm = null;
+      }
+    },
     useSuggestion: () => {
       const row = selectedRow('decision');
       if (row) ui.drafts[`d:${ui.component}:${str(row, 'number')}`] = str(row, 'suggested');
@@ -1140,7 +1223,7 @@
 
   function focusEditor() {
     window.setTimeout(() => {
-      const field = document.querySelector('.editor textarea:not([disabled])');
+      const field = document.querySelector('.split-answer textarea:not([disabled])');
       if (field) field.focus();
     }, 0);
   }

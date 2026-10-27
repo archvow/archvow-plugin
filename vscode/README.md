@@ -10,7 +10,7 @@ command, shown to you before it runs.
 | Where | What |
 |---|---|
 | **archvow** sidebar (activity bar; **archvow: Show the workspace**) | **Overview**: project status (pending and resolved counters that lead to the work), the architecture table, Check & Gates (every diagnostic, its rule, its file), Check, Next, Full check, Doctor, Audit, Project vow, Budget / Next, Diff, Review with a Git base, a feature-branch warning on main/develop; a command's result opens in the editor tab. **Components**: the components by container and layer (All, Pending, Resolved). **Commands**: every archvow command |
-| **archvow** editor tab (one tab, titled *archvow: clean_orders*, reused for the next choice) | the chosen component: Clarify, Open spec, Open code, Edit spec, AI prompt, Add question, Add rule, Add component, and its views: Decisions (Save answer, Propose, Accept proposal, Use suggestion), Questions, Safety (Declare hazard, Not applicable, proposed hazard + invariant, add or remove hazards and invariants), Assumptions, Rules, Tasks (classify a column, a task's AI prompt), Full vow, Other / Project; Open spec / Open code open the files as ordinary tabs next to it. The chosen command: its form built from archvow's own parser, with the init wizard of `archvow catalog --json`. A result of Overview's Check, Next, Doctor... |
+| **archvow** editor tab (one tab, titled *archvow: clean_orders*, reused for the next choice) | the chosen component, its head over the whole width (open items, type · layer · module · ticket, description, Uses · Used by, examples): Clarify, Open spec, Open code, Edit spec, AI prompt, + Question, + Rule, + Component, and its views - Decisions, Questions, Safety and Assumptions as cards on the left with the selected one's answer panel on the right, opened on the first open item: Decisions (Save answer, Propose, Accept proposal, Use suggestion), Questions, Safety (Declare hazard, Not applicable, proposed hazard + invariant, add or remove hazards and invariants), Assumptions, Rules, Tasks (classify a column, a task's AI prompt), Full vow, Other / Project; Open spec / Open code open the files as ordinary tabs next to it. The chosen command: its form built from archvow's own parser, with the init wizard of `archvow catalog --json`. A result of Overview's Check, Next, Doctor... |
 | An editor (right-click), or its tab (right-click on the title) | **archvow: Show archvow for this file**: `archvow show <file>:<line>` - the component that owns the file opens in the editor tab, with what it uses and what uses it (each one a link); a file no component owns gets archvow's hint |
 | Problems view | `archvow check` on the whole project, and on a Python file each time you save it |
 | `.vow` files | one keyword colour per depth, ids, people, dates; what keeps archvow from reading the file, as you type; Ctrl+click on a component in `uses [...]`, a hazard in `prevents [...]`, the file of `module`; Outline; folding; `#` comments; a line on top naming the command that changes the vow; ```` ```vow ```` blocks in Markdown |
@@ -55,7 +55,7 @@ IntelliJ plugin's, tested against it (`../contract/`).
 ```bash
 npm ci
 npm test            # the .vow reader against the Java one, the grammar, the CLI runner, the workspace's rules
-npm run package     # -> ../dist/archvow-0.10.0.vsix
+npm run package     # -> ../dist/archvow-0.11.0.vsix
 ```
 
 Install: Extensions view > `...` > **Install from VSIX...**. For a team, a private registry (a

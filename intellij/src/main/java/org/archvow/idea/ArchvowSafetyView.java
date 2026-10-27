@@ -45,16 +45,18 @@ final class ArchvowSafetyView {
 
             // Follow the Decisions detail hierarchy: identity, status, full question,
             // then only the recorded evidence and concrete missing protection.
-            add(doc, (french ? "DÉTAILS" : "DETAILS") + "   ", blue, true, 15);
-            add(doc, "S" + number + "   ", body, true, 13);
+            // the answer panel's heading (the split view's right side), as the decisions' one
+            String word = ArchvowGrammar.str(question, "guide_word");
+            add(doc, (french ? "SÉCURITÉ S" : "SAFETY S") + number + (word.isBlank() ? "" : " · " + word.toUpperCase(java.util.Locale.ROOT))
+                + "   ", secondary, true, 11);
             add(doc, pending
                 ? (needsInvariant ? (french ? "● INVARIANT REQUIS" : "● INVARIANT REQUIRED")
                                   : (french ? "● EN ATTENTE" : "● PENDING"))
-                : (french ? "● TRAITÉ" : "● RESOLVED"), pending ? amber : green, true, 12);
+                : (french ? "● TRAITÉ" : "● RESOLVED"), pending ? amber : green, true, 11);
 
-            section(doc, french ? "QUESTION" : "QUESTION", secondary);
+            add(doc, "\n", secondary, false, 6);
             String prompt = ArchvowGrammar.str(question, "question");
-            add(doc, prompt.isBlank() ? "—" : prompt, body, false, 14);
+            add(doc, prompt.isBlank() ? "—" : prompt, body, false, 15);
 
             String dismissal = ArchvowGrammar.str(question, "dismissed");
             if (!dismissal.isBlank()) {

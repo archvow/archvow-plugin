@@ -2,6 +2,28 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.11.0 - 2026-10-27
+
+- **A component in two panels**, as in VS Code: the head over the whole width (name and open items,
+  *type · layer · module · ticket · state*, description, Uses · Used by, examples - the details pane,
+  built since 0.9.0 but not shown in the editor tab since 0.7.0, is that head now), the actions (Clarify
+  first, painted as the main button; + Question, + Rule, + Component) and the view buttons; under them, for
+  Decisions, Questions, Safety and Assumptions, the items as cards on the left (`ArchvowItemCards`) and
+  the selected one's answer panel on the right (`ArchvowSplitView`): *ANSWER DECISION 3*, the question,
+  who recorded the answer and when, the field (monospaced), the other actions on the left and **Cancel /
+  Save answer** on the right (on a row under them when the panel is too narrow), the inline confirmation
+  under them. Under 680 px of view the answer panel goes under the cards.
+- **A component opens on its first open item**, in each of those views (`renderComponent`): the answer
+  panel is ready. The same component drawn again (after an answer, a reload) keeps each view's card.
+- Cancel puts back the recorded text and closes a confirmation left open. Propose, Accept proposal, Use
+  suggestion, Accept / Reject show only when they apply; a safety question already answered shows no field.
+- The *Actions* and *Vows* headings are gone; the header no longer repeats the component's name.
+- Tests: `SplitViewRegression` (side by side and stacked, the buttons' rows, the main button's colour,
+  the answer panel's height, the cards' text, the first open item); `DetailAndLogRegression` follows the
+  new heading. 31 headless regressions and `CoreTests` pass, compiled against stand-ins of the platform
+  classes (no JetBrains repository here); the panels were also run in a Swing frame (tool window + editor
+  tab) on archvow's recorded outputs. `./gradlew check buildPlugin` and `runIde` on your machine.
+
 ## 0.10.0 - 2026-10-27
 
 - On archvow 1.16: the contract is recorded from archvow 1.16.0 (`example add|remove` in the command

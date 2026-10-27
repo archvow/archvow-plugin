@@ -99,3 +99,46 @@ test('a component shows its business examples (show --json `examples`): tested a
   assert.equal(examples({ examples: [] }), '');
   assert.match(page, /\$\{links\(view\)\}\$\{examples\(view\)\}/);
 });
+
+test('a component opens on its first open item: the answer panel is ready (0.11.0)', () => {
+  const source = page.match(/function current\(kind, rows, label, isOpen\) \{[\s\S]*?\n  \}/);
+  assert.ok(source, 'current() is in the page');
+  const ui = { sel: { decision: '' } as Record<string, string> };
+  const current = new Function('ui', `${source[0]}; return current;`)(ui);
+  const label = (r: { number: number }) => 'D' + r.number;
+  const isOpen = (r: { answer: string | null }) => !r.answer;
+  const rows = [{ number: 1, answer: 'Fail' }, { number: 2, answer: 'FAILFAST' }, { number: 3, answer: null }, { number: 4, answer: null }];
+  assert.equal(current('decision', rows, label, isOpen).number, 3);
+  assert.equal(ui.sel.decision, 'D3');
+  ui.sel.decision = 'D1'; // a card clicked: kept
+  assert.equal(current('decision', rows, label, isOpen).number, 1);
+  ui.sel.decision = '';   // nothing open: the first
+  assert.equal(current('decision', rows.slice(0, 2), label, isOpen).number, 1);
+  assert.equal(current('decision', [], label, isOpen), null);
+  // another component starts with no selection (a key like D3 of the previous one would be kept)
+  assert.match(page, /if \(ui\.component !== id\) \{\s*\/\/[^\n]*\n\s*for \(const kind of \['decision', 'question', 'safety', 'assumption', 'data'\]\) ui\.sel\[kind\] = '';/);
+});
+
+test('the items as cards on the left, the selected one answered on the right (0.11.0)', () => {
+  const source = page.match(/function cards\(kind, rows, label, card\) \{[\s\S]*?\n  \}/);
+  assert.ok(source, 'cards() is in the page');
+  const esc = (x: string) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const short = (s: string, n: number) => (s.length <= n ? s : s.substring(0, n - 1) + '…');
+  const ui = { sel: { decision: 'D3' } };
+  const cards = new Function('t', 'esc', 'short', 'ui', `${source[0]}; return cards;`)((en: string) => en, esc, short, ui);
+  const view = JSON.parse(fs.readFileSync(path.resolve(ROOT, '..', 'contract', 'cli', 'pyspark-pipeline', 'show', 'orders_reader.json'), 'utf8'));
+  const rows = view.decisions.slice(0, 2).concat([{ number: 3, question: 'Header row missing: infer the columns or fail?', answer: null }]);
+  const html = cards('decision', rows, (r: { number: number }) => 'D' + r.number, (r: Record<string, string>) => ({
+    number: String(r.number), title: r.question, open: !r.answer, answer: r.answer || '', by: r.answer ? `${r.by} · ${r.on}` : '' }));
+  assert.match(html, /<li class="item-card  done" data-a="sel" data-kind="decision" data-key="D1">/);
+  assert.match(html, /<div class="card-a">Fail with a clear error: a missing input is an operations problem<\/div>/);
+  assert.match(html, /<div class="card-by muted">architect@example\.com · 2026-10-08<\/div>/);
+  assert.match(html, /<li class="item-card selected open" data-a="sel" data-kind="decision" data-key="D3">/);
+  assert.match(html, /<div class="card-open">● Open<\/div>/);
+  // the four views whose items are answered are split; the answer heading says what is answered
+  assert.equal(page.match(/return split\(left, right\);/g)?.length, 4);
+  assert.match(page, /t\(`Answer decision \$\{number\}`, `Répondre à la décision \$\{number\}`\)/);
+  const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
+  assert.match(css, /\.split \{ display: grid; grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\);/);
+  assert.match(css, /@media \(max-width: 760px\) \{ \.split \{ grid-template-columns: minmax\(0, 1fr\); \} \}/);
+});

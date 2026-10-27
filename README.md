@@ -9,7 +9,7 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `contract/` | what both plugins and the archvow CLI agree on: the sample vows, the CLI's JSON, the `.vow` reader's tokens and problems | `contract/tools/regenerate.py`, `./gradlew contractDump` |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.10.0.zip, dist/archvow-0.10.0.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.11.0.zip, dist/archvow-0.11.0.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -19,6 +19,9 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 - **The same layout in both editors.** The sidebar (IntelliJ: the Archvow tool window, left; VS Code: the
   activity bar) chooses: Overview, Components (the tree), Commands (the list). ONE editor tab shows what
   was chosen (a component, a command's form, a result) and is reused for the next choice.
+  A component shows its head over the whole width, then, for Decisions, Questions, Safety and
+  Assumptions, the items as cards on the left and the selected one's answer panel on the right (under
+  the cards in a narrow tab); it opens on its first open item.
 - **The same workspace in both editors.** Overview (architecture, Check & Gates, pending and resolved
   work, Check / Next / Full check / Doctor / Audit / Budget / Diff / Review), Components (Decisions,
   Questions, Safety, Assumptions, Rules, Tasks, Full vow, Other / Project, with their actions) and
@@ -48,6 +51,6 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 
 ## Versions
 
-Both plugins have the same version (0.10.0), their own, not archvow's. They read `.vow` format 1 and run
+Both plugins have the same version (0.11.0), their own, not archvow's. They read `.vow` format 1 and run
 the archvow CLI 1.16 (`contract/cli/version.txt`, the version the contract was recorded from); each says
 when the installed archvow is another major.minor (archvow keeps no backward compatibility).
