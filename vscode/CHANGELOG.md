@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.11.2 - 2026-10-27
+
+- **archvow is looked for in the project's Python interpreter first**: the one the Python extension uses
+  for the project (setting `archvow.useProjectInterpreter`, on by default), then `archvow.python`, then
+  `archvow.executable`. The first that answers `archvow --version` runs the commands, remembered while
+  the settings stay the same. When none answers, the error lists what each one said.
+- **archvow in WSL, VS Code on Windows**: `archvow.python` (or the interpreter) may be a WSL path,
+  `\\wsl.localhost\Ubuntu\home\you\.venv\bin\python3`, `\\wsl$\...`, `wsl://<distro>/...` or a
+  Linux path `/home/...` (the default distribution). It runs through `wsl.exe -d <distro> --cd <project
+  as a Linux path> --exec <python> -m archvow ...` (no shell); a Windows path among the arguments
+  (`C:\work\out.xml`) becomes `/mnt/c/work/out.xml`; `WSLENV` hands NO_COLOR, PYTHONIOENCODING and
+  ARCHVOW_TEMPLATES to WSL. A project opened through `\\wsl.localhost\...` works the same way.
+- Tests: 48 (the WSL command lines and paths, the search order, the first that answers and the report
+  when none does). Not run on Windows here.
+
 ## 0.11.1 - 2026-10-27
 
 - **The architecture table in the sidebar** is now the same table as IntelliJ's: Component, Type, Layer,

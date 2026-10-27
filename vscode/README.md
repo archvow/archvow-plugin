@@ -23,16 +23,22 @@ agent, a `git checkout`). English or French: **Language** at the bottom of Overv
 
 1. archvow installed: `archvow --version` in a terminal. The extension knows archvow 1.16 and says so
    when the installed one is another version.
-2. If `archvow` is not on the PATH VS Code sees, set **archvow.python** to the Python that has it
-   (`/path/venv/bin/python3`: the extension runs `<python> -m archvow`), or **archvow.executable** to
-   its full path.
+2. archvow is looked for in this order, the first that answers `archvow --version` runs the commands:
+   the Python interpreter VS Code uses for the project (the Python extension's, when
+   **archvow.useProjectInterpreter** is on), **archvow.python** (`/path/venv/bin/python3`: the extension
+   runs `<python> -m archvow`), **archvow.executable** (`archvow` on the PATH, or its full path). When
+   none answers, the error lists what each one said.
+   On Windows with archvow in WSL, give the WSL Python: `\\wsl.localhost\Ubuntu\home\you\.venv\bin\python3`
+   (or `wsl://Ubuntu/home/you/.venv/bin/python3`, or `/home/you/.venv/bin/python3` for the default
+   distribution): it runs through `wsl.exe --exec`, the project folder given as a Linux path.
 3. Open the project folder. A folder without `.archvow/spec.vow` shows **Initialize Archvow** (the init
    wizard). In an untrusted folder only the `.vow` language works.
 
 | Setting | Default | |
 |---|---|---|
 | `archvow.executable` | `archvow` | the command, or its full path |
-| `archvow.python` | (empty) | a Python with archvow installed; wins over the executable |
+| `archvow.useProjectInterpreter` | true | look first in the project's Python interpreter (Python extension) |
+| `archvow.python` | (empty) | a Python with archvow installed (a WSL path on Windows: through `wsl.exe`); before the executable |
 | `archvow.timeoutSeconds` | 180 | how long one command may run |
 | `archvow.checkOnSave` | true | `archvow check --file` on each saved Python file |
 | `archvow.language` | `auto` | the workspace's language: VS Code's, `en` or `fr` |
@@ -55,7 +61,7 @@ IntelliJ plugin's, tested against it (`../contract/`).
 ```bash
 npm ci
 npm test            # the .vow reader against the Java one, the grammar, the CLI runner, the workspace's rules
-npm run package     # -> ../dist/archvow-0.11.1.vsix
+npm run package     # -> ../dist/archvow-0.11.2.vsix
 ```
 
 Install: Extensions view > `...` > **Install from VSIX...**. For a team, a private registry (a

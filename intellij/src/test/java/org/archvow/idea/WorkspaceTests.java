@@ -45,6 +45,7 @@ public final class WorkspaceTests {
         run("VersionRegression", () -> VersionRegression.main(NONE));
         run("VowViewerRegression", () -> VowViewerRegression.main(NONE));
         run("VowWatcherRegression", () -> VowWatcherRegression.main(NONE));
+        run("WslRegression", () -> WslRegression.main(NONE));
         System.out.println("workspace tests: " + passed + " test classes passed");
     }
 

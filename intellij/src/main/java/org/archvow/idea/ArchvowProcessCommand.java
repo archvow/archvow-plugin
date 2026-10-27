@@ -23,19 +23,45 @@ final class ArchvowProcessCommand {
 
     static List<String> build(String executableSetting, String pythonSetting,
                               String root, List<String> arguments) {
+        return build(executableSetting, pythonSetting, root, arguments, ArchvowWsl.windows());
+    }
+
+    /** As {@link #build(String, String, String, List)}; {@code windows}: a WSL program runs through wsl.exe. */
+    static List<String> build(String executableSetting, String pythonSetting,
+                              String root, List<String> arguments, boolean windows) {
         if (root == null || root.isBlank())
-            throw new IllegalArgumentException("Aucun dossier racine pour ce projet IntelliJ.");
-        return buildInternal(executableSetting, pythonSetting, root, arguments);
+            throw new IllegalArgumentException("No project folder / Aucun dossier racine pour ce projet.");
+        return buildInternal(executableSetting, pythonSetting, root, arguments, windows);
     }
 
     /** For commands such as catalog that Archvow supports without a project. */
     static List<String> buildWithoutProject(String executableSetting, String pythonSetting,
                                             List<String> arguments) {
-        return buildInternal(executableSetting, pythonSetting, null, arguments);
+        return buildInternal(executableSetting, pythonSetting, null, arguments, ArchvowWsl.windows());
+    }
+
+    /**
+     * Where archvow is looked for, in this order (0.11.2): the IDE's Python interpreter for the project
+     * (Settings > Project > Python Interpreter) when {@code useIde}, then the Python of Settings > Tools >
+     * Archvow, then its archvow executable ("archvow" on the PATH). The first that answers
+     * {@code --version} runs the commands ({@link ArchvowCli}).
+     */
+    record Candidate(String source, String executable, String python) {
+        String program() { return python.isBlank() ? executable : python; }
+    }
+
+    static List<Candidate> candidates(boolean useIde, String idePython, String executable, String python) {
+        List<Candidate> out = new ArrayList<>();
+        if (useIde && idePython != null && !idePython.isBlank()) out.add(new Candidate("ide", "", idePython.trim()));
+        if (python != null && !python.isBlank() && out.stream().noneMatch(c -> c.python().equals(python.trim())))
+            out.add(new Candidate("python", "", python.trim()));
+        String exe = executable == null || executable.isBlank() ? "archvow" : executable.trim();
+        out.add(new Candidate("executable", exe, ""));
+        return out;
     }
 
     private static List<String> buildInternal(String executableSetting, String pythonSetting,
-                                               String root, List<String> arguments) {
+                                               String root, List<String> arguments, boolean windows) {
         String python = clean(pythonSetting);
         String executable = clean(executableSetting);
         boolean pythonMode = !python.isEmpty();
@@ -56,6 +82,20 @@ final class ArchvowProcessCommand {
         String program = stripWrappingQuotes(provided);
         if (program.isBlank())
             throw new IllegalArgumentException("Le chemin de l'executable Python est vide.");
+
+        ArchvowWsl.Target wsl = ArchvowWsl.program(program, windows);
+        if (wsl != null) {
+            // archvow in WSL: wsl.exe runs the Linux program in the project folder, as Linux paths
+            String linuxRoot = root == null ? null : ArchvowWsl.linuxPath(root);
+            if (root != null && linuxRoot == null)
+                throw new IllegalArgumentException("WSL cannot reach the project folder / WSL n'atteint pas le dossier du projet : " + root);
+            ArrayList<String> inner = new ArrayList<>();
+            inner.add(wsl.path());
+            if (pythonMode) { inner.add("-m"); inner.add("archvow"); }
+            if (linuxRoot != null) { inner.add("--root"); inner.add(linuxRoot); }
+            for (String argument : arguments) inner.add(ArchvowWsl.argument(argument));
+            return List.copyOf(ArchvowWsl.command(wsl.distro(), linuxRoot, inner));
+        }
 
         ArrayList<String> argv = new ArrayList<>();
         argv.add(program);

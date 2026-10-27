@@ -19,6 +19,9 @@ public final class ArchvowSettingsConfigurable implements Configurable {
     private final JTextField command = new JTextField();
     private final JTextField python = new JTextField();
     private final JTextField timeout = new JTextField();
+    private final JCheckBox useProjectInterpreter = new JCheckBox(
+        "Use the project's Python interpreter first / Utiliser d'abord l'interpréteur Python du projet");
+    private final JLabel detected = new JLabel();
     private final JComboBox<String> languageMode = new JComboBox<>(ArchvowI18n.modes());
 
     public ArchvowSettingsConfigurable(Project project) { this.project = project; }
@@ -30,15 +33,29 @@ public final class ArchvowSettingsConfigurable implements Configurable {
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setBorder(BorderFactory.createTitledBorder("Archvow configuration / Configuration Archvow"));
-        row(form, 0, "Archvow executable / Exécutable Archvow", command, null,
+        String ide = ArchvowInterpreter.projectPython(project);
+        detected.setText(ide.isBlank()
+            ? "No Python interpreter set for this project in the IDE. / Aucun interpréteur Python défini pour ce projet dans l'IDE."
+            : "IDE interpreter / Interpréteur de l'IDE : " + ide + (ArchvowWsl.program(ide, ArchvowWsl.windows()) != null
+                ? "  (WSL" + (ArchvowWsl.program(ide, true).distro().isBlank() ? "" : " " + ArchvowWsl.program(ide, true).distro()) + ")" : ""));
+        detected.setFont(detected.getFont().deriveFont(11f));
+        JPanel interpreter = new JPanel(new BorderLayout(0, 2));
+        interpreter.add(useProjectInterpreter, BorderLayout.NORTH);
+        interpreter.add(detected, BorderLayout.SOUTH);
+        row(form, 0, "Python of the IDE / Python de l'IDE", interpreter, null,
+            "Settings > Project > Python Interpreter. When archvow is not there, the Python below, then the executable. "
+                + "/ Settings > Project > Python Interpreter. Si archvow n'y est pas : le Python ci-dessous, puis l'exécutable.");
+        row(form, 2, "Archvow executable / Exécutable Archvow", command, null,
             "Optional. Use this for a standalone Archvow executable. / Optionnel. À utiliser si Archvow est un exécutable autonome.");
         JButton browsePython = new JButton("Browse…");
         browsePython.addActionListener(e -> choosePython());
         row(form, 1, "Python executable / Exécutable Python", python, browsePython,
-            "Preferred mode. Enter only the Python executable path, for example /path/to/venv/bin/python3. / Mode recommandé. Saisir uniquement le chemin de l'exécutable Python.");
-        row(form, 2, "Timeout (seconds) / Délai (secondes)", timeout, null,
+            "Enter only the Python executable path, for example /path/to/venv/bin/python3. A Python in WSL: "
+                + "\\\\wsl.localhost\\Ubuntu\\home\\you\\.venv\\bin\\python3 (run through wsl.exe). / Saisir uniquement le chemin "
+                + "de l'exécutable Python. Un Python dans WSL : \\\\wsl.localhost\\Ubuntu\\home\\toi\\.venv\\bin\\python3 (lancé par wsl.exe).");
+        row(form, 3, "Timeout (seconds) / Délai (secondes)", timeout, null,
             "Allowed range: 5 to 3600. / Valeur autorisée : 5 à 3600.");
-        row(form, 3, "Language / Langue", languageMode, null,
+        row(form, 4, "Language / Langue", languageMode, null,
             "IDE = follow IntelliJ or PyCharm language. / IDE = suit la langue de l'IDE.");
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -60,6 +77,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         note.setText("This field should contain only the Python executable path.\n"
             + "Example: /path/to/venv/bin/python3\n"
             + "Example: /Users/acme/.venv/bin/python3\n"
+            + "Example (Windows, archvow in WSL): \\\\wsl.localhost\\Ubuntu\\home\\acme\\.venv\\bin\\python3\n"
             + "If you enter 'python3 -m archvow', the plugin still accepts it for backward compatibility, "
             + "but the recommended value is the executable path only.\n\n"
             + "Ce champ doit contenir uniquement le chemin de l'exécutable Python.\n"
@@ -119,9 +137,11 @@ public final class ArchvowSettingsConfigurable implements Configurable {
             "Archvow Python configuration", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /** Test: the same search as the commands (the IDE's interpreter, the Python, the executable), with these fields. */
     private void testInterpreter(JButton test) {
         String configuredExecutable = command.getText().trim();
         String configuredPython = python.getText().trim();
+        boolean useIde = useProjectInterpreter.isSelected();
         String root = project.getBasePath();
         test.setEnabled(false);
         new SwingWorker<String, Void>() {
@@ -129,19 +149,22 @@ public final class ArchvowSettingsConfigurable implements Configurable {
                 try {
                     if (root == null || !new File(root).isDirectory())
                         return "IntelliJ project folder not found / Dossier projet introuvable: " + root;
-                    List<String> argv = ArchvowProcessCommand.build(
-                        configuredExecutable, configuredPython, root, List.of("--version"));
-                    ProcessBuilder builder = new ProcessBuilder(argv).directory(new File(root))
-                        .redirectErrorStream(true);
-                    builder.environment().put("NO_COLOR", "1");
-                    builder.environment().put("PYTHONIOENCODING", "utf-8");
+                    var candidates = ArchvowProcessCommand.candidates(useIde,
+                        useIde ? ArchvowInterpreter.projectPython(project) : "", configuredExecutable, configuredPython);
+                    ArchvowCli.Probe probe = ArchvowCli.probe(candidates, root, ArchvowI18n.isFrench(project));
+                    if (probe.chosen() == null) return probe.report();
+                    List<String> argv = ArchvowProcessCommand.build(probe.chosen().executable(), probe.chosen().python(),
+                        root, List.of("--version"));
+                    ProcessBuilder builder = new ProcessBuilder(argv).redirectErrorStream(true);
+                    ArchvowCli.prepare(builder, argv, root);
                     Process process = builder.start();
                     if (!process.waitFor(10, TimeUnit.SECONDS)) {
                         process.destroyForcibly();
                         return "Timeout after 10 seconds / Délai dépassé après 10 secondes.";
                     }
                     String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                    return "Command / Commande: " + String.join(" ", argv) + "\n"
+                    return "Found in / Trouvé dans : " + probe.chosen().source() + " (" + probe.chosen().program() + ")\n"
+                        + "Command / Commande: " + String.join(" ", argv) + "\n"
                         + "Exit code / Code: " + process.exitValue() + "\n\n"
                         + output.strip();
                 } catch (Exception error) {
@@ -162,20 +185,22 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         var s = values();
         return !command.getText().equals(s.executable) || !python.getText().equals(s.python)
             || !timeout.getText().equals(Integer.toString(s.timeoutSeconds))
-            || !String.valueOf(languageMode.getSelectedItem()).equals(s.languageMode);
+            || !String.valueOf(languageMode.getSelectedItem()).equals(s.languageMode)
+            || useProjectInterpreter.isSelected() != s.useProjectInterpreter;
     }
     @Override public void apply() throws ConfigurationException {
         final int seconds;
         try { seconds = Integer.parseInt(timeout.getText().trim()); }
         catch (NumberFormatException e) { throw new ConfigurationException("Timeout must be an integer / Le délai doit être un entier."); }
         if (seconds < 5 || seconds > 3600) throw new ConfigurationException("Allowed timeout: 5 to 3600 seconds / Délai autorisé : 5 à 3600 secondes.");
-        if (python.getText().isBlank() && command.getText().isBlank())
+        if (!useProjectInterpreter.isSelected() && python.getText().isBlank() && command.getText().isBlank())
             throw new ConfigurationException("Define an Archvow executable or a Python executable / Définis un exécutable Archvow ou Python.");
         var s = values();
         s.executable = command.getText().trim();
         s.python = python.getText().trim();
         s.timeoutSeconds = seconds;
         s.languageMode = String.valueOf(languageMode.getSelectedItem());
+        s.useProjectInterpreter = useProjectInterpreter.isSelected();
     }
     @Override public void reset() {
         var s = values();
@@ -183,6 +208,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         python.setText(s.python);
         timeout.setText(Integer.toString(s.timeoutSeconds));
         languageMode.setSelectedItem(s.languageMode == null || s.languageMode.isBlank() ? "IDE" : s.languageMode);
+        useProjectInterpreter.setSelected(s.useProjectInterpreter);
     }
     @Override public void disposeUIResources() { panel = null; }
 }

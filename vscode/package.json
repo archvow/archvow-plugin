@@ -2,7 +2,7 @@
   "name": "archvow",
   "displayName": "archvow",
   "description": "archvow in VS Code, the same workspace as in IntelliJ: the sidebar holds Overview (architecture, checks, pending work), Components (the tree) and Commands (every archvow command); a component or a command opens in one editor tab, reused for the next one. archvow check in the Problems view, and the .vow language.",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "publisher": "archvow",
   "license": "UNLICENSED",
   "private": true,
@@ -225,11 +225,16 @@
           "scope": "machine-overridable",
           "markdownDescription": "The `archvow` command (a name on the PATH or a full path). Ignored when `#archvow.python#` is set."
         },
+        "archvow.useProjectInterpreter": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Look for archvow first in the Python interpreter VS Code uses for the project (the Python extension's), then in `#archvow.python#`, then `#archvow.executable#`. The first that answers `--version` runs the commands."
+        },
         "archvow.python": {
           "type": "string",
           "default": "",
           "scope": "machine-overridable",
-          "markdownDescription": "A Python that has archvow installed (e.g. `/path/venv/bin/python3`): the extension runs `<python> -m archvow`."
+          "markdownDescription": "A Python that has archvow installed (e.g. `/path/venv/bin/python3`): the extension runs `<python> -m archvow`. On Windows, a Python in WSL (`\\\\wsl.localhost\\Ubuntu\\home\\you\\.venv\\bin\\python3`, `wsl://Ubuntu/home/you/.venv/bin/python3` or `/home/you/.venv/bin/python3`) runs through `wsl.exe`, with the project folder as a Linux path."
         },
         "archvow.timeoutSeconds": {
           "type": "number",

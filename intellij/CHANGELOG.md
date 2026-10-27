@@ -2,6 +2,27 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.11.2 - 2026-10-27
+
+- **archvow is looked for in the project's Python interpreter first** (PyCharm: Settings > Project >
+  Python Interpreter; IntelliJ IDEA: the project's or a module's Python SDK, `ArchvowInterpreter`), then
+  the Python of Settings > Tools > Archvow, then its executable. The first that answers `archvow
+  --version` runs the commands (`ArchvowCli.choose`), remembered while the settings and the interpreter
+  stay the same; when none answers, the error lists what each one said (English or French). Settings >
+  Tools > Archvow: "Use the project's Python interpreter first" (on by default), the interpreter found,
+  and Test follows the same order and says which one answered.
+- **archvow in WSL, PyCharm on Windows** (`ArchvowWsl`): a WSL interpreter or Python path -
+  `\\wsl.localhost\Ubuntu\home\you\.venv\bin\python3`, `\\wsl$\...`, `//wsl.localhost/...`,
+  `wsl://<distro>/...`, a Linux path `/home/...` (PyCharm's target-based WSL interpreter: its distribution
+  is read from the SDK) - runs through `wsl.exe -d <distro> --cd <project as a Linux path> --exec <python>
+  -m archvow --root <project as a Linux path> ...` (no shell); a Windows path among the arguments
+  becomes its Linux path (`C:\work\out.xml` -> `/mnt/c/work/out.xml`); `WSLENV` hands NO_COLOR,
+  PYTHONIOENCODING and ARCHVOW_TEMPLATES to WSL. A project opened from `\\wsl.localhost\...` works too.
+- "Archvow could not start" is in the project's language (it was French only).
+- Tests: `WslRegression` (the paths, the commands, the order, the first that answers, a stand-in wsl.exe
+  run); 32 headless regressions pass. Not run on Windows here: try it in PyCharm (Settings > Tools >
+  Archvow > Test).
+
 ## 0.11.1 - 2026-10-27
 
 - **The Overview architecture table keeps Component, State and Pending in view** in a narrow tool

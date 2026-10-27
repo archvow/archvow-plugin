@@ -89,16 +89,106 @@ final class ArchvowCli {
         });
     }
 
-    private static String describeFailure(Exception ex) {
+    private String describeFailure(Exception ex) {
+        if (ex instanceof NotFound) return ex.getMessage();
         if (ex instanceof IOException) {
-            return "Impossible de démarrer Archvow : " + ex.getMessage()
-                + "\nDans Settings > Tools > Archvow, indique uniquement l'exécutable Python "
-                + "(par exemple /chemin/venv/bin/python3), ou 'python3 -m archvow'."
-                + "\nSur macOS, utilise de préférence le chemin absolu obtenu avec : "
-                + "python3 -c \"import sys; print(sys.executable)\"";
+            return ArchvowI18n.text(project, "Archvow could not start: " + ex.getMessage()
+                    + "\nIn Settings > Tools > Archvow, give only the Python executable (e.g. /path/venv/bin/python3, "
+                    + "or \\\\wsl.localhost\\Ubuntu\\home\\you\\.venv\\bin\\python3 for a Python in WSL), or 'python3 -m archvow'.",
+                "Impossible de démarrer Archvow : " + ex.getMessage()
+                    + "\nDans Settings > Tools > Archvow, indique uniquement l'exécutable Python (par exemple /chemin/venv/bin/python3, "
+                    + "ou \\\\wsl.localhost\\Ubuntu\\home\\toi\\.venv\\bin\\python3 pour un Python dans WSL), ou 'python3 -m archvow'.");
         }
-        return ex.getClass().getSimpleName() + ": " + ex.getMessage()
-            + "\nVérifie Settings > Tools > Archvow et ton environnement Python.";
+        return ex.getClass().getSimpleName() + ": " + ex.getMessage() + ArchvowI18n.text(project,
+            "\nCheck Settings > Tools > Archvow and your Python environment.",
+            "\nVérifie Settings > Tools > Archvow et ton environnement Python.");
+    }
+
+    /** No candidate answered --version: what was tried, and what each said. */
+    static final class NotFound extends IOException {
+        NotFound(String message) { super(message); }
+    }
+
+    /** The candidate that answered --version, per project, while the settings and the IDE interpreter stay the same. */
+    private static final java.util.Map<Project, String[]> CHOSEN = new java.util.WeakHashMap<>();
+
+    /**
+     * Where archvow runs from (ArchvowProcessCommand.candidates): the first candidate that answers
+     * {@code --version}, remembered until the settings or the IDE's interpreter change.
+     */
+    private ArchvowProcessCommand.Candidate choose(ArchvowSettings.Values opts, String root) throws IOException {
+        List<ArchvowProcessCommand.Candidate> candidates = ArchvowProcessCommand.candidates(opts.useProjectInterpreter,
+            opts.useProjectInterpreter ? ArchvowInterpreter.projectPython(project) : "", opts.executable, opts.python);
+        String signature = candidates.toString();
+        synchronized (CHOSEN) {
+            String[] known = CHOSEN.get(project);
+            if (known != null && known[0].equals(signature))
+                for (ArchvowProcessCommand.Candidate c : candidates) if (c.toString().equals(known[1])) return c;
+        }
+        Probe probe = probe(candidates, root, ArchvowI18n.isFrench(project));
+        if (probe.chosen() == null) throw new NotFound(probe.report());
+        synchronized (CHOSEN) { CHOSEN.put(project, new String[] {signature, probe.chosen().toString()}); }
+        return probe.chosen();
+    }
+
+    /** What trying the candidates gave: the first that answered (or null), and a line per candidate tried. */
+    record Probe(ArchvowProcessCommand.Candidate chosen, String report) {}
+
+    /** Runs {@code --version} with each candidate in turn (10 s each, 60 s through wsl.exe) until one answers. Also used by the settings' Test. */
+    static Probe probe(List<ArchvowProcessCommand.Candidate> candidates, String root, boolean french) {
+        StringBuilder report = new StringBuilder(french ? "Archvow introuvable. Essayé, dans l'ordre :\n"
+            : "Archvow not found. Tried, in order:\n");
+        for (ArchvowProcessCommand.Candidate c : candidates) {
+            String where = switch (c.source()) {
+                case "ide" -> french ? "interpréteur Python de l'IDE" : "the IDE's Python interpreter";
+                case "python" -> french ? "Python des réglages Archvow" : "the Python of Archvow settings";
+                default -> french ? "exécutable des réglages Archvow" : "the executable of Archvow settings";
+            };
+            String said;
+            try {
+                List<String> argv = root == null
+                    ? ArchvowProcessCommand.buildWithoutProject(c.executable(), c.python(), List.of("--version"))
+                    : ArchvowProcessCommand.build(c.executable(), c.python(), root, List.of("--version"));
+                ProcessBuilder builder = new ProcessBuilder(argv).redirectErrorStream(true);
+                prepare(builder, argv, root);
+                Process process = builder.start();
+                // WSL may have to start its machine first: a longer wait through wsl.exe
+                int seconds = ArchvowWsl.isWsl(argv) ? 60 : 10;
+                if (!process.waitFor(seconds, TimeUnit.SECONDS)) {
+                    process.destroyForcibly();
+                    said = (french ? "pas de réponse en " : "no answer within ") + seconds + " s";
+                } else {
+                    String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).strip();
+                    if (process.exitValue() == 0 && out.toLowerCase(java.util.Locale.ROOT).contains("archvow"))
+                        return new Probe(c, report.toString());
+                    String last = out.isEmpty() ? "" : out.lines().reduce((a, b) -> b).orElse("");
+                    said = "exit " + process.exitValue() + (last.isBlank() ? "" : ": " + last);
+                }
+            } catch (IOException | IllegalArgumentException e) {
+                said = e.getMessage();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                said = "interrupted";
+            }
+            report.append("- ").append(where).append(" (").append(c.program()).append("): ").append(said).append('\n');
+        }
+        report.append(french
+            ? "Installe archvow dans l'interpréteur Python du projet, ou indique un Python qui l'a dans Settings > Tools > Archvow."
+            : "Install archvow in the project's Python interpreter, or give a Python that has it in Settings > Tools > Archvow.");
+        return new Probe(null, report.toString());
+    }
+
+    /** The folder and environment of an archvow process; through wsl.exe, a Windows folder and WSLENV. */
+    static void prepare(ProcessBuilder builder, List<String> argv, String root) {
+        builder.environment().put("NO_COLOR", "1");
+        builder.environment().put("PYTHONIOENCODING", "utf-8");
+        if (ArchvowWsl.isWsl(argv)) {
+            // the Linux folder is given by --cd; wsl.exe itself starts from the user's home (never a \\wsl$ folder)
+            builder.directory(new File(System.getProperty("user.home", ".")));
+            builder.environment().put("WSLENV", ArchvowWsl.wslenv(builder.environment().get("WSLENV")));
+        } else if (root != null) {
+            builder.directory(new File(root));
+        }
     }
 
     private Result invoke(List<String> arguments, String stdin, ProgressIndicator indicator,
@@ -113,19 +203,20 @@ final class ArchvowCli {
             workingDirectory = new File(System.getProperty("java.io.tmpdir", "."));
             if (!workingDirectory.isDirectory())
                 workingDirectory = new File(System.getProperty("user.home", "."));
-            argv = ArchvowProcessCommand.buildWithoutProject(opts.executable, opts.python, arguments);
+            ArchvowProcessCommand.Candidate chosen = choose(opts, null);
+            argv = ArchvowProcessCommand.buildWithoutProject(chosen.executable(), chosen.python(), arguments);
         } else {
             String root = project.getBasePath();
             if (root == null) throw new IllegalStateException("Aucun dossier racine pour ce projet IntelliJ");
             workingDirectory = new File(root);
             if (!workingDirectory.isDirectory())
                 throw new IllegalStateException("Le dossier du projet n'existe pas : " + root);
-            argv = ArchvowProcessCommand.build(opts.executable, opts.python, root, arguments);
+            ArchvowProcessCommand.Candidate chosen = choose(opts, root);
+            argv = ArchvowProcessCommand.build(chosen.executable(), chosen.python(), root, arguments);
         }
         // stdout and stderr apart: a warning on stderr must never be read as part of the JSON on stdout.
         ProcessBuilder builder = new ProcessBuilder(argv).directory(workingDirectory);
-        builder.environment().put("NO_COLOR", "1");
-        builder.environment().put("PYTHONIOENCODING", "utf-8");
+        prepare(builder, argv, workingDirectory.getPath());
         if (globalCatalog && templateDirectory != null && !templateDirectory.isBlank()) {
             try {
                 Path pack = Path.of(templateDirectory).toAbsolutePath().normalize();

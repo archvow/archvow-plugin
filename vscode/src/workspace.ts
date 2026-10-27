@@ -11,7 +11,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { ArchvowCli, CliResult } from './cli';
+import { ArchvowCli, CliResult, CliSettings } from './cli';
 import { renderResult } from './formatter';
 import { Command, findCommand, inline, isMutating, needsFullCard, planForm, prefill, preview, promptCommand } from './grammar';
 import { isFrench, tr } from './i18n';
@@ -80,14 +80,8 @@ export class ArchvowProject {
     this.commands = (JSON.parse(fs.readFileSync(path.join(this.resources, 'commands.json'), 'utf8')) as { commands: Command[] }).commands;
     this.bundledCatalog = JSON.parse(fs.readFileSync(path.join(this.resources, 'catalog.json'), 'utf8')) as Json;
     this.known = knownVersion(fs.readFileSync(path.join(this.resources, 'version.txt'), 'utf8'));
-    this.cli = new ArchvowCli(root, () => {
-      const config = vscode.workspace.getConfiguration('archvow');
-      return {
-        executable: config.get<string>('executable', 'archvow'),
-        python: config.get<string>('python', ''),
-        timeoutSeconds: config.get<number>('timeoutSeconds', 180),
-      };
-    }, (line) => log.info(line));
+    this.cli = new ArchvowCli(root, () => this.cliSettings(), (line) => log.info(line));
+    void this.readInterpreter();
     this.problems = vscode.languages.createDiagnosticCollection('archvow');
     this.state = this.emptyState();
     const vows = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(root, '.archvow/**/*.vow'));
@@ -104,6 +98,46 @@ export class ArchvowProject {
         }
       }));
   }
+
+  /** VS Code's Python interpreter for the project (the Python extension's), looked at first; '' without one. */
+  private interpreter = '';
+
+  private cliSettings(): CliSettings {
+    const config = vscode.workspace.getConfiguration('archvow');
+    return {
+      executable: config.get<string>('executable', 'archvow'),
+      python: config.get<string>('python', ''),
+      timeoutSeconds: config.get<number>('timeoutSeconds', 180),
+      interpreter: this.interpreter,
+      useProjectInterpreter: config.get<boolean>('useProjectInterpreter', true),
+    };
+  }
+
+  /** Asks the Python extension (ms-python.python), when installed, which interpreter the project uses. */
+  private async readInterpreter(): Promise<void> {
+    try {
+      const extension = vscode.extensions.getExtension('ms-python.python');
+      if (extension === undefined) return;
+      const api = (extension.isActive ? extension.exports : await extension.activate()) as {
+        environments?: { getActiveEnvironmentPath?: (resource?: vscode.Uri) => { path?: string } | undefined;
+          onDidChangeActiveEnvironmentPath?: vscode.Event<unknown> };
+        settings?: { getExecutionDetails?: (resource?: vscode.Uri) => { execCommand?: string[] } | undefined };
+      } | undefined;
+      const folder = vscode.Uri.file(this.root);
+      const found = api?.environments?.getActiveEnvironmentPath?.(folder)?.path
+        ?? api?.settings?.getExecutionDetails?.(folder)?.execCommand?.[0] ?? '';
+      // "python" alone is the extension's default when nothing was chosen: not an interpreter of the project
+      this.interpreter = found && found !== 'python' && found !== 'python3' ? found : '';
+      if (!this.interpreterWatched && api?.environments?.onDidChangeActiveEnvironmentPath) {
+        this.interpreterWatched = true;
+        this.context.subscriptions.push(api.environments.onDidChangeActiveEnvironmentPath(() => void this.readInterpreter()));
+      }
+    } catch (error) {
+      this.log.info(`Python extension: no interpreter (${String(error)})`);
+    }
+  }
+
+  private interpreterWatched = false;
 
   private languageMode(): string {
     return vscode.workspace.getConfiguration('archvow').get<string>('language', 'auto');
@@ -139,6 +173,7 @@ export class ArchvowProject {
     try {
       this.state.fr = fr;
       this.state.readiness = readiness(this.root);
+      await this.readInterpreter();
       void this.readBranch();
       if (this.state.readiness !== 'READY') {
         Object.assign(this.state, { spec: null, check: null, next: null, snapshots: {}, checkFailure: '', welcomeError: '' });
@@ -802,10 +837,8 @@ export class ArchvowProject {
     post({ type: 'catalog', data: this.bundledCatalog, source: tr(fr, `Built-in archvow ${this.known} templates · Checking installed catalog…`,
       `Modèles intégrés archvow ${this.known} · Vérification du catalogue installé…`) });
     // outside any project, so a project's own templates do not shadow the installed ones
-    const neutral = new ArchvowCli(os.tmpdir(), () => {
-      const config = vscode.workspace.getConfiguration('archvow');
-      return { executable: config.get<string>('executable', 'archvow'), python: config.get<string>('python', ''), timeoutSeconds: config.get<number>('timeoutSeconds', 180) };
-    }, (line) => this.log.info(line), scope ? { ARCHVOW_TEMPLATES: [process.env.ARCHVOW_TEMPLATES, path.dirname(scope)].filter((x) => x).join(path.delimiter) } : {});
+    const neutral = new ArchvowCli(os.tmpdir(), () => this.cliSettings(), (line) => this.log.info(line),
+      scope ? { ARCHVOW_TEMPLATES: [process.env.ARCHVOW_TEMPLATES, path.dirname(scope)].filter((x) => x).join(path.delimiter) } : {}, false);
     const result = await neutral.run(['catalog', '--json']);
     const data = parse(result.stdout);
     if (result.exitCode === 0 && data !== null && objects(data, 'templates').length > 0) {
