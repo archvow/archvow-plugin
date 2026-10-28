@@ -55,7 +55,7 @@ that Gradle rewrites in `META-INF/plugin.xml`.
 ## VS Code: `npm test`
 
 `npm test` compiles (`scripts/sync-contract.js` first copies `contract/cli` into `resources/archvow`),
-then runs `node --test` on `out/test/*.test.js`. No VS Code: `vscode` is not imported by the modules
+then runs `node --test` on every `out/test/*.test.js`, listed by `vscode/scripts/test.js` (Node 20 does not expand a glob given to `node --test`; `node scripts/test.js out/test/live.test.js` runs one file). No VS Code: `vscode` is not imported by the modules
 tested, the page is read as text.
 
 | File | What it checks |

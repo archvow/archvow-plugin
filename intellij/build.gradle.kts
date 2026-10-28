@@ -55,12 +55,17 @@ tasks.named<ProcessResources>("processResources") {
 // The tests need no IntelliJ running and no test framework: each is a main() that throws on the first
 // failure. The shared samples (../contract/vows) are archvow's own vows.
 val contract = layout.projectDirectory.dir("../contract")
+// What they run with: the compiled classes and, after them, the IntelliJ Platform's jars (Gson, the
+// openapi classes the workspace's plain classes name). The IntelliJ Platform Gradle plugin puts those on
+// the compile classpath only, so the test runtime classpath alone fails on the first one
+// (NoClassDefFoundError: com/google/gson/JsonElement).
+val testClasspath = sourceSets["test"].runtimeClasspath + sourceSets["main"].compileClasspath
 
 // The plain-Java reader of .vow files (org.archvow.vow.core) on the shared sample vows.
 val coreTest by tasks.registering(JavaExec::class) {
     group = "verification"
     description = "Tests the .vow reader on the shared sample vows"
-    classpath = sourceSets["test"].runtimeClasspath
+    classpath = testClasspath
     mainClass.set("org.archvow.vow.core.CoreTests")
     args(contract.dir("vows").asFile.path)
 }
@@ -69,7 +74,7 @@ val coreTest by tasks.registering(JavaExec::class) {
 val workspaceTest by tasks.registering(JavaExec::class) {
     group = "verification"
     description = "Tests the workspace's plain classes, headless"
-    classpath = sourceSets["test"].runtimeClasspath
+    classpath = testClasspath
     mainClass.set("org.archvow.idea.WorkspaceTests")
     jvmArgs("-Djava.awt.headless=true")
 }
@@ -79,7 +84,7 @@ val workspaceTest by tasks.registering(JavaExec::class) {
 val contractDump by tasks.registering(JavaExec::class) {
     group = "verification"
     description = "Writes the .vow reader's contract for the VS Code extension"
-    classpath = sourceSets["test"].runtimeClasspath
+    classpath = testClasspath
     mainClass.set("org.archvow.vow.core.DumpContract")
     args(contract.dir("vows").asFile.path, contract.file("vow-reader/expected.json").asFile.path)
 }

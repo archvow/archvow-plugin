@@ -56,7 +56,7 @@ obligatoires.
 ## VS Code : `npm test`
 
 `npm test` compile (`scripts/sync-contract.js` copie d'abord `contract/cli` dans `resources/archvow`),
-puis lance `node --test` sur `out/test/*.test.js`. Pas de VS Code : `vscode` n'est pas importé par les
+puis lance `node --test` sur chaque `out/test/*.test.js`, listé par `vscode/scripts/test.js` (Node 20 ne développe pas un glob donné à `node --test` ; `node scripts/test.js out/test/live.test.js` lance un seul fichier). Pas de VS Code : `vscode` n'est pas importé par les
 modules testés, la page est lue comme du texte.
 
 | Fichier | Ce qu'il vérifie |
