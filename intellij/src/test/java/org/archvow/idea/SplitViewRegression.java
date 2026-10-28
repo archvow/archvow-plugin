@@ -159,8 +159,12 @@ public final class SplitViewRegression {
         check(title.getText().equals("3 · Header row missing: infer the columns or fail?"), title.getText());
         check(status.getText().startsWith("● Open · AI proposal: "), status.getText());
         check(status.getForeground().getRed() > status.getForeground().getBlue(), "open in amber");
+        // a card wide enough shows the whole answer; how wide depends on the font of the machine (Ubuntu's
+        // DejaVu Sans Bold makes this one 451 px, macOS's and Windows' about 360): measured, not assumed
+        String decided = "Fail with a clear error: a missing input is an operations problem";
+        list.setSize(Math.max(420, status.getFontMetrics(status.getFont()).stringWidth(decided) + 40), 300);
         renderer.getListCellRendererComponent(list, answered, 0, false, false);
-        check(status.getText().equals("Fail with a clear error: a missing input is an operations problem"), status.getText());
+        check(status.getText().equals(decided), status.getText());
         check(status.getForeground().getGreen() > status.getForeground().getRed(), "answered in green");
         check(by.getText().equals("architect@example.com · 2026-10-08"), by.getText());
         list.setSize(160, 300);
