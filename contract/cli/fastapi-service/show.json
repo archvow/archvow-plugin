@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "orders_api",
-      "template": "fastapi-service@1.16.0",
+      "template": "fastapi-service@1.17.0",
       "package": "orders_api",
       "path": "src/orders_api",
       "components": [
@@ -499,6 +499,7 @@
     "sonar": "no",
     "auto_approve": "yes",
     "sandbox": "yes",
+    "briefs": "briefs",
     "git_hooks": "githooks",
     "branch_naming": "gitflow",
     "pip_index_url": "",

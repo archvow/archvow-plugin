@@ -1,4 +1,4 @@
-// The workspace's rules, the same as the IntelliJ workspace's, on archvow 1.16's real outputs
+// The workspace's rules, the same as the IntelliJ workspace's, on archvow 1.17's real outputs
 // (../contract/cli): forms into command lines, prefill, the pending and resolved work, the counts on each
 // view, the formatter, where the project stands.
 import * as assert from 'node:assert/strict';
@@ -23,8 +23,8 @@ const EXAMPLES = ['fastapi-service', 'pyspark-pipeline', 'python-app'];
 const snapshots = (example: string): Record<string, Json> => Object.fromEntries(
   fs.readdirSync(path.join(CLI, example, 'show')).map((f) => [f.replace(/\.json$/, ''), read(example, 'show', f)]));
 
-test('the grammar is archvow 1.16\'s, with every command the workspace offers', () => {
-  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /1\.16\./);
+test('the grammar is archvow 1.17\'s, with every command the workspace offers', () => {
+  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /1\.17\./);
   for (const name of ['init', 'check', 'next', 'show', 'decision make', 'decision propose', 'decision accept', 'question add',
     'hazard add', 'hazard dismiss', 'invariant add', 'invariant remove', 'assumption accept', 'rule add', 'column set', 'prompt', 'doctor', 'audit', 'diff', 'review']) {
     command(name);

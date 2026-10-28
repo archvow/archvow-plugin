@@ -29,7 +29,11 @@ next to them. Everything it shows comes from `archvow show <component> --json` (
 ```
 
 **The header**: the name and the number of open items (the same as the sidebar), then *type · layer ·
-module · ticket · state*, the description, *Uses · Used by* (each name opens that component: what a
+module · ticket · state*, **one progress bar** (decisions made, safety answered, tasks done, examples
+tested - each only when there is something to count -, green when complete, amber otherwise, the counts
+in the tooltip: `ArchvowProgress`, `progress()` and `progressBar()`), the description, **Drawn from**
+the brief it comes from (show `source`; a link that opens the brief at its heading: `ArchvowBriefs.drawnFromHtml`,
+`drawnFrom()`), *Uses · Used by* (each name opens that component: what a
 change may break, `ArchvowLinks`, `links()`) and the business examples (✓ tested and unchanged, ✖ with
 the reason, ARCH055/ARCH056). IntelliJ: `buildComponentHtml` in the `componentDetails` panel;
 VS Code: `componentDetail()`, `openBadge()`, `meta()`.

@@ -176,3 +176,33 @@ test('the editor tab goes back to the component a command was opened from (0.11.
   assert.equal(page.includes("btn('↻'"), false);
   assert.equal(page.match(/iconBtn\(REFRESH, 'refresh'/g)?.length, 2);
 });
+
+test('a component shows its progress in one bar (show --json), as IntelliJ\'s ArchvowProgress does', () => {
+  const source = page.match(/function progress\(view\) \{[\s\S]*?\n  \}/);
+  const bar = page.match(/function progressBar\(view\) \{[\s\S]*?\n  \}/);
+  assert.ok(source && bar, 'progress() and progressBar() are in the page');
+  const esc = (x: string) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const list = (o: Record<string, unknown>, k: string) => (Array.isArray(o[k]) ? (o[k] as unknown[]) : []);
+  const [progress, progressBar] = new Function('t', 'esc', 'list', `${source[0]}; ${bar[0]}; return [progress, progressBar];`)(
+    (en: string) => en, esc, list);
+  const cli = path.resolve(ROOT, '..', 'contract', 'cli', 'pyspark-pipeline', 'show');
+  const view = JSON.parse(fs.readFileSync(path.join(cli, 'clean_orders.json'), 'utf8'));
+  const parts = progress(view).map((p: { key: string; done: number; total: number; complete: boolean }) => [p.key, p.done, p.total, p.complete]);
+  assert.deepEqual(parts, [
+    ['decisions', 9, 9, true],
+    ['safety', 1, 5, false],
+    ['tasks', 0, 2, false],
+  ]);
+  const html = progressBar(view);
+  assert.match(html, /title="Decisions made: 9\/9 · Safety answered: 1\/5 · Tasks done: 0\/2"/);
+  assert.match(html, /progress-part complete" data-part="decisions"[\s\S]*progress-fill p100/);
+  assert.match(html, /progress-part partial" data-part="safety"[\s\S]*?progress-fill p20"/);
+  // examples count when the component has some; a part with nothing to count is left out
+  const examples = progress({ decisions: [{ answer: null }, { answer: 'yes' }], safety: [], examples: [
+    { name: 'a', tested: true, unchanged: true }, { name: 'b', tested: true, unchanged: false }, { name: 'c', tested: false }] });
+  assert.deepEqual(examples.map((p: { key: string; done: number; total: number }) => [p.key, p.done, p.total]), [['decisions', 1, 2], ['examples', 1, 3]]);
+  assert.match(progressBar({ decisions: [{ answer: null }, { answer: 'a' }] }), /p50/);
+  assert.match(progressBar({ tasks: Array.from({ length: 20 }, (_, i) => ({ done: i > 0 })) }), /partial[\s\S]*p90/);
+  assert.equal(progressBar({}), '');
+  assert.match(page, /\$\{progressBar\(view\)\}/);
+});

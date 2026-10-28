@@ -78,9 +78,29 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 - La première réponse peut attendre que WSL démarre : la sonde attend 60 s par `wsl.exe` (10 s sinon).
 - Avec VS Code ouvert *dans* WSL (Remote - WSL), l'extension tourne côté Linux : rien de tout cela ne sert.
 
+## Installer archvow (0.12.0)
+
+Quand archvow ne démarre pas, ou répond une autre version majeure.mineure que celle du contrat, les
+plugins proposent **Installer archvow 1.17** ; rien n'est installé au démarrage ni sans un clic.
+`ArchvowInstall` (IntelliJ) et `vscode/src/install.ts` (VS Code) portent les mêmes règles :
+
+| Question | Réponse |
+|---|---|
+| Dans quel Python ? | le `.venv` du projet, puis `venv` (`venvPythons()`), puis l'interpréteur de l'IDE, puis le Python des réglages ; jamais un `python` nu choisi à la place de la personne (`installPython()`, `ArchvowInstall.python`) : pas de Python trouvé, la carte dit **Configurer Python** |
+| Quelle version ? | `archvow==1.17.*` (`requirement()`) : archvow ne garde pas de compatibilité ascendante |
+| D'où ? | le réglage *Installer archvow depuis* / `archvow.installFrom` (`installSource()`) : vide = la configuration de pip (pip.conf, `PIP_INDEX_URL`), une URL http(s) = `--index-url`, un fichier `.whl`, ou un dossier de wheels = `--no-index --find-links` (`pipArgs()`) |
+| Comment ? | la commande est affichée (`displayCommand()`), puis lancée seulement après **Confirmer et exécuter** : sans shell, dans le dossier du projet, 10 minutes au plus, `PIP_DISABLE_PIP_VERSION_CHECK=1` ; un Python dans WSL passe par `wsl.exe`, comme archvow (`installCommand()`, `ArchvowInstall.command`) |
+| Ensuite ? | réussite : les réglages gardent ce Python, la version est sondée à nouveau, l'espace de travail se recharge ; échec : la sortie de pip, rien n'est enregistré |
+
+VS Code : la carte est `installCard()` sur la page d'accueil (et dans la Vue d'ensemble pour une autre
+version) ; l'hôte garde l'offre (`offerInstall`), demande (`askInstall`) et lance pip sur le jeton
+confirmé seulement (`runInstall`). IntelliJ : le bouton **Installer archvow 1.17** de la carte d'accueil
+et l'action de la notification de version, `askInstall` / `runInstall` dans `ArchvowPanel`, la
+confirmation un `ArchvowConfirmPanel`.
+
 ## Les commandes réservées aux personnes
 
-archvow 1.16 refuse ses commandes de décision (décisions, dangers, règles...) quand un agent IA est
+archvow 1.17 refuse ses commandes de décision (décisions, dangers, règles...) quand un agent IA est
 parmi les processus parents (ARCH051). Les commandes des plugins viennent de l'IDE, pas d'un agent :
 elles passent. Si archvow en arrête une, le plugin affiche son message tel quel.
 
@@ -88,4 +108,6 @@ elles passent. Si archvow en arrête une, le plugin affiche son message tel quel
 
 `LaunchCommandRegression` lance un faux module `archvow` avec un vrai Python ; `WslRegression` vérifie
 les chemins, l'ordre, la sonde et un `wsl.exe` de substitution ; `vscode/src/test/cli.test.ts` fait de
-même pour VS Code avec un faux `archvow` écrit en Node.
+même pour VS Code avec un faux `archvow` écrit en Node. `InstallRegression` et
+`vscode/src/test/install.test.ts` vérifient l'installation : le Python choisi, la ligne pip pour chaque
+source, WSL, et que pip ne se lance que depuis une confirmation.

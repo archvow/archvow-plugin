@@ -1,0 +1,44 @@
+{
+  "component": "logging_setup",
+  "type": "foundation",
+  "layer": "p0_common",
+  "known_columns": [],
+  "description": "Configures logging once, for the entry points (level from the config, one line per event, never a secret or personal data).",
+  "uses": [],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    }
+  ],
+  "examples": [],
+  "status": "implemented",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?",
+      "answer": "stderr, one line per event: time, level, message",
+      "suggested": "stderr, one line per event: time, level, message",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [],
+  "assumptions": [],
+  "tasks": []
+}

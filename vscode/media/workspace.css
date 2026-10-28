@@ -218,3 +218,17 @@ body.editor .detail-only > .card.result .card-body { max-height: calc(100vh - 17
 svg.glyph { width: 15px; height: 15px; display: block; }
 button.icon { display: inline-flex; align-items: center; justify-content: center; padding: 3px 7px; }
 button.back { white-space: nowrap; flex-shrink: 0; }
+
+/* install archvow (0.12.0) */
+.card.install { border-left: 3px solid var(--vscode-editorWarning-foreground); margin: 8px 0; }
+.card.install .command { font-family: var(--vscode-editor-font-family); white-space: pre-wrap; word-break: break-all; }
+
+/* the component's progress (0.12.0): decisions made, safety answered, tasks done, examples tested */
+.progress { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 8px; }
+.progress-part { flex: 1 1 120px; min-width: 110px; }
+.progress-label { opacity: .9; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.progress-track { height: 6px; border-radius: 3px; background: var(--vscode-editorWidget-border, rgba(128, 128, 128, .3)); overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; }
+.progress-part.complete .progress-fill { background: var(--vscode-charts-green, #388a34); }
+.progress-part.partial .progress-fill { background: var(--vscode-charts-orange, #d18616); }
+.progress-fill.p0 { width: 0%; } .progress-fill.p10 { width: 10%; } .progress-fill.p20 { width: 20%; } .progress-fill.p30 { width: 30%; } .progress-fill.p40 { width: 40%; } .progress-fill.p50 { width: 50%; } .progress-fill.p60 { width: 60%; } .progress-fill.p70 { width: 70%; } .progress-fill.p80 { width: 80%; } .progress-fill.p90 { width: 90%; } .progress-fill.p100 { width: 100%; }

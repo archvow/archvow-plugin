@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.12.0 - 2026-10-28
+
+Built on archvow 1.17 (the contract regenerated from it).
+
+- **Install archvow, guided**: when archvow does not start (the welcome page) or is another major.minor
+  than 1.17 (Overview, and the version warning's **Install archvow 1.17**), the workspace shows the pip
+  command and runs it only after **Confirm and run** - never at startup, never on its own. Into the
+  project's `.venv` (or `venv`) first, then the project's interpreter, then `archvow.python`; a bare
+  `python` is never chosen for you (no Python found: **Configure Python**). `archvow==1.17.*`, as archvow
+  keeps no backward compatibility. From pip's own configuration (pip.conf, `PIP_INDEX_URL`) or the new
+  setting **`archvow.installFrom`**: your company's index URL (`--index-url`), a `.whl` file, or a folder
+  of wheels (`--no-index --find-links`, the lab's `pypi/` for instance). No shell, in the project folder,
+  10 minutes at most; a Python in WSL through `wsl.exe` as archvow itself. On success `archvow.python` is
+  set to that Python and the workspace reloads; on failure pip's output is shown, nothing is saved.
+- **A progress bar under a component's name**: decisions made, safety answered, tasks done, examples
+  tested (each only when there is something to count), green when complete, amber otherwise, the counts
+  in the tooltip. Read from `show <component> --json`, as IntelliJ's.
+- **The brief folders of archvow 1.17** (init answer `briefs`, e.g. `briefs,specs` for Spec Kit's
+  `specs/`): the `--from` field of component add / edit, question add, decision add and rule add offers
+  the files of those folders and their headings as `file#section` (archvow's own anchors: lower case, no
+  accents, repeats `-2`, `-3`); free text stays allowed. When archvow refuses a file outside them, the
+  result shows **Add this folder (architect)**: the `init --force` form opens prefilled with
+  `briefs=<current>,<new>`, to be checked and confirmed. A component drawn from a brief shows **Drawn
+  from: specs/001-orders/plan.md#paying-an-invoice**, a link that opens the brief at that heading.
+  ARCH039 in Other / Project: **Accept (reviewed)** (`archvow brief accept`, confirmed) and **Review the
+  brief**; an item drawn from a folder no longer declared gets **Add this folder (architect)**. Overview
+  lists the folders.
+- **Contract**: recorded from archvow 1.17.0, with a `briefs` scenario (`contract/cli/briefs/`: python-app
+  with `specs/` declared, `mark_paid` drawn from it, ARCH039 after a change, the refusal before).
+- Tests: 68 (`install.test.ts`, `briefs.test.ts`, the progress bar in `layout.test.ts`). Checked in
+  Chromium on the briefs recording: the progress bar, *Drawn from* opening the brief, the refusal ->
+  **Add this folder** -> the init form prefilled, the install card on the welcome page.
+
 ## 0.11.4 - 2026-10-27
 
 - **A wiki for the plugins' maintainers** (`wiki/` at the repository's root, French, English in

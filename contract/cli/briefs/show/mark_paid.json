@@ -1,0 +1,268 @@
+{
+  "component": "mark_paid",
+  "type": "service",
+  "layer": "p3_services",
+  "known_columns": [
+    {
+      "component": "invoice_model",
+      "columns": [
+        "amount",
+        "customer",
+        "number",
+        "status"
+      ]
+    }
+  ],
+  "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
+  "source": {
+    "file": "specs/001-orders/plan.md",
+    "section": "paying-an-invoice",
+    "hash": "28a31a2da9d0"
+  },
+  "uses": [
+    "invoice_model",
+    "invoice_not_found_error",
+    "invoices_repository"
+  ],
+  "used_by": [
+    "invoices_cli"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_a_sent_invoice_becomes_paid_and_a_draft_is_refused"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_an_unknown_invoice_is_not_found"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+      ]
+    },
+    {
+      "item": "decision 4",
+      "kind": "decision",
+      "key": "4",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+      ]
+    },
+    {
+      "item": "mark_paid.INV1",
+      "kind": "invariant",
+      "key": "MARK_PAID.INV1",
+      "tests": [
+        "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+      ]
+    }
+  ],
+  "examples": [],
+  "status": "verified",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
+      "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
+      "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
+      "answer": "InvoiceNotFoundError",
+      "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
+      "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
+      "suggested": "The same result, no duplicate effect",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
+      "answer": "Only one change, one save: nothing to undo",
+      "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {
+      "customer": "personal"
+    },
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [
+    {
+      "key": "P1",
+      "set": "P",
+      "title": "Personal data",
+      "id": "purpose",
+      "rule": "GDPR002",
+      "question": "Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send invoices to customers, for the finance team?",
+      "answer": "To record which customers paid their invoices, for the finance team",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:21:01.953151+00:00"
+    },
+    {
+      "key": "P2",
+      "set": "P",
+      "title": "Personal data",
+      "id": "legal_basis",
+      "rule": "GDPR002",
+      "question": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
+      "answer": "Contract: the customer's purchase",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21T16:21:02.230748+00:00"
+    }
+  ],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "Something missing (an input, a file, a setting, a dependency down): what must never happen?",
+      "status": "answered",
+      "dismissed": "InvoiceNotFoundError (decision 2)"
+    },
+    {
+      "number": 2,
+      "guide_word": "repeated",
+      "question": "Done twice (run twice, retried, the same input twice): what must never happen?",
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "mark_paid.H1",
+          "severity": "high",
+          "description": "Paying twice changes the invoice twice",
+          "suggested": false,
+          "prevented_by": [
+            {
+              "id": "mark_paid.INV1",
+              "statement": "marking an invoice paid twice gives the same invoice as once",
+              "verify": "example_test",
+              "tested": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "guide_word": "partial",
+      "question": "Half done (a file half written, a change saved here and not there, a crash in the middle): what must never happen?",
+      "status": "answered",
+      "dismissed": "One save, written completely or not at all (invoices_repository.INV1)"
+    },
+    {
+      "number": 4,
+      "guide_word": "concurrent",
+      "question": "Two runs at the same time (two processes, two users): what must never happen?",
+      "status": "answered",
+      "dismissed": "Two runs write the same paid invoice (decision 3)"
+    },
+    {
+      "number": 5,
+      "guide_word": "exposed",
+      "question": "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?",
+      "status": "answered",
+      "dismissed": "Nothing is logged or printed here"
+    }
+  ],
+  "assumptions": [],
+  "tasks": [
+    {
+      "task": "T1",
+      "core": true,
+      "done": true,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "1",
+          "text": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
+          "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "2",
+          "text": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
+          "answer": "InvoiceNotFoundError",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "3",
+          "text": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
+          "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "4",
+          "text": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
+          "answer": "Only one change, one save: nothing to undo",
+          "done": true
+        },
+        {
+          "kind": "invariant",
+          "key": "mark_paid.INV1",
+          "text": "marking an invoice paid twice gives the same invoice as once",
+          "answer": null,
+          "done": true
+        }
+      ],
+      "summary": "the file and its public API, decisions 1-4, mark_paid.INV1"
+    },
+    {
+      "task": "T2",
+      "core": false,
+      "done": true,
+      "items": [
+        {
+          "kind": "question",
+          "key": "P1",
+          "text": "Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send invoices to customers, for the finance team?",
+          "answer": "To record which customers paid their invoices, for the finance team",
+          "done": true
+        },
+        {
+          "kind": "question",
+          "key": "P2",
+          "text": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
+          "answer": "Contract: the customer's purchase",
+          "done": true
+        }
+      ],
+      "summary": "decisions P1, P2"
+    }
+  ]
+}

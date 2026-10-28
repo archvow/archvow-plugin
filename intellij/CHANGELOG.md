@@ -2,6 +2,32 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.12.0 - 2026-10-28
+
+Built on archvow 1.17 (the contract regenerated from it). The same functions as the VS Code extension's
+0.12.0.
+
+- **Install archvow, guided** (`ArchvowInstall`): when archvow does not start, or is another major.minor
+  than 1.17, the welcome card shows **Install archvow 1.17** with the pip command, and the version
+  notification has the same action; pip runs only after **Confirm and run** - never at startup. Into the
+  project's `.venv` (or `venv`) first, then the IDE's interpreter, then the Python of the settings (the
+  former `python3 -m archvow` form read too); a bare `python` is never chosen for you. `archvow==1.17.*`,
+  from pip's own configuration or the new setting **Install archvow from** (Settings > Tools > Archvow:
+  an index URL, a `.whl` file or a folder of wheels, with Browse...). No shell, in the project folder, 10
+  minutes at most, a Python in WSL through `wsl.exe` (`ArchvowWsl`). On success the settings keep that
+  Python and the workspace reloads; pip's output in a notification either way.
+- **A progress bar under a component's name** (`ArchvowProgress`): decisions made, safety answered, tasks
+  done, examples tested; green when complete, amber otherwise.
+- **The brief folders of archvow 1.17** (`ArchvowBriefs`): the `--from` field is a list of the brief
+  files and their headings (editable: free text stays allowed); **Add this folder (architect)** under a
+  result where archvow refuses a file outside them opens `init --force` prefilled (the *Other answers*
+  field of the init form now takes a prefilled value); **Drawn from** in the component's head opens the
+  brief at its heading; ARCH039: **Accept (reviewed)** and **Review the brief**, or **Add this folder**;
+  Overview lists the folders.
+- Tests: `InstallRegression`, `ProgressRegression`, `BriefsRegression` (registered in `WorkspaceTests`);
+  35 headless regressions pass here (WslRegression and VowWatcherRegression run in `./gradlew check`). The panel's own changes (welcome card, notification action, links) need
+  `./gradlew check buildPlugin` and a look in `runIde`.
+
 ## 0.11.4 - 2026-10-27
 
 - **The branch advice is shown whole in a narrow tool window** ("You are on main: create a feature

@@ -111,6 +111,13 @@ final class ArchvowPanel extends JPanel {
     private final JPanel rootCards = new JPanel(rootLayout);
     private final JEditorPane welcomeText = htmlPane();
     private JButton welcomeInit;
+    /** Install archvow, guided (0.12.0): shown when archvow does not start or is another major.minor. */
+    private JButton welcomeInstall;
+    private final JLabel welcomeInstallCommand = new JLabel();
+    private final ArchvowConfirmPanel welcomeConfirmation = new ArchvowConfirmPanel();
+    /** "missing", "version" or "" (archvow --version said the contract's major.minor). */
+    private String installReason = "";
+    private boolean installing;
     private ArchvowProjectReadiness.Status projectStatus;
     private final JEditorPane componentDetails = htmlPane();
     {
@@ -119,7 +126,17 @@ final class ArchvowPanel extends JPanel {
             if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
             String target = ArchvowLinks.component(event.getDescription());
             if (!target.isBlank()) showComponent(target);
+            String brief = ArchvowBriefs.briefOf(event.getDescription());
+            if (!brief.isBlank()) openBrief(brief);
         });
+        // under a result where archvow names the init --force that adds a briefs folder: open that form, prefilled
+        for (JEditorPane result : List.of(overviewResult, commandResult, componentResult, quickResult)) {
+            result.addHyperlinkListener(event -> {
+                if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
+                ArchvowBriefs.AddFolder add = ArchvowBriefs.initOf(event.getDescription());
+                if (add != null) openCommand("init", add.values());
+            });
+        }
     }
     private final JTextPane decisionDetails = ArchvowDecisionView.create();
     private final JTextPane safetyDetails = ArchvowSafetyView.create();
@@ -184,6 +201,8 @@ final class ArchvowPanel extends JPanel {
     private final JLabel gitBranchLabel = new JLabel();
     /** On main / master / develop: the advice to make a feature branch, on as many lines as it needs (0.11.4). */
     private final ArchvowWrapLabel featureBranchWarning = new ArchvowWrapLabel();
+    /** The briefs folders (init answer `briefs`, archvow 1.17) where --from may draw from (0.12.0). */
+    private final JLabel briefFolders = new JLabel();
     private ArchvowConfirmPanel commandConfirmation;
     private ArchvowConfirmPanel componentConfirmation;
     private JPanel decisionConfirmSlot, questionConfirmSlot, safetyConfirmSlot;
@@ -677,8 +696,18 @@ final class ArchvowPanel extends JPanel {
         actions.add(welcomeInit);
         actions.add(button(ArchvowI18n.text(project,"Configure Python","Configurer Python"), () ->
             ShowSettingsUtil.getInstance().showSettingsDialog(project, ArchvowSettingsConfigurable.class)));
-        actions.add(button(ArchvowI18n.text(project,"Retry","Réessayer"), this::reload));
-        card.add(actions, BorderLayout.SOUTH);
+        actions.add(button(ArchvowI18n.text(project,"Retry","Réessayer"), () -> { versionChecked = false; reload(); }));
+        welcomeInstall = button(ArchvowI18n.text(project, "Install archvow " + ArchvowVersion.KNOWN, "Installer archvow " + ArchvowVersion.KNOWN),
+            this::askInstall);
+        welcomeInstall.setVisible(false);
+        actions.add(welcomeInstall, 0);
+        welcomeInstallCommand.setFont(new Font(Font.MONOSPACED, Font.PLAIN, welcomeInstallCommand.getFont().getSize()));
+        welcomeInstallCommand.setVisible(false);
+        JPanel south = new JPanel(new BorderLayout(0, 8));
+        south.add(welcomeInstallCommand, BorderLayout.NORTH);
+        south.add(actions, BorderLayout.CENTER);
+        south.add(welcomeConfirmation, BorderLayout.SOUTH);
+        card.add(south, BorderLayout.SOUTH);
         GridBagConstraints gc = new GridBagConstraints();
         gc.weightx = 1; gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(15, 15, 15, 15);
@@ -718,13 +747,111 @@ final class ArchvowPanel extends JPanel {
                     "Le projet est initialisé, mais Archvow n'a pas pu le charger.");
             }
         }
+        if ("version".equals(installReason) && status.ready()) {
+            title = ArchvowI18n.text(project, "Another archvow version", "Une autre version d'archvow");
+            detail = ArchvowI18n.text(project, "This plugin is made for archvow " + ArchvowVersion.KNOWN
+                + ": archvow keeps no backward compatibility, another version may print what the plugin misreads.",
+                "Ce plugin est fait pour archvow " + ArchvowVersion.KNOWN
+                + " : archvow ne garde pas de compatibilité ascendante, une autre version peut afficher ce que le plugin lit mal.");
+        }
         String extra = customError == null || customError.isBlank() ? "" :
             "<p style='color:" + (darkTheme() ? "#FF9CAB" : "#A52440") + ";'>" + escape(customError) + "</p>";
         welcomeText.setText(htmlHead() + ArchvowHtml.heading(escape(title), 1.3, "margin:4px 0 8px 0;") + "<p>" + escape(detail)
             + "</p><p><small>" + escape(status.root()) + "</small></p>" + extra + "</body></html>");
         welcomeText.setCaretPosition(0);
         welcomeInit.setEnabled(status.canInitialize());
+        showInstallCard(status);
         rootLayout.show(rootCards, "welcome");
+    }
+
+    /** The Install button and its command, when archvow does not start or is another major.minor. */
+    private void showInstallCard(ArchvowProjectReadiness.Status status) {
+        boolean offered = !installReason.isBlank() && !status.root().isBlank() && new File(status.root()).isDirectory();
+        ArchvowInstall.Offer offer = offered ? installOffer(status.root()) : null;
+        welcomeInstall.setVisible(offered);
+        welcomeInstall.setEnabled(offer != null && !offer.python().isEmpty() && !installing);
+        welcomeInstallCommand.setVisible(offered);
+        if (offer != null) {
+            String text = ArchvowInstall.explain(offer, ArchvowI18n.isFrench(project));
+            welcomeInstallCommand.setText("<html>" + escape(text) + (offer.display().isEmpty() ? "" : "<br><code>" + escape(offer.display()) + "</code>") + "</html>");
+            welcomeInstall.setToolTipText(offer.display().isEmpty() ? null : offer.display());
+        }
+        if (!offered) welcomeConfirmation.hideConfirmation();
+    }
+
+    /** What "Install archvow" would run here: the project's venv, the IDE's interpreter, then the setting. */
+    private ArchvowInstall.Offer installOffer(String root) {
+        ArchvowSettings.Values s = ArchvowSettings.get(project).getState();
+        String interpreter = s.useProjectInterpreter ? ArchvowInterpreter.projectPython(project) : "";
+        boolean windows = ArchvowWsl.windows();
+        String python = ArchvowInstall.python(root, interpreter, s.python, f -> new File(f).isFile(), windows);
+        return ArchvowInstall.offer(installReason, ArchvowVersion.KNOWN, python, root,
+            ArchvowInstall.source(s.installFrom), ArchvowI18n.isFrench(project), windows);
+    }
+
+    /** "Install archvow": shows the command; pip runs only on "Confirm and run". */
+    private void askInstall() {
+        ArchvowProjectReadiness.Status status = ArchvowProjectReadiness.inspect(project.getBasePath());
+        if (installReason.isBlank()) installReason = "missing";
+        if (!welcomeText.isShowing()) showWelcome(status, "");
+        ArchvowInstall.Offer offer = installOffer(status.root());
+        if (offer.python().isEmpty() || installing) return;
+        List<String> job = offer.command();
+        welcomeConfirmation.showConfirmation(ArchvowI18n.text(project, "Install archvow " + offer.version(), "Installer archvow " + offer.version()),
+            offer.display() + "\n\n" + ArchvowI18n.text(project,
+                "pip installs archvow into this Python (" + offer.source() + "). The plugin then uses this Python.",
+                "pip installe archvow dans ce Python (" + offer.source() + "). Le plugin utilise ensuite ce Python."),
+            ArchvowI18n.isFrench(project), () -> runInstall(job, offer.python(), status.root()));
+        revalidate(); repaint();
+    }
+
+    /** pip, confirmed: no shell, in the project folder, 10 minutes at most; then the plugin uses this Python. */
+    private void runInstall(List<String> job, String python, String root) {
+        installing = true;
+        welcomeInstall.setEnabled(false);
+        welcomeText.setText(htmlMessage("<b>⏳ " + escape(ArchvowI18n.text(project, "Installing", "Installation"))
+            + "</b> · " + escape(ArchvowInstall.display(job))));
+        new SwingWorker<String[], Void>() {
+            @Override protected String[] doInBackground() {
+                try {
+                    ProcessBuilder builder = new ProcessBuilder(job).redirectErrorStream(true)
+                        .directory(new File(ArchvowInstall.workingFolder(job, root)));
+                    builder.environment().put("PIP_DISABLE_PIP_VERSION_CHECK", "1");
+                    Process process = builder.start();
+                    process.getOutputStream().close();
+                    byte[] out = process.getInputStream().readAllBytes();
+                    if (!process.waitFor(600, java.util.concurrent.TimeUnit.SECONDS)) {
+                        process.destroyForcibly();
+                        return new String[] {"1", "Timeout after 600 seconds / Délai dépassé après 600 secondes."};
+                    }
+                    return new String[] {Integer.toString(process.exitValue()), new String(out, java.nio.charset.StandardCharsets.UTF_8)};
+                } catch (Exception error) {
+                    return new String[] {"1", error.getClass().getSimpleName() + ": " + error.getMessage()};
+                }
+            }
+            @Override protected void done() {
+                installing = false;
+                String[] result;
+                try { result = get(); } catch (Exception e) { result = new String[] {"1", e.toString()}; }
+                boolean ok = "0".equals(result[0]);
+                String tail = shorten(result[1].strip(), 600);
+                com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Archvow")
+                    .createNotification(ok
+                        ? ArchvowI18n.text(project, "archvow installed into " + python, "archvow installé dans " + python)
+                        : ArchvowI18n.text(project, "archvow was not installed (pip exit code " + result[0] + ")",
+                            "archvow n'a pas été installé (code de sortie pip " + result[0] + ")"),
+                        tail, ok ? com.intellij.notification.NotificationType.INFORMATION : com.intellij.notification.NotificationType.ERROR)
+                    .notify(project);
+                if (ok) {
+                    ArchvowSettings.get(project).getState().python = python;
+                    installReason = "";
+                    versionChecked = false;
+                    reload();
+                } else {
+                    showWelcome(ArchvowProjectReadiness.inspect(project.getBasePath()), tail);
+                }
+            }
+        }.execute();
     }
 
     private JPanel overviewPanel() {
@@ -739,6 +866,11 @@ final class ArchvowPanel extends JPanel {
         featureBranchWarning.setForeground(darkTheme() ? new Color(255, 205, 125) : new Color(137, 90, 22));
         featureBranchWarning.setVisible(false);
         overviewHeading.add(featureBranchWarning, BorderLayout.SOUTH);
+        briefFolders.setForeground(new Color(107, 114, 128));
+        briefFolders.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+        briefFolders.setToolTipText(ArchvowI18n.text(project, "An architect changes them: archvow init <package> --force -a briefs=...",
+            "Un architecte les change : archvow init <package> --force -a briefs=..."));
+        overviewHeading.add(briefFolders, BorderLayout.CENTER);
         top.add(overviewHeading, BorderLayout.NORTH);
         JPanel actionsAndOutput = new JPanel(new BorderLayout(0, 4));
         actionsAndOutput.add(buildToolbar(), BorderLayout.NORTH);
@@ -1047,8 +1179,8 @@ final class ArchvowPanel extends JPanel {
         boolean original = control instanceof JToggleButton toggle && toggle.isSelected();
         destination.setText(original
             ? ArchvowResultFormatter.renderRaw(raw, ArchvowI18n.isFrench(project), darkTheme())
-            : ArchvowResultFormatter.render(label, exit, raw, interrupted,
-                arguments, ArchvowI18n.isFrench(project), darkTheme()));
+            : ArchvowBriefs.withAddFolder(ArchvowResultFormatter.render(label, exit, raw, interrupted,
+                arguments, ArchvowI18n.isFrench(project), darkTheme()), raw, ArchvowI18n.isFrench(project)));
         destination.setCaretPosition(0);
     }
 
@@ -1707,6 +1839,16 @@ final class ArchvowPanel extends JPanel {
                 for (String type : ArchvowComponentTypes.allKnown()) combo.addItem(type);
                 combo.setSelectedItem(text);
                 control = combo;
+            } else if (param.flags.contains("--from")) {
+                // the brief files of the declared folders and their headings (archvow's slugs); free text allowed
+                JComboBox<String> combo = new JComboBox<>();
+                combo.setEditable(true);
+                combo.addItem("");
+                List<String> declared = ArchvowBriefs.folders(manifest);
+                for (String choice : ArchvowBriefs.choices(ArchvowBriefs.files(project.getBasePath(), declared))) combo.addItem(choice);
+                combo.setSelectedItem(text);
+                combo.setToolTipText(ArchvowBriefs.foldersLine(declared, combo.getItemCount() - 1, ArchvowI18n.isFrench(project)));
+                control = combo;
             } else if (!param.choices.isEmpty()) {
                 JComboBox<String> combo = new JComboBox<>();
                 combo.addItem(""); for (String choice : param.choices) combo.addItem(choice);
@@ -1804,6 +1946,7 @@ final class ArchvowPanel extends JPanel {
             extras.setLineWrap(true); extras.setWrapStyleWord(true);
             extras.setToolTipText(ArchvowI18n.text(project,
                 "Optional extra answers, one KEY=VALUE per line", "Réponses supplémentaires : KEY=VALUE par ligne"));
+            extras.setText(defaults.getOrDefault("answer", ""));
             fields.put("answer", extras);
             JPanel advanced = new JPanel(new BorderLayout(4, 2));
             advanced.setBorder(BorderFactory.createTitledBorder(ArchvowI18n.text(project,
@@ -2154,6 +2297,19 @@ final class ArchvowPanel extends JPanel {
         });
     }
 
+    /** After archvow --version: why the install would be offered, and the notification with "Install archvow". */
+    private void versionChecked(String output) {
+        installReason = ArchvowInstall.reason(output, ArchvowVersion.KNOWN);
+        String warning = ArchvowVersion.warning(output, ArchvowVersion.KNOWN, ArchvowI18n.isFrench(project));
+        if (warning.isBlank()) return;
+        var note = com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Archvow")
+            .createNotification(warning, com.intellij.notification.NotificationType.WARNING);
+        note.addAction(com.intellij.notification.NotificationAction.createSimpleExpiring(
+            ArchvowI18n.text(project, "Install archvow " + ArchvowVersion.KNOWN, "Installer archvow " + ArchvowVersion.KNOWN),
+            this::askInstall));
+        note.notify(project);
+    }
+
     /** Stops watching the vows (an editor tab closed). */
     void dispose() { Disposer.dispose(lifetime); }
 
@@ -2182,6 +2338,14 @@ final class ArchvowPanel extends JPanel {
             if (quickSelectionArea != null) quickSelectionArea.setVisible(false);
             if (overviewResultCard != null) overviewResultCard.setVisible(false);
             if (commandResultCard != null) commandResultCard.setVisible(false);
+            if (!versionChecked && status.canInitialize() && !cli.isRunning()) {
+                // not initialized yet: is archvow there to initialize it? (0.12.0: the welcome card offers to install it)
+                versionChecked = true;
+                cli.execute("Version", List.of("--version"), null, version -> {
+                    installReason = ArchvowInstall.reason(version.output, ArchvowVersion.KNOWN);
+                    showWelcome(ArchvowProjectReadiness.inspect(project.getBasePath()), "");
+                });
+            }
             showWelcome(status, "");
             pushToDetail();
             return;
@@ -2190,11 +2354,7 @@ final class ArchvowPanel extends JPanel {
         if (!versionChecked) {
             versionChecked = true;
             cli.execute("Version", List.of("--version"), null, version -> {
-                String warning = ArchvowVersion.warning(version.output, ArchvowVersion.KNOWN, ArchvowI18n.isFrench(project));
-                if (!warning.isBlank()) {
-                    com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Archvow")
-                        .createNotification(warning, com.intellij.notification.NotificationType.WARNING).notify(project);
-                }
+                versionChecked(version.output);
                 reload(switchToOverview);
             });
             return;
@@ -2436,8 +2596,8 @@ final class ArchvowPanel extends JPanel {
     }
 
     /** The component's head in the editor tab, over the whole width: its name and open items, then
-     *  type · layer · module · ticket · state, its description, what it uses and what uses it (links),
-     *  its business examples. The VS Code page shows the same head (componentDetail()). */
+     *  type · layer · module · ticket · state, its progress bar, its description, what it uses and what uses
+     *  it (links), its business examples. The VS Code page shows the same head (componentDetail()). */
     private String buildComponentHtml(JsonObject data) {
         String id = ArchvowGrammar.str(data,"component");
         boolean fr = ArchvowI18n.isFrench(project);
@@ -2462,7 +2622,10 @@ final class ArchvowPanel extends JPanel {
             .append(badge).append("</span></div>");
         html.append("<div style='color:").append(mutedHex()).append("; margin-top:2px'>").append(escape(String.join(" · ", meta))).append("</div>");
         String description = ArchvowGrammar.str(data, "description");
+        // one bar: decisions made, safety answered, tasks done, examples tested (0.12.0, ArchvowProgress)
+        html.append(ArchvowProgress.html(data, fr, darkTheme()));
         if (!description.isBlank()) html.append("<p style='margin-top:6px'>").append(escape(description)).append("</p>");
+        html.append(ArchvowBriefs.drawnFromHtml(data, fr));
         html.append(ArchvowLinks.html(data, fr));
         html.append(ArchvowLinks.examplesHtml(data, fr));
         java.util.List<String> missing = new ArrayList<>();
@@ -3068,6 +3231,9 @@ final class ArchvowPanel extends JPanel {
 
     private void updateOverview() {
         if (manifest == null) return;
+        List<String> declared = ArchvowBriefs.folders(manifest);
+        briefFolders.setText(ArchvowBriefs.foldersLine(declared,
+            ArchvowBriefs.files(project.getBasePath(), declared).size(), ArchvowI18n.isFrench(project)));
         List<JsonObject> statuses = ArchvowGrammar.objects(check, "components");
         rebuildQuickModels(statuses);
         // Native Swing table: the declared component inventory is always visible,
@@ -3440,6 +3606,7 @@ final class ArchvowPanel extends JPanel {
         quickPrimary.setText(item.actionLabel);
         String secondary = switch(item.commandLabel) {
             case "hazard add" -> ArchvowI18n.text(project,"Not applicable", "Non applicable");
+            case "brief accept" -> ArchvowI18n.text(project, "Review the brief", "Relire la brief");
             case "assumption accept" -> ArchvowI18n.text(project,"Reject", "Rejeter");
             case "decision accept" -> ArchvowI18n.text(project,"Edit answer", "Autre réponse");
             case "schema-create" -> ArchvowI18n.text(project,"Edit reader dependencies", "Modifier les dépendances du lecteur");
@@ -3537,8 +3704,27 @@ final class ArchvowPanel extends JPanel {
             case "decision accept" -> openCommand("decision make", Map.of(
                 "component", item.componentId, "question", item.preset.getOrDefault("number", "")));
             case "schema-create" -> openCommand("component edit", Map.of("component", item.componentId));
+            case "brief accept" -> openBrief(item.preset.getOrDefault("brief", ""));
             default -> goToQuickComponent();
         }
+    }
+
+    /** A brief at its heading ("specs/x.md#section"), inside the project only. */
+    private void openBrief(String ref) {
+        String base = project.getBasePath();
+        if (ref == null || ref.isBlank() || base == null) return;
+        String relative = ref.split("#", 2)[0];
+        int line = ArchvowBriefs.line(ArchvowBriefs.files(base, ArchvowBriefs.folders(manifest)), ref);
+        try {
+            File root = new File(base).getCanonicalFile();
+            File file = new File(root, relative).getCanonicalFile();
+            if (!file.toPath().startsWith(root.toPath()) || !file.isFile()) {
+                message(ArchvowI18n.text(project, "Brief not found: " + relative, "Brief introuvable : " + relative));
+                return;
+            }
+            var virtual = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+            if (virtual != null) new OpenFileDescriptor(project, virtual, Math.max(0, line - 1), 0).navigate(true);
+        } catch (IOException ex) { message(ex.getMessage()); }
     }
 
     private void openViolationFile(QuickItem item) {

@@ -1,0 +1,1 @@
+✖ archvow: error: --from: specs/001-orders/plan.md: specs/ is not a briefs folder of this project (briefs: briefs) -> an architect adds it: archvow init invoicing --force -a briefs=briefs,specs

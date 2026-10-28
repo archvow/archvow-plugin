@@ -2,7 +2,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "1.16.0",
+      "version": "1.17.0",
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
@@ -199,6 +199,13 @@
           "id": "dependencies",
           "prompt": "Approved third-party packages besides fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported (e.g. sqlalchemy, jwt)",
           "default": "",
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "briefs",
+          "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+          "default": "briefs",
           "multiple": true,
           "required": false
         },
@@ -482,7 +489,7 @@
     },
     {
       "name": "pyspark-pipeline",
-      "version": "1.16.0",
+      "version": "1.17.0",
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -678,6 +685,13 @@
           "id": "dependencies",
           "prompt": "Approved third-party packages besides pyspark, pytest and hypothesis, comma-separated, as imported (e.g. yaml, requests)",
           "default": "",
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "briefs",
+          "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+          "default": "briefs",
           "multiple": true,
           "required": false
         },
@@ -933,7 +947,7 @@
     },
     {
       "name": "python-app",
-      "version": "1.16.0",
+      "version": "1.17.0",
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",
@@ -1129,6 +1143,13 @@
           "id": "dependencies",
           "prompt": "Approved third-party packages besides pytest and hypothesis, comma-separated, as imported (e.g. requests, yaml)",
           "default": "",
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "briefs",
+          "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+          "default": "briefs",
           "multiple": true,
           "required": false
         },

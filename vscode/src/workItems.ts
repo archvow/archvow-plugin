@@ -2,6 +2,7 @@
 // component and for the project, the counts on each view, the Architecture table. A faithful port of
 // ArchvowPanel.rebuildQuickModels, ArchvowSafetyState, ArchvowDataView.items, ArchvowIssueAction and
 // ArchvowArchitectureView, so both editors show the same work. Pure: tested on ../contract/cli.
+import { addFolder } from './briefs';
 import { tr } from './i18n';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -119,6 +120,13 @@ export function issueFix(code: string, message: string, component: string): Fix 
   if (c === 'ARCH004') {
     const m = /archvow\s+component\s+edit\s+([A-Za-z_][A-Za-z0-9_.-]*)\s+--signature\s+"([^"]+)"/.exec(text);
     if (m) return { command: 'component edit', values: { component: m[1], signature: m[2] }, label: 'Review signature / Vérifier la signature' };
+  }
+  if (c === 'ARCH039') {
+    // drawn from a folder no longer declared: the architect adds it; a brief changed: accept it once reviewed
+    const folder = addFolder(text);
+    if (folder) return { command: 'init', values: { package: folder.package, force: 'true', answer: folder.answer }, label: 'Add this folder (architect) / Ajouter ce dossier (architecte)' };
+    const m = /archvow\s+brief\s+accept\s+(\S+)/.exec(text);
+    if (m) return { command: 'brief accept', values: { brief: m[1] }, label: 'Accept (reviewed) / Accepter (relue)' };
   }
   if (c === 'ARCH030') {
     const m = /archvow\s+invariant\s+add\s+([A-Za-z_][A-Za-z0-9_.-]*)\s+"[^"]*"\s+--prevents\s+([A-Za-z_][A-Za-z0-9_.-]*)/.exec(text);

@@ -19,14 +19,22 @@ with version 0.4.x) before installing this one: both declare the `.vow` file typ
 | Where | What |
 |---|---|
 | Tool window **Archvow** (left; **Tools > Show Archvow**) | Overview, Components (the tree) and Commands (the list): what you choose there opens in **one** editor tab, *archvow: clean_orders*, reused for the next component or command (close it, and the next click opens it again) |
-| Overview | the architecture (containers, layers, components with their status), Check & Gates (`check --json`, every diagnostic with its rule), Next |
-| Components (the editor tab) | per component, its head (open items, type · layer · module · ticket, description, Uses · Used by, examples) and, for decisions, questions, safety and assumptions, the items as cards on the left and the answer panel on the right, opened on the first open item: decisions (answer, propose, accept), questions, safety (hazards, invariants), assumptions, rules, columns and tasks, the full `spec.vow`; Open Spec / Open Code |
+| Overview | the architecture (containers, layers, components with their status), Check & Gates (`check --json`, every diagnostic with its rule), Next; the project's brief folders (`--from`) |
+| Components (the editor tab) | per component, its head (open items, type · layer · module · ticket, one progress bar - decisions made, safety answered, tasks done, examples tested, green when complete -, description, *Drawn from* its brief - a link that opens it at that heading -, Uses · Used by, examples) and, for decisions, questions, safety and assumptions, the items as cards on the left and the answer panel on the right, opened on the first open item: decisions (answer, propose, accept), questions, safety (hazards, invariants), assumptions, rules, columns and tasks, the full `spec.vow`; Open Spec / Open Code |
 | Right-click in an editor, or on its tab | **Show Archvow for This File**: `archvow show <file>:<line>` - the component that owns the file opens in the editor tab; its details start with *Uses ... · Used by ...*, each name a link |
-| Commands (the editor tab) | a form for each archvow command, built from the CLI's own parser; read-only commands run at once, changes ask for a confirmation |
-| Settings > Tools > Archvow | where archvow is looked for, in this order, the first that answers `--version` running the commands: the project's Python interpreter in the IDE (Settings > Project > Python Interpreter; on by default), the Python that has archvow installed (`python3 -m archvow`), the archvow executable. On Windows a Python in WSL (`\\wsl.localhost\Ubuntu\home\you\.venv\bin\python3`, PyCharm's WSL interpreter, `wsl://<distro>/...`) runs through `wsl.exe --exec` with Linux paths. Test shows which one answered, or what each said. The time-out, the language (English / French / the IDE's) |
+| Commands (the editor tab) | a form for each archvow command, built from the CLI's own parser; read-only commands run at once, changes ask for a confirmation. The `--from` field lists the files of the brief folders and their headings (`specs/001-orders/plan.md#data-model`); when archvow refuses a file outside them, **Add this folder (architect)** under the result opens `init --force` prefilled |
+| Settings > Tools > Archvow | where archvow is looked for, in this order, the first that answers `--version` running the commands: the project's Python interpreter in the IDE (Settings > Project > Python Interpreter; on by default), the Python that has archvow installed (`python3 -m archvow`), the archvow executable. On Windows a Python in WSL (`\\wsl.localhost\Ubuntu\home\you\.venv\bin\python3`, PyCharm's WSL interpreter, `wsl://<distro>/...`) runs through `wsl.exe --exec` with Linux paths. Test shows which one answered, or what each said. The time-out, the language (English / French / the IDE's). *Install archvow from*: where **Install archvow** takes it from (empty = pip's own configuration, your company's index URL, a `.whl` file or a folder of wheels) |
 
 The archvow CLI must be installed (`archvow --version` in a terminal). The plugin runs it in the project
-folder, never through a shell, one command at a time.
+folder, never through a shell, one command at a time. When archvow does not start, or is another
+major.minor, the welcome card (or the version notification) offers **Install archvow 1.17**: it shows
+`<python> -m pip install archvow==1.17.*` - the project's `.venv` (or `venv`) first, then the IDE's
+interpreter, then the Python of the settings, never a bare `python` - and runs it only after **Confirm
+and run**, no shell; on success the settings keep that Python. Nothing is installed at startup.
+
+The brief folders (archvow 1.17): `briefs/` by default; an architect adds others with the init answer
+`briefs` (e.g. `briefs,specs` for Spec Kit's `specs/`). An item drawn from a brief whose text changed
+shows ARCH039 with **Accept (reviewed)** (`archvow brief accept`, confirmed) and **Review the brief**.
 
 ## The `.vow` language
 
@@ -53,7 +61,7 @@ You need a JDK 21. IntelliJ's own runtime is one:
 ```bash
 cd intellij
 export JAVA_HOME="/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home"   # or IntelliJ IDEA CE.app, PyCharm.app...
-./gradlew buildPlugin        # -> build/distributions/archvow-intellij-0.11.4.zip
+./gradlew buildPlugin        # -> build/distributions/archvow-intellij-0.12.0.zip
 ./gradlew check              # coreTest (the .vow reader) + workspaceTest (the workspace's plain classes)
 ./gradlew runIde             # optional: a sandbox IntelliJ with the plugin, to try it
 ```
@@ -68,13 +76,13 @@ mirror. If that IntelliJ version cannot be downloaded, put your own version ther
 
 ## Install
 
-Settings > Plugins > gear icon > **Install Plugin from Disk...** > `build/distributions/archvow-intellij-0.11.4.zip`,
+Settings > Plugins > gear icon > **Install Plugin from Disk...** > `build/distributions/archvow-intellij-0.12.0.zip`,
 then restart. For a team: a company plugin repository (an `updatePlugins.xml` on an internal server,
 Settings > Plugins > gear icon > Manage Plugin Repositories), so nobody downloads from outside.
 
 ## Check it once installed
 
-- [ ] Settings > Plugins lists **one** archvow plugin, version 0.11.4.
+- [ ] Settings > Plugins lists **one** archvow plugin, version 0.12.0.
 - [ ] The Archvow tool window opens on the left on a project with `.archvow/`, lists its components, and
       Check shows its result in the editor tab and the diagnostics in Check & Gates.
 - [ ] A click on a component opens the tab *archvow: <component>*; a click on another one shows it in the
@@ -105,5 +113,5 @@ time-out, cancel), `ArchvowGrammar` reads the command grammar (`src/main/resourc
 exported from archvow's own parser by `tools/export_cli.py`), `ArchvowPanel` is the workspace, the
 `Archvow*View` classes are its views. `src/main/resources/META-INF/plugin.xml` registers both parts.
 
-The plugin has its own version (0.11.4); it reads `.vow` format 1 and runs the archvow CLI 1.16 (the version of
+The plugin has its own version (0.12.0); it reads `.vow` format 1 and runs the archvow CLI 1.17 (the version of
 `../contract/cli/version.txt`; the workspace says when the installed archvow is another one).

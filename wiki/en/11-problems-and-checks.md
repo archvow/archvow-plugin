@@ -41,3 +41,8 @@ When a diagnostic's message holds a fix documented by archvow (for example the
 `component edit ... --signature` command to run), *Other / Project* offers to open it in the command's
 form, prefilled and confirmed like any command. `ArchvowIssueAction` and `issueFix()` recognise only
 known forms; **they never run a message's text**.
+
+ARCH039 (archvow 1.17, briefs) gives two of them: a brief changed after an item was drawn from it ->
+**Accept (reviewed)**, the `archvow brief accept <file#section>` form (a person's command), with
+**Review the brief** next to it (opens it at its heading); an item drawn from a folder no longer declared
+-> **Add this folder (architect)**, the `init --force` form with `briefs=<current>,<folder>`.

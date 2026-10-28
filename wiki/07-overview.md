@@ -34,6 +34,11 @@ fonctionnalité (`ArchvowBranchAdvice`, `needsFeatureBranch()`). C'est un consei
 politique de branches appartient au dépôt et à la CI. Il passe sur plusieurs lignes dans une fenêtre
 étroite (`ArchvowWrapLabel`).
 
+Puis les **dossiers de briefs** du projet (la réponse d'init `briefs` d'archvow 1.17 : là où `--from`
+peut puiser) et combien de fichiers `.md` / `.txt` ils contiennent : `ArchvowBriefs.foldersLine`
+(IntelliJ), `briefFolders()` (VS Code). Un architecte les change par
+`archvow init <package> --force -a briefs=...`.
+
 ## La barre d'actions
 
 | Bouton | Commande | Où va le résultat |

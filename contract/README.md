@@ -18,4 +18,4 @@ python3 contract/tools/regenerate.py ../archvow            # or: ... ../archvow 
 git diff contract/                                         # review: this is what changed for the plugins
 ```
 
-Recorded from archvow 1.16.0.
+Recorded from archvow 1.17.0.

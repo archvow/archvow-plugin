@@ -41,3 +41,9 @@ Quand le message d'un diagnostic contient une correction documentée par archvow
 commande `component edit ... --signature` à lancer), *Autres / Projet* propose de l'ouvrir dans le
 formulaire de la commande, pré-rempli et confirmé comme toute commande. `ArchvowIssueAction` et
 `issueFix()` ne reconnaissent que des formes connues ; **ils n'exécutent jamais le texte d'un message**.
+
+ARCH039 (archvow 1.17, briefs) en donne deux : une brief changée après qu'un élément en a été tiré ->
+**Accepter (relue)**, le formulaire `archvow brief accept <fichier#section>` (une commande de
+personne), avec **Relire la brief** à côté (l'ouvre à son titre) ; un élément tiré d'un dossier qui
+n'est plus déclaré -> **Ajouter ce dossier (architecte)**, le formulaire `init --force` avec
+`briefs=<actuels>,<dossier>`.

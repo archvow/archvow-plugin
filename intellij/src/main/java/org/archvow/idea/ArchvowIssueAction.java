@@ -25,6 +25,13 @@ final class ArchvowIssueAction {
             if (m.find()) return new Fix("component edit", Map.of("component", m.group(1), "signature", m.group(2)),
                 "Review signature / Vérifier la signature");
         }
+        if ("ARCH039".equalsIgnoreCase(code)) {
+            // drawn from a folder no longer declared: the architect adds it; a brief changed: accept it once reviewed
+            ArchvowBriefs.AddFolder folder = ArchvowBriefs.addFolder(text);
+            if (folder != null) return new Fix("init", folder.values(), "Add this folder (architect) / Ajouter ce dossier (architecte)");
+            String ref = ArchvowBriefs.acceptRef(text);
+            if (!ref.isEmpty()) return new Fix("brief accept", Map.of("brief", ref), "Accept (reviewed) / Accepter (relue)");
+        }
         if ("ARCH030".equalsIgnoreCase(code)) {
             Matcher m = INVARIANT.matcher(text);
             if (m.find()) return new Fix("invariant add", Map.of("component", m.group(1), "prevents", m.group(2)),

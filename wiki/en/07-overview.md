@@ -33,6 +33,10 @@ Under the strip, on `main`, `master`, `develop` or `development`, an advice: cre
 (`ArchvowBranchAdvice`, `needsFeatureBranch()`). It is advice, nothing more: the branch policy belongs
 to the repository and the CI. It wraps over several lines in a narrow window (`ArchvowWrapLabel`).
 
+Then the project's **brief folders** (archvow 1.17's init answer `briefs`: where `--from` may draw from)
+and how many `.md` / `.txt` files they hold: `ArchvowBriefs.foldersLine` (IntelliJ), `briefFolders()`
+(VS Code). An architect changes them with `archvow init <package> --force -a briefs=...`.
+
 ## The action bar
 
 | Button | Command | Where the result goes |

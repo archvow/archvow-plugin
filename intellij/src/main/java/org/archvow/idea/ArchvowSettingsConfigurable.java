@@ -19,6 +19,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
     private final JTextField command = new JTextField();
     private final JTextField python = new JTextField();
     private final JTextField timeout = new JTextField();
+    private final JTextField installFrom = new JTextField();
     private final JCheckBox useProjectInterpreter = new JCheckBox(
         "Use the project's Python interpreter first / Utiliser d'abord l'interpréteur Python du projet");
     private final JLabel detected = new JLabel();
@@ -57,6 +58,13 @@ public final class ArchvowSettingsConfigurable implements Configurable {
             "Allowed range: 5 to 3600. / Valeur autorisée : 5 à 3600.");
         row(form, 4, "Language / Langue", languageMode, null,
             "IDE = follow IntelliJ or PyCharm language. / IDE = suit la langue de l'IDE.");
+        JButton browseWheels = new JButton("Browse…");
+        browseWheels.addActionListener(e -> chooseWheels());
+        row(form, 5, "Install archvow from / Installer archvow depuis", installFrom, browseWheels,
+            "Used only by \"Install archvow\", after your confirmation. Empty = pip's own configuration (pip.conf, PIP_INDEX_URL). "
+                + "Or your company's index URL, a .whl file, or a folder of wheels (pip --no-index --find-links). "
+                + "/ Utilisé seulement par « Installer archvow », après ta confirmation. Vide = la configuration de pip "
+                + "(pip.conf, PIP_INDEX_URL). Ou l'URL de l'index de l'entreprise, un fichier .whl, ou un dossier de wheels.");
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         JButton test = new JButton("Test Archvow (--version)");
@@ -127,6 +135,14 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         }
     }
 
+    private void chooseWheels() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        if (chooser.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
+            installFrom.setText(chooser.getSelectedFile().getAbsolutePath());
+        }
+    }
+
     private void explainPythonField() {
         ArchvowTextDialog.show(panel, "Archvow Python configuration",
             "Recommended value / Valeur recommandée:\n\n"
@@ -190,7 +206,8 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         return !command.getText().equals(s.executable) || !python.getText().equals(s.python)
             || !timeout.getText().equals(Integer.toString(s.timeoutSeconds))
             || !String.valueOf(languageMode.getSelectedItem()).equals(s.languageMode)
-            || useProjectInterpreter.isSelected() != s.useProjectInterpreter;
+            || useProjectInterpreter.isSelected() != s.useProjectInterpreter
+            || !installFrom.getText().trim().equals(s.installFrom == null ? "" : s.installFrom);
     }
     @Override public void apply() throws ConfigurationException {
         final int seconds;
@@ -205,6 +222,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         s.timeoutSeconds = seconds;
         s.languageMode = String.valueOf(languageMode.getSelectedItem());
         s.useProjectInterpreter = useProjectInterpreter.isSelected();
+        s.installFrom = installFrom.getText().trim();
     }
     @Override public void reset() {
         var s = values();
@@ -213,6 +231,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         timeout.setText(Integer.toString(s.timeoutSeconds));
         languageMode.setSelectedItem(s.languageMode == null || s.languageMode.isBlank() ? "IDE" : s.languageMode);
         useProjectInterpreter.setSelected(s.useProjectInterpreter);
+        installFrom.setText(s.installFrom == null ? "" : s.installFrom);
     }
     @Override public void disposeUIResources() { panel = null; }
 }

@@ -14,7 +14,7 @@ Gradle les lance avec `JavaExec` (`intellij/build.gradle.kts`). La tâche `test`
 | Tâche | Classe | Ce qu'elle vérifie |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | le lecteur `.vow` sur chaque vow de `contract/vows` : le scanner couvre tout le texte, redémarre à n'importe quel jeton, une couleur par profondeur ; des vows cassés exprès donnent les bons problèmes |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 34 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 37 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
 | `contractDump` (pas dans `check`) | `DumpContract` | écrit `contract/vow-reader/expected.json`, la référence du lecteur TypeScript |
 
 Le panneau lui-même (`ArchvowPanel`) a besoin d'un IntelliJ qui tourne ; c'est pourquoi **la logique
@@ -30,6 +30,9 @@ nom de ce qu'elle protège :
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, les chemins `\\wsl.localhost\...` |
 | `TextDialogRegression` | la taille d'un dialogue, Copier la commande |
 | `TextSizeRegression` | aucun `px` ni `<h1>`-`<h6>` dans le HTML affiché, le conseil de branche sur plusieurs lignes |
+| `InstallRegression` | Installer archvow : le Python choisi, la ligne pip par source, WSL, pip seulement depuis une confirmation |
+| `ProgressRegression` | la barre d'avancement sur le `clean_orders` enregistré (9/9, 1/5, 0/2) |
+| `BriefsRegression` | les dossiers de briefs, les ancres d'archvow, les choix de `--from`, Tiré de, Ajouter ce dossier, ARCH039 |
 | `ToolWindowLayoutRegression`, `ResponsiveOverflowRegression`, `CompactViewsRegression` | les écrans étroits |
 | `VersionRegression` | « archvow 1.17 n'est pas la version connue » |
 
@@ -61,9 +64,11 @@ modules testés, la page est lue comme du texte.
 | `cli.test.ts` | la ligne de commande, stdout et stderr séparés, stdin pour un fichier non enregistré, une commande à la fois, le délai, archvow absent, WSL ; avec un faux `archvow` écrit pour le test |
 | `vowReader.test.ts` | le lecteur TypeScript donne **exactement** `contract/vow-reader/expected.json` |
 | `grammar.test.ts` | une couleur par profondeur dans la grammaire TextMate ; le pré-remplissage de Modifier la spec |
-| `model.test.ts` | le JSON enregistré des trois exemples se lit |
+| `model.test.ts` | le JSON enregistré des trois exemples et du scénario briefs se lit |
 | `workspace.test.ts` | formulaire -> ligne de commande, pré-remplissage, actions sur place, corrections documentées, mise en forme des résultats |
-| `layout.test.ts` | la page : un seul onglet, le logo, les cartes, le tableau d'architecture, Retour |
+| `layout.test.ts` | la page : un seul onglet, le logo, les cartes, le tableau d'architecture, Retour, la barre d'avancement |
+| `install.test.ts` | Installer archvow : la source, le Python, la ligne pip, WSL, rien sans Confirmer et exécuter |
+| `briefs.test.ts` | les dossiers de briefs, les ancres d'archvow, les choix de `--from`, Tiré de, le refus -> formulaire init, ARCH039 (sur `contract/cli/briefs`) |
 | `wiki.test.ts` | le wiki suit le code (plus bas) |
 
 Le comportement de la page (un clic, une largeur) se vérifie à la main avec F5, ou dans un navigateur

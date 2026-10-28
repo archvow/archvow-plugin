@@ -11,6 +11,10 @@ nothing in the archvow tree is written. Recorded:
   contract/cli/catalog.json                `archvow catalog --json`: the templates and their questions
   contract/cli/rules.md, rules.fr.md       archvow's docs/rules: what each check code means
   contract/cli/version.txt                 `archvow --version`
+  contract/cli/briefs/                     python-app with a Spec Kit `specs` folder declared as a briefs folder
+                                           (-a briefs=briefs,specs), recorded like an example: refused.txt (the
+                                           --from refusal before), mark_paid drawn from specs/ (show `source`),
+                                           ARCH039 once that section changed
 Both plugins build from and test against these files: run it after every archvow release and commit
 the diff - a change here is a change of the contract the plugins rely on.
 """
@@ -77,7 +81,50 @@ def main():
                 for component in container["components"]:
                     cid = component["id"]
                     write(out / "show" / f"{cid}.json", run([*archvow, "show", cid, "--json"], project))
+    briefs(source, archvow, cli / "briefs")
     print(f"contract regenerated from {version}")
+
+
+BRIEF = "# Orders plan\n\n## Data model\n\nAn invoice has a number and an amount.\n\n## Paying an invoice\n\nMark it paid once.\n"
+
+
+def briefs(source, archvow, out):
+    """The briefs folders of archvow 1.17 (init answer `briefs`), recorded on a copy of python-app."""
+    import tomllib
+    shutil.rmtree(out, ignore_errors=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "python-app"
+        shutil.copytree(source / "examples" / "python-app", project)
+        package = tomllib.loads((project / "pyproject.toml").read_text(encoding="utf-8"))["project"]["name"]
+        git = ["git", "-c", "user.email=contract@archvow", "-c", "user.name=contract"]
+
+        def commit(message):
+            subprocess.run([*git, "add", "-A"], cwd=project, check=True, capture_output=True)
+            subprocess.run([*git, "commit", "-qm", message], cwd=project, check=True, capture_output=True)
+
+        subprocess.run(["git", "init", "-q"], cwd=project, check=True)
+        plan = project / "specs" / "001-orders" / "plan.md"
+        plan.parent.mkdir(parents=True)
+        plan.write_text(BRIEF, encoding="utf-8", newline="\n")
+        commit("example")
+        drawn = ["component", "edit", "mark_paid", "--from", "specs/001-orders/plan.md#paying-an-invoice"]
+        refused = subprocess.run([*archvow, *drawn], cwd=project, capture_output=True, text=True, encoding="utf-8")
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "refused.txt").write_text((refused.stderr or refused.stdout).strip() + "\n", encoding="utf-8", newline="\n")
+        subprocess.run([*archvow, "init", package, "--force", "-a", "briefs=briefs,specs", "--no-input"], cwd=project,
+                       check=True, capture_output=True)
+        commit("briefs: briefs, specs")
+        subprocess.run([*archvow, *drawn], cwd=project, check=True, capture_output=True)
+        commit("mark_paid drawn from specs/")
+        plan.write_text(BRIEF.replace("Mark it paid once.", "Mark it paid once, never twice."), encoding="utf-8", newline="\n")
+        spec = run([*archvow, "show", "--json"], project)
+        write(out / "show.json", spec)
+        write(out / "next.json", run([*archvow, "next", "--json"], project))
+        write(out / "check.json", run([*archvow, "check", "--json"], project))
+        for container in spec["containers"]:
+            for component in container["components"]:
+                cid = component["id"]
+                write(out / "show" / f"{cid}.json", run([*archvow, "show", cid, "--json"], project))
 
 
 if __name__ == "__main__":

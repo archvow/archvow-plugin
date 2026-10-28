@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "my_pipeline",
-      "template": "pyspark-pipeline@1.16.0",
+      "template": "pyspark-pipeline@1.17.0",
       "package": "my_pipeline",
       "path": "src/my_pipeline",
       "components": [
@@ -438,6 +438,7 @@
     "sonar": "no",
     "auto_approve": "yes",
     "sandbox": "yes",
+    "briefs": "briefs",
     "git_hooks": "githooks",
     "branch_naming": "gitflow",
     "pip_index_url": "",

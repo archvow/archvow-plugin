@@ -23,7 +23,7 @@
       "done": 0,
       "next": "T1"
     },
-    "tokens": 1187
+    "tokens": 1215
   },
   {
     "component": "compute_vat",
@@ -35,35 +35,35 @@
       "done": 0,
       "next": "T1"
     },
-    "tokens": 1187
+    "tokens": 1216
   },
   {
     "component": "orders_schema",
     "type": "schema",
     "readiness": "ready",
     "invariants": 0,
-    "tokens": 797
+    "tokens": 825
   },
   {
     "component": "orders_reader",
     "type": "reader",
     "readiness": "waiting for orders_schema",
     "invariants": 0,
-    "tokens": 814
+    "tokens": 843
   },
   {
     "component": "vat_writer",
     "type": "writer",
     "readiness": "ready",
     "invariants": 1,
-    "tokens": 905
+    "tokens": 934
   },
   {
     "component": "my_pipeline_job",
     "type": "job",
     "readiness": "waiting for orders_reader, clean_orders, compute_vat, vat_writer",
     "invariants": 0,
-    "tokens": 899
+    "tokens": 928
   },
   {
     "component": "my_pipeline_main",

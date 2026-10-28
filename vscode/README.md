@@ -10,7 +10,7 @@ command, shown to you before it runs.
 | Where | What |
 |---|---|
 | **archvow** sidebar (activity bar; **archvow: Show the workspace**) | **Overview**: project status (pending and resolved counters that lead to the work), the architecture table, Check & Gates (every diagnostic, its rule, its file), Check, Next, Full check, Doctor, Audit, Project vow, Budget / Next, Diff, Review with a Git base, a feature-branch warning on main/develop; a command's result opens in the editor tab. **Components**: the components by container and layer (All, Pending, Resolved). **Commands**: every archvow command |
-| **archvow** editor tab (one tab, titled *archvow: clean_orders*, reused for the next choice) | the chosen component, its head over the whole width (open items, type · layer · module · ticket, description, Uses · Used by, examples): Clarify, Open spec, Open code, Edit spec, AI prompt, + Question, + Rule, + Component, and its views - Decisions, Questions, Safety and Assumptions as cards on the left with the selected one's answer panel on the right, opened on the first open item: Decisions (Save answer, Propose, Accept proposal, Use suggestion), Questions, Safety (Declare hazard, Not applicable, proposed hazard + invariant, add or remove hazards and invariants), Assumptions, Rules, Tasks (classify a column, a task's AI prompt), Full vow, Other / Project; Open spec / Open code open the files as ordinary tabs next to it. The chosen command: its form built from archvow's own parser, with the init wizard of `archvow catalog --json`. A result of Overview's Check, Next, Doctor... |
+| **archvow** editor tab (one tab, titled *archvow: clean_orders*, reused for the next choice) | the chosen component, its head over the whole width (open items, type · layer · module · ticket, one progress bar - decisions made, safety answered, tasks done, examples tested, green when complete -, description, *Drawn from* its brief (opens it at that heading), Uses · Used by, examples): Clarify, Open spec, Open code, Edit spec, AI prompt, + Question, + Rule, + Component, and its views - Decisions, Questions, Safety and Assumptions as cards on the left with the selected one's answer panel on the right, opened on the first open item: Decisions (Save answer, Propose, Accept proposal, Use suggestion), Questions, Safety (Declare hazard, Not applicable, proposed hazard + invariant, add or remove hazards and invariants), Assumptions, Rules, Tasks (classify a column, a task's AI prompt), Full vow, Other / Project; Open spec / Open code open the files as ordinary tabs next to it. The chosen command: its form built from archvow's own parser, with the init wizard of `archvow catalog --json`; the `--from` field offers the files of the project's brief folders and their headings (`specs/001-orders/plan.md#data-model`), and when archvow refuses a file outside them, **Add this folder (architect)** opens `init --force` prefilled. A result of Overview's Check, Next, Doctor... |
 | An editor (right-click), or its tab (right-click on the title) | **archvow: Show archvow for this file**: `archvow show <file>:<line>` - the component that owns the file opens in the editor tab, with what it uses and what uses it (each one a link); a file no component owns gets archvow's hint |
 | Problems view | `archvow check` on the whole project, and on a Python file each time you save it |
 | `.vow` files | one keyword colour per depth, ids, people, dates; what keeps archvow from reading the file, as you type; Ctrl+click on a component in `uses [...]`, a hazard in `prevents [...]`, the file of `module`; Outline; folding; `#` comments; a line on top naming the command that changes the vow; ```` ```vow ```` blocks in Markdown |
@@ -21,8 +21,13 @@ agent, a `git checkout`). English or French: **Language** at the bottom of Overv
 
 ## Set up
 
-1. archvow installed: `archvow --version` in a terminal. The extension knows archvow 1.16 and says so
-   when the installed one is another version.
+1. archvow installed: `archvow --version` in a terminal. The extension knows archvow 1.17 and says so
+   when the installed one is another version. When archvow is missing or another major.minor, the
+   workspace offers **Install archvow 1.17**: it shows `<python> -m pip install archvow==1.17.*` - the
+   project's `.venv` (or `venv`) first, then the project's interpreter, then `archvow.python`, never a
+   bare `python` - and runs it only after **Confirm and run**, no shell, in the project folder; on
+   success `archvow.python` is set to that Python. pip takes archvow where your pip is configured to
+   (pip.conf, `PIP_INDEX_URL`), or from **archvow.installFrom**.
 2. archvow is looked for in this order, the first that answers `archvow --version` runs the commands:
    the Python interpreter VS Code uses for the project (the Python extension's, when
    **archvow.useProjectInterpreter** is on), **archvow.python** (`/path/venv/bin/python3`: the extension
@@ -34,16 +39,22 @@ agent, a `git checkout`). English or French: **Language** at the bottom of Overv
 3. Open the project folder. A folder without `.archvow/spec.vow` shows **Initialize Archvow** (the init
    wizard). In an untrusted folder only the `.vow` language works.
 
+The brief folders (archvow 1.17): `briefs/` by default; an architect adds others in the init answer
+`briefs` (*Show advanced settings* in the init wizard), e.g. `briefs,specs` for Spec Kit's `specs/`.
+Overview lists them. An item drawn from a brief whose text changed shows ARCH039 with **Accept
+(reviewed)** (`archvow brief accept`, confirmed) and **Review the brief**.
+
 | Setting | Default | |
 |---|---|---|
 | `archvow.executable` | `archvow` | the command, or its full path |
 | `archvow.useProjectInterpreter` | true | look first in the project's Python interpreter (Python extension) |
 | `archvow.python` | (empty) | a Python with archvow installed (a WSL path on Windows: through `wsl.exe`); before the executable |
+| `archvow.installFrom` | (empty) | where **Install archvow** takes it from: empty = pip's own configuration, your company's index URL (`--index-url`), a `.whl` file, or a folder of wheels (`--no-index --find-links`) |
 | `archvow.timeoutSeconds` | 180 | how long one command may run |
 | `archvow.checkOnSave` | true | `archvow check --file` on each saved Python file |
 | `archvow.language` | `auto` | the workspace's language: VS Code's, `en` or `fr` |
 
-archvow 1.16 runs its person-only commands (decisions, hazards, rules...) only for a person: the
+archvow 1.17 runs its person-only commands (decisions, hazards, rules...) only for a person: the
 extension's commands come from VS Code, not from an AI agent, so they pass. If archvow stops one
 (ARCH051, ARCH052, ARCH054), the workspace shows archvow's message as it is.
 
@@ -61,7 +72,7 @@ IntelliJ plugin's, tested against it (`../contract/`).
 ```bash
 npm ci
 npm test            # the .vow reader against the Java one, the grammar, the CLI runner, the workspace's rules
-npm run package     # -> ../dist/archvow-0.11.4.vsix
+npm run package     # -> ../dist/archvow-0.12.0.vsix
 ```
 
 Install: Extensions view > `...` > **Install from VSIX...**. For a team, a private registry (a

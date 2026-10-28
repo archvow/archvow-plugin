@@ -79,9 +79,29 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 - With VS Code opened *inside* WSL (Remote - WSL), the extension runs on the Linux side: none of this
   is needed.
 
+## Installing archvow (0.12.0)
+
+When archvow does not start, or answers another major.minor than the contract's, the plugins offer
+**Install archvow 1.17**; nothing is installed at startup or without a click. `ArchvowInstall`
+(IntelliJ) and `vscode/src/install.ts` (VS Code) hold the same rules:
+
+| Question | Answer |
+|---|---|
+| Into which Python? | the project's `.venv`, then `venv` (`venvPythons()`), then the IDE's interpreter, then the Python of the settings; a bare `python` is never chosen for the person (`installPython()`, `ArchvowInstall.python`): no Python found, the card says **Configure Python** |
+| Which version? | `archvow==1.17.*` (`requirement()`): archvow keeps no backward compatibility |
+| From where? | the setting *Install archvow from* / `archvow.installFrom` (`installSource()`): empty = pip's own configuration (pip.conf, `PIP_INDEX_URL`), an http(s) URL = `--index-url`, a `.whl` file, or a folder of wheels = `--no-index --find-links` (`pipArgs()`) |
+| How? | the command is shown (`displayCommand()`), then run only after **Confirm and run**: no shell, in the project folder, 10 minutes at most, `PIP_DISABLE_PIP_VERSION_CHECK=1`; a Python in WSL through `wsl.exe`, as archvow (`installCommand()`, `ArchvowInstall.command`) |
+| Afterwards? | success: the settings keep that Python, the version is probed again, the workspace reloads; failure: pip's output, nothing saved |
+
+VS Code: the card is `installCard()` on the welcome page (and in Overview for another version); the
+host keeps the offer (`offerInstall`), asks (`askInstall`) and runs pip on the confirmed token only
+(`runInstall`). IntelliJ: the welcome card's **Install archvow 1.17** button and the version
+notification's action, `askInstall` / `runInstall` in `ArchvowPanel`, the confirmation an
+`ArchvowConfirmPanel`.
+
 ## Commands reserved for people
 
-archvow 1.16 refuses its decision commands (decisions, hazards, rules...) when an AI agent is among the
+archvow 1.17 refuses its decision commands (decisions, hazards, rules...) when an AI agent is among the
 parent processes (ARCH051). The plugins' commands come from the IDE, not from an agent: they go
 through. If archvow stops one, the plugin shows its message as it is.
 
@@ -89,4 +109,6 @@ through. If archvow stops one, the plugin shows its message as it is.
 
 `LaunchCommandRegression` runs a fake `archvow` module with a real Python; `WslRegression` checks the
 paths, the order, the probe and a stand-in `wsl.exe`; `vscode/src/test/cli.test.ts` does the same for
-VS Code with a fake `archvow` written in Node.
+VS Code with a fake `archvow` written in Node. `InstallRegression` and `vscode/src/test/install.test.ts`
+check the install: the Python chosen, the pip line for each source, WSL, and that pip runs only from a
+confirmation.

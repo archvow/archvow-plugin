@@ -2,7 +2,7 @@
 
 > 🇬🇧 [English version](/en/14-release) · Version française
 
-Les deux plugins ont **le même numéro**, le leur (0.11.4), pas celui d'archvow. Une version est un
+Les deux plugins ont **le même numéro**, le leur (0.12.0), pas celui d'archvow. Une version est un
 commit `v<version>: <ce qui change, en une ligne>` sur `main`.
 
 ## Les numéros à changer
@@ -38,7 +38,7 @@ taille de l'IDE).
 
 ## Livrer
 
-`make release VERSION=0.11.4` écrit un *bundle* Git de toutes les branches et un `.zip` du dépôt. Une
+`make release VERSION=0.12.0` écrit un *bundle* Git de toutes les branches et un `.zip` du dépôt. Une
 version est aussi livrée en **patches** : `git format-patch` du commit précédent, que l'on applique avec
 `git am`, ou avec `./apply_patch.sh <fichier.patch>` (qui fait un `git apply` du contenu, sans créer le
 commit). Une livraison vérifiée applique le patch sur la version précédente et compare l'arbre obtenu
@@ -60,7 +60,7 @@ et disent quand celle qui est installée en est une autre (page [Lancer archvow]
 3. `(cd intellij && ./gradlew contractDump check)` et `(cd vscode && npm test)` : les formulaires
    suivent `commands.json` sans code ; un champ JSON renommé casse un test.
 4. Adapter ce que le diff demande, des deux côtés, avec une ligne de CHANGELOG chacun.
-5. Mettre à jour les nombres « archvow 1.16 » : `README.md`, `intellij/README.md`, `contract/README.md`,
+5. Mettre à jour les nombres « archvow 1.17 » : `README.md`, `intellij/README.md`, `contract/README.md`,
    `intellij/gradle.properties` (le commentaire), `wiki/home.md` et sa jumelle.
 
 ## Le wiki dans la même version

@@ -236,8 +236,26 @@
     return `<section class="welcome card"><h2>${esc(t('Archvow · Getting started', 'Archvow · Démarrage'))}</h2>
   <h3>${esc(title)}</h3><p>${esc(detail)}</p><p class="muted">${esc(S.project.root)}</p>
   ${S.welcomeError ? `<pre class="error">${esc(S.welcomeError)}</pre>` : ''}
+  ${installCard()}
   <div class="row">${btn(t('Initialize Archvow', 'Initialiser Archvow'), 'init', '', S.readiness !== 'NOT_INITIALIZED')}
-  ${btn(t('Configure Python', 'Configurer Python'), 'settings')}${btn(t('Retry', 'Réessayer'), 'refresh')}</div></section>`;
+  ${btn(t('Configure Python', 'Configurer Python'), 'settings')}${btn(t('Retry', 'Réessayer'), 'refresh')}</div>
+  ${confirmation('welcome')}${resultCard('welcome')}</section>`;
+  }
+
+  /** Install archvow (0.12.0): when it cannot start, or is another major.minor than the plugin knows. Nothing runs
+   *  before "Confirm and run". */
+  function installCard() {
+    const i = S.install || {};
+    if (!i.reason) return '';
+    const why = i.reason === 'missing'
+      ? t(`archvow is not installed where the plugin looks. Install archvow ${i.version}:`, `archvow n'est pas installé là où le plugin le cherche. Installer archvow ${i.version} :`)
+      : t(`The installed archvow is not ${i.version}, the version this plugin knows:`, `L'archvow installé n'est pas ${i.version}, la version que ce plugin connaît :`);
+    const where = i.python
+      ? `<div class="command">${esc(i.command)}</div><p class="muted small">${esc(t('From', 'Depuis'))}: ${esc(i.source === "pip's configuration" ? t("pip's configuration", 'la configuration de pip') : i.source)} · ${esc(t('setting archvow.installFrom', 'réglage archvow.installFrom'))}</p>`
+      : `<p class="tone-warn">${esc(t('No Python found for this project (.venv, venv, the Python extension\'s interpreter, archvow.python): choose one with Configure Python.',
+        "Aucun Python trouvé pour ce projet (.venv, venv, l'interpréteur de l'extension Python, archvow.python) : choisis-en un avec Configurer Python."))}</p>`;
+    return `<div class="card install"><p><b>${esc(why)}</b></p>${where}
+  <div class="row">${btn(t(`Install archvow ${i.version}`, `Installer archvow ${i.version}`), 'install', '', !i.python)}</div></div>`;
   }
 
   /** The sidebar: Overview, Components (the tree), Commands (the list). */
@@ -260,7 +278,7 @@
   <span class="row">${btn(t('Raw output', 'Sortie brute'), 'raw', attrs({ target }), r.running || !r.raw, raw ? 'on' : 'secondary')}
   ${btn(t('Copy', 'Copier'), 'copyResult', attrs({ target }), r.running || !r.raw, 'secondary')}
   ${btn('×', 'closeResult', attrs({ target }) + ` title="${esc(t('Close result', 'Fermer le résultat'))}"`, false, 'icon')}</span></div>
-  <div class="card-body" data-scroll="result-${target}" title="${esc(r.args || '')}">${body}</div></div>`;
+  <div class="card-body" data-scroll="result-${target}" title="${esc(r.args || '')}">${body}${r.running ? '' : addFolderButton(r.raw)}</div></div>`;
   }
 
   function confirmation(target) {
@@ -272,6 +290,14 @@
   }
 
   // ---------------------------------------------------------------- Overview
+
+  /** The project's briefs folders (init answer `briefs`): where --from may draw from. */
+  function briefFolders() {
+    const b = S && S.briefs;
+    if (!b || !S.spec) return '';
+    const names = b.folders.length ? b.folders.map((f) => f + '/').join(', ') : t('none declared', 'aucun déclaré');
+    return `<p class="brief-folders muted small" title="${esc(t('An architect changes them: archvow init <package> --force -a briefs=...', 'Un architecte les change : archvow init <package> --force -a briefs=...'))}">${esc(t('Brief folders (--from)', 'Dossiers de briefs (--from)'))}: ${esc(names)} · ${b.files.length} ${esc(b.files.length === 1 ? t('file', 'fichier') : t('files', 'fichiers'))}</p>`;
+  }
 
   function overviewTab() {
     const work = S.work;
@@ -296,7 +322,8 @@
   <div class="strip"><b>${esc(t('Project status', 'État du projet'))}</b><span class="row">
     <button class="badge pending" data-a="quickList" data-i="0" title="${esc(t('See open items by component', 'Voir les éléments ouverts par composant'))}">${work.pending.length} ${esc(t('pending', 'en attente'))}</button>
     <button class="badge resolved" data-a="quickList" data-i="1" title="${esc(t('See completed items by component', 'Voir les éléments traités par composant'))}">${work.resolved.length} ${esc(t('resolved', 'traités'))}</button></span></div>
-  ${branchWarning}
+  ${branchWarning}${briefFolders()}
+  ${S.install && S.install.reason === 'version' ? installCard() + confirmation('welcome') + resultCard('welcome') : ''}
   <div class="toolbar"><div class="row wrap">${toolbar}</div><span class="muted" title="${esc(t('Current Git branch', 'Branche Git courante'))}">Git: ${esc(S.branch || '—')}</span></div>
   <nav class="tabs sub">${[['architecture', 'Architecture'], ['checks', t('Check & Gates', 'Contrôles et validations')]]
     .map(([id, l]) => `<button class="tab ${ui.overSub === id ? 'current' : ''}" data-a="overSub" data-sub="${id}">${esc(l)}</button>`).join('')}</nav>
@@ -445,8 +472,8 @@
     else if (!view) body = `<p class="muted">${esc(t('Loading', 'Chargement'))}: ${esc(ui.component)}…</p>`;
     else body = [decisionsView, questionsView, safetyView, assumptionsView, rulesView, tasksView, vowView][ui.view](view, d);
     // Other / Project is the project's, not the component's: no component head over it (as in IntelliJ)
-    const head = view && ui.view !== 7 ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}</h2><p class="meta muted">${esc(meta(view))}</p>
-  <p class="description">${esc(str(view, 'description'))}</p>${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
+    const head = view && ui.view !== 7 ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}</h2><p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
+  <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
     // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
@@ -524,6 +551,67 @@
       return `<span class="${ok ? 'ok' : 'tone-warn'}" title="${esc(tip)}">${ok ? '✓' : '✖'} ${esc(str(e, 'name'))}${str(e, 'ticket') ? ` (${esc(str(e, 'ticket'))})` : ''}</span>`;
     };
     return `<p class="examples small">${esc(t('Examples', 'Exemples'))}: ${rows.map(item).join('  ·  ')}</p>`;
+  }
+
+  /** The briefs folders of archvow 1.17 (S.briefs, read by the extension): the --from field offers their
+   *  files and headings (file#section, archvow's slugs); free text stays allowed, archvow decides. */
+  function briefChoices() {
+    const b = (S && S.briefs) || { folders: [], files: [] };
+    return b.files.flatMap((f) => [f.file, ...f.sections.map((x) => `${f.file}#${x.slug}`)]);
+  }
+  function briefField(name, value, id) {
+    const b = (S && S.briefs) || { folders: [], files: [] };
+    const options = briefChoices().map((c) => `<option value="${esc(c)}">`).join('');
+    const where = b.folders.length ? b.folders.map((f) => f + '/').join(', ') : t('none declared', 'aucun déclaré');
+    return `<input list="brief-choices" data-input="form" data-name="${esc(name)}" data-keep="${id}" value="${esc(value)}"><datalist id="brief-choices">${options}</datalist>
+  <div class="muted small">${esc(t('Brief folders', 'Dossiers de briefs'))}: ${esc(where)}${b.files.length ? '' : '  ·  ' + esc(t('no .md or .txt file in them yet', 'aucun fichier .md ou .txt pour le moment'))}</div>`;
+  }
+
+  /** "Drawn from: specs/001-orders/plan.md#paying-an-invoice" (show --json `source`): opens it at that heading. */
+  function drawnFrom(view) {
+    const src = view && typeof view.source === 'object' && view.source ? view.source : null;
+    const file = src ? str(src, 'file') : '';
+    if (!file) return '';
+    const ref = str(src, 'section') ? `${file}#${str(src, 'section')}` : file;
+    return `<p class="drawn-from muted small">${esc(t('Drawn from', 'Tiré de'))}: <span class="link" data-a="openBrief" data-ref="${esc(ref)}" title="${esc(t('Open the brief at this heading', 'Ouvrir la brief à ce titre'))}">${esc(ref)}</span></p>`;
+  }
+
+  /** archvow's way to add a briefs folder (its refusal of --from, ARCH039): "archvow init <pkg> --force -a briefs=a,b". */
+  function addFolder(text) {
+    const m = /archvow init (\S+) --force -a briefs=(\S+)/.exec(text || '');
+    return m ? { package: m[1], answer: 'briefs=' + m[2] } : null;
+  }
+
+  /** The button under a result that says so: opens the architect's init --force form, prefilled (shown, then confirmed). */
+  function addFolderButton(text) {
+    const add = addFolder(text);
+    if (!add) return '';
+    return `<div class="row">${btn(t('Add this folder (architect)', 'Ajouter ce dossier (architecte)'), 'addFolder', attrs({ package: add.package, answer: add.answer })
+      + ` title="${esc(`archvow init ${add.package} --force -a ${add.answer}`)}"`, false, 'secondary')}</div>`;
+  }
+
+  /** The component's progress, read from show --json (no engine change): decisions made, safety answered,
+   *  tasks done, examples tested; a part with nothing to count is left out. As IntelliJ's ArchvowProgress. */
+  function progress(view) {
+    const part = (key, label, rows, done) => ({ key, label, done: rows.filter(done).length, total: rows.length });
+    return [
+      part('decisions', t('Decisions made', 'Décisions prises'), list(view, 'decisions'), (d) => d.answer !== null && d.answer !== undefined && String(d.answer).trim() !== ''),
+      part('safety', t('Safety answered', 'Sûreté traitée'), list(view, 'safety'), (q) => q.status === 'answered'),
+      part('tasks', t('Tasks done', 'Tâches faites'), list(view, 'tasks'), (x) => x.done === true),
+      part('examples', t('Examples tested', 'Exemples testés'), list(view, 'examples'), (e) => e.tested === true && e.unchanged !== false),
+    ].filter((p) => p.total > 0).map((p) => ({ ...p, complete: p.done === p.total }));
+  }
+
+  /** One bar under the component's name: a segment per part, green when complete, amber otherwise. */
+  function progressBar(view) {
+    const parts = progress(view);
+    if (!parts.length) return '';
+    const said = (p) => `${p.label}: ${p.done}/${p.total}`;
+    // 10 % steps (no inline style in the page); never full when not complete, never empty when started
+    const fill = (p) => (p.complete ? 100 : Math.min(90, Math.max(p.done ? 10 : 0, Math.round((10 * p.done) / p.total) * 10)));
+    return `<div class="progress" title="${esc(parts.map(said).join(' · '))}" aria-label="${esc(t('Progress', 'Avancement'))}">${parts.map((p) =>
+      `<div class="progress-part ${p.complete ? 'complete' : 'partial'}" data-part="${p.key}" title="${esc(said(p))}">
+  <div class="progress-label small">${esc(p.label)} <b>${p.done}/${p.total}</b></div><div class="progress-track"><div class="progress-fill p${fill(p)}"></div></div></div>`).join('')}</div>`;
   }
 
   /** Why the component's total can exceed a view's count (as the IntelliJ workspace says). */
@@ -779,7 +867,7 @@
     const item = items[ui.sel.other];
     let selected = '';
     if (item) {
-      const secondary = { 'hazard add': t('Not applicable', 'Non applicable'), 'assumption accept': t('Reject', 'Rejeter'), 'decision accept': t('Edit answer', 'Autre réponse'),
+      const secondary = { 'brief accept': t('Review the brief', 'Relire la brief'), 'hazard add': t('Not applicable', 'Non applicable'), 'assumption accept': t('Reject', 'Rejeter'), 'decision accept': t('Edit answer', 'Autre réponse'),
         'schema-create': t('Edit reader dependencies', 'Modifier les dépendances du lecteur') }[item.command]
         || (['open-file', 'component edit', 'invariant add'].includes(item.command) && item.component ? t('Open component', 'Ouvrir le composant') : '');
       selected = `<div class="details"><h4>${esc(item.title)}</h4>${chip(item.pending ? t('Pending', 'En attente') : t('Resolved', 'Traité'), item.pending ? 'warn' : 'good')}
@@ -835,6 +923,8 @@
         const def = I.types[value];
         control += `<div class="muted small">${esc(def ? `${value} — ${def.description}${def.hint ? ' | ' + t('Example', 'Exemple') + ': ' + def.hint : ''}${def.pattern ? ' | name_pattern: ' + def.pattern : ''}`
           : t('Select a type; naming constraints depend on the template.', 'Choisis un type ; les contraintes de nom dépendent du modèle.'))}</div>`;
+      } else if (p.flags.includes('--from')) {
+        control = briefField(p.name, value, id);
       } else if (p.choices.length) {
         control = `<select data-change="form" data-name="${esc(p.name)}"><option value=""></option>${p.choices.map((c) => `<option ${c === value ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`;
       } else if (LONG_TEXT.has(p.name)) {
@@ -1094,6 +1184,9 @@
       case 'schema-create':
         post({ type: 'openCommand', command: 'component edit', values: { component: item.component }, selected: ui.component });
         return;
+      case 'brief accept':
+        post({ type: 'openBrief', ref: item.preset.brief || '' });
+        return;
       default:
         if (item.component) goToComponent(item.component);
     }
@@ -1122,6 +1215,9 @@
     },
     overSub: (e) => { ui.overSub = e.dataset.sub; },
     refresh: () => post({ type: 'refresh' }),
+    install: () => post({ type: 'install' }),
+    openBrief: (e) => post({ type: 'openBrief', ref: e.dataset.ref }),
+    addFolder: (e) => post({ type: 'openCommand', command: 'init', values: { package: e.dataset.package, force: 'true', answer: e.dataset.answer }, selected: ui.component }),
     log: () => post({ type: 'log' }),
     settings: () => post({ type: 'settings' }),
     sidebar: () => post({ type: 'sidebar' }),

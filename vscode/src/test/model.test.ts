@@ -16,8 +16,8 @@ function components(nodes: Node[]): (Node & { kind: 'component' })[] {
   return nodes.flatMap((n) => (n.kind === 'component' ? [n] : components(n.children)));
 }
 
-test('the contract has the three examples', () => {
-  assert.deepEqual(EXAMPLES.sort(), ['fastapi-service', 'pyspark-pipeline', 'python-app']);
+test('the contract has the three examples and the briefs scenario', () => {
+  assert.deepEqual(EXAMPLES.sort(), ['briefs', 'fastapi-service', 'pyspark-pipeline', 'python-app']);
 });
 
 for (const example of EXAMPLES) {
@@ -78,11 +78,11 @@ test('a violation names its component by its vow file', () => {
 test('the CLI version: the contract\'s major.minor, older, newer, absent (EN and FR)', () => {
   const recorded = fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8');
   const known = knownVersion(recorded);
-  assert.equal(known, '1.16');
+  assert.equal(known, '1.17');
   assert.equal(versionWarning(parseVersion(recorded), known), null, recorded);
-  assert.equal(versionWarning([1, 16, 4], known), null);
+  assert.equal(versionWarning([1, 17, 4], known), null);
   assert.match(versionWarning([1, 11, 0], known) ?? '', /older.*update archvow/);
-  assert.match(versionWarning([1, 17, 0], known) ?? '', /newer.*update the plugin/);
+  assert.match(versionWarning([1, 18, 0], known) ?? '', /newer.*update the plugin/);
   assert.match(versionWarning([1, 13, 0], known, true) ?? '', /plus ancien/);
   assert.match(versionWarning(parseVersion('command not found'), known) ?? '', /installed/);
 });

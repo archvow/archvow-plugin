@@ -2,7 +2,7 @@
 
 > 🇫🇷 [Version française](/14-release) · English version
 
-Both plugins have **the same number**, their own (0.11.4), not archvow's. A release is a commit
+Both plugins have **the same number**, their own (0.12.0), not archvow's. A release is a commit
 `v<version>: <what changes, in one line>` on `main`.
 
 ## The numbers to change
@@ -37,7 +37,7 @@ sidebar (Component, State, Pending stay), run Doctor (text at the IDE's size).
 
 ## Shipping
 
-`make release VERSION=0.11.4` writes a Git *bundle* of all branches and a `.zip` of the repository. A
+`make release VERSION=0.12.0` writes a Git *bundle* of all branches and a `.zip` of the repository. A
 release is also shipped as **patches**: `git format-patch` from the previous commit, applied with
 `git am`, or with `./apply_patch.sh <file.patch>` (which runs `git apply` on the content, without making
 the commit). A checked delivery applies the patch onto the previous version and compares the resulting
@@ -59,7 +59,7 @@ the installed one is another (page [Running archvow](/en/05-running-archvow)).
 3. `(cd intellij && ./gradlew contractDump check)` and `(cd vscode && npm test)`: the forms follow
    `commands.json` with no code; a renamed JSON field breaks a test.
 4. Adapt what the diff asks for, on both sides, with a CHANGELOG line each.
-5. Update the "archvow 1.16" mentions: `README.md`, `intellij/README.md`, `contract/README.md`,
+5. Update the "archvow 1.17" mentions: `README.md`, `intellij/README.md`, `contract/README.md`,
    `intellij/gradle.properties` (the comment), `wiki/home.md` and its twin.
 
 ## The wiki in the same release

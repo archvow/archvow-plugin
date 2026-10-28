@@ -17,6 +17,8 @@ public final class ArchvowSettings implements PersistentStateComponent<ArchvowSe
         public String languageMode = "IDE";
         /** archvow is looked for in the IDE's Python interpreter for the project first (0.11.2). */
         public boolean useProjectInterpreter = true;
+        /** Where "Install archvow" takes it from (0.12.0): "" = pip's own configuration, an index URL, a wheel file or folder. */
+        public String installFrom = "";
     }
     private Values values = new Values();
     public static ArchvowSettings get(Project project) { return project.getService(ArchvowSettings.class); }

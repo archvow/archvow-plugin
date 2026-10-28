@@ -20,6 +20,15 @@ IntelliJ: `ArchvowGrammar.COMMANDS`, `renderForm`; VS Code: `commandForm()` in t
 (`LONG_TEXT`). The `type` field of `component add` offers the catalog's types
 (`ArchvowComponentTypes`, `componentTypes()`).
 
+The `--from` field (component add / edit, question add, decision add, rule add) offers the `.md` and
+`.txt` files of the project's brief folders and each Markdown heading as `file#section`, with archvow's
+own anchors: lower case, no accents, words joined by `-`, a repeated heading `-2`, `-3`
+(`ArchvowBriefs.slug`, `slug()` and `sections()` in `vscode/src/briefs.ts`). Free text stays allowed:
+archvow decides. When archvow refuses a file outside the folders, its message names the
+`archvow init <package> --force -a briefs=...` that adds it; the result shows **Add this folder
+(architect)**, which opens the init form prefilled (`addFolderButton()`, `ArchvowBriefs.withAddFolder`) -
+the architect checks it and confirms; nothing runs on its own.
+
 ## From the form to the command line
 
 `planForm()` (IntelliJ: `submitForm`) turns the fields into arguments, in the grammar's order: an empty

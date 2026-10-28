@@ -10,7 +10,7 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.11.4.zip, dist/archvow-0.11.4.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.12.0.zip, dist/archvow-0.12.0.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -46,12 +46,14 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
   every case of `contract/vow-reader/expected.json`.
 - **A plugin says when the installed archvow is outside the versions it knows**, rather than
   misreading it.
-- **No outside source at run time.** Neither plugin downloads anything; for a team, the `.zip` and the
-  `.vsix` go to an internal plugin repository (JetBrains `updatePlugins.xml`, a self-hosted Open VSX)
-  or a share.
+- **No outside source at run time.** Neither plugin downloads anything on its own; for a team, the `.zip`
+  and the `.vsix` go to an internal plugin repository (JetBrains `updatePlugins.xml`, a self-hosted Open
+  VSX) or a share. When archvow is missing or another major.minor, **Install archvow 1.17** shows the pip
+  command (into the project's venv, from pip's own configuration, your company's index or a wheel: the
+  setting *Install archvow from*) and runs it only after **Confirm and run** - never at startup.
 
 ## Versions
 
-Both plugins have the same version (0.11.4), their own, not archvow's. They read `.vow` format 1 and run
-the archvow CLI 1.16 (`contract/cli/version.txt`, the version the contract was recorded from); each says
+Both plugins have the same version (0.12.0), their own, not archvow's. They read `.vow` format 1 and run
+the archvow CLI 1.17 (`contract/cli/version.txt`, the version the contract was recorded from); each says
 when the installed archvow is another major.minor (archvow keeps no backward compatibility).

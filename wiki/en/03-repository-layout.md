@@ -11,7 +11,7 @@ archvow-plugin/
 ├── docs/analyse-intellij.md  the review of the IntelliJ plugin and what is left to do, by priority
 ├── wiki/                   this wiki (French; English in wiki/en/)
 ├── contract/               what the plugins and the CLI share (page 4)
-│   ├── cli/                archvow 1.16's recorded JSON, the grammar, the catalog, the rules
+│   ├── cli/                archvow 1.17's recorded JSON, the grammar, the catalog, the rules
 │   ├── vows/               the vows of archvow's three examples
 │   ├── vow-reader/         expected.json: what the Java reader gives
 │   └── tools/              regenerate.py, export_grammar.py

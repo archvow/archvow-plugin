@@ -10,11 +10,12 @@ from a real archvow CLI, never written by hand.
 
 | Folder or file | What | Written by | Read by |
 |---|---|---|---|
-| `contract/cli/version.txt` | `archvow --version` (today `archvow 1.16.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the version the plugin knows |
+| `contract/cli/version.txt` | `archvow --version` (today `archvow 1.17.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the version the plugin knows |
 | `contract/cli/commands.json` | every command and its parameters, drawn from archvow's argparse parser | `contract/tools/export_grammar.py` | `ArchvowGrammar`, `vscode/src/grammar.ts`: the Commands forms |
 | `contract/cli/catalog.json` | `archvow catalog --json` outside a project: the templates and their questions | `regenerate.py` | `ArchvowInitCatalog`, the `init` wizard when the CLI does not answer; `componentTypes()` |
 | `contract/cli/rules.md`, `rules.fr.md` | the meaning of each check code (archvow's `docs/rules*.md`) | `regenerate.py` (copy) | `ArchvowRuleDocs`, `ruleExplanation()`: the explanation under a diagnostic |
 | `contract/cli/<example>/show.json`, `next.json`, `check.json`, `show/<component>.json` | what the CLI prints on archvow's three examples | `regenerate.py` | the VS Code tests (`vscode/src/test/workspace.test.ts`, `layout.test.ts`) and both plugins' test setups |
+| `contract/cli/briefs/` (`show.json`, `next.json`, `check.json`, `show/<component>.json`, `refused.txt`) | python-app with Spec Kit's `specs/` declared as a brief folder (`-a briefs=briefs,specs`): `mark_paid` drawn from `specs/001-orders/plan.md#paying-an-invoice` (`source`), ARCH039 once that section changed, and archvow's refusal of `--from` before the folder was declared | `regenerate.py` (`briefs()`) | `vscode/src/test/briefs.test.ts`, `BriefsRegression` |
 | `contract/vows/<example>/.archvow/**/*.vow` | the vows archvow wrote on its examples | `regenerate.py` | both `.vow` readers (`CoreTests`, `vscode/src/test/vowReader.test.ts`) |
 | `contract/vow-reader/expected.json` | what the Java reader gives (tokens, problems, header, links) on every vow and on 400 vows broken on purpose | `./gradlew contractDump` (`DumpContract`) | the TypeScript reader must give exactly the same |
 

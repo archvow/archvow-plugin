@@ -14,7 +14,7 @@ runs them with `JavaExec` (`intellij/build.gradle.kts`). Gradle's `test` task is
 | Task | Class | What it checks |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | the `.vow` reader on every vow of `contract/vows`: the scanner covers all the text, restarts at any token, one colour per depth; vows broken on purpose give the right problems |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 34 regression classes: everything that does not need a running IntelliJ |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 37 regression classes: everything that does not need a running IntelliJ |
 | `contractDump` (not in `check`) | `DumpContract` | writes `contract/vow-reader/expected.json`, the TypeScript reader's reference |
 
 The panel itself (`ArchvowPanel`) needs a running IntelliJ; that is why **the logic is taken out into
@@ -32,6 +32,9 @@ what it protects:
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |
 | `ToolWindowLayoutRegression`, `ResponsiveOverflowRegression`, `CompactViewsRegression` | narrow screens |
 | `VersionRegression` | "archvow 1.17 is not the known version" |
+| `InstallRegression` | Install archvow: the Python chosen, the pip line per source, WSL, pip only from a confirmation |
+| `ProgressRegression` | the progress bar on the recorded `clean_orders` (9/9, 1/5, 0/2) |
+| `BriefsRegression` | the brief folders, archvow's slugs, the `--from` choices, Drawn from, Add this folder, ARCH039 |
 
 A new regression is added in `WorkspaceTests.main` (one `run(...)` line): a class not listed there does
 not run.
@@ -60,9 +63,11 @@ tested, the page is read as text.
 | `cli.test.ts` | the command line, stdout and stderr apart, stdin for an unsaved file, one command at a time, the time-out, archvow missing, WSL; with a fake `archvow` written for the test |
 | `vowReader.test.ts` | the TypeScript reader gives **exactly** `contract/vow-reader/expected.json` |
 | `grammar.test.ts` | one colour per depth in the TextMate grammar; the prefill of Edit spec |
-| `model.test.ts` | the recorded JSON of the three examples can be read |
+| `model.test.ts` | the recorded JSON of the three examples and of the briefs scenario can be read |
 | `workspace.test.ts` | form -> command line, prefill, in-place actions, documented fixes, result formatting |
-| `layout.test.ts` | the page: one tab, the logo, the cards, the architecture table, Back |
+| `layout.test.ts` | the page: one tab, the logo, the cards, the architecture table, Back, the progress bar |
+| `install.test.ts` | Install archvow: the source, the Python, the pip line, WSL, nothing without Confirm and run |
+| `briefs.test.ts` | the brief folders, archvow's slugs, the `--from` choices, Drawn from, the refusal -> init form, ARCH039 (on `contract/cli/briefs`) |
 | `wiki.test.ts` | the wiki follows the code (below) |
 
 The page's behaviour (a click, a width) is checked by hand with F5, or in a headless browser that loads

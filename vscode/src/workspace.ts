@@ -5,16 +5,18 @@
 // This side runs archvow and holds what it said; the page (media/workspace.js, the same script in both
 // places) shows it and asks. Every command the page asks for is checked against archvow's own grammar and
 // built here; a change runs only after the person confirms it in the page.
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ArchvowCli, CliResult, CliSettings } from './cli';
+import { Briefs, locate, readBriefs } from './briefs';
 import { renderResult } from './formatter';
 import { Command, findCommand, inline, isMutating, needsFullCard, planForm, prefill, preview, promptCommand } from './grammar';
 import { isFrench, tr } from './i18n';
+import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
 import { knownVersion, parseVersion, problemsOf, versionWarning } from './model';
 import { moduleFiles } from './vow/links';
 import { architectureRows, buildWork, Json, objects, str, Work } from './workItems';
@@ -40,6 +42,10 @@ export interface State {
   rows: ReturnType<typeof architectureRows>;
   vows: Record<string, string>;
   knownVersion: string;
+  /** Install archvow (0.12.0): shown when it cannot start or is another major.minor. */
+  install: InstallOffer;
+  /** The briefs folders (init answer `briefs`) and their files' headings, for --from and "Drawn from" (0.12.0). */
+  briefs: Briefs;
   /** Per component, what its views show: counts, each safety question's status, columns and tasks. */
   derived: Record<string, Derived>;
 }
@@ -152,6 +158,7 @@ export class ArchvowProject {
       fr: this.french(), languageMode: this.languageMode(), project: { name: path.basename(this.root), root: this.root },
       readiness: readiness(this.root), welcomeError: '', branch: '', loading: '', spec: null, check: null, checkFailure: '',
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
+      install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
     };
   }
 
@@ -175,8 +182,10 @@ export class ArchvowProject {
       this.state.readiness = readiness(this.root);
       await this.readInterpreter();
       void this.readBranch();
+      if (this.state.readiness === 'NOT_INITIALIZED') await this.checkVersion();  // init needs archvow too
       if (this.state.readiness !== 'READY') {
-        Object.assign(this.state, { spec: null, check: null, next: null, snapshots: {}, checkFailure: '', welcomeError: '' });
+        Object.assign(this.state, { spec: null, check: null, next: null, snapshots: {}, checkFailure: '',
+          welcomeError: this.state.install.reason === 'missing' ? this.state.welcomeError : '' });
         this.recompute();
         this.publish();
         return;
@@ -198,6 +207,7 @@ export class ArchvowProject {
       }
       this.state.welcomeError = '';
       this.state.spec = spec;
+      this.state.briefs = readBriefs(this.root, spec);
       const checked = await this.cli.run(['check', '--json']);
       this.setCheck(parse(checked.stdout), (checked.startError ?? (checked.stderr || checked.stdout)).trim());
       const next = await this.cli.run(['next', '--json']);
@@ -251,11 +261,90 @@ export class ArchvowProject {
     const result = await this.cli.run(['--version']);
     if (result.startError !== undefined) {
       this.state.welcomeError = result.startError;
+      this.offerInstall('missing');
       return;
     }
     this.versionChecked = true;
     const warning = versionWarning(parseVersion(result.stdout + result.stderr), this.known, this.french());
-    if (warning !== null) void vscode.window.showWarningMessage(warning);
+    this.offerInstall(warning === null ? '' : 'version');
+    if (warning !== null) {
+      const install = tr(this.french(), `Install archvow ${this.known}`, `Installer archvow ${this.known}`);
+      void vscode.window.showWarningMessage(warning, install).then((chosen) => {
+        if (chosen === install) this.askInstall('nav');
+      });
+    }
+  }
+
+  // ------------------------------------------------------------------ installing archvow (guided, 0.12.0)
+
+  private pendingInstall = new Map<string, { program: string; args: string[]; python: string }>();
+
+  /** The install card: the Python it goes into and the command, or nothing when archvow answers as expected. */
+  private offerInstall(reason: InstallReason): void {
+    const config = vscode.workspace.getConfiguration('archvow');
+    const python = reason === '' ? null : installPython(this.root, this.interpreter, config.get<string>('python', ''), (f) => fs.existsSync(f));
+    this.state.install = offer(reason, this.known, python, this.root, installSource(config.get<string>('installFrom', '')));
+  }
+
+  /** "Install archvow": the command, shown; it runs only once the person confirms it. */
+  private askInstall(from: From): void {
+    const fr = this.state.fr;
+    const install = this.state.install;
+    if (!install.reason) this.offerInstall('missing');
+    if (!this.state.install.python) {
+      void vscode.window.showInformationMessage(tr(fr, 'No Python found for this project: choose one in the settings (archvow.python), or create .venv.',
+        'Aucun Python trouvé pour ce projet : choisis-en un dans les réglages (archvow.python), ou crée .venv.'));
+      return;
+    }
+    const config = vscode.workspace.getConfiguration('archvow');
+    const command = installCommand(this.state.install.python, this.root, this.known, installSource(config.get<string>('installFrom', '')));
+    const token = crypto.randomBytes(8).toString('hex');
+    this.pendingInstall.set(token, { ...command, python: this.state.install.python });
+    const summary = tr(fr, `Installs archvow ${this.known} into ${this.state.install.python}, from ${this.state.install.source}. Nothing else changes; afterwards archvow.python points to this Python.`,
+      `Installe archvow ${this.known} dans ${this.state.install.python}, depuis ${this.state.install.source === "pip's configuration" ? 'la configuration de pip' : this.state.install.source}. Rien d'autre ne change ; ensuite archvow.python désigne ce Python.`);
+    const message = { type: 'confirm', token, title: tr(fr, `Install archvow ${this.known}`, `Installer archvow ${this.known}`), summary,
+      target: 'welcome', command: this.state.install.command };
+    this.reply(from, message);
+  }
+
+  /** pip, after the confirmation: no shell, in the project folder, its output in the result card. */
+  private async runInstall(token: string, from: From): Promise<void> {
+    const job = this.pendingInstall.get(token);
+    this.pendingInstall.delete(token);
+    if (!job) return;
+    const fr = this.state.fr;
+    const label = tr(fr, `Install archvow ${this.known}`, `Installer archvow ${this.known}`);
+    const shown = [job.program, ...job.args].join(' ');
+    this.reply(from, { type: 'running', target: 'welcome', label, args: shown });
+    const wsl = job.program === 'wsl.exe';
+    const out = await new Promise<{ code: number; text: string; error?: string }>((resolve) => {
+      const chunks: Buffer[] = [];
+      let child;
+      try {
+        child = spawn(job.program, job.args, { cwd: wsl ? os.homedir() : this.root, shell: false, windowsHide: true,
+          env: { ...process.env, PYTHONIOENCODING: 'utf-8', PIP_DISABLE_PIP_VERSION_CHECK: '1' } });
+      } catch (error) {
+        resolve({ code: -1, text: '', error: String((error as Error).message) });
+        return;
+      }
+      const timer = setTimeout(() => child.kill(), 600_000);
+      child.stdout.on('data', (c: Buffer) => chunks.push(c));
+      child.stderr.on('data', (c: Buffer) => chunks.push(c));
+      child.on('error', (error) => { clearTimeout(timer); resolve({ code: -1, text: '', error: error.message }); });
+      child.on('close', (code) => { clearTimeout(timer); resolve({ code: code ?? -1, text: Buffer.concat(chunks).toString('utf8') }); });
+    });
+    this.log.info(`${shown}  ·  ${out.error ? 'did not start' : 'exit ' + out.code}`);
+    const ok = out.code === 0;
+    const html = renderResult(label, ok ? 0 : out.code, ok ? out.text : '', ok ? '' : (out.error ?? out.text), false, fr);
+    const result = { type: 'result', target: 'welcome', label, html, raw: (out.error ?? out.text).trim(), args: shown, ok };
+    this.reply(from, result);
+    if (!ok) return;
+    // archvow now runs from this Python: remembered for the project, then everything is read again
+    await vscode.workspace.getConfiguration('archvow').update('python', job.python, vscode.ConfigurationTarget.Workspace);
+    this.versionChecked = false;
+    this.state.welcomeError = '';
+    this.state.install = { reason: '', version: this.known, python: '', command: '', source: '' };
+    await this.refresh(true);
   }
 
   private readBranch(): Promise<void> {
@@ -491,7 +580,11 @@ export class ArchvowProject {
         return this.runForm(String(m.command), (m.values ?? {}) as Record<string, string>, stringList(m.initAnswers ?? []), String(m.selected ?? ''));
       case 'inline':
         return this.inlineAction(m);
+      case 'install':
+        this.askInstall(from);
+        return;
       case 'confirmed': {
+        if (this.pendingInstall.has(String(m.token))) return this.runInstall(String(m.token), from);
         const job = this.pendingConfirmations.get(String(m.token));
         this.pendingConfirmations.delete(String(m.token));
         if (job) await this.execute(job.label, job.args, job.target, job.stdin, true, job.then);
@@ -499,6 +592,7 @@ export class ArchvowProject {
       }
       case 'cancelled':
         this.pendingConfirmations.delete(String(m.token));
+        this.pendingInstall.delete(String(m.token));
         return;
       case 'openCommand':
         return this.openCommand(String(m.command), (m.values ?? {}) as Record<string, string>, String(m.selected ?? ''));
@@ -528,6 +622,10 @@ export class ArchvowProject {
         return this.openRule(String(m.code));
       case 'openFile':
         return this.openProjectFile(String(m.file), Number(m.line) || 0);
+      case 'openBrief': {
+        const where = locate(this.state.briefs, String(m.ref ?? ''));
+        return this.openProjectFile(where.file, where.line);
+      }
       case 'copy':
         await vscode.env.clipboard.writeText(String(m.text ?? ''));
         void vscode.window.showInformationMessage(tr(fr, 'Copied.', 'Copié.'));

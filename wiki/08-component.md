@@ -29,7 +29,11 @@ dans `show --json` pour le module et le ticket).
 ```
 
 **L'en-tête** : le nom et le nombre d'éléments ouverts (le même que la barre latérale), puis *type ·
-couche · module · ticket · état*, la description, *Utilise · Utilisé par* (chaque nom ouvre ce
+couche · module · ticket · état*, **une barre d'avancement** (décisions prises, sûreté traitée, tâches
+faites, exemples testés - chacune seulement s'il y a quelque chose à compter -, verte quand c'est
+complet, ambre sinon, les nombres dans l'infobulle : `ArchvowProgress`, `progress()` et
+`progressBar()`), la description, **Tiré de** la brief d'où il vient (`source` de show ; un lien qui
+ouvre la brief à son titre : `ArchvowBriefs.drawnFromHtml`, `drawnFrom()`), *Utilise · Utilisé par* (chaque nom ouvre ce
 composant : ce qu'un changement peut casser, `ArchvowLinks`, `links()`) et les exemples métier (✓ testé
 et inchangé, ✖ avec la raison, ARCH055/ARCH056). IntelliJ : `buildComponentHtml` dans le panneau
 `componentDetails` ; VS Code : `componentDetail()`, `openBadge()`, `meta()`.

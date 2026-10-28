@@ -17,6 +17,7 @@ public final class WorkspaceTests {
         run("ArchitectureViewRegression", () -> ArchitectureViewRegression.main(NONE));
         run("AnswerEditorRegression", () -> AnswerEditorRegression.main(NONE));
         run("ArchvowDataViewSmoke", () -> ArchvowDataViewSmoke.main(NONE));
+        run("BriefsRegression", () -> BriefsRegression.main(NONE));
         run("ButtonHoverRegression", () -> ButtonHoverRegression.main(NONE));
         run("CommandPrefillRegression", () -> CommandPrefillRegression.main(NONE));
         run("CompactViewsRegression", () -> CompactViewsRegression.main(NONE));
@@ -25,10 +26,12 @@ public final class WorkspaceTests {
         run("GlobalCatalogRegression", () -> GlobalCatalogRegression.main(NONE));
         run("InitWizardRegression", () -> InitWizardRegression.main(NONE));
         run("InlineCommandRegression", () -> InlineCommandRegression.main(NONE));
+        run("InstallRegression", () -> InstallRegression.main(NONE));
         run("LaunchCommandRegression", () -> LaunchCommandRegression.main(NONE));
         run("MotionRegression", () -> MotionRegression.main(NONE));
         run("NativeChecksAndRulesRegression", () -> NativeChecksAndRulesRegression.main(NONE));
         run("NavigationTabsRegression", () -> NavigationTabsRegression.main(NONE));
+        run("ProgressRegression", () -> ProgressRegression.main(NONE));
         run("ProjectReadinessRegression", () -> ProjectReadinessRegression.main(NONE));
         run("ResponsiveOverflowRegression", () -> ResponsiveOverflowRegression.main(NONE));
         run("ResultFormatterRegression", () -> ResultFormatterRegression.main(NONE));
