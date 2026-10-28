@@ -70,6 +70,9 @@ modules testés, la page est lue comme du texte.
 | `install.test.ts` | Installer archvow : la source, le Python, la ligne pip, WSL, rien sans Confirmer et exécuter |
 | `briefs.test.ts` | les dossiers de briefs, les ancres d'archvow, les choix de `--from`, Tiré de, le refus -> formulaire init, ARCH039 (sur `contract/cli/briefs`) |
 | `wiki.test.ts` | le wiki suit le code (plus bas) |
+| `release.test.ts` | avant une version, sans rien construire : une seule version (`package.json`, `gradle.properties`, README, les deux changelogs), un seul archvow (`contract/cli/version.txt`, l'exigence pip, le README), les deux builds embarquent les mêmes fichiers du contrat, les listes de commandes (`DESTRUCTIVE`, `READ_ONLY`, `LONG_TEXT`) identiques dans `grammar.ts` et `ArchvowPanel` et faites de commandes d'archvow, toute commande qui demande confirmation reçoit `--yes`, `package.json` et `plugin.xml` ne citent que des commandes, réglages, classes et fichiers qui existent |
+| `live.test.ts` | un vrai archvow, lancé par `ArchvowCli` : sa version est celle du contrat, `catalog --json` est celui enregistré, sur les trois exemples d'archvow avec leur code chaque sortie est **exactement** le contrat, les commandes en lecture seule ne changent aucun vow, `question add` puis `question remove --yes` font l'aller-retour, une erreur est une phrase. Sauté sans `ARCHVOW_PYTHON` (ou `ARCHVOW_EXECUTABLE`) et `ARCHVOW_SOURCE` ; `ARCHVOW_LIVE=required` fait du saut un échec |
+| `package.test.ts` | les paquets de `dist/`, ouverts comme les IDE les ouvrent (`zip.ts` les lit) : le `.vsix` (manifeste, version, chaque module, le contrat embarqué, ni source, ni test, ni map, chaque `require` embarqué ou natif) et le `.zip` IntelliJ (le `plugin.xml` du jar avec la version et le `since-build`, chaque classe qu'il cite, le contrat embarqué, aucune classe de test). Sauté sans paquets ; `PACKAGES_REQUIRED=1` fait du saut un échec |
 
 Le comportement de la page (un clic, une largeur) se vérifie à la main avec F5, ou dans un navigateur
 headless qui charge `media/workspace.js` avec un faux `acquireVsCodeApi` et des messages tirés du
@@ -91,11 +94,31 @@ contrat ; comme les doublures IntelliJ, ce banc n'est pas dans le dépôt.
 Un renommage oublié dans le wiki casse donc le test, comme dans archvow
 (`test_the_wiki_follows_the_code`).
 
+## GitHub Actions : `.github/workflows/`
+
+Les mêmes contrôles que la CI d'archvow, à chaque push et pull request (`ci.yml`) :
+
+| Job | Ce qu'il lance |
+|---|---|
+| `vscode` | `npm ci`, `npm test`, `npm run package` -> le `.vsix` |
+| `intellij` | `./gradlew check buildPlugin contractDump` -> le `.zip` ; le lecteur Java doit encore écrire le `contract/vow-reader/expected.json` commité (le fichier sur lequel le lecteur VS Code est testé) |
+| `contract` | `contract/tools/regenerate.py` depuis la source d'archvow au tag de `contract/cli/version.txt` (`v1.17.0`) : `contract/` doit être exactement ce qui est commité |
+| `live` | `live.test.ts` contre cet archvow, installé dans un venv (`ARCHVOW_LIVE=required`) |
+| `packages` | `package.test.ts` sur les deux paquets du run (`PACKAGES_REQUIRED=1`) ; ils sont gardés comme artefact `archvow-plugins` |
+
+`archvow-canary.yml` tourne chaque lundi (ou à la main) : le contrat régénéré depuis la branche par
+défaut d'archvow ; il échoue, avec le diff, quand le prochain archvow change ce que lisent les plugins.
+
+La source d'archvow est clonée par `.github/scripts/archvow-source.sh` : renseigner la variable de dépôt
+`ARCHVOW_GIT_URL` (le dépôt d'archvow, par défaut `archvow` à côté de celui-ci sur GitHub) et, s'il est
+privé, le secret `ARCHVOW_GIT_TOKEN` (lecture seule) ; taguer chaque version d'archvow (`git tag v1.17.0`).
+
 ## Avant chaque commit
 
 ```bash
 (cd intellij && ./gradlew check)
 (cd vscode && npm test)
+ARCHVOW_PYTHON=../.venv/bin/python ARCHVOW_SOURCE=../archvow npm test --prefix vscode   # avec un vrai archvow, depuis votre propre terminal
 ```
 
 Et avant une version, la liste de la page [Publier une version](/14-release).
