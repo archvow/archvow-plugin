@@ -1,7 +1,13 @@
 package org.archvow.idea;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import javax.swing.*;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.awt.*;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -16,10 +22,14 @@ public final class ToolWindowLayoutRegression {
             if (in == null) throw new AssertionError("plugin.xml not on the classpath");
             xml = new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
-        must(xml.contains("<toolWindow id=\"Archvow\" anchor=\"left\""), "the tool window is on the left");
-        must(xml.contains("<editorTabTitleProvider implementation=\"org.archvow.idea.ArchvowEditorTabPresentation\"/>"), "the tab's title");
-        must(xml.contains("<fileIconProvider implementation=\"org.archvow.idea.ArchvowEditorTabPresentation\"/>"), "the tab's icon");
-        must(xml.contains("<fileEditorProvider implementation=\"org.archvow.idea.ArchvowEditorProvider\"/>"), "the one editor tab");
+        // read as XML, not as text: the build rewrites plugin.xml (patchPluginXml: version, since-build) and
+        // writes it back in its own layout (`<a b="c" />`), so the text differs from the source file
+        Document plugin = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            .parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+        must(declared(plugin, "toolWindow", "id", "Archvow", "anchor", "left"), "the tool window is on the left");
+        must(declared(plugin, "editorTabTitleProvider", "implementation", "org.archvow.idea.ArchvowEditorTabPresentation"), "the tab's title");
+        must(declared(plugin, "fileIconProvider", "implementation", "org.archvow.idea.ArchvowEditorTabPresentation"), "the tab's icon");
+        must(declared(plugin, "fileEditorProvider", "implementation", "org.archvow.idea.ArchvowEditorProvider"), "the one editor tab");
         must(!xml.contains("ToolWindowVisibilityListener") && !xml.contains("OpenArchvowEditorAction"), "no sidebar/editor switch left");
         must(xml.contains("org.archvow.idea.ShowArchvowAction"), "Tools > Show Archvow");
 
@@ -57,6 +67,18 @@ public final class ToolWindowLayoutRegression {
             must(component.isVisible() && !command.isVisible(), "the component card is shown");
         });
         System.out.println("OK: tool window on the left, one editor tab (title, icon), compact strip");
+    }
+
+    /** Whether plugin.xml has a {@code <tag>} with these attribute values (name, value, name, value...). */
+    private static boolean declared(Document plugin, String tag, String... attributes) {
+        NodeList found = plugin.getElementsByTagName(tag);
+        for (int i = 0; i < found.getLength(); i++) {
+            Element element = (Element) found.item(i);
+            boolean all = true;
+            for (int a = 0; a < attributes.length; a += 2) all &= attributes[a + 1].equals(element.getAttribute(attributes[a]));
+            if (all) return true;
+        }
+        return false;
     }
 
     private static void must(boolean ok, String what) {
