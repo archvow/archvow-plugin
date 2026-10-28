@@ -1,0 +1,68 @@
+vow 1 component invoice_model
+# archvow vow of invoice_model - what it must be and do; archvow check holds the code to it.
+# Read: archvow show invoice_model. Change: archvow specify invoice_model. Never edit by hand.
+name invoice
+type model
+layer p1_domain
+module invoicing.p1_domain.invoice_model
+ticket US-001
+description "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid"
+uses []
+
+# --- symbols
+symbol Invoice
+  kind class
+
+# --- decisions
+decision 1
+  question "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?"
+  answer "All fields required"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:49.515640+00:00
+
+decision 2
+  question "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?"
+  answer "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:49.798659+00:00
+
+decision 3
+  question "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?"
+  answer "None"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:50.138638+00:00
+
+decision 4
+  question "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?"
+  answer "Frozen: a change builds a new one (dataclasses.replace)"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:50.522554+00:00
+
+assumptions []
+columns
+  amount none
+  customer personal
+  number none
+  status none
+
+# --- hazards
+hazard H1
+  guide_word wrong
+  severity high
+  never "An invoice with a negative amount is accepted"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:56.484566+00:00
+
+# --- invariants
+invariant INV1
+  always "every invoice has an amount of zero or more"
+  prevents [H1]
+  verified_by example_test
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:56.927386+00:00
+
+# --- not applicable
+not_applicable exposed
+  because "Invoices hold no secret; the customer name is printed only to the person who runs the command"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:57.296944+00:00

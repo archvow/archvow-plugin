@@ -1,0 +1,89 @@
+vow 1 component orders_router
+# archvow vow of orders_router - what it must be and do; archvow check holds the code to it.
+# Read: archvow show orders_router. Change: archvow specify orders_router. Never edit by hand.
+name orders
+type router
+layer p4_api
+module orders_api.p4_api.orders_router
+ticket US-001
+description "The order API"
+uses [create_order, get_order, order_model, new_order_model]
+
+# --- symbols
+symbol router
+  kind constant
+  annotation APIRouter
+
+symbol post_order
+  kind route
+  method POST
+  path "/orders"
+
+symbol read_order
+  kind route
+  method GET
+  path "/orders/{order_id}"
+
+# --- decisions
+decision 1
+  question "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?"
+  answer "Authenticated customers (get_current_user), each only on their own orders"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 2
+  question "Status codes: success, not found, conflict, forbidden - and the error body format?"
+  answer "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 3
+  question "Invalid input: FastAPI's 422, or 400 with your own error format?"
+  answer "FastAPI's 422"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 4
+  question "Lists: pagination, default and maximum page size - or no list route?"
+  answer "No list route; POST repeated: two orders (no idempotency key yet)"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 5
+  question "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?"
+  answer "No list route; POST repeated: two orders (no idempotency key yet)"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+assumptions []
+answers
+  P.purpose
+    answer "Take and show the orders of each customer, for that customer only"
+    by architect@example.com
+    on 2026-10-12T00:46:55.799694+00:00
+  P.legal_basis
+    answer "Contract: the customer's orders (terms of sale)"
+    by architect@example.com
+    on 2026-10-12T00:46:56.107070+00:00
+
+# --- hazards
+hazard H1
+  guide_word exposed
+  severity critical
+  never "A customer reads another customer's order"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+# --- invariants
+invariant INV1
+  always "a customer only ever reads their own orders"
+  prevents [H1]
+  verified_by property_test
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+# --- not applicable
+not_applicable more
+  because "No route returns a list; each answer is one order"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00

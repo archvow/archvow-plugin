@@ -1,0 +1,39 @@
+# Early warning for the next archvow, as archvow's fastapi-canary: every Monday (or by hand, Actions >
+# archvow canary > Run workflow), the contract is regenerated from archvow's default branch. Optional: it
+# runs only when the repository variable ARCHVOW_GIT_URL names archvow's repository (with the secret
+# ARCHVOW_GIT_TOKEN, read-only, when it is private); CI itself uses contract/archvow/ and needs neither. When archvow
+# changes what it prints, this run fails and shows the diff before any team upgrades; the plugins follow
+# in a new version (contract/README.md: "After an archvow release").
+name: archvow canary
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: archvow branch or tag
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    if: vars.ARCHVOW_GIT_URL != ''
+    runs-on: ubuntu-latest
+    env:
+      ARCHVOW_GIT_URL: ${{ vars.ARCHVOW_GIT_URL }}
+      ARCHVOW_GIT_TOKEN: ${{ secrets.ARCHVOW_GIT_TOKEN }}
+      ARCHVOW_REF: ${{ inputs.ref || vars.ARCHVOW_CANARY_REF || 'main' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: .github/scripts/archvow-source.sh /tmp/archvow
+      - run: pip install -q /tmp/archvow && python -m archvow --version
+      - run: python contract/tools/regenerate.py /tmp/archvow --python python
+      - name: What the next archvow changes for the plugins
+        run: |
+          git diff --stat -- contract/
+          git diff --exit-code -- contract/ && test -z "$(git status --porcelain -- contract/)"

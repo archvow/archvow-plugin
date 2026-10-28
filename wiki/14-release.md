@@ -53,8 +53,9 @@ archvow ne garde pas de compatibilité ascendante : chaque version mineure peut 
 son JSON. Les plugins suivent **une** version, celle de `contract/cli/version.txt` (`ArchvowVersion.KNOWN`),
 et disent quand celle qui est installée en est une autre (page [Lancer archvow](/05-running-archvow)).
 
-1. Régénérer le contrat depuis le nouvel archvow (page [Le contrat](/04-contract)) :
-   `python3 contract/tools/regenerate.py ../archvow`.
+1. Mettre le nouvel archvow dans `contract/archvow/` (`contract/tools/take_archvow.sh` : son wheel, ses
+   exemples et règles), puis régénérer le contrat depuis lui (page [Le contrat](/04-contract)) :
+   `python3 contract/tools/regenerate.py contract/archvow`.
 2. Lire `git diff contract/` : c'est exactement ce qui a changé pour les plugins (une option, un champ
    du JSON, un code de règle, une question de template).
 3. `(cd intellij && ./gradlew contractDump check)` et `(cd vscode && npm test)` : les formulaires

@@ -1,0 +1,33 @@
+# archvow: local status report, depends on the code (regenerate: archvow docs)
+.archvow/status.md
+
+# Secrets: settings come from the environment, never from a committed file
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.coverage
+coverage.xml
+htmlcov/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.cache/
+
+# OS and IDE
+.DS_Store
+.idea/
+.vscode/
+
+# --- added by archvow init ---
+# archvow: how each AI agent last ran here, for the commit check (local)
+.archvow/*.local

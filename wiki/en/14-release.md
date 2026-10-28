@@ -52,8 +52,9 @@ archvow keeps no backward compatibility: each minor version may change its comma
 plugins follow **one** version, that of `contract/cli/version.txt` (`ArchvowVersion.KNOWN`), and say when
 the installed one is another (page [Running archvow](/en/05-running-archvow)).
 
-1. Regenerate the contract from the new archvow (page [The contract](/en/04-contract)):
-   `python3 contract/tools/regenerate.py ../archvow`.
+1. Put the new archvow in `contract/archvow/` (`contract/tools/take_archvow.sh`: its wheel, its examples and
+   rules), then regenerate the contract from it (page [The contract](/en/04-contract)):
+   `python3 contract/tools/regenerate.py contract/archvow`.
 2. Read `git diff contract/`: it is exactly what changed for the plugins (an option, a JSON field, a
    rule code, a template question).
 3. `(cd intellij && ./gradlew contractDump check)` and `(cd vscode && npm test)`: the forms follow

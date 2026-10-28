@@ -1,0 +1,7 @@
+# the scripts run on Linux (cluster, container, CI): they keep LF line endings, even from Windows
+*.sh text eol=lf
+.githooks/* text eol=lf
+
+# --- added by archvow init ---
+# business examples keep their bytes on every system (archvow compares their fingerprint)
+tests/examples/** text eol=lf

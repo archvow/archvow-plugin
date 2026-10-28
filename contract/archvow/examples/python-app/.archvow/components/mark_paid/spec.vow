@@ -1,0 +1,88 @@
+vow 1 component mark_paid
+# archvow vow of mark_paid - what it must be and do; archvow check holds the code to it.
+# Read: archvow show mark_paid. Change: archvow specify mark_paid. Never edit by hand.
+name mark_paid
+type service
+layer p3_services
+module invoicing.p3_services.mark_paid
+ticket US-001
+description "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it"
+uses [invoice_model, invoice_not_found_error, invoices_repository]
+
+# --- symbols
+symbol mark_paid
+  kind function
+  signature "(data_dir: Path, number: str) -> Invoice"
+
+# --- decisions
+decision 1
+  question "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?"
+  answer "Read the invoice; refuse a draft (ValueError); set status paid; save; return it"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:52.845862+00:00
+
+decision 2
+  question "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?"
+  answer "InvoiceNotFoundError"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:53.155922+00:00
+
+decision 3
+  question "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?"
+  answer "The same result: an invoice already paid stays paid, saved again unchanged"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:53.455983+00:00
+
+decision 4
+  question "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?"
+  answer "Only one change, one save: nothing to undo"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:53.785062+00:00
+
+assumptions []
+answers
+  P.purpose
+    answer "To record which customers paid their invoices, for the finance team"
+    by noreply@anthropic.com
+    on 2026-10-21T16:21:01.953151+00:00
+  P.legal_basis
+    answer "Contract: the customer's purchase"
+    by noreply@anthropic.com
+    on 2026-10-21T16:21:02.230748+00:00
+
+# --- hazards
+hazard H1
+  guide_word repeated
+  severity high
+  never "Paying twice changes the invoice twice"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:55.830391+00:00
+
+# --- invariants
+invariant INV1
+  always "marking an invoice paid twice gives the same invoice as once"
+  prevents [H1]
+  verified_by example_test
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:56.155074+00:00
+
+# --- not applicable
+not_applicable missing
+  because "InvoiceNotFoundError (decision 2)"
+  by noreply@anthropic.com
+  on 2026-10-21T16:21:00.044915+00:00
+
+not_applicable partial
+  because "One save, written completely or not at all (invoices_repository.INV1)"
+  by noreply@anthropic.com
+  on 2026-10-21T16:21:00.407268+00:00
+
+not_applicable concurrent
+  because "Two runs write the same paid invoice (decision 3)"
+  by noreply@anthropic.com
+  on 2026-10-21T16:21:00.799379+00:00
+
+not_applicable exposed
+  because "Nothing is logged or printed here"
+  by noreply@anthropic.com
+  on 2026-10-21T16:21:01.113855+00:00

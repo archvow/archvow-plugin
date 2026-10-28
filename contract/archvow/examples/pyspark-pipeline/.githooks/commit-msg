@@ -1,0 +1,17 @@
+#!/bin/sh
+# AI agents: the code of this commit that an AI agent wrote (@assisted in its file header) gets one line
+# per agent, `Archvow-Agent: <tool> sandbox=yes yolo=no` - how it last ran here, as the pre-commit hook's
+# `archvow check` found it (ARCH053). CI checks every commit of the merge request has it: a commit made
+# with --no-verify has none.
+# Enable once per clone:   git config core.hooksPath .githooks   (the same as the pre-commit hook)
+# Guard file (CODEOWNERS).
+msg_file="$1"
+trailer="$(dirname "$0")/../.archvow/trailer.local"
+if [ -f "$trailer" ]; then
+    while IFS= read -r line; do
+        [ -n "$line" ] && git interpret-trailers --in-place --if-exists addIfDifferent \
+            --trailer "Archvow-Agent: $line" "$msg_file"
+    done < "$trailer"
+    rm -f "$trailer"
+fi
+exit 0

@@ -1,0 +1,47 @@
+vow 1 component invoices_cli
+# archvow vow of invoices_cli - what it must be and do; archvow check holds the code to it.
+# Read: archvow show invoices_cli. Change: archvow specify invoices_cli. Never edit by hand.
+name invoices
+type cli
+layer p4_entrypoints
+module invoicing.p4_entrypoints.invoices_cli
+ticket US-001
+description "Command line: pay NUMBER - marks the invoice paid and prints it"
+uses [mark_paid, invoice_not_found_error]
+
+# --- symbols
+symbol main
+  kind function
+  signature "(argv: Sequence[str] | None = None) -> int"
+
+# --- decisions
+decision 1
+  question "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?"
+  answer "Exit code 2 with the usage message (argparse)"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:54.114836+00:00
+
+decision 2
+  question "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?"
+  answer "0 ok, 1 error, 2 bad arguments, 3 not found"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:54.414007+00:00
+
+decision 3
+  question "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?"
+  answer "The invoice on one line on stdout; errors on stderr"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:54.764143+00:00
+
+assumptions []
+
+# --- not applicable
+not_applicable wrong
+  because "argparse refuses bad arguments with exit code 2 (decision 1)"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:58.002144+00:00
+
+not_applicable exposed
+  because "It prints only the invoice the user asked for, to that user"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:58.249873+00:00

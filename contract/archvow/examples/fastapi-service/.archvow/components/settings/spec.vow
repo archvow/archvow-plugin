@@ -1,0 +1,32 @@
+vow 1 component settings
+# archvow vow of settings - what it must be and do; archvow check holds the code to it.
+# Read: archvow show settings. Change: archvow specify settings. Never edit by hand.
+name settings
+type foundation
+layer p0_common
+module orders_api.p0_common.settings
+description "The service's settings, read from the environment (pydantic-settings), never from code."
+uses []
+
+# --- symbols
+symbol Settings
+  kind class
+
+symbol get_settings
+  kind function
+  signature "() -> Settings"
+
+# --- decisions
+decision 1
+  question "Which settings, with which defaults (name: type = default), and which are required?"
+  answer "app_name: str = 'orders'; nothing else yet"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 2
+  question "Which settings are secrets (never logged, never in a response), and where do they come from?"
+  answer "No secret yet"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+assumptions []

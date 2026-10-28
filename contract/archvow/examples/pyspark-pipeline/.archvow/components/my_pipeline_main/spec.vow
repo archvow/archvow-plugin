@@ -1,0 +1,30 @@
+vow 1 component my_pipeline_main
+# archvow vow of my_pipeline_main - what it must be and do; archvow check holds the code to it.
+# Read: archvow show my_pipeline_main. Change: archvow specify my_pipeline_main. Never edit by hand.
+name my_pipeline
+type entrypoint
+layer p4_entrypoints
+module my_pipeline.p4_entrypoints.my_pipeline_main
+ticket US-003
+description "Command line: --input PATH (the input folder), --output PATH (the output folder)"
+uses [my_pipeline_job]
+
+# --- symbols
+symbol main
+  kind function
+  signature "(argv: Sequence[str] | None = None) -> int"
+
+# --- decisions
+decision 1
+  question "Invalid arguments: which exit code and message?"
+  answer "Exit code 2 with a usage message"
+  by architect@example.com
+  on 2026-10-08T13:06:25.985654+00:00
+
+decision 2
+  question "Which exit codes signal which failures to the scheduler?"
+  answer "0 success, 1 job failure, 2 invalid arguments"
+  by architect@example.com
+  on 2026-10-08T13:06:26.064705+00:00
+
+assumptions []

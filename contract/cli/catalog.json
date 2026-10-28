@@ -485,7 +485,7 @@
           "signature_overridable": false
         }
       },
-      "source": "/home/claude/archvow/src/archvow/packs/fastapi-service"
+      "source": "<archvow>/packs/fastapi-service"
     },
     {
       "name": "pyspark-pipeline",
@@ -943,7 +943,7 @@
           "signature_overridable": false
         }
       },
-      "source": "/home/claude/archvow/src/archvow/packs/pyspark-pipeline"
+      "source": "<archvow>/packs/pyspark-pipeline"
     },
     {
       "name": "python-app",
@@ -1387,7 +1387,7 @@
           "signature_overridable": false
         }
       },
-      "source": "/home/claude/archvow/src/archvow/packs/python-app"
+      "source": "<archvow>/packs/python-app"
     }
   ]
 }

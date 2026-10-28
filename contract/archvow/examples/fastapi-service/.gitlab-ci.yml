@@ -1,0 +1,78 @@
+# The gate nothing can skip: on the protected branches main and develop, set "Allowed to push" to
+# No one, enable "Pipelines must succeed" and "Code owner approval" (Premium).
+# Code that works but ignores the architecture cannot be merged.
+# WARNING: public sources in use (Docker Hub image, PyPI).
+# For critical projects, re-run `archvow init` with -a ci_image=... -a pip_index_url=...
+
+stages: [guards, test]
+
+variables:
+  GIT_DEPTH: "0"  # `archvow check --base` needs the target branch history
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  # Where CI installs archvow from (Settings > CI/CD > Variables can override it).
+  ARCHVOW_PIP_SPEC: "archvow==1.17.0"           # pinned: upgrade deliberately
+
+workflow:  # gitflow: merge requests, then main and develop after each merge
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+
+.python:
+  image: python:3.12-bookworm
+  cache:
+    paths: [.cache/pip]
+  before_script:
+    - pip install "$ARCHVOW_PIP_SPEC" "ruff>=0.6"
+
+architecture:
+  stage: guards
+  extends: .python
+  script:
+    - >
+      if [ -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ] && ! echo "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" |
+      grep -Eq '^(feature|hotfix)/([A-Z][A-Z0-9]*-[0-9]+)-[A-Za-z0-9._-]+$|^release/[0-9]+([.][0-9]+)*$|^(main|master|develop)$'; then
+      echo "branch name must be feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name> or release/<version>"; exit 1; fi
+    - archvow docs --check        # specs up to date, never edited by hand
+    - archvow check               # code matches the spec: names, layers, safety evidence, FastAPI rules
+    - ruff check .                # PEP 8 and Zen of Python
+    - ruff format --check .
+
+guards-not-weakened:
+  stage: guards
+  extends: .python
+  rules:  # a release or a back-merge from main carries changes already reviewed on develop
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^(release\/|main$)/
+  script:
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - FLAGS=""
+    - >
+      if echo ",$CI_MERGE_REQUEST_LABELS," | grep -q ",architecture-approved,"; then
+      FLAGS="--accept-weakening"; fi
+    - archvow diff --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --markdown | tee spec-diff.md
+    - archvow check --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" $FLAGS
+  artifacts:
+    when: always
+    expose_as: "Spec changes"  # link shown in the merge request
+    paths: [spec-diff.md]
+
+tests:
+  stage: test
+  image: python:3.12-bookworm
+  rules:
+    - exists: [tests/**/*.py]
+  cache:
+    paths: [.cache/pip]
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - pytest --cov=src --cov-report=term-missing --cov-report=xml --junitxml=test-results.xml
+    - archvow check --test-report test-results.xml      # every invariant's test ran and passed (ARCH046)
+  coverage: '/^TOTAL.*\s+(\d+(?:\.\d+)?%)$/'   # percentage shown in the merge request
+  artifacts:
+    when: always
+    paths: [coverage.xml, test-results.xml]
+    reports:
+      junit: test-results.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml

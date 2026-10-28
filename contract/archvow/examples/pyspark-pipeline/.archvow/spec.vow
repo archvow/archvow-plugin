@@ -1,0 +1,49 @@
+vow 1 project
+# archvow vow of the project - what every component must follow: mode, checks, approved AI tools and
+# packages, rules R1, R2... (`archvow show` reads one component; `.archvow/spec.md` shows the whole project).
+# Never edit by hand: archvow init <package> --force -a <answer>=..., archvow rule add, archvow dependency
+# add. Set by hand, by an architect, reviewed in the merge request: only `rules` (severities and limits),
+# `allowed_paths`, `dependencies_by_path` and `layer_paths`. Format: docs/vow-format.md of archvow.
+system
+  name my_pipeline
+  description "PySpark pipeline for my_pipeline"
+
+# --- containers
+container my_pipeline
+  template pyspark-pipeline@1.17.0
+  package my_pipeline
+  path src/my_pipeline
+
+rules {}
+language en
+ai_tools [claude-code]
+dependencies []
+init_answers
+  language en
+  python_version "3.10"
+  line_length "88"
+  platform gitlab
+  ci auto
+  architects @my-team
+  sonar no
+  auto_approve yes
+  sandbox yes
+  briefs briefs
+  git_hooks githooks
+  branch_naming gitflow
+  pip_index_url ""
+  ci_image ""
+  spark_version "3.5"
+  scheduler none
+
+# --- rules
+rule R1
+  text "vat is rounded half-up to 2 decimals"
+  scope
+    components [compute_vat]
+  by architect@example.com
+  on 2026-10-08T13:06:25.458727+00:00
+
+compliance [gdpr, tst]
+mode strict
+families [all]

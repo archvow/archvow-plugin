@@ -1,0 +1,39 @@
+vow 1 project
+# archvow vow of the project - what every component must follow: mode, checks, approved AI tools and
+# packages, rules R1, R2... (`archvow show` reads one component; `.archvow/spec.md` shows the whole project).
+# Never edit by hand: archvow init <package> --force -a <answer>=..., archvow rule add, archvow dependency
+# add. Set by hand, by an architect, reviewed in the merge request: only `rules` (severities and limits),
+# `allowed_paths`, `dependencies_by_path` and `layer_paths`. Format: docs/vow-format.md of archvow.
+system
+  name orders_api
+  description "Orders"
+
+# --- containers
+container orders_api
+  template fastapi-service@1.17.0
+  package orders_api
+  path src/orders_api
+
+rules {}
+language en
+ai_tools [copilot]
+dependencies []
+init_answers
+  language en
+  python_version "3.12"
+  line_length "88"
+  platform gitlab
+  ci auto
+  architects @my-team
+  sonar no
+  auto_approve yes
+  sandbox yes
+  briefs briefs
+  git_hooks githooks
+  branch_naming gitflow
+  pip_index_url ""
+  ci_image ""
+  fastapi_version "0.143"
+compliance [gdpr, tst]
+mode strict
+families [all]

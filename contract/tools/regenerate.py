@@ -42,6 +42,17 @@ def write(path, data):
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
 
+def portable(catalog):
+    """A built-in template's `source` is where archvow is installed on this machine: recorded as
+    <archvow>/packs/<name>, so the contract is the same wherever it is regenerated (the CI job
+    `contract` regenerates it and fails on any difference). The plugins do not read it."""
+    for template in catalog.get("templates", []):
+        source = Path(str(template.get("source") or ""))
+        if source.parent.name == "packs" and source.parent.parent.name == "archvow":
+            template["source"] = f"<archvow>/packs/{source.name}"
+    return catalog
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("source", type=Path)
@@ -58,7 +69,7 @@ def main():
                              capture_output=True, text=True, encoding="utf-8", check=True).stdout
     write(cli / "commands.json", json.loads(grammar))
     with tempfile.TemporaryDirectory() as neutral:  # outside any project: the installed templates only
-        write(cli / "catalog.json", run([*archvow, "catalog", "--json"], neutral))
+        write(cli / "catalog.json", portable(run([*archvow, "catalog", "--json"], neutral)))
     for name in ("rules.md", "rules.fr.md"):
         shutil.copyfile(source / "docs" / name, cli / name)
     for name in EXAMPLES:

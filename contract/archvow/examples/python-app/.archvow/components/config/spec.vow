@@ -1,0 +1,32 @@
+vow 1 component config
+# archvow vow of config - what it must be and do; archvow check holds the code to it.
+# Read: archvow show config. Change: archvow specify config. Never edit by hand.
+name config
+type foundation
+layer p0_common
+module invoicing.p0_common.config
+description "The program's settings, read from the environment and the command line, never from code."
+uses []
+
+# --- symbols
+symbol Config
+  kind class
+
+symbol load_config
+  kind function
+  signature "(environ: Mapping[str, str] | None = None) -> Config"
+
+# --- decisions
+decision 1
+  question "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?"
+  answer "data_dir: str (required), log_level: str = \"INFO\""
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:48.666456+00:00
+
+decision 2
+  question "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?"
+  answer "None"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:48.945785+00:00
+
+assumptions []

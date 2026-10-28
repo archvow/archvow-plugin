@@ -1,0 +1,66 @@
+vow 1 component orders_repository
+# archvow vow of orders_repository - what it must be and do; archvow check holds the code to it.
+# Read: archvow show orders_repository. Change: archvow specify orders_repository. Never edit by hand.
+name orders
+type repository
+layer p2_io
+module orders_api.p2_io.orders_repository
+ticket US-001
+description "Stores and finds orders (in memory to start)"
+uses [order_model]
+
+# --- symbols
+symbol OrdersRepository
+  kind class
+
+# --- decisions
+decision 1
+  question "Not found: return None, or raise which domain error?"
+  answer "Return None"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 2
+  question "Who opens and commits the transaction (the service, never the repository)?"
+  answer "No transaction: memory; the service decides what is saved"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 3
+  question "Two updates of the same record at the same time: last write wins, a version check, or a lock?"
+  answer "Last write wins: an order is only created, never updated yet"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+decision 4
+  question "Which queries can return many rows, and what is their maximum?"
+  answer "None: no list query yet"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+assumptions []
+answers
+  P.retention
+    answer "In memory: gone when the service stops; nothing kept, nothing to erase on request"
+    by architect@example.com
+    on 2026-10-12T00:46:56.442249+00:00
+  P.location
+    answer "The service's own memory, in the EU"
+    by architect@example.com
+    on 2026-10-12T00:46:56.757992+00:00
+
+# --- not applicable
+not_applicable missing
+  because "In memory, in the process: no outside store to be down, one write per change, no cache or replica"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+not_applicable partial
+  because "In memory, in the process: no outside store to be down, one write per change, no cache or replica"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00
+
+not_applicable stale
+  because "In memory, in the process: no outside store to be down, one write per change, no cache or replica"
+  by architect@example.com
+  on 2026-10-09T12:00:00+00:00

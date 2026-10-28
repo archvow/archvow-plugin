@@ -1,0 +1,46 @@
+# PEP 8 + Zen of Python, enforced by ruff. Architecture, safety and Python rules are
+# enforced by `archvow check` (see .archvow/spec.md, Checks). Guard file: changes need review.
+line-length = 88
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = [".archvow"]      # the spec: documentation, not code
+
+[lint]
+select = [
+    "E", "W",   # PEP 8 errors and warnings ("Readability counts")
+    "N",        # PEP 8 naming
+    "F",        # pyflakes: unused/undefined names
+    "I",        # import order (PEP 8 import grouping)
+    "D",        # docstrings ("If the implementation is hard to explain, it's a bad idea")
+    "ANN",      # type annotations ("Explicit is better than implicit")
+    "UP",       # modern syntax for the target Python version
+    "B",        # likely bugs
+    "BLE",      # no blind except ("Errors should never pass silently")
+    "C90",      # complexity ("Simple is better than complex")
+    "SIM",      # simplifications ("Flat is better than nested")
+    "RET",      # consistent returns
+    "PL",       # pylint: max args/branches/statements, magic values
+    "ERA",      # no commented-out code (Palantir guide: rely on git)
+    "RUF",
+    "S",        # security (Bandit): hard-coded passwords and secrets, unsafe calls ("Errors should never pass silently")
+]
+ignore = [
+]
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.mccabe]
+max-complexity = 8
+
+[lint.pylint]
+max-args = 5
+max-branches = 8
+max-returns = 4
+max-statements = 40
+
+[lint.isort]
+known-first-party = ["invoicing"]
+
+[lint.per-file-ignores]
+"tests/**" = ["D", "PLR2004", "S101"]   # tests use assert

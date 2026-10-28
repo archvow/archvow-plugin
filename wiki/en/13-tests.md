@@ -69,6 +69,9 @@ tested, the page is read as text.
 | `install.test.ts` | Install archvow: the source, the Python, the pip line, WSL, nothing without Confirm and run |
 | `briefs.test.ts` | the brief folders, archvow's slugs, the `--from` choices, Drawn from, the refusal -> init form, ARCH039 (on `contract/cli/briefs`) |
 | `wiki.test.ts` | the wiki follows the code (below) |
+| `release.test.ts` | before a release, nothing built: one version (`package.json`, `gradle.properties`, README, both changelogs), one archvow (`contract/cli/version.txt`, the pip requirement, the README), both builds package the same contract files, the command lists (`DESTRUCTIVE`, `READ_ONLY`, `LONG_TEXT`) identical in `grammar.ts` and `ArchvowPanel` and made of archvow's commands, every command that asks for confirmation gets `--yes`, `package.json` and `plugin.xml` name only commands, settings, classes and files that exist |
+| `live.test.ts` | a real archvow, run through `ArchvowCli`: its version is the contract's, `catalog --json` is the recorded one, on archvow's three examples with their code every output is **exactly** the contract, read-only commands change no vow, `question add` then `question remove --yes` round-trip, an error is a sentence. Skipped without `ARCHVOW_PYTHON` (or `ARCHVOW_EXECUTABLE`) and `ARCHVOW_SOURCE`; `ARCHVOW_LIVE=required` makes the skip a failure |
+| `package.test.ts` | the packages in `dist/`, opened as the IDEs open them (`zip.ts` reads them): the `.vsix` (manifest, version, every module, the contract inside, no source, test or map, every `require` packaged or built in) and the IntelliJ `.zip` (the jar's `plugin.xml` with the version and `since-build`, every class it names, the contract inside, no test class). Skipped without packages; `PACKAGES_REQUIRED=1` makes the skip a failure |
 
 The page's behaviour (a click, a width) is checked by hand with F5, or in a headless browser that loads
 `media/workspace.js` with a fake `acquireVsCodeApi` and messages drawn from the contract; like the
@@ -89,11 +92,33 @@ IntelliJ stand-ins, this bench is not in the repository.
 A rename forgotten in the wiki therefore breaks the test, as in archvow
 (`test_the_wiki_follows_the_code`).
 
+## GitHub Actions: `.github/workflows/`
+
+The same checks as archvow's own CI, on every push and pull request (`ci.yml`):
+
+| Job | What it runs |
+|---|---|
+| `vscode` | `npm ci`, `npm test`, `npm run package` -> the `.vsix` |
+| `intellij` | `./gradlew check buildPlugin contractDump` -> the `.zip`; the Java reader must still write the committed `contract/vow-reader/expected.json` (the file the VS Code reader is tested against) |
+| `contract` | the wheel of `contract/archvow/` installed, then `contract/tools/regenerate.py contract/archvow`: `contract/` must be exactly what is committed |
+| `live` | `live.test.ts` against that wheel, installed in a venv, on the examples of `contract/archvow/` (`ARCHVOW_LIVE=required`) |
+| `packages` | `package.test.ts` on both packages of the run (`PACKAGES_REQUIRED=1`); they are kept as the artifact `archvow-plugins` |
+
+`archvow-canary.yml` runs every Monday (or by hand): the contract regenerated from archvow's default
+branch; it fails, with the diff, when the next archvow changes what the plugins read.
+
+Nothing is fetched from archvow's repository: `contract/archvow/` holds the wheel of the version the contract
+was recorded from, and the examples and rules it does not hold (`contract/tools/take_archvow.sh` replaces them
+after an archvow release). Only the optional canary clones archvow: it runs when the repository variable
+`ARCHVOW_GIT_URL` is set (with the secret `ARCHVOW_GIT_TOKEN`, read-only, for a private repository).
+
 ## Before every commit
 
 ```bash
 (cd intellij && ./gradlew check)
 (cd vscode && npm test)
+python3 -m venv .venv && .venv/bin/pip install contract/archvow/archvow-*.whl
+ARCHVOW_PYTHON=$PWD/.venv/bin/python npm test --prefix vscode   # with the real archvow, from your own terminal
 ```
 
 And before a release, the list on the page [Releasing](/en/14-release).

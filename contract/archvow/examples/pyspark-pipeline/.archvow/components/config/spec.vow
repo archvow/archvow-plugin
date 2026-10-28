@@ -1,0 +1,28 @@
+vow 1 component config
+# archvow vow of config - what it must be and do; archvow check holds the code to it.
+# Read: archvow show config. Change: archvow specify config. Never edit by hand.
+name config
+type foundation
+layer p0_common
+module my_pipeline.p0_common.config
+description "Immutable job configuration passed from entry points to jobs."
+uses []
+
+# --- symbols
+symbol JobConfig
+  kind class
+
+# --- decisions
+decision 1
+  question "Which fields does JobConfig hold (name: type, required or default value)?"
+  answer "input_path: str and output_path: str, both required; a frozen dataclass"
+  by architect@example.com
+  on 2026-10-08T13:06:23.938480+00:00
+
+decision 2
+  question "What happens when a value is missing or invalid (which exception, raised where)?"
+  answer "ValueError raised in __post_init__, naming the field, for an empty or blank path"
+  by architect@example.com
+  on 2026-10-08T13:06:24.000829+00:00
+
+assumptions []

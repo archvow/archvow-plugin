@@ -51,7 +51,8 @@ final class ArchvowPanel extends JPanel {
     enum Role { NAVIGATION, DETAIL }
 
     private static final Set<String> LONG_TEXT = Set.of("description", "answer", "rationale", "statement", "question", "text", "words");
-    private static final Set<String> DESTRUCTIVE = Set.of("component remove", "question remove", "rule remove", "hazard remove", "invariant remove");
+    private static final Set<String> DESTRUCTIVE = Set.of("component remove", "question remove", "rule remove", "hazard remove", "invariant remove",
+            "example remove");
     private static final Set<String> READ_ONLY = Set.of("show", "catalog", "next", "check", "audit", "doctor", "changes", "diff", "prompt");
     private static final Pattern QUOTED_COMPONENT = Pattern.compile("'([^']+)'");
 

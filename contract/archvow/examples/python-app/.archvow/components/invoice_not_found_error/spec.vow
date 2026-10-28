@@ -1,0 +1,35 @@
+vow 1 component invoice_not_found_error
+# archvow vow of invoice_not_found_error - what it must be and do; archvow check holds the code to it.
+# Read: archvow show invoice_not_found_error. Change: archvow specify invoice_not_found_error. Never edit by hand.
+name invoice_not_found
+type error
+layer p1_domain
+module invoicing.p1_domain.invoice_not_found_error
+ticket US-001
+description "No invoice with this number"
+uses []
+
+# --- symbols
+symbol InvoiceNotFoundError
+  kind class
+
+# --- decisions
+decision 1
+  question "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?"
+  answer "Exit code 3"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:50.822682+00:00
+
+decision 2
+  question "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?"
+  answer "A short fixed message, without personal data or secrets"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:51.141043+00:00
+
+assumptions []
+
+# --- not applicable
+not_applicable exposed
+  because "Its message is fixed and names only the invoice number the user typed"
+  by noreply@anthropic.com
+  on 2026-10-21T16:20:57.667154+00:00

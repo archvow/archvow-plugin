@@ -1,0 +1,41 @@
+vow 1 component orders_schema
+# archvow vow of orders_schema - what it must be and do; archvow check holds the code to it.
+# Read: archvow show orders_schema. Change: archvow specify orders_schema. Never edit by hand.
+name orders
+type schema
+layer p1_domain
+module my_pipeline.p1_domain.orders_schema
+ticket US-001
+description "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date"
+uses []
+
+# --- symbols
+symbol ORDERS_SCHEMA
+  kind constant
+  annotation T.StructType
+
+# --- decisions
+decision 1
+  question "Which columns are nullable, and which must never be null?"
+  answer "order_id and amount are never null; customer_id may be null"
+  by architect@example.com
+  on 2026-10-08T13:06:24.047585+00:00
+
+decision 2
+  question "Which columns hold personal data, and where may they flow?"
+  answer "None: the input holds no personal data"
+  by architect@example.com
+  on 2026-10-08T13:06:24.096826+00:00
+
+assumptions []
+columns
+  amount none
+  customer_id none
+  order_date none
+  order_id none
+
+# --- not applicable
+not_applicable exposed
+  because "the input holds no personal data"
+  by architect@example.com
+  on 2026-10-08T13:06:26.537197+00:00

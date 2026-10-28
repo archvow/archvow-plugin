@@ -1,0 +1,57 @@
+#!/bin/sh
+# archvow guards, run before every commit. Downloads nothing: it uses the tools already
+# installed in your environment (install them from your internal package index).
+# Enable once per clone:   git config core.hooksPath .githooks
+# Guard file (CODEOWNERS). Skipping it (--no-verify) is possible; the CI pipeline is not.
+set -e
+cd "$(dirname "$0")/.."   # the project folder, also when it sits inside a bigger repository
+
+# Gitflow: main and develop change only through merge requests. Work on a branch:
+# feature/<ticket>-<short-name> from develop; release/<version> and hotfix/<ticket>-<short-name> are
+# merged into them, never committed to.
+# The first commit of a new repository is allowed. Other names: ARCHVOW_PROTECTED_BRANCHES="main".
+branch=$(git symbolic-ref --short -q HEAD || true)
+if git rev-parse -q --verify HEAD >/dev/null 2>&1; then
+    for protected in ${ARCHVOW_PROTECTED_BRANCHES-main develop}; do
+        if [ "$branch" = "$protected" ]; then
+            echo "pre-commit: no commit on $branch (gitflow) - work on a branch: git switch -c feature/US-001-<short-name> develop" >&2
+            exit 1
+        fi
+    done
+fi
+# Branch names: feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>.
+# ARCHVOW_BRANCH_NAMING=none turns this check off (also: init -a branch_naming=none).
+git rev-parse -q --verify HEAD >/dev/null 2>&1 || branch=""   # the repository's first commit
+case "$branch" in
+    ""|main|master|develop) ;;
+    *)
+        if [ "${ARCHVOW_BRANCH_NAMING-gitflow}" != none ] &&
+           ! printf '%s\n' "$branch" | grep -Eq '^(feature|hotfix)/([A-Z][A-Z0-9]*-[0-9]+)-[A-Za-z0-9._-]+$|^release/[0-9]+([.][0-9]+)*$'; then
+            echo "pre-commit: branch '$branch' does not follow gitflow naming:" >&2
+            echo "  feature/<ticket>-<short-name> (e.g. feature/US-001-sales-reader), hotfix/<ticket>-<short-name>, release/<version>" >&2
+            echo "  rename it: git branch -m feature/<ticket>-<short-name> (new branches: git switch -c feature/<ticket>-<short-name> develop)" >&2
+            exit 1
+        fi ;;
+esac
+
+for tool in ruff archvow; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        echo "pre-commit: '$tool' not found - install it from your internal package index" >&2
+        exit 1
+    fi
+    if ! "$tool" --version >/dev/null 2>&1; then
+        echo "pre-commit: '$(command -v "$tool")' is installed but does not run." >&2
+        echo "  Reinstall it with the Python you use: python3 -m pip install ...$tool..." >&2
+        echo "  (an editable install breaks when its source folder is moved)" >&2
+        exit 1
+    fi
+done
+
+echo "pre-commit: ruff check (PEP 8, Zen of Python)"
+ruff check .
+echo "pre-commit: ruff format --check"
+ruff format --check .
+echo "pre-commit: archvow check (code matches the spec)"
+archvow check
+echo "pre-commit: archvow docs --check (specs up to date)"
+archvow docs --check
