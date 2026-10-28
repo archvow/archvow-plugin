@@ -1,0 +1,3442 @@
+{
+ "archvow": "archvow 1.17.0",
+ "messages": [
+  {
+   "code": "ACME001",
+   "severity": "error",
+   "message": "No direct use of the old billing API: import legacy_billing -> use acme_billing.client",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 10
+  },
+  {
+   "code": "ACME002",
+   "severity": "error",
+   "message": "No toPandas() in production code: df.toPandas()",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 16
+  },
+  {
+   "code": "ACME003",
+   "severity": "error",
+   "message": "No production bucket in the code: return df.filter(\"bucket != 's3://acme-prod'\")",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 17
+  },
+  {
+   "code": "ACME004",
+   "severity": "warning",
+   "message": "No notebooks: notes.ipynb",
+   "file": "notes.ipynb",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "api.api.users is not declared; add it with `archvow component add`",
+   "file": "src/api/api/users.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "api.core.config is not declared; add it with `archvow component add`",
+   "file": "src/api/core/config.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "api.crud is not declared; add it with `archvow component add`",
+   "file": "src/api/crud.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "api.legacy is not declared and sits in no layer: map it in `layer_paths` (archvow init api --force --adopt proposes it), then archvow component add <type> <name> --file src/api/legacy.py",
+   "file": "src/api/legacy.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "api.legacy is not declared; add it with `archvow component add`",
+   "file": "src/api/legacy.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.clean_orders is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.constants is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/constants.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.enrich_orders is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/enrich_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.labels is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/labels.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.legacy is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/legacy.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.returns.clean_returns is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/returns/clean_returns.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.rogue is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/rogue.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'logger' is not declared in component 'orders_clean_writer' (make it private with a leading underscore or declare it)",
+   "file": "src/sales/p2_io/orders_clean_writer.py",
+   "line": 14
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'read_more' is not declared in component 'orders_reader' (make it private with a leading underscore or declare it)",
+   "file": "src/sales/p2_io/orders_reader.py",
+   "line": 18
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'sneaky' is not declared in component 'spark' (make it private with a leading underscore or declare it)",
+   "file": "src/sales/p0_common/spark.py",
+   "line": 18
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "route DELETE /orders on private '_hidden' is not declared in component 'orders_router' (archvow component edit orders_router -r ...)",
+   "file": "src/api/p4_api/orders_router.py",
+   "line": 27
+  },
+  {
+   "code": "ARCH003",
+   "severity": "error",
+   "message": "'Settings' of component 'settings' is still a placeholder (only pass, ..., a docstring or raise NotImplementedError): implement it",
+   "file": "src/api/p0_common/settings.py",
+   "line": 14
+  },
+  {
+   "code": "ARCH003",
+   "severity": "error",
+   "message": "'get_settings' of component 'settings' is still a placeholder (only pass, ..., a docstring or raise NotImplementedError): implement it",
+   "file": "src/api/p0_common/settings.py",
+   "line": 18
+  },
+  {
+   "code": "ARCH004",
+   "severity": "error",
+   "message": "'read_order' is PUT /orders/{order_id}, the spec says GET /orders/{order_id}",
+   "file": "src/api/p4_api/orders_router.py",
+   "line": 22
+  },
+  {
+   "code": "ARCH004",
+   "severity": "error",
+   "message": "'read_orders' signature is (spark: SparkSession) -> DataFrame, the spec says (spark: SparkSession, path: str) -> DataFrame -> write the spec's signature, or a person changes the spec: archvow component edit orders_reader --signature \"(spark: SparkSession) -> DataFrame\"",
+   "file": "src/sales/p2_io/orders_reader.py",
+   "line": 13
+  },
+  {
+   "code": "ARCH005",
+   "severity": "error",
+   "message": "layer 'p1_domain' may not import from 'p2_io' (allowed: p0_common)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 14
+  },
+  {
+   "code": "ARCH005",
+   "severity": "error",
+   "message": "layer 'p4_api' may not import from 'p2_io' (allowed: p0_common, p1_domain, p3_services)",
+   "file": "src/api/api/users.py",
+   "line": 5
+  },
+  {
+   "code": "ARCH006",
+   "severity": "error",
+   "message": "'clean_orders' imports 'enrich_orders' but does not declare it in `uses`",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 15
+  },
+  {
+   "code": "ARCH007",
+   "severity": "error",
+   "message": "layer 'p1_domain' may not import 'os'",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 10
+  },
+  {
+   "code": "ARCH007",
+   "severity": "error",
+   "message": "layer 'p3_services' may not import 'fastapi'",
+   "file": "src/api/p3_services/create_order.py",
+   "line": 12
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'clean_orders': my_pipeline.p1_domain.clean_orders is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'clean_orders': sales.p1_domain.clean_orders is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'clean_sales': my_pipeline.p1_domain.clean_sales is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'clean_sales': sales.p1_domain.clean_sales is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'compute_vat': my_pipeline.p1_domain.compute_vat is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'config': invoicing.p0_common.config is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'config': my_pipeline.p0_common.config is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'config': sales.p0_common.config is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'create_order': orders_api.p3_services.create_order is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'daily_sales_job': sales.p3_jobs.daily_sales_job is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'enrich_orders': sales.p1_domain.enrich_orders is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'invoice_model': invoicing.p1_domain.invoice_model is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'invoices_cli': invoicing.p4_entrypoints.invoices_cli is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'logging_setup': invoicing.p0_common.logging_setup is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'main': orders_api.p4_api.main is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'my_pipeline_job': my_pipeline.p3_jobs.my_pipeline_job is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'my_pipeline_main': my_pipeline.p4_entrypoints.my_pipeline_main is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'order_model': orders_api.p1_domain.order_model is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'orders_clean_writer': sales.p2_io.orders_clean_writer is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'orders_reader': my_pipeline.p2_io.orders_reader is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'orders_reader': sales.p2_io.orders_reader is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'orders_router': orders_api.p4_api.orders_router is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'orders_schema': my_pipeline.p1_domain.orders_schema is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'revenue_schema': sales.p1_domain.revenue_schema is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'revenue_writer': my_pipeline.p2_io.revenue_writer is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'revenue_writer': sales.p2_io.revenue_writer is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'sales_job': sales.p3_jobs.sales_job is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'sales_main': sales.p4_entrypoints.sales_main is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'sales_reader': my_pipeline.p2_io.sales_reader is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'sales_reader': sales.p2_io.sales_reader is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'sales_schema': my_pipeline.p1_domain.sales_schema is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'sales_schema': sales.p1_domain.sales_schema is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'send_invoice': invoicing.p3_services.send_invoice is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'settings': orders_api.p0_common.settings is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'spark': my_pipeline.p0_common.spark is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'spark': sales.p0_common.spark is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'vat_writer': my_pipeline.p2_io.vat_writer is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "custom rule ACME006: give exactly one of forbid_import, forbid_call, forbid_pattern, forbid_file, require_question",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH012",
+   "severity": "warning",
+   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.17.0: to adopt it, archvow init sales --force (then review and commit)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH013",
+   "severity": "error",
+   "message": "syntax error: invalid syntax - archvow runs on Python 3.13 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
+   "file": "src/api/core/config.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH014",
+   "severity": "error",
+   "message": "component 'clean_returns': a transformation named 'clean_returns' must be id 'clean_returns', module sales.p1_domain.Bad-Name.clean_returns",
+   "file": ".archvow/components/clean_returns/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH014",
+   "severity": "error",
+   "message": "component 'clean_returns': group 'Bad-Name' must be a snake_case folder name",
+   "file": ".archvow/components/clean_returns/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH014",
+   "severity": "error",
+   "message": "component 'load_stuff': a reader named 'stuff' must be id 'stuff_reader', module sales.p2_io.stuff_reader",
+   "file": ".archvow/components/load_stuff/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH014",
+   "severity": "error",
+   "message": "component 'load_stuff': symbol must be function 'read_stuff', the spec says function 'fetch'",
+   "file": ".archvow/components/load_stuff/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH015",
+   "severity": "error",
+   "message": "scripts/hack.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
+   "file": "scripts/hack.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH016",
+   "severity": "error",
+   "message": "tests/misc/whatever_test.py: tests live in tests/<layer>/[<group>/]test_<component>.py for a declared component",
+   "file": "tests/misc/whatever_test.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH016",
+   "severity": "error",
+   "message": "tests/p1_domain/returns/test_clean_returns.py: tests live in tests/<layer>/[<group>/]test_<component>.py for a declared component",
+   "file": "tests/p1_domain/returns/test_clean_returns.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH016",
+   "severity": "error",
+   "message": "tests/p1_domain/test_clean_returns.py: tests live in tests/<layer>/[<group>/]test_<component>.py for a declared component",
+   "file": "tests/p1_domain/test_clean_returns.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH016",
+   "severity": "error",
+   "message": "tests/p1_domain/test_unknown.py: tests live in tests/<layer>/[<group>/]test_<component>.py for a declared component",
+   "file": "tests/p1_domain/test_unknown.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'clean_orders' is implemented but has no unit test: tests/p1_domain/test_clean_orders.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'clean_returns' is implemented but has no unit test: tests/p1_domain/returns/test_clean_returns.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'create_order' is implemented but has no integration test: tests/p3_services/test_create_order.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'daily_main' is implemented but has no unit test: tests/p4_entrypoints/test_daily_main.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'enrich_orders' is implemented but has no unit test: tests/p1_domain/test_enrich_orders.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'main' is implemented but has no integration test: tests/p4_api/test_main.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'order_not_found_error' is implemented but has no unit test: tests/p1_domain/test_order_not_found_error.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'orders_clean_writer' is implemented but has no integration test: tests/p2_io/test_orders_clean_writer.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'orders_reader' is implemented but has no integration test: tests/p2_io/test_orders_reader.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'orders_schema' is implemented but has no unit test: tests/p1_domain/test_orders_schema.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'user_repository' is implemented but has no integration test: tests/p2_io/test_user_repository.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "@assisted names codex, approved: junie, jetbrains-ai-chat, claude-code, none",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "@assisted names cursor, approved: junie, jetbrains-ai-chat, claude-code, none",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "@author is not filled in (<your name>)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "@component says 'enrich_orders', this file is 'clean_orders'",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "@date '06.10.2026' is not a date (YYYY-MM-DD)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "@date 'none' is not a date (YYYY-MM-DD)",
+   "file": "src/sales/p0_common/spark.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "no file header: copy it from its spec (.archvow/components/clean_orders/spec.md, section 'File header')",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "no file header: copy it from its spec (.archvow/components/order_not_found_error/spec.md, section 'File header')",
+   "file": "src/api/p1_domain/order_not_found_error.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "no file header: copy it from its spec (.archvow/components/user_repository/spec.md, section 'File header')",
+   "file": "src/api/crud.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'customers_reader' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit customers_reader -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'input_reader' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit input_reader -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'load_stuff' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit load_stuff -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'orders_clean_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit orders_clean_writer -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'orders_reader' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit orders_reader -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'orders_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit orders_writer -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'refunds_reader' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit refunds_reader -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'refunds_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit refunds_writer -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'returns_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit returns_writer -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'revenue_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit revenue_writer -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'sales_reader' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit sales_reader -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'totals_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit totals_writer -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'user_repository' uses no model: the columns it works on are written nowhere -> archvow component add model <name> -d \"...\", then archvow component edit user_repository -u <name>_model",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH019",
+   "severity": "warning",
+   "message": "'vat_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit vat_writer -u <name>_schema",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "1 more frozen ARCH001 violation(s) in src/sales/p1_domain/rogue.py: sales.p1_domain.rogue is not declared; add it with `archvow component add`",
+   "file": ".archvow/frozen.json",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "AI assistant 'copilot' approved for this repository",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "AI assistant 'cursor' approved for this repository",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "AI auto-approval turned on (the approved assistants run the safe commands and edit the code without asking)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "AI reviewer 'claude-code' approved for this repository",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "AI reviewer 'codex' approved for this repository",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "briefs folder 'specs' removed: its files are no longer scanned for real-looking identifiers (TST002) and nothing may be drawn from them",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "column orders_schema.email classified none, was personal",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "compliance rules 'gdpr' switched off",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "decision 1 of clean_orders lost its evidence: its test test_rows (tests/p1_domain/test_clean_orders.py on the base) is skipped now -> fix the code and keep the test; a test that is really wrong changes with an architect's approval",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "example FATTRIB-012-NEGATIVE-AMOUNT of clean_orders lost its evidence: its test test_negative_amounts_are_dropped (tests/p1_domain/test_clean_orders.py on the base) is gone, or no longer marked -> fix the code and keep the test; a test that is really wrong changes with an architect's approval",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "example FATTRIB-012-negative-amount of clean_orders removed from the spec (its expected result is no longer checked)",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "hazard clean_orders.H1 downgraded from critical to medium",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "warning",
+   "message": "hazard clean_orders.H1 downgraded from critical to medium (accepted)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "invariant clean_orders.INV1 verification weakened from property_test to example_test",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "warning",
+   "message": "invariant clean_orders.INV1 verification weakened from property_test to example_test (accepted)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "layer_paths maps 'src/api/legacy.py' to p1_domain (where code sits decides what it may do)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "mode loosened from guided to free (the AI decides more on its own)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "protected guard file changed; needs architect approval",
+   "file": ".github/copilot-instructions.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "warning",
+   "message": "protected guard file changed; needs architect approval (accepted)",
+   "file": "AGENTS.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "pytest settings ([tool.pytest.ini_options]) changed; needs architect approval",
+   "file": "pyproject.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: '.archvow' added to extend-exclude",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: 'D' ignored for 'tests/**'",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: 'N812' added to lint.ignore",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: 'PLR2004' ignored for 'tests/**'",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: 'S101' ignored for 'tests/**'",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: lint.mccabe.max-complexity relaxed from 8 to 30",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "warning",
+   "message": "ruff: lint.mccabe.max-complexity relaxed from 8 to 30 (accepted)",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: lint.mccabe.max-complexity relaxed from None to 8",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: lint.pylint.max-args relaxed from None to 5",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: lint.pylint.max-branches relaxed from None to 8",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: lint.pylint.max-returns relaxed from None to 4",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: lint.pylint.max-statements relaxed from None to 40",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule SPK014 lowered from warning to off",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "warning",
+   "message": "rule SPK014 lowered from warning to off (accepted)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule family SPARK switched off (rules: none)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "sandbox switched off (an AI agent outside a sandbox may run archvow)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "test file deleted",
+   "file": "tests/p0_common/test_spark.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "warning",
+   "message": "test file deleted (accepted)",
+   "file": "tests/p0_common/test_spark.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH021",
+   "severity": "warning",
+   "message": "new suppression: \"\"\"Session.\"\"\"  # noqa: D401",
+   "file": "src/sales/p0_common/spark.py",
+   "line": 14
+  },
+  {
+   "code": "ARCH023",
+   "severity": "error",
+   "message": "'legacy_billing' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=legacy_billing",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 10
+  },
+  {
+   "code": "ARCH023",
+   "severity": "error",
+   "message": "'pyarrow' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=pyarrow",
+   "file": "src/sales/p1_domain/labels.py",
+   "line": 18
+  },
+  {
+   "code": "ARCH023",
+   "severity": "error",
+   "message": "'yaml' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=yaml",
+   "file": "tests/integration/test_flow.py",
+   "line": 2
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'pandas' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=pandas",
+   "file": "requirements.txt",
+   "line": 1
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'requests' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=requests",
+   "file": "requirements.txt",
+   "line": 12
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'clean_orders': clean_orders.H1 (critical) 'Counted twice' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'clean_orders': clean_orders.H1 (critical) 'Revenue counted twice' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'clean_orders': clean_orders.H1 (high) 'A valid input row is dropped' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'clean_orders': clean_orders.H2 (high) 'A valid order is dropped' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H2",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'clean_sales': clean_sales.H1 (high) 'A valid row is dropped' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add clean_sales \"...\" --prevents clean_sales.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'clean_sales': clean_sales.H1 (high) 'Une ligne valide est supprimée' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add clean_sales \"...\" --prevents clean_sales.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'compute_vat': compute_vat.H1 (high) 'vat is computed wrongly' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add compute_vat \"...\" --prevents compute_vat.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'flag_rows': flag_rows.H2 (high) 'a null, negative or out-of-range value reaches the output' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add flag_rows \"...\" --prevents flag_rows.H2",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'input_reader': input_reader.H2 (high) 'An order counted twice' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add input_reader \"...\" --prevents input_reader.H2",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'invoice_model': invoice_model.H1 (high) 'An invoice is saved with a negative amount' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add invoice_model \"...\" --prevents invoice_model.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'invoice_model': invoice_model.H1 (high) 'Une facture est enregistrée avec un montant négatif' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add invoice_model \"...\" --prevents invoice_model.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'order_model': order_model.H1 (high) 'An order is saved with a negative amount' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add order_model \"...\" --prevents order_model.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'order_model': order_model.H1 (high) 'Une commande est enregistrée avec un montant négatif' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add order_model \"...\" --prevents order_model.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'revenue_writer': revenue_writer.H1 (critical) 'Downstream reads a half-written output' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add revenue_writer \"...\" --prevents revenue_writer.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'revenue_writer': revenue_writer.H1 (critical) 'L'aval lit une sortie à moitié écrite' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add revenue_writer \"...\" --prevents revenue_writer.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'sales_reader': sales_reader.H1 (high) 'An empty input is processed as if it were complete' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add sales_reader \"...\" --prevents sales_reader.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'sales_reader': sales_reader.H1 (high) 'Une entrée vide est traitée comme si elle était complète' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add sales_reader \"...\" --prevents sales_reader.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'totals_writer': totals_writer.H1 (high) 'Totals written twice' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add totals_writer \"...\" --prevents totals_writer.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH030",
+   "severity": "error",
+   "message": "'vat_writer': vat_writer.H1 (critical) 'Downstream reads a half-written output' is prevented by no invariant (what is always true, so it cannot happen) -> archvow invariant add vat_writer \"...\" --prevents vat_writer.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH031",
+   "severity": "error",
+   "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH031",
+   "severity": "error",
+   "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (found a mark that almost names it in tests/p1_domain/test_clean_orders.py:5: write invariant(\"clean_orders.INV1\"))",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH031",
+   "severity": "error",
+   "message": "'orders_clean_writer' is implemented but orders_clean_writer.INV1 'output is complete or absent' is not tested yet (runtime) -> add a guard marked  # archvow: enforces[orders_clean_writer.INV1]  in its file",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH031",
+   "severity": "error",
+   "message": "'orders_clean_writer' is implemented but orders_clean_writer.INV2 're-runs are idempotent' is not tested yet (model_check)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH031",
+   "severity": "error",
+   "message": "'spark' is implemented but spark.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"spark.INV1\") in tests/p0_common/test_spark.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH032",
+   "severity": "error",
+   "message": "clean_orders.INV1 is verified by property_test but test_unique has no Hypothesis @given (example tests do not search for counterexamples)",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 5
+  },
+  {
+   "code": "ARCH032",
+   "severity": "error",
+   "message": "clean_orders.INV4: evidence file 'models/x.tla' does not exist",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH032",
+   "severity": "error",
+   "message": "orders_clean_writer.INV2: evidence file 'models/writer.tla' does not exist",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH032",
+   "severity": "error",
+   "message": "system.INV1: evidence file 'p.lean' does not exist",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'clean_orders' is implemented but 1 decision(s) are still to make, e.g. 'Which currency?' - the code made a silent choice -> the AI records its choice: archvow decision propose clean_orders <number> \"...\"",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'clean_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'clean_returns' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_returns, then archvow decision make clean_returns <number> \"...\"",
+   "file": ".archvow/components/clean_returns/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'config' is implemented but 1 decision(s) are still to make, e.g. 'What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
+   "file": ".archvow/components/config/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'daily_main' is implemented but 2 decision(s) are still to make, e.g. 'Invalid arguments (e.g. --run-date <date>): which exit code and message?' - the code made a silent choice -> archvow show daily_main, then archvow decision make daily_main <number> \"...\"",
+   "file": ".archvow/components/daily_main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
+   "file": ".archvow/components/enrich_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'order_not_found_error' is implemented but 2 decision(s) are still to make, e.g. 'Which HTTP status does the app answer with it (404, 409, 422...) - e.g. OrderNotFound -> 404?' - the code made a silent choice -> archvow show order_not_found_error, then archvow decision make order_not_found_error <number> \"...\"",
+   "file": ".archvow/components/order_not_found_error/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'orders_clean_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show orders_clean_writer, then archvow decision make orders_clean_writer <number> \"...\"",
+   "file": ".archvow/components/orders_clean_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'orders_reader' is implemented but 4 decision(s) are still to make, e.g. 'The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?' - the code made a silent choice -> archvow show orders_reader, then archvow decision make orders_reader <number> \"...\"",
+   "file": ".archvow/components/orders_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'orders_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show orders_schema, then archvow decision make orders_schema <number> \"...\"",
+   "file": ".archvow/components/orders_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Réglages Spark de chaque session, clé=valeur séparés par des virgules - par ex. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - ou aucun ?' - the code made a silent choice -> archvow show spark, then archvow decision make spark <number> \"...\"",
+   "file": ".archvow/components/spark/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?' - the code made a silent choice -> archvow show spark, then archvow decision make spark <number> \"...\"",
+   "file": ".archvow/components/spark/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'user_repository' is implemented but 4 decision(s) are still to make, e.g. 'Not found (e.g. get(42) when 42 does not exist): return None, or raise which domain error?' - the code made a silent choice -> archvow show user_repository, then archvow decision make user_repository <number> \"...\"",
+   "file": ".archvow/components/user_repository/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH034",
+   "severity": "error",
+   "message": "'clean_orders' relies on 1 assumption(s) nobody reviewed yet (number 1), e.g. 'is_test is never null' -> archvow show clean_orders, then a person runs archvow assumption accept clean_orders <number>, or reject (the code must then not rely on it)",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH034",
+   "severity": "error",
+   "message": "'clean_orders' relies on 1 assumption(s) nobody reviewed yet (number 2), e.g. 'amount is never negative' -> archvow show clean_orders, then a person runs archvow assumption accept clean_orders <number>, or reject (the code must then not rely on it)",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S1 not answered (missing) - Entrée absente, vide ou en retard : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S2 not answered (more) - Trop de lignes (doublons, jointure qui multiplie les lignes, fichier livré deux fois) : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S3 not answered (less) - Lignes perdues (supprimées par un filtre, une jointure interne ou une mauvaise date) : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S4 not answered (wrong) - Valeurs fausses (nulles, négatives, hors limites, mauvais types, une colonne qui change de type ou disparaît) : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_orders': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_returns': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_returns",
+   "file": ".archvow/components/clean_returns/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_returns': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show clean_returns",
+   "file": ".archvow/components/clean_returns/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_returns': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show clean_returns",
+   "file": ".archvow/components/clean_returns/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_returns': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show clean_returns",
+   "file": ".archvow/components/clean_returns/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_returns': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show clean_returns",
+   "file": ".archvow/components/clean_returns/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S1 not answered (missing) - Entrée absente, vide ou en retard : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S2 not answered (more) - Trop de lignes (doublons, jointure qui multiplie les lignes, fichier livré deux fois) : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S3 not answered (less) - Lignes perdues (supprimées par un filtre, une jointure interne ou une mauvaise date) : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S4 not answered (wrong) - Valeurs fausses (nulles, négatives, hors limites, mauvais types, une colonne qui change de type ou disparaît) : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_sales': safety question S5 not answered (exposed) - Données exposées (personnelles ou secrètes écrites là où elles ne doivent pas l'être) : qu'est-ce qui ne doit jamais arriver ? -> archvow show clean_sales",
+   "file": ".archvow/components/clean_sales/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clicks_stream_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clicks_stream_reader",
+   "file": ".archvow/components/clicks_stream_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clicks_stream_reader': safety question S2 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show clicks_stream_reader",
+   "file": ".archvow/components/clicks_stream_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'compute_vat': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show compute_vat",
+   "file": ".archvow/components/compute_vat/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'compute_vat': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show compute_vat",
+   "file": ".archvow/components/compute_vat/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'compute_vat': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show compute_vat",
+   "file": ".archvow/components/compute_vat/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'compute_vat': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show compute_vat",
+   "file": ".archvow/components/compute_vat/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'compute_vat': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show compute_vat",
+   "file": ".archvow/components/compute_vat/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S1 not answered (missing) - Une dépendance en panne ou lente, ou la ressource n'existe pas : qu'est-ce qui ne doit jamais arriver ? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S2 not answered (repeated) - Envoyé deux fois (un client réessaie ou envoie deux fois) : qu'est-ce qui ne doit jamais arriver ? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S2 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S3 not answered (partial) - A change half applied (saved here, not there; a failure mid-transaction): what must never happen? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S3 not answered (partial) - Un changement à moitié appliqué (enregistré ici, pas là ; échec au milieu d'une transaction) : qu'est-ce qui ne doit jamais arriver ? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S4 not answered (concurrent) - Deux requêtes modifient les mêmes données en même temps (mise à jour perdue, stock négatif) : qu'est-ce qui ne doit jamais arriver ? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S4 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'create_order': safety question S5 not answered (exposed) - Données exposées (un utilisateur voit ou modifie des données qui ne sont pas les siennes ; secrets ou données personnelles dans une réponse ou un journal) : qu'est-ce qui ne doit jamais arriver ? -> archvow show create_order",
+   "file": ".archvow/components/create_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show customers_reader",
+   "file": ".archvow/components/customers_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show customers_reader",
+   "file": ".archvow/components/customers_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_reader': safety question S3 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show customers_reader",
+   "file": ".archvow/components/customers_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_reader': safety question S4 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_reader",
+   "file": ".archvow/components/customers_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'daily_job': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show daily_job",
+   "file": ".archvow/components/daily_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'daily_job': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show daily_job",
+   "file": ".archvow/components/daily_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'daily_job': safety question S3 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show daily_job",
+   "file": ".archvow/components/daily_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'daily_main': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show daily_main",
+   "file": ".archvow/components/daily_main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'daily_sales_job': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show daily_sales_job",
+   "file": ".archvow/components/daily_sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'daily_sales_job': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show daily_sales_job",
+   "file": ".archvow/components/daily_sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'daily_sales_job': safety question S3 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show daily_sales_job",
+   "file": ".archvow/components/daily_sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'daily_sales_main': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show daily_sales_main",
+   "file": ".archvow/components/daily_sales_main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'enrich_orders': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show enrich_orders",
+   "file": ".archvow/components/enrich_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'enrich_orders': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show enrich_orders",
+   "file": ".archvow/components/enrich_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'enrich_orders': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show enrich_orders",
+   "file": ".archvow/components/enrich_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'enrich_orders': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show enrich_orders",
+   "file": ".archvow/components/enrich_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'enrich_orders': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show enrich_orders",
+   "file": ".archvow/components/enrich_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'flag_rows': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show flag_rows",
+   "file": ".archvow/components/flag_rows/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'flag_rows': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show flag_rows",
+   "file": ".archvow/components/flag_rows/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'flag_rows': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show flag_rows",
+   "file": ".archvow/components/flag_rows/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'input_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show input_reader",
+   "file": ".archvow/components/input_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'input_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show input_reader",
+   "file": ".archvow/components/input_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'input_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show input_reader",
+   "file": ".archvow/components/input_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'input_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show input_reader",
+   "file": ".archvow/components/input_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'input_schema': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show input_schema",
+   "file": ".archvow/components/input_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'input_schema': safety question S2 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show input_schema",
+   "file": ".archvow/components/input_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'invoice_model': safety question S1 not answered (wrong) - Entrée fausse (valeurs invalides, hors limites, mauvais format) : qu'est-ce qui ne doit jamais arriver ? -> archvow show invoice_model",
+   "file": ".archvow/components/invoice_model/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'invoice_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, a wrong format): what must never happen? -> archvow show invoice_model",
+   "file": ".archvow/components/invoice_model/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'invoice_model': safety question S2 not answered (exposed) - Data exposed (secrets or personal data in a log, an output, an error message): what must never happen? -> archvow show invoice_model",
+   "file": ".archvow/components/invoice_model/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'invoice_model': safety question S2 not answered (exposed) - Données exposées (secrets ou données personnelles dans un journal, une sortie, un message d'erreur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show invoice_model",
+   "file": ".archvow/components/invoice_model/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'invoices_cli': safety question S1 not answered (wrong) - Entrée fausse (valeurs invalides, hors limites, mauvais format) : qu'est-ce qui ne doit jamais arriver ? -> archvow show invoices_cli",
+   "file": ".archvow/components/invoices_cli/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'invoices_cli': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, a wrong format): what must never happen? -> archvow show invoices_cli",
+   "file": ".archvow/components/invoices_cli/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'invoices_cli': safety question S2 not answered (exposed) - Data exposed (secrets or personal data in a log, an output, an error message): what must never happen? -> archvow show invoices_cli",
+   "file": ".archvow/components/invoices_cli/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'invoices_cli': safety question S2 not answered (exposed) - Données exposées (secrets ou données personnelles dans un journal, une sortie, un message d'erreur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show invoices_cli",
+   "file": ".archvow/components/invoices_cli/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'load_stuff': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show load_stuff",
+   "file": ".archvow/components/load_stuff/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'load_stuff': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show load_stuff",
+   "file": ".archvow/components/load_stuff/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'load_stuff': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show load_stuff",
+   "file": ".archvow/components/load_stuff/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'load_stuff': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show load_stuff",
+   "file": ".archvow/components/load_stuff/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'main': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show main",
+   "file": ".archvow/components/main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'main': safety question S1 not answered (missing) - Une dépendance en panne ou lente, ou la ressource n'existe pas : qu'est-ce qui ne doit jamais arriver ? -> archvow show main",
+   "file": ".archvow/components/main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'main': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show main",
+   "file": ".archvow/components/main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'main': safety question S2 not answered (exposed) - Données exposées (un utilisateur voit ou modifie des données qui ne sont pas les siennes ; secrets ou données personnelles dans une réponse ou un journal) : qu'est-ce qui ne doit jamais arriver ? -> archvow show main",
+   "file": ".archvow/components/main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'my_pipeline_job': safety question S1 not answered (missing) - Entrée absente, vide ou en retard : qu'est-ce qui ne doit jamais arriver ? -> archvow show my_pipeline_job",
+   "file": ".archvow/components/my_pipeline_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'my_pipeline_job': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show my_pipeline_job",
+   "file": ".archvow/components/my_pipeline_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'my_pipeline_job': safety question S2 not answered (repeated) - Exécuté deux fois (relance ou nouvel essai) : qu'est-ce qui ne doit jamais arriver ? -> archvow show my_pipeline_job",
+   "file": ".archvow/components/my_pipeline_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'my_pipeline_job': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show my_pipeline_job",
+   "file": ".archvow/components/my_pipeline_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'my_pipeline_job': safety question S3 not answered (stale) - Des données anciennes traitées comme celles du jour (le job lit la mauvaise date) : qu'est-ce qui ne doit jamais arriver ? -> archvow show my_pipeline_job",
+   "file": ".archvow/components/my_pipeline_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'my_pipeline_job': safety question S3 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show my_pipeline_job",
+   "file": ".archvow/components/my_pipeline_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'my_pipeline_main': safety question S1 not answered (wrong) - Valeurs fausses (nulles, négatives, hors limites, mauvais types, une colonne qui change de type ou disparaît) : qu'est-ce qui ne doit jamais arriver ? -> archvow show my_pipeline_main",
+   "file": ".archvow/components/my_pipeline_main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'my_pipeline_main': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show my_pipeline_main",
+   "file": ".archvow/components/my_pipeline_main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_model': safety question S1 not answered (wrong) - Entrée fausse (valeurs invalides, hors limites, changement d'état interdit) : qu'est-ce qui ne doit jamais arriver ? -> archvow show order_model",
+   "file": ".archvow/components/order_model/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show order_model",
+   "file": ".archvow/components/order_model/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_model': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show order_model",
+   "file": ".archvow/components/order_model/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_model': safety question S2 not answered (exposed) - Données exposées (un utilisateur voit ou modifie des données qui ne sont pas les siennes ; secrets ou données personnelles dans une réponse ou un journal) : qu'est-ce qui ne doit jamais arriver ? -> archvow show order_model",
+   "file": ".archvow/components/order_model/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_not_found_error': safety question S1 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show order_not_found_error",
+   "file": ".archvow/components/order_not_found_error/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_clean_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show orders_clean_writer",
+   "file": ".archvow/components/orders_clean_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_clean_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show orders_clean_writer",
+   "file": ".archvow/components/orders_clean_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_clean_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show orders_clean_writer",
+   "file": ".archvow/components/orders_clean_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show orders_reader",
+   "file": ".archvow/components/orders_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show orders_reader",
+   "file": ".archvow/components/orders_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show orders_reader",
+   "file": ".archvow/components/orders_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show orders_reader",
+   "file": ".archvow/components/orders_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_router': safety question S1 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show orders_router",
+   "file": ".archvow/components/orders_router/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_router': safety question S1 not answered (exposed) - Données exposées (un utilisateur voit ou modifie des données qui ne sont pas les siennes ; secrets ou données personnelles dans une réponse ou un journal) : qu'est-ce qui ne doit jamais arriver ? -> archvow show orders_router",
+   "file": ".archvow/components/orders_router/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_router': safety question S2 not answered (more) - Too much (unbounded results, duplicated records, a flood of requests): what must never happen? -> archvow show orders_router",
+   "file": ".archvow/components/orders_router/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_router': safety question S2 not answered (more) - Trop (résultats sans limite, enregistrements en double, afflux de requêtes) : qu'est-ce qui ne doit jamais arriver ? -> archvow show orders_router",
+   "file": ".archvow/components/orders_router/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_router': safety question S3 not answered (wrong) - Entrée fausse (valeurs invalides, hors limites, changement d'état interdit) : qu'est-ce qui ne doit jamais arriver ? -> archvow show orders_router",
+   "file": ".archvow/components/orders_router/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_router': safety question S3 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show orders_router",
+   "file": ".archvow/components/orders_router/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_router': safety question S4 not answered (repeated) - Envoyé deux fois (un client réessaie ou envoie deux fois) : qu'est-ce qui ne doit jamais arriver ? -> archvow show orders_router",
+   "file": ".archvow/components/orders_router/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_router': safety question S4 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show orders_router",
+   "file": ".archvow/components/orders_router/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_schema': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show orders_schema",
+   "file": ".archvow/components/orders_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_schema': safety question S2 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show orders_schema",
+   "file": ".archvow/components/orders_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show orders_writer",
+   "file": ".archvow/components/orders_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_writer': safety question S1 not answered (partial) - Sortie à moitié écrite (échec au milieu d'une écriture) : qu'est-ce qui ne doit jamais arriver ? -> archvow show orders_writer",
+   "file": ".archvow/components/orders_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_writer': safety question S2 not answered (repeated) - Exécuté deux fois (relance ou nouvel essai) : qu'est-ce qui ne doit jamais arriver ? -> archvow show orders_writer",
+   "file": ".archvow/components/orders_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show orders_writer",
+   "file": ".archvow/components/orders_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show orders_writer",
+   "file": ".archvow/components/orders_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'orders_writer': safety question S3 not answered (exposed) - Données exposées (personnelles ou secrètes écrites là où elles ne doivent pas l'être) : qu'est-ce qui ne doit jamais arriver ? -> archvow show orders_writer",
+   "file": ".archvow/components/orders_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'parse_amount': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show parse_amount",
+   "file": ".archvow/components/parse_amount/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show refunds_reader",
+   "file": ".archvow/components/refunds_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show refunds_reader",
+   "file": ".archvow/components/refunds_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show refunds_reader",
+   "file": ".archvow/components/refunds_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show refunds_reader",
+   "file": ".archvow/components/refunds_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show refunds_writer",
+   "file": ".archvow/components/refunds_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show refunds_writer",
+   "file": ".archvow/components/refunds_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show refunds_writer",
+   "file": ".archvow/components/refunds_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'returns_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show returns_writer",
+   "file": ".archvow/components/returns_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'returns_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show returns_writer",
+   "file": ".archvow/components/returns_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'returns_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show returns_writer",
+   "file": ".archvow/components/returns_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_schema': safety question S1 not answered (wrong) - Valeurs fausses (nulles, négatives, hors limites, mauvais types, une colonne qui change de type ou disparaît) : qu'est-ce qui ne doit jamais arriver ? -> archvow show revenue_schema",
+   "file": ".archvow/components/revenue_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_schema': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show revenue_schema",
+   "file": ".archvow/components/revenue_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_schema': safety question S2 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show revenue_schema",
+   "file": ".archvow/components/revenue_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_schema': safety question S2 not answered (exposed) - Données exposées (personnelles ou secrètes écrites là où elles ne doivent pas l'être) : qu'est-ce qui ne doit jamais arriver ? -> archvow show revenue_schema",
+   "file": ".archvow/components/revenue_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show revenue_writer",
+   "file": ".archvow/components/revenue_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_writer': safety question S1 not answered (partial) - Sortie à moitié écrite (échec au milieu d'une écriture) : qu'est-ce qui ne doit jamais arriver ? -> archvow show revenue_writer",
+   "file": ".archvow/components/revenue_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_writer': safety question S2 not answered (repeated) - Exécuté deux fois (relance ou nouvel essai) : qu'est-ce qui ne doit jamais arriver ? -> archvow show revenue_writer",
+   "file": ".archvow/components/revenue_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show revenue_writer",
+   "file": ".archvow/components/revenue_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show revenue_writer",
+   "file": ".archvow/components/revenue_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'revenue_writer': safety question S3 not answered (exposed) - Données exposées (personnelles ou secrètes écrites là où elles ne doivent pas l'être) : qu'est-ce qui ne doit jamais arriver ? -> archvow show revenue_writer",
+   "file": ".archvow/components/revenue_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_job': safety question S1 not answered (missing) - Entrée absente, vide ou en retard : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_job",
+   "file": ".archvow/components/sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_job': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show sales_job",
+   "file": ".archvow/components/sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_job': safety question S2 not answered (repeated) - Exécuté deux fois (relance ou nouvel essai) : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_job",
+   "file": ".archvow/components/sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_job': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show sales_job",
+   "file": ".archvow/components/sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_job': safety question S3 not answered (stale) - Des données anciennes traitées comme celles du jour (le job lit la mauvaise date) : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_job",
+   "file": ".archvow/components/sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_job': safety question S3 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show sales_job",
+   "file": ".archvow/components/sales_job/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_main': safety question S1 not answered (wrong) - Valeurs fausses (nulles, négatives, hors limites, mauvais types, une colonne qui change de type ou disparaît) : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_main",
+   "file": ".archvow/components/sales_main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_main': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show sales_main",
+   "file": ".archvow/components/sales_main/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_reader': safety question S1 not answered (missing) - Entrée absente, vide ou en retard : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_reader",
+   "file": ".archvow/components/sales_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show sales_reader",
+   "file": ".archvow/components/sales_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show sales_reader",
+   "file": ".archvow/components/sales_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_reader': safety question S2 not answered (more) - Trop de lignes (doublons, jointure qui multiplie les lignes, fichier livré deux fois) : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_reader",
+   "file": ".archvow/components/sales_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_reader': safety question S3 not answered (wrong) - Valeurs fausses (nulles, négatives, hors limites, mauvais types, une colonne qui change de type ou disparaît) : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_reader",
+   "file": ".archvow/components/sales_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show sales_reader",
+   "file": ".archvow/components/sales_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_reader': safety question S4 not answered (stale) - Des données anciennes traitées comme celles du jour (le job lit la mauvaise date) : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_reader",
+   "file": ".archvow/components/sales_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show sales_reader",
+   "file": ".archvow/components/sales_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_schema': safety question S1 not answered (wrong) - Valeurs fausses (nulles, négatives, hors limites, mauvais types, une colonne qui change de type ou disparaît) : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_schema",
+   "file": ".archvow/components/sales_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_schema': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show sales_schema",
+   "file": ".archvow/components/sales_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_schema': safety question S2 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show sales_schema",
+   "file": ".archvow/components/sales_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'sales_schema': safety question S2 not answered (exposed) - Données exposées (personnelles ou secrètes écrites là où elles ne doivent pas l'être) : qu'est-ce qui ne doit jamais arriver ? -> archvow show sales_schema",
+   "file": ".archvow/components/sales_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S1 not answered (missing) - Quelque chose manque (une entrée, un fichier, un réglage, une dépendance en panne) : qu'est-ce qui ne doit jamais arriver ? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S1 not answered (missing) - Something missing (an input, a file, a setting, a dependency down): what must never happen? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S2 not answered (repeated) - Done twice (run twice, retried, the same input twice): what must never happen? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S2 not answered (repeated) - Fait deux fois (lancé deux fois, relancé, la même entrée deux fois) : qu'est-ce qui ne doit jamais arriver ? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S3 not answered (partial) - Half done (a file half written, a change saved here and not there, a crash in the middle): what must never happen? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S3 not answered (partial) - À moitié fait (fichier à moitié écrit, changement enregistré ici et pas là, plantage au milieu) : qu'est-ce qui ne doit jamais arriver ? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S4 not answered (concurrent) - Deux exécutions en même temps (deux processus, deux utilisateurs) : qu'est-ce qui ne doit jamais arriver ? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S4 not answered (concurrent) - Two runs at the same time (two processes, two users): what must never happen? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S5 not answered (exposed) - Data exposed (secrets or personal data in a log, an output, an error message): what must never happen? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'send_invoice': safety question S5 not answered (exposed) - Données exposées (secrets ou données personnelles dans un journal, une sortie, un message d'erreur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show send_invoice",
+   "file": ".archvow/components/send_invoice/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'totals_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show totals_writer",
+   "file": ".archvow/components/totals_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'totals_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show totals_writer",
+   "file": ".archvow/components/totals_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'user_repository': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show user_repository",
+   "file": ".archvow/components/user_repository/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'user_repository': safety question S2 not answered (more) - Too much (unbounded results, duplicated records, a flood of requests): what must never happen? -> archvow show user_repository",
+   "file": ".archvow/components/user_repository/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'user_repository': safety question S3 not answered (partial) - A change half applied (saved here, not there; a failure mid-transaction): what must never happen? -> archvow show user_repository",
+   "file": ".archvow/components/user_repository/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'user_repository': safety question S4 not answered (stale) - Old data shown as current (a cache, a replica, a read that misses the last write): what must never happen? -> archvow show user_repository",
+   "file": ".archvow/components/user_repository/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'user_repository': safety question S5 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show user_repository",
+   "file": ".archvow/components/user_repository/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'user_repository': safety question S6 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show user_repository",
+   "file": ".archvow/components/user_repository/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'vat_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show vat_writer",
+   "file": ".archvow/components/vat_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'vat_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show vat_writer",
+   "file": ".archvow/components/vat_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'vat_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show vat_writer",
+   "file": ".archvow/components/vat_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH036",
+   "severity": "error",
+   "message": "invariant clean_orders.INV1: must mitigate at least one hazard (why does it exist?)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH036",
+   "severity": "error",
+   "message": "invariant input_reader.INV1: must mitigate at least one hazard (why does it exist?)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH037",
+   "severity": "error",
+   "message": "clean_orders.INV1 prevents a critical hazard: a example_test is not enough, it needs one of property_test, runtime, static, model_check, proof -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH037",
+   "severity": "error",
+   "message": "clean_orders.INV2 prevents a critical hazard: a example_test is not enough, it needs one of property_test, runtime, static, model_check, proof -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH038",
+   "severity": "warning",
+   "message": "'clean_orders': decisions 1, 2, 3, 4, 5, 6, 7, 8, 9 without a marked test -> mark the test of each one in tests/p1_domain/test_clean_orders.py, e.g. @pytest.mark.decision(1)",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH038",
+   "severity": "warning",
+   "message": "'clean_orders': decisions 2, 3, 4, 5, 6, 7, 8, 9 without a marked test -> mark the test of each one in tests/p1_domain/test_clean_orders.py, e.g. @pytest.mark.decision(2)",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH038",
+   "severity": "warning",
+   "message": "'clean_orders': decisions 3, 4, 5, 6, 7, 8, 9 without a marked test -> mark the test of each one in tests/p1_domain/test_clean_orders.py, e.g. @pytest.mark.decision(3)",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH038",
+   "severity": "warning",
+   "message": "'clean_orders': decisions 5, 6, 7, 8, 9 and rule R1 without a marked test -> mark the test of each one in tests/p1_domain/test_clean_orders.py, e.g. @pytest.mark.decision(5)",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH038",
+   "severity": "warning",
+   "message": "'clean_orders': decisions 5, 6, 7, 8, 9 without a marked test -> mark the test of each one in tests/p1_domain/test_clean_orders.py, e.g. @pytest.mark.decision(5)",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH038",
+   "severity": "warning",
+   "message": "'orders_clean_writer': decisions 1, 2, 3, 4, 5 without a marked test -> mark the test of each one in tests/p2_io/test_orders_clean_writer.py, e.g. @pytest.mark.decision(1)",
+   "file": "tests/p2_io/test_orders_clean_writer.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH038",
+   "severity": "warning",
+   "message": "'spark': decision 1 without a marked test -> mark the test of each one in tests/p0_common/test_spark.py, e.g. @pytest.mark.decision(1)",
+   "file": "tests/p0_common/test_spark.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH039",
+   "severity": "warning",
+   "message": "briefs/orders.md#cleaning changed after clean_orders, R1 were drawn from it -> review them, then: archvow brief accept briefs/orders.md#cleaning",
+   "file": "briefs/orders.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH039",
+   "severity": "warning",
+   "message": "briefs/orders.md: no section #input-files (sections: #orders, #inputs, #cleaning, #cleaning-2) - orders_reader question 5 was drawn from it",
+   "file": "briefs/orders.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH039",
+   "severity": "warning",
+   "message": "orders_reader is drawn from specs/001-orders/plan.md, outside the briefs folders (briefs) -> an architect adds it: archvow init sales --force -a briefs=briefs,specs",
+   "file": "specs/001-orders/plan.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH040",
+   "severity": "error",
+   "message": ".acme configures 'acme-assistant'; approved AI assistants: junie",
+   "file": ".acme",
+   "line": 0
+  },
+  {
+   "code": "ARCH040",
+   "severity": "error",
+   "message": ".aiassistant configures 'jetbrains-ai-chat'; approved AI assistants: copilot",
+   "file": ".aiassistant",
+   "line": 0
+  },
+  {
+   "code": "ARCH040",
+   "severity": "error",
+   "message": ".claude configures 'claude-code'; approved AI assistants: copilot",
+   "file": ".claude",
+   "line": 0
+  },
+  {
+   "code": "ARCH040",
+   "severity": "error",
+   "message": ".cursor configures 'cursor'; approved AI assistants: junie",
+   "file": ".cursor",
+   "line": 0
+  },
+  {
+   "code": "ARCH040",
+   "severity": "error",
+   "message": "CLAUDE.md configures 'claude-code'; approved AI assistants: copilot",
+   "file": "CLAUDE.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH040",
+   "severity": "error",
+   "message": "GEMINI.md configures a tool archvow does not approve; approved AI assistants: junie",
+   "file": "GEMINI.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH040",
+   "severity": "error",
+   "message": "GEMINI.md configures a tool archvow does not approve; approved AI assistants: junie, cursor",
+   "file": "GEMINI.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH041",
+   "severity": "error",
+   "message": "review report without @reviewer: the reviewer names itself in the header (see AGENTS.md, section Review)",
+   "file": "reviews/config.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH041",
+   "severity": "error",
+   "message": "reviewed by 'cursor', approved reviewers: codex, claude-code. An architect approves it: archvow init sales --force -a reviewers=codex,claude-code,cursor",
+   "file": "reviews/spark.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH042",
+   "severity": "error",
+   "message": "'claude-code' reviewed clean_orders, which it wrote (@assisted claude-code): ask another approved reviewer (codex)",
+   "file": "reviews/clean_orders.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 1 was proposed by the AI, not reviewed yet: \"answer 1\" -> a person runs archvow decision accept clean_orders 1 (or decision make clean_orders 1 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 10 was proposed by the AI, not reviewed yet: \"UTC\" -> a person runs archvow decision accept clean_orders 10 (or decision make clean_orders 10 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 11 was proposed by the AI, not reviewed yet: \"UTC\" -> a person runs archvow decision accept clean_orders 11 (or decision make clean_orders 11 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 2 was proposed by the AI, not reviewed yet: \"answer 2\" -> a person runs archvow decision accept clean_orders 2 (or decision make clean_orders 2 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 3 was proposed by the AI, not reviewed yet: \"answer 3\" -> a person runs archvow decision accept clean_orders 3 (or decision make clean_orders 3 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 4 was proposed by the AI, not reviewed yet: \"answer 4\" -> a person runs archvow decision accept clean_orders 4 (or decision make clean_orders 4 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 5 was proposed by the AI, not reviewed yet: \"answer 5\" -> a person runs archvow decision accept clean_orders 5 (or decision make clean_orders 5 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 6 was proposed by the AI, not reviewed yet: \"Drop the row\" -> a person runs archvow decision accept clean_orders 6 (or decision make clean_orders 6 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 7 was proposed by the AI, not reviewed yet: \"answer 7\" -> a person runs archvow decision accept clean_orders 7 (or decision make clean_orders 7 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 8 was proposed by the AI, not reviewed yet: \"answer 8\" -> a person runs archvow decision accept clean_orders 8 (or decision make clean_orders 8 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' decision 9 was proposed by the AI, not reviewed yet: \"answer 9\" -> a person runs archvow decision accept clean_orders 9 (or decision make clean_orders 9 \"...\")",
+   "file": ".archvow/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH044",
+   "severity": "warning",
+   "message": "clean_orders: its task is about 1,250 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
+   "file": ".archvow/components/clean_orders/spec.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH044",
+   "severity": "warning",
+   "message": "config: its task is about 592 tokens, over 500 - split it into smaller components",
+   "file": ".archvow/components/config/spec.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH044",
+   "severity": "warning",
+   "message": "daily_sales_job: its task is about 950 tokens, over 500 - split it into smaller components",
+   "file": ".archvow/components/daily_sales_job/spec.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH044",
+   "severity": "warning",
+   "message": "enrich_orders: its task is about 1,157 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
+   "file": ".archvow/components/enrich_orders/spec.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH044",
+   "severity": "warning",
+   "message": "orders_clean_writer: its task is about 930 tokens, over 500 - split it into smaller components",
+   "file": ".archvow/components/orders_clean_writer/spec.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH044",
+   "severity": "warning",
+   "message": "orders_reader: its task is about 922 tokens, over 500 - split it into smaller components",
+   "file": ".archvow/components/orders_reader/spec.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH044",
+   "severity": "warning",
+   "message": "spark: its task is about 583 tokens, over 500 - split it into smaller components",
+   "file": ".archvow/components/spark/spec.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH045",
+   "severity": "error",
+   "message": "test_empty is the evidence of decision(2) but checks nothing (no assert that can fail) -> assert on what the component returns, or use pytest.raises",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 16
+  },
+  {
+   "code": "ARCH045",
+   "severity": "error",
+   "message": "test_same is the evidence of decision(1) but checks nothing (no assert that can fail) -> assert on what the component returns, or use pytest.raises",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 10
+  },
+  {
+   "code": "ARCH045",
+   "severity": "error",
+   "message": "test_unique is the evidence of invariant('clean_orders.INV1') but checks nothing (no assert that can fail) -> assert on what the component returns, or use pytest.raises",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 5
+  },
+  {
+   "code": "ARCH046",
+   "severity": "error",
+   "message": "cannot read the test report <tmp>: syntax error: line 1, column 0",
+   "file": "<tmp>",
+   "line": 0
+  },
+  {
+   "code": "ARCH046",
+   "severity": "error",
+   "message": "test_frames (test of decision 2) not run in junit.xml -> run the tests with pytest --junitxml and make it pass",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 25
+  },
+  {
+   "code": "ARCH046",
+   "severity": "error",
+   "message": "test_kept (test of decision 4) not run in junit.xml -> run the tests with pytest --junitxml and make it pass",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 37
+  },
+  {
+   "code": "ARCH046",
+   "severity": "error",
+   "message": "test_raises (test of decision 1) not run in junit.xml -> run the tests with pytest --junitxml and make it pass",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 19
+  },
+  {
+   "code": "ARCH046",
+   "severity": "error",
+   "message": "test_shared_helper (test of decision 3) not run in junit.xml -> run the tests with pytest --junitxml and make it pass",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 31
+  },
+  {
+   "code": "ARCH046",
+   "severity": "error",
+   "message": "test_unique (test of clean_orders.INV1) failed in junit.xml -> run the tests with pytest --junitxml and make it pass",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 14
+  },
+  {
+   "code": "ARCH046",
+   "severity": "error",
+   "message": "test_unique (test of clean_orders.INV1) not run in junit.xml -> run the tests with pytest --junitxml and make it pass",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 14
+  },
+  {
+   "code": "ARCH046",
+   "severity": "error",
+   "message": "test_unique (test of clean_orders.INV1) skipped in junit.xml -> run the tests with pytest --junitxml and make it pass",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 14
+  },
+  {
+   "code": "ARCH050",
+   "severity": "error",
+   "message": ".archvow/components/clean_orders/notes.md: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
+   "file": ".archvow/components/clean_orders/notes.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH050",
+   "severity": "error",
+   "message": ".archvow/components/orphan: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
+   "file": ".archvow/components/orphan",
+   "line": 0
+  },
+  {
+   "code": "ARCH050",
+   "severity": "error",
+   "message": ".archvow/notes.md: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
+   "file": ".archvow/notes.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH053",
+   "severity": "error",
+   "message": "commit 26cac0d1: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH053",
+   "severity": "error",
+   "message": "commit 5733a27c: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH053",
+   "severity": "error",
+   "message": "written by claude-code while archvow refused to run inside it (ARCH051, <date>): start it protected, let it run `archvow check`, then commit again",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH053",
+   "severity": "error",
+   "message": "written by claude-code, which never ran archvow in this project: nobody checked how it ran - ask claude-code to run `archvow check`, then commit again",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH053",
+   "severity": "error",
+   "message": "written by codex, which never ran archvow in this project: nobody checked how it ran - ask codex to run `archvow check`, then commit again",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH053",
+   "severity": "warning",
+   "message": "written by jetbrains-ai-chat, which archvow cannot see when it runs commands (it sets no variable archvow knows): nobody checked how it ran (sandbox, YOLO mode)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH055",
+   "severity": "error",
+   "message": "example FATTRIB-012-negative-amount of clean_orders: the files in tests/examples/clean_orders/FATTRIB-012-negative-amount/ changed since noreply@anthropic.com recorded them -> put them back (git checkout -- tests/examples/clean_orders/FATTRIB-012-negative-amount), or a person checks them with the business team and runs archvow example add clean_orders FATTRIB-012-negative-amount",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH056",
+   "severity": "error",
+   "message": "example FATTRIB-012-negative-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-012-negative-amount\") -> write the test that reads tests/examples/clean_orders/FATTRIB-012-negative-amount/input/ and compares with tests/examples/clean_orders/FATTRIB-012-negative-amount/expected/",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "DORA001",
+   "severity": "error",
+   "message": "'clean_orders' has no ticket -> archvow component edit clean_orders -s <ticket>",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "DORA002",
+   "severity": "error",
+   "message": "only @alice can approve guard changes: an author would approve their own change -> archvow init <package> --force -a architects=\"@first @second\" (or a group @org/team)",
+   "file": ".gitlab/CODEOWNERS",
+   "line": 0
+  },
+  {
+   "code": "DORA003",
+   "severity": "error",
+   "message": "'archvow' is not in the third-party register -> archvow dependency add archvow --supplier \"...\" --licence \"...\" --criticality critical|important|minor",
+   "file": "requirements.txt",
+   "line": 4
+  },
+  {
+   "code": "DORA003",
+   "severity": "error",
+   "message": "'ruff' is critical: pin its version with == (now: >=0.6)",
+   "file": "requirements.txt",
+   "line": 6
+  },
+  {
+   "code": "DORA004",
+   "severity": "error",
+   "message": "allow_failure: true - a failing job must stop the merge",
+   "file": ".gitlab-ci.yml",
+   "line": 60
+  },
+  {
+   "code": "DORA004",
+   "severity": "error",
+   "message": "test_unique tests an invariant and can be skipped (pytest.mark.skip(reason='slow')) - it must always run",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 8
+  },
+  {
+   "code": "DORA006",
+   "severity": "warning",
+   "message": "'pytest': registered licence GPL-3.0, installed package says MIT",
+   "file": "requirements.txt",
+   "line": 7
+  },
+  {
+   "code": "FAPI001",
+   "severity": "error",
+   "message": "'time.sleep()' blocks the event loop inside async def: use an async client (httpx.AsyncClient, asyncio.sleep) or a plain def",
+   "file": "src/api/p3_services/create_order.py",
+   "line": 17
+  },
+  {
+   "code": "FAPI002",
+   "severity": "error",
+   "message": "HTTPException belongs to p0_common, p4_api: raise a domain error here and map it to an HTTP status in the app's exception handlers",
+   "file": "src/api/p3_services/create_order.py",
+   "line": 18
+  },
+  {
+   "code": "FAPI003",
+   "severity": "error",
+   "message": "create the FastAPI app only in the 'app' component",
+   "file": "src/api/p4_api/orders_router.py",
+   "line": 13
+  },
+  {
+   "code": "FAPI004",
+   "severity": "error",
+   "message": "on_event is deprecated: put startup and shutdown in the app's lifespan",
+   "file": "src/api/p4_api/main.py",
+   "line": 16
+  },
+  {
+   "code": "FAPI005",
+   "severity": "warning",
+   "message": "route GET /users/{user_id}: declare what it returns (a return type or response_model=), so the response is validated and documented",
+   "file": "src/api/api/users.py",
+   "line": 11
+  },
+  {
+   "code": "FAPI005",
+   "severity": "warning",
+   "message": "route POST /orders: declare what it returns (a return type or response_model=), so the response is validated and documented",
+   "file": "src/api/p4_api/orders_router.py",
+   "line": 17
+  },
+  {
+   "code": "GDPR001",
+   "severity": "error",
+   "message": "column 'diagnosis' of orders_schema is not classified -> archvow column set orders_schema diagnosis personal|special|none",
+   "file": "src/sales/p1_domain/orders_schema.py",
+   "line": 15
+  },
+  {
+   "code": "GDPR001",
+   "severity": "error",
+   "message": "column 'email' of orders_schema is not classified -> archvow column set orders_schema email personal|special|none",
+   "file": "src/sales/p1_domain/orders_schema.py",
+   "line": 14
+  },
+  {
+   "code": "GDPR001",
+   "severity": "error",
+   "message": "column 'order_id' of orders_schema is not classified -> archvow column set orders_schema order_id personal|special|none",
+   "file": "src/sales/p1_domain/orders_schema.py",
+   "line": 13
+  },
+  {
+   "code": "GDPR003",
+   "severity": "error",
+   "message": "'orders_clean_writer' is implemented but P1 (Personal data) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make orders_clean_writer P1 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR004",
+   "severity": "error",
+   "message": ".show() prints rows of personal data (diagnosis, email, phone); remove it (count or check in a test instead)",
+   "file": "src/sales/p2_io/orders_clean_writer.py",
+   "line": 19
+  },
+  {
+   "code": "GDPR004",
+   "severity": "error",
+   "message": ".show() prints rows of personal data (diagnosis, phone); remove it (count or check in a test instead)",
+   "file": "src/sales/p2_io/orders_clean_writer.py",
+   "line": 19
+  },
+  {
+   "code": "GDPR004",
+   "severity": "error",
+   "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, email, phone)",
+   "file": "src/sales/p2_io/orders_clean_writer.py",
+   "line": 20
+  },
+  {
+   "code": "GDPR004",
+   "severity": "error",
+   "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, phone)",
+   "file": "src/sales/p2_io/orders_clean_writer.py",
+   "line": 20
+  },
+  {
+   "code": "GDPR005",
+   "severity": "error",
+   "message": "'orders_clean_writer' writes special-category data (diagnosis) that no step pseudonymises -> archvow hazard add orders_clean_writer exposed critical \"special-category data is written in clear\", then archvow invariant add orders_clean_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR006",
+   "severity": "error",
+   "message": "partitionBy('email'): personal values become folder names; partition by a non-personal column",
+   "file": "src/sales/p2_io/orders_clean_writer.py",
+   "line": 22
+  },
+  {
+   "code": "GDPR008",
+   "severity": "error",
+   "message": "'orders_clean_writer' is implemented but P2 (Personal data) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make orders_clean_writer P2 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR009",
+   "severity": "warning",
+   "message": "column 'phone' is classified in the spec of orders_schema but not defined in its code (renamed?)",
+   "file": "src/sales/p1_domain/orders_schema.py",
+   "line": 0
+  },
+  {
+   "code": "SPK001",
+   "severity": "error",
+   "message": "'.read' performs I/O; move it to an I/O layer (layer 'p1_domain' is I/O-free)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 20
+  },
+  {
+   "code": "SPK001",
+   "severity": "error",
+   "message": "load() performs file I/O",
+   "file": "src/sales/p1_domain/enrich_orders.py",
+   "line": 16
+  },
+  {
+   "code": "SPK002",
+   "severity": "error",
+   "message": "'.count()' triggers execution; layer 'p1_domain' must stay lazy",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 21
+  },
+  {
+   "code": "SPK002",
+   "severity": "error",
+   "message": "'.toPandas()' triggers execution; layer 'p1_domain' must stay lazy",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 16
+  },
+  {
+   "code": "SPK004",
+   "severity": "error",
+   "message": "specify the join type as a keyword, e.g. how='inner'",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 22
+  },
+  {
+   "code": "SPK007",
+   "severity": "error",
+   "message": "Row is not a type: use `from pyspark.sql import Row`",
+   "file": "src/sales/p1_domain/labels.py",
+   "line": 20
+  },
+  {
+   "code": "TST001",
+   "severity": "error",
+   "message": "'/data/exports/orders.csv': a test reads only files under tests/ (or tmp_path)",
+   "file": "tests/p2_io/test_orders_reader.py",
+   "line": 5
+  },
+  {
+   "code": "TST001",
+   "severity": "error",
+   "message": "'jdbc:postgresql://db.prod.acme:5432/sales': a real database in a test - use an in-memory database or a local test container",
+   "file": "tests/p2_io/test_orders_reader.py",
+   "line": 2
+  },
+  {
+   "code": "TST001",
+   "severity": "error",
+   "message": "'s3a://acme-prod/orders/': cloud storage in a test - copy a few invented rows under tests/",
+   "file": "tests/p2_io/test_orders_reader.py",
+   "line": 3
+  },
+  {
+   "code": "TST001",
+   "severity": "error",
+   "message": ".jdbc(...) reads a real table: build a DataFrame in the test (spark.createDataFrame) instead",
+   "file": "tests/p2_io/test_orders_reader.py",
+   "line": 2
+  },
+  {
+   "code": "TST002",
+   "severity": "error",
+   "message": "briefs/orders.md: e-mail jean.martin@acme-bank.fr looks real - a brief holds invented values (name@example.com...)",
+   "file": "briefs/orders.md",
+   "line": 17
+  },
+  {
+   "code": "TST002",
+   "severity": "error",
+   "message": "e-mail jean.dupont@gmail.com looks real - use invented values (name@example.com...)",
+   "file": "tests/p2_io/test_orders_reader.py",
+   "line": 6
+  },
+  {
+   "code": "TST002",
+   "severity": "error",
+   "message": "specs/001-orders/plan.md: e-mail paul.durand@acme-bank.fr looks real - a brief holds invented values (name@example.com...)",
+   "file": "specs/001-orders/plan.md",
+   "line": 11
+  },
+  {
+   "code": "TST002",
+   "severity": "error",
+   "message": "tests/data/orders.csv: IBAN FR14 2004 1010 0505 0001 3M02 606 looks real - use invented values (name@example.com, FR76 3000 6000 0112 3456 7890 189...)",
+   "file": "tests/data/orders.csv",
+   "line": 3
+  },
+  {
+   "code": "TST002",
+   "severity": "error",
+   "message": "tests/data/orders.csv: card number 4539 1488 0343 6467 looks real - use invented values (name@example.com, FR76 3000 6000 0112 3456 7890 189...)",
+   "file": "tests/data/orders.csv",
+   "line": 3
+  },
+  {
+   "code": "TST002",
+   "severity": "error",
+   "message": "tests/data/orders.csv: e-mail paul.martin@orange.fr looks real - use invented values (name@example.com, FR76 3000 6000 0112 3456 7890 189...)",
+   "file": "tests/data/orders.csv",
+   "line": 3
+  },
+  {
+   "code": "TST002",
+   "severity": "error",
+   "message": "tests/data/orders.csv: phone number +33 6 12 34 56 78 looks real - use invented values (name@example.com, FR76 3000 6000 0112 3456 7890 189...)",
+   "file": "tests/data/orders.csv",
+   "line": 3
+  },
+  {
+   "code": "TST002",
+   "severity": "error",
+   "message": "tests/data/orders.csv: social security number 1 85 05 78 006 084 91 looks real - use invented values (name@example.com, FR76 3000 6000 0112 3456 7890 189...)",
+   "file": "tests/data/orders.csv",
+   "line": 3
+  },
+  {
+   "code": "TST003",
+   "severity": "error",
+   "message": "tests/data/big.csv: 2 KB, 1501 lines (max 200 KB, 1000 lines) - test data is small and invented, not an extract",
+   "file": "tests/data/big.csv",
+   "line": 0
+  },
+  {
+   "code": "TST003",
+   "severity": "error",
+   "message": "tests/data/extract.parquet: binary data in tests (a real extract?) - build the rows in the test, or keep a small CSV/JSON file of invented values",
+   "file": "tests/data/extract.parquet",
+   "line": 0
+  }
+ ]
+}

@@ -50,6 +50,16 @@ final class ArchvowCommandPrefill {
         return Map.copyOf(data);
     }
 
+    /**
+     * The id {@code hazard remove} / {@code invariant remove} takes: {@code show --json} already gives it
+     * with its component (clean_orders.H1), kept as it is; a bare H1 / INV1 gets the component.
+     */
+    static String itemId(String component, String id) {
+        String value = id == null ? "" : id.trim();
+        if (value.matches("(?i)[A-Za-z_][A-Za-z0-9_]*\\.(H|INV)\\d+")) return value;
+        return component == null || component.isBlank() ? value : component + "." + value;
+    }
+
     static boolean usesComponent(String command) {
         if (command == null) return false;
         return switch (command) {

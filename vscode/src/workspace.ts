@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 import { ArchvowCli, CliResult, CliSettings } from './cli';
 import { Briefs, locate, readBriefs } from './briefs';
 import { renderResult } from './formatter';
-import { Command, findCommand, inline, isMutating, needsFullCard, planForm, prefill, preview, promptCommand } from './grammar';
+import { Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, promptCommand } from './grammar';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
 import { knownVersion, parseVersion, problemsOf, versionWarning } from './model';
@@ -250,7 +250,8 @@ export class ArchvowProject {
 
   private recompute(): void {
     const s = this.state;
-    s.work = buildWork(s.spec, s.check, s.checkFailure, s.snapshots, s.fr);
+    s.work = buildWork(s.spec, s.check, s.checkFailure, s.snapshots, s.fr,
+      fs.readFileSync(path.join(this.resources, s.fr ? 'rules.fr.md' : 'rules.md'), 'utf8'), this.commands);
     s.rows = architectureRows(s.spec, s.check, s.snapshots, s.work.pendingByComponent);
     s.derived = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, derive(view)]));
     this.changed.fire();
@@ -892,7 +893,7 @@ export class ArchvowProject {
       }
       const picked = await vscode.window.showQuickPick(ids, { placeHolder: purpose === 'hazard remove'
         ? tr(fr, 'Select the hazard to remove:', 'Choisis le danger à supprimer :') : tr(fr, 'Select the invariant to remove:', "Choisis l'invariant à supprimer :") });
-      if (picked) this.openCommand(purpose, { id: component + '.' + picked }, component);
+      if (picked) this.openCommand(purpose, { id: itemId(component, picked) }, component);
     }
   }
 

@@ -171,6 +171,16 @@ export function prefill(command: string, requested: Record<string, string>, sele
   return data;
 }
 
+/**
+ * The id `hazard remove` / `invariant remove` takes: `show --json` already gives it with its component
+ * (clean_orders.H1), kept as it is; a bare H1 / INV1 gets the component. Never clean_orders.clean_orders.H1.
+ */
+export function itemId(component: string, id: string): string {
+  const value = (id ?? '').trim();
+  if (/^[A-Za-z_][A-Za-z0-9_]*\.(H|INV)\d+$/i.test(value)) return value;
+  return component ? `${component}.${value}` : value;
+}
+
 // ------------------------------------------------------------------ in-place actions
 
 function required(value: string | undefined, name: string): string {

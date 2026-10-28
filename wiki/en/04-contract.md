@@ -18,6 +18,8 @@ from a real archvow CLI, never written by hand.
 | `contract/cli/briefs/` (`show.json`, `next.json`, `check.json`, `show/<component>.json`, `refused.txt`) | python-app with Spec Kit's `specs/` declared as a brief folder (`-a briefs=briefs,specs`): `mark_paid` drawn from `specs/001-orders/plan.md#paying-an-invoice` (`source`), ARCH039 once that section changed, and archvow's refusal of `--from` before the folder was declared | `regenerate.py` (`briefs()`) | `vscode/src/test/briefs.test.ts`, `BriefsRegression` |
 | `contract/vows/<example>/.archvow/**/*.vow` | the vows archvow wrote on its examples | `regenerate.py` | both `.vow` readers (`CoreTests`, `vscode/src/test/vowReader.test.ts`) |
 | `contract/archvow/` | the archvow the plugins are tested with: the wheel of `contract/cli/version.txt`, archvow's three examples with their code, `docs/rules*.md` | `contract/tools/take_archvow.sh` | `regenerate.py` (CI job `contract`), `vscode/src/test/live.test.ts` |
+| `contract/cli/messages.json` | every check message archvow's own test suite makes archvow 1.17 print: 491 messages, 70 codes | `contract/tools/harvest_messages.py` (runs archvow's tests with a hook) | `vscode/src/test/guidance.test.ts`, `GuidanceRegression` |
+| `contract/guidance/expected.json` | what `guidance.ts` says on each of those messages, in English and French | `UPDATE_GUIDANCE=1 npm test` | `GuidanceRegression`: `ArchvowGuidance` must say exactly the same |
 | `contract/vow-reader/expected.json` | what the Java reader gives (tokens, problems, header, links) on every vow and on 400 vows broken on purpose | `./gradlew contractDump` (`DumpContract`) | the TypeScript reader must give exactly the same |
 
 ## How the plugins carry it

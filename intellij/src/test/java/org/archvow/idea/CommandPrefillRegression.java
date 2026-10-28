@@ -42,7 +42,12 @@ public final class CommandPrefillRegression {
         Map<String,String> fix = ArchvowCommandPrefill.prepare("component edit",
             Map.of("component", "sales_reader", "uses", "config"), "", component, entry);
         if (fix.containsKey("spec") || fix.containsKey("owners")) throw new AssertionError("a specific fix stays specific: " + fix);
-        System.out.println("OK: 7 grounded prefill scenarios");
+        // hazard / invariant remove: show --json gives clean_sales.H1; never clean_sales.clean_sales.H1
+        assertEqual("clean_sales.H1", ArchvowCommandPrefill.itemId("clean_sales", "clean_sales.H1"));
+        assertEqual("clean_sales.INV2", ArchvowCommandPrefill.itemId("clean_sales", "clean_sales.INV2"));
+        assertEqual("clean_sales.H1", ArchvowCommandPrefill.itemId("clean_sales", "H1"));
+        assertEqual("H1", ArchvowCommandPrefill.itemId("", "H1"));
+        System.out.println("OK: 7 grounded prefill scenarios, and the ids of hazard / invariant remove");
     }
     static void assertEqual(String expected, String actual) {
         if (!expected.equals(actual)) throw new AssertionError("Expected " + expected + "; got " + actual);

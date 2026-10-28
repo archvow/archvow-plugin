@@ -2,6 +2,8 @@
 // component and for the project, the counts on each view, the Architecture table. A faithful port of
 // ArchvowPanel.rebuildQuickModels, ArchvowSafetyState, ArchvowDataView.items, ArchvowIssueAction and
 // ArchvowArchitectureView, so both editors show the same work. Pure: tested on ../contract/cli.
+import { Guidance, guide } from './guidance';
+import { Command } from './grammar';
 import { addFolder } from './briefs';
 import { tr } from './i18n';
 
@@ -151,6 +153,8 @@ export interface WorkItem {
   /** What treating it does: an archvow command name, or component-show, open-file, open-diagnostics... */
   command: string;
   preset: Record<string, string>;
+  /** For a check diagnostic: what it means, what to do, who, whether it blocks (guidance.ts). */
+  guide?: Guidance;
 }
 
 export interface Work {
@@ -205,7 +209,7 @@ export function viewForItem(item: WorkItem): number {
  * and tasks. `snapshots` are `archvow show <component> --json` by id.
  */
 export function buildWork(spec: Json | null, check: Json | null, checkFailure: string,
-  snapshots: Record<string, Json>, fr: boolean): Work {
+  snapshots: Record<string, Json>, fr: boolean, rules = '', commands: Command[] = []): Work {
   const work: Work = { pending: [], resolved: [], otherPending: [], otherResolved: [], pendingByComponent: {}, resolvedByComponent: {} };
   const keys = new Set<string>();
   const add = (item: WorkItem): void => {
@@ -229,12 +233,20 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
       if (covered) continue;
     }
     const kind: ItemKind = str(violation, 'severity').toLowerCase() === 'warning' ? 'WARNING' : 'ERROR';
-    const command = fix === null ? (file ? 'open-file' : 'open-diagnostics') : code === 'ARCH019' ? 'schema-create' : fix.command;
+    const line = Number(violation.line) || 0;
+    const guidance = guide({ code, severity: str(violation, 'severity'), message: description, file, line }, rules, commands, fr);
+    // no fix of its own: the command the message names, as a prefilled form; else the file; else the list
+    const named = fix === null ? guidance.command : null;
+    const open = guidance.file;
+    const command = fix !== null ? (code === 'ARCH019' ? 'schema-create' : fix.command)
+      : named ? named.name : open ? 'open-file' : 'open-diagnostics';
+    const action = fix !== null ? fix.label
+      : named ? tr(fr, 'Prepare: ', 'Préparer : ') + short(named.text, 60)
+        : open ? tr(fr, 'Open ', 'Ouvrir ') + open.path + (open.line ? ':' + open.line : '') : tr(fr, 'Open diagnostics', 'Ouvrir le diagnostic');
     add({ kind, title: code + ' · ' + short(description, 70),
-      detail: description + (file ? '\n\n' + file + ':' + (Number(violation.line) || 0) : ''),
-      component: referenced, pending: true,
-      action: fix === null ? (file ? tr(fr, 'Open source', 'Ouvrir le fichier source') : tr(fr, 'Open diagnostics', 'Ouvrir le diagnostic')) : fix.label,
-      command, preset: fix === null ? { file } : fix.values });
+      detail: description + (file ? '\n\n' + file + ':' + line : ''),
+      component: referenced, pending: true, action, command,
+      preset: fix !== null ? fix.values : named ? named.values : { file: open?.path ?? '', line: String(open?.line ?? 0) }, guide: guidance });
   }
   for (const category of ['decisions', 'questions', 'assumptions', 'tasks']) {
     for (const record of objects(spec, category)) {

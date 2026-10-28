@@ -232,3 +232,9 @@ button.back { white-space: nowrap; flex-shrink: 0; }
 .progress-part.complete .progress-fill { background: var(--vscode-charts-green, #388a34); }
 .progress-part.partial .progress-fill { background: var(--vscode-charts-orange, #d18616); }
 .progress-fill.p0 { width: 0%; } .progress-fill.p10 { width: 10%; } .progress-fill.p20 { width: 20%; } .progress-fill.p30 { width: 30%; } .progress-fill.p40 { width: 40%; } .progress-fill.p50 { width: 50%; } .progress-fill.p60 { width: 60%; } .progress-fill.p70 { width: 70%; } .progress-fill.p80 { width: 80%; } .progress-fill.p90 { width: 90%; } .progress-fill.p100 { width: 100%; }
+
+/* a diagnostic's guidance: what it means, what to do, who, whether it blocks (guidance.ts) */
+dl.guide { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0; }
+dl.guide dt { font-weight: 600; color: var(--vscode-descriptionForeground); }
+dl.guide dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 420px) { dl.guide { grid-template-columns: 1fr; } dl.guide dd { margin-bottom: 4px; } }

@@ -32,6 +32,7 @@ what it protects:
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |
 | `ToolWindowLayoutRegression`, `ResponsiveOverflowRegression`, `CompactViewsRegression` | narrow screens |
 | `VersionRegression` | "archvow 1.17 is not the known version" |
+| `GuidanceRegression` | every diagnostic says what to do (`ArchvowGuidance`): each documented code, and on each real message exactly the guidance of VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Install archvow: the Python chosen, the pip line per source, WSL, pip only from a confirmation |
 | `ProgressRegression` | the progress bar on the recorded `clean_orders` (9/9, 1/5, 0/2) |
 | `BriefsRegression` | the brief folders, archvow's slugs, the `--from` choices, Drawn from, Add this folder, ARCH039 |
@@ -67,6 +68,7 @@ tested, the page is read as text.
 | `workspace.test.ts` | form -> command line, prefill, in-place actions, documented fixes, result formatting |
 | `layout.test.ts` | the page: one tab, the logo, the cards, the architecture table, Back, the progress bar |
 | `install.test.ts` | Install archvow: the source, the Python, the pip line, WSL, nothing without Confirm and run |
+| `guidance.test.ts` | every diagnostic says what it means, what to do, who does it, whether it blocks and what then (`guidance.ts`): all the codes of `rules.md` and `rules.fr.md`, all the real messages of `contract/cli/messages.json`; the command a message names becomes a form that runs as it is or leaves only the person's part empty; writes `contract/guidance/expected.json` with `UPDATE_GUIDANCE=1` |
 | `briefs.test.ts` | the brief folders, archvow's slugs, the `--from` choices, Drawn from, the refusal -> init form, ARCH039 (on `contract/cli/briefs`) |
 | `wiki.test.ts` | the wiki follows the code (below) |
 | `release.test.ts` | before a release, nothing built: one version (`package.json`, `gradle.properties`, README, both changelogs), one archvow (`contract/cli/version.txt`, the pip requirement, the README), both builds package the same contract files, the command lists (`DESTRUCTIVE`, `READ_ONLY`, `LONG_TEXT`) identical in `grammar.ts` and `ArchvowPanel` and made of archvow's commands, every command that asks for confirmation gets `--yes`, `package.json` and `plugin.xml` name only commands, settings, classes and files that exist |

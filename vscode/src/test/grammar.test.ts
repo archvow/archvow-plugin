@@ -4,7 +4,7 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { prefill } from '../grammar';
+import { itemId, prefill } from '../grammar';
 import * as oniguruma from 'vscode-oniguruma';
 import * as textmate from 'vscode-textmate';
 import { tokenize, TokenKind } from '../vow/scanner';
@@ -71,4 +71,13 @@ test('Edit spec from a component: every field it has, the spec entry giving what
     group: 'readers', owners: '@alice,@data-team', source: 'briefs/sales.md#reader' });
   const fix = prefill('component edit', { component: 'sales_reader', uses: 'config' }, '', snapshot, entry);
   assert.deepEqual(fix, { component: 'sales_reader', uses: 'config' });
+});
+
+test('hazard / invariant remove: the id show --json gives (clean_sales.H1) is kept, a bare one gets its component', () => {
+  // the IntelliJ form was prefilled clean_sales.clean_sales.H1 and archvow refused it (usage: ... clean_orders H1)
+  assert.equal(itemId('clean_sales', 'clean_sales.H1'), 'clean_sales.H1');
+  assert.equal(itemId('clean_sales', 'clean_sales.INV2'), 'clean_sales.INV2');
+  assert.equal(itemId('clean_sales', 'H1'), 'clean_sales.H1');
+  assert.equal(itemId('clean_sales', ' INV3 '), 'clean_sales.INV3');
+  assert.equal(itemId('', 'H1'), 'H1');
 });

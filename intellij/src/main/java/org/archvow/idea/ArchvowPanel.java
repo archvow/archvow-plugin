@@ -69,9 +69,17 @@ final class ArchvowPanel extends JPanel {
         final String actionLabel;
         final String commandLabel;
         final Map<String, String> preset;
+        /** For a check diagnostic: what it means, what to do, who, whether it blocks (ArchvowGuidance). */
+        final ArchvowGuidance.Guidance guide;
 
         QuickItem(QuickKind kind, String title, String detail, String componentId, boolean pending,
                   String actionLabel, String commandLabel, Map<String, String> preset) {
+            this(kind, title, detail, componentId, pending, actionLabel, commandLabel, preset, null);
+        }
+
+        QuickItem(QuickKind kind, String title, String detail, String componentId, boolean pending,
+                  String actionLabel, String commandLabel, Map<String, String> preset, ArchvowGuidance.Guidance guide) {
+            this.guide = guide;
             this.kind = kind;
             this.title = title;
             this.detail = detail;
@@ -121,6 +129,8 @@ final class ArchvowPanel extends JPanel {
     private boolean installing;
     private ArchvowProjectReadiness.Status projectStatus;
     private final JEditorPane componentDetails = htmlPane();
+    /** The component's actions (Clarify, Open spec, Open code...): hidden on Other / Project, the project's view. */
+    private JComponent componentActions;
     {
         // "Uses ...  ·  Used by ..." under the component's name: each name opens that component (ArchvowLinks)
         componentDetails.addHyperlinkListener(event -> {
@@ -1228,15 +1238,23 @@ final class ArchvowPanel extends JPanel {
         ArchvowOverflowBar actions = new ArchvowOverflowBar(
             ArchvowI18n.text(project, "More actions ▾", "Autres actions ▾"));
         JButton clarify = ArchvowSplitView.primary(ArchvowI18n.text(project, "Clarify", "Clarifier"));
-        clarify.setToolTipText(ArchvowI18n.text(project, "The first open decision, question or safety question",
-            "La première décision, question ou question de sécurité ouverte"));
+        clarify.setToolTipText(ArchvowI18n.text(project, "Answer what is still open for this component: its next question, decision or safety question.",
+            "Répondre à ce qui reste ouvert pour ce composant : sa prochaine question, décision ou question de sécurité."));
         clarify.addActionListener(e -> guidedNext());
         actions.addAction(clarify);
-        actions.addAction(button(ArchvowI18n.text(project, "Open spec", "Ouvrir la spec"), this::openSpec));
-        actions.addAction(button(ArchvowI18n.text(project, "Open code", "Ouvrir le code"), this::openCode));
-        actions.addAction(button(ArchvowI18n.text(project, "Edit spec", "Modifier la spec"),
-            () -> withComponent(c -> openCommand("component edit", Map.of("component", c.id)))));
-        actions.addAction(button(ArchvowI18n.text(project, "AI prompt", "Instruction IA"), () -> withComponent(c -> executeDirect("prompt", List.of("prompt", c.id), null, false))));
+        actions.addAction(tip(button(ArchvowI18n.text(project, "Open spec", "Ouvrir la spec"), this::openSpec),
+            "Read the task the AI implements (.archvow/components/<component>/spec.md), written by archvow from the spec. Read only: change it with Edit spec, + Question, + Rule.",
+            "Lire la tâche que l'IA implémente (.archvow/components/<composant>/spec.md), écrite par archvow depuis la spec. En lecture seule : la changer avec Modifier la spec, + Question, + Règle."));
+        actions.addAction(tip(button(ArchvowI18n.text(project, "Open code", "Ouvrir le code"), this::openCode),
+            "Open this component's Python file (and its test). Change the code there; save, then Check.",
+            "Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier."));
+        actions.addAction(tip(button(ArchvowI18n.text(project, "Edit spec", "Modifier la spec"),
+            () -> withComponent(c -> openCommand("component edit", Map.of("component", c.id)))),
+            "Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.",
+            "Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et dangers restent tels quels : revoir ceux que le changement touche."));
+        actions.addAction(tip(button(ArchvowI18n.text(project, "AI prompt", "Instruction IA"), () -> withComponent(c -> executeDirect("prompt", List.of("prompt", c.id), null, false))),
+            "Copy the instruction to give the AI for this component's next task (archvow prompt).",
+            "Copier l'instruction à donner à l'IA pour la prochaine tâche de ce composant (archvow prompt)."));
         actions.addAction(button(ArchvowI18n.text(project, "+ Question", "+ Question"),
             () -> withComponent(c -> openCommand("question add", Map.of("component", c.id)))));
         actions.addAction(button(ArchvowI18n.text(project, "+ Rule", "+ Règle"),
@@ -1396,6 +1414,7 @@ final class ArchvowPanel extends JPanel {
         addComponentView(viewBar, detailCards, 7,
             ArchvowI18n.text(project, "Other / Project", "Autres / Projet"), quickCard);
         JComponent actionStrip = actions;
+        componentActions = actionStrip;
         actionStrip.setPreferredSize(new Dimension(0, 39));
         JPanel rightTop = new JPanel(new BorderLayout(0, 5));
         actionsHeading = (JPanel) sectionHeader(ArchvowI18n.text(project, "Actions", "Actions"),
@@ -1515,6 +1534,8 @@ final class ArchvowPanel extends JPanel {
         if (componentViewNav != null) componentViewNav.setActive(index);
         // Other / Project is the project's, not the component's: no component head over it
         componentDetails.setVisible(index != 7);
+        if (componentActions != null) componentActions.setVisible(index != 7);
+        if (actionsHeading != null) actionsHeading.setVisible(index != 7);
         componentViewCards.revalidate();
         componentViewCards.repaint();
         if (constructed && role == Role.DETAIL) afterSelectionChange();
@@ -2899,9 +2920,9 @@ final class ArchvowPanel extends JPanel {
                 invariant ? "Choisis l'invariant à supprimer :" : "Choisis le danger à supprimer :"),
             "Archvow", JOptionPane.QUESTION_MESSAGE, null, ids.toArray(new String[0]), ids.get(0));
         if (chosen == null) return;
-        // Include the component to avoid affecting a similarly numbered item elsewhere.
+        // show --json gives the id with its component (clean_orders.H1): never prefix it twice
         openCommand(invariant ? "invariant remove" : "hazard remove",
-            Map.of("id", selectedComponent.id + "." + chosen));
+            Map.of("id", ArchvowCommandPrefill.itemId(selectedComponent.id, chosen)));
     }
 
     private void showSafety() {
@@ -3331,15 +3352,24 @@ final class ArchvowPanel extends JPanel {
                 if (inSafety) continue;
             }
             QuickKind severity = "warning".equalsIgnoreCase(ArchvowGrammar.str(violation,"severity")) ? QuickKind.WARNING : QuickKind.ERROR;
-            String action = fix == null ? (file.isBlank() ? "open-diagnostics" : "open-file") :
-                ("ARCH019".equals(code) ? "schema-create" : fix.command());
-            Map<String,String> values = fix == null ? Map.of("file", file) : fix.values();
+            int line = ArchvowGrammar.number(violation, "line");
+            boolean french = ArchvowI18n.isFrench(project);
+            ArchvowGuidance.Guidance guide = ArchvowGuidance.guide(code, ArchvowGrammar.str(violation, "severity"), description,
+                file, line, ArchvowGuidance.rules(french), ArchvowGrammar.COMMANDS, french);
+            // no fix of its own: the command the message names, as a prefilled form; else the file; else the list
+            ArchvowGuidance.GuideCommand named = fix == null ? guide.command() : null;
+            ArchvowGuidance.FileRef open = guide.file();
+            String action = fix != null ? ("ARCH019".equals(code) ? "schema-create" : fix.command())
+                : named != null ? named.name() : open == null ? "open-diagnostics" : "open-file";
+            Map<String,String> values = fix != null ? fix.values() : named != null ? named.values()
+                : open == null ? Map.of() : Map.of("file", open.path(), "line", String.valueOf(open.line()));
+            String label = fix != null ? fix.label()
+                : named != null ? ArchvowI18n.text(project, "Prepare: ", "Préparer : ") + shorten(named.text(), 60)
+                : open == null ? ArchvowI18n.text(project,"Open diagnostics", "Ouvrir le diagnostic")
+                : ArchvowI18n.text(project, "Open ", "Ouvrir ") + open.path() + (open.line() > 0 ? ":" + open.line() : "");
             addQuickItem(keys, new QuickItem(severity, code + " · " + shorten(description, 70),
-                description + (file.isBlank() ? "" : "\n\n" + file + ":" + ArchvowGrammar.number(violation, "line")),
-                referenced, true, fix == null ? (file.isBlank() ?
-                    ArchvowI18n.text(project,"Open diagnostics", "Ouvrir le diagnostic") :
-                    ArchvowI18n.text(project,"Open source", "Ouvrir le fichier source")) : fix.label(),
-                action, values));
+                description + (file.isBlank() ? "" : "\n\n" + file + ":" + line),
+                referenced, true, label, action, values, guide));
         }
         // Project-level records have no component. Keep them visible instead of assigning
         // a guessed component or silently dropping them from the global pending total.
@@ -3598,9 +3628,11 @@ final class ArchvowPanel extends JPanel {
             + chip(item.pending ? ArchvowI18n.text(project,"Pending","En attente") :
                 ArchvowI18n.text(project,"Resolved","Traité"),
                 item.pending ? "#FFF1D7" : "#E5F4EA", item.pending ? "#9B6818" : "#13835B")
+            + (item.guide == null ? "" : "<p style='margin:6px 0 0 0;'><i>" + escape(ArchvowI18n.text(project, "archvow says", "archvow dit")) + "</i></p>")
             + "<p style='white-space:pre-wrap;'>" + escape(item.detail).replace("\n", "<br>") + "</p>"
             + (item.componentId.isBlank() ? "" : "<p><b>" +
                 escape(ArchvowI18n.text(project,"Component","Composant")) + ":</b> " + escape(item.componentId) + "</p>")
+            + (item.guide == null ? "" : guideHtml(item.guide))
             + "</body></html>");
         quickDetails.setCaretPosition(0);
         quickPrimary.setEnabled(true);
@@ -3613,7 +3645,11 @@ final class ArchvowPanel extends JPanel {
             case "schema-create" -> ArchvowI18n.text(project,"Edit reader dependencies", "Modifier les dépendances du lecteur");
             case "open-file", "component edit", "invariant add" -> item.componentId.isBlank() ? "" :
                 ArchvowI18n.text(project,"Open component", "Ouvrir le composant");
-            default -> ""; // No duplicated "Open component" buttons.
+            // a diagnostic about a file, treated by a command: the file too
+            default -> item.guide != null && item.guide.file() != null
+                ? ArchvowI18n.text(project, "Open ", "Ouvrir ") + item.guide.file().path()
+                    + (item.guide.file().line() > 0 ? ":" + item.guide.file().line() : "")
+                : ""; // No duplicated "Open component" buttons.
         };
         quickSecondary.setVisible(!secondary.isBlank());
         quickSecondary.setEnabled(!secondary.isBlank());
@@ -3706,7 +3742,12 @@ final class ArchvowPanel extends JPanel {
                 "component", item.componentId, "question", item.preset.getOrDefault("number", "")));
             case "schema-create" -> openCommand("component edit", Map.of("component", item.componentId));
             case "brief accept" -> openBrief(item.preset.getOrDefault("brief", ""));
-            default -> goToQuickComponent();
+            case "open-file", "component edit", "invariant add" -> goToQuickComponent();
+            default -> {
+                if (item.guide != null && item.guide.file() != null)
+                    openViolationFile(item.guide.file().path(), item.guide.file().line());
+                else goToQuickComponent();
+            }
         }
     }
 
@@ -3729,7 +3770,13 @@ final class ArchvowPanel extends JPanel {
     }
 
     private void openViolationFile(QuickItem item) {
-        String relative=item.preset.getOrDefault("file", "");
+        int line;
+        try { line = Integer.parseInt(item.preset.getOrDefault("line", "0")); } catch (NumberFormatException e) { line = 0; }
+        openViolationFile(item.preset.getOrDefault("file", ""), line);
+    }
+
+    /** A project file a diagnostic is about, at its line (1-based; 0: the top). */
+    private void openViolationFile(String relative, int line) {
         String base=project.getBasePath();
         if (relative.isBlank() || base==null) {
             showDiagnostics();
@@ -3743,8 +3790,29 @@ final class ArchvowPanel extends JPanel {
                 return;
             }
             var virtual=LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-            if (virtual!=null) FileEditorManager.getInstance(project).openFile(virtual,true);
+            if (virtual != null && line > 0) new OpenFileDescriptor(project, virtual, line - 1, 0).navigate(true);
+            else if (virtual!=null) FileEditorManager.getInstance(project).openFile(virtual,true);
         } catch(IOException ex) { message(ex.getMessage()); }
+    }
+
+    /** A diagnostic's guidance: what it means, what to do, the command, who, whether it blocks, then. */
+    private String guideHtml(ArchvowGuidance.Guidance g) {
+        StringBuilder html = new StringBuilder("<table cellpadding='2' style='margin-top:6px;'>");
+        java.util.function.BiConsumer<String, String> row = (name, text) -> html.append("<tr><td valign='top' nowrap><b>")
+            .append(escape(name)).append("</b></td><td>").append(escape(text).replaceAll("`([^`]+)`", "<code>$1</code>")).append("</td></tr>");
+        row.accept(ArchvowI18n.text(project, "What it means", "Ce que cela veut dire"), g.meaning());
+        row.accept(ArchvowI18n.text(project, "What to do", "Que faire"), g.todo());
+        if (g.command() != null) {
+            String note = (g.command().missing().isEmpty() ? "" : ArchvowI18n.text(project, " - the form leaves for you to fill in: ",
+                " - le formulaire vous laisse remplir : ") + String.join(", ", g.command().missing()))
+                + (g.command().readOnly() ? ArchvowI18n.text(project, " - it changes nothing.", " - elle ne change rien.")
+                : ArchvowI18n.text(project, " - prepared in a form; nothing runs before you confirm.", " - préparée dans un formulaire ; rien ne tourne avant votre confirmation."));
+            row.accept(ArchvowI18n.text(project, "The command", "La commande"), "`" + g.command().text() + "`" + note);
+        }
+        row.accept(ArchvowI18n.text(project, "Who", "Qui"), g.who());
+        row.accept(ArchvowI18n.text(project, "Blocks?", "Bloquant ?"), g.blocking());
+        row.accept(ArchvowI18n.text(project, "Then", "Ensuite"), g.then());
+        return html.append("</table>").toString();
     }
 
     private void goToQuickComponent() {
@@ -3953,6 +4021,12 @@ final class ArchvowPanel extends JPanel {
         languageRefreshers.add(update);
         update.run();
         return label;
+    }
+
+    /** A button with what it does, in the IDE's language. */
+    private JButton tip(JButton button, String english, String french) {
+        button.setToolTipText("<html><body style='width:320px'>" + escape(ArchvowI18n.text(project, english, french)) + "</body></html>");
+        return button;
     }
 
     private static JButton button(String text, Runnable action) {

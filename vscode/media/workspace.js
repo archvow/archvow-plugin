@@ -447,10 +447,11 @@
 
   function componentDetail() {
     const actions = [
-      btn(t('Clarify', 'Clarifier'), 'clarify'), btn(t('Open spec', 'Ouvrir la spec'), 'openSpec', '', false, 'secondary'),
-      btn(t('Open code', 'Ouvrir le code'), 'openCode', '', false, 'secondary'),
-      btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }), false, 'secondary'),
-      btn(t('AI prompt', 'Instruction IA'), 'aiPrompt', '', false, 'secondary'),
+      btn(t('Clarify', 'Clarifier'), 'clarify', `title="${esc(t('Answer what is still open for this component: its next question, decision or safety question.', 'Répondre à ce qui reste ouvert pour ce composant : sa prochaine question, décision ou question de sécurité.'))}"`),
+      btn(t('Open spec', 'Ouvrir la spec'), 'openSpec', `title="${esc(t('Read the task the AI implements (.archvow/components/<component>/spec.md), written by archvow from the spec. Read only: change it with Edit spec, + Question, + Rule.', "Lire la tâche que l'IA implémente (.archvow/components/<composant>/spec.md), écrite par archvow depuis la spec. En lecture seule : la changer avec Modifier la spec, + Question, + Règle."))}"`, false, 'secondary'),
+      btn(t('Open code', 'Ouvrir le code'), 'openCode', `title="${esc(t("Open this component's Python file (and its test). Change the code there; save, then Check.", 'Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier.'))}"`, false, 'secondary'),
+      btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }) + ` title="${esc(t('Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.', 'Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et dangers restent tels quels : revoir ceux que le changement touche.'))}"`, false, 'secondary'),
+      btn(t('AI prompt', 'Instruction IA'), 'aiPrompt', `title="${esc(t("Copy the instruction to give the AI for this component's next task (archvow prompt).", "Copier l'instruction à donner à l'IA pour la prochaine tâche de ce composant (archvow prompt)."))}"`, false, 'secondary'),
       btn(t('+ Question', '+ Question'), 'openCommand', attrs({ command: 'question add', component: ui.component })
         + ` title="${esc(t('Add a question to this component', 'Ajouter une question à ce composant'))}"`, false, 'secondary'),
       btn(t('+ Rule', '+ Règle'), 'addRule', `title="${esc(t('Add a rule on this component', 'Ajouter une règle sur ce composant'))}"`, false, 'secondary'),
@@ -477,7 +478,8 @@
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
     // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
-    return `${head}<div class="row wrap actions">${actions.join('')}</div>
+    // Other / Project is the project's: the component's actions (Clarify, Open spec...) do not apply there
+    return `${head}${ui.view === 7 ? '' : `<div class="row wrap actions">${actions.join('')}</div>`}
   <nav class="tabs views">${viewBar}</nav>${pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
   }
@@ -867,17 +869,38 @@
     const item = items[ui.sel.other];
     let selected = '';
     if (item) {
-      const secondary = { 'brief accept': t('Review the brief', 'Relire la brief'), 'hazard add': t('Not applicable', 'Non applicable'), 'assumption accept': t('Reject', 'Rejeter'), 'decision accept': t('Edit answer', 'Autre réponse'),
-        'schema-create': t('Edit reader dependencies', 'Modifier les dépendances du lecteur') }[item.command]
-        || (['open-file', 'component edit', 'invariant add'].includes(item.command) && item.component ? t('Open component', 'Ouvrir le composant') : '');
+      const secondary = quickSecondaryLabel(item);
       selected = `<div class="details"><h4>${esc(item.title)}</h4>${chip(item.pending ? t('Pending', 'En attente') : t('Resolved', 'Traité'), item.pending ? 'warn' : 'good')}
-  <pre class="plain">${esc(item.detail)}</pre>${item.component ? `<p><b>${esc(t('Component', 'Composant'))}:</b> ${esc(item.component)}</p>` : ''}
+  ${item.guide ? `<p class="muted small">${esc(t('archvow says', 'archvow dit'))}</p>` : ''}<pre class="plain">${esc(item.detail)}</pre>${item.component ? `<p><b>${esc(t('Component', 'Composant'))}:</b> ${esc(item.component)}</p>` : ''}
+  ${item.guide ? guideHtml(item.guide) : ''}
   <div class="row">${btn(item.action, 'quickPrimary')}${secondary ? btn(secondary, 'quickSecondary', '', false, 'secondary') : ''}</div></div>${confirmation('quick')}${resultCard('quick')}`;
     }
     return `<p class="muted">${esc(t('Checks, unclassified and project-wide issues; no component assigned unless verified.', 'Contrôles, éléments non classés et problèmes globaux ; aucun composant attribué sans preuve.'))}</p>
   <nav class="tabs sub">${btn(`${t('Pending', 'En attente')} (${pendingItems.length})`, 'otherList', attrs({ i: 0 }), false, 'tab ' + (ui.otherList === 0 ? 'current' : ''))}
   ${btn(`${t('Resolved', 'Traités')} (${resolvedItems.length})`, 'otherList', attrs({ i: 1 }), false, 'tab ' + (ui.otherList === 1 ? 'current' : ''))}</nav>
   <ul class="list items" data-scroll="other">${rows || `<li class="muted">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>${selected}`;
+  }
+
+  /** A diagnostic's guidance (guidance.ts): what it means, what to do, who, whether it blocks, the command, then. */
+  function guideHtml(g) {
+    const md = (text) => esc(text || '').replace(/`([^`]+)`/g, '<code>$1</code>');
+    const command = g.command ? `<dt>${esc(t('The command', 'La commande'))}</dt><dd><code>${esc(g.command.text)}</code>`
+      + (g.command.missing.length ? ` <span class="muted">— ${esc(t('the form leaves for you to fill in: ', 'le formulaire vous laisse remplir : '))}${esc(g.command.missing.join(', '))}</span>` : '')
+      + ` <span class="muted">— ${esc(g.command.readOnly ? t('it changes nothing.', 'elle ne change rien.') : t('prepared in a form; nothing runs before you confirm.', 'préparée dans un formulaire ; rien ne tourne avant votre confirmation.'))}</span></dd>` : '';
+    return `<dl class="guide"><dt>${esc(t('What it means', 'Ce que cela veut dire'))}</dt><dd>${md(g.meaning)}</dd>
+  <dt>${esc(t('What to do', 'Que faire'))}</dt><dd>${md(g.todo)}</dd>${command}
+  <dt>${esc(t('Who', 'Qui'))}</dt><dd>${md(g.who)}</dd><dt>${esc(t('Blocks?', 'Bloquant ?'))}</dt><dd>${md(g.blocking)}</dd>
+  <dt>${esc(t('Then', 'Ensuite'))}</dt><dd>${md(g.then)}</dd></dl>`;
+  }
+
+  /** The second button of an Other / Project item: its other way out, or the file a diagnostic is about. */
+  function quickSecondaryLabel(item) {
+    const special = { 'brief accept': t('Review the brief', 'Relire la brief'), 'hazard add': t('Not applicable', 'Non applicable'), 'assumption accept': t('Reject', 'Rejeter'), 'decision accept': t('Edit answer', 'Autre réponse'),
+      'schema-create': t('Edit reader dependencies', 'Modifier les dépendances du lecteur') }[item.command];
+    if (special) return special;
+    const file = item.guide && item.guide.file;
+    if (file && item.command !== 'open-file') return t('Open ', 'Ouvrir ') + file.path + (file.line ? ':' + file.line : '');
+    return ['open-file', 'component edit', 'invariant add'].includes(item.command) && item.component ? t('Open component', 'Ouvrir le composant') : '';
   }
 
   // ---------------------------------------------------------------- Commands
@@ -1149,7 +1172,7 @@
         post({ type: 'openCommand', command: item.command, values: item.preset, selected: ui.component });
         return;
       case 'open-file':
-        post({ type: 'openFile', file: item.preset.file || '', line: 0 });
+        post({ type: 'openFile', file: item.preset.file || '', line: Number(item.preset.line) || 0 });
         return;
       case 'open-diagnostics':
         post({ type: 'showChecksNav' });
@@ -1188,7 +1211,9 @@
         post({ type: 'openBrief', ref: item.preset.brief || '' });
         return;
       default:
-        if (item.component) goToComponent(item.component);
+        if (item.guide && item.guide.file && item.command !== 'open-file' && !['open-file', 'component edit', 'invariant add'].includes(item.command)) {
+          post({ type: 'openFile', file: item.guide.file.path, line: item.guide.file.line });
+        } else if (item.component) goToComponent(item.component);
     }
   }
 
