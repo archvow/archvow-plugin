@@ -15,6 +15,11 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 ./build.sh vscode
 ```
 
+GitHub Actions (`.github/workflows/ci.yml`) runs both plugins' tests, regenerates the contract from
+archvow's source and requires it unchanged, runs the VS Code tests against a real archvow, then opens the
+built `.vsix` and `.zip` as the IDEs do; `archvow-canary.yml` tries the next archvow every Monday. The
+page [Tests](wiki/en/13-tests.md) says what each job checks.
+
 ## The rules both plugins follow
 
 - **The same layout in both editors.** The sidebar (IntelliJ: the Archvow tool window, left; VS Code: the

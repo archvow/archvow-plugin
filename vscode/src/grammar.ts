@@ -30,7 +30,8 @@ export const option = (param: Param): string => (param.flags.length ? param.flag
 /** Parameters shown as several lines. */
 export const LONG_TEXT = new Set(['description', 'answer', 'rationale', 'statement', 'question', 'text', 'words']);
 /** Commands that remove something: they get --yes, after the confirmation. */
-export const DESTRUCTIVE = new Set(['component remove', 'question remove', 'rule remove', 'hazard remove', 'invariant remove']);
+export const DESTRUCTIVE = new Set(['component remove', 'question remove', 'rule remove', 'hazard remove', 'invariant remove',
+  'example remove']);
 /** First words of the commands that change nothing. */
 export const READ_ONLY = new Set(['show', 'catalog', 'next', 'check', 'audit', 'doctor', 'changes', 'diff', 'prompt']);
 
