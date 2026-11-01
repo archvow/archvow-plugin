@@ -42,6 +42,7 @@
       "number": 1,
       "question": "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?",
       "answer": "Exit code 2 with the usage message (argparse)",
+      "template": true,
       "suggested": "Exit code 2 with the usage message (argparse)",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -51,6 +52,7 @@
       "number": 2,
       "question": "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?",
       "answer": "0 ok, 1 error, 2 bad arguments, 3 not found",
+      "template": true,
       "suggested": "0 ok, 1 error, 2 bad arguments",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -60,6 +62,7 @@
       "number": 3,
       "question": "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?",
       "answer": "The invoice on one line on stdout; errors on stderr",
+      "template": true,
       "suggested": null,
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -101,5 +104,6 @@
     "component": "invoices_cli",
     "ready": true,
     "line": "Try it locally: python -m invoicing.p4_entrypoints.invoices_cli --data-dir <data_dir> --help"
-  }
+  },
+  "to_review": []
 }

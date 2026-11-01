@@ -274,8 +274,8 @@ function catalog(out: Out, data: Json, fr: boolean): void {
   out.paragraph(tr(fr, 'To answer a template\'s questions, open Commands → init.', "Pour répondre aux questions d'un modèle, ouvre Commandes → init."), 'muted');
 }
 
+// no heading of its own: the card around it already says "Command result" (it said it twice, 0.12.1)
 function generic(out: Out, value: unknown, fr: boolean): void {
-  out.heading(tr(fr, 'Command result', 'Résultat de la commande'), 'blue');
   if (Array.isArray(value)) {
     out.chips([[value.length + tr(fr, ' items', ' éléments'), 'blue']]);
     value.slice(0, 45).forEach((el, i) => (isObject(el) ? fields(out, el, tr(fr, 'Item', 'Élément') + ' ' + (i + 1), fr, 0)

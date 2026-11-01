@@ -39,6 +39,7 @@
       "number": 1,
       "question": "Which columns are nullable, and which must never be null?",
       "answer": "order_id and amount are never null; customer_id may be null",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -48,6 +49,7 @@
       "number": 2,
       "question": "Which columns hold personal data, and where may they flow?",
       "answer": "None: the input holds no personal data",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -110,5 +112,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

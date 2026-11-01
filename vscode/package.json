@@ -2,7 +2,7 @@
   "name": "archvow",
   "displayName": "archvow",
   "description": "archvow in VS Code, the same workspace as in IntelliJ: the sidebar holds Overview (architecture, checks, pending work), Components (the tree) and Commands (every archvow command); a component or a command opens in one editor tab, reused for the next one. archvow check in the Problems view, and the .vow language.",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "publisher": "archvow",
   "license": "UNLICENSED",
   "private": true,
@@ -240,7 +240,7 @@
           "type": "string",
           "default": "",
           "scope": "machine-overridable",
-          "markdownDescription": "Where **Install archvow** takes it from (the button shown when archvow is missing or another version): empty = pip's own configuration (`pip.conf`, `PIP_INDEX_URL` - usually your company's index); an `https://` URL = that package index; a path = a wheel file (`archvow-1.17.0-py3-none-any.whl`) or a folder of wheels. Nothing is installed without your confirmation."
+          "markdownDescription": "Where **Install archvow** takes it from (the button shown when archvow is missing or another version): empty = pip's own configuration (`pip.conf`, `PIP_INDEX_URL` - usually your company's index); an `https://` URL = that package index; a path = a wheel file (`archvow-1.18.0-py3-none-any.whl`) or a folder of wheels. Nothing is installed without your confirmation."
         },
         "archvow.timeoutSeconds": {
           "type": "number",

@@ -9,6 +9,8 @@ nothing in the archvow tree is written. Recorded:
   contract/cli/<name>/<command>.json       what the CLI prints for the commands the plugins run
   contract/cli/commands.json               every command and its parameters (archvow's own parser)
   contract/cli/catalog.json                `archvow catalog --json`: the templates and their questions
+  contract/cli/kinds.json                  the kinds of each component type (component add -k), for an archvow
+                                           whose catalog does not list them (1.17; tools/export_kinds.py)
   contract/cli/rules.md, rules.fr.md       archvow's docs/rules: what each check code means
   contract/cli/version.txt                 `archvow --version`
   contract/cli/briefs/                     python-app with a Spec Kit `specs` folder declared as a briefs folder
@@ -68,6 +70,9 @@ def main():
     grammar = subprocess.run([args.python, "-I", str(CONTRACT / "tools" / "export_grammar.py")],
                              capture_output=True, text=True, encoding="utf-8", check=True).stdout
     write(cli / "commands.json", json.loads(grammar))
+    kinds = subprocess.run([args.python, "-I", str(CONTRACT / "tools" / "export_kinds.py")],
+                           capture_output=True, text=True, encoding="utf-8", check=True).stdout
+    write(cli / "kinds.json", json.loads(kinds))
     with tempfile.TemporaryDirectory() as neutral:  # outside any project: the installed templates only
         write(cli / "catalog.json", portable(run([*archvow, "catalog", "--json"], neutral)))
     for name in ("rules.md", "rules.fr.md"):

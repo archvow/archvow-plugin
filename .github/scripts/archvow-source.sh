@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # archvow's source, cloned into $1 (default /tmp/archvow) for the archvow canary (archvow-canary.yml),
-# at ARCHVOW_REF (a branch or a tag; default: the tag of contract/cli/version.txt, v1.17.0).
+# at ARCHVOW_REF (a branch or a tag; default: the tag of contract/cli/version.txt, v1.18.0).
 #   ARCHVOW_GIT_URL    the archvow repository (repository variable, required)
 #   ARCHVOW_GIT_TOKEN  a read-only token for it, when it is private (repository secret): a GitLab project
 #                      access token (read_repository) or a GitHub fine-grained token (Contents: read)

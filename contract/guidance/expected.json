@@ -1594,6 +1594,36 @@
  {
   "fr": false,
   "code": "ARCH008",
+  "message": "component 'customers_reader': sales.p2_io.customers_reader is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'customers_reader': sales.p2_io.customers_reader is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
   "message": "component 'daily_sales_job': sales.p3_jobs.daily_sales_job is planned but not created",
   "guide": {
    "code": "ARCH008",
@@ -2420,6 +2450,36 @@
   "fr": true,
   "code": "ARCH008",
   "message": "component 'vat_writer': my_pipeline.p2_io.vat_writer is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'vat_writer': sales.p2_io.vat_writer is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'vat_writer': sales.p2_io.vat_writer is planned but not created",
   "guide": {
    "code": "ARCH008",
    "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
@@ -2526,11 +2586,11 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.17.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.18.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.17.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
-   "todo": "Upgrade the project to 1.17.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
+   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.18.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
+   "todo": "Upgrade the project to 1.18.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
    "who": "An architect: it changes the guards of the whole project.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then commit: the warning disappears.",
@@ -2550,11 +2610,11 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.17.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.18.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.17.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
-   "todo": "Mettez le projet en 1.17.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
+   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.18.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
+   "todo": "Mettez le projet en 1.18.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
    "who": "Un architecte : cela change les garde-fous de tout le projet.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite commitez : l'avertissement disparaît.",
@@ -4550,6 +4610,66 @@
   "fr": true,
   "code": "ARCH020",
   "message": "briefs folder 'specs' removed: its files are no longer scanned for real-looking identifiers (TST002) and nothing may be drawn from them",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, un danger ou un invariant supprimé, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier retiré de la spec, un fichier de garde modifié, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
+   "todo": "l'annuler, ou les architectes l'approuvent (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, ou `--accept-weakening`)",
+   "who": "Un architecte : cela change les garde-fous de tout le projet.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH020",
+  "message": "cannot compare with base 'nope': 'nope' is not a branch of this repository. Choose one that exists: feature, main",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "a guard is weakened: a lower severity or verification, a removed hazard or invariant, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example taken out of the spec, an edited guard file, more frozen violations, a new AI assistant or dependency",
+   "todo": "undo it, or the architects approve it (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, or `--accept-weakening`)",
+   "who": "An architect: it changes the guards of the whole project.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH020",
+  "message": "cannot compare with base 'nope': 'nope' is not a branch of this repository. Choose one that exists: feature, main",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, un danger ou un invariant supprimé, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier retiré de la spec, un fichier de garde modifié, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
+   "todo": "l'annuler, ou les architectes l'approuvent (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, ou `--accept-weakening`)",
+   "who": "Un architecte : cela change les garde-fous de tout le projet.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH020",
+  "message": "cannot compare with base 'origin/main': 'origin/main' is not a branch of this repository (its remote 'origin' was never fetched here: git fetch origin). Choose one that exists: feature, main",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "a guard is weakened: a lower severity or verification, a removed hazard or invariant, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example taken out of the spec, an edited guard file, more frozen violations, a new AI assistant or dependency",
+   "todo": "undo it, or the architects approve it (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, or `--accept-weakening`)",
+   "who": "An architect: it changes the guards of the whole project.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH020",
+  "message": "cannot compare with base 'origin/main': 'origin/main' is not a branch of this repository (its remote 'origin' was never fetched here: git fetch origin). Choose one that exists: feature, main",
   "guide": {
    "code": "ARCH020",
    "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, un danger ou un invariant supprimé, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier retiré de la spec, un fichier de garde modifié, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
@@ -18592,7 +18712,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 26cac0d1: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 29f41e71: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
@@ -18610,7 +18730,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit 26cac0d1: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 29f41e71: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
@@ -18628,7 +18748,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 5733a27c: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 7d0c63f4: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
@@ -18646,7 +18766,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit 5733a27c: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 7d0c63f4: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
@@ -18916,6 +19036,162 @@
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
    "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH057",
+  "message": "'clean_orders': its description changed on <date>, after decision 1 was recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (archvow decision make clean_orders 1 \"...\"); when every one still holds: archvow component accept clean_orders",
+  "guide": {
+   "code": "ARCH057",
+   "meaning": "a component's description, signature or routes changed (`archvow component edit`) after decisions, hazards, invariants, \"not applicable\" answers, accepted assumptions or business examples were recorded for it: each may no longer hold (\"amount > 0\" when the description now says \"> 1\"). archvow deletes nothing; `archvow show` lists them, the spec card stops the AI, `archvow next` says the component is blocked",
+   "todo": "a person looks at each one: one that no longer holds is recorded again (`archvow decision make <component> <n> \"...\"`, a hazard removed and added again...), which takes it off the list; when every one still holds, `archvow component accept <component>`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "clean_orders",
+     "question": "1"
+    },
+    "text": "archvow decision make clean_orders 1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH057",
+  "message": "'clean_orders': its description changed on <date>, after decision 1 was recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (archvow decision make clean_orders 1 \"...\"); when every one still holds: archvow component accept clean_orders",
+  "guide": {
+   "code": "ARCH057",
+   "meaning": "la description, la signature ou les routes d'un composant ont changé (`archvow component edit`) après que des décisions, dangers, invariants, réponses « sans objet », hypothèses acceptées ou exemples métier ont été enregistrés pour lui : chacun peut ne plus tenir (« montant > 0 » quand la description dit maintenant « > 1 »). archvow ne supprime rien ; `archvow show` les liste, la fiche de spec arrête l'IA, `archvow next` dit que le composant est bloqué",
+   "todo": "une personne regarde chacun : celui qui ne tient plus est enregistré à nouveau (`archvow decision make <composant> <n> \"...\"`, un danger supprimé puis ajouté à nouveau...), ce qui le retire de la liste ; quand tous tiennent encore, `archvow component accept <composant>`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "clean_orders",
+     "question": "1"
+    },
+    "text": "archvow decision make clean_orders 1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH057",
+  "message": "'clean_orders': its description changed on <date>, after decision 1, hazard H1, invariant INV1 were recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (archvow decision make clean_orders 1 \"...\"); when every one still holds: archvow component accept clean_orders",
+  "guide": {
+   "code": "ARCH057",
+   "meaning": "a component's description, signature or routes changed (`archvow component edit`) after decisions, hazards, invariants, \"not applicable\" answers, accepted assumptions or business examples were recorded for it: each may no longer hold (\"amount > 0\" when the description now says \"> 1\"). archvow deletes nothing; `archvow show` lists them, the spec card stops the AI, `archvow next` says the component is blocked",
+   "todo": "a person looks at each one: one that no longer holds is recorded again (`archvow decision make <component> <n> \"...\"`, a hazard removed and added again...), which takes it off the list; when every one still holds, `archvow component accept <component>`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "clean_orders",
+     "question": "1"
+    },
+    "text": "archvow decision make clean_orders 1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH057",
+  "message": "'clean_orders': its description changed on <date>, after decision 1, hazard H1, invariant INV1 were recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (archvow decision make clean_orders 1 \"...\"); when every one still holds: archvow component accept clean_orders",
+  "guide": {
+   "code": "ARCH057",
+   "meaning": "la description, la signature ou les routes d'un composant ont changé (`archvow component edit`) après que des décisions, dangers, invariants, réponses « sans objet », hypothèses acceptées ou exemples métier ont été enregistrés pour lui : chacun peut ne plus tenir (« montant > 0 » quand la description dit maintenant « > 1 »). archvow ne supprime rien ; `archvow show` les liste, la fiche de spec arrête l'IA, `archvow next` dit que le composant est bloqué",
+   "todo": "une personne regarde chacun : celui qui ne tient plus est enregistré à nouveau (`archvow decision make <composant> <n> \"...\"`, un danger supprimé puis ajouté à nouveau...), ce qui le retire de la liste ; quand tous tiennent encore, `archvow component accept <composant>`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "clean_orders",
+     "question": "1"
+    },
+    "text": "archvow decision make clean_orders 1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH057",
+  "message": "'input_reader': its description changed on <date>, after decision 1, decision 2, decision 6, hazard H1, hazard H2, invariant INV1, not applicable (wrong) were recorded - each may no longer hold -> look at them: archvow show input_reader; change one by recording it again (archvow decision make input_reader 1 \"...\"); when every one still holds: archvow component accept input_reader",
+  "guide": {
+   "code": "ARCH057",
+   "meaning": "a component's description, signature or routes changed (`archvow component edit`) after decisions, hazards, invariants, \"not applicable\" answers, accepted assumptions or business examples were recorded for it: each may no longer hold (\"amount > 0\" when the description now says \"> 1\"). archvow deletes nothing; `archvow show` lists them, the spec card stops the AI, `archvow next` says the component is blocked",
+   "todo": "a person looks at each one: one that no longer holds is recorded again (`archvow decision make <component> <n> \"...\"`, a hazard removed and added again...), which takes it off the list; when every one still holds, `archvow component accept <component>`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "input_reader",
+     "question": "1"
+    },
+    "text": "archvow decision make input_reader 1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH057",
+  "message": "'input_reader': its description changed on <date>, after decision 1, decision 2, decision 6, hazard H1, hazard H2, invariant INV1, not applicable (wrong) were recorded - each may no longer hold -> look at them: archvow show input_reader; change one by recording it again (archvow decision make input_reader 1 \"...\"); when every one still holds: archvow component accept input_reader",
+  "guide": {
+   "code": "ARCH057",
+   "meaning": "la description, la signature ou les routes d'un composant ont changé (`archvow component edit`) après que des décisions, dangers, invariants, réponses « sans objet », hypothèses acceptées ou exemples métier ont été enregistrés pour lui : chacun peut ne plus tenir (« montant > 0 » quand la description dit maintenant « > 1 »). archvow ne supprime rien ; `archvow show` les liste, la fiche de spec arrête l'IA, `archvow next` dit que le composant est bloqué",
+   "todo": "une personne regarde chacun : celui qui ne tient plus est enregistré à nouveau (`archvow decision make <composant> <n> \"...\"`, un danger supprimé puis ajouté à nouveau...), ce qui le retire de la liste ; quand tous tiennent encore, `archvow component accept <composant>`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "input_reader",
+     "question": "1"
+    },
+    "text": "archvow decision make input_reader 1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
    "file": null
   }
  },

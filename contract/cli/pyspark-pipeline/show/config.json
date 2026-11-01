@@ -27,6 +27,7 @@
       "number": 1,
       "question": "Which fields does JobConfig hold (name: type, required or default value)?",
       "answer": "input_path: str and output_path: str, both required; a frozen dataclass",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -36,6 +37,7 @@
       "number": 2,
       "question": "What happens when a value is missing or invalid (which exception, raised where)?",
       "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -55,5 +57,6 @@
   "questions": [],
   "safety": [],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

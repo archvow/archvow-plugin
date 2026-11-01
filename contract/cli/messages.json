@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 1.17.0",
+ "archvow": "archvow 1.18.0",
  "messages": [
   {
    "code": "ACME001",
@@ -270,6 +270,13 @@
   {
    "code": "ARCH008",
    "severity": "error",
+   "message": "component 'customers_reader': sales.p2_io.customers_reader is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
    "message": "component 'daily_sales_job': sales.p3_jobs.daily_sales_job is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -464,6 +471,13 @@
    "line": 0
   },
   {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'vat_writer': sales.p2_io.vat_writer is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
    "code": "ARCH009",
    "severity": "error",
    "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
@@ -480,7 +494,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.17.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.18.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -838,6 +852,20 @@
    "code": "ARCH020",
    "severity": "error",
    "message": "briefs folder 'specs' removed: its files are no longer scanned for real-looking identifiers (TST002) and nothing may be drawn from them",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "cannot compare with base 'nope': 'nope' is not a branch of this repository. Choose one that exists: feature, main",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "cannot compare with base 'origin/main': 'origin/main' is not a branch of this repository (its remote 'origin' was never fetched here: git fetch origin). Choose one that exists: feature, main",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -3070,14 +3098,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 26cac0d1: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit 29f41e71: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 5733a27c: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 7d0c63f4: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -3121,6 +3149,27 @@
    "severity": "error",
    "message": "example FATTRIB-012-negative-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-012-negative-amount\") -> write the test that reads tests/examples/clean_orders/FATTRIB-012-negative-amount/input/ and compares with tests/examples/clean_orders/FATTRIB-012-negative-amount/expected/",
    "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH057",
+   "severity": "warning",
+   "message": "'clean_orders': its description changed on <date>, after decision 1 was recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (archvow decision make clean_orders 1 \"...\"); when every one still holds: archvow component accept clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH057",
+   "severity": "warning",
+   "message": "'clean_orders': its description changed on <date>, after decision 1, hazard H1, invariant INV1 were recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (archvow decision make clean_orders 1 \"...\"); when every one still holds: archvow component accept clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH057",
+   "severity": "warning",
+   "message": "'input_reader': its description changed on <date>, after decision 1, decision 2, decision 6, hazard H1, hazard H2, invariant INV1, not applicable (wrong) were recorded - each may no longer hold -> look at them: archvow show input_reader; change one by recording it again (archvow decision make input_reader 1 \"...\"); when every one still holds: archvow component accept input_reader",
+   "file": ".archvow/components/input_reader/spec.vow",
    "line": 0
   },
   {

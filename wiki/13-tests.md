@@ -30,6 +30,7 @@ nom de ce qu'elle protège :
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, les chemins `\\wsl.localhost\...` |
 | `TextDialogRegression` | la taille d'un dialogue, Copier la commande |
 | `TextSizeRegression` | aucun `px` ni `<h1>`-`<h6>` dans le HTML affiché, le conseil de branche sur plusieurs lignes |
+| `ChoicesRegression` | les formulaires de commande proposent ce qui existe (`ArchvowChoices`) : sur les trois exemples, en anglais et en français, exactement ce que propose VS Code (`contract/choices/expected.json`), et la même base de comparaison |
 | `GuidanceRegression` | chaque diagnostic dit quoi faire (`ArchvowGuidance`) : chaque code documenté, et sur chaque message réel exactement le guidage de VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Installer archvow : le Python choisi, la ligne pip par source, WSL, pip seulement depuis une confirmation |
 | `ProgressRegression` | la barre d'avancement sur le `clean_orders` enregistré (9/9, 1/5, 0/2) |
@@ -69,6 +70,7 @@ modules testés, la page est lue comme du texte.
 | `workspace.test.ts` | formulaire -> ligne de commande, pré-remplissage, actions sur place, corrections documentées, mise en forme des résultats |
 | `layout.test.ts` | la page : un seul onglet, le logo, les cartes, le tableau d'architecture, Retour, la barre d'avancement |
 | `install.test.ts` | Installer archvow : la source, le Python, la ligne pip, WSL, rien sans Confirmer et exécuter |
+| `choices.test.ts` | ce que propose chaque champ de formulaire (`choices.ts`) : les composants (Edit spec rempli avec ce que l'un a), les questions avec leur numéro, seulement les questions ajoutées par une personne pour `question remove`, les types du modèle du projet et les sortes d'un type, les dangers, invariants, règles, les branches ; la base qui existe (`bestBase`) et pourquoi une n'existe pas (`missingRef`) ; Edit spec n'envoie que ce qui a changé ; écrit `contract/choices/expected.json` avec `UPDATE_CHOICES=1` |
 | `guidance.test.ts` | chaque diagnostic dit ce qu'il veut dire, quoi faire, qui le fait, s'il bloque et la suite (`guidance.ts`) : tous les codes de `rules.md` et `rules.fr.md`, tous les messages réels de `contract/cli/messages.json` ; la commande qu'un message nomme devient un formulaire qui tourne tel quel ou ne laisse vide que la part de la personne ; écrit `contract/guidance/expected.json` avec `UPDATE_GUIDANCE=1` |
 | `briefs.test.ts` | les dossiers de briefs, les ancres d'archvow, les choix de `--from`, Tiré de, le refus -> formulaire init, ARCH039 (sur `contract/cli/briefs`) |
 | `wiki.test.ts` | le wiki suit le code (plus bas) |

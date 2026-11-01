@@ -1,1 +1,1 @@
-archvow 1.17.0
+archvow 1.18.0

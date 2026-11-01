@@ -20,6 +20,8 @@ les plugins doivent suivre**. Il est enregistré depuis une vraie CLI archvow, j
 | `contract/archvow/` | l'archvow avec lequel les plugins sont testés : le wheel de `contract/cli/version.txt`, les trois exemples d'archvow avec leur code, `docs/rules*.md` | `contract/tools/take_archvow.sh` | `regenerate.py` (job CI `contract`), `vscode/src/test/live.test.ts` |
 | `contract/cli/messages.json` | chaque message de vérification que la suite de tests d'archvow lui fait afficher (archvow 1.17) : 491 messages, 70 codes | `contract/tools/harvest_messages.py` (lance les tests d'archvow avec un crochet) | `vscode/src/test/guidance.test.ts`, `GuidanceRegression` |
 | `contract/guidance/expected.json` | ce que dit `guidance.ts` sur chacun de ces messages, en anglais et en français | `UPDATE_GUIDANCE=1 npm test` | `GuidanceRegression` : `ArchvowGuidance` doit dire exactement la même chose |
+| `contract/cli/kinds.json` | les sortes de chaque type de composant (`component add -k`), pour un archvow dont le catalogue ne les liste pas (1.17 ; archvow 1.18 les donne dans `catalog --json`) | `contract/tools/export_kinds.py` (par `regenerate.py`) | `choices.ts`, `ArchvowChoices` : la liste de `--kind` |
+| `contract/choices/expected.json` | ce que propose chaque formulaire de commande (`choiceBook()`) sur les trois exemples, en anglais et en français, et la base de comparaison sur quelques dépôts | `UPDATE_CHOICES=1 npm test` | `ChoicesRegression` : `ArchvowChoices` doit proposer exactement la même chose |
 | `contract/vow-reader/expected.json` | ce que donne le lecteur Java (jetons, problèmes, en-tête, liens) sur chaque vow et sur 400 vows cassés exprès | `./gradlew contractDump` (`DumpContract`) | le lecteur TypeScript doit donner exactement la même chose |
 
 ## Comment les plugins l'embarquent
@@ -28,7 +30,7 @@ Le contrat n'est pas lu dans `contract/` à l'exécution : il est copié dans ch
 construction.
 
 - **IntelliJ** : la tâche `processResources` de `intellij/build.gradle.kts` copie `commands.json`,
-  `catalog.json`, `rules.md`, `rules.fr.md` et `version.txt` dans les ressources, sous `archvow/`.
+  `catalog.json`, `kinds.json`, `rules.md`, `rules.fr.md` et `version.txt` dans les ressources, sous `archvow/`.
 - **VS Code** : `vscode/scripts/sync-contract.js` copie les mêmes fichiers dans
   `vscode/resources/archvow/`, à chaque `npm run compile`, `npm test` et `npm run package`.
 

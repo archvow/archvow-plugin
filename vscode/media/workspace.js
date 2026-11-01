@@ -24,7 +24,12 @@
     back: null, backArmed: null,
     command: NAV ? '' : 'check', commandFilter: '', form: {}, formHelp: '',
     catalog: null, catalogSource: '', initTemplate: '', initAnswers: {}, initTouched: {}, advanced: false,
-    base: 'origin/main', checkSel: 0, explained: {},
+    /** Edit spec: the values the form opened with (only the changed ones are sent); template new: its settings. */
+    formBaseline: {}, tplAnswers: {}, tplLayers: {},
+    /** The comparison base: the extension's best one (an existing branch) until the person types another. */
+    base: '', baseTouched: false, checkSel: 0, explained: {},
+    /** A result's height, once dragged or expanded. */
+    resultHeight: {},
   };
 
   // ---------------------------------------------------------------- helpers
@@ -62,6 +67,11 @@
       planned: 'Prévu', partial: 'Partiel', missing: 'Manquant', pending: 'En attente', blocked: 'Bloqué', failed: 'Échec', error: 'Échec' })[key] || raw;
   };
   const commandByName = (name) => I.commands.find((c) => c.path.join(' ') === name);
+  /** The base Diff, Review and Budget compare with: what the person typed, else an existing branch. */
+  const baseNow = () => (ui.baseTouched ? ui.base : (S && S.base) || '');
+  /** What a field of the current command offers (choices.ts), and its list now (by component / type). */
+  const fieldOf = (command, name) => ((S && S.choices && S.choices[command]) || {})[name];
+  const choicesNow = (field) => (!field ? [] : field.by ? (field.lists || {})[(ui.form[field.by] || '').trim()] || [] : field.choices || []);
 
   // ---------------------------------------------------------------- the extension's messages
 
@@ -122,7 +132,7 @@
       case 'catalog':
         ui.catalog = m.data;
         ui.catalogSource = m.source || '';
-        chooseInitTemplate();
+        if (ui.command === 'init') chooseInitTemplate();
         break;
       case 'showChecks':
         if (!NAV) return;
@@ -274,11 +284,22 @@
     const raw = !!ui.raw[target];
     const body = r.running ? `<p><b>⏳ ${esc(t('Running', 'Exécution'))}</b> · ${esc(r.args)}</p>`
       : raw ? `<pre class="raw">${esc(r.raw)}</pre>` : r.html;
+    // readable at any length: drag the bar under it, or Expand to the height of the tab
+    const height = ui.resultHeight[target];
+    const expanded = !!height && height >= expandedHeight() - 2;
     return `<div class="card result"><div class="card-head"><b>▸ ${esc(t('Command result', 'Résultat de la commande'))}</b>
-  <span class="row">${btn(t('Raw output', 'Sortie brute'), 'raw', attrs({ target }), r.running || !r.raw, raw ? 'on' : 'secondary')}
+  <span class="row">${btn(expanded ? t('Reduce', 'Réduire') : t('Expand', 'Agrandir'), 'expandResult', attrs({ target })
+    + ` title="${esc(t('Show the whole result at the height of the tab (or drag the bar under it)', "Afficher tout le résultat sur la hauteur de l'onglet (ou tirer la barre en dessous)"))}"`, r.running, expanded ? 'on' : 'secondary')}
+  ${btn(t('Raw output', 'Sortie brute'), 'raw', attrs({ target }), r.running || !r.raw, raw ? 'on' : 'secondary')}
   ${btn(t('Copy', 'Copier'), 'copyResult', attrs({ target }), r.running || !r.raw, 'secondary')}
   ${btn('×', 'closeResult', attrs({ target }) + ` title="${esc(t('Close result', 'Fermer le résultat'))}"`, false, 'icon')}</span></div>
-  <div class="card-body" data-scroll="result-${target}" title="${esc(r.args || '')}">${body}${r.running ? '' : addFolderButton(r.raw)}</div></div>`;
+  <div class="card-body" data-scroll="result-${target}" data-body="${esc(target)}" title="${esc(r.args || '')}"${height ? ` style="height:${height}px;max-height:none"` : ''}>${body}${r.running ? '' : addFolderButton(r.raw)}</div>
+  <div class="grip" data-grip="${esc(target)}" title="${esc(t('Drag to make the result taller or shorter', 'Tirer pour agrandir ou réduire le résultat'))}"></div></div>`;
+  }
+
+  /** Expand: the result as tall as the tab, its head and the form's buttons still in view. */
+  function expandedHeight() {
+    return Math.max(260, window.innerHeight - 150);
   }
 
   function confirmation(target) {
@@ -315,7 +336,7 @@
       btn('Budget / Next', 'budget'),
       btn('Diff', 'openCommand', attrs({ command: 'diff', field: 'base' })),
       btn('Review', 'openCommand', attrs({ command: 'review', field: 'base' })),
-      `<label class="base" title="${esc(t('Git comparison base for Review / Diff / Budget', 'Base de comparaison Git pour Review / Diff / Budget'))}">Base: <input data-input="base" data-keep="base" value="${esc(ui.base)}" size="14"></label>`,
+      `<label class="base" title="${esc(t('Git comparison base for Review / Diff / Budget: a branch of this repository', 'Base de comparaison Git pour Review / Diff / Budget : une branche de ce dépôt'))}">Base: <input list="refs" data-input="base" data-keep="base" value="${esc(baseNow())}" size="14" placeholder="${esc(t('no other branch', "pas d'autre branche"))}"><datalist id="refs">${(S.refs || []).map((r) => `<option value="${esc(r)}">`).join('')}</datalist></label>`,
     ].join('');
     const sub = ui.overSub === 'checks' ? checksView() : architectureView();
     return `<section class="overview">
@@ -650,11 +671,21 @@
     return key in ui.drafts ? ui.drafts[key] : initial;
   }
 
-  /** The answer field and its buttons: secondary ones on the left, Cancel and the main one on the right. */
+  /**
+   * The answer field and its buttons: secondary ones on the left, Undo changes and the main one on the
+   * right. Undo changes can be pressed only once the text differs from the recorded one: it puts that
+   * text back, and saves or removes nothing.
+   */
   function answerEditor(key, initial, placeholder, secondary, save, target, disabled = false) {
-    return `<textarea class="answer-field" rows="5" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" placeholder="${esc(placeholder)}" ${disabled ? 'disabled' : ''}>${esc(draft(key, initial))}</textarea>
+    const edited = key in ui.drafts && ui.drafts[key] !== initial;
+    return `<textarea class="answer-field" rows="5" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" data-initial="${esc(initial)}" placeholder="${esc(placeholder)}" ${disabled ? 'disabled' : ''}>${esc(draft(key, initial))}</textarea>
   <div class="answer-actions"><span class="row wrap">${secondary}</span>
-  <span class="row">${btn(t('Cancel', 'Annuler'), 'cancelDraft', attrs({ key, target }) + ` title="${esc(t('Put back the recorded text', 'Remettre le texte enregistré'))}"`, disabled, 'secondary')}${save}</span></div>`;
+  <span class="row">${btn(t('Undo changes', 'Annuler les modifications'), 'cancelDraft', attrs({ key, target }) + ` title="${esc(undoTip(edited))}"`, disabled || !edited, 'secondary')}${save}</span></div>`;
+  }
+
+  function undoTip(edited) {
+    return edited ? t('Put back the recorded text in the field (nothing is saved or removed)', 'Remettre le texte enregistré dans le champ (rien n\'est enregistré ni supprimé)')
+      : t('Nothing to undo: the field holds the recorded text', 'Rien à annuler : le champ contient le texte enregistré');
   }
 
   function decisionsView(view) {
@@ -912,11 +943,23 @@
     ui.command = name;
     ui.form = Object.assign({}, values);
     ui.formHelp = help || '';
+    // Edit spec: what the component has now (not what a diagnostic asks to change); only differences are sent
+    ui.formBaseline = name === 'component edit' ? whatTheComponentHas((values.component || '').trim()) : {};
+    ui.tplAnswers = {};
+    ui.tplLayers = {};
     if (ui.confirm && ui.confirm.target === 'command') ui.confirm = null;
     if (name === 'init') {
       if (!('no_input' in ui.form)) ui.form.no_input = 'true';
       post({ type: 'catalog', template: ui.form.template || '' });
     }
+    // template new: the templates to extend and their settings, from the installed archvow
+    if (name === 'template new') post({ type: 'catalog', template: '' });
+  }
+
+  /** Edit spec's baseline: the fields the component already has, as choosing the component fills them. */
+  function whatTheComponentHas(id) {
+    const picked = choicesNow(fieldOf('component edit', 'component')).find((c) => c.value === id);
+    return Object.assign({}, (picked && picked.fill) || {});
   }
 
   function commandsTab() {
@@ -928,24 +971,50 @@
   <p class="muted small">${esc(t('A command opens its form in the editor.', "Une commande ouvre son formulaire dans l'éditeur."))}</p></section>`;
   }
 
+  /**
+   * A field that offers what exists (choices.ts): a list to choose from (a component, a question with
+   * its number, a hazard...), suggestions with free typing (a branch, a template), or the usual field
+   * with a line under it (question add: the number archvow will give).
+   */
+  function choiceControl(p, field, value, id, usual) {
+    if (field.kind === 'note') {
+      const note = field.by ? (field.notes || {})[(ui.form[field.by] || '').trim()] || '' : field.note || '';
+      return usual + (note ? `<div class="note small">${esc(note)}</div>` : '');
+    }
+    const choices = choicesNow(field);
+    if (field.kind === 'suggest') {
+      return `<input list="dl-${esc(p.name)}" data-input="form" data-name="${esc(p.name)}" data-keep="${id}" value="${esc(value)}">`
+        + `<datalist id="dl-${esc(p.name)}">${choices.map((c) => `<option value="${esc(c.value)}" label="${esc(c.label)}">`).join('')}</datalist>`;
+    }
+    if (field.by && !(ui.form[field.by] || '').trim()) {
+      const first = field.by === 'type' ? t('Choose the type first', "Choisis d'abord le type") : t('Choose the component first', "Choisis d'abord le composant");
+      return `<select disabled><option>${esc(first)}</option></select>`;
+    }
+    if (!choices.length) {
+      return `<select disabled><option>${esc(t('(none)', '(aucun)'))}</option></select><div class="note warn small">${esc(field.empty || '')}</div>`;
+    }
+    const known = choices.some((c) => c.value === value);
+    const placeholder = p.name === 'kind' ? t('— the default —', '— celle par défaut —') : t('— choose —', '— choisir —');
+    return `<select data-change="choice" data-name="${esc(p.name)}" data-keep="${id}"><option value="">${esc(placeholder)}</option>`
+      + (value && !known ? `<option selected value="${esc(value)}">${esc(value)}</option>` : '')
+      + choices.map((c) => `<option value="${esc(c.value)}" ${c.value === value ? 'selected' : ''}>${esc(c.label)}</option>`).join('') + '</select>';
+  }
+
   function commandForm(command) {
     const name = command.path.join(' ');
     const extra = name === 'specify' ? t('IDE mode: clarification without interactive terminal.', 'Mode IDE : clarification sans terminal interactif.')
-      : name === 'rule add' ? t('One argument per line in words.', 'Un argument par ligne dans le champ words.')
-        : t('JSON is added automatically when supported.', 'Le format JSON est activé automatiquement quand il est disponible.');
+      : name === 'rule add' ? t('One argument per line in words.', 'Un argument par ligne dans le champ words.') : '';
     let fields = '';
     for (const p of command.parameters) {
-      if (name === 'init' && p.name === 'answer') continue;
+      // init: the template is chosen once, in Template questions (under the package); template new: its
+      // answers and layer folders are in Settings of the base, under --extends
+      if (name === 'init' && (p.name === 'answer' || p.name === 'template')) continue;
+      if (name === 'template new' && (p.name === 'answer' || p.name === 'layer')) continue;
       const value = ui.form[p.name] || '';
       const id = 'f-' + p.name;
       let control;
       if (p.boolean) {
         control = `<input type="checkbox" data-change="formBool" data-name="${esc(p.name)}" ${value === 'true' ? 'checked' : ''}>`;
-      } else if (name === 'component add' && p.name === 'type') {
-        control = `<input list="types" data-input="form" data-name="${esc(p.name)}" data-keep="${id}" value="${esc(value)}"><datalist id="types">${Object.keys(I.types).map((ty) => `<option value="${esc(ty)}">`).join('')}</datalist>`;
-        const def = I.types[value];
-        control += `<div class="muted small">${esc(def ? `${value} — ${def.description}${def.hint ? ' | ' + t('Example', 'Exemple') + ': ' + def.hint : ''}${def.pattern ? ' | name_pattern: ' + def.pattern : ''}`
-          : t('Select a type; naming constraints depend on the template.', 'Choisis un type ; les contraintes de nom dépendent du modèle.'))}</div>`;
       } else if (p.flags.includes('--from')) {
         control = briefField(p.name, value, id);
       } else if (p.choices.length) {
@@ -955,30 +1024,39 @@
       } else {
         control = `<input data-input="form" data-name="${esc(p.name)}" data-keep="${id}" value="${esc(value)}">`;
       }
+      const field = p.boolean ? null : fieldOf(name, p.name);
+      if (field) control = choiceControl(p, field, value, id, control);
+      if (name === 'component add' && p.name === 'type') {
+        const def = I.types[value];
+        control += `<div class="muted small">${esc(def ? `${value} — ${def.description}${def.hint ? ' | ' + t('Name', 'Nom') + ': ' + def.hint : ''}${def.pattern ? ' | name_pattern: ' + def.pattern : ''}`
+          : t('Choose a type: its name rule and its kinds follow.', 'Choisis un type : sa règle de nom et ses sortes suivent.'))}</div>`;
+      }
       if (name === 'init' && p.name === 'dir') control = `<div class="row">${control}${btn(t('Browse…', 'Parcourir…'), 'browse', attrs({ field: 'dir' }), false, 'secondary')}</div>`;
       let help = p.help;
+      if (field && field.note && field.kind !== 'note') help += (help ? '  ·  ' : '') + field.note;
       if (name === 'component add' && p.name === 'spec') help += t('  ·  Example: US-001 or a ticket reference from your backlog (optional; do not enter a .vow path).', '  ·  Exemple : US-001 ou une référence de ticket (facultatif ; pas un chemin .vow).');
-      if (name === 'component add' && p.name === 'type') help += t('  ·  Types from built-in templates; company templates may extend them.', "  ·  Types des modèles intégrés ; les modèles d'entreprise peuvent en ajouter.");
       fields += `<div class="field"><label>${p.required ? '* ' : ''}${esc(p.flags.length ? option(p) : p.name)}</label><div>${control}${help ? `<div class="muted small">${esc(help)}</div>` : ''}</div></div>`;
+      if (name === 'init' && p.name === 'package') fields += initWizard();
+      if (name === 'template new' && p.name === 'extends') fields += templateWizard();
     }
-    if (name === 'init') fields += initWizard();
+    if (name === 'init') fields += initOtherAnswers();
     if (['decision make', 'decision propose', 'decision accept', 'question remove'].includes(name)) fields += questionPreview(name);
-    return `<pre class="help">archvow ${esc(name)}\n${esc(command.description)}\n${esc(extra)}${fr() ? '\nDescription et options fournies par le moteur Archvow.' : ''}${ui.formHelp ? '\n\n' + esc(ui.formHelp) : ''}</pre>
+    return `<pre class="help">archvow ${esc(name)}\n${esc(command.description)}${extra ? '\n' + esc(extra) : ''}${ui.formHelp ? '\n\n' + esc(ui.formHelp) : ''}</pre>
   <div class="form">${fields}</div>
   <div class="row end">${btn(t('Run command', 'Exécuter la commande'), 'runForm')}</div>${confirmation('command')}${resultCard('command')}`;
   }
 
   function questionPreview(name) {
     const component = (ui.form.component || '').trim();
-    const number = (name === 'decision accept' || name === 'question remove' ? ui.form.number : ui.form.question || '').trim();
+    const number = ((name === 'decision accept' || name === 'question remove' ? ui.form.number : ui.form.question) || '').trim();
     const view = S.snapshots[component];
     let hint;
-    if (!component || !number) hint = `<i>${esc(t('Enter component and question number.', 'Saisis le composant et le numéro de question.'))}</i>`;
+    if (!component || !number) hint = `<i>${esc(t('Choose the component, then the question: it shows here with its answer.', "Choisis le composant, puis la question : elle s'affiche ici avec sa réponse."))}</i>`;
     else if (!view) hint = esc(t("Question not loaded. Click 'Load question' below.", 'Question non chargée. Clique sur « Charger la question ».'));
     else {
-      const key = name === 'question remove' ? 'questions' : 'decisions';
-      let match = list(view, key).find((r) => str(r, 'number') === number || str(r, 'key') === number);
-      if (!match && name !== 'question remove') match = list(view, 'questions').find((r) => str(r, 'key') === number || str(r, 'number') === number);
+      // a question's number is its decision's (question add appends one); P1, O2... are the other questions
+      let match = list(view, 'decisions').find((r) => str(r, 'number') === number);
+      if (!match && name === 'decision make') match = list(view, 'questions').find((r) => str(r, 'key') === number);
       if (!match) hint = esc(t('Question not found for this component.', 'Question introuvable pour ce composant.'));
       else {
         const answer = str(match, 'answer');
@@ -996,6 +1074,12 @@
     return list(ui.catalog, 'templates');
   }
 
+  /** The project's template (pyspark-pipeline@1.17.0 -> pyspark-pipeline), '' outside a project. */
+  function projectTemplate() {
+    const container = list(S && S.spec, 'containers')[0];
+    return container ? str(container, 'template').split('@')[0] : '';
+  }
+
   function chooseInitTemplate() {
     const requested = (ui.form.template || '').trim();
     const names = templates().map((x) => str(x, 'name'));
@@ -1003,11 +1087,30 @@
     if (match) ui.initTemplate = str(match, 'name');
     else if (requested) ui.initTemplate = ''; // a custom template path: its questions are not in this catalog
     else {
-      ui.initTemplate = names.includes('python-app') ? 'python-app' : names[0] || '';
+      // in a project: its own template (init --force there rewrites its files); else python-app
+      const own = projectTemplate();
+      ui.initTemplate = names.includes(own) ? own : names.includes('python-app') ? 'python-app' : names[0] || '';
       if (ui.initTemplate) ui.form.template = ui.initTemplate;
     }
   }
 
+  /** A question of a template as a field: its choices only, several of them, or text (checked against its format). */
+  function questionControl(q, value, kind) {
+    const id = str(q, 'id');
+    const choices = Array.isArray(q.choices) ? q.choices.map(String) : [];
+    if (q.multiple === true && choices.length) {
+      const picked = new Set(value.split(',').map((x) => x.trim()));
+      return `<div class="row wrap">${choices.map((c) => `<label class="check"><input type="checkbox" data-change="${kind}Multi" data-id="${esc(id)}" data-choice="${esc(c)}" ${picked.has(c) ? 'checked' : ''}> ${esc(c)}</label>`).join('')}</div>`;
+    }
+    if (choices.length) {
+      return `<select data-change="${kind}Answer" data-id="${esc(id)}">${choices.map((c) => `<option ${c === value ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`;
+    }
+    const bad = value && str(q, 'pattern') && !new RegExp(str(q, 'pattern')).test(value);
+    return `<input class="${bad ? 'invalid' : ''}" data-input="${kind}Answer" data-id="${esc(id)}" data-keep="${kind}-${esc(id)}" value="${esc(value)}">`
+      + (str(q, 'pattern_hint') ? `<div class="muted small">${esc(t('Format: ', 'Format : ') + str(q, 'pattern_hint'))}</div>` : '');
+  }
+
+  /** init: the template, chosen once here, and its questions (under the package's name). */
   function initWizard() {
     const template = templates().find((x) => str(x, 'name') === ui.initTemplate);
     const custom = (ui.form.template || '').trim() && !template;
@@ -1019,28 +1122,100 @@
         const essential = q.ask === true;
         if (!essential && !ui.advanced) continue;
         const value = id in ui.initAnswers ? ui.initAnswers[id] : str(q, 'default');
-        const choices = Array.isArray(q.choices) ? q.choices.map(String) : [];
-        let control;
-        if (q.multiple === true && choices.length) {
-          const picked = new Set(value.split(',').map((x) => x.trim()));
-          control = `<div class="row wrap">${choices.map((c) => `<label class="check"><input type="checkbox" data-change="initMulti" data-id="${esc(id)}" data-choice="${esc(c)}" ${picked.has(c) ? 'checked' : ''}> ${esc(c)}</label>`).join('')}</div>`;
-        } else if (choices.length) {
-          control = `<select data-change="initAnswer" data-id="${esc(id)}">${choices.map((c) => `<option ${c === value ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`;
-        } else {
-          control = `<input data-input="initAnswer" data-id="${esc(id)}" data-keep="init-${esc(id)}" value="${esc(value)}">`;
-        }
-        questions += `<div class="field"><label title="${esc(str(q, 'prompt'))}">${esc(id)}${essential ? '  •' : ''}</label><div>${control}<div class="muted small">${esc(str(q, 'prompt'))}</div></div></div>`;
+        questions += `<div class="field"><label title="${esc(str(q, 'prompt'))}">${esc(id)}${essential ? '  •' : ''}</label><div>${questionControl(q, value, 'init')}<div class="muted small">${esc(str(q, 'prompt'))}</div></div></div>`;
       }
     }
     const status = custom ? t('Custom template path: retaining your input; its questions are not in this catalog.', 'Modèle personnalisé : conserve le chemin saisi ; les questions ne sont pas connues.')
       : ui.catalogSource || t('Loading archvow catalog --json…', 'Chargement depuis archvow catalog --json…');
-    return `<fieldset class="card"><legend>${esc(t('Template questions', 'Questions du modèle'))}</legend>
-  <div class="row wrap"><label>${esc(t('Template', 'Modèle'))} <select data-change="initTemplate">${templates().map((x) => `<option ${str(x, 'name') === ui.initTemplate ? 'selected' : ''}>${esc(str(x, 'name'))}</option>`).join('')}</select></label>
-  ${btn(t('Reload', 'Actualiser'), 'reloadCatalog', '', false, 'secondary')}
-  <label class="check"><input type="checkbox" data-change="advanced" ${ui.advanced ? 'checked' : ''}> ${esc(t('Show advanced settings', 'Afficher les réglages avancés'))}</label></div>
-  <p class="muted small">${esc(status)}</p><div class="form">${questions}</div></fieldset>
-  <fieldset class="card"><legend>${esc(t('Other answers (optional)', 'Autres réponses (facultatif)'))}</legend>
+    const own = projectTemplate();
+    const here = own ? `<p class="note small">${esc(t(`This folder is already an archvow project (template ${own}): init needs --force, which rewrites the generated files (AGENTS.md, CI, hooks...) and keeps the committed spec.`,
+      `Ce dossier est déjà un projet archvow (modèle ${own}) : init demande --force, qui réécrit les fichiers générés (AGENTS.md, CI, hooks...) et garde la spec commitée.`))}</p>` : '';
+    const description = template ? str(template, 'description') : '';
+    return `<fieldset class="card"><legend>${esc(t('Template and its questions', 'Modèle et ses questions'))}</legend>
+  <div class="field"><label>* ${esc(t('template', 'modèle'))}</label><div><div class="row wrap"><select data-change="initTemplate">${templates().map((x) => `<option ${str(x, 'name') === ui.initTemplate ? 'selected' : ''}>${esc(str(x, 'name'))}</option>`).join('')}${custom ? `<option selected value="">${esc(t('(a folder, below)', '(un dossier, ci-dessous)'))}</option>` : ''}</select>
+  ${btn(t('Reload', 'Actualiser'), 'reloadCatalog', '', false, 'secondary')}</div>
+  ${description ? `<div class="muted small">${esc(description)}</div>` : ''}
+  <div class="muted small">${esc(t('or the folder of a company template:', "ou le dossier d'un modèle d'entreprise :"))} <input data-input="form" data-name="template" data-keep="f-template-folder" value="${esc(custom ? ui.form.template : '')}" placeholder="/path/to/templates/acme-pipeline"></div></div></div>
+  ${here}<p class="muted small">${esc(status)}</p>
+  <label class="check"><input type="checkbox" data-change="advanced" ${ui.advanced ? 'checked' : ''}> ${esc(t('Show advanced settings', 'Afficher les réglages avancés'))}</label>
+  <div class="form">${questions}</div></fieldset>`;
+  }
+
+  function initOtherAnswers() {
+    return `<fieldset class="card"><legend>${esc(t('Other answers (optional)', 'Autres réponses (facultatif)'))}</legend>
   <textarea rows="2" data-input="form" data-name="answer" data-keep="f-answer" title="${esc(t('Optional extra answers, one KEY=VALUE per line', 'Réponses supplémentaires : KEY=VALUE par ligne'))}">${esc(ui.form.answer || '')}</textarea></fieldset>`;
+  }
+
+  /** template new: the base chosen in --extends, as the catalog knows it. */
+  function baseTemplate() {
+    const name = (ui.form.extends || '').trim();
+    return name ? templates().concat(list(I.catalog, 'templates')).find((x) => str(x, 'name') === name) : undefined;
+  }
+
+  /**
+   * template new: the settings of the base, filled in with its values. What the company may set - the
+   * defaults of the init answers, the folder of each layer - is editable, within what the base allows
+   * (its choices, its formats); what the base imposes - its layers, its version, what it extends - is shown,
+   * not editable. Only what differs from the base is written into the new template.
+   */
+  function templateWizard() {
+    const name = (ui.form.extends || '').trim();
+    if (!name) return '';
+    const base = baseTemplate();
+    if (!base) {
+      return `<p class="note small">${esc(t(`The catalog does not list '${name}': its settings cannot be shown here; archvow checks them when the command runs.`,
+        `Le catalogue ne liste pas « ${name} » : ses réglages ne peuvent pas être montrés ici ; archvow les vérifie à l'exécution.`))}</p>`;
+    }
+    const chain = [str(base, 'name') + '@' + str(base, 'version'), ...(Array.isArray(base.extends) ? base.extends.map(String) : [])].join(' → ');
+    const fixed = `<div class="field"><label>${esc(t('imposed', 'imposé'))}</label><div class="muted small">${esc(t(
+      `Builds on ${chain}. The new template starts at version 0.1.0. Its layers are the base's (${list(base, 'layers').map((l) => str(l, 'name')).join(', ')}): only their folders can be renamed. Choices and formats are the base's.`,
+      `S'appuie sur ${chain}. Le nouveau modèle démarre en version 0.1.0. Ses couches sont celles de la base (${list(base, 'layers').map((l) => str(l, 'name')).join(', ')}) : seuls leurs dossiers peuvent être renommés. Les choix et formats sont ceux de la base.`))}</div></div>`;
+    let questions = '';
+    for (const q of list(base, 'questions')) {
+      const id = str(q, 'id');
+      if (!id || (q.ask !== true && !ui.advanced)) continue;
+      const value = id in ui.tplAnswers ? ui.tplAnswers[id] : str(q, 'default');
+      const changed = id in ui.tplAnswers && ui.tplAnswers[id] !== str(q, 'default');
+      questions += `<div class="field"><label title="${esc(str(q, 'prompt'))}">${esc(id)}${changed ? ' ✎' : ''}</label><div>${questionControl(q, value, 'tpl')}<div class="muted small">${esc(str(q, 'prompt'))}${str(q, 'default') ? esc(t(` (base: ${str(q, 'default')})`, ` (base : ${str(q, 'default')})`)) : ''}</div></div></div>`;
+    }
+    const layers = list(base, 'layers').map((l) => {
+      const layer = str(l, 'name');
+      const folder = layer in ui.tplLayers ? ui.tplLayers[layer] : layer;
+      return `<div class="field"><label><code>${esc(layer)}</code></label><div><input data-input="tplLayer" data-id="${esc(layer)}" data-keep="tpl-layer-${esc(layer)}" value="${esc(folder)}"><div class="muted small">${esc(str(l, 'description'))}</div></div></div>`;
+    }).join('');
+    return `<fieldset class="card"><legend>${esc(t(`Settings of ${name}`, `Réglages de ${name}`))}</legend>${fixed}
+  <p class="muted small">${esc(t('The company defaults of the init answers: a project can still change them (-a). Only those that differ from the base are written.',
+    "Les valeurs par défaut de l'entreprise pour les réponses d'init : un projet peut encore les changer (-a). Seules celles qui diffèrent de la base sont écrites."))}</p>
+  <label class="check"><input type="checkbox" data-change="advanced" ${ui.advanced ? 'checked' : ''}> ${esc(t('Show advanced settings', 'Afficher les réglages avancés'))}</label>
+  <div class="form">${questions}</div>
+  <p class="muted small">${esc(t('The folder of each layer (src/<package>/<folder>/, tests/<folder>/):', 'Le dossier de chaque couche (src/<package>/<dossier>/, tests/<dossier>/) :'))}</p><div class="form">${layers}</div></fieldset>`;
+  }
+
+  /** template new: the -a and --layer lines of what differs from the base; a format the base refuses, as a message. */
+  function templateSettings() {
+    const base = baseTemplate();
+    const out = { answer: [], layer: [], problem: '' };
+    if (!base) return out;
+    for (const q of list(base, 'questions')) {
+      const id = str(q, 'id');
+      if (!(id in ui.tplAnswers)) continue;
+      let value = ui.tplAnswers[id].trim();
+      if (q.multiple === true) {
+        const picked = value.split(',').map((x) => x.trim()).filter((x) => x);
+        value = picked.includes('none') ? 'none' : picked.includes('all') ? 'all' : picked.join(',');
+      }
+      if (value === str(q, 'default')) continue;
+      if (value && str(q, 'pattern') && !new RegExp(str(q, 'pattern')).test(value)) {
+        out.problem = t(`${id}: ${str(q, 'pattern_hint') || 'not in the format of the base'}`, `${id} : ${str(q, 'pattern_hint') || "pas au format de la base"}`);
+      }
+      out.answer.push(`${id}=${value}`);
+    }
+    for (const l of list(base, 'layers')) {
+      const layer = str(l, 'name');
+      const folder = (ui.tplLayers[layer] || '').trim();
+      if (folder && folder !== layer) out.layer.push(`${layer}=${folder}`);
+    }
+    return out;
   }
 
   /** The -a KEY=VALUE answers of the wizard: the shown questions, and those a person changed. */
@@ -1254,8 +1429,9 @@
     },
     run: (e) => post({ type: 'run', label: e.dataset.label, args: e.dataset.args.split(' '), target: e.dataset.target }),
     budget: () => {
-      const base = ui.base.trim();
+      const base = baseNow().trim();
       if (base) post({ type: 'run', label: 'next --base', args: ['next', '--base', base, '--json'], target: 'overview' });
+      else post({ type: 'message', text: t('No branch to compare with: this repository has no other branch yet.', "Aucune branche à comparer : ce dépôt n'a pas encore d'autre branche.") });
     },
     openProjectVow: () => post({ type: 'openProjectVow' }),
     openChecks: () => post({ type: 'openChecks' }),
@@ -1303,7 +1479,7 @@
       const values = {};
       if (e.dataset.component) values.component = e.dataset.component;
       if (e.dataset.number) values.number = e.dataset.number;
-      if (e.dataset.field === 'base') values.base = ui.base.trim();
+      if (e.dataset.field === 'base' && baseNow().trim()) values.base = baseNow().trim();
       post({ type: 'openCommand', command: e.dataset.command, values, selected: ui.component });
     },
     choose: (e) => {
@@ -1363,7 +1539,21 @@
       else post({ type: 'taskPrompt', component: ui.component, task: item.id });
     },
     command: (e) => { ui.command = e.dataset.name; post({ type: 'openCommand', command: e.dataset.name, values: {}, selected: '' }); },
-    runForm: () => post({ type: 'form', command: ui.command, values: ui.form, initAnswers: ui.command === 'init' ? initAnswers() : [], selected: ui.component }),
+    runForm: () => {
+      const values = Object.assign({}, ui.form);
+      if (ui.command === 'template new') {
+        const settings = templateSettings();
+        if (settings.problem) { post({ type: 'message', text: settings.problem }); return; }
+        values.answer = settings.answer.join('\n');
+        values.layer = settings.layer.join('\n');
+      }
+      post({ type: 'form', command: ui.command, values, initAnswers: ui.command === 'init' ? initAnswers() : [], selected: ui.component, baseline: ui.formBaseline });
+    },
+    expandResult: (e) => {
+      const target = e.dataset.target;
+      if (ui.resultHeight[target] && ui.resultHeight[target] >= expandedHeight() - 2) delete ui.resultHeight[target];
+      else ui.resultHeight[target] = expandedHeight();
+    },
     loadQuestion: () => post({ type: 'loadQuestion', component: (ui.form.component || '').trim() }),
     browse: (e) => post({ type: 'browse', field: e.dataset.field }),
     reloadCatalog: () => post({ type: 'catalog', template: ui.form.template || '', force: true }),
@@ -1406,16 +1596,75 @@
   document.body.addEventListener('input', (event) => {
     const e = event.target;
     switch (e.dataset.input) {
-      case 'draft': ui.drafts[e.dataset.key] = e.value; return;
-      case 'base': ui.base = e.value; return;
+      case 'draft': {
+        ui.drafts[e.dataset.key] = e.value;
+        // Undo changes: pressable as soon as the text differs from the recorded one (no redraw while typing)
+        const undo = document.querySelector(`[data-a="cancelDraft"][data-key="${CSS.escape(e.dataset.key)}"]`);
+        if (undo) {
+          const edited = e.value !== (e.dataset.initial || '');
+          undo.disabled = !edited || e.disabled;
+          undo.title = undoTip(edited);
+        }
+        return;
+      }
+      case 'base': ui.base = e.value; ui.baseTouched = true; return;
       case 'commandFilter': ui.commandFilter = e.value; render(); return;
       case 'form':
         ui.form[e.dataset.name] = e.value;
-        if (['component', 'question', 'number', 'type'].includes(e.dataset.name)) render();
+        if (['component', 'question', 'number', 'type', 'extends'].includes(e.dataset.name)) render();
         return;
       case 'initAnswer': ui.initAnswers[e.dataset.id] = e.value; ui.initTouched[e.dataset.id] = true; return;
+      case 'tplAnswer': ui.tplAnswers[e.dataset.id] = e.value; return;
+      case 'tplLayer': ui.tplLayers[e.dataset.id] = e.value; return;
       default:
     }
+  });
+
+  /**
+   * A value chosen in a list: it can fill other fields (Edit spec: the component's description, ticket,
+   * uses...; rule edit: its text; decision make: the recorded or suggested answer), and a choice that
+   * depended on the old component or type goes.
+   */
+  function choose(name, value) {
+    const field = fieldOf(ui.command, name);
+    const picked = field ? choicesNow(field).find((c) => c.value === value) : null;
+    const fill = (picked && picked.fill) || {};
+    if (ui.command === 'component edit' && name === 'component') {
+      ui.form = Object.assign({ component: value }, fill);
+      ui.formBaseline = Object.assign({}, fill);
+      return;
+    }
+    ui.form[name] = value;
+    Object.assign(ui.form, fill);
+    const book = (S && S.choices && S.choices[ui.command]) || {};
+    for (const [other, f] of Object.entries(book)) {
+      if (f.by === name && f.kind === 'select' && ui.form[other] && !choicesNow(f).some((c) => c.value === ui.form[other])) delete ui.form[other];
+    }
+  }
+
+  // the bar under a result: drag it to make the result taller or shorter (kept when the page is drawn again)
+  document.body.addEventListener('mousedown', (event) => {
+    const grip = event.target.closest && event.target.closest('[data-grip]');
+    if (!grip) return;
+    const target = grip.dataset.grip;
+    const body = document.querySelector(`[data-body="${CSS.escape(target)}"]`);
+    if (!body) return;
+    event.preventDefault();
+    const startY = event.clientY;
+    const startHeight = body.getBoundingClientRect().height;
+    const move = (e) => {
+      const height = Math.max(80, Math.round(startHeight + e.clientY - startY));
+      body.style.height = height + 'px';
+      body.style.maxHeight = 'none';
+      ui.resultHeight[target] = height;
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+      render();
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
   });
 
   document.body.addEventListener('change', (event) => {
@@ -1429,6 +1678,17 @@
         render();
         return;
       case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; return;
+      case 'choice': choose(e.dataset.name, e.value); render(); return;
+      case 'tplAnswer': ui.tplAnswers[e.dataset.id] = e.value; render(); return;
+      case 'tplMulti': {
+        const q = list(baseTemplate(), 'questions').find((x) => str(x, 'id') === e.dataset.id);
+        const current = (e.dataset.id in ui.tplAnswers ? ui.tplAnswers[e.dataset.id] : str(q, 'default')).split(',').map((x) => x.trim()).filter((x) => x);
+        const set = new Set(current);
+        if (e.checked) set.add(e.dataset.choice); else set.delete(e.dataset.choice);
+        ui.tplAnswers[e.dataset.id] = [...set].join(',');
+        render();
+        return;
+      }
       case 'initTemplate':
         ui.initTemplate = e.value;
         ui.form.template = e.value;

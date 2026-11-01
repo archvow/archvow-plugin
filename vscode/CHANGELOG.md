@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.13.0 - 2026-10-30
+
+Built on archvow 1.18 (the contract regenerated from it): **Install archvow 1.18** when another
+major.minor is installed. From a user's screenshots of the IntelliJ plugin.
+
+- **Fields offer what exists** (`choices.ts`, `ArchvowChoices`, the same rules in both IDEs): a list of the
+  project's components in every form that takes one; the component's questions with their number
+  (`decision make`, `question remove` - only those a person added, the template's stay); `question add`
+  says which number archvow will give; the assumptions, examples, safety questions, hazards, invariants,
+  rules, dependencies and tasks by their id; `component add` offers the types of the project's template
+  only, then the **kinds of the chosen type** (the default first); `template new --extends` the templates.
+  Choosing a component in **Edit spec** fills the fields with what it has; a rule in `rule edit` its text;
+  a question in `decision make` its answer.
+- **Edit spec sends only what changed**, even when opened from a diagnostic; nothing changed is said
+  ("Nothing changed"), not run. With archvow 1.18, what was recorded before a description change is to
+  review (`archvow component accept`).
+- **`template new`**: choosing the base fills "Settings of <base>" with its values: the defaults of the
+  init answers (its choices only, its formats checked) and the folder of each layer. What the base imposes
+  - what it extends, its version, its layers - is shown, not editable. Only the differences are sent.
+- **`init`**: the template is chosen once, in "Template and its questions" right under the package's
+  name (or a company template's folder); in a project, its own template first, with the `--force` note.
+- **Undo changes** replaces the answer panels' "Cancel": enabled only when the field differs from the
+  recorded text, it only puts it back.
+- **Readable results**: **Expand** to the window's height, or drag the bar under a result; "Command
+  result" no longer said twice. IntelliJ: the lines under form fields wrap at the form's width (they ran
+  past the window's edge) and cannot be focused.
+- **Comparison base**: the best branch that exists here (develop on a Git flow feature branch, else
+  origin's HEAD, main, master...) instead of a fixed `origin/main`; chosen in the list of the repository's
+  branches and tags; a base that does not exist is refused before running, with the branches that do.
+- The form's header no longer says "JSON is added automatically..." and "Description et options fournies
+  par le moteur Archvow.".
+- Contract: recorded from archvow 1.18.0; `contract/cli/kinds.json` (kinds for an archvow 1.17),
+  `contract/choices/expected.json` (`ChoicesRegression` = `choices.test.ts`).
+
 ## 0.12.0 - 2026-10-28
 
 Built on archvow 1.17 (the contract regenerated from it).

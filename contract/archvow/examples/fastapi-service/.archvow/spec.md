@@ -10,7 +10,7 @@ Orders
 
 ```mermaid
 flowchart TB
-  subgraph orders_api["orders_api (fastapi-service@1.17.0)"]
+  subgraph orders_api["orders_api (fastapi-service@1.18.0)"]
     direction TB
     subgraph orders_api__p0_common["p0_common"]
       orders_api__get_current_user["get_current_user<br/><small>dependency - US-001</small>"]
@@ -183,6 +183,7 @@ What `archvow check` verifies on every component's code, family by family (the f
 | ARCH039 | warning | A brief changed after the spec was drawn from it |
 | ARCH055 | error | A business example's files differ from the ones a person recorded |
 | ARCH056 | warning | A business example has no marked test (an error in mode strict and with --complete) |
+| ARCH057 | warning | An item recorded before its component changed is not reviewed yet (an error with --complete) |
 | ARCH021 | warning | New suppression compared to the base branch |
 | ARCH022 | error | Change too big for one merge request (files or lines over the budget) |
 | ARCH023 | error | Third-party package imported without approval |

@@ -66,6 +66,8 @@ final class ArchvowUiIcons {
         if (key.contains("modifier") || key.contains("edit") || key.contains("repondre") || key.contains("answer") || key.contains("clarif")) return "edit";
         if (key.contains("ajouter") || key.contains("add ") || key.contains("creer") || key.contains("create") || key.contains("initialize") || key.contains("initialiser")) return "plus";
         if (key.contains("remove") || key.contains("supprimer") || key.contains("reject") || key.contains("rejeter")) return "minus";
+        if (key.contains("undo") || key.contains("annuler les modifications")) return "undo";
+        if (key.contains("expand") || key.contains("agrandir") || key.contains("reduce") || key.contains("reduire")) return "expand";
         if (key.contains("annuler") || key.contains("cancel")) return "close";
         if (key.contains("prompt") || key.contains("instruction ia") || key.contains("suggestion") || key.contains("propos")) return "spark";
         if (key.contains("invariant") || key.contains("safety") || key.contains("securite") || key.contains("hazard") || key.contains("danger")) return "shield";
@@ -118,6 +120,13 @@ final class ArchvowUiIcons {
                     case "plus" -> { circle(g, 1.8, 1.8, 10.3); line(g, 7, 4, 7, 10); line(g, 4, 7, 10, 7); }
                     case "minus" -> { circle(g, 1.8, 1.8, 10.3); line(g, 4, 7, 10, 7); }
                     case "close" -> { line(g, 3, 3, 11, 11); line(g, 11, 3, 3, 11); }
+                    case "undo" -> {
+                        // a curve going back to the left, its arrowhead at the start (0.12.1: Undo changes)
+                        g.draw(new java.awt.geom.Arc2D.Double(3, 3, 9, 9, 160, -250, java.awt.geom.Arc2D.OPEN));
+                        line(g, 3.3, 5.5, 2.5, 2.2); line(g, 3.3, 5.5, 6.4, 4.6);
+                    }
+                    case "expand" -> { line(g, 2, 5, 2, 2); line(g, 2, 2, 5, 2); line(g, 12, 9, 12, 12); line(g, 12, 12, 9, 12);
+                        line(g, 2, 2, 6, 6); line(g, 12, 12, 8, 8); }
                     case "search" -> { circle(g, 2, 1.5, 8); line(g, 9, 9, 12, 12); }
                     case "terminal" -> { g.drawRoundRect(1, 2, 12, 10, 2, 2); line(g, 3, 5, 5.5, 7); line(g, 5.5, 7, 3, 9); line(g, 7.5, 9.5, 11, 9.5); }
                     case "copy" -> { g.drawRect(4, 1, 9, 9); line(g, 10, 12, 1, 12); line(g, 1, 12, 1, 4); line(g, 1, 4, 3, 4); }

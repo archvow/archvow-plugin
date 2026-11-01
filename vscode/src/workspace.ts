@@ -13,6 +13,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ArchvowCli, CliResult, CliSettings } from './cli';
 import { Briefs, locate, readBriefs } from './briefs';
+import { bestBase, Book, choiceBook, missingRef, refNames } from './choices';
 import { renderResult } from './formatter';
 import { Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, promptCommand } from './grammar';
 import { isFrench, tr } from './i18n';
@@ -48,6 +49,11 @@ export interface State {
   briefs: Briefs;
   /** Per component, what its views show: counts, each safety question's status, columns and tasks. */
   derived: Record<string, Derived>;
+  /** The repository's branches and tags, and the one a change is compared with (0.12.1). */
+  refs: string[];
+  base: string;
+  /** What each command form offers to choose from (choices.ts, 0.12.1). */
+  choices: Book;
 }
 
 type Target = 'overview' | 'component' | 'command' | 'quick' | 'decision' | 'question' | 'safety' | 'data';
@@ -60,6 +66,11 @@ export class ArchvowProject {
   readonly commands: Command[];
   private readonly resources: string;
   private readonly bundledCatalog: Json | null;
+  /** The kinds of the component types (contract/cli/kinds.json), for an archvow whose catalog lacks them. */
+  private readonly bundledKinds: Json | null;
+  /** `archvow catalog --json` in the project: its template, with the project's own templates. */
+  private projectCatalog: Json | null = null;
+  private remoteHead = '';
   readonly known: string;
   state: State;
   /** The sidebar page (Overview, Components, Commands). */
@@ -85,6 +96,11 @@ export class ArchvowProject {
     this.resources = path.join(context.extensionPath, 'resources', 'archvow');
     this.commands = (JSON.parse(fs.readFileSync(path.join(this.resources, 'commands.json'), 'utf8')) as { commands: Command[] }).commands;
     this.bundledCatalog = JSON.parse(fs.readFileSync(path.join(this.resources, 'catalog.json'), 'utf8')) as Json;
+    try {
+      this.bundledKinds = JSON.parse(fs.readFileSync(path.join(this.resources, 'kinds.json'), 'utf8')) as Json;
+    } catch {
+      this.bundledKinds = null;
+    }
     this.known = knownVersion(fs.readFileSync(path.join(this.resources, 'version.txt'), 'utf8'));
     this.cli = new ArchvowCli(root, () => this.cliSettings(), (line) => log.info(line));
     void this.readInterpreter();
@@ -159,6 +175,7 @@ export class ArchvowProject {
       readiness: readiness(this.root), welcomeError: '', branch: '', loading: '', spec: null, check: null, checkFailure: '',
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
+      refs: [], base: '', choices: {},
     };
   }
 
@@ -208,6 +225,9 @@ export class ArchvowProject {
       this.state.welcomeError = '';
       this.state.spec = spec;
       this.state.briefs = readBriefs(this.root, spec);
+      // the project's catalog: its template's types and kinds, and the project's own templates (component add, template new)
+      const catalog = parse((await this.cli.run(['catalog', '--json'])).stdout);
+      if (catalog !== null && objects(catalog, 'templates').length > 0) this.projectCatalog = catalog;
       const checked = await this.cli.run(['check', '--json']);
       this.setCheck(parse(checked.stdout), (checked.startError ?? (checked.stderr || checked.stdout)).trim());
       const next = await this.cli.run(['next', '--json']);
@@ -254,7 +274,17 @@ export class ArchvowProject {
       fs.readFileSync(path.join(this.resources, s.fr ? 'rules.fr.md' : 'rules.md'), 'utf8'), this.commands);
     s.rows = architectureRows(s.spec, s.check, s.snapshots, s.work.pendingByComponent);
     s.derived = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, derive(view)]));
+    this.recomputeChoices();
     this.changed.fire();
+  }
+
+  /** What the forms offer: from the spec, the components read, the catalog and the repository's refs. */
+  private recomputeChoices(): void {
+    const s = this.state;
+    const gitflow = str(s.spec ? s.spec.init_answers : null, 'branch_naming') === 'gitflow';
+    s.base = bestBase(s.refs, s.branch, gitflow, this.remoteHead);
+    s.choices = choiceBook(this.commands, { spec: s.spec, snapshots: s.snapshots, catalog: this.projectCatalog ?? this.bundledCatalog,
+      kinds: this.bundledKinds, refs: s.refs, base: s.base, fr: s.fr });
   }
 
   private async checkVersion(): Promise<void> {
@@ -348,17 +378,33 @@ export class ArchvowProject {
     await this.refresh(true);
   }
 
-  private readBranch(): Promise<void> {
+  private git(args: string[]): Promise<string | null> {
     return new Promise((resolve) => {
-      execFile('git', ['branch', '--show-current'], { cwd: this.root, timeout: 3000 }, (error, stdout) => {
-        const name = error ? '—' : stdout.trim() || '(detached)';
-        if (name !== this.state.branch) {
-          this.state.branch = name;
-          this.publish();
-        }
-        resolve();
-      });
+      execFile('git', args, { cwd: this.root, timeout: 3000 }, (error, stdout) => resolve(error ? null : stdout));
     });
+  }
+
+  /** The branch, the branches and tags that exist (Diff, Review, Budget compare with one of them). */
+  private async readBranch(): Promise<void> {
+    const [current, refs, head] = await Promise.all([this.git(['branch', '--show-current']),
+      this.git(['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes', 'refs/tags']),
+      this.git(['symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD'])]);
+    const name = current === null ? '—' : current.trim() || '(detached)';
+    const known = refNames(refs ?? '');
+    this.remoteHead = (head ?? '').trim();
+    if (name !== this.state.branch || known.join('\n') !== this.state.refs.join('\n')) {
+      this.state.branch = name;
+      this.state.refs = known;
+      this.recomputeChoices();
+      this.publish();
+    }
+  }
+
+  /** A base that does not exist here: what to choose instead ('' when it exists, or Git knows it as a commit). */
+  private async refProblem(ref: string): Promise<string> {
+    const problem = missingRef(ref, this.state.refs, this.state.fr);
+    if (!problem) return '';
+    return (await this.git(['rev-parse', '--verify', '--quiet', ref.trim() + '^{commit}'])) !== null ? '' : problem;
   }
 
   /** One component again (after a change), without reading the whole project. */
@@ -578,7 +624,8 @@ export class ArchvowProject {
       case 'run':
         return this.runDirect(String(m.label), stringList(m.args), (m.target as Target) ?? 'overview');
       case 'form':
-        return this.runForm(String(m.command), (m.values ?? {}) as Record<string, string>, stringList(m.initAnswers ?? []), String(m.selected ?? ''));
+        return this.runForm(String(m.command), (m.values ?? {}) as Record<string, string>, stringList(m.initAnswers ?? []), String(m.selected ?? ''),
+          (m.baseline ?? {}) as Record<string, string>);
       case 'inline':
         return this.inlineAction(m);
       case 'install':
@@ -680,6 +727,12 @@ export class ArchvowProject {
       void vscode.window.showErrorMessage(`Unknown archvow command: ${args.join(' ')}`);
       return;
     }
+    const at = args.indexOf('--base');
+    const problem = at >= 0 ? await this.refProblem(args[at + 1] ?? '') : '';
+    if (problem) {
+      void vscode.window.showWarningMessage(problem);
+      return;
+    }
     if (isMutating(command, args)) this.confirm(labelText, args, target, preview(args));
     else await this.execute(labelText, args, target, undefined, false);
   }
@@ -715,15 +768,25 @@ export class ArchvowProject {
     else if (ok && change) await this.refresh(false);
   }
 
-  private async runForm(name: string, values: Record<string, string>, initAnswers: string[], selected: string): Promise<void> {
+  private async runForm(name: string, values: Record<string, string>, initAnswers: string[], selected: string,
+    baseline: Record<string, string> = {}): Promise<void> {
     const fr = this.state.fr;
     const command = findCommand(this.commands, name);
     if (command === undefined) return;
     const components = Object.keys(this.state.snapshots);
-    const plan = planForm(command, values, fr, { initAnswers, components, selected });
+    const plan = planForm(command, values, fr, { initAnswers, components, selected, baseline });
     if (plan.kind === 'error') {
       void vscode.window.showInformationMessage(plan.message);
       return;
+    }
+    // a branch that does not exist here: say which exist, rather than git's "Not a valid object name"
+    for (const field of ['base', 'start', 'end']) {
+      const ref = (values[field] ?? '').trim();
+      const problem = ref && command.parameters.some((p) => p.name === field) ? await this.refProblem(ref) : '';
+      if (problem) {
+        void vscode.window.showWarningMessage(problem);
+        return;
+      }
     }
     if (plan.kind === 'clarify') {
       this.show(plan.component, true);
@@ -830,11 +893,12 @@ export class ArchvowProject {
     }
     let help = '';
     if (name === 'component edit' && snapshot) {
-      help += tr(fr, 'Current description (read-only): ', 'Description actuelle (lecture seule) : ')
-        + (str(snapshot, 'description') || tr(fr, 'Not specified', 'Non renseignée'));
-    }
-    if (Object.keys(known).length) {
-      help += (help ? '\n' : '') + tr(fr, 'Known information prefilled from the current spec or diagnostic. Review before running; blank optional fields are unchanged.',
+      help = tr(fr, 'The fields hold what the component has: change what must change; only that is sent. The decisions, hazards and '
+        + 'examples recorded stay (from archvow 1.18, a person is asked to look at them again after such a change).',
+      'Les champs contiennent ce que le composant a : change ce qui doit changer ; seul cela est envoyé. Les décisions, dangers et '
+        + 'exemples enregistrés restent (depuis archvow 1.18, une personne doit les revoir après un tel changement).');
+    } else if (Object.keys(known).length) {
+      help = tr(fr, 'Known information prefilled from the current spec or diagnostic. Review before running; blank optional fields are unchanged.',
         'Informations connues préremplies depuis la spec ou le diagnostic. Vérifie avant d\'exécuter ; les champs optionnels vides restent inchangés.');
     }
     if (!findCommand(this.commands, name)) {

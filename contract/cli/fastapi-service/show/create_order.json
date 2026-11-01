@@ -85,6 +85,7 @@
       "number": 1,
       "question": "What does it do, step by step (read, check, change, save, call)?",
       "answer": "Build a pending order with the next id, save it, return it",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -94,6 +95,7 @@
       "number": 2,
       "question": "Something it needs does not exist: which domain error?",
       "answer": "Not applicable: it needs nothing that may be missing",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -103,6 +105,7 @@
       "number": 3,
       "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
       "answer": "Two orders: a retry is a new order (customers cancel the extra one)",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -112,6 +115,7 @@
       "number": 4,
       "question": "Who may perform it, and is that checked here or in the router?",
       "answer": "Any authenticated customer, for themselves; checked by the router",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -121,6 +125,7 @@
       "number": 5,
       "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
       "answer": "One save, nothing else to undo",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -195,5 +200,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

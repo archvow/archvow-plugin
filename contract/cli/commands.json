@@ -370,7 +370,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "the new description (what gets implemented)",
+          "help": "the new description (what gets implemented); what was recorded before is then to review (archvow component accept)",
           "metavar": "TEXT"
         },
         {
@@ -474,6 +474,28 @@
           "choices": [],
           "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
           "metavar": "BRIEF"
+        }
+      ]
+    },
+    {
+      "path": [
+        "component",
+        "accept"
+      ],
+      "description": "After a change of its description, signature or routes: a person looked at what was recorded before and each item still holds (signs them again).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "metavar": "component"
         }
       ]
     },

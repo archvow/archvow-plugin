@@ -10,7 +10,7 @@ system
 
 # --- containers
 container orders_api
-  template fastapi-service@1.17.0
+  template fastapi-service@1.18.0
   package orders_api
   path src/orders_api
 

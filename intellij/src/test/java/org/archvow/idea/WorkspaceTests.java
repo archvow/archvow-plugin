@@ -25,6 +25,7 @@ public final class WorkspaceTests {
         run("EditorTabLookRegression", () -> EditorTabLookRegression.main(NONE));
         run("GlobalCatalogRegression", () -> GlobalCatalogRegression.main(NONE));
         run("GuidanceRegression", () -> GuidanceRegression.main(NONE));
+        run("ChoicesRegression", () -> ChoicesRegression.main(NONE));
         run("InitWizardRegression", () -> InitWizardRegression.main(NONE));
         run("InlineCommandRegression", () -> InlineCommandRegression.main(NONE));
         run("InstallRegression", () -> InstallRegression.main(NONE));

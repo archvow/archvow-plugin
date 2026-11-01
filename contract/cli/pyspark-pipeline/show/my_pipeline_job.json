@@ -40,6 +40,7 @@
       "number": 1,
       "question": "One input is missing: skip the run, fail, or run with partial data?",
       "answer": "Fail",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -49,6 +50,7 @@
       "number": 2,
       "question": "Retries: how many, and is a retry safe?",
       "answer": "No automatic retry; a re-run is safe (the writer overwrites)",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -58,6 +60,7 @@
       "number": 3,
       "question": "Which run date / partition does the job process, and who decides it?",
       "answer": "No run date: the job processes the input it is given",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -120,5 +123,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

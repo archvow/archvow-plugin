@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `fastapi-service@1.17.0`).
+(template `fastapi-service@1.18.0`).
 
 ## For developers
 
@@ -82,7 +82,6 @@ orders-api/
 ├── .gitlab-ci.yml                      CI: guards and tests
 ├── .gitlab/CODEOWNERS                  the architects approve the spec and the guards
 ├── .githooks/pre-commit                checks before every commit
-├── Makefile                            make run, make check, make test... (make help)
 ├── pyproject.toml                      the package, what it needs at run time, the test settings
 ├── README.md
 ├── requirements.txt                    development tools
@@ -127,7 +126,7 @@ complete service, from the empty project to a run: archvow's documentation, *Fas
 
 ```bash
 archvow init orders_api -t fastapi-service -d Orders \
-    -a architects=@my-team -a language=en -a ai_tools=copilot -a mode=strict -a rules=ARCH,STYLE,FASTAPI,GDPR,TST
+    -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a fastapi_version=0.143 -a ai_tools=copilot -a mode=strict -a rules=ARCH,STYLE,FASTAPI,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
 git switch -c develop                            # once, from main
@@ -263,7 +262,7 @@ make run                                             # http://127.0.0.1:8000/doc
 | answer what is open, one question at a time | `archvow specify order_model` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/analyze order_model` |
 | build a big component one task at a time | `archvow show orders_router` lists its tasks T1, T2...; `archvow prompt orders_router` gives the next one; mark each test: `@pytest.mark.decision(3)` |
-| draw the spec from a brief (`briefs/`, Markdown) | in the chat: `/draft-spec briefs/orders.md`; after the brief changes (ARCH039): `archvow brief accept briefs/orders.md#payment` |
+| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init orders_api --force -a briefs=...`) | in the chat: `/draft-spec briefs/orders.md`; after the brief changes (ARCH039): `archvow brief accept briefs/orders.md#payment` |
 | classify columns (GDPR) | `archvow column set order_model email,phone personal` |
 | say a step removes or pseudonymises them | `archvow column set create_order phone --removes` |
 | list what a release contains | `archvow changes --from v1.0.0 --markdown` |

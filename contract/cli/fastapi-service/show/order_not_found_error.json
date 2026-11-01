@@ -34,6 +34,7 @@
       "number": 1,
       "question": "Which HTTP status does the app answer with it (404, 409, 422...)?",
       "answer": "404 Not Found",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -43,6 +44,7 @@
       "number": 2,
       "question": "What does its message say - and never say (internal ids, personal data, whether the resource exists)?",
       "answer": "\"Order not found\" - never the id's owner, never whether it exists",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -70,5 +72,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

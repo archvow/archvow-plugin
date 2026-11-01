@@ -97,6 +97,21 @@ final class ArchvowPanel extends JPanel {
     // A separate runner never needs a .archvow project or project --root.
     private final ArchvowCli catalogCli;
     private JsonObject liveInitCatalog;
+    /** {@code catalog --json} in the project: its template's types and kinds, the project's own templates (0.12.1). */
+    private JsonObject projectCatalog;
+    /** archvow/kinds.json: the kinds of each type for an archvow whose catalog has none (1.17). */
+    private JsonObject bundledKinds;
+    /** The repository's branches and tags, the current branch, what origin's HEAD names (the comparison base). */
+    private List<String> gitRefs = List.of();
+    private String gitCurrent = "", remoteHead = "";
+    /** The person chose the base: it no longer follows the best existing branch. */
+    private boolean baseTouched;
+    /** Edit spec: what the component has; only what differs from it is sent (0.12.1). */
+    private Map<String, String> formBaseline = Map.of();
+    /** Lines openCommand adds under the command's description (kept when the form is drawn again). */
+    private String formHelpExtra = "";
+    private ArchvowTemplateSettings templateSettings;
+    private boolean buildingForm;
     private String liveInitCatalogScope = "";
     private final ArchvowNavigationTabs tabs = new ArchvowNavigationTabs();
     private final CardLayout componentViewLayout = new CardLayout();
@@ -203,10 +218,12 @@ final class ArchvowPanel extends JPanel {
     private JButton allComponentsFilter, pendingComponentsFilter, resolvedComponentsFilter;
     private final DefaultListModel<ArchvowGrammar.Command> commandModel = new DefaultListModel<>();
     private final JList<ArchvowGrammar.Command> commandList = new JList<>(commandModel);
-    private final JPanel form = new JPanel(new GridBagLayout());
+    /** The command form: as wide as the view, so the lines under the fields wrap instead of running past its edge. */
+    private final JPanel form = new WidthTrackingPanel(new GridBagLayout());
     private final JTextArea commandHelp = area();
     private final Map<String, JComponent> fields = new LinkedHashMap<>();
-    private final JTextField branch = new JTextField("origin/main", 14);
+    /** The comparison base: the best existing branch (ArchvowChoices.bestBase) until the person chooses one. */
+    private final JTextField branch = new JTextField("", 14);
     private final JLabel projectInfoLabel = new JLabel();
     private final JLabel componentPendingExplanation = new JLabel();
     private final JLabel gitBranchLabel = new JLabel();
@@ -355,32 +372,89 @@ final class ArchvowPanel extends JPanel {
         gitBranchLabel.setText(ArchvowI18n.text(project, "Branch: detecting…", "Branche : détection…"));
         String root = project.getBasePath();
         if (root == null) { gitBranchLabel.setText("Git: —"); return; }
-        new SwingWorker<String, Void>() {
-            @Override protected String doInBackground() {
-                Process process = null;
-                try {
-                    process = new ProcessBuilder("git", "branch", "--show-current")
-                        .directory(new File(root)).redirectErrorStream(true).start();
-                    if (!process.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)) {
-                        process.destroyForcibly(); return "—";
-                    }
-                    if (process.exitValue() != 0) return "—";
-                    String name = new String(process.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).trim();
-                    return name.isBlank() ? "(detached)" : name;
-                } catch (Exception ex) {
-                    if (process != null) process.destroyForcibly();
-                    return "—";
-                }
+        new SwingWorker<String[], Void>() {
+            @Override protected String[] doInBackground() {
+                String current = git(root, "branch", "--show-current");
+                String refs = git(root, "for-each-ref", "--format=%(refname)", "refs/heads", "refs/remotes", "refs/tags");
+                String head = git(root, "symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD");
+                return new String[] {current == null ? "—" : current.isBlank() ? "(detached)" : current.trim(),
+                    refs == null ? "" : refs, head == null ? "" : head.trim()};
             }
             @Override protected void done() {
-                String current;
-                try { current = get(); }
-                catch (Exception ex) { current = "—"; }
-                gitBranchLabel.setText("Git: " + current);
+                String[] read;
+                try { read = get(); }
+                catch (Exception ex) { read = new String[] {"—", "", ""}; }
+                gitBranchLabel.setText("Git: " + read[0]);
                 gitBranchLabel.setToolTipText(root);
-                updateBranchWarning(current);
+                updateBranchWarning(read[0]);
+                gitCurrent = read[0];
+                gitRefs = ArchvowChoices.refNames(read[1]);
+                remoteHead = read[2];
+                followBestBase();
             }
         }.execute();
+    }
+
+    /** One git command in the project: its output, or null when it fails (3 s at most). */
+    private static String git(String root, String... args) {
+        Process process = null;
+        try {
+            List<String> command = new ArrayList<>();
+            command.add("git");
+            command.addAll(List.of(args));
+            process = new ProcessBuilder(command).directory(new File(root)).redirectErrorStream(false).start();
+            byte[] out = process.getInputStream().readAllBytes();
+            if (!process.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)) { process.destroyForcibly(); return null; }
+            return process.exitValue() == 0 ? new String(out, java.nio.charset.StandardCharsets.UTF_8) : null;
+        } catch (Exception ex) {
+            if (process != null) process.destroyForcibly();
+            return null;
+        }
+    }
+
+    /**
+     * The base Diff, Review and Budget compare with: the best branch that exists here (develop on a Git flow
+     * feature branch, else what origin's HEAD names, main, master...), until the person chooses one. It was a
+     * fixed origin/main, which a repository without that remote does not have (0.12.1).
+     */
+    private void followBestBase() {
+        if (!baseTouched) {
+            boolean gitflow = "gitflow".equals(ArchvowGrammar.str(manifest == null ? null : manifest.getAsJsonObject("init_answers"), "branch_naming"));
+            branch.setText(ArchvowChoices.bestBase(gitRefs, gitCurrent, gitflow, remoteHead));
+        }
+        if (comparisonBaseButton != null) comparisonBaseButton.setText(baseLabel());
+    }
+
+    private String baseLabel() {
+        return "Base: " + (branch.getText().isBlank() ? "—" : branch.getText());
+    }
+
+    /** Why a base cannot be compared with, and which exist ('' when it exists, or Git knows it as a commit). */
+    private String refProblem(String ref) {
+        String problem = ArchvowChoices.missingRef(ref, gitRefs, ArchvowI18n.isFrench(project));
+        if (problem.isBlank() || project.getBasePath() == null) return problem;
+        return git(project.getBasePath(), "rev-parse", "--verify", "--quiet", ref.trim() + "^{commit}") != null ? "" : problem;
+    }
+
+    /**
+     * Choose the comparison base among the branches and tags of this repository (or type another ref);
+     * null when cancelled or when it does not exist here (the message says which do).
+     */
+    private String askBase(String title) {
+        JComboBox<String> choice = new JComboBox<>(gitRefs.stream().filter(r -> !r.endsWith("/HEAD")).toArray(String[]::new));
+        choice.setEditable(true);
+        choice.setSelectedItem(branch.getText());
+        JPanel content = new JPanel(new BorderLayout(0, 6));
+        content.add(new JLabel(title), BorderLayout.NORTH);
+        content.add(choice, BorderLayout.CENTER);
+        if (gitRefs.isEmpty()) content.add(new JLabel(ArchvowI18n.text(project,
+            "No other branch in this repository yet: nothing to compare with.", "Pas encore d'autre branche dans ce dépôt : rien à comparer.")), BorderLayout.SOUTH);
+        if (JOptionPane.showConfirmDialog(this, content, "archvow", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return null;
+        String ref = comboText(choice);
+        if (ref.isBlank()) return null;
+        String problem = refProblem(ref);
+        if (!problem.isBlank()) { message(problem); return null; }
+        return ref;
     }
 
     private void updateBranchWarning(String current) {
@@ -537,6 +611,12 @@ final class ArchvowPanel extends JPanel {
         nextResult = source.nextResult;
         componentSnapshots.clear();
         componentSnapshots.putAll(source.componentSnapshots);
+        projectCatalog = source.projectCatalog;
+        gitRefs = source.gitRefs;
+        gitCurrent = source.gitCurrent;
+        remoteHead = source.remoteHead;
+        if (!baseTouched && !source.baseTouched) followBestBase();
+        else if (!baseTouched) { branch.setText(source.branch.getText()); if (comparisonBaseButton != null) comparisonBaseButton.setText(baseLabel()); }
         projectStatus = source.projectStatus;
         if (manifest == null) {
             if (source.projectStatus != null && !source.projectStatus.ready()) showWelcome(source.projectStatus, "");
@@ -979,18 +1059,20 @@ final class ArchvowPanel extends JPanel {
         commands.addAction(overviewAction("Audit", () -> executeDirect("audit", List.of("audit", "--json"), null, false)));
         commands.addAction(overviewAction(ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
         commands.addAction(overviewAction("Budget / Next", () -> {
-            String ref = JOptionPane.showInputDialog(this, "Git base:", branch.getText());
-            if (ref != null && !ref.isBlank()) {
-                branch.setText(ref.trim());
-                if (comparisonBaseButton != null) comparisonBaseButton.setText("Base: " + branch.getText());
-                executeDirect("next --base", List.of("next", "--base", ref.trim(), "--json"), null, false);
+            String ref = askBase(ArchvowI18n.text(project, "Compare this branch's change with:", "Comparer le changement de cette branche avec :"));
+            if (ref != null) {
+                if (!ref.equals(branch.getText().trim())) baseTouched = true;
+                branch.setText(ref);
+                if (comparisonBaseButton != null) comparisonBaseButton.setText(baseLabel());
+                executeDirect("next --base", List.of("next", "--base", ref, "--json"), null, false);
             }
         }));
-        commands.addAction(overviewAction("Diff", () -> openCommand("diff", Map.of("base", branch.getText().trim()))));
-        commands.addAction(overviewAction("Review", () -> openCommand("review", Map.of("base", branch.getText().trim()))));
-        comparisonBaseButton = overviewAction("Base: " + branch.getText(), this::chooseComparisonBase);
+        commands.addAction(overviewAction("Diff", () -> openCommand("diff", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
+        commands.addAction(overviewAction("Review", () -> openCommand("review", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
+        comparisonBaseButton = overviewAction(baseLabel(), this::chooseComparisonBase);
         comparisonBaseButton.setToolTipText(ArchvowI18n.text(project,
-            "Git comparison base for Review / Diff / Budget", "Base de comparaison Git pour Review / Diff / Budget"));
+            "Git comparison base for Review / Diff / Budget: a branch of this repository",
+            "Base de comparaison Git pour Review / Diff / Budget : une branche de ce dépôt"));
         commands.addAction(comparisonBaseButton);
         gitBranchLabel.setToolTipText(ArchvowI18n.text(project, "Current Git branch", "Branche Git courante"));
         bar.add(commands, BorderLayout.CENTER);
@@ -1028,12 +1110,11 @@ final class ArchvowPanel extends JPanel {
     }
 
     private void chooseComparisonBase() {
-        String value = JOptionPane.showInputDialog(this,
-            ArchvowI18n.text(project, "Git comparison base (for Diff/Review/Next):", "Base Git de comparaison (pour Diff/Review/Next) :"),
-            branch.getText());
-        if (value == null || value.isBlank()) return;
-        branch.setText(value.trim());
-        comparisonBaseButton.setText("Base: " + branch.getText());
+        String value = askBase(ArchvowI18n.text(project, "Git comparison base (for Diff/Review/Next):", "Base Git de comparaison (pour Diff/Review/Next) :"));
+        if (value == null) return;
+        baseTouched = true;
+        branch.setText(value);
+        comparisonBaseButton.setText(baseLabel());
     }
 
     private static void addMenuItem(JPopupMenu menu, String label, Runnable command) {
@@ -1151,15 +1232,78 @@ final class ArchvowPanel extends JPanel {
         controls.add(copy);
         JButton dismiss = button("×", close);
         dismiss.setToolTipText(ArchvowI18n.text(project, "Close result", "Fermer le résultat"));
+        JScrollPane scroll = scroll(pane);
+        scroll.setBorder(BorderFactory.createLineBorder(borderColor()));
+        scroll.setPreferredSize(new Dimension(200, RESULT_HEIGHT));
+        // readable at any length (0.12.1): Expand to the height of the window, or drag the bar under it
+        JToggleButton expand = new JToggleButton(ArchvowI18n.text(project, "Expand", "Agrandir"));
+        expand.setFocusPainted(false);
+        expand.setToolTipText(ArchvowI18n.text(project, "Show the whole result at the height of the window (or drag the bar under it)",
+            "Afficher tout le résultat sur la hauteur de la fenêtre (ou tirer la barre en dessous)"));
+        ArchvowUiIcons.decorate(expand);
+        expand.addActionListener(e -> {
+            int height = expand.isSelected() ? expandedResultHeight(outer) : RESULT_HEIGHT;
+            resizeResult(scroll, height);
+            expand.setText(expand.isSelected() ? ArchvowI18n.text(project, "Reduce", "Réduire") : ArchvowI18n.text(project, "Expand", "Agrandir"));
+        });
+        controls.add(expand, 0);
         controls.add(dismiss);
         header.add(controls, BorderLayout.EAST);
         outer.add(header, BorderLayout.NORTH);
-        JScrollPane scroll = scroll(pane);
-        scroll.setBorder(BorderFactory.createLineBorder(borderColor()));
-        scroll.setPreferredSize(new Dimension(200, 225));
         outer.add(scroll, BorderLayout.CENTER);
+        outer.add(resultGrip(scroll), BorderLayout.SOUTH);
         outer.setVisible(false);
         return outer;
+    }
+
+    /** The height of a result card when it opens (it used to stay at this height: 225 px). */
+    static final int RESULT_HEIGHT = 225;
+
+    /** Expand: the result as tall as the window allows, its head and the form's buttons still in view. */
+    private static int expandedResultHeight(JComponent card) {
+        java.awt.Window window = SwingUtilities.getWindowAncestor(card);
+        int available = window != null ? window.getHeight() : Toolkit.getDefaultToolkit().getScreenSize().height;
+        return Math.max(RESULT_HEIGHT, available - 260);
+    }
+
+    private static void resizeResult(JScrollPane scroll, int height) {
+        scroll.setPreferredSize(new Dimension(scroll.getPreferredSize().width, Math.max(80, height)));
+        scroll.revalidate();
+        Container parent = scroll.getParent();
+        while (parent != null && !(parent instanceof JScrollPane) && !(parent instanceof Window)) {
+            parent.revalidate();
+            parent = parent.getParent();
+        }
+        scroll.repaint();
+    }
+
+    /** The bar under a result: drag it to make the result taller or shorter. */
+    static JComponent resultGrip(JScrollPane scroll) {
+        JComponent grip = new JComponent() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(UIManager.getColor("Label.disabledForeground") != null ? UIManager.getColor("Label.disabledForeground") : Color.GRAY);
+                int x = getWidth() / 2 - 18;
+                g2.fillRoundRect(x, getHeight() / 2 - 1, 36, 3, 3, 3);
+                g2.dispose();
+            }
+        };
+        grip.setPreferredSize(new Dimension(10, 9));
+        grip.setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
+        grip.setToolTipText("Drag to make the result taller or shorter / Tirer pour agrandir ou réduire le résultat");
+        java.awt.event.MouseAdapter drag = new java.awt.event.MouseAdapter() {
+            private int startY, startHeight;
+            @Override public void mousePressed(java.awt.event.MouseEvent e) {
+                startY = e.getYOnScreen();
+                startHeight = scroll.getHeight() > 0 ? scroll.getHeight() : scroll.getPreferredSize().height;
+            }
+            @Override public void mouseDragged(java.awt.event.MouseEvent e) {
+                resizeResult(scroll, startHeight + e.getYOnScreen() - startY);
+            }
+        };
+        grip.addMouseListener(drag);
+        grip.addMouseMotionListener(drag);
+        return grip;
     }
 
     /** Keep the result in context; readers can ask for raw JSON, never see it by default. */
@@ -1298,7 +1442,7 @@ final class ArchvowPanel extends JPanel {
         acceptInline.addActionListener(e -> submitInlineDecision("decision accept"));
         suggestedInline.addActionListener(e -> fillSuggestedAnswer());
         JPanel decisionButtons = answerButtons(List.of(proposeInline, acceptInline, suggestedInline),
-            cancelButton(this::showDecision), decideInline);
+            cancelButton(decisionAnswer, this::showDecision), decideInline);
         decisionConfirmSlot = new JPanel(new BorderLayout());
         decisionConfirmSlot.setOpaque(false);
         JPanel decisionEditor = ArchvowAnswerEditor.create(decisionAnswerLabel, answerScroll,
@@ -1332,7 +1476,7 @@ final class ArchvowPanel extends JPanel {
         saveQuestion.addActionListener(e -> submitInlineQuestion());
         JPanel questionEditor = ArchvowAnswerEditor.create(
             new JLabel(ArchvowI18n.text(project, "Your answer", "Votre réponse")), qAnswerScroll,
-            answerButtons(List.of(), cancelButton(this::showQuestion), saveQuestion), questionConfirmSlot);
+            answerButtons(List.of(), cancelButton(questionAnswer, this::showQuestion), saveQuestion), questionConfirmSlot);
         questionInlineResultCard = inlineResultCard(questionInlineResult, () -> questionInlineResultCard.setVisible(false));
         questionInlineResultCard.setVisible(false);
         addComponentView(viewBar, detailCards, 1, "Questions",
@@ -1369,7 +1513,7 @@ final class ArchvowPanel extends JPanel {
             () -> removeSelectedSafetyArtifact(false));
         JButton removeInvariant = button(ArchvowI18n.text(project,"Remove invariant…","Supprimer un invariant…"),
             () -> removeSelectedSafetyArtifact(true));
-        JButton safetyCancel = cancelButton(this::showSafety);
+        JButton safetyCancel = cancelButton(safetyInput, this::showSafety);
         JPanel safetyActions = answerButtons(List.of(dismissInline, safetySuggestedButton), safetyCancel, hazardInline);
         // what can be done on a question already answered: under the field, apart
         JPanel safetyMore = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
@@ -1759,6 +1903,8 @@ final class ArchvowPanel extends JPanel {
                 if (chosen != null && !syncing && constructed) ArchvowEditorTab.showCommand(project, chosen.label, Map.of());
                 return;
             }
+            formBaseline = Map.of();
+            formHelpExtra = "";
             renderForm(Map.of());
             if (constructed) afterSelectionChange();
         });
@@ -1835,32 +1981,52 @@ final class ArchvowPanel extends JPanel {
         ArchvowGrammar.Command command = commandList.getSelectedValue();
         if (command == null) return;
         if (commandConfirmation != null) commandConfirmation.hideConfirmation();
+        buildingForm = true;
+        try { buildForm(command, defaults == null ? Map.of() : defaults); }
+        finally { buildingForm = false; }
+    }
+
+    /** What every command form offers now (ArchvowChoices, the same as VS Code's choices.ts). */
+    private Map<String, Map<String, ArchvowChoices.Field>> choiceBook() {
+        JsonObject catalog = projectCatalog != null ? projectCatalog : liveInitCatalog != null ? liveInitCatalog : ArchvowInitCatalog.bundled();
+        if (bundledKinds == null) bundledKinds = ArchvowInitCatalog.kinds();
+        return ArchvowChoices.book(ArchvowGrammar.COMMANDS, new ArchvowChoices.Input(manifest, componentSnapshots, catalog, bundledKinds,
+            gitRefs, branch.getText().trim(), ArchvowI18n.isFrench(project)));
+    }
+
+    private void buildForm(ArchvowGrammar.Command command, Map<String, String> defaults) {
         fields.clear(); form.removeAll();
-        String extra = switch (command.label) {
+        templateSettings = null;
+        String name = command.label;
+        String extra = switch (name) {
             case "specify" -> ArchvowI18n.text(project, "IDE mode: clarification without interactive terminal.", "Mode IDE : clarification sans terminal interactif.");
             case "rule add" -> ArchvowI18n.text(project, "One argument per line in words.", "Un argument par ligne dans le champ words.");
-            default -> ArchvowI18n.text(project, "JSON is added automatically when supported.", "Le format JSON est activé automatiquement quand il est disponible.");
+            default -> "";
         };
-        commandHelp.setText("archvow " + command.label + "\n" + command.description + "\n" + extra
-            + (ArchvowI18n.isFrench(project) ? "\nDescription et options fournies par le moteur Archvow." : ""));
+        commandHelp.setText("archvow " + name + "\n" + command.description + (extra.isEmpty() ? "" : "\n" + extra) + formHelpExtra);
+        Map<String, ArchvowChoices.Field> offered = choiceBook().getOrDefault(name, Map.of());
+        Map<String, String> values = new LinkedHashMap<>(defaults);
+        List<String> own = ArchvowChoices.projectTemplates(manifest);
+        if ("init".equals(name) && values.getOrDefault("template", "").isBlank() && !own.isEmpty()) values.put("template", own.get(0));
         int y = 0;
         for (ArchvowGrammar.Param param : command.parameters) {
-            // The catalog-based wizard replaces the bare -a KEY=VALUE field.
-            // Keep a small optional advanced field within the wizard itself.
-            if ("init".equals(command.label) && "answer".equals(param.name)) continue;
-            String text = defaults.getOrDefault(param.name, "");
+            // init: the template is chosen once, in "Template and its questions" (under the package); template new:
+            // its answers and layer folders are in "Settings of <base>", under --extends
+            if ("init".equals(name) && "answer".equals(param.name)) continue;
+            if ("init".equals(name) && "template".equals(param.name)) {
+                fields.put("template", new JTextField(values.getOrDefault("template", "")));  // not shown: the wizard sets it
+                continue;
+            }
+            if ("template new".equals(name) && ("answer".equals(param.name) || "layer".equals(param.name))) continue;
+            String text = values.getOrDefault(param.name, "");
+            ArchvowChoices.Field field = param.bool ? null : offered.get(param.name);
             JComponent control;
             if (param.bool) {
                 JCheckBox checkbox = new JCheckBox();
-                checkbox.setSelected("true".equals(text) || ("init".equals(command.label) && "no_input".equals(param.name)));
+                checkbox.setSelected("true".equals(text) || ("init".equals(name) && "no_input".equals(param.name) && !values.containsKey("no_input")));
                 control = checkbox;
-            } else if ("component add".equals(command.label) && "type".equals(param.name)) {
-                JComboBox<String> combo = new JComboBox<>();
-                combo.setEditable(true);  // Company templates can define additional types.
-                combo.addItem("");
-                for (String type : ArchvowComponentTypes.allKnown()) combo.addItem(type);
-                combo.setSelectedItem(text);
-                control = combo;
+            } else if (field != null && !"note".equals(field.kind)) {
+                control = choiceControl(name, param.name, field, text, values);
             } else if (param.flags.contains("--from")) {
                 // the brief files of the declared folders and their headings (archvow's slugs); free text allowed
                 JComboBox<String> combo = new JComboBox<>();
@@ -1881,54 +2047,37 @@ final class ArchvowPanel extends JPanel {
                 control = input;
             } else control = new JTextField(text, 25);
             fields.put(param.name, control);
-            if ("component add".equals(command.label) && "type".equals(param.name)
-                && control instanceof JComboBox<?> combo) {
-                JComboBox<?> typeCombo = combo;
-                typeCombo.addActionListener(event -> {
-                    String selected = value("type");
-                    JComponent name = fields.get("name");
-                    if (name instanceof JTextField nameField) {
-                        nameField.setToolTipText(ArchvowComponentTypes.nameHelp(selected));
-                    }
-                });
-            }
             GridBagConstraints label = new GridBagConstraints();
             label.gridx = 0; label.gridy = y; label.anchor = GridBagConstraints.NORTHWEST;
             label.insets = new Insets(6, 4, 2, 9);
             form.add(new JLabel((param.required ? "* " : "") + (param.flags.isEmpty() ? param.name : param.option())), label);
             JPanel cell = new JPanel(new BorderLayout(2, 2));
             cell.add(control instanceof JTextArea ? scroll(control) : control, BorderLayout.CENTER);
-            if (!param.help.isBlank() || ("component add".equals(command.label) && "spec".equals(param.name))) {
-                String helpText = param.help;
-                if ("component add".equals(command.label) && "spec".equals(param.name))
-                    helpText += ArchvowI18n.text(project,
-                        "  ·  Example: US-001 or a ticket reference from your backlog (optional; do not enter a .vow path).",
-                        "  ·  Exemple : US-001 ou une référence de ticket (facultatif ; pas un chemin .vow).");
-                if ("component add".equals(command.label) && "type".equals(param.name))
-                    helpText += ArchvowI18n.text(project,
-                        "  ·  Types from built-in templates; company templates may extend them.",
-                        "  ·  Types des modèles intégrés ; les modèles d'entreprise peuvent en ajouter.");
-                if ("component add".equals(command.label) && "type".equals(param.name)) {
-                    JLabel typeHelp = new JLabel(ArchvowI18n.text(project,
-                        "Select a type; naming constraints depend on the template.",
-                        "Choisis un type ; les contraintes de nom dépendent du modèle."));
-                    typeHelp.setForeground(mutedTextColor());
-                    JPanel selectedType = new JPanel(new BorderLayout(0, 3));
-                    selectedType.add(cell.getComponent(0), BorderLayout.CENTER);
-                    selectedType.add(typeHelp, BorderLayout.SOUTH);
-                    cell.removeAll();
-                    cell.add(selectedType, BorderLayout.CENTER);
-                    ((JComboBox<?>)control).addActionListener(e -> {
-                        typeHelp.setText(ArchvowComponentTypes.nameHelp(value("type")));
-                        typeHelp.setToolTipText(typeHelp.getText());
-                    });
-                }
-                JTextArea hint = new JTextArea(helpText);
-                hint.setOpaque(false); hint.setEditable(false); hint.setLineWrap(true); hint.setWrapStyleWord(true);
-                hint.setFont(hint.getFont().deriveFont(10f)); hint.setForeground(Color.GRAY);
-                cell.add(hint, BorderLayout.SOUTH);
+            JPanel under = new JPanel();
+            under.setLayout(new BoxLayout(under, BoxLayout.Y_AXIS));
+            under.setOpaque(false);
+            if ("component add".equals(name) && "type".equals(param.name)) {
+                // the chosen type: what it is, its name rule; its kinds follow in --kind
+                under.add(formHint(text.isBlank()
+                    ? ArchvowI18n.text(project, "Choose a type: its name rule and its kinds follow.", "Choisis un type : sa règle de nom et ses sortes suivent.")
+                    : ArchvowComponentTypes.nameHelp(text), false));
             }
-            if ("init".equals(command.label) && "dir".equals(param.name) && control instanceof JTextField pathField) {
+            if (field != null && "note".equals(field.kind)) {
+                String note = ArchvowChoices.noteNow(field, values);
+                if (!note.isBlank()) under.add(formHint(note, false));
+            }
+            Object empty = control.getClientProperty("archvow.empty");
+            if (empty instanceof String why && !why.isBlank()) under.add(formWarning(why));
+            String helpText = param.help;
+            if (field != null && field.note != null && !"note".equals(field.kind))
+                helpText += (helpText.isBlank() ? "" : "  ·  ") + field.note;
+            if ("component add".equals(name) && "spec".equals(param.name))
+                helpText += ArchvowI18n.text(project,
+                    "  ·  Example: US-001 or a ticket reference from your backlog (optional; do not enter a .vow path).",
+                    "  ·  Exemple : US-001 ou une référence de ticket (facultatif ; pas un chemin .vow).");
+            if (!helpText.isBlank()) under.add(formHint(helpText, true));
+            if (under.getComponentCount() > 0) cell.add(under, BorderLayout.SOUTH);
+            if ("init".equals(name) && "dir".equals(param.name) && control instanceof JTextField pathField) {
                 JButton browse = button(ArchvowI18n.text(project, "Browse…", "Parcourir…"), () -> {
                     JFileChooser chooser = new JFileChooser();
                     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -1950,53 +2099,52 @@ final class ArchvowPanel extends JPanel {
             GridBagConstraints entry = new GridBagConstraints();
             entry.gridx = 1; entry.gridy = y++; entry.weightx = 1; entry.fill = GridBagConstraints.HORIZONTAL;
             entry.insets = new Insets(3, 2, 3, 4); form.add(cell, entry);
+            if ("init".equals(name) && "package".equals(param.name)) {
+                // the template and its questions, right under the package's name (0.12.1: it was asked twice)
+                initQuestions = new ArchvowInitQuestions(ArchvowI18n.isFrench(project),
+                    () -> loadInitCatalog(true), chosen -> {
+                        JComponent template = fields.get("template");
+                        if (template instanceof JTextField input) input.setText(chosen);
+                    }, own.isEmpty() ? "" : own.get(0));
+                form.add(initQuestions, wide(y++, 12));
+            }
+            if ("template new".equals(name) && "extends".equals(param.name)) {
+                JsonObject base = baseTemplate(text);
+                if (base != null) {
+                    templateSettings = new ArchvowTemplateSettings(base, ArchvowI18n.isFrench(project));
+                    form.add(templateSettings, wide(y++, 10));
+                } else if (!text.isBlank()) {
+                    form.add(formWarning(ArchvowI18n.text(project,
+                        "The catalog does not list '" + text + "': its settings cannot be shown here; archvow checks them when the command runs.",
+                        "Le catalogue ne liste pas « " + text + " » : ses réglages ne peuvent pas être montrés ici ; archvow les vérifie à l'exécution.")), wide(y++, 6));
+                }
+            }
         }
-        if ("init".equals(command.label)) {
-            initQuestions = new ArchvowInitQuestions(ArchvowI18n.isFrench(project),
-                () -> loadInitCatalog(true), name -> {
-                    JComponent template = fields.get("template");
-                    if (template instanceof JTextField input) input.setText(name);
-                    else if (template instanceof JComboBox<?> combo) combo.setSelectedItem(name);
-                });
-            GridBagConstraints wizard = new GridBagConstraints();
-            wizard.gridx = 0; wizard.gridy = y++; wizard.gridwidth = 2;
-            wizard.weightx = 1; wizard.fill = GridBagConstraints.HORIZONTAL;
-            wizard.insets = new Insets(12, 5, 8, 5);
-            form.add(initQuestions, wizard);
+        if ("init".equals(name)) {
             // Advanced overrides not present in the template catalog remain possible.
             JTextArea extras = new JTextArea(2, 22);
             extras.setLineWrap(true); extras.setWrapStyleWord(true);
             extras.setToolTipText(ArchvowI18n.text(project,
                 "Optional extra answers, one KEY=VALUE per line", "Réponses supplémentaires : KEY=VALUE par ligne"));
-            extras.setText(defaults.getOrDefault("answer", ""));
+            extras.setText(values.getOrDefault("answer", ""));
             fields.put("answer", extras);
             JPanel advanced = new JPanel(new BorderLayout(4, 2));
             advanced.setBorder(BorderFactory.createTitledBorder(ArchvowI18n.text(project,
                 "Other answers (optional)", "Autres réponses (facultatif)")));
             advanced.add(scroll(extras), BorderLayout.CENTER);
-            GridBagConstraints extraLocation = new GridBagConstraints();
-            extraLocation.gridx = 0; extraLocation.gridy = y++; extraLocation.gridwidth = 2;
-            extraLocation.weightx = 1; extraLocation.fill = GridBagConstraints.HORIZONTAL;
-            extraLocation.insets = new Insets(4, 5, 8, 5);
-            form.add(advanced, extraLocation);
+            form.add(advanced, wide(y++, 4));
             loadInitCatalog();
         } else initQuestions = null;
-        if ("decision make".equals(command.label) || "decision propose".equals(command.label)
-            || "decision accept".equals(command.label) || "question remove".equals(command.label)) {
+        if ("decision make".equals(name) || "decision propose".equals(name)
+            || "decision accept".equals(name) || "question remove".equals(name)) {
             JPanel previewBox = new JPanel(new BorderLayout(3, 3));
             previewBox.setBorder(BorderFactory.createTitledBorder(
                 ArchvowI18n.text(project, "Question and status", "Question et statut")));
-            commandQuestionPreview.setText(htmlMessage("<i>" + escape(ArchvowI18n.text(project,
-                "Choose a component and a question number.", "Choisis un composant et un numéro de question.")) + "</i>"));
             previewBox.add(scroll(commandQuestionPreview), BorderLayout.CENTER);
             JButton refresh = button(ArchvowI18n.text(project, "Load question", "Charger la question"), this::loadCommandQuestion);
             previewBox.add(refresh, BorderLayout.SOUTH);
             previewBox.setPreferredSize(new Dimension(220, 165));
-            GridBagConstraints previewConstraints = new GridBagConstraints();
-            previewConstraints.gridx = 0; previewConstraints.gridy = y++; previewConstraints.gridwidth = 2;
-            previewConstraints.weightx = 1; previewConstraints.fill = GridBagConstraints.HORIZONTAL;
-            previewConstraints.insets = new Insets(12, 5, 8, 5);
-            form.add(previewBox, previewConstraints);
+            form.add(previewBox, wide(y++, 12));
             for (String field : List.of("component", "question", "number")) {
                 JComponent input = fields.get(field);
                 if (input instanceof JTextField textField) {
@@ -2013,6 +2161,186 @@ final class ArchvowPanel extends JPanel {
         spacer.fill = GridBagConstraints.VERTICAL; form.add(new JPanel(), spacer);
         ArchvowUiIcons.decorateTree(form);
         form.revalidate(); form.repaint();
+    }
+
+    private static GridBagConstraints wide(int y, int top) {
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0; c.gridy = y; c.gridwidth = 2;
+        c.weightx = 1; c.fill = GridBagConstraints.HORIZONTAL;
+        c.insets = new Insets(top, 5, 8, 5);
+        return c;
+    }
+
+    /** The line under a field: wraps at the form's width, cannot be focused (no caret in it). */
+    private static ArchvowWrapLabel formHint(String text, boolean small) {
+        ArchvowWrapLabel hint = new ArchvowWrapLabel();
+        hint.setText(text);
+        hint.setOpaque(false);
+        hint.setAlignmentX(LEFT_ALIGNMENT);
+        if (small) hint.setFont(hint.getFont().deriveFont(10.5f));
+        hint.setForeground(mutedTextColor());
+        return hint;
+    }
+
+    private static ArchvowWrapLabel formWarning(String text) {
+        ArchvowWrapLabel warning = formHint(text, false);
+        warning.setForeground(darkTheme() ? new Color(0xE8, 0xB3, 0x4F) : new Color(0x9B, 0x68, 0x18));
+        return warning;
+    }
+
+    /** template new: the base chosen in --extends, as the catalog knows it (the project's, then the installed one). */
+    private JsonObject baseTemplate(String name) {
+        if (name == null || name.isBlank()) return null;
+        for (JsonObject catalog : java.util.Arrays.asList(projectCatalog, liveInitCatalog, ArchvowInitCatalog.bundled()))
+            for (JsonObject t : ArchvowGrammar.objects(catalog, "templates"))
+                if (name.trim().equals(ArchvowGrammar.str(t, "name"))) return t;
+        return null;
+    }
+
+    /**
+     * A field that offers what exists: a list to choose from (a component, a question with its number, a
+     * hazard, a kind...) or suggestions with free typing (a branch, a template). The items are the values the
+     * command gets; the list shows what each one is.
+     */
+    private JComponent choiceControl(String command, String param, ArchvowChoices.Field field, String value, Map<String, String> values) {
+        List<ArchvowChoices.Choice> choices = ArchvowChoices.choicesNow(field, values);
+        Map<String, String> labels = new LinkedHashMap<>();
+        for (ArchvowChoices.Choice c : choices) labels.put(c.value(), c.label());
+        JComboBox<String> combo = new JComboBox<>();
+        readableChoices(combo);
+        if ("suggest".equals(field.kind)) {
+            combo.setEditable(true);
+            for (ArchvowChoices.Choice c : choices) combo.addItem(c.value());
+            combo.setSelectedItem(value);
+            combo.setRenderer(choiceRenderer(labels, ""));
+            if ("template new".equals(command) && "extends".equals(param))
+                combo.addActionListener(e -> { if (!buildingForm) choose(command, param, comboText(combo)); });
+            return combo;
+        }
+        boolean waiting = field.by != null && values.getOrDefault(field.by, "").isBlank();
+        if (waiting && value.isBlank()) {
+            combo.addItem("");
+            combo.setEnabled(false);
+            combo.setRenderer(choiceRenderer(Map.of(), "type".equals(field.by)
+                ? ArchvowI18n.text(project, "Choose the type first", "Choisis d'abord le type")
+                : ArchvowI18n.text(project, "Choose the component first", "Choisis d'abord le composant")));
+            return combo;
+        }
+        if (choices.isEmpty()) {
+            // nothing to choose: say why; a value given (a diagnostic, a component added since) can still be typed
+            combo.putClientProperty("archvow.empty", field.empty);
+            if (value.isBlank() && !"kind".equals(param)) {
+                combo.addItem("");
+                combo.setEnabled(false);
+                combo.setRenderer(choiceRenderer(Map.of(), ArchvowI18n.text(project, "(none)", "(aucun)")));
+                return combo;
+            }
+            combo.setEditable(true);
+            combo.setSelectedItem(value);
+            return combo;
+        }
+        combo.addItem("");
+        if (!value.isBlank() && !labels.containsKey(value)) combo.addItem(value);
+        for (ArchvowChoices.Choice c : choices) combo.addItem(c.value());
+        combo.setSelectedItem(value);
+        combo.setRenderer(choiceRenderer(labels, "kind".equals(param)
+            ? ArchvowI18n.text(project, "— the default —", "— celle par défaut —")
+            : ArchvowI18n.text(project, "— choose —", "— choisir —")));
+        combo.addActionListener(e -> { if (!buildingForm) choose(command, param, comboText(combo)); });
+        return combo;
+    }
+
+    /** A panel in a scroll pane that takes the view's width (scrolls only vertically). */
+    static final class WidthTrackingPanel extends JPanel implements Scrollable {
+        WidthTrackingPanel(LayoutManager layout) { super(layout); }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 16; }
+        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) { return Math.max(16, visible.height - 32); }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() { return false; }
+    }
+
+    /**
+     * A list whose items read "clean_orders — transformation": as wide as its field, not as its longest item;
+     * its open list wider, up to 760 px, so the items can be read whole.
+     */
+    private static void readableChoices(JComboBox<String> combo) {
+        combo.setPrototypeDisplayValue("x".repeat(24));
+        combo.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                Object child = combo.getAccessibleContext().getAccessibleChild(0);
+                if (!(child instanceof javax.swing.plaf.basic.ComboPopup popup)) return;
+                JList<?> list = popup.getList();
+                int wanted = Math.min(760, Math.max(combo.getWidth(), list.getPreferredSize().width + 24));
+                if (child instanceof JComponent menu && menu.getComponentCount() > 0 && menu.getComponent(0) instanceof JScrollPane pane) {
+                    pane.setPreferredSize(new Dimension(wanted, pane.getPreferredSize().height));
+                    pane.setMaximumSize(new Dimension(wanted, pane.getPreferredSize().height));
+                }
+            }
+            @Override public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) { }
+            @Override public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) { }
+        });
+    }
+
+    private static String comboText(JComboBox<?> combo) {
+        Object item = combo.isEditable() ? combo.getEditor().getItem() : combo.getSelectedItem();
+        return item == null ? "" : String.valueOf(item).trim();
+    }
+
+    /** The list shows what each value is ("clean_orders — transformation"); the empty one, the placeholder. */
+    private static ListCellRenderer<Object> choiceRenderer(Map<String, String> labels, String placeholder) {
+        return new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
+                String key = value == null ? "" : String.valueOf(value);
+                String shown = key.isEmpty() ? placeholder : labels.getOrDefault(key, key);
+                Component c = super.getListCellRendererComponent(list, shown, index, selected, focus);
+                if (key.isEmpty() && !selected) c.setForeground(mutedTextColor());
+                if (c instanceof JComponent j) j.setToolTipText(shown.length() > 60 ? shown : null);
+                return c;
+            }
+        };
+    }
+
+    /**
+     * A value chosen in a list: it can fill other fields (Edit spec: the component's description, ticket,
+     * uses...; rule edit: its text; decision make: the recorded or suggested answer), and a choice that
+     * depended on the old component or type goes. The form is drawn again with it.
+     */
+    private void choose(String command, String param, String value) {
+        Map<String, ArchvowChoices.Field> offered = choiceBook().getOrDefault(command, Map.of());
+        Map<String, String> now = currentValues();
+        now.put(param, value);
+        ArchvowChoices.Field field = offered.get(param);
+        Map<String, String> fill = Map.of();
+        for (ArchvowChoices.Choice c : ArchvowChoices.choicesNow(field, now))
+            if (c.value().equals(value) && c.fill() != null) fill = c.fill();
+        if ("component edit".equals(command) && "component".equals(param)) {
+            now = new LinkedHashMap<>();
+            now.put("component", value);
+            now.putAll(fill);
+            formBaseline = Map.copyOf(fill);
+        } else {
+            now.putAll(fill);
+            for (Map.Entry<String, ArchvowChoices.Field> other : offered.entrySet()) {
+                ArchvowChoices.Field f = other.getValue();
+                String current = now.getOrDefault(other.getKey(), "");
+                if (param.equals(f.by) && "select".equals(f.kind) && !current.isBlank()
+                    && ArchvowChoices.choicesNow(f, now).stream().noneMatch(c -> c.value().equals(current))) now.remove(other.getKey());
+            }
+        }
+        Map<String, String> next = now;
+        SwingUtilities.invokeLater(() -> renderForm(next));
+    }
+
+    /** What the form holds now, field by field. */
+    private Map<String, String> currentValues() {
+        Map<String, String> values = new LinkedHashMap<>();
+        for (String name : fields.keySet()) {
+            String v = value(name);
+            if (!v.isEmpty()) values.put(name, v);
+        }
+        if (!values.containsKey("no_input") && fields.get("no_input") instanceof JCheckBox) values.put("no_input", "");
+        return values;
     }
 
     private void loadInitCatalog() {
@@ -2091,7 +2419,7 @@ final class ArchvowPanel extends JPanel {
     private String value(String name) {
         JComponent control = fields.get(name);
         if (control instanceof JCheckBox check) return check.isSelected() ? "true" : "";
-        if (control instanceof JComboBox<?> combo) return String.valueOf(combo.getSelectedItem()).trim();
+        if (control instanceof JComboBox<?> combo) return comboText(combo);
         if (control instanceof JTextArea area) return area.getText().trim();
         if (control instanceof JTextField text) return text.getText().trim();
         return "";
@@ -2117,8 +2445,26 @@ final class ArchvowPanel extends JPanel {
             return;
         }
         List<String> args = new ArrayList<>(command.path);
+        // Edit spec opened with what the component has: a field left as it was is not sent (no change recorded)
+        boolean edit = "component edit".equals(command.label) && !formBaseline.isEmpty();
+        int changed = 0;
         for (ArchvowGrammar.Param param : command.parameters) {
             String text = value(param.name);
+            if (edit && !param.required && !text.isBlank() && formBaseline.containsKey(param.name)
+                && text.equals(formBaseline.get(param.name).trim())) continue;
+            if (!param.required && !text.isBlank()) changed++;
+            // a branch that does not exist here: say which exist, rather than git's "Not a valid object name"
+            if (!text.isBlank() && ("base".equals(param.name) || ("changes".equals(command.label) && ("start".equals(param.name) || "end".equals(param.name))))) {
+                String problem = refProblem(text);
+                if (!problem.isBlank()) { message(problem); return; }
+            }
+            if ("template new".equals(command.label) && templateSettings != null && ("answer".equals(param.name) || "layer".equals(param.name))) {
+                if ("answer".equals(param.name) && !templateSettings.problem().isBlank()) { message(templateSettings.problem()); return; }
+                for (String item : "answer".equals(param.name) ? templateSettings.answers() : templateSettings.layerFolders()) {
+                    args.add(param.option()); args.add(item);
+                }
+                continue;
+            }
             if ("prompt".equals(command.label) && "task".equals(param.name) && !text.isBlank()) {
                 String parsed = ArchvowTaskPrompt.taskNumber(text);
                 if (parsed.isBlank()) {
@@ -2144,6 +2490,11 @@ final class ArchvowPanel extends JPanel {
                     args.add(text);
                 }
             }
+        }
+        if (edit && changed == 0) {
+            message(ArchvowI18n.text(project, "Nothing changed: change a field first (a blank field keeps its value).",
+                "Rien n'a changé : modifie d'abord un champ (un champ vide garde sa valeur)."));
+            return;
         }
         if ("init".equals(command.label) && initQuestions != null) {
             // Explicit advanced entries win over the wizard's defaults.
@@ -2225,21 +2576,31 @@ final class ArchvowPanel extends JPanel {
         if (commandList.getSelectedValue() == null || !commandList.getSelectedValue().label.equals(name)) {
             message("Unknown command / Commande inconnue : " + name); return;
         }
-        renderForm(known);
+        // Edit spec: what the component has now (not what a diagnostic asks to change): only differences are sent
+        formBaseline = "component edit".equals(name) ? whatTheComponentHas(target) : Map.of();
+        formHelpExtra = "";
         if ("component edit".equals(name) && snapshot != null) {
-            String currentDescription = ArchvowGrammar.str(snapshot, "description");
-            commandHelp.append("\n\n" + ArchvowI18n.text(project,
-                "Current description (read-only): ", "Description actuelle (lecture seule) : ")
-                + (currentDescription.isBlank() ? ArchvowI18n.text(project,
-                    "Not specified", "Non renseignée") : currentDescription));
-        }
-        if (!known.isEmpty()) {
-            commandHelp.append("\n" + ArchvowI18n.text(project,
+            formHelpExtra += "\n\n" + ArchvowI18n.text(project,
+                "The fields hold what the component has: change what must change; only that is sent. The decisions, hazards and "
+                    + "examples recorded stay (from archvow 1.18, a person is asked to look at them again after such a change).",
+                "Les champs contiennent ce que le composant a : change ce qui doit changer ; seul cela est envoyé. Les décisions, "
+                    + "dangers et exemples enregistrés restent (depuis archvow 1.18, une personne doit les revoir après un tel changement).");
+        } else if (!known.isEmpty()) {
+            formHelpExtra += "\n" + ArchvowI18n.text(project,
                 "Known information prefilled from the current spec or diagnostic. Review before running; blank optional fields are unchanged.",
-                "Informations connues préremplies depuis la spec ou le diagnostic. Vérifie avant d'exécuter ; les champs optionnels vides restent inchangés."));
+                "Informations connues préremplies depuis la spec ou le diagnostic. Vérifie avant d'exécuter ; les champs optionnels vides restent inchangés.");
         }
+        renderForm(known);
         tabs.setSelectedIndex(2);
         afterSelectionChange();
+    }
+
+    /** Edit spec's baseline: the fields the component already has, as the choice of the component fills them. */
+    private Map<String, String> whatTheComponentHas(String id) {
+        ArchvowChoices.Field field = choiceBook().getOrDefault("component edit", Map.of()).get("component");
+        for (ArchvowChoices.Choice c : ArchvowChoices.choicesNow(field, Map.of()))
+            if (c.value().equals(id)) return c.fill() == null ? Map.of() : c.fill();
+        return Map.of();
     }
 
     /** The editor tab: a command chosen in the tool window (its form, prefilled with what is known). */
@@ -2416,11 +2777,17 @@ final class ArchvowPanel extends JPanel {
                 updateOverview();
                 cli.execute("Next", List.of("next", "--json"), null, next -> {
                     nextResult = next.output == null ? "" : next.output;
+                    // the project's catalog: its template's types and kinds, its own templates (component add, template new)
+                    cli.execute("Catalog", List.of("catalog", "--json"), null, listed -> {
+                    JsonObject catalog = ArchvowGrammar.parseObject(listed.stdout);
+                    if (ArchvowInitCatalog.hasTemplates(catalog)) projectCatalog = catalog;
+                    followBestBase();
                     fetchComponentSnapshots(listComponentIds(), 0, () -> {
                         updateOverview();
                         refreshing = false;
                         if (role == Role.DETAIL && selectedComponent != null) loadComponent(selectedComponent);
                         pushToDetail();
+                    });
                     });
                 });
             });
@@ -2788,8 +3155,8 @@ final class ArchvowPanel extends JPanel {
             String answer = ArchvowGrammar.str(row, "answer");
             String suggestion = ArchvowGrammar.str(row, "proposed");
             if (suggestion.isBlank()) suggestion = ArchvowGrammar.str(row, "suggested");
-            decisionAnswer.setText(answer.isBlank() ? suggestion : answer);
-        } else decisionAnswer.setText("");
+            recorded(decisionAnswer, answer.isBlank() ? suggestion : answer);
+        } else recorded(decisionAnswer, "");
         if (decisionInlineResultCard != null) decisionInlineResultCard.setVisible(false);
     }
 
@@ -2812,7 +3179,7 @@ final class ArchvowPanel extends JPanel {
                     + escape(ArchvowI18n.text(project, "Recorded by ", "Enregistrée par ") + recorded) + "</div>")));
         questionDetails.setCaretPosition(0);
         questionAnswer.setEnabled(row != null);
-        questionAnswer.setText(!answer.isBlank() ? answer : ArchvowGrammar.str(row, "suggested"));
+        recorded(questionAnswer, !answer.isBlank() ? answer : ArchvowGrammar.str(row, "suggested"));
         if (questionInlineResultCard != null) questionInlineResultCard.setVisible(false);
     }
 
@@ -2935,7 +3302,7 @@ final class ArchvowPanel extends JPanel {
         dismissInline.setEnabled(open);
         safetyInput.setEnabled(open);
         safetySeverity.setEnabled(open);
-        safetyInput.setText(open ? ArchvowSafetyState.suggestedHazard(row) : "");
+        recorded(safetyInput, open ? ArchvowSafetyState.suggestedHazard(row) : "");
         for (JComponent part : safetyEditorParts) part.setVisible(open);
         safetySuggestedButton.setEnabled(open && !ArchvowSafetyState.suggestedHazard(row).isBlank());
         safetyInvariantButton.setEnabled(missingInvariant);
@@ -3094,20 +3461,19 @@ final class ArchvowPanel extends JPanel {
         if (snapshot == null && selectedView != null && component.equals(ArchvowGrammar.str(selectedView, "component"))) snapshot = selectedView;
         String hint;
         if (component.isBlank() || number.isBlank()) {
-            hint = ArchvowI18n.text(project, "Enter component and question number.", "Saisis le composant et le numéro de question.");
+            hint = ArchvowI18n.text(project, "Choose the component, then the question: it shows here with its answer.",
+                "Choisis le composant, puis la question : elle s'affiche ici avec sa réponse.");
         } else if (snapshot == null) {
             hint = ArchvowI18n.text(project,
                 "Question not loaded. Click 'Load question' below.",
                 "Question non chargée. Clique sur « Charger la question ».");
         } else {
+            // a question's number is its decision's (question add appends one); P1, O2... are the other questions
             JsonObject matching = null;
-            String key = command.label.equals("question remove") ? "questions" : "decisions";
-            for (JsonObject row : ArchvowGrammar.objects(snapshot, key)) {
-                if (number.equals(ArchvowGrammar.str(row, "number")) || number.equals(ArchvowGrammar.str(row, "key"))) {
-                    matching = row; break;
-                }
+            for (JsonObject row : ArchvowGrammar.objects(snapshot, "decisions")) {
+                if (number.equals(ArchvowGrammar.str(row, "number"))) { matching = row; break; }
             }
-            if (matching == null && !command.label.equals("question remove")) {
+            if (matching == null && command.label.equals("decision make")) {
                 for (JsonObject row : ArchvowGrammar.objects(snapshot, "questions")) {
                     if (number.equals(ArchvowGrammar.str(row, "key")) || number.equals(ArchvowGrammar.str(row, "number"))) {
                         matching = row; break;
@@ -3138,9 +3504,10 @@ final class ArchvowPanel extends JPanel {
         commandQuestionPreview.setText(htmlMessage("<i>" + escape(ArchvowI18n.text(project, "Loading…", "Chargement…")) + "</i>"));
         cli.execute("Component " + component, List.of("show", component, "--json"), null, result -> {
             JsonObject json = ArchvowGrammar.parseObject(result.stdout);
-            if (json != null) componentSnapshots.put(component, json);
-            updateCommandQuestion();
-            if (json == null) commandQuestionPreview.setText(htmlMessage("<b>" + escape(result.output) + "</b>"));
+            if (json != null) {
+                componentSnapshots.put(component, json);
+                renderForm(currentValues());   // its questions are now in the lists
+            } else commandQuestionPreview.setText(htmlMessage("<b>" + escape(result.output) + "</b>"));
         });
     }
 
@@ -3999,14 +4366,44 @@ final class ArchvowPanel extends JPanel {
         return ArchvowSplitView.actions(new ArrayList<>(others), right);
     }
 
-    /** Cancel: no confirmation left open, the field back to the recorded text. */
-    private JButton cancelButton(Runnable restore) {
-        JButton cancel = button(ArchvowI18n.text(project, "Cancel", "Annuler"), () -> {
+    /**
+     * Undo changes (was "Cancel", whose purpose was not obvious): pressable only once the field's text
+     * differs from the recorded one; it closes an open confirmation and puts that text back. Nothing is
+     * saved or removed.
+     */
+    private JButton cancelButton(javax.swing.text.JTextComponent field, Runnable restore) {
+        JButton undo = button(ArchvowI18n.text(project, "Undo changes", "Annuler les modifications"), () -> {
             if (componentConfirmation != null) componentConfirmation.hideConfirmation();
             restore.run();
         });
-        cancel.setToolTipText(ArchvowI18n.text(project, "Put back the recorded text", "Remettre le texte enregistré"));
-        return cancel;
+        Runnable state = () -> {
+            boolean edited = !field.getText().equals(String.valueOf(field.getClientProperty(RECORDED)));
+            undo.setEnabled(edited && field.isEnabled());
+            undo.setToolTipText(edited
+                ? ArchvowI18n.text(project, "Put back the recorded text in the field (nothing is saved or removed)",
+                    "Remettre le texte enregistré dans le champ (rien n'est enregistré ni supprimé)")
+                : ArchvowI18n.text(project, "Nothing to undo: the field holds the recorded text",
+                    "Rien à annuler : le champ contient le texte enregistré"));
+        };
+        field.putClientProperty(UNDO_STATE, state);
+        field.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { state.run(); }
+            @Override public void removeUpdate(DocumentEvent e) { state.run(); }
+            @Override public void changedUpdate(DocumentEvent e) { state.run(); }
+        });
+        field.addPropertyChangeListener("enabled", e -> state.run());
+        state.run();
+        return undo;
+    }
+
+    private static final String RECORDED = "archvow.recorded";
+    private static final String UNDO_STATE = "archvow.undoState";
+
+    /** The text an answer field opens with (Undo changes puts it back). */
+    private static void recorded(javax.swing.text.JTextComponent field, String text) {
+        field.putClientProperty(RECORDED, text == null ? "" : text);
+        field.setText(text == null ? "" : text);
+        if (field.getClientProperty(UNDO_STATE) instanceof Runnable state) state.run();
     }
 
     private static JTextArea area() {

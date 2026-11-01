@@ -66,7 +66,7 @@ const lines = (text: string): string[] => text.split(/\r?\n/).map((s) => s.trim(
  * box); `initAnswers` the KEY=VALUE answers of the init wizard; `components` the project's ids.
  */
 export function planForm(command: Command, values: Record<string, string>, fr: boolean,
-  options: { initAnswers?: string[]; components?: string[]; selected?: string } = {}): FormPlan {
+  options: { initAnswers?: string[]; components?: string[]; selected?: string; baseline?: Record<string, string> } = {}): FormPlan {
   const name = label(command);
   const value = (key: string): string => (values[key] ?? '').trim();
   if (name === 'specify') {
@@ -82,8 +82,13 @@ export function planForm(command: Command, values: Record<string, string>, fr: b
       "Ajoute le texte de la règle sur la deuxième ligne après l'identifiant du composant.") };
   }
   const args = [...command.path];
+  // Edit spec opens with what the component has: only what the person changed is sent, so archvow
+  // records no change (and nothing to review) for a field left as it was
+  const baseline = name === 'component edit' ? options.baseline ?? {} : {};
+  let changed = 0;
   for (const param of command.parameters) {
     let text = value(param.name);
+    if (!param.required && text && param.name in baseline && text === (baseline[param.name] ?? '').trim()) continue;
     if (name === 'prompt' && param.name === 'task' && text) {
       const parsed = taskNumber(text);
       if (!parsed) {
@@ -95,6 +100,7 @@ export function planForm(command: Command, values: Record<string, string>, fr: b
     if (!text && param.required) {
       return { kind: 'error', message: tr(fr, 'Required field: ', 'Champ obligatoire : ') + param.name };
     }
+    if (!param.required && text) changed++;
     if (param.boolean) {
       if (text === 'true') args.push(option(param));
     } else if (text) {
@@ -110,6 +116,10 @@ export function planForm(command: Command, values: Record<string, string>, fr: b
         args.push(text);
       }
     }
+  }
+  if (name === 'component edit' && changed === 0 && Object.keys(baseline).length > 0) {
+    return { kind: 'error', message: tr(fr, 'Nothing changed: change a field first (a blank field keeps its value).',
+      'Rien n\'a changé : modifie d\'abord un champ (un champ vide garde sa valeur).') };
   }
   if (name === 'init' && options.initAnswers) {
     // the answers typed by hand (Other answers) win over the wizard's

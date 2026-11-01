@@ -10,7 +10,25 @@
       "file": ".archvow/components/create_order/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "create_order"
+          },
+          "text": "archvow show create_order",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -19,7 +37,25 @@
       "file": ".archvow/components/create_order/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "create_order"
+          },
+          "text": "archvow show create_order",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -28,7 +64,25 @@
       "file": ".archvow/components/create_order/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "create_order"
+          },
+          "text": "archvow show create_order",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -37,7 +91,25 @@
       "file": ".archvow/components/get_current_user/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "get_current_user"
+          },
+          "text": "archvow show get_current_user",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -46,7 +118,25 @@
       "file": ".archvow/components/get_order/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "get_order"
+          },
+          "text": "archvow show get_order",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -55,7 +145,25 @@
       "file": ".archvow/components/get_order/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "get_order"
+          },
+          "text": "archvow show get_order",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -64,7 +172,25 @@
       "file": ".archvow/components/main/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "main"
+          },
+          "text": "archvow show main",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -73,7 +199,25 @@
       "file": ".archvow/components/new_order_model/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "new_order_model"
+          },
+          "text": "archvow show new_order_model",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -82,7 +226,25 @@
       "file": ".archvow/components/new_order_model/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "new_order_model"
+          },
+          "text": "archvow show new_order_model",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -91,7 +253,25 @@
       "file": ".archvow/components/order_model/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "order_model"
+          },
+          "text": "archvow show order_model",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -100,7 +280,25 @@
       "file": ".archvow/components/orders_repository/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "orders_repository"
+          },
+          "text": "archvow show orders_repository",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -109,7 +307,25 @@
       "file": ".archvow/components/orders_repository/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "orders_repository"
+          },
+          "text": "archvow show orders_repository",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -118,7 +334,25 @@
       "file": ".archvow/components/orders_repository/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "orders_repository"
+          },
+          "text": "archvow show orders_repository",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -127,7 +361,25 @@
       "file": ".archvow/components/orders_router/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "orders_router"
+          },
+          "text": "archvow show orders_router",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     },
     {
       "code": "ARCH035",
@@ -136,7 +388,25 @@
       "file": ".archvow/components/orders_router/spec.vow",
       "line": 0,
       "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)"
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "orders_router"
+          },
+          "text": "archvow show orders_router",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
     }
   ],
   "statuses": [

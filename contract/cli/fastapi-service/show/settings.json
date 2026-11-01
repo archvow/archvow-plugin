@@ -27,6 +27,7 @@
       "number": 1,
       "question": "Which settings, with which defaults (name: type = default), and which are required?",
       "answer": "app_name: str = 'orders'; nothing else yet",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -36,6 +37,7 @@
       "number": 2,
       "question": "Which settings are secrets (never logged, never in a response), and where do they come from?",
       "answer": "No secret yet",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -55,5 +57,6 @@
   "questions": [],
   "safety": [],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

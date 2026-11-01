@@ -23,7 +23,7 @@ next to them. Everything it shows comes from `archvow show <component> --json` (
 │     kaneusb@... · 2026-10-25     │ ┌────────────────────────────────────┐ │
 │ 3 · Missing header…              │ │ (field, monospaced font)           │ │
 │     ● Open                       │ └────────────────────────────────────┘ │
-│                                  │ Propose            Cancel  [Save]      │
+│                                  │ Propose      Undo changes  [Save]      │
 └──────────────────────────────────┴────────────────────────────────────────┘
        the cards                           the answer panel
 ```
@@ -57,7 +57,10 @@ For Decisions, Questions, Safety and Assumptions, the view is split in two (Inte
   "…", the whole text in the tooltip and on the right;
 - **on the right, the answer panel** of the chosen card: its title ("ANSWER DECISION 3",
   "DECISION 1 · RESOLVED"), the whole question, the AI's proposal or the suggestion, the field, the
-  other actions on the left, **Cancel / Save answer** on the right, then the confirmation.
+  other actions on the left, **Undo changes / Save answer** on the right, then the confirmation. "Undo
+  changes" ("Cancel" up to 0.12, whose purpose was not obvious) is enabled only when the field differs from
+  the recorded text, and only puts it back: nothing is saved or removed (`cancelButton`, `recorded`;
+  VS Code: `answerEditor`, `undoTip`).
 - Under 680 px (IntelliJ) or 760 px (VS Code): the panel goes under the cards.
 - A view with no item shows "Nothing to display.", with no answer panel.
 

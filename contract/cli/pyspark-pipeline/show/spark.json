@@ -21,6 +21,7 @@
       "number": 1,
       "question": "Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none?",
       "answer": "spark.sql.session.timeZone=UTC, nothing else",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -40,5 +41,6 @@
   "questions": [],
   "safety": [],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

@@ -69,6 +69,7 @@
       "number": 1,
       "question": "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?",
       "answer": "One file NUMBER.json in data_dir, the fields of the invoice, amount as a string",
+      "template": true,
       "suggested": null,
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -78,6 +79,7 @@
       "number": 2,
       "question": "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?",
       "answer": "Return None; the service raises the domain error",
+      "template": true,
       "suggested": "Return None; the service raises the domain error",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -87,6 +89,7 @@
       "number": 3,
       "question": "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?",
       "answer": "Write to a temporary file next to it, then rename it",
+      "template": true,
       "suggested": "Write to a temporary file next to it, then rename it",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -96,6 +99,7 @@
       "number": 4,
       "question": "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?",
       "answer": "The last one wins: marking paid twice gives the same file",
+      "template": true,
       "suggested": "The second one is refused",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -266,5 +270,6 @@
       ],
       "summary": "decisions P1, P2"
     }
-  ]
+  ],
+  "to_review": []
 }

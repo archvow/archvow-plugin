@@ -50,6 +50,7 @@
       "number": 1,
       "question": "Which routers, under which prefix (e.g. /v1)?",
       "answer": "orders_router under /v1",
+      "template": true,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -59,6 +60,7 @@
       "number": 2,
       "question": "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?",
       "answer": "OrderNotFoundError -> 404, as decided by the error",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -68,6 +70,7 @@
       "number": 3,
       "question": "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?",
       "answer": "Nothing to start or stop yet",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -77,6 +80,7 @@
       "number": 4,
       "question": "CORS: which origins may call it from a browser - or none?",
       "answer": "No CORS: not called from browsers",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -121,5 +125,6 @@
     "component": "main",
     "ready": true,
     "line": "Try it locally: make run, then curl localhost:8000<prefix>/orders/<order_id>"
-  }
+  },
+  "to_review": []
 }

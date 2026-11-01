@@ -16,7 +16,7 @@ const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DIST = process.env.ARCHVOW_DIST ? path.resolve(process.env.ARCHVOW_DIST) : path.join(ROOT, 'dist');
 const REQUIRED = process.env.PACKAGES_REQUIRED === '1';
 const VERSION = (JSON.parse(fs.readFileSync(path.join(ROOT, 'vscode', 'package.json'), 'utf8')) as { version: string }).version;
-const CONTRACT_FILES = ['commands.json', 'catalog.json', 'rules.md', 'rules.fr.md', 'version.txt'];
+const CONTRACT_FILES = ['commands.json', 'catalog.json', 'kinds.json', 'rules.md', 'rules.fr.md', 'version.txt'];
 const contract = (name: string): Buffer => fs.readFileSync(path.join(ROOT, 'contract', 'cli', name));
 const inDist = (name: string): string | null => (fs.existsSync(path.join(DIST, name)) ? path.join(DIST, name) : null);
 const VSIX = inDist(`archvow-${VERSION}.vsix`);

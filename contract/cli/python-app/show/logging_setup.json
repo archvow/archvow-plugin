@@ -21,6 +21,7 @@
       "number": 1,
       "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?",
       "answer": "stderr, one line per event: time, level, message",
+      "template": true,
       "suggested": "stderr, one line per event: time, level, message",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -40,5 +41,6 @@
   "questions": [],
   "safety": [],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

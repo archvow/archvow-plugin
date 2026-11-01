@@ -34,6 +34,7 @@
       "number": 1,
       "question": "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?",
       "answer": "Exit code 3",
+      "template": true,
       "suggested": null,
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -43,6 +44,7 @@
       "number": 2,
       "question": "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?",
       "answer": "A short fixed message, without personal data or secrets",
+      "template": true,
       "suggested": "A short fixed message, without personal data or secrets",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -70,5 +72,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

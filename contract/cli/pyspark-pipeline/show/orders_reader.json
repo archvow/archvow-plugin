@@ -47,6 +47,7 @@
       "number": 1,
       "question": "The path does not exist or is empty: fail or return an empty DataFrame?",
       "answer": "Fail with a clear error: a missing input is an operations problem",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -56,6 +57,7 @@
       "number": 2,
       "question": "Records not matching the schema: fail, drop, or quarantine?",
       "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -65,6 +67,7 @@
       "number": 3,
       "question": "Which partitions / dates are read, and what if the latest one is missing?",
       "answer": "Everything under the given path, no partitions",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -137,5 +140,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

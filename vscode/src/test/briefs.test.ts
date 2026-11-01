@@ -1,4 +1,4 @@
-// The briefs folders of archvow 1.17 (0.12.0): the --from choices, archvow's heading slugs, "Drawn from",
+// The briefs folders of archvow 1.18 (0.13.0): the --from choices, archvow's heading slugs, "Drawn from",
 // and archvow's refusal turned into the architect's init --force form. The expected slugs are archvow's own
 // (briefs.slug / briefs.sections). The same rules as IntelliJ's ArchvowBriefs (BriefsRegression).
 import * as assert from 'node:assert/strict';
@@ -58,7 +58,7 @@ test('the files of the declared folders only, with their headings; free text sta
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test('"Drawn from", the refusal and ARCH039 as archvow 1.17 prints them (contract/cli/briefs)', () => {
+test('"Drawn from", the refusal and ARCH039 as archvow 1.18 prints them (contract/cli/briefs)', () => {
   assert.equal(drawnFrom(json('briefs', 'show', 'mark_paid.json')), 'specs/001-orders/plan.md#paying-an-invoice');
   assert.equal(drawnFrom(json('briefs', 'show', 'config.json')), '');
   const refused = fs.readFileSync(path.join(CLI, 'briefs', 'refused.txt'), 'utf8');

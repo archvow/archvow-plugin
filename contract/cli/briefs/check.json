@@ -10,7 +10,28 @@
       "file": "specs/001-orders/plan.md",
       "line": 0,
       "col": 0,
-      "title": "A brief changed after the spec was drawn from it"
+      "title": "A brief changed after the spec was drawn from it",
+      "guide": {
+        "language": "en",
+        "meaning": "a brief section changed (or disappeared) after components, questions or rules were drawn from it with `--from`",
+        "fix": "review what the message names, then `archvow brief accept <brief>#<section>`",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "brief accept",
+          "values": {
+            "brief": "specs/001-orders/plan.md#paying-an-invoice"
+          },
+          "text": "archvow brief accept specs/001-orders/plan.md#paying-an-invoice",
+          "missing": [],
+          "readOnly": false
+        },
+        "file": {
+          "path": "specs/001-orders/plan.md",
+          "line": 0
+        }
+      }
     }
   ],
   "statuses": [

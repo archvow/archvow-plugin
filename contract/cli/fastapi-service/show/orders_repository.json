@@ -62,6 +62,7 @@
       "number": 1,
       "question": "Not found: return None, or raise which domain error?",
       "answer": "Return None",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -71,6 +72,7 @@
       "number": 2,
       "question": "Who opens and commits the transaction (the service, never the repository)?",
       "answer": "No transaction: memory; the service decides what is saved",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -80,6 +82,7 @@
       "number": 3,
       "question": "Two updates of the same record at the same time: last write wins, a version check, or a lock?",
       "answer": "Last write wins: an order is only created, never updated yet",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -89,6 +92,7 @@
       "number": 4,
       "question": "Which queries can return many rows, and what is their maximum?",
       "answer": "None: no list query yet",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -195,5 +199,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

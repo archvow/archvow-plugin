@@ -52,8 +52,12 @@ and how many `.md` / `.txt` files they hold: `ArchvowBriefs.foldersLine` (Intell
 | Diff, Review | the `diff` / `review` form, `--base` already filled | the tab |
 
 In IntelliJ, the buttons that do not fit go into **More ▾** (`ArchvowOverflowBar`: it measures the
-buttons' real width, no fixed threshold). The **Base** field (`origin/main` by default) is used by
-Budget, Diff and Review.
+buttons' real width, no fixed threshold). The **Base** field is used by Budget, Diff and
+Review: the best branch that exists here (`bestBase`: `develop` on a Git flow feature branch, otherwise what
+`origin/HEAD` names, then `origin/main`, `main`, `master`...), until a person chooses one in the list of the
+repository's branches and tags (`git for-each-ref`, `refNames`). It was a fixed `origin/main`, which a
+repository without that remote does not have. A base that does not exist is refused before anything runs,
+with the branches that do (`missingRef`, `refProblem`) - no more Git's "Not a valid object name".
 
 ## Results
 

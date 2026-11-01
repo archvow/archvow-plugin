@@ -28,6 +28,19 @@ final class ArchvowInitCatalog {
         }
     }
 
+    /**
+     * The kinds of each component type (component add -k), as archvow/kinds.json records them for an archvow
+     * whose catalog does not list them (1.17); null when absent.
+     */
+    static JsonObject kinds() {
+        try (InputStream source = ArchvowInitCatalog.class.getResourceAsStream("/archvow/kinds.json")) {
+            if (source == null) return null;
+            return JsonParser.parseReader(new InputStreamReader(source, StandardCharsets.UTF_8)).getAsJsonObject();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     static boolean hasTemplates(JsonObject data) {
         return data != null && data.has("templates")
             && data.get("templates").isJsonArray()

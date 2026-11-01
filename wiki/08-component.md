@@ -23,7 +23,7 @@ dans `show --json` pour le module et le ticket).
 │     kaneusb@... · 2026-10-25     │ ┌────────────────────────────────────┐ │
 │ 3 · En-tête manquant…            │ │ (champ, police à chasse fixe)      │ │
 │     ● Ouvert                     │ └────────────────────────────────────┘ │
-│                                  │ Proposer        Annuler  [Enregistrer] │
+│                                  │ Proposer  Annuler modif. [Enregistrer] │
 └──────────────────────────────────┴────────────────────────────────────────┘
        les cartes                          le panneau de réponse
 ```
@@ -57,7 +57,10 @@ Pour Décisions, Questions, Sécurité et Hypothèses, la vue est coupée en deu
   chacune, coupée avec « … », le texte entier en infobulle et à droite ;
 - **à droite, le panneau de réponse** de la carte choisie : son titre (« RÉPONDRE À LA DÉCISION 3 »,
   « DÉCISION 1 · TRAITÉE »), la question entière, la proposition de l'IA ou la suggestion, le champ, les
-  autres actions à gauche, **Annuler / Enregistrer la réponse** à droite, puis la confirmation.
+  autres actions à gauche, **Annuler les modifications / Enregistrer la réponse** à droite, puis la
+  confirmation. « Annuler les modifications » (« Annuler » jusqu'en 0.12, dont le rôle n'était pas
+  évident) ne s'active que quand le champ diffère du texte enregistré, et ne fait que le remettre : rien
+  n'est enregistré ni supprimé (`cancelButton`, `recorded` ; VS Code : `answerEditor`, `undoTip`).
 - Moins de 680 px (IntelliJ) ou 760 px (VS Code) : le panneau passe sous les cartes.
 - Une vue sans élément affiche « Rien à afficher. », sans panneau de réponse.
 

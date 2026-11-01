@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `python-app@1.17.0`).
+(template `python-app@1.18.0`).
 
 ## For developers
 
@@ -83,7 +83,6 @@ invoicing/
 ├── .gitlab-ci.yml                      CI: guards and tests
 ├── .gitlab/CODEOWNERS                  the architects approve the spec and the guards
 ├── .githooks/pre-commit                checks before every commit
-├── Makefile                            make check, make test, make run... (make help)
 ├── pyproject.toml                      the package, what it needs at run time, pytest and mypy settings
 ├── README.md
 ├── requirements.txt                    development tools
@@ -127,7 +126,7 @@ complete application, from the empty project to a run: archvow's documentation, 
 
 ```bash
 archvow init invoicing -t python-app -d 'Marks invoices paid, from the command line' \
-    -a architects=@acme/architects -a language=en -a ai_tools=claude-code
+    -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@acme/architects -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
 git switch -c develop                            # once, from main
@@ -263,7 +262,7 @@ make run CLI=invoices ARGS="--help"                   # the command line of the 
 | answer what is open, one question at a time | `archvow specify invoice_model` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/analyze invoice_model` |
 | build a big component one task at a time | `archvow show send_invoice` lists its tasks T1, T2...; `archvow prompt send_invoice` gives the next one; mark each test: `@pytest.mark.decision(3)` |
-| draw the spec from a brief (`briefs/`, Markdown) | in the chat: `/draft-spec briefs/invoices.md`; after the brief changes (ARCH039): `archvow brief accept briefs/invoices.md#sending` |
+| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init invoicing --force -a briefs=...`) | in the chat: `/draft-spec briefs/invoices.md`; after the brief changes (ARCH039): `archvow brief accept briefs/invoices.md#sending` |
 | classify columns (GDPR) | `archvow column set invoice_model email,phone personal` |
 | say a step removes or pseudonymises them | `archvow column set send_invoice phone --removes` |
 | list what a release contains | `archvow changes --from v1.0.0 --markdown` |

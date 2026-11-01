@@ -6,6 +6,6 @@ const path = require('path');
 const from = path.join(__dirname, '..', '..', 'contract', 'cli');
 const to = path.join(__dirname, '..', 'resources', 'archvow');
 fs.mkdirSync(to, { recursive: true });
-for (const name of ['commands.json', 'catalog.json', 'rules.md', 'rules.fr.md', 'version.txt']) {
+for (const name of ['commands.json', 'catalog.json', 'kinds.json', 'rules.md', 'rules.fr.md', 'version.txt']) {
   fs.copyFileSync(path.join(from, name), path.join(to, name));
 }

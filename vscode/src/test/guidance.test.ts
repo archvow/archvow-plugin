@@ -20,7 +20,7 @@ const DOCUMENTED = [...RULES.en.matchAll(/^\| ([A-Z]{2,12}\d{3}) \|/gm)].map((m)
 const FALLBACK = /archvow found this while checking|archvow a trouvé ceci/;
 const g = (m: Message, fr = false): Guidance => guide(m, fr ? RULES.fr : RULES.en, COMMANDS, fr);
 
-test('the messages are real: archvow 1.17 printed them, for at least 60 check codes', () => {
+test('the messages are real: archvow 1.18 printed them, for at least 60 check codes', () => {
   assert.ok(MESSAGES.length > 300, `${MESSAGES.length} messages`);
   assert.ok(new Set(MESSAGES.map((m) => m.code)).size >= 60);
 });

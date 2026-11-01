@@ -14,7 +14,7 @@ every flow, and why. The user documentation is in the READMEs (`README.md`, `int
 (`wiki/` of the archvow repository) explains the CLI itself: read it to learn what a decision, a hazard
 or `archvow check` is.
 
-Version described: **archvow-plugin 0.12.0**, for **archvow 1.17** (`contract/cli/version.txt`).
+Version described: **archvow-plugin 0.13.0**, for **archvow 1.18** (`contract/cli/version.txt`).
 About 11,700 lines of Java (`intellij/src/main/java`), 5,300 lines of TypeScript, JavaScript and CSS
 (`vscode/src`, `vscode/media`), 34 IntelliJ test classes and 55 VS Code tests.
 
@@ -52,7 +52,7 @@ classes it explains: open them alongside.
 ```mermaid
 flowchart LR
   subgraph archvow["archvow (another repository)"]
-    CLI[archvow CLI 1.17]
+    CLI[archvow CLI 1.18]
   end
   subgraph contract["contract/"]
     REC[cli/: recorded JSON<br/>commands.json, catalog.json, rules.md]

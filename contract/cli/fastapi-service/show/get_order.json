@@ -71,6 +71,7 @@
       "number": 1,
       "question": "What does it do, step by step (read, check, change, save, call)?",
       "answer": "Find the order; check it belongs to the customer; return it",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -80,6 +81,7 @@
       "number": 2,
       "question": "Something it needs does not exist: which domain error?",
       "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -89,6 +91,7 @@
       "number": 3,
       "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
       "answer": "Same result: it only reads",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -98,6 +101,7 @@
       "number": 4,
       "question": "Who may perform it, and is that checked here or in the router?",
       "answer": "The owner only; checked here",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -107,6 +111,7 @@
       "number": 5,
       "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
       "answer": "Nothing to undo: it only reads",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -178,5 +183,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

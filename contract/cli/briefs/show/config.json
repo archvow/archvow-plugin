@@ -27,6 +27,7 @@
       "number": 1,
       "question": "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?",
       "answer": "data_dir: str (required), log_level: str = \"INFO\"",
+      "template": true,
       "suggested": null,
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -36,6 +37,7 @@
       "number": 2,
       "question": "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?",
       "answer": "None",
+      "template": true,
       "suggested": null,
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -55,5 +57,6 @@
   "questions": [],
   "safety": [],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

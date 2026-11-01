@@ -356,8 +356,8 @@ final class ArchvowResultFormatter {
         }
     }
 
+    /** No heading of its own: the card around it already says "Command result" (it said it twice, 0.12.1). */
     private static void generic(StringBuilder out, JsonElement value, Palette p, boolean fr) {
-        heading(out, p, tr(fr, "Command result", "Résultat de la commande"), p.blue);
         if (value.isJsonObject()) {
             JsonObject root = value.getAsJsonObject();
             // A machine-readable response may contain several collections. Keep their

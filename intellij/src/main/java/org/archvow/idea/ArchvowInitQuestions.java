@@ -30,8 +30,9 @@ import javax.swing.UIManager;
 
 /**
  * Native Swing init wizard. Data comes from archvow catalog --json, not a hardcoded
- * template. It only emits documented -a KEY=VALUE overrides. Unknown template
- * paths remain editable in the normal --template field.
+ * template. It only emits documented -a KEY=VALUE overrides. The template is chosen here, once (0.12.1:
+ * the form's --template field is gone, it was a second place): a template of the catalog, or the folder
+ * of a company template. In a project, its own template comes first (init --force there).
  */
 final class ArchvowInitQuestions extends JPanel {
     private final JComboBox<String> templatePicker = new JComboBox<>();
@@ -45,13 +46,21 @@ final class ArchvowInitQuestions extends JPanel {
     private Consumer<String> selectedTemplate;
     private boolean changing;
     private final boolean french;
+    private final JTextField folder = new JTextField(22);
+    private String preferred = "";
 
     ArchvowInitQuestions(boolean french, Runnable reloadCatalog, Consumer<String> selectedTemplate) {
+        this(french, reloadCatalog, selectedTemplate, "");
+    }
+
+    /** {@code projectTemplate}: the template of the project the form is in ('' outside a project). */
+    ArchvowInitQuestions(boolean french, Runnable reloadCatalog, Consumer<String> selectedTemplate, String projectTemplate) {
         super(new BorderLayout(0, 8));
         this.french = french;
         this.selectedTemplate = selectedTemplate;
+        this.preferred = projectTemplate == null ? "" : projectTemplate;
         setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(
-                french ? "Questions du modèle" : "Template questions"),
+                french ? "Modèle et ses questions" : "Template and its questions"),
                 BorderFactory.createEmptyBorder(7, 8, 7, 8)));
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
         toolbar.add(new JLabel(french ? "Modèle" : "Template"));
@@ -60,6 +69,7 @@ final class ArchvowInitQuestions extends JPanel {
             if (changing) return;
             String name = (String) templatePicker.getSelectedItem();
             if (name == null) return;
+            folder.setText("");
             if (selectedTemplate != null) selectedTemplate.accept(name);
             showTemplate(name);
         });
@@ -76,6 +86,34 @@ final class ArchvowInitQuestions extends JPanel {
         status.setAlignmentX(LEFT_ALIGNMENT);
         status.setForeground(UIManager.getColor("Label.disabledForeground"));
         head.add(toolbar);
+        // or a company template's folder: its questions come from archvow's catalog of that folder
+        JPanel custom = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
+        custom.setAlignmentX(LEFT_ALIGNMENT);
+        custom.add(new JLabel(french ? "ou le dossier d'un modèle d'entreprise :" : "or the folder of a company template:"));
+        folder.setToolTipText("/path/to/templates/acme-pipeline");
+        Runnable useFolder = () -> {
+            String path = folder.getText().trim();
+            if (path.isEmpty() || selectedTemplate == null) return;
+            selectedTemplate.accept(path);
+            reloadCatalog.run();
+        };
+        folder.addActionListener(e -> useFolder.run());
+        folder.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override public void focusLost(java.awt.event.FocusEvent e) { useFolder.run(); }
+        });
+        custom.add(folder);
+        head.add(custom);
+        if (!preferred.isBlank()) {
+            ArchvowWrapLabel here = new ArchvowWrapLabel();
+            here.setText(french
+                ? "Ce dossier est déjà un projet archvow (modèle " + preferred + ") : init demande --force, qui réécrit les fichiers "
+                    + "générés (AGENTS.md, CI, hooks...) et garde la spec commitée."
+                : "This folder is already an archvow project (template " + preferred + "): init needs --force, which rewrites the "
+                    + "generated files (AGENTS.md, CI, hooks...) and keeps the committed spec.");
+            here.setOpaque(false);
+            here.setAlignmentX(LEFT_ALIGNMENT);
+            head.add(here);
+        }
         head.add(status);
         add(head, BorderLayout.NORTH);
         add(questions, BorderLayout.CENTER);
@@ -108,8 +146,10 @@ final class ArchvowInitQuestions extends JPanel {
         String match = matchedTemplate(requested);
         boolean manualPath = requested != null && !requested.isBlank() && match == null;
         if (match == null && !manualPath && (requested == null || requested.isBlank())) {
-            match = matchedTemplate("python-app"); // archvow's default template
+            match = matchedTemplate(preferred);   // in a project: its own template
+            if (match == null) match = matchedTemplate("python-app"); // archvow's default template
         }
+        if (manualPath && !requested.equals(folder.getText().trim())) folder.setText(requested);
         if (match != null) templatePicker.setSelectedItem(match);
         else if (!catalog.isEmpty()) templatePicker.setSelectedIndex(0);
         changing = false;
@@ -202,9 +242,9 @@ final class ArchvowInitQuestions extends JPanel {
             }
             inputs.put(id, field);
             block.add(field, BorderLayout.NORTH);
-            JTextArea help = new JTextArea(prompt);
-            help.setEditable(false); help.setOpaque(false);
-            help.setLineWrap(true); help.setWrapStyleWord(true);
+            ArchvowWrapLabel help = new ArchvowWrapLabel();   // wraps at the form's width, no caret in it
+            help.setText(prompt);
+            help.setOpaque(false);
             help.setFont(help.getFont().deriveFont(11f));
             help.setForeground(UIManager.getColor("Label.disabledForeground"));
             block.add(help, BorderLayout.CENTER);

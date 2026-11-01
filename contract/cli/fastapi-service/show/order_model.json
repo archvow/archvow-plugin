@@ -54,6 +54,7 @@
       "number": 1,
       "question": "Which fields are required, and which are optional (with which default)?",
       "answer": "All fields required",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -63,6 +64,7 @@
       "number": 2,
       "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
       "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -72,6 +74,7 @@
       "number": 3,
       "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
       "answer": "None: the customer id is returned only to its owner",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-09",
@@ -136,5 +139,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

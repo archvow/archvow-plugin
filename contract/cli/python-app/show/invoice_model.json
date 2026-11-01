@@ -68,6 +68,7 @@
       "number": 1,
       "question": "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?",
       "answer": "All fields required",
+      "template": true,
       "suggested": null,
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -77,6 +78,7 @@
       "number": 2,
       "question": "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?",
       "answer": "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty",
+      "template": true,
       "suggested": null,
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -86,6 +88,7 @@
       "number": 3,
       "question": "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?",
       "answer": "None",
+      "template": true,
       "suggested": null,
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -95,6 +98,7 @@
       "number": 4,
       "question": "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?",
       "answer": "Frozen: a change builds a new one (dataclasses.replace)",
+      "template": true,
       "suggested": "Frozen: a change builds a new one (dataclasses.replace)",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21",
@@ -167,5 +171,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

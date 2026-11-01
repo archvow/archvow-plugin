@@ -1,0 +1,60 @@
+{
+  "kinds": {
+    "pyspark-pipeline": {
+      "reader": [
+        {
+          "name": "files",
+          "description": "Reads one dataset and enforces its schema.",
+          "default": true
+        },
+        {
+          "name": "table",
+          "description": "Reads one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi) and enforces its schema.",
+          "default": false
+        },
+        {
+          "name": "jdbc",
+          "description": "Reads a table or a query of a database over JDBC (spark.read.jdbc) and enforces its schema.",
+          "default": false
+        },
+        {
+          "name": "connector",
+          "description": "Reads with a Spark connector (spark.read.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka read in batch... - and enforces its schema.",
+          "default": false
+        },
+        {
+          "name": "custom",
+          "description": "Reads a source Spark has no reader for (a REST API, SFTP, a SaaS export, an in-house file format) with its own Python code - a Python data source (Spark 4.0) or calls on the executors - and enforces its schema.",
+          "default": false
+        }
+      ],
+      "writer": [
+        {
+          "name": "files",
+          "description": "Writes one dataset.",
+          "default": true
+        },
+        {
+          "name": "table",
+          "description": "Writes one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi).",
+          "default": false
+        },
+        {
+          "name": "jdbc",
+          "description": "Writes a table of a database over JDBC (df.write.jdbc).",
+          "default": false
+        },
+        {
+          "name": "connector",
+          "description": "Writes with a Spark connector (df.write.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka...",
+          "default": false
+        },
+        {
+          "name": "custom",
+          "description": "Writes to a target Spark has no writer for (a REST API, SFTP, a SaaS import, an in-house format) with its own Python code - foreachPartition, or a Python data source writer (Spark 4.0).",
+          "default": false
+        }
+      ]
+    }
+  }
+}

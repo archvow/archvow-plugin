@@ -53,6 +53,7 @@
       "number": 1,
       "question": "Output already exists: overwrite, append, or fail?",
       "answer": "Overwrite",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -62,6 +63,7 @@
       "number": 2,
       "question": "A failure mid-write: how is a partial output prevented or detected?",
       "answer": "Write to a temporary folder next to the output, then rename it",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -71,6 +73,7 @@
       "number": 3,
       "question": "Re-running the same input: must the output be identical (idempotent)?",
       "answer": "Yes: the same input gives the same output",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -80,6 +83,7 @@
       "number": 4,
       "question": "Partitioning columns and file format?",
       "answer": "Parquet, not partitioned",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -89,6 +93,7 @@
       "number": 5,
       "question": "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?",
       "answer": "No table: parquet files at the output path",
+      "template": false,
       "suggested": null,
       "by": "architect@example.com",
       "on": "2026-10-08",
@@ -157,5 +162,6 @@
     }
   ],
   "assumptions": [],
-  "tasks": []
+  "tasks": [],
+  "to_review": []
 }

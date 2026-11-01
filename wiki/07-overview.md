@@ -54,8 +54,13 @@ peut puiser) et combien de fichiers `.md` / `.txt` ils contiennent : `ArchvowBri
 | Diff, Review | le formulaire de `diff` / `review`, `--base` déjà rempli | l'onglet |
 
 Dans IntelliJ, les boutons qui ne tiennent pas passent dans **Plus ▾** (`ArchvowOverflowBar` : il
-mesure la largeur réelle des boutons, sans seuil fixe). Le champ **Base** (`origin/main` par défaut)
-sert à Budget, Diff et Review.
+mesure la largeur réelle des boutons, sans seuil fixe). Le champ **Base** sert à Budget, Diff et Review :
+la meilleure branche qui existe ici (`bestBase` : `develop` sur une branche de fonctionnalité Git flow, sinon
+ce que nomme `origin/HEAD`, puis `origin/main`, `main`, `master`...), jusqu'à ce qu'une personne en
+choisisse une dans la liste des branches et tags du dépôt (`git for-each-ref`, `refNames`). Il valait
+`origin/main` en dur, qu'un dépôt sans ce remote n'a pas. Une base qui n'existe pas est refusée avant de
+lancer quoi que ce soit, avec les branches qui existent (`missingRef`, `refProblem`) - plus de « Not a valid
+object name » de Git.
 
 ## Les résultats
 

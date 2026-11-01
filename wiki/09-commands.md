@@ -17,8 +17,36 @@ Chaque paramètre a un nom, ses options (`-d`, `--description`), obligatoire ou 
 (booléen), une liste de choix, plusieurs valeurs (une par ligne), et son aide (affichée sous le champ).
 IntelliJ : `ArchvowGrammar.COMMANDS`, `renderForm` ; VS Code : `commandForm()` dans la page,
 `findCommand()`. Les champs de texte long (`description`, `answer`, `statement`, `words`...) sont sur
-plusieurs lignes (`LONG_TEXT`). Le champ `type` de `component add` propose les types du catalogue
-(`ArchvowComponentTypes`, `componentTypes()`).
+plusieurs lignes (`LONG_TEXT`).
+
+## Ce qu'un champ propose
+
+Personne n'a à connaître un identifiant par cœur (0.13.0). `choiceBook()` dans `vscode/src/choices.ts`
+(IntelliJ : `ArchvowChoices.book`, les mêmes règles : `ChoicesRegression` compare les deux sur
+`contract/choices/expected.json`) dit, pour chaque commande et paramètre, ce que le formulaire propose, à
+partir de ce qu'archvow a affiché (`show --json`, `show <composant> --json`, `catalog --json` lancé dans
+le projet, les références du dépôt) :
+
+| Champ | Propose |
+|---|---|
+| `component` (toutes les commandes sauf `component add`) | les composants du projet, « clean_orders — transformation » ; pour **Edit spec**, en choisir un remplit les champs avec ce qu'il a |
+| question de `decision make` | les questions du composant, les ouvertes d'abord, puis P1, O1... ; en choisir une remplit la réponse enregistrée, proposée ou suggérée |
+| `decision propose` / `decision accept` | les questions ouvertes / les propositions de l'IA en attente |
+| numéro de `question remove` | les questions ajoutées par une personne (archvow 1.18 marque celles du modèle : `template: true` ; elles restent) |
+| `question add` / `decision add` | pas de numéro à donner : la ligne sous le champ dit lequel archvow donnera |
+| `assumption accept/reject`, `example remove`, `prompt --task` | les hypothèses en attente, exemples, tâches du composant |
+| mot guide de `hazard add/dismiss`, `invariant add --prevents` | les questions de sécurité (ouvertes d'abord) / les dangers du composant |
+| `hazard remove`, `invariant remove`, `rule edit/remove`, `dependency remove` | les identifiants du projet ; `rule edit` remplit le texte de la règle |
+| type et `--kind` de `component add` | les types du modèle du projet seulement ; les sortes du type choisi, celle par défaut d'abord (le catalogue d'archvow 1.18, sinon `contract/cli/kinds.json` pour 1.17) |
+| `--extends` de `template new` | les modèles du catalogue |
+| `--base`, début/fin de `changes` | les branches et tags du dépôt |
+
+Un champ `select` ne prend que ce qu'il liste ; une liste qui dépend du composant ou du type l'attend
+(« Choisis d'abord le composant ») ; une liste vide dit pourquoi (« Aucun danger déclaré dans ce
+projet. »). Un champ `suggest` (une branche, un modèle) prend aussi ce qui est tapé. Dans IntelliJ la
+liste montre le libellé de chaque valeur à la largeur de son champ, sa liste ouverte plus large
+(`readableChoices`), et les lignes sous les champs passent à la ligne à la largeur du formulaire
+(`WidthTrackingPanel`, `ArchvowWrapLabel`) : elles dépassaient le bord de la fenêtre.
 
 Le champ `--from` (component add / edit, question add, decision add, rule add) propose les fichiers
 `.md` et `.txt` des dossiers de briefs du projet et chaque titre Markdown en `fichier#section`, avec les
@@ -61,8 +89,11 @@ connu, jamais ce qui serait deviné :
 - le composant de la commande, quand elle en prend un et qu'un composant est choisi (`usesComponent`) ;
 - **Modifier la spec** depuis un composant : chaque champ que le composant a déjà : la description et
   `uses` (de `show <composant>`), le ticket (`--spec`), les propriétaires, le groupe, le brief (`--from`)
-  et la signature (de son entrée dans la spec). On voit ce qui est là et on change ce qu'on veut ; un
-  champ laissé tel quel ne change rien ;
+  et la signature (de son entrée dans la spec). On voit ce qui est là et on change ce qu'on veut ; seuls
+  les champs changés sont envoyés (`formBaseline` : ce que le composant a, même ouvert depuis un
+  diagnostic ; `planForm(..., { baseline })` ; IntelliJ : `whatTheComponentHas`, `submitForm`), et rien
+  de changé est dit, pas lancé (« Rien n'a changé ») : archvow 1.18 ne marque donc à revoir que ce qui a
+  vraiment changé ;
 - une correction proposée par un diagnostic reste **précise** : elle ne remplit que son propre champ,
   pour ne pas changer autre chose par mégarde ;
 - `component add` reçoit le conteneur du composant choisi, jamais un nom inventé.
@@ -78,7 +109,27 @@ Les questions viennent d'`archvow catalog --json` lancé hors du projet (les tem
 d'entreprise compris, `ARCHVOW_TEMPLATES`), sinon de la copie du catalogue embarquée
 (`ArchvowInitCatalog`, le catalogue de `contract/cli/catalog.json`). `ArchvowInitQuestions` (VS Code :
 `initWizard()`) n'émet que des réponses documentées, `--answer CLÉ=VALEUR`, et seulement celles affichées
-ou modifiées. Un chemin de template personnalisé reste modifiable à la main.
+ou modifiées. Le modèle se choisit **une seule fois**, dans « Modèle et ses questions », juste sous le nom
+du paquet (0.13.0 : le champ `--template` du formulaire en faisait un second endroit) : un modèle du
+catalogue, ou le dossier d'un modèle d'entreprise ; dans un projet, son propre modèle d'abord, avec une
+ligne qui dit qu'`init` y demande `--force`.
+
+## Créer un modèle d'entreprise
+
+`template new` : choisir le modèle de base (`--extends`, la liste du catalogue) remplit sous lui
+« Réglages de <base> » avec les valeurs de la base (`ArchvowTemplateSettings` ; VS Code :
+`templateWizard()`). Ce que l'entreprise peut régler - les valeurs par défaut des réponses d'init, le
+dossier de chaque couche - se modifie, dans ce que la base permet : ses choix seulement (une liste, rien
+à taper), ses formats (le champ passe en rouge, l'envoi est refusé avec le format attendu). Ce que la base
+impose - ce qu'elle étend, sa version, ses couches, ses choix - est affiché, pas modifiable. Seul ce qui
+diffère de la base devient `-a CLÉ=VALEUR` et `--layer ANCIEN=NOUVEAU`.
+
+## Des résultats lisibles
+
+Un résultat de commande s'ouvre à 225 px : **Agrandir** le met à la hauteur de la fenêtre (de l'onglet
+dans VS Code), et la barre sous lui se tire pour le grandir ou le réduire (`resultGrip`,
+`expandedResultHeight` ; VS Code : `expandResult`, `data-grip`). Partout où un résultat s'affiche. Le
+titre « Résultat de la commande » n'y est plus répété (`generic` dans les deux formateurs).
 
 ## Afficher archvow pour un fichier
 

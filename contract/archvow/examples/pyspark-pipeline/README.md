@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `pyspark-pipeline@1.17.0`).
+[archvow](.archvow/README.md) (template `pyspark-pipeline@1.18.0`).
 
 ## For developers
 
@@ -78,7 +78,6 @@ my-pipeline/
 ├── .gitlab/CODEOWNERS                  the architects approve the spec and the guards
 ├── .githooks/pre-commit                checks before every commit
 ├── entrypoint.sh                       run an entry point, the tables (--ddl), build (--package)
-├── Makefile                            the usual commands: make check, make test... (make help)
 ├── pyproject.toml                      the package, its version (the wheel), the test settings
 ├── README.md
 ├── requirements.txt                    development tools
@@ -131,7 +130,7 @@ complete pipeline, from the empty project to a run: archvow's documentation, *Ge
 
 ```bash
 archvow init my_pipeline -t pyspark-pipeline -d 'PySpark pipeline for my_pipeline' \
-    -a architects=@my-team -a language=en -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,SPARK,GDPR,TST
+    -a language=en -a python_version=3.10 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a spark_version=3.5 -a scheduler=none -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,SPARK,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
 git switch -c develop                            # once, from main
@@ -274,7 +273,7 @@ SPARK_MASTER="local[*]" ./entrypoint.sh my_pipeline <its arguments>   # that lin
 | answer what is open, one question at a time | `archvow specify sales_reader` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/analyze sales_reader` |
 | build a big component one task at a time | `archvow show clean_sales` lists its tasks T1, T2...; `archvow prompt clean_sales` gives the next one; mark each test: `@pytest.mark.decision(3)` |
-| draw the spec from a brief (`briefs/`, Markdown) | in the chat: `/draft-spec briefs/sales.md`; after the brief changes (ARCH039): `archvow brief accept briefs/sales.md#cleaning` |
+| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init my_pipeline --force -a briefs=...`) | in the chat: `/draft-spec briefs/sales.md`; after the brief changes (ARCH039): `archvow brief accept briefs/sales.md#cleaning` |
 | classify columns (GDPR) | `archvow column set sales_schema email,phone personal` |
 | say a step removes or pseudonymises them | `archvow column set clean_sales phone --removes` |
 | list what a release contains | `archvow changes --from v1.0.0 --markdown` |

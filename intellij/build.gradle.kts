@@ -47,7 +47,7 @@ intellijPlatform {
 // grammar (the Commands forms), the template catalog (init, offline), the meaning of each check code.
 tasks.named<ProcessResources>("processResources") {
     from(layout.projectDirectory.dir("../contract/cli")) {
-        include("commands.json", "catalog.json", "rules.md", "rules.fr.md", "version.txt")
+        include("commands.json", "catalog.json", "kinds.json", "rules.md", "rules.fr.md", "version.txt")
         into("archvow")
     }
 }

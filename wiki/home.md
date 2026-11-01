@@ -14,7 +14,7 @@ chaque fichier, chaque flux, et pourquoi. La documentation pour les utilisateurs
 code qui est derrière. Celui d'archvow (`wiki/` du dépôt archvow) explique la CLI elle-même : lisez-le
 pour savoir ce qu'est une décision, un danger ou `archvow check`.
 
-Version décrite : **archvow-plugin 0.12.0**, pour **archvow 1.17** (`contract/cli/version.txt`).
+Version décrite : **archvow-plugin 0.13.0**, pour **archvow 1.18** (`contract/cli/version.txt`).
 Environ 11 700 lignes de Java (`intellij/src/main/java`), 5 300 lignes de TypeScript, JavaScript et CSS
 (`vscode/src`, `vscode/media`), 34 classes de tests IntelliJ et 55 tests VS Code.
 
@@ -52,7 +52,7 @@ nomme les fichiers et les classes qu'elle explique : ouvrez-les à côté.
 ```mermaid
 flowchart LR
   subgraph archvow["archvow (autre dépôt)"]
-    CLI[CLI archvow 1.17]
+    CLI[CLI archvow 1.18]
   end
   subgraph contract["contract/"]
     REC[cli/ : JSON enregistré<br/>commands.json, catalog.json, rules.md]

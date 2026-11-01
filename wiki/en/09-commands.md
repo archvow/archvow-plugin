@@ -17,8 +17,34 @@ Each parameter has a name, its options (`-d`, `--description`), required or not,
 (boolean), a list of choices, several values (one per line), and its help (shown under the field).
 IntelliJ: `ArchvowGrammar.COMMANDS`, `renderForm`; VS Code: `commandForm()` in the page,
 `findCommand()`. Long text fields (`description`, `answer`, `statement`, `words`...) span several lines
-(`LONG_TEXT`). The `type` field of `component add` offers the catalog's types
-(`ArchvowComponentTypes`, `componentTypes()`).
+(`LONG_TEXT`).
+
+## What a field offers
+
+Nobody has to know an id by heart (0.13.0). `choiceBook()` in `vscode/src/choices.ts` (IntelliJ:
+`ArchvowChoices.book`, the same rules: `ChoicesRegression` compares both on `contract/choices/expected.json`)
+says, for each command and parameter, what the form offers, from what archvow printed (`show --json`,
+`show <component> --json`, `catalog --json` run in the project, the repository's refs):
+
+| Field | Offers |
+|---|---|
+| `component` (every command but `component add`) | the project's components, "clean_orders — transformation"; for **Edit spec**, choosing one fills the fields with what it has |
+| `decision make` question | the component's questions, the open ones first, then P1, O1...; choosing one fills the answer recorded, proposed or suggested |
+| `decision propose` / `decision accept` | the open questions / the AI's proposals waiting |
+| `question remove` number | the questions a person added (archvow 1.18 marks the template's: `template: true`; they stay) |
+| `question add` / `decision add` | no number to give: the line under the field says which one archvow will give |
+| `assumption accept/reject`, `example remove`, `prompt --task` | the component's assumptions waiting, examples, tasks |
+| `hazard add/dismiss` guide word, `invariant add --prevents` | the safety questions (open first) / the component's hazards |
+| `hazard remove`, `invariant remove`, `rule edit/remove`, `dependency remove` | the project's ids; `rule edit` fills the rule's text |
+| `component add` type and `--kind` | the types of the project's template only; the kinds of the chosen type, the default first (archvow 1.18's catalog, else `contract/cli/kinds.json` for 1.17) |
+| `template new --extends` | the templates of the catalog |
+| `--base`, `changes` start/end | the branches and tags of the repository |
+
+A `select` field takes only what it lists; a list that depends on the component or the type waits for it
+("Choose the component first"); an empty list says why ("No hazard declared in this project."). A
+`suggest` field (a branch, a template) also takes what is typed. In IntelliJ the list shows each value's
+label at the width of its field, its open list wider (`readableChoices`), and the lines under the fields
+wrap at the form's width (`WidthTrackingPanel`, `ArchvowWrapLabel`): they ran past the window's edge.
 
 The `--from` field (component add / edit, question add, decision add, rule add) offers the `.md` and
 `.txt` files of the project's brief folders and each Markdown heading as `file#section`, with archvow's
@@ -60,8 +86,10 @@ never what would be guessed:
 - the command's component, when it takes one and a component is chosen (`usesComponent`);
 - **Edit spec** from a component: every field the component already has: the description and `uses`
   (from `show <component>`), the ticket (`--spec`), the owners, the group, the brief (`--from`) and the
-  signature (from its entry in the spec). You see what is there and change what you want; a field left
-  as it is changes nothing;
+  signature (from its entry in the spec). You see what is there and change what you want; only the fields
+  changed are sent (`formBaseline`: what the component has, even when opened from a diagnostic;
+  `planForm(..., { baseline })`; IntelliJ: `whatTheComponentHas`, `submitForm`), and nothing changed is
+  said, not run ("Nothing changed"): so archvow 1.18 marks to review only what really changed;
 - a fix proposed by a diagnostic stays **specific**: it fills only its own field, so as not to change
   something else by mistake;
 - `component add` gets the chosen component's container, never an invented name.
@@ -77,7 +105,26 @@ questions come from `archvow catalog --json` run outside the project (the instal
 company ones included, `ARCHVOW_TEMPLATES`), otherwise from the bundled copy of the catalog
 (`ArchvowInitCatalog`, the catalog of `contract/cli/catalog.json`). `ArchvowInitQuestions` (VS Code:
 `initWizard()`) emits only documented answers, `--answer KEY=VALUE`, and only those shown or changed.
-A custom template path stays editable by hand.
+The template is chosen **once**, in "Template and its questions", right under the package's name
+(0.13.0: the form's `--template` field made it a second place): a template of the catalog, or the
+folder of a company template; in a project, its own template first, with a line saying `init` needs
+`--force` there.
+
+## Making a company template
+
+`template new`: choosing the base template (`--extends`, the catalog's list) fills "Settings of <base>"
+under it with the base's values (`ArchvowTemplateSettings`; VS Code: `templateWizard()`). What the company
+may set - the defaults of the init answers, the folder of each layer - can be changed, within what the base
+allows: its choices only (a list, nothing to type), its formats (the field turns red, running is refused
+with the expected format). What the base imposes - what it extends, its version, its layers, its choices -
+is shown, not editable. Only what differs from the base becomes `-a KEY=VALUE` and `--layer OLD=NEW`.
+
+## Readable results
+
+A command's result opens at 225 px: **Expand** makes it as tall as the window (the tab in VS Code), and
+the bar under it drags it taller or shorter (`resultGrip`, `expandedResultHeight`; VS Code:
+`expandResult`, `data-grip`). Wherever a result shows. Its title "Command result" is no longer said twice
+(`generic` in both formatters).
 
 ## Showing archvow for a file
 
