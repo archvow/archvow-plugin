@@ -20,6 +20,7 @@ public final class WorkspaceTests {
         run("BriefsRegression", () -> BriefsRegression.main(NONE));
         run("ButtonHoverRegression", () -> ButtonHoverRegression.main(NONE));
         run("CommandPrefillRegression", () -> CommandPrefillRegression.main(NONE));
+        run("CommandFormLayoutRegression", () -> CommandFormLayoutRegression.main(NONE));
         run("CompactViewsRegression", () -> CompactViewsRegression.main(NONE));
         run("DetailAndLogRegression", () -> DetailAndLogRegression.main(NONE));
         run("EditorTabLookRegression", () -> EditorTabLookRegression.main(NONE));
@@ -37,6 +38,7 @@ public final class WorkspaceTests {
         run("ProjectReadinessRegression", () -> ProjectReadinessRegression.main(NONE));
         run("ResponsiveOverflowRegression", () -> ResponsiveOverflowRegression.main(NONE));
         run("ResponsiveActionLayoutsRegression", () -> ResponsiveActionLayoutsRegression.main(NONE));
+        run("ArchvowResultExpansionRegression", () -> ArchvowResultExpansionRegression.main(NONE));
         run("ResultFormatterRegression", () -> ResultFormatterRegression.main(NONE));
         run("RuleDocsRegression", () -> RuleDocsRegression.main(NONE));
         run("SafetyAndActionsRegression", () -> SafetyAndActionsRegression.main(NONE));

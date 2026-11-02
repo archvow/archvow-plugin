@@ -133,6 +133,8 @@ final class ArchvowPanel extends JPanel {
     private JPanel quickSelectionArea;
     private final CardLayout rootLayout = new CardLayout();
     private final JPanel rootCards = new JPanel(rootLayout);
+    private ArchvowResultExpansion resultExpansion;
+    private JToggleButton expandedResultButton;
     private final JEditorPane welcomeText = htmlPane();
     private JButton welcomeInit;
     /** Install archvow, guided (0.12.0): shown when archvow does not start or is another major.minor. */
@@ -236,7 +238,8 @@ final class ArchvowPanel extends JPanel {
     private final DefaultListModel<ArchvowGrammar.Command> commandModel = new DefaultListModel<>();
     private final JList<ArchvowGrammar.Command> commandList = new JList<>(commandModel);
     /** The command form: as wide as the view, so the lines under the fields wrap instead of running past its edge. */
-    private final JPanel form = new WidthTrackingPanel(new GridBagLayout());
+    private final JPanel form = new ArchvowCommandFormLayout.WidthTrackingPanel(new GridBagLayout());
+    private JScrollPane formScroller;
     /** Design A (0.14.0): the form's title, what archvow will do, the command as it is typed, its refusal in place. */
     private final JLabel formTitle = new JLabel();
     private final ArchvowWrapLabel formDoes = new ArchvowWrapLabel();
@@ -349,6 +352,7 @@ final class ArchvowPanel extends JPanel {
         buildTabs();
         rootCards.add(tabs, "workspace");
         rootCards.add(buildWelcomeView(), "welcome");
+        resultExpansion = new ArchvowResultExpansion(rootCards, rootLayout, "workspace");
         add(rootCards, BorderLayout.CENTER);
         for (ArchvowGrammar.Command command : ArchvowGrammar.COMMANDS) commandModel.addElement(command);
         selectCommand("check");
@@ -653,7 +657,7 @@ final class ArchvowPanel extends JPanel {
             if (source.projectStatus != null && !source.projectStatus.ready()) showWelcome(source.projectStatus, "");
             return;
         }
-        rootLayout.show(rootCards, "workspace");
+        showWorkspace();
         if (newManifest) rebuildTree();
         diagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
         updateOverview();
@@ -675,7 +679,7 @@ final class ArchvowPanel extends JPanel {
     void showComponent(String id) {
         if (id == null || id.isBlank()) return;
         backComponent = null;
-        rootLayout.show(rootCards, "workspace");
+        showWorkspace();
         tabs.setSelectedIndex(1);
         if (componentViewNav != null && componentViewNav.activeIndex() == 7) selectComponentView(0);
         if (selectedComponent == null || !selectedComponent.id.equals(id)
@@ -707,7 +711,7 @@ final class ArchvowPanel extends JPanel {
     /** The editor tab: runs a command asked in the tool window's Overview, its result in the tab. */
     void runFromOverview(String label, List<String> args, String stdin, boolean refreshAfter) {
         backComponent = null;
-        rootLayout.show(rootCards, "workspace");
+        showWorkspace();
         resultLabel = label;
         tabs.setSelectedIndex(0);
         executeDirect(label, args, stdin, refreshAfter);
@@ -812,7 +816,7 @@ final class ArchvowPanel extends JPanel {
         card.add(welcomeText, BorderLayout.CENTER);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         welcomeInit = button(ArchvowI18n.text(project,"Initialize Archvow","Initialiser Archvow"), () -> {
-            rootLayout.show(rootCards, "workspace");
+            showWorkspace();
             openCommand("init", Map.of());
         });
         actions.add(welcomeInit);
@@ -883,6 +887,7 @@ final class ArchvowPanel extends JPanel {
         welcomeText.setCaretPosition(0);
         welcomeInit.setEnabled(status.canInitialize());
         showInstallCard(status);
+        collapseExpandedResult();
         rootLayout.show(rootCards, "welcome");
     }
 
@@ -1259,27 +1264,40 @@ final class ArchvowPanel extends JPanel {
             "Copy original output (including the complete AI prompt)",
             "Copier la sortie originale (y compris les instructions IA complètes)"));
         controls.add(copy);
-        JButton dismiss = button("×", close);
+        JButton dismiss = button("×", () -> {
+            if (resultExpansion != null && resultExpansion.isExpanded()) collapseExpandedResult();
+            close.run();
+        });
         dismiss.setToolTipText(ArchvowI18n.text(project, "Close result", "Fermer le résultat"));
         JScrollPane scroll = scroll(pane);
         scroll.setBorder(BorderFactory.createLineBorder(borderColor()));
         scroll.setPreferredSize(new Dimension(200, RESULT_HEIGHT));
-        // readable at any length (0.12.1): Expand to the height of the window, or drag the bar under it
+        // Drag changes inline height; Expand instead uses the entire workspace.
         JToggleButton expand = new JToggleButton(ArchvowI18n.text(project, "Expand", "Agrandir"));
         expand.setFocusPainted(false);
-        expand.setToolTipText(ArchvowI18n.text(project, "Show the whole result at the height of the window (or drag the bar under it)",
-            "Afficher tout le résultat sur la hauteur de la fenêtre (ou tirer la barre en dessous)"));
+        expand.setToolTipText(ArchvowI18n.text(project, "Show the result across the entire editor. Reduce to return to the form.",
+            "Afficher le résultat sur toute la largeur de l’éditeur. Réduire pour revenir au formulaire."));
         ArchvowUiIcons.decorate(expand);
         expand.addActionListener(e -> {
-            int height = expand.isSelected() ? expandedResultHeight(outer) : RESULT_HEIGHT;
-            resizeResult(scroll, height);
-            expand.setText(expand.isSelected() ? ArchvowI18n.text(project, "Reduce", "Réduire") : ArchvowI18n.text(project, "Expand", "Agrandir"));
+            if (expand.isSelected()) {
+                // A taller card in BorderLayout.SOUTH is clipped above the command editor;
+                // in the component view it remains confined to the right-hand column.
+                // Move the actual result into the full-width workspace until Reduce.
+                if (resultExpansion != null && resultExpansion.expand(outer)) {
+                    expandedResultButton = expand;
+                    Object grip = outer.getClientProperty("archvow.resultGrip");
+                    if (grip instanceof JComponent handle) handle.setVisible(false);
+                    expand.setText(ArchvowI18n.text(project, "Reduce", "Réduire"));
+                } else expand.setSelected(false);
+            } else collapseExpandedResult();
         });
         controls.add(expand, 0);
         controls.add(dismiss);
         outer.add(new ArchvowResultHeader(title, controls), BorderLayout.NORTH);
         outer.add(scroll, BorderLayout.CENTER);
-        outer.add(resultGrip(scroll), BorderLayout.SOUTH);
+        JComponent grip = resultGrip(scroll);
+        outer.putClientProperty("archvow.resultGrip", grip);
+        outer.add(grip, BorderLayout.SOUTH);
         outer.setVisible(false);
         return outer;
     }
@@ -1287,11 +1305,23 @@ final class ArchvowPanel extends JPanel {
     /** The height of a result card when it opens (it used to stay at this height: 225 px). */
     static final int RESULT_HEIGHT = 225;
 
-    /** Expand: the result as tall as the window allows, its head and the form's buttons still in view. */
-    private static int expandedResultHeight(JComponent card) {
-        java.awt.Window window = SwingUtilities.getWindowAncestor(card);
-        int available = window != null ? window.getHeight() : Toolkit.getDefaultToolkit().getScreenSize().height;
-        return Math.max(RESULT_HEIGHT, available - 260);
+    /** Exit full-width presentation before navigation, Close, or a second expansion. */
+    private void collapseExpandedResult() {
+        JComponent restored = resultExpansion == null ? null : resultExpansion.collapse();
+        if (restored != null) {
+            Object grip = restored.getClientProperty("archvow.resultGrip");
+            if (grip instanceof JComponent handle) handle.setVisible(true);
+        }
+        if (expandedResultButton != null) {
+            expandedResultButton.setSelected(false);
+            expandedResultButton.setText(ArchvowI18n.text(project, "Expand", "Agrandir"));
+            expandedResultButton = null;
+        }
+    }
+
+    private void showWorkspace() {
+        collapseExpandedResult();
+        rootLayout.show(rootCards, "workspace");
     }
 
     private static void resizeResult(JScrollPane scroll, int height) {
@@ -1954,7 +1984,11 @@ final class ArchvowPanel extends JPanel {
         formTitle.setBorder(BorderFactory.createEmptyBorder(6, 4, 2, 4));
         JPanel head = new JPanel(new BorderLayout(0, 2));
         head.add(formTitle, BorderLayout.NORTH); head.add(help, BorderLayout.CENTER);
-        center.add(head, BorderLayout.NORTH); center.add(scroll(form), BorderLayout.CENTER);
+        center.add(head, BorderLayout.NORTH);
+        formScroller = scroll(form);
+        formScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        formScroller.getVerticalScrollBar().setUnitIncrement(18);
+        center.add(formScroller, BorderLayout.CENTER);
         right.add(center, BorderLayout.CENTER);
         right.add(formPane(), BorderLayout.EAST);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -2005,12 +2039,15 @@ final class ArchvowPanel extends JPanel {
         // BorderLayout.EAST stretches its child to the height of the whole form.
         // Anchor the actual help card at the top and measure its text rather than
         // stretching the bordered card through the empty bottom of the editor.
-        final int sideWidth = 255;
+        final int preferredSideWidth = ArchvowCommandFormLayout.helpWidth(0);
         JPanel topAligned = new JPanel(new BorderLayout()) {
             @Override public Dimension getPreferredSize() {
                 // A new command changes formDoes and the live preview. Size to the
                 // CURRENT wrapped text, not to whichever command opened the tab.
-                int textWidth = sideWidth - 26; // pane border and padding
+                Container parent = getParent();
+                int sideWidth = parent == null ? preferredSideWidth : ArchvowCommandFormLayout.helpWidth(parent.getWidth());
+                Insets insets = pane.getInsets();
+                int textWidth = Math.max(190, sideWidth - insets.left - insets.right);
                 formDoes.setSize(textWidth, formDoes.getHeight());
                 note.setSize(textWidth, note.getHeight());
                 return new Dimension(sideWidth, pane.getPreferredSize().height);
@@ -2019,6 +2056,12 @@ final class ArchvowPanel extends JPanel {
         topAligned.setOpaque(false);
         topAligned.add(pane, BorderLayout.NORTH);
         return topAligned;
+    }
+
+
+    /** Shared layout for all command forms, including init and decision make. */
+    private void toggleFormSection(JToggleButton toggle, java.util.List<JComponent> parts) {
+        ArchvowCommandFormLayout.setSectionExpanded(form, formScroller, toggle, parts);
     }
 
     /** The command line the form asks for now: written into the pane at each keystroke (no run). */
@@ -2228,10 +2271,7 @@ final class ArchvowPanel extends JPanel {
                     "How the invariant is proven when a test is not enough: a model checked or a proof (--verify model_check|proof --evidence <file>), or a rule that enforces it (--verify static --rule <code>). Empty: the weakest test its severity accepts.",
                     "Comment l'invariant est prouvé quand un test ne suffit pas : un modèle vérifié ou une preuve (--verify model_check|proof --evidence <fichier>), ou une règle qui l'impose (--verify static --rule <code>). Vide : le test le plus faible que sa gravité accepte."));
                 JToggleButton toggle = expertToggle;
-                toggle.addActionListener(e -> {
-                    for (JComponent part : expertParts) part.setVisible(toggle.isSelected());
-                    form.revalidate(); form.repaint();
-                });
+                toggle.addActionListener(e -> toggleFormSection(toggle, expertParts));
                 form.add(toggle, wide(y++, 8));
             }
             boolean more = !param.hidden && !ArchvowForms.essential(name, param);
@@ -2244,10 +2284,7 @@ final class ArchvowPanel extends JPanel {
                 moreToggle = new JToggleButton(ArchvowI18n.text(project, "More options", "Plus d'options") + "  -  " + String.join(", ", names), filled);
                 moreToggle.setHorizontalAlignment(SwingConstants.LEFT);
                 JToggleButton toggle = moreToggle;
-                toggle.addActionListener(e -> {
-                    for (JComponent part : moreParts) part.setVisible(toggle.isSelected());
-                    form.revalidate(); form.repaint();
-                });
+                toggle.addActionListener(e -> toggleFormSection(toggle, moreParts));
                 form.add(toggle, wide(y++, 8));
             }
             GridBagConstraints label = new GridBagConstraints();
@@ -2255,9 +2292,8 @@ final class ArchvowPanel extends JPanel {
             label.insets = new Insets(6, 4, 2, 9);
             // design A: the field in plain words, archvow's option small beside it
             String flag = param.flags.isEmpty() ? "" : param.option();
-            JLabel labelText = new JLabel("<html><b>" + escapeHtml(ArchvowForms.label(name, param.name, french)) + "</b>"
-                + (param.required ? " <font color='#d9534f'>*</font>" : "")
-                + (flag.isEmpty() ? "" : " <font size='-2' color='gray'>" + escapeHtml(flag) + "</font>") + "</html>");
+            JComponent labelText = ArchvowCommandFormLayout.fieldLabel(
+                ArchvowForms.label(name, param.name, french), flag, param.required, mutedTextColor());
             form.add(labelText, label);
             JPanel cell = new JPanel(new BorderLayout(2, 2));
             cell.add(control instanceof JTextArea ? scroll(control) : control, BorderLayout.CENTER);
@@ -2385,10 +2421,6 @@ final class ArchvowPanel extends JPanel {
         form.revalidate(); form.repaint();
     }
 
-    private static String escapeHtml(String text) {
-        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-    }
-
     private static GridBagConstraints wide(int y, int top) {
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0; c.gridy = y; c.gridwidth = 2;
@@ -2474,16 +2506,6 @@ final class ArchvowPanel extends JPanel {
             : ArchvowI18n.text(project, "— choose —", "— choisir —")));
         combo.addActionListener(e -> { if (!buildingForm) choose(command, param, comboText(combo)); });
         return combo;
-    }
-
-    /** A panel in a scroll pane that takes the view's width (scrolls only vertically). */
-    static final class WidthTrackingPanel extends JPanel implements Scrollable {
-        WidthTrackingPanel(LayoutManager layout) { super(layout); }
-        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
-        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 16; }
-        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) { return Math.max(16, visible.height - 32); }
-        @Override public boolean getScrollableTracksViewportWidth() { return true; }
-        @Override public boolean getScrollableTracksViewportHeight() { return false; }
     }
 
     /**
@@ -2780,7 +2802,7 @@ final class ArchvowPanel extends JPanel {
             ArchvowEditorTab.showCommand(project, name, initial == null ? Map.of() : initial);
             return;
         }
-        rootLayout.show(rootCards, "workspace");
+        showWorkspace();
         String knownComponent = selectedComponent == null ? "" : selectedComponent.id;
         if (role == Role.DETAIL) {
             // from a component (Edit spec, + Question, Accept...): Back returns to it; from the tool window: none
@@ -2960,7 +2982,7 @@ final class ArchvowPanel extends JPanel {
             pushToDetail();
             return;
         }
-        rootLayout.show(rootCards, "workspace");
+        showWorkspace();
         if (!versionChecked) {
             versionChecked = true;
             cli.execute("Version", List.of("--version"), null, version -> {
@@ -4632,7 +4654,7 @@ final class ArchvowPanel extends JPanel {
             follow(detail.selectedComponent == null ? "" : detail.selectedComponent.id, null);
             return;
         }
-        rootLayout.show(rootCards, "workspace");
+        showWorkspace();
         tabs.setSelectedIndex(1);
         boolean pending = listIndex == 0;
         DefaultListModel<QuickItem> all = pending ? pendingModel : resolvedModel;
