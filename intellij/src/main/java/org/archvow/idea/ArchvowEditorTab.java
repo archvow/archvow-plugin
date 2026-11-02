@@ -67,6 +67,11 @@ final class ArchvowEditorTab extends LightVirtualFile {
         if (panel != null) panel.showCommand(name, initial);
     }
 
+    static void showChecks(Project project, int index) {
+        ArchvowPanel panel = panel(project);
+        if (panel != null) panel.openDiagnosticDetails(index);
+    }
+
     /** The tab's title (shown by {@link ArchvowEditorTabPresentation}). */
     static void setTitle(Project project, String title) {
         if (project == null || project.isDisposed()) return;

@@ -119,7 +119,8 @@ final class ArchvowPanel extends JPanel {
     private final java.util.List<JToggleButton> componentViewButtons = new ArrayList<>();
     private ArchvowCompactViews componentViewNav;
     private final ArchvowArchitectureView overviewSummary = new ArchvowArchitectureView();
-    private final ArchvowChecksView diagnostics = new ArchvowChecksView();
+    private final ArchvowChecksView diagnostics = new ArchvowChecksView(false);
+    private final ArchvowChecksView detailDiagnostics = new ArchvowChecksView();
     private final JEditorPane overviewResult = htmlPane();
     private final JEditorPane commandResult = htmlPane();
     private ArchvowInitQuestions initQuestions;
@@ -130,6 +131,9 @@ final class ArchvowPanel extends JPanel {
     private JPanel overviewResultCard;
     private JPanel commandResultCard;
     private JPanel quickResultCard;
+    private JPanel detailHomeCards;
+    private final CardLayout detailHomeLayout = new CardLayout();
+    private String detailHomeMode = "result";
     private JPanel quickSelectionArea;
     private final CardLayout rootLayout = new CardLayout();
     private final JPanel rootCards = new JPanel(rootLayout);
@@ -278,11 +282,18 @@ final class ArchvowPanel extends JPanel {
     private final DefaultListModel<QuickItem> otherResolvedModel = new DefaultListModel<>();
     private final JList<QuickItem> otherPendingList = new JList<>(otherPendingModel);
     private final JList<QuickItem> otherResolvedList = new JList<>(otherResolvedModel);
+    private final DefaultListModel<QuickItem> componentOtherPendingModel = new DefaultListModel<>();
+    private final DefaultListModel<QuickItem> componentOtherResolvedModel = new DefaultListModel<>();
+    private final JList<QuickItem> componentOtherPendingList = new JList<>(componentOtherPendingModel);
+    private final JList<QuickItem> componentOtherResolvedList = new JList<>(componentOtherResolvedModel);
     private final ArchvowNavigationTabs quickTabs = new ArchvowNavigationTabs();
+    private final ArchvowNavigationTabs componentOtherTabs = new ArchvowNavigationTabs();
     private final JEditorPane quickDetails = htmlPane();
+    private final JEditorPane componentOtherDetails = htmlPane();
     private final ArchvowNavigationTabs narrowOverviewTabs = new ArchvowNavigationTabs();
     private JPanel summaryCard, checkCard;
     private JComponent quickCard;
+    private JComponent componentOtherCard;
     private JPanel overviewCenter;
     private JLabel brandSubtitle;
     private JLabel vowsLabel, decisionAnswerLabel;
@@ -292,6 +303,8 @@ final class ArchvowPanel extends JPanel {
     private JPanel quickCountPanel;
     private final JButton quickPrimary = new JButton();
     private final JButton quickSecondary = new JButton();
+    private final JButton componentOtherPrimary = new JButton();
+    private final JButton componentOtherSecondary = new JButton();
     private final JButton pendingBadge = new JButton();
     private final JButton resolvedBadge = new JButton();
     private final JLabel logoLabel = new JLabel();
@@ -370,9 +383,13 @@ final class ArchvowPanel extends JPanel {
                 loadComponent(selectedComponent);
             }
         });
+        diagnostics.onInspect(this::openDiagnosticDetails);
         diagnostics.onOpenCode(this::openDiagnosticCode);
         diagnostics.onOpenAll(this::openChecksDocument);
+        detailDiagnostics.onOpenCode(this::openDiagnosticCode);
+        detailDiagnostics.onOpenAll(this::openChecksDocument);
         diagnostics.showData(null, "", ArchvowI18n.isFrench(project));
+        detailDiagnostics.showData(null, "", ArchvowI18n.isFrench(project));
         // One consistent, lightweight motion language across navigation surfaces.
         // Navigation is now explicit buttons + CardLayout, not custom tab hit-testing.
         for (JList<?> list : List.of(otherPendingList, otherResolvedList, decisionsList,
@@ -608,10 +625,18 @@ final class ArchvowPanel extends JPanel {
             tabs.addTab("Overview", overview);
         } else {
             // the editor tab: index 0 is the result of a command run from the tool window's Overview
-            JPanel results = new JPanel(new BorderLayout());
-            results.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-            results.add(overviewResultCard, BorderLayout.CENTER);
-            tabs.addTab("Result", results);
+            detailHomeCards = new JPanel(detailHomeLayout);
+            JPanel resultPane = new JPanel(new BorderLayout());
+            resultPane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+            resultPane.add(overviewResultCard, BorderLayout.CENTER);
+            JPanel checksPane = new JPanel(new BorderLayout());
+            checksPane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+            checksPane.add(createCard(detailDiagnostics,
+                ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations")), BorderLayout.CENTER);
+            detailHomeCards.add(resultPane, "result");
+            detailHomeCards.add(checksPane, "checks");
+            detailHomeLayout.show(detailHomeCards, detailHomeMode);
+            tabs.addTab("Result", detailHomeCards);
         }
         tabs.addTab("Components", componentPanel());
         tabs.addTab("Commands", commandPanel());
@@ -660,6 +685,7 @@ final class ArchvowPanel extends JPanel {
         showWorkspace();
         if (newManifest) rebuildTree();
         diagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
+        detailDiagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
         updateOverview();
         if (selectedComponent != null) {
             JsonObject fresh = componentSnapshots.get(selectedComponent.id);
@@ -713,8 +739,28 @@ final class ArchvowPanel extends JPanel {
         backComponent = null;
         showWorkspace();
         resultLabel = label;
+        showDetailHome("result");
         tabs.setSelectedIndex(0);
         executeDirect(label, args, stdin, refreshAfter);
+        afterSelectionChange();
+    }
+
+    private void showDetailHome(String mode) {
+        detailHomeMode = mode == null || mode.isBlank() ? "result" : mode;
+        if (detailHomeCards != null) detailHomeLayout.show(detailHomeCards, detailHomeMode);
+    }
+
+    void openDiagnosticDetails(int index) {
+        if (role == Role.NAVIGATION) {
+            ArchvowEditorTab.showChecks(project, index);
+            return;
+        }
+        showWorkspace();
+        detailDiagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
+        detailDiagnostics.selectDiagnostic(index);
+        resultLabel = ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations");
+        showDetailHome("checks");
+        tabs.setSelectedIndex(0);
         afterSelectionChange();
     }
 
@@ -730,6 +776,7 @@ final class ArchvowPanel extends JPanel {
         check = result;
         checkFailure = "";
         diagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
+        detailDiagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
         tabs.setSelectedIndex(0);
         narrowOverviewTabs.setSelectedIndex(1);
         if (manifest != null) updateOverview();
@@ -738,12 +785,8 @@ final class ArchvowPanel extends JPanel {
     /** Check & Gates, in the tool window's Overview. */
     private void showDiagnostics() {
         if (role == Role.DETAIL) {
-            ArchvowPanel nav = navigation();
-            if (nav != null) {
-                nav.showDiagnostics();
-                ArchvowEditorTab.showNavigation(project);
-                return;
-            }
+            openDiagnosticDetails(0);
+            return;
         }
         tabs.setSelectedIndex(0);
         narrowOverviewTabs.setSelectedIndex(1);
@@ -785,7 +828,9 @@ final class ArchvowPanel extends JPanel {
             what = command.isBlank() ? ArchvowI18n.text(project, "Commands", "Commandes") : command;
         } else {
             kind = ArchvowI18n.text(project, "Result", "Résultat");
-            what = resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
+            what = "checks".equals(detailHomeMode)
+                ? ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations")
+                : resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
         }
         detailKind.setText("ARCHVOW · " + kind.toUpperCase(java.util.Locale.ROOT));
         backButton.setVisible(backComponent != null && index != 1);
@@ -1085,7 +1130,7 @@ final class ArchvowPanel extends JPanel {
     private JPanel buildToolbar() {
         // Native buttons stay visible until their real preferred widths exceed available space.
         // Only buttons that no longer fit move into the More menu.
-        JPanel bar = new JPanel(new BorderLayout(8, 0));
+        JPanel bar = new JPanel(new BorderLayout(8, 4));
         ArchvowOverflowBar commands = new ArchvowOverflowBar(ArchvowI18n.text(project, "More ▾", "Plus ▾"));
         commands.addAction(overviewAction("↻", this::reload));
         commands.addAction(overviewAction("Check", () -> executeDirect("check", List.of("check", "--json"), null, false)));
@@ -1112,15 +1157,11 @@ final class ArchvowPanel extends JPanel {
         commands.addAction(comparisonBaseButton);
         gitBranchLabel.setToolTipText(ArchvowI18n.text(project, "Current Git branch", "Branche Git courante"));
         bar.add(commands, BorderLayout.CENTER);
-        bar.add(gitBranchLabel, BorderLayout.EAST);
-        // In a very narrow sidebar, the current branch is already in the project header/tooltip;
-        // hiding this label gives the actual command actions more room.
-        bar.addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override public void componentResized(java.awt.event.ComponentEvent e) {
-                boolean showBranch = bar.getWidth() >= 660;
-                if (gitBranchLabel.isVisible() != showBranch) gitBranchLabel.setVisible(showBranch);
-            }
-        });
+        // Always show the current branch below the actions, including in a narrow
+        // tool window. The full branch remains accessible in its tooltip.
+        gitBranchLabel.setForeground(mutedTextColor());
+        gitBranchLabel.setBorder(BorderFactory.createEmptyBorder(3, 5, 2, 5));
+        bar.add(gitBranchLabel, BorderLayout.SOUTH);
         return bar;
     }
 
@@ -1226,6 +1267,65 @@ final class ArchvowPanel extends JPanel {
         content.add(explanation, BorderLayout.NORTH);
         content.add(quickTabs, BorderLayout.CENTER);
         content.add(quickSelectionArea, BorderLayout.SOUTH);
+        return createCard(content, ArchvowI18n.text(project,
+            "Other / Project", "Autres / Projet"));
+    }
+
+    private JComponent componentOtherPanel() {
+        componentOtherPendingList.setCellRenderer(new QuickItemRenderer());
+        componentOtherPendingList.setFixedCellHeight(72);
+        componentOtherPendingList.setVisibleRowCount(5);
+        componentOtherResolvedList.setCellRenderer(new QuickItemRenderer());
+        componentOtherResolvedList.setFixedCellHeight(72);
+        componentOtherResolvedList.setVisibleRowCount(5);
+        componentOtherPendingList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && componentOtherTabs.getSelectedIndex() == 0) {
+                selectedQuickItem = componentOtherPendingList.getSelectedValue();
+                showComponentOtherItem(selectedQuickItem);
+            }
+        });
+        componentOtherResolvedList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && componentOtherTabs.getSelectedIndex() == 1) {
+                selectedQuickItem = componentOtherResolvedList.getSelectedValue();
+                showComponentOtherItem(selectedQuickItem);
+            }
+        });
+        java.awt.event.MouseAdapter opener = new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) handleQuickPrimaryAction();
+            }
+        };
+        componentOtherPendingList.addMouseListener(opener);
+        componentOtherResolvedList.addMouseListener(opener);
+        componentOtherTabs.addChangeListener(e -> {
+            QuickItem item = componentOtherTabs.getSelectedIndex() == 0
+                ? componentOtherPendingList.getSelectedValue() : componentOtherResolvedList.getSelectedValue();
+            selectedQuickItem = item;
+            showComponentOtherItem(item);
+        });
+        componentOtherTabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        componentOtherTabs.addTab("Pending", scroll(componentOtherPendingList));
+        componentOtherTabs.addTab("Resolved", scroll(componentOtherResolvedList));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        componentOtherPrimary.addActionListener(e -> handleQuickPrimaryAction());
+        componentOtherSecondary.addActionListener(e -> handleQuickSecondaryAction());
+        actions.add(componentOtherPrimary);
+        actions.add(componentOtherSecondary);
+
+        JScrollPane itemDetails = scroll(componentOtherDetails);
+        itemDetails.setPreferredSize(new Dimension(160, 145));
+        labelDetails(itemDetails);
+        JPanel selectedDetails = new JPanel(new BorderLayout(0, 5));
+        selectedDetails.add(itemDetails, BorderLayout.CENTER);
+        selectedDetails.add(actions, BorderLayout.SOUTH);
+        JPanel content = new JPanel(new BorderLayout(0, 7));
+        JLabel explanation = new JLabel(ArchvowI18n.text(project,
+            "Component-specific uncategorised records only. Project-wide checks stay in Check & Gates.",
+            "Uniquement les éléments locaux au composant. Les contrôles globaux restent dans Contrôles et validations."));
+        explanation.setForeground(mutedTextColor());
+        content.add(explanation, BorderLayout.NORTH);
+        content.add(componentOtherTabs, BorderLayout.CENTER);
+        content.add(selectedDetails, BorderLayout.SOUTH);
         return createCard(content, ArchvowI18n.text(project,
             "Other / Project", "Autres / Projet"));
     }
@@ -1622,8 +1722,9 @@ final class ArchvowPanel extends JPanel {
         addComponentView(viewBar, detailCards, 6, "Spec", specPanel());
         // Only genuinely unclassified or project-wide records live here.
         quickCard = quickTreatmentPanel();
+        componentOtherCard = componentOtherPanel();
         addComponentView(viewBar, detailCards, 7,
-            ArchvowI18n.text(project, "Other / Project", "Autres / Projet"), quickCard);
+            ArchvowI18n.text(project, "Other / Project", "Autres / Projet"), componentOtherCard);
         JComponent actionStrip = actions;
         componentActions = actionStrip;
         actionStrip.setPreferredSize(new Dimension(0, 39));
@@ -2159,8 +2260,7 @@ final class ArchvowPanel extends JPanel {
         if (resolvedComponentsFilter != null) resolvedComponentsFilter.setText(ArchvowI18n.text(project, "Resolved", "Traités"));
         languageLabel.setText(ArchvowI18n.text(project, "Language", "Langue"));
         for (Runnable refresh : languageRefreshers) refresh.run();
-        narrowOverviewTabs.setTitleAt(0, "Architecture");
-        narrowOverviewTabs.setTitleAt(1, ArchvowI18n.text(project,"Check & Gates","Contrôles et validations"));
+        refreshOverviewTabTitles();
         if (checkCard != null && checkCard.getClientProperty("archvow.heading") instanceof JLabel title)
             title.setText(ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations"));
         tabs.setTitleAt(0, ArchvowI18n.text(project, "Overview", "Vue d'ensemble"));
@@ -2168,11 +2268,16 @@ final class ArchvowPanel extends JPanel {
         tabs.setTitleAt(2, ArchvowI18n.text(project, "Commands", "Commandes"));
         quickTabs.setTitleAt(0, ArchvowI18n.text(project, "Pending", "En attente") + " (" + otherPendingModel.size() + ")");
         quickTabs.setTitleAt(1, ArchvowI18n.text(project, "Resolved", "Traités") + " (" + otherResolvedModel.size() + ")");
+        componentOtherTabs.setTitleAt(0, ArchvowI18n.text(project, "Pending", "En attente") + " (" + componentOtherPendingModel.size() + ")");
+        componentOtherTabs.setTitleAt(1, ArchvowI18n.text(project, "Resolved", "Traités") + " (" + componentOtherResolvedModel.size() + ")");
         openSettingsButton.setText(ArchvowI18n.text(project, "Open settings", "Ouvrir les paramètres"));
         testArchvowButton.setText(ArchvowI18n.text(project, "Test Archvow (--version)", "Tester Archvow (--version)"));
         quickPrimary.setText(ArchvowI18n.text(project, "Treat now", "Traiter maintenant"));
         quickSecondary.setText(ArchvowI18n.text(project, "Go to component", "Aller au composant"));
+        componentOtherPrimary.setText(ArchvowI18n.text(project, "Treat now", "Traiter maintenant"));
+        componentOtherSecondary.setText(ArchvowI18n.text(project, "Go to component", "Aller au composant"));
         quickSecondary.setIcon(loadLogoIcon(14, 14));
+        componentOtherSecondary.setIcon(loadLogoIcon(14, 14));
         openSettingsButton.setIcon(loadLogoIcon(14, 14));
         renderForm(constructed ? currentValues() : Map.of());  // what is typed in an open form stays
         // Reapply semantic icons to dynamically localized button labels.
@@ -2917,6 +3022,7 @@ final class ArchvowPanel extends JPanel {
                     check = parsed;
                     checkFailure = "";
                     diagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
+                    detailDiagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
                     if (origin == 0) narrowOverviewTabs.setSelectedIndex(1);
                     ArchvowPanel nav = role == Role.DETAIL ? navigation() : null;
                     if (nav != null) nav.acceptCheck(parsed);
@@ -3160,6 +3266,7 @@ final class ArchvowPanel extends JPanel {
         showSafety();
         showQuestion();
         refreshViewStatus(data);
+        refreshComponentOtherModels();
         updateComponentPendingExplanation();
     }
 
@@ -3216,6 +3323,20 @@ final class ArchvowPanel extends JPanel {
             tab.setToolTipText(pending[i] > 0 ? pending[i] + " " +
                 ArchvowI18n.text(project,"pending items","éléments en attente") :
                 ArchvowI18n.text(project,"No open items","Aucun élément ouvert"));
+        }
+        if (componentViewButtons.size() > 7) {
+            int otherPending = componentOtherPendingModel.size();
+            int otherTotal = componentOtherPendingModel.size() + componentOtherResolvedModel.size();
+            JToggleButton other = componentViewButtons.get(7);
+            other.setText(ArchvowI18n.text(project, "Other / Project", "Autres / Projet")
+                + (otherPending > 0 ? " · " + otherPending : otherTotal > 0 ? " ✓" : ""));
+            other.setToolTipText(otherPending > 0
+                ? ArchvowI18n.text(project,
+                    "Component-local uncategorised items pending.",
+                    "Éléments locaux au composant encore en attente.")
+                : ArchvowI18n.text(project,
+                    "No component-local uncategorised item.",
+                    "Aucun élément local au composant dans cette vue."));
         }
         if (componentViewNav != null) componentViewNav.refresh();
     }
@@ -4078,6 +4199,24 @@ final class ArchvowPanel extends JPanel {
         overviewSummary.showData(manifest, check, componentSnapshots, pendingByComponent,
             pendingModel.size(), resolvedModel.size(), ArchvowI18n.isFrench(project));
         diagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
+        detailDiagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
+        refreshOverviewTabTitles();
+        refreshComponentOtherModels();
+    }
+
+    private void refreshOverviewTabTitles() {
+        String architecture = "Architecture";
+        String checks = ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations");
+        int checksPending = 0;
+        for (int i = 0; i < pendingModel.size(); i++) {
+            QuickItem item = pendingModel.get(i);
+            if (item.guide != null || "open-diagnostics".equals(item.commandLabel)) checksPending++;
+        }
+        int architecturePending = pendingModel.size() - checksPending;
+        // Counts partition the exact pending model: architecture + checks = pending.
+        // ArchvowNavigationTabs.setTitleAt already ignores out-of-range indices.
+        narrowOverviewTabs.setTitleAt(0, architecture + " · " + architecturePending);
+        narrowOverviewTabs.setTitleAt(1, checks + " · " + checksPending);
     }
 
     private void openProjectVow() {
@@ -4429,6 +4568,57 @@ final class ArchvowPanel extends JPanel {
         };
     }
 
+    /** Local Other/Project: keep only real component-local leftovers, not global check diagnostics. */
+    private static boolean componentOtherCategory(QuickItem item) {
+        return item != null && !item.componentId.isBlank()
+            && "other".equals(item.preset.getOrDefault("view", ""))
+            && item.guide == null;
+    }
+
+    private void refreshComponentOtherModels() {
+        componentOtherPendingModel.clear();
+        componentOtherResolvedModel.clear();
+        String componentId = selectedComponent == null ? "" : selectedComponent.id;
+        if (componentId.isBlank()) {
+            if (componentViewButtons.size() > 7) componentViewButtons.get(7).setText(ArchvowI18n.text(project, "Other / Project", "Autres / Projet"));
+            showComponentOtherItem(null);
+            return;
+        }
+        for (int i = 0; i < pendingModel.size(); i++) {
+            QuickItem item = pendingModel.get(i);
+            if (componentId.equals(item.componentId) && componentOtherCategory(item)) componentOtherPendingModel.addElement(item);
+        }
+        for (int i = 0; i < resolvedModel.size(); i++) {
+            QuickItem item = resolvedModel.get(i);
+            if (componentId.equals(item.componentId) && componentOtherCategory(item)) componentOtherResolvedModel.addElement(item);
+        }
+        if (componentViewButtons.size() > 7) {
+            int otherPending = componentOtherPendingModel.size();
+            int otherTotal = componentOtherPendingModel.size() + componentOtherResolvedModel.size();
+            JToggleButton other = componentViewButtons.get(7);
+            other.setText(ArchvowI18n.text(project, "Other / Project", "Autres / Projet")
+                + (otherPending > 0 ? " · " + otherPending : otherTotal > 0 ? " ✓" : ""));
+            other.setToolTipText(otherPending > 0
+                ? ArchvowI18n.text(project,
+                    "Component-local uncategorised items pending.",
+                    "Éléments locaux au composant encore en attente.")
+                : ArchvowI18n.text(project,
+                    "No component-local uncategorised item.",
+                    "Aucun élément local au composant dans cette vue."));
+        }
+        componentOtherTabs.setTitleAt(0, ArchvowI18n.text(project, "Pending", "En attente") + " (" + componentOtherPendingModel.size() + ")");
+        componentOtherTabs.setTitleAt(1, ArchvowI18n.text(project, "Resolved", "Traités") + " (" + componentOtherResolvedModel.size() + ")");
+        if (componentOtherTabs.getSelectedIndex() == 0 && !componentOtherPendingModel.isEmpty()) componentOtherPendingList.setSelectedIndex(0);
+        else if (componentOtherTabs.getSelectedIndex() == 1 && !componentOtherResolvedModel.isEmpty()) componentOtherResolvedList.setSelectedIndex(0);
+        else if (!componentOtherPendingModel.isEmpty()) {
+            componentOtherTabs.setSelectedIndex(0);
+            componentOtherPendingList.setSelectedIndex(0);
+        } else if (!componentOtherResolvedModel.isEmpty()) {
+            componentOtherTabs.setSelectedIndex(1);
+            componentOtherResolvedList.setSelectedIndex(0);
+        } else showComponentOtherItem(null);
+    }
+
     private void showQuickItem(QuickItem item) {
         if (quickSelectionArea != null) quickSelectionArea.setVisible(item != null);
         if (quickResultCard != null) quickResultCard.setVisible(false);
@@ -4469,6 +4659,26 @@ final class ArchvowPanel extends JPanel {
         quickSecondary.setVisible(!secondary.isBlank());
         quickSecondary.setEnabled(!secondary.isBlank());
         quickSecondary.setText(secondary);
+    }
+
+    private void showComponentOtherItem(QuickItem item) {
+        if (item == null) {
+            componentOtherDetails.setText(htmlMessage(ArchvowI18n.text(project,
+                "No component-specific uncategorised item.",
+                "Aucun élément local au composant dans cette vue.")));
+            componentOtherPrimary.setEnabled(false);
+            componentOtherPrimary.setText(ArchvowI18n.text(project, "Treat now", "Traiter maintenant"));
+            componentOtherSecondary.setVisible(false);
+            return;
+        }
+        showQuickItem(item);
+        componentOtherDetails.setText(quickDetails.getText());
+        componentOtherDetails.setCaretPosition(0);
+        componentOtherPrimary.setEnabled(quickPrimary.isEnabled());
+        componentOtherPrimary.setText(quickPrimary.getText());
+        componentOtherSecondary.setVisible(quickSecondary.isVisible());
+        componentOtherSecondary.setEnabled(quickSecondary.isEnabled());
+        componentOtherSecondary.setText(quickSecondary.getText());
     }
 
     /** Only use a container explicitly declared in the architecture manifest. */

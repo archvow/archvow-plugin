@@ -97,7 +97,7 @@ for (const example of EXAMPLES) {
     }
     for (const item of work.otherPending) assert.ok(otherCategory(item), item.title);
     const sum = Object.values(work.pendingByComponent).reduce((a, b) => a + b, 0);
-    assert.equal(sum, work.pending.filter((i) => i.component).length);
+    assert.equal(sum, work.pending.filter((i) => i.component && i.source !== 'check').length);
     for (const [id, view] of Object.entries(views)) {
       const d = derive(view);
       assert.equal(d.counts.total[0], objects(view, 'decisions').length, id);
@@ -110,6 +110,16 @@ for (const example of EXAMPLES) {
     rows.forEach((r) => assert.ok(r.state, r.id));
   });
 }
+
+test('project check violations do not become component pending badges', () => {
+  const view = { component: 'orders_reader', decisions: [], safety: [], questions: [], assumptions: [], tasks: [] };
+  const check = { violations: [{ code: 'ARCH036', severity: 'error', component: 'orders_reader',
+    message: 'invariant orders_reader.INV1: must mitigate one hazard', file: '.archvow/spec.vow' }] };
+  const work = buildWork(null, check, '', { orders_reader: view }, false);
+  assert.equal(work.pending.filter((item) => item.source === 'check').length, 1);
+  assert.equal(work.pendingByComponent.orders_reader || 0, 0, 'checks are not component work');
+  assert.equal(work.otherPending.filter((item) => item.source === 'check').length, 1, 'diagnostic stays available globally');
+});
 
 test('the pyspark example has work to do: decisions or safety questions pending, warnings in Other', () => {
   const work = buildWork(read('pyspark-pipeline', 'show.json'), read('pyspark-pipeline', 'check.json'), '', snapshots('pyspark-pipeline'), true);

@@ -15,7 +15,7 @@
   /** What the person chose on the page. */
   const ui = {
     tab: 'overview', overSub: 'architecture', forceWorkspace: false,
-    /** The editor tab: 'empty', 'component', 'command' or 'result' (a command run from Overview). */
+    /** The editor tab: 'empty', 'component', 'checks', 'project', 'command' or 'result'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
     sel: { decision: '', question: '', safety: '', assumption: '', data: '', other: -1 },
@@ -144,6 +144,21 @@
         ui.tab = 'overview';
         ui.overSub = 'checks';
         break;
+      case 'showCheckDetails':
+        if (NAV) return;
+        ui.forceWorkspace = true;
+        ui.mode = 'checks';
+        ui.back = null;
+        ui.checkSel = Math.max(0, Number(m.index) || 0);
+        break;
+      case 'showProjectWork':
+        if (NAV) return;
+        ui.forceWorkspace = true;
+        ui.mode = 'project';
+        ui.otherList = Number(m.index) || 0;
+        ui.sel.other = -1;
+        ui.back = null;
+        break;
       case 'browsed':
         ui.form[m.field] = m.path;
         break;
@@ -201,7 +216,9 @@
 
   /** The editor tab's title: what it shows. */
   function editorTitle() {
-    if (ui.mode === 'component') return 'archvow: ' + (ui.view === 7 ? t('Other / Project', 'Autres / Projet') : ui.component || t('Components', 'Composants'));
+    if (ui.mode === 'component') return 'archvow: ' + (ui.component || t('Components', 'Composants'));
+    if (ui.mode === 'checks') return 'archvow: ' + t('Check & Gates', 'Contrôles et validations');
+    if (ui.mode === 'project') return 'archvow: ' + t('Project items', 'Éléments du projet');
     if (ui.mode === 'command') return 'archvow: ' + ui.command;
     if (ui.mode === 'result') return 'archvow: ' + (ui.resultLabel || t('Result', 'Résultat'));
     return 'archvow';
@@ -217,10 +234,12 @@
     <div><div class="title">Archvow</div><div class="project" title="${esc(S.project.root)}">⌂ ${esc(S.project.name)}</div></div></div>
   <div class="right">${reload}${log}</div></header>${progress}`;
     }
-    const what = ui.mode === 'component' ? (ui.view === 7 ? t('Other / Project', 'Autres / Projet') : ui.component)
-      : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'result' ? ui.resultLabel : '';
+    const what = ui.mode === 'component' ? ui.component
+      : ui.mode === 'checks' ? t('Check & Gates', 'Contrôles et validations')
+        : ui.mode === 'project' ? t('Project items', 'Éléments du projet')
+        : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'result' ? ui.resultLabel : '';
     const kind = ui.mode === 'component' ? t('Component', 'Composant') : ui.mode === 'command' ? t('Command', 'Commande')
-      : ui.mode === 'result' ? t('Result', 'Résultat') : '';
+      : ui.mode === 'checks' ? t('Checks', 'Contrôles') : ui.mode === 'project' ? t('Project', 'Projet') : ui.mode === 'result' ? t('Result', 'Résultat') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
     const named = ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot();
     const back = ui.back && ui.mode !== 'component' ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.component)}">← ${esc(ui.back.component)}</button>` : '';
@@ -234,6 +253,8 @@
   /** The editor tab: the component, the command or the result chosen in the sidebar. */
   function editorBody() {
     if (ui.mode === 'component') return `<section class="detail-only">${componentDetail()}</section>`;
+    if (ui.mode === 'checks') return `<section class="detail-only checks-editor">${checksView(true)}</section>`;
+    if (ui.mode === 'project') return `<section class="detail-only"><div class="card"><h3>${esc(t('Project items', 'Éléments du projet'))}</h3>${otherView()}</div></section>`;
     if (ui.mode === 'command') {
       const command = commandByName(ui.command);
       return `<section class="detail-only">${command ? commandForm(command) : `<p class="muted">${esc(t('Select a command in the Archvow sidebar.', 'Sélectionne une commande dans le panneau Archvow.'))}</p>`}</section>`;
@@ -351,16 +372,26 @@
       btn('Review', 'openCommand', attrs({ command: 'review', field: 'base' })),
       `<label class="base" title="${esc(t('Git comparison base for Review / Diff / Budget: a branch of this repository', 'Base de comparaison Git pour Review / Diff / Budget : une branche de ce dépôt'))}">Base: <input list="refs" data-input="base" data-keep="base" value="${esc(baseNow())}" size="14" placeholder="${esc(t('no other branch', "pas d'autre branche"))}"><datalist id="refs">${(S.refs || []).map((r) => `<option value="${esc(r)}">`).join('')}</datalist></label>`,
     ].join('');
-    const sub = ui.overSub === 'checks' ? checksView() : architectureView();
+    const sub = ui.overSub === 'checks' ? checksView(false) : architectureView();
+    const issues = list(S.check, 'violations');
+    const failedChecks = issues.filter((v) => str(v, 'severity').toLowerCase() === 'error').length;
+    const warnedChecks = issues.filter((v) => str(v, 'severity').toLowerCase() === 'warning').length;
+    const projectPending = S.work.otherPending.filter(isProjectOther).length;
+    // Partition the actual pending work, not the number of components or raw check violations.
+    // Some checks (e.g. ARCH030) are already represented by a safety item.
+    const checksPending = work.pending.filter((item) => item.source === 'check' || item.command === 'open-diagnostics').length;
+    const architecturePending = work.pending.length - checksPending;
     return `<section class="overview">
   <div class="strip"><b>${esc(t('Project status', 'État du projet'))}</b><span class="row">
     <button class="badge pending" data-a="quickList" data-i="0" title="${esc(t('See open items by component', 'Voir les éléments ouverts par composant'))}">${work.pending.length} ${esc(t('pending', 'en attente'))}</button>
-    <button class="badge resolved" data-a="quickList" data-i="1" title="${esc(t('See completed items by component', 'Voir les éléments traités par composant'))}">${work.resolved.length} ${esc(t('resolved', 'traités'))}</button></span></div>
+    <button class="badge resolved" data-a="quickList" data-i="1" title="${esc(t('See completed items by component', 'Voir les éléments traités par composant'))}">${work.resolved.length} ${esc(t('resolved', 'traités'))}</button>
+    ${projectPending ? `<button class="badge project" data-a="projectWork" title="${esc(t('Project-wide items, not attributed to components', 'Éléments du projet non attribués aux composants'))}">${projectPending} ${esc(t('project items', 'éléments projet'))}</button>` : ''}</span></div>
   ${branchWarning}${briefFolders()}
   ${S.install && S.install.reason === 'version' ? installCard() + confirmation('welcome') + resultCard('welcome') : ''}
   <div class="toolbar"><div class="row wrap">${toolbar}</div><span class="muted" title="${esc(t('Current Git branch', 'Branche Git courante'))}">Git: ${esc(S.branch || '—')}</span></div>
   <nav class="tabs sub">${[['architecture', 'Architecture'], ['checks', t('Check & Gates', 'Contrôles et validations')]]
-    .map(([id, l]) => `<button class="tab ${ui.overSub === id ? 'current' : ''}" data-a="overSub" data-sub="${id}">${esc(l)}</button>`).join('')}</nav>
+    .map(([id, l]) => `<button class="tab ${ui.overSub === id ? 'current' : ''}" data-a="overSub" data-sub="${id}">${esc(l)}${` <span class="count${id === 'checks' ? ' check-count' : ''}">${id === 'architecture' ? architecturePending : checksPending}</span>`}</button>`).join('')}</nav>
+  ${issues.length ? `<div class="checks-badges" aria-label="${esc(t('Project checks', 'Contrôles du projet'))}"><span class="chip ${failedChecks ? 'bad' : 'good'}">${failedChecks} ${esc(t('errors', 'erreurs'))}</span><span class="chip ${warnedChecks ? 'warn' : 'good'}">${warnedChecks} ${esc(t('warnings', 'avertissements'))}</span></div>` : ''}
   ${sub}
   <footer class="hint"><label>${esc(t('Language', 'Langue'))} <select data-change="language">${[['auto', t('Follow VS Code', 'Suivre VS Code')], ['en', 'English'], ['fr', 'Français']]
     .map(([v, l]) => `<option value="${v}" ${S.languageMode === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
@@ -399,36 +430,39 @@
     return 'muted';
   }
 
-  function checksView() {
+  /** The sidebar owns the diagnostics list; the editor shows only the selected detail.
+   *  Do not repeat the list in the editor where it would waste half the width. */
+  function checksView(inEditor = false) {
     const check = S.check;
-    let totals;
-    let items = [];
-    if (!check) {
-      totals = `<p class="tone-bad">${esc(t('No check result available', 'Résultat indisponible'))}</p><p class="muted">${esc(S.checkFailure || t('Run Check or verify the CLI.', 'Exécute le contrôle ou vérifie le CLI.'))}</p>`;
-    } else {
-      items = list(check, 'violations');
-      const ok = check.ok === true;
-      const rules = byRule(check);
-      totals = `<p class="${ok ? 'tone-good' : 'tone-bad'}"><b>${esc(ok ? t('PASSED', 'VALIDÉ') : t('FAILED', 'NON VALIDÉ'))}</b> · ${Number(check.errors) || 0} ${esc(t('errors', 'erreurs'))} · ${Number(check.warnings) || 0} ${esc(t('warnings', 'avertissements'))}</p>
-  ${rules ? `<p class="by-rule">${esc(rules)}</p>` : ''}
-  <p class="muted">${esc(t('Select a diagnostic for details; double-click to open its rule.', 'Sélectionne un diagnostic pour voir son détail ; double-clique pour ouvrir la règle.'))}</p>`;
-    }
+    const items = list(check, 'violations');
+    const ok = check && check.ok === true;
+    const rules = byRule(check);
+    const totals = !check
+      ? `<p class="tone-bad">${esc(t('No check result available', 'Résultat indisponible'))}</p><p class="muted">${esc(S.checkFailure || t('Run Check or verify the CLI.', 'Exécute le contrôle ou vérifie le CLI.'))}</p>`
+      : `<p class="${ok ? 'tone-good' : 'tone-bad'}"><b>${esc(ok ? t('PASSED', 'VALIDÉ') : t('FAILED', 'NON VALIDÉ'))}</b> · ${Number(check.errors) || 0} ${esc(t('errors', 'erreurs'))} · ${Number(check.warnings) || 0} ${esc(t('warnings', 'avertissements'))}</p>
+        ${rules ? `<p class="by-rule">${esc(rules)}</p>` : ''}`;
     if (ui.checkSel >= items.length) ui.checkSel = 0;
-    const rows = items.map((v, i) => `<li class="${i === ui.checkSel ? 'selected' : ''} sev-${esc(str(v, 'severity'))}" data-a="checkSel" data-i="${i}">
-  <b>${esc(str(v, 'code'))}</b> <span class="chip ${str(v, 'severity') === 'error' ? 'bad' : 'warn'}">${esc(str(v, 'severity'))}</span> ${esc(short(str(v, 'message'), 160))}</li>`).join('');
+    const rows = items.map((v, i) => `<li class="${i === ui.checkSel ? 'selected' : ''} sev-${esc(str(v, 'severity'))}" data-a="checkSel" data-i="${i}" title="${esc(str(v, 'message'))}">
+      <b>${esc(str(v, 'code'))}</b> <span class="chip ${str(v, 'severity') === 'error' ? 'bad' : 'warn'}">${esc(str(v, 'severity'))}</span> ${esc(short(str(v, 'message'), inEditor ? 180 : 120))}</li>`).join('');
+    const listPart = `<ul class="list check-list" data-scroll="checks">${rows || `<li class="muted empty">${esc(t('No detailed diagnostics.', 'Aucun diagnostic détaillé.'))}</li>`}</ul>`;
+    const title = `<div class="card-head"><h3>${esc(t('Check & Gates', 'Contrôles et validations'))}</h3>${btn(t('Check reference', 'Référence des contrôles'), 'openChecks', '', false, 'secondary')}</div>`;
+    if (!inEditor) return `<div class="card checks-summary">${title}${totals}
+      <p class="muted small">${esc(t('Select a diagnostic to open its details in the editor; double-click to open the rule.',
+        'Sélectionne un diagnostic pour ouvrir ses détails dans l’éditeur ; double-clique pour ouvrir la règle.'))}</p>${listPart}</div>`;
     const selected = items[ui.checkSel];
-    let detail = items.length ? '' : `<p class="muted">${esc(t('No detailed diagnostics.', 'Aucun diagnostic détaillé.'))}</p>`;
+    let detail = `<p class="muted">${esc(t('Select a diagnostic for details.', 'Sélectionne un diagnostic pour afficher ses détails.'))}</p>`;
     if (selected) {
       const code = str(selected, 'code');
       const explanation = ruleExplanation(code);
       const file = str(selected, 'file');
-      detail = `<div class="details"><h4>${esc(code)}${str(selected, 'title') ? ' — ' + esc(str(selected, 'title')) : ''}</h4><p>${esc(str(selected, 'message'))}</p>
-  ${file ? `<p class="muted">${esc(file)}${Number(selected.line) ? ':' + Number(selected.line) : ''}</p>` : ''}
-  ${explanation ? `<p><b>${esc(t('Explanation', 'Explication'))}:</b> ${esc(explanation)}</p>` : ''}
-  <div class="row">${btn(t('Open rule…', 'Voir la règle…'), 'openRule', attrs({ code }))}${file ? btn(t('Open file', 'Ouvrir le fichier'), 'openFile', attrs({ file, line: Number(selected.line) || 0 })) : ''}</div></div>`;
+      detail = `<div class="check-detail"><h4>${esc(code)}${str(selected, 'title') ? ' — ' + esc(str(selected, 'title')) : ''}</h4>
+        <div class="row wrap">${chip(str(selected, 'severity'), str(selected, 'severity') === 'error' ? 'bad' : 'warn')}</div>
+        <p class="check-message">${esc(str(selected, 'message'))}</p>
+        ${file ? `<p class="muted">${esc(file)}${Number(selected.line) ? ':' + Number(selected.line) : ''}</p>` : ''}
+        ${explanation ? `<p><b>${esc(t('Explanation', 'Explication'))}:</b> ${esc(explanation)}</p>` : ''}
+        <div class="row wrap">${btn(t('Open rule…', 'Voir la règle…'), 'openRule', attrs({ code }))}${file ? btn(t('Open file', 'Ouvrir le fichier'), 'openFile', attrs({ file, line: Number(selected.line) || 0 })) : ''}</div></div>`;
     }
-    return `<div class="card"><div class="card-head"><h3>${esc(t('Check & Gates', 'Contrôles et validations'))}</h3>${btn(t('Check reference', 'Référence des contrôles'), 'openChecks', '', false, 'secondary')}</div>
-  ${totals}<ul class="list" data-scroll="checks">${rows}</ul>${detail}</div>`;
+    return `<div class="card checks-full">${title}${totals}<div class="check-editor-detail">${detail}</div></div>`;
   }
 
   /** "By rule: ARCH001 146 · SPK008 415" from check's `counts` (archvow sorts them, most first); empty
@@ -477,7 +511,7 @@
   <ul class="tree" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No component.', 'Aucun composant.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
   }
 
-  const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Other / Project', 'Autres / Projet')];
+  const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Others', 'Autres')];
 
   function componentDetail() {
     const actions = [
@@ -495,24 +529,27 @@
     const d = derived();
     const counts = d ? d.counts : { pending: [0, 0, 0, 0, 0, 0], total: [0, 0, 0, 0, 0, 0] };
     const names = VIEWS();
+    const localOtherPending = S.work.otherPending.filter((item) => isLocalOther(item)).length;
+    const localOtherResolved = S.work.otherResolved.filter((item) => isLocalOther(item)).length;
     const viewBar = names.map((name, i) => {
-      const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] : counts.total[i] > 0 ? ' ✓' : '') : name;
-      const tip = i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('pending items', 'éléments en attente')}` : t('No open items', 'Aucun élément ouvert')) : '';
-      return `<button class="tab ${ui.view === i ? 'current' : ''} ${i < 6 && counts.pending[i] > 0 ? 'has-pending' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}</button>`;
+      const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] : counts.total[i] > 0 ? ' ✓' : '')
+        : i === 7 ? name + (localOtherPending ? ' · ' + localOtherPending : localOtherResolved ? ' ✓' : '') : name;
+      const tip = i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('pending items', 'éléments en attente')}` : t('No open items', 'Aucun élément ouvert'))
+        : i === 7 ? t('Only issues of this component; project checks are in Check & Gates.', 'Seulement les éléments de ce composant ; les contrôles globaux sont dans Check & Gates.') : '';
+      return `<button class="tab ${ui.view === i ? 'current' : ''} ${(i < 6 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) ? 'has-pending' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}</button>`;
     }).join('');
     let body;
     if (ui.view === 7) body = otherView();
     else if (!ui.component) body = `<p class="muted">${esc(t('Select a component in the Archvow sidebar.', 'Sélectionne un composant dans le panneau Archvow.'))}</p>`;
     else if (!view) body = `<p class="muted">${esc(t('Loading', 'Chargement'))}: ${esc(ui.component)}…</p>`;
     else body = [decisionsView, questionsView, safetyView, assumptionsView, rulesView, tasksView, vowView][ui.view](view, d);
-    // Other / Project is the project's, not the component's: no component head over it (as in IntelliJ)
-    const head = view && ui.view !== 7 ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
+    // A component's 'Others' belongs to this component; global diagnostics are in Check & Gates.
+    const head = view ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
   <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
     // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
-    // Other / Project is the project's: the component's actions (Clarify, Open spec...) do not apply there
-    return `${head}${ui.view === 7 ? '' : `<div class="row wrap actions">${actions.join('')}</div>`}
+    return `${head}<div class="row wrap actions">${actions.join('')}</div>
   <nav class="tabs views">${viewBar}</nav>${pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
   }
@@ -667,16 +704,16 @@
     let data = 0;
     let other = 0;
     for (const item of S.work.pending) {
-      if (item.component !== ui.component) continue;
+      if (item.component !== ui.component || item.source === 'check') continue;
       total++;
       const category = item.preset.view || 'other';
       if (category === 'data') data++;
-      if (category === 'other') other++;
+      if (category === 'other' && isLocalOther(item)) other++;
     }
     if (!total) return '';
-    return `<p class="muted small" title="${esc(t('The component total includes all its pending categories and active diagnostics.', 'Le total du composant inclut toutes ses catégories en attente et les diagnostics actifs.'))}">${esc(fr()
-      ? `${total} en attente pour ${ui.component} · ${data} dans Données et tâches` + (other ? ` · ${other} dans Autres / Projet` : '')
-      : `${total} pending for ${ui.component} · ${data} in Data & tasks` + (other ? ` · ${other} in Other / Project` : ''))}</p>`;
+    return `<p class="muted small" title="${esc(t('Component-local pending work only. Project checks are separate.', 'Uniquement le travail local au composant ; les contrôles du projet sont distincts.'))}">${esc(fr()
+      ? `${total} en attente pour ${ui.component} · ${data} dans Données et tâches` + (other ? ` · ${other} dans Autres` : '')
+      : `${total} pending for ${ui.component} · ${data} in Data & tasks` + (other ? ` · ${other} in Others` : ''))}</p>`;
   }
 
   /** The selected row of a view; none yet (a component just opened): the first open one, else the first. */
@@ -965,9 +1002,17 @@
     return bar + `<pre class="vow">${lines.join('\n')}</pre>`;
   }
 
+  /** Component and project issues have distinct destinations; check violations stay in Check & Gates. */
+  const isLocalOther = (item) => item.component === ui.component && item.source !== 'check' && item.preset.view === 'other';
+  const isProjectOther = (item) => !item.component && item.source !== 'check';
+  function otherItems(index) {
+    const items = index === 0 ? S.work.otherPending : S.work.otherResolved;
+    return items.filter(ui.mode === 'project' ? isProjectOther : isLocalOther);
+  }
+
   function otherView() {
-    const pendingItems = S.work.otherPending;
-    const resolvedItems = S.work.otherResolved;
+    const pendingItems = otherItems(0);
+    const resolvedItems = otherItems(1);
     const items = ui.otherList === 0 ? pendingItems : resolvedItems;
     if (ui.sel.other >= items.length) ui.sel.other = -1;
     const rows = items.map((item, i) => `<li class="${i === ui.sel.other ? 'selected' : ''} ${item.pending ? 'pending' : 'done'}" data-a="otherSel" data-i="${i}">
@@ -981,7 +1026,7 @@
   ${item.guide ? guideHtml(item.guide) : ''}
   <div class="row">${btn(item.action, 'quickPrimary')}${secondary ? btn(secondary, 'quickSecondary', '', false, 'secondary') : ''}</div></div>${confirmation('quick')}${resultCard('quick')}`;
     }
-    return `<p class="muted">${esc(t('Checks, unclassified and project-wide issues; no component assigned unless verified.', 'Contrôles, éléments non classés et problèmes globaux ; aucun composant attribué sans preuve.'))}</p>
+    return `<p class="muted">${esc(ui.mode === 'project' ? t('Project-wide work, separate from components and Check & Gates.', 'Travail global du projet, distinct des composants et des contrôles.') : t('Only uncategorised work of this component. Project checks are in Check & Gates.', 'Uniquement les éléments non classés de ce composant. Les contrôles globaux sont dans Check & Gates.'))}</p>
   <nav class="tabs sub">${btn(`${t('Pending', 'En attente')} (${pendingItems.length})`, 'otherList', attrs({ i: 0 }), false, 'tab ' + (ui.otherList === 0 ? 'current' : ''))}
   ${btn(`${t('Resolved', 'Traités')} (${resolvedItems.length})`, 'otherList', attrs({ i: 1 }), false, 'tab ' + (ui.otherList === 1 ? 'current' : ''))}</nav>
   <ul class="list items" data-scroll="other">${rows || `<li class="muted">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>${selected}`;
@@ -1405,6 +1450,7 @@
     if (ui.component !== id) {
       // another component: its views start on their first open item (current())
       for (const kind of ['decision', 'question', 'safety', 'assumption', 'data']) ui.sel[kind] = '';
+      ui.sel.other = -1; // Do not carry an Other selection from the previous component.
       for (const kind of ['decision', 'question', 'safety', 'assumption']) delete ui.results[kind];
     }
     ui.component = id;
@@ -1461,7 +1507,8 @@
     ui.forceWorkspace = true;
     ui.mode = 'component';
     const all = index === 0 ? S.work.pending : S.work.resolved;
-    const first = all.find((item) => item.component && !isOther(item));
+    const first = all.find((item) => item.component && item.source !== 'check' && !isOther(item))
+      || all.find((item) => item.component && item.source !== 'check');
     if (first) {
       ui.filter = index === 0 ? 'pending' : 'resolved';
       selectComponent(first.component);
@@ -1469,14 +1516,16 @@
       selectFromItem(first);
     } else {
       ui.filter = 'all';
-      ui.view = 7;
       ui.otherList = index;
-      ui.sel.other = (index === 0 ? S.work.otherPending : S.work.otherResolved).length ? 0 : -1;
+      ui.sel.other = -1;
+      const projectItems = all.filter(isProjectOther);
+      if (projectItems.length) { ui.mode = 'project'; }
+      else { ui.mode = 'checks'; ui.checkSel = 0; }
     }
   }
 
   function quickItem() {
-    const items = ui.otherList === 0 ? S.work.otherPending : S.work.otherResolved;
+    const items = otherItems(ui.otherList);
     return items[ui.sel.other];
   }
 
@@ -1508,7 +1557,7 @@
         post({ type: 'openFile', file: item.preset.file || '', line: Number(item.preset.line) || 0 });
         return;
       case 'open-diagnostics':
-        post({ type: 'showChecksNav' });
+        post({ type: 'showCheckDetails', index: 0 });
         return;
       case 'open-project-vow':
         post({ type: 'openProjectVow' });
@@ -1593,17 +1642,23 @@
     },
     openProjectVow: () => post({ type: 'openProjectVow' }),
     openChecks: () => post({ type: 'openChecks' }),
+    projectWork: () => post({ type: 'showProjectWork', index: 0 }),
     openRule: (e) => post({ type: 'openRule', code: e.dataset.code }),
     openFile: (e) => post({ type: 'openFile', file: e.dataset.file, line: Number(e.dataset.line) || 0 }),
     quickList: (e) => {
       // the sidebar shows the components with such work; the editor tab opens the first of them
       const index = Number(e.dataset.i);
       const all = index === 0 ? S.work.pending : S.work.resolved;
-      ui.tab = 'components';
-      ui.filter = all.some((item) => item.component && !isOther(item)) ? (index === 0 ? 'pending' : 'resolved') : 'all';
+      const componentsExist = all.some((item) => item.component && item.source !== 'check');
+      ui.tab = componentsExist ? 'components' : 'overview';
+      if (!componentsExist) ui.overSub = 'checks';
+      ui.filter = componentsExist ? (index === 0 ? 'pending' : 'resolved') : 'all';
       post({ type: 'quickList', index });
     },
-    checkSel: (e) => { ui.checkSel = Number(e.dataset.i); },
+    checkSel: (e) => {
+      ui.checkSel = Number(e.dataset.i);
+      if (NAV) post({ type: 'showCheckDetails', index: ui.checkSel });
+    },
     // the sidebar marks its choice at once; the editor tab changes component when the extension says so
     openComponentRow: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
     pick: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },

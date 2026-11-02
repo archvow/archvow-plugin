@@ -155,6 +155,8 @@ export interface WorkItem {
   preset: Record<string, string>;
   /** For a check diagnostic: what it means, what to do, who, whether it blocks (guidance.ts). */
   guide?: Guidance;
+  /** Check diagnostics belong to project-wide Check & Gates, not component work counters. */
+  source?: 'check';
 }
 
 export interface Work {
@@ -246,7 +248,7 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
     add({ kind, title: code + ' · ' + short(description, 70),
       detail: description + (file ? '\n\n' + file + ':' + line : ''),
       component: referenced, pending: true, action, command,
-      preset: fix !== null ? fix.values : named ? named.values : { file: open?.path ?? '', line: String(open?.line ?? 0) }, guide: guidance });
+      preset: fix !== null ? fix.values : named ? named.values : { file: open?.path ?? '', line: String(open?.line ?? 0) }, guide: guidance, source: 'check' });
   }
   for (const category of ['decisions', 'questions', 'assumptions', 'tasks']) {
     for (const record of objects(spec, category)) {
@@ -343,8 +345,8 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
         command: item.pending ? 'prompt' : 'component-show', preset: { view: 'data' } });
     }
   }
-  for (const item of work.pending) if (item.component) work.pendingByComponent[item.component] = (work.pendingByComponent[item.component] ?? 0) + 1;
-  for (const item of work.resolved) if (item.component) work.resolvedByComponent[item.component] = (work.resolvedByComponent[item.component] ?? 0) + 1;
+  for (const item of work.pending) if (item.component && item.source !== 'check') work.pendingByComponent[item.component] = (work.pendingByComponent[item.component] ?? 0) + 1;
+  for (const item of work.resolved) if (item.component && item.source !== 'check') work.resolvedByComponent[item.component] = (work.resolvedByComponent[item.component] ?? 0) + 1;
   return work;
 }
 

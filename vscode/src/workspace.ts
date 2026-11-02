@@ -609,6 +609,12 @@ export class ArchvowProject {
       case 'quickList':
         this.toEditor({ type: 'quickList', index: Number(m.index) || 0 });
         return;
+      case 'showCheckDetails':
+        this.toEditor({ type: 'showCheckDetails', index: Math.max(0, Number(m.index) || 0) });
+        return;
+      case 'showProjectWork':
+        this.toEditor({ type: 'showProjectWork', index: Number(m.index) || 0 });
+        return;
       case 'showChecksNav':
         await vscode.commands.executeCommand('archvow.workspace.focus');
         this.toNav({ type: 'showChecks' });

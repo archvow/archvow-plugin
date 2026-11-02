@@ -22,12 +22,22 @@ public final class NativeChecksAndRulesRegression {
         violations.add(w);
         check.add("violations", violations);
         ArchvowChecksView view = new ArchvowChecksView();
+        ArchvowChecksView navigation = new ArchvowChecksView(false);
+        if (view.showsInlineList() || !navigation.showsInlineList())
+            throw new AssertionError("Only navigation may show the diagnostic list");
+        if (view.getComponentCount() != 2 || navigation.getComponentCount() != 3)
+            throw new AssertionError("Editor must have only its summary and one detail panel");
         view.showData(check, "", true);
         if (view.diagnosticCount() != 2) throw new AssertionError("Diagnostics missing");
         if (!view.statusText().contains("3 erreurs") || !view.statusText().contains("1 avertissements"))
             throw new AssertionError("Counts missing: " + view.statusText());
         if (!"ARCH019".equals(view.diagnosticCode(0))) throw new AssertionError("Code mismatch");
+        view.selectDiagnostic(1);
+        if (!"Invariant missing".equals(view.selectedDiagnosticMessage()))
+            throw new AssertionError("Editor did not select the requested diagnostic index");
         view.showData(check, "", false);
+        if (!"Invariant missing".equals(view.selectedDiagnosticMessage()))
+            throw new AssertionError("Selection lost on locale refresh");
         if (!view.statusText().contains("3 errors")) throw new AssertionError("English missing");
         view.showData(null, "missing CLI", true);
         if (!view.statusText().contains("indisponible")) throw new AssertionError("Unavailable missing");

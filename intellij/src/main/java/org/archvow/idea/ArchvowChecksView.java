@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /** Native Swing display for `archvow check --json`, independent of Swing's limited HTML renderer. */
 final class ArchvowChecksView extends JPanel {
@@ -20,14 +21,20 @@ final class ArchvowChecksView extends JPanel {
     private final DefaultListModel<Diagnostic> model = new DefaultListModel<>();
     private final JList<Diagnostic> list = new JList<>(model);
     private final JTextArea details = new JTextArea();
+    private final JButton inspect = new JButton();
     private final JButton reference = new JButton();
     private final JButton allReferences = new JButton();
     private Consumer<String> onCode = code -> {};
+    private IntConsumer onInspect = index -> {};
     private Runnable onAll = () -> {};
     private boolean french;
+    private final boolean inlineDetails;
 
-    ArchvowChecksView() {
+    ArchvowChecksView() { this(true); }
+
+    ArchvowChecksView(boolean inlineDetails) {
         super(new BorderLayout(0, 8));
+        this.inlineDetails = inlineDetails;
         setBorder(new EmptyBorder(10, 12, 10, 12));
         JPanel top = new JPanel();
         top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
@@ -52,37 +59,53 @@ final class ArchvowChecksView extends JPanel {
         list.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) showSelected(); });
         list.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) openSelectedRule();
+                if (e.getClickCount() == 2) openSelection();
             }
         });
-        add(new JScrollPane(list), BorderLayout.CENTER);
+        JScrollPane listScroll = new JScrollPane(list);
 
         details.setEditable(false);
         details.setLineWrap(true);
         details.setWrapStyleWord(true);
         details.setRows(4);
         details.setBorder(new EmptyBorder(8, 8, 8, 8));
-        JPanel bottom = new JPanel(new BorderLayout(0, 5));
-        JScrollPane info = new JScrollPane(details);
-        info.setBorder(BorderFactory.createTitledBorder("Details"));
-        bottom.add(info, BorderLayout.CENTER);
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        inspect.addActionListener(e -> openSelection());
         reference.addActionListener(e -> openSelectedRule());
         allReferences.addActionListener(e -> onAll.run());
-        actions.add(reference);
-        actions.add(allReferences);
-        bottom.add(actions, BorderLayout.SOUTH);
-        add(bottom, BorderLayout.SOUTH);
+        if (inlineDetails) {
+            // Navigation already owns the list of diagnostics. The editor is reserved
+            // for the selected issue, at full width, with its rule/file actions.
+            JPanel answer = new JPanel(new BorderLayout(0, 5));
+            JScrollPane info = new JScrollPane(details);
+            info.setBorder(BorderFactory.createEmptyBorder());
+            answer.add(info, BorderLayout.CENTER);
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            actions.add(reference);
+            actions.add(allReferences);
+            answer.add(actions, BorderLayout.SOUTH);
+            add(answer, BorderLayout.CENTER);
+        } else {
+            add(listScroll, BorderLayout.CENTER);
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            actions.add(inspect);
+            actions.add(reference);
+            actions.add(allReferences);
+            add(actions, BorderLayout.SOUTH);
+        }
         showData(null, "", false);
     }
 
     void onOpenCode(Consumer<String> handler) { onCode = handler == null ? code -> {} : handler; }
+    void onInspect(IntConsumer handler) { onInspect = handler == null ? index -> {} : handler; }
     void onOpenAll(Runnable handler) { onAll = handler == null ? () -> {} : handler; }
 
     void showData(JsonObject check, String failure, boolean fr) {
         french = fr;
         heading.setText(fr ? "Contrôles et validations" : "Check & Gates");
+        heading.setVisible(!inlineDetails);
+        inspect.setText(fr ? "Ouvrir les détails" : "Open details");
         reference.setText(fr ? "Voir la règle…" : "Open rule…");
+        int previousSelection = list.getSelectedIndex();
         allReferences.setText(fr ? "Référence des contrôles" : "Check reference");
         model.clear();
         if (check == null) {
@@ -103,8 +126,8 @@ final class ArchvowChecksView extends JPanel {
             totals.setForeground(ok ? successColor() : errorColor());
             byRule.setText(byRule(check, fr));
             byRule.setVisible(!byRule.getText().isEmpty());
-            hint.setText(fr ? "Sélectionne un diagnostic pour voir son détail ; double-clique pour ouvrir la règle."
-                : "Select a diagnostic for details; double-click to open its rule.");
+            hint.setText(inlineDetails ? "" : fr ? "Sélectionne un diagnostic pour ouvrir son détail dans l’éditeur."
+                : "Select a diagnostic to open its details in the editor.");
             for (JsonObject item : ArchvowGrammar.objects(check, "violations")) {
                 String code = ArchvowGrammar.str(item, "code");
                 String severity = ArchvowGrammar.str(item, "severity");
@@ -114,7 +137,7 @@ final class ArchvowChecksView extends JPanel {
             }
             details.setText(model.isEmpty() ? (fr ? "Aucun diagnostic détaillé." : "No detailed diagnostics.") : "");
         }
-        if (!model.isEmpty()) list.setSelectedIndex(0);
+        if (!model.isEmpty()) list.setSelectedIndex(Math.min(Math.max(0, previousSelection), model.size() - 1));
         else showSelected();
         revalidate();
         repaint();
@@ -141,9 +164,21 @@ final class ArchvowChecksView extends JPanel {
     int diagnosticCount() { return model.size(); }
     String diagnosticCode(int i) { return model.get(i).code(); }
     String statusText() { return totals.getText(); }
+    boolean showsInlineList() { return !inlineDetails; }
+    String selectedDiagnosticMessage() {
+        Diagnostic selected = list.getSelectedValue();
+        return selected == null ? "" : selected.message();
+    }
+    void selectDiagnostic(int index) {
+        if (model.isEmpty()) return;
+        int selected = Math.max(0, Math.min(index, model.size() - 1));
+        list.setSelectedIndex(selected);
+        list.ensureIndexIsVisible(selected);
+    }
 
     private void showSelected() {
         Diagnostic selected = list.getSelectedValue();
+        inspect.setEnabled(selected != null && !selected.code().isBlank());
         reference.setEnabled(selected != null && !selected.code().isBlank());
         if (selected == null) return;
         String help = ArchvowRuleDocs.explain(ArchvowRuleDocs.canonical(selected.code()), french);
@@ -154,6 +189,10 @@ final class ArchvowChecksView extends JPanel {
     private void openSelectedRule() {
         Diagnostic selected = list.getSelectedValue();
         if (selected != null && !selected.code().isBlank()) onCode.accept(selected.code());
+    }
+    private void openSelection() {
+        int index = list.getSelectedIndex();
+        if (index >= 0) onInspect.accept(index);
     }
     private static boolean isDark() {
         Color c = UIManager.getColor("Panel.background");

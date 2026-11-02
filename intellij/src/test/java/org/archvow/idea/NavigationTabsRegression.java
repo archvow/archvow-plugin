@@ -9,6 +9,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class NavigationTabsRegression {
     public static void main(String[] args) throws Exception {
         SwingUtilities.invokeAndWait(() -> {
+            // Overview titles may refresh while the navigation strip has 0 or 1 tabs.
+            // setTitleAt, not JTabbedPane.getTabCount(), owns the range check.
+            ArchvowNavigationTabs incomplete = new ArchvowNavigationTabs();
+            incomplete.setTitleAt(0, "Architecture");
+            incomplete.setTitleAt(1, "Check & Gates");
+            incomplete.addTab("Architecture", new JPanel());
+            incomplete.setTitleAt(0, "Architecture · 4");
+            incomplete.setTitleAt(1, "Check & Gates · 3");
+            if (!"Architecture · 4".equals(incomplete.getNavigationButton(0).getText()))
+                throw new AssertionError("Early overview title refresh changed the existing tab");
             for (Color theme : List.of(new Color(247, 248, 252), new Color(32, 34, 39))) {
                 UIManager.put("Panel.background", theme);
                 UIManager.put("Label.foreground", theme.getRed() > 120 ? Color.BLACK : Color.WHITE);

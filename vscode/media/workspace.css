@@ -65,6 +65,7 @@ fieldset.card legend { padding: 0 6px; font-weight: 600; }
 .badge { border-radius: 12px; padding: 4px 12px; border: none; }
 .badge.pending { background: rgba(209, 134, 22, .18); color: var(--vscode-editorWarning-foreground, #b07e24); }
 .badge.resolved { background: rgba(56, 138, 52, .18); color: var(--vscode-testing-iconPassed, #2ea043); }
+.badge.project { background: rgba(60, 130, 220, .12); color: var(--vscode-textLink-foreground); }
 .warning { padding: 8px 12px; border-radius: 3px; background: var(--vscode-inputValidation-warningBackground); border: 1px solid var(--vscode-inputValidation-warningBorder); margin: 6px 0; }
 .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
 .base input { width: 9em; }
@@ -280,3 +281,13 @@ pre.command-preview.missing { color: var(--vscode-descriptionForeground); font-s
 .alert .row.end { margin-top: 6px; }
 .choices { margin: 2px 0 6px; }
 pre.card-md { max-height: 70vh; overflow: auto; }
+
+/* Check & Gates: sidebar is for selection only; detail is readable in the editor. */
+.checks-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0; }
+.tabs.sub .check-count { color: var(--vscode-errorForeground); border: 1px solid var(--vscode-errorForeground); background: transparent; }
+.checks-summary .check-list { max-height: none; }
+.checks-editor .checks-full { min-height: 60vh; }
+.checks-editor .check-editor-detail { min-width: 0; min-height: 42vh; overflow: auto; padding: 6px 8px; }
+.checks-editor .check-detail { min-width: 0; overflow-wrap: anywhere; }
+.checks-editor .check-detail h4 { font-size: 1.15em; margin: 0 0 12px; }
+.checks-editor .check-message { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
