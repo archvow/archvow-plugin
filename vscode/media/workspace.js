@@ -430,6 +430,36 @@
     return 'muted';
   }
 
+  /** Match exact diagnostic + message: two violations may have the same rule code. */
+  function checkWorkItem(v) {
+    if (!v || !S || !S.work) return null;
+    const code = str(v, 'code');
+    const message = str(v, 'message');
+    return S.work.pending.find((item) => item.source === 'check' &&
+      item.title.startsWith(code + ' · ') && item.detail.startsWith(message)) || null;
+  }
+
+  /** Clear labels describe the actual target file, without promising a spec for source files. */
+  function checkConfigurationFolder(path) {
+    const last = String(path || '').replace(/\\/g, '/').split('/').pop().toLowerCase();
+    return ['.claude', '.cursor', '.continue', '.gemini', '.codex', '.github'].includes(last);
+  }
+
+  function checkFileLabel(path) {
+    if (checkConfigurationFolder(path)) return t('Show configuration folder', 'Afficher le dossier de configuration');
+    const lower = String(path || '').toLowerCase();
+    if (lower.endsWith('.vow')) return t('Open vow', 'Ouvrir la vow');
+    if (lower.endsWith('spec.md')) return t('Open spec', 'Ouvrir la spec');
+    if (/\.(py|java|ts|js)$/.test(lower)) return t('Open source', 'Ouvrir le code source');
+    if (lower.endsWith('.md')) return t('Open document', 'Ouvrir le document');
+    return t('Open configuration', 'Ouvrir la configuration');
+  }
+
+  function checkFixable(item) {
+    return item && !['open-file', 'open-diagnostics', 'open-project-vow', 'component-show',
+      'prompt', 'brief accept'].includes(item.command);
+  }
+
   /** The sidebar owns the diagnostics list; the editor shows only the selected detail.
    *  Do not repeat the list in the editor where it would waste half the width. */
   function checksView(inEditor = false) {
@@ -454,13 +484,17 @@
     if (selected) {
       const code = str(selected, 'code');
       const explanation = ruleExplanation(code);
-      const file = str(selected, 'file');
+      const work = checkWorkItem(selected);
+      const fixable = checkFixable(work);
+      const file = (work && work.guide && work.guide.file ? work.guide.file.path : str(selected, 'file'));
+      const line = (work && work.guide && work.guide.file ? work.guide.file.line : Number(selected.line) || 0);
       detail = `<div class="check-detail"><h4>${esc(code)}${str(selected, 'title') ? ' — ' + esc(str(selected, 'title')) : ''}</h4>
         <div class="row wrap">${chip(str(selected, 'severity'), str(selected, 'severity') === 'error' ? 'bad' : 'warn')}</div>
         <p class="check-message">${esc(str(selected, 'message'))}</p>
         ${file ? `<p class="muted">${esc(file)}${Number(selected.line) ? ':' + Number(selected.line) : ''}</p>` : ''}
         ${explanation ? `<p><b>${esc(t('Explanation', 'Explication'))}:</b> ${esc(explanation)}</p>` : ''}
-        <div class="row wrap">${btn(t('Open rule…', 'Voir la règle…'), 'openRule', attrs({ code }))}${file ? btn(t('Open file', 'Ouvrir le fichier'), 'openFile', attrs({ file, line: Number(selected.line) || 0 })) : ''}</div></div>`;
+        ${work && work.guide && work.guide.todo ? `<p><b>${esc(t('Suggested action', 'Action recommandée'))}:</b> ${esc(work.guide.todo)}</p>` : ''}
+        <div class="row wrap">${fixable ? btn(t('Prepare fix: ', 'Préparer la correction : ') + work.command, 'prepareCheck', attrs({ i: ui.checkSel })) : ''}${file ? btn(checkFileLabel(file), 'openFile', attrs({ file, line }) + ` title="${esc(file + (line ? ':' + line : ''))}"`) : ''}${btn(t('View rule', 'Voir la règle'), 'openRule', attrs({ code }), false, 'secondary')}</div></div>`;
     }
     return `<div class="card checks-full">${title}${totals}<div class="check-editor-detail">${detail}</div></div>`;
   }
@@ -511,7 +545,7 @@
   <ul class="tree" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No component.', 'Aucun composant.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
   }
 
-  const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Others', 'Autres')];
+  const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Other', 'Autres')];
 
   function componentDetail() {
     const actions = [
@@ -1644,6 +1678,17 @@
     openChecks: () => post({ type: 'openChecks' }),
     projectWork: () => post({ type: 'showProjectWork', index: 0 }),
     openRule: (e) => post({ type: 'openRule', code: e.dataset.code }),
+    prepareCheck: (e) => {
+      const v = list(S.check, 'violations')[Number(e.dataset.i)];
+      const item = checkWorkItem(v);
+      if (!checkFixable(item)) return;
+      if (item.command === 'schema-create') {
+        const container = list(S.spec, 'containers').find((c) => list(c, 'components').some((x) => str(x, 'id') === item.component));
+        post({ type: 'openCommand', command: 'component add', values: Object.assign({ type: 'schema' }, container ? { container: str(container, 'id') } : {}), selected: item.component });
+        return;
+      }
+      post({ type: 'openCommand', command: item.command, values: item.preset, selected: item.component || ui.component });
+    },
     openFile: (e) => post({ type: 'openFile', file: e.dataset.file, line: Number(e.dataset.line) || 0 }),
     quickList: (e) => {
       // the sidebar shows the components with such work; the editor tab opens the first of them

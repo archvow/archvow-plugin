@@ -4,6 +4,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonArray;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.Disposable;
@@ -150,7 +153,7 @@ final class ArchvowPanel extends JPanel {
     private boolean installing;
     private ArchvowProjectReadiness.Status projectStatus;
     private final JEditorPane componentDetails = htmlPane();
-    /** The component's actions (Clarify, Open spec, Open code...): hidden on Other / Project, the project's view. */
+    /** The component's actions (Clarify, Open spec, Open code...): hidden on the Other view. */
     private JComponent componentActions;
     {
         // "Uses ...  ·  Used by ..." under the component's name: each name opens that component (ArchvowLinks)
@@ -276,7 +279,7 @@ final class ArchvowPanel extends JPanel {
     private final DefaultListModel<QuickItem> resolvedModel = new DefaultListModel<>();
     private final JList<QuickItem> pendingList = new JList<>(pendingModel);
     private final JList<QuickItem> resolvedList = new JList<>(resolvedModel);
-    // Only non-classifiable or project-wide entries are displayed in Other / Project.
+    // Only non-classifiable or project-wide entries are displayed in Other.
     // Counts above Overview still reflect all known component + global records.
     private final DefaultListModel<QuickItem> otherPendingModel = new DefaultListModel<>();
     private final DefaultListModel<QuickItem> otherResolvedModel = new DefaultListModel<>();
@@ -388,6 +391,8 @@ final class ArchvowPanel extends JPanel {
         diagnostics.onOpenAll(this::openChecksDocument);
         detailDiagnostics.onOpenCode(this::openDiagnosticCode);
         detailDiagnostics.onOpenAll(this::openChecksDocument);
+        detailDiagnostics.onOpenLocation(file -> openViolationFile(file.path(), file.line()));
+        detailDiagnostics.onPrepareFix((name, values) -> openCommand(name, values));
         diagnostics.showData(null, "", ArchvowI18n.isFrench(project));
         detailDiagnostics.showData(null, "", ArchvowI18n.isFrench(project));
         // One consistent, lightweight motion language across navigation surfaces.
@@ -819,7 +824,7 @@ final class ArchvowPanel extends JPanel {
             kind = ArchvowI18n.text(project, "Component", "Composant");
             boolean other = componentViewNav != null && componentViewNav.activeIndex() == 7;
             component = selectedComponent == null ? "" : selectedComponent.id;
-            what = other ? ArchvowI18n.text(project, "Other / Project", "Autres / Projet")
+            what = other ? ArchvowI18n.text(project, "Other", "Autres")
                 : component.isBlank() ? ArchvowI18n.text(project, "Components", "Composants") : component;
         } else if (index == 2) {
             kind = ArchvowI18n.text(project, "Command", "Commande");
@@ -1268,7 +1273,7 @@ final class ArchvowPanel extends JPanel {
         content.add(quickTabs, BorderLayout.CENTER);
         content.add(quickSelectionArea, BorderLayout.SOUTH);
         return createCard(content, ArchvowI18n.text(project,
-            "Other / Project", "Autres / Projet"));
+            "Other", "Autres"));
     }
 
     private JComponent componentOtherPanel() {
@@ -1320,14 +1325,14 @@ final class ArchvowPanel extends JPanel {
         selectedDetails.add(actions, BorderLayout.SOUTH);
         JPanel content = new JPanel(new BorderLayout(0, 7));
         JLabel explanation = new JLabel(ArchvowI18n.text(project,
-            "Component-specific uncategorised records only. Project-wide checks stay in Check & Gates.",
-            "Uniquement les éléments locaux au composant. Les contrôles globaux restent dans Contrôles et validations."));
+            "Only unclassified items from this component. Project checks stay in Check & Gates.",
+            "Éléments non classés de ce composant uniquement. Les contrôles globaux restent dans Contrôles et validations."));
         explanation.setForeground(mutedTextColor());
         content.add(explanation, BorderLayout.NORTH);
         content.add(componentOtherTabs, BorderLayout.CENTER);
         content.add(selectedDetails, BorderLayout.SOUTH);
         return createCard(content, ArchvowI18n.text(project,
-            "Other / Project", "Autres / Projet"));
+            "Other", "Autres"));
     }
 
     private JPanel inlineResultCard(JEditorPane pane, Runnable close) {
@@ -1724,7 +1729,7 @@ final class ArchvowPanel extends JPanel {
         quickCard = quickTreatmentPanel();
         componentOtherCard = componentOtherPanel();
         addComponentView(viewBar, detailCards, 7,
-            ArchvowI18n.text(project, "Other / Project", "Autres / Projet"), componentOtherCard);
+            ArchvowI18n.text(project, "Other", "Autres"), componentOtherCard);
         JComponent actionStrip = actions;
         componentActions = actionStrip;
         actionStrip.setPreferredSize(new Dimension(0, 39));
@@ -1844,7 +1849,7 @@ final class ArchvowPanel extends JPanel {
             ArchvowMotion.updateViewButton(button);
         }
         if (componentViewNav != null) componentViewNav.setActive(index);
-        // Other / Project is the project's, not the component's: no component head over it
+        // Other is a component-local catch-all: do not duplicate the component heading here
         componentDetails.setVisible(index != 7);
         if (componentActions != null) componentActions.setVisible(index != 7);
         if (actionsHeading != null) actionsHeading.setVisible(index != 7);
@@ -2237,7 +2242,7 @@ final class ArchvowPanel extends JPanel {
                 componentViewButtons.get(4).setText(ArchvowI18n.text(project, "Rules", "Règles"));
                 componentViewButtons.get(5).setText(ArchvowI18n.text(project, "Tasks", "Tâches"));
                 componentViewButtons.get(6).setText("Spec");
-                componentViewButtons.get(7).setText(ArchvowI18n.text(project, "Other / Project", "Autres / Projet"));
+                componentViewButtons.get(7).setText(ArchvowI18n.text(project, "Other", "Autres"));
                 if (selectedView != null) refreshViewStatus(selectedView);
                 componentViewNav.refresh();
             }
@@ -3000,7 +3005,7 @@ final class ArchvowPanel extends JPanel {
             if (detail != null) { detail.runFromOverview(label, args, stdin, refreshAfter); return; }
         }
         int origin = tabs.getSelectedIndex();
-        // Other / Project actions run inside Components, not Overview.
+        // The component-local Other actions run inside Components, not Overview.
         boolean quick = fromQuickItem && origin == 1 && selectedQuickItem != null;
         JEditorPane destination = origin == 2 ? commandResult : quick ? quickResult :
             origin == 1 ? componentResult : overviewResult;
@@ -3328,7 +3333,7 @@ final class ArchvowPanel extends JPanel {
             int otherPending = componentOtherPendingModel.size();
             int otherTotal = componentOtherPendingModel.size() + componentOtherResolvedModel.size();
             JToggleButton other = componentViewButtons.get(7);
-            other.setText(ArchvowI18n.text(project, "Other / Project", "Autres / Projet")
+            other.setText(ArchvowI18n.text(project, "Other", "Autres")
                 + (otherPending > 0 ? " · " + otherPending : otherTotal > 0 ? " ✓" : ""));
             other.setToolTipText(otherPending > 0
                 ? ArchvowI18n.text(project,
@@ -4464,7 +4469,7 @@ final class ArchvowPanel extends JPanel {
         quickTabs.setTitleAt(1, ArchvowI18n.text(project,"Resolved", "Traités") + " (" + otherResolvedModel.size() + ")");
         if (componentViewButtons.size() > 6) {
             componentViewButtons.get(7).setText(ArchvowI18n.text(project,
-                "Other / Project", "Autres / Projet") + (otherPendingModel.isEmpty() ? "" : " · " + otherPendingModel.size()));
+                "Other", "Autres") + (otherPendingModel.isEmpty() ? "" : " · " + otherPendingModel.size()));
             componentViewButtons.get(7).setToolTipText(ArchvowI18n.text(project,
                 "Unclassified and project-wide issues", "Éléments non classés et problèmes du projet"));
         }
@@ -4535,9 +4540,9 @@ final class ArchvowPanel extends JPanel {
         }
         String label = ArchvowI18n.isFrench(project) ?
             total + " en attente pour " + id + " · " + data + " dans Données et tâches" +
-                (other > 0 ? " · " + other + " dans Autres / Projet" : "") :
+                (other > 0 ? " · " + other + " dans Autres" : "") :
             total + " pending for " + id + " · " + data + " in Data & tasks" +
-                (other > 0 ? " · " + other + " in Other / Project" : "");
+                (other > 0 ? " · " + other + " in Other" : "");
         componentPendingExplanation.setText(label);
         componentPendingExplanation.setToolTipText(ArchvowI18n.text(project,
             "The component total includes all its pending categories and active diagnostics.",
@@ -4580,7 +4585,7 @@ final class ArchvowPanel extends JPanel {
         componentOtherResolvedModel.clear();
         String componentId = selectedComponent == null ? "" : selectedComponent.id;
         if (componentId.isBlank()) {
-            if (componentViewButtons.size() > 7) componentViewButtons.get(7).setText(ArchvowI18n.text(project, "Other / Project", "Autres / Projet"));
+            if (componentViewButtons.size() > 7) componentViewButtons.get(7).setText(ArchvowI18n.text(project, "Other", "Autres"));
             showComponentOtherItem(null);
             return;
         }
@@ -4596,7 +4601,7 @@ final class ArchvowPanel extends JPanel {
             int otherPending = componentOtherPendingModel.size();
             int otherTotal = componentOtherPendingModel.size() + componentOtherResolvedModel.size();
             JToggleButton other = componentViewButtons.get(7);
-            other.setText(ArchvowI18n.text(project, "Other / Project", "Autres / Projet")
+            other.setText(ArchvowI18n.text(project, "Other", "Autres")
                 + (otherPending > 0 ? " · " + otherPending : otherTotal > 0 ? " ✓" : ""));
             other.setToolTipText(otherPending > 0
                 ? ArchvowI18n.text(project,
@@ -4804,21 +4809,57 @@ final class ArchvowPanel extends JPanel {
     /** A project file a diagnostic is about, at its line (1-based; 0: the top). */
     private void openViolationFile(String relative, int line) {
         String base=project.getBasePath();
-        if (relative.isBlank() || base==null) {
-            showDiagnostics();
+        if (relative.isBlank() || base == null) {
+            message(ArchvowI18n.text(project, "Diagnostic location is not available.",
+                "Emplacement du diagnostic indisponible."));
             return;
         }
         try {
             File root = new File(base).getCanonicalFile();
             File file = new File(root, relative).getCanonicalFile();
-            if (!file.toPath().startsWith(root.toPath()) || !file.isFile()) {
-                showDiagnostics();
+            if (!file.toPath().startsWith(root.toPath()) || !file.exists()) {
+                message(ArchvowI18n.text(project, "Diagnostic location not found: ",
+                    "Emplacement du diagnostic introuvable : ") + relative);
+                return; // Never reset the selected diagnostic when its path is missing.
+            }
+            var virtual = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+            if (virtual == null) {
+                message(ArchvowI18n.text(project, "Cannot locate: ", "Emplacement introuvable : ") + relative);
                 return;
             }
-            var virtual=LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-            if (virtual != null && line > 0) new OpenFileDescriptor(project, virtual, line - 1, 0).navigate(true);
-            else if (virtual!=null) FileEditorManager.getInstance(project).openFile(virtual,true);
+            if (file.isDirectory()) {
+                // ARCH040 may point to .claude itself: switch the sidebar to Project,
+                // instead of leaving it split between Project and Archvow.
+                revealProjectFolder(virtual);
+            } else if (file.isFile() && line > 0) {
+                new OpenFileDescriptor(project, virtual, line - 1, 0).navigate(true);
+            } else if (file.isFile()) {
+                FileEditorManager.getInstance(project).openFile(virtual, true);
+            } else {
+                message(ArchvowI18n.text(project, "Unsupported diagnostic location: ",
+                    "Emplacement du diagnostic non pris en charge : ") + relative);
+            }
         } catch(IOException ex) { message(ex.getMessage()); }
+    }
+
+    /** Reveal a configuration directory as VS Code's revealInExplorer does: Project takes over
+     *  the sidebar, while the Archvow editor tab (and selected check) stays open. */
+    private void revealProjectFolder(com.intellij.openapi.vfs.VirtualFile directory) {
+        ToolWindowManager manager = ToolWindowManager.getInstance(project);
+        ToolWindow projectWindow = manager.getToolWindow("Project");
+        if (projectWindow == null) {
+            message(ArchvowI18n.text(project,
+                "Project explorer is not available.", "L'explorateur du projet est indisponible."));
+            return;
+        }
+        ToolWindow archvowWindow = manager.getToolWindow("Archvow");
+        // Wait until Archvow is hidden, then until Project is active. Otherwise the
+        // two windows can stay stacked and the folder receives no visible focus.
+        ArchvowProjectFolderReveal.handOff(
+            archvowWindow != null && archvowWindow.isVisible()
+                ? archvowWindow::hide : Runnable::run,
+            projectWindow::activate,
+            () -> ProjectView.getInstance(project).select(null, directory, true));
     }
 
     /** A diagnostic's guidance: what it means, what to do, the command, who, whether it blocks, then. */

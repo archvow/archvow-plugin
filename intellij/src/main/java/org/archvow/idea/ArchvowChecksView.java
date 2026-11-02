@@ -10,10 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.BiConsumer;
+import java.util.Map;
 
 /** Native Swing display for `archvow check --json`, independent of Swing's limited HTML renderer. */
 final class ArchvowChecksView extends JPanel {
-    record Diagnostic(String code, String severity, String message) {}
+    record Diagnostic(String code, String severity, String message, JsonObject source) {}
     private final JLabel heading = new JLabel();
     private final JLabel totals = new JLabel();
     private final JLabel byRule = new JLabel();
@@ -23,10 +25,14 @@ final class ArchvowChecksView extends JPanel {
     private final JTextArea details = new JTextArea();
     private final JButton inspect = new JButton();
     private final JButton reference = new JButton();
+    private final JButton openLocation = new JButton();
+    private final JButton prepareFix = new JButton();
     private final JButton allReferences = new JButton();
     private Consumer<String> onCode = code -> {};
     private IntConsumer onInspect = index -> {};
     private Runnable onAll = () -> {};
+    private Consumer<ArchvowGuidance.FileRef> onLocation = file -> {};
+    private BiConsumer<String, Map<String, String>> onFix = (command, values) -> {};
     private boolean french;
     private final boolean inlineDetails;
 
@@ -44,7 +50,12 @@ final class ArchvowChecksView extends JPanel {
         totals.setAlignmentX(Component.LEFT_ALIGNMENT);
         hint.setAlignmentX(Component.LEFT_ALIGNMENT);
         byRule.setAlignmentX(Component.LEFT_ALIGNMENT);
-        top.add(heading);
+        JPanel headingRow = new JPanel(new BorderLayout(8, 0));
+        headingRow.setOpaque(false);
+        headingRow.add(heading, BorderLayout.WEST);
+        headingRow.add(allReferences, BorderLayout.EAST);
+        headingRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        top.add(headingRow);
         top.add(Box.createVerticalStrut(7));
         top.add(totals);
         top.add(Box.createVerticalStrut(3));
@@ -71,6 +82,8 @@ final class ArchvowChecksView extends JPanel {
         details.setBorder(new EmptyBorder(8, 8, 8, 8));
         inspect.addActionListener(e -> openSelection());
         reference.addActionListener(e -> openSelectedRule());
+        openLocation.addActionListener(e -> openSelectedLocation());
+        prepareFix.addActionListener(e -> prepareSelectedFix());
         allReferences.addActionListener(e -> onAll.run());
         if (inlineDetails) {
             // Navigation already owns the list of diagnostics. The editor is reserved
@@ -80,16 +93,15 @@ final class ArchvowChecksView extends JPanel {
             info.setBorder(BorderFactory.createEmptyBorder());
             answer.add(info, BorderLayout.CENTER);
             JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            actions.add(prepareFix);
+            actions.add(openLocation);
             actions.add(reference);
-            actions.add(allReferences);
             answer.add(actions, BorderLayout.SOUTH);
             add(answer, BorderLayout.CENTER);
         } else {
             add(listScroll, BorderLayout.CENTER);
             JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
             actions.add(inspect);
-            actions.add(reference);
-            actions.add(allReferences);
             add(actions, BorderLayout.SOUTH);
         }
         showData(null, "", false);
@@ -98,13 +110,15 @@ final class ArchvowChecksView extends JPanel {
     void onOpenCode(Consumer<String> handler) { onCode = handler == null ? code -> {} : handler; }
     void onInspect(IntConsumer handler) { onInspect = handler == null ? index -> {} : handler; }
     void onOpenAll(Runnable handler) { onAll = handler == null ? () -> {} : handler; }
+    void onOpenLocation(Consumer<ArchvowGuidance.FileRef> handler) { onLocation = handler == null ? file -> {} : handler; }
+    void onPrepareFix(BiConsumer<String, Map<String, String>> handler) { onFix = handler == null ? (name, values) -> {} : handler; }
 
     void showData(JsonObject check, String failure, boolean fr) {
         french = fr;
         heading.setText(fr ? "Contrôles et validations" : "Check & Gates");
         heading.setVisible(!inlineDetails);
         inspect.setText(fr ? "Ouvrir les détails" : "Open details");
-        reference.setText(fr ? "Voir la règle…" : "Open rule…");
+        reference.setText(fr ? "Voir la règle" : "View rule");
         int previousSelection = list.getSelectedIndex();
         allReferences.setText(fr ? "Référence des contrôles" : "Check reference");
         model.clear();
@@ -133,7 +147,7 @@ final class ArchvowChecksView extends JPanel {
                 String severity = ArchvowGrammar.str(item, "severity");
                 String message = ArchvowGrammar.str(item, "message");
                 if (message.isBlank()) message = item.toString();
-                model.addElement(new Diagnostic(code, severity, message));
+                model.addElement(new Diagnostic(code, severity, message, item));
             }
             details.setText(model.isEmpty() ? (fr ? "Aucun diagnostic détaillé." : "No detailed diagnostics.") : "");
         }
@@ -180,11 +194,52 @@ final class ArchvowChecksView extends JPanel {
         Diagnostic selected = list.getSelectedValue();
         inspect.setEnabled(selected != null && !selected.code().isBlank());
         reference.setEnabled(selected != null && !selected.code().isBlank());
-        if (selected == null) return;
+        if (selected == null) {
+            openLocation.setVisible(false);
+            prepareFix.setVisible(false);
+            return;
+        }
+        ArchvowGuidance.Guidance guidance = selectedGuidance();
+        ArchvowGuidance.FileRef location = guidance == null ? null : guidance.file();
+        openLocation.setVisible(inlineDetails && location != null);
+        if (location != null) {
+            openLocation.setText(ArchvowCheckActions.fileLabel(location.path(), french));
+            openLocation.setToolTipText(location.path() + (location.line() > 0 ? ":" + location.line() : ""));
+        }
+        ArchvowCheckActions.FixAction fix = selectedFix();
+        prepareFix.setVisible(inlineDetails && fix != null);
+        if (fix != null) {
+            prepareFix.setText(french ? "Préparer : " + fix.name() : "Prepare: " + fix.name());
+            prepareFix.setToolTipText(french ? "Ouvre le formulaire prérempli, sans exécution automatique"
+                : "Open the prefilled command form; nothing runs automatically");
+        }
         String help = ArchvowRuleDocs.explain(ArchvowRuleDocs.canonical(selected.code()), french);
         details.setText(selected.code() + "\n\n" + selected.message()
-            + (help.isBlank() ? "" : "\n\n" + (french ? "Explication : " : "Explanation: ") + help));
+            + (help.isBlank() ? "" : "\n\n" + (french ? "Explication : " : "Explanation: ") + help)
+            + (guidance == null || guidance.todo().isBlank() ? ""
+                : "\n\n" + (french ? "Action recommandée : " : "Suggested action: ") + guidance.todo()));
         details.setCaretPosition(0);
+    }
+    private ArchvowGuidance.Guidance selectedGuidance() {
+        Diagnostic d = list.getSelectedValue();
+        if (d == null) return null;
+        JsonObject source = d.source();
+        return ArchvowGuidance.guide(d.code(), d.severity(), d.message(),
+            ArchvowGrammar.str(source, "file"), ArchvowGrammar.number(source, "line"),
+            ArchvowGuidance.rules(french), ArchvowGrammar.COMMANDS, french);
+    }
+    private ArchvowCheckActions.FixAction selectedFix() {
+        Diagnostic d = list.getSelectedValue();
+        if (d == null) return null;
+        return ArchvowCheckActions.fix(d.source(), selectedGuidance());
+    }
+    private void openSelectedLocation() {
+        ArchvowGuidance.Guidance guide = selectedGuidance();
+        if (guide != null && guide.file() != null) onLocation.accept(guide.file());
+    }
+    private void prepareSelectedFix() {
+        ArchvowCheckActions.FixAction fix = selectedFix();
+        if (fix != null) onFix.accept(fix.name(), fix.values());
     }
     private void openSelectedRule() {
         Diagnostic selected = list.getSelectedValue();

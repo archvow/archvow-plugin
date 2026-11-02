@@ -19,6 +19,7 @@ public final class WorkspaceTests {
         run("ArchvowDataViewSmoke", () -> ArchvowDataViewSmoke.main(NONE));
         run("BriefsRegression", () -> BriefsRegression.main(NONE));
         run("ButtonHoverRegression", () -> ButtonHoverRegression.main(NONE));
+        run("CheckActionsRegression", () -> CheckActionsRegression.main(NONE));
         run("CommandPrefillRegression", () -> CommandPrefillRegression.main(NONE));
         run("CommandFormLayoutRegression", () -> CommandFormLayoutRegression.main(NONE));
         run("CompactViewsRegression", () -> CompactViewsRegression.main(NONE));
@@ -36,6 +37,7 @@ public final class WorkspaceTests {
         run("NavigationTabsRegression", () -> NavigationTabsRegression.main(NONE));
         run("ProgressRegression", () -> ProgressRegression.main(NONE));
         run("ProjectReadinessRegression", () -> ProjectReadinessRegression.main(NONE));
+        run("ProjectFolderRevealRegression", () -> ProjectFolderRevealRegression.main(NONE));
         run("ResponsiveOverflowRegression", () -> ResponsiveOverflowRegression.main(NONE));
         run("ResponsiveActionLayoutsRegression", () -> ResponsiveActionLayoutsRegression.main(NONE));
         run("ArchvowResultExpansionRegression", () -> ArchvowResultExpansionRegression.main(NONE));

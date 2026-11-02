@@ -1113,7 +1113,18 @@ export class ArchvowProject {
   private async openProjectFile(relative: string, line: number): Promise<void> {
     const file = path.resolve(this.root, relative);
     if (!relative || !file.startsWith(this.root + path.sep) || !fs.existsSync(file)) {
-      this.toNav({ type: 'showChecks' });
+      void vscode.window.showWarningMessage(tr(this.state.fr,
+        'Diagnostic location not found: ', 'Emplacement du diagnostic introuvable : ') + relative);
+      return; // Keep the selected diagnostic visible instead of silently switching the navigation.
+    }
+    if (fs.statSync(file).isDirectory()) {
+      // ARCH040 sometimes points to .claude itself: reveal the folder, never open it as text.
+      await vscode.commands.executeCommand('revealInExplorer', vscode.Uri.file(file));
+      return;
+    }
+    if (!fs.statSync(file).isFile()) {
+      void vscode.window.showWarningMessage(tr(this.state.fr,
+        'Unsupported diagnostic location: ', 'Emplacement non pris en charge : ') + relative);
       return;
     }
     await this.openFile(file, Math.max(0, line - 1), '');

@@ -63,7 +63,7 @@ editor.message(toEditor);
 assert.match(editor.app.innerHTML, /class="check-editor-detail"/, 'editor shows one full-width detail panel');
 assert.doesNotMatch(editor.app.innerHTML, /class="check-list"/, 'editor must not duplicate sidebar checks list');
 assert.match(editor.app.innerHTML, /Unapproved assistant configured/);
-assert.match(editor.app.innerHTML, /Open rule/);
+assert.match(editor.app.innerHTML, /View rule/);
 editor.message({ type: 'select', component: 'orders_reader' });
 editor.click('view', { i: '7' });
 assert.doesNotMatch(editor.app.innerHTML, /check violation/, 'global check must not be a component Other item');
@@ -106,3 +106,64 @@ nav.message({ type: 'state', state: mixed });
 assert.deepEqual(pendingBadges(nav.app.innerHTML), [2, 3], 'Architecture (2) + Checks (3) = total pending (5)');
 assert.match(nav.app.innerHTML, /5 pending/);
 console.log('VS Code checks layout: one full-width editor detail; Architecture + Checks = pending: OK');
+
+// A file is named by its actual type, never the ambiguous "Open file".
+const actions = structuredClone(mockState);
+actions.work.pending = [
+  { source: 'check', command: 'component edit', component: 'orders_reader',
+    title: 'ARCH036 · Invariant has no hazard', detail: 'Invariant has no hazard',
+    guide: { todo: 'Review the component definition', file: { path: '.archvow/spec.vow', line: 4 } },
+    preset: { component: 'orders_reader' }, pending: true }
+];
+actions.check.violations = [actions.check.violations[0]];
+actions.check.errors = 1; actions.check.warnings = 0;
+editor.message({ type: 'state', state: actions });
+editor.message({ type: 'showCheckDetails', index: 0 });
+assert.match(editor.app.innerHTML, /Open vow/, 'vow is explicitly named');
+assert.match(editor.app.innerHTML, /Prepare fix: component edit/, 'grounded command is offered');
+assert.doesNotMatch(editor.app.innerHTML, /Open file/, 'generic file label is gone');
+editor.click('prepareCheck', { i: '0' });
+assert.equal(editor.posted.at(-1).type, 'openCommand');
+assert.equal(editor.posted.at(-1).command, 'component edit');
+assert.equal(editor.posted.at(-1).values.component, 'orders_reader');
+editor.click('openFile', { file: '.archvow/spec.vow', line: '4' });
+assert.equal(editor.posted.at(-1).file, '.archvow/spec.vow');
+assert.equal(editor.posted.at(-1).line, 4);
+
+// ARCH040 reports both a directory (.claude) and a document (CLAUDE.md).
+// The directory must never be presented as a text file, and opening it must
+// preserve the selected diagnostic instead of reverting to the first row.
+const config = structuredClone(mockState);
+config.check.violations = [
+  { code: 'ARCH036', severity: 'error', message: 'Invariant has no hazard', file: '.archvow/spec.vow' },
+  { code: 'ARCH040', severity: 'error', message: 'Unapproved assistant folder', file: '.claude' },
+  { code: 'ARCH040', severity: 'error', message: 'Unapproved assistant document', file: 'CLAUDE.md' },
+];
+config.check.errors = 3;
+config.check.warnings = 0;
+config.work.pending = config.check.violations.map((v) => ({
+  source: 'check', command: 'open-file', component: '', title: `${v.code} · ${v.message}`,
+  detail: v.message, guide: { file: { path: v.file, line: 0 } }, preset: {}, pending: true,
+}));
+editor.message({ type: 'state', state: config });
+editor.message({ type: 'showCheckDetails', index: 1 });
+assert.match(editor.app.innerHTML, /Show configuration folder/, 'directory action must say folder');
+assert.doesNotMatch(editor.app.innerHTML, /Open vow/, 'must not silently switch to ARCH036');
+editor.click('openFile', { file: '.claude', line: '0' });
+assert.equal(editor.posted.at(-1).type, 'openFile');
+assert.equal(editor.posted.at(-1).file, '.claude');
+assert.match(editor.app.innerHTML, /Show configuration folder/, 'selection must remain on ARCH040');
+editor.message({ type: 'showCheckDetails', index: 2 });
+assert.match(editor.app.innerHTML, /Open document/, 'CLAUDE.md opens as a document');
+editor.message({ type: 'showCheckDetails', index: 0 });
+assert.match(editor.app.innerHTML, /Open vow/, 'vow has its distinct action');
+assert.match(editor.app.innerHTML, /View rule/, 'rule action consistent with IntelliJ');
+console.log('VS Code check actions: directory, document, vow and selection parity: OK');
+
+// Extension-side safeguard: the message must dispatch directory locations to
+// Explorer, and a missing target must not redirect away from Check & Gates.
+const extensionSource = fs.readFileSync(path.resolve(__dirname, '../src/workspace.ts'), 'utf8');
+const locationHandler = extensionSource.slice(extensionSource.indexOf('  private async openProjectFile('), extensionSource.indexOf('  private async openChecks('));
+assert.match(locationHandler, /isDirectory\(\)/, 'folders require separate handling from documents');
+assert.match(locationHandler, /revealInExplorer/, 'the folder must be revealed in VS Code Explorer');
+assert.doesNotMatch(locationHandler, /type:\s*'showChecks'/, 'a missing folder must not reset selected diagnostic');
