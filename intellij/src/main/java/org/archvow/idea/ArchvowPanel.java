@@ -1233,14 +1233,12 @@ final class ArchvowPanel extends JPanel {
             }
         };
         applyResultCardPalette(outer);
-        JPanel header = new JPanel(new BorderLayout());
-        header.setOpaque(false);
         JLabel title = new JLabel(ArchvowI18n.text(project, "Command result", "Résultat de la commande"));
         title.setIcon(ArchvowUiIcons.iconFor(title, "terminal"));
         title.setIconTextGap(7);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 12f));
-        header.add(title, BorderLayout.WEST);
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        JPanel controls = new JPanel(new ArchvowWrapLayout(FlowLayout.RIGHT, 5, 1));
+        controls.setOpaque(false);
         JToggleButton rawToggle = new JToggleButton(ArchvowI18n.text(project, "Raw output", "Sortie brute"));
         rawToggle.setFocusPainted(false);
         rawToggle.setEnabled(false);
@@ -1279,8 +1277,7 @@ final class ArchvowPanel extends JPanel {
         });
         controls.add(expand, 0);
         controls.add(dismiss);
-        header.add(controls, BorderLayout.EAST);
-        outer.add(header, BorderLayout.NORTH);
+        outer.add(new ArchvowResultHeader(title, controls), BorderLayout.NORTH);
         outer.add(scroll, BorderLayout.CENTER);
         outer.add(resultGrip(scroll), BorderLayout.SOUTH);
         outer.setVisible(false);
@@ -2005,8 +2002,23 @@ final class ArchvowPanel extends JPanel {
             "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."), true);
         pane.add(heading); pane.add(Box.createVerticalStrut(6)); pane.add(formDoes); pane.add(Box.createVerticalStrut(8));
         pane.add(commandLabel); pane.add(preview); pane.add(Box.createVerticalStrut(6)); pane.add(note);
-        pane.setPreferredSize(new Dimension(280, 260));
-        return pane;
+        // BorderLayout.EAST stretches its child to the height of the whole form.
+        // Anchor the actual help card at the top and measure its text rather than
+        // stretching the bordered card through the empty bottom of the editor.
+        final int sideWidth = 255;
+        JPanel topAligned = new JPanel(new BorderLayout()) {
+            @Override public Dimension getPreferredSize() {
+                // A new command changes formDoes and the live preview. Size to the
+                // CURRENT wrapped text, not to whichever command opened the tab.
+                int textWidth = sideWidth - 26; // pane border and padding
+                formDoes.setSize(textWidth, formDoes.getHeight());
+                note.setSize(textWidth, note.getHeight());
+                return new Dimension(sideWidth, pane.getPreferredSize().height);
+            }
+        };
+        topAligned.setOpaque(false);
+        topAligned.add(pane, BorderLayout.NORTH);
+        return topAligned;
     }
 
     /** The command line the form asks for now: written into the pane at each keystroke (no run). */

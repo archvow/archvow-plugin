@@ -36,6 +36,7 @@ public final class WorkspaceTests {
         run("ProgressRegression", () -> ProgressRegression.main(NONE));
         run("ProjectReadinessRegression", () -> ProjectReadinessRegression.main(NONE));
         run("ResponsiveOverflowRegression", () -> ResponsiveOverflowRegression.main(NONE));
+        run("ResponsiveActionLayoutsRegression", () -> ResponsiveActionLayoutsRegression.main(NONE));
         run("ResultFormatterRegression", () -> ResultFormatterRegression.main(NONE));
         run("RuleDocsRegression", () -> RuleDocsRegression.main(NONE));
         run("SafetyAndActionsRegression", () -> SafetyAndActionsRegression.main(NONE));

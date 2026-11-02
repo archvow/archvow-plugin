@@ -163,13 +163,20 @@ final class ArchvowSplitView {
      * Hidden buttons take no room.
      */
     static JPanel actions(java.util.List<? extends JComponent> others, java.util.List<? extends JComponent> main) {
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        JPanel left = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 5, 1));
+        JPanel right = new JPanel(new ArchvowWrapLayout(FlowLayout.RIGHT, 5, 1));
         left.setOpaque(false);
         right.setOpaque(false);
         for (JComponent c : others) left.add(c);
         for (JComponent c : main) right.add(c);
-        JPanel panel = new JPanel(new ActionsLayout());
+        JPanel panel = new JPanel(new ActionsLayout()) {
+            @Override public void setBounds(int x, int y, int width, int height) {
+                boolean resized = width != getWidth();
+                super.setBounds(x, y, width, height);
+                // A wrapped button row changes height when the split view resizes.
+                if (resized && isDisplayable()) SwingUtilities.invokeLater(this::revalidate);
+            }
+        };
         panel.setOpaque(false);
         panel.add(left);
         panel.add(right);
@@ -181,47 +188,90 @@ final class ArchvowSplitView {
         return false;
     }
 
-    /** One row when the two groups fit in the width, else the main group first and the others under it. */
+    /**
+     * The right-hand buttons can themselves require two rows (long translated labels).
+     * Measure their height at the *actual* available width, rather than using a FlowLayout's
+     * single-row preferred height: otherwise the Save button is painted below the panel.
+     */
     private static final class ActionsLayout implements LayoutManager {
+        private static final int ROW_GAP = 4;
         @Override public void addLayoutComponent(String name, Component comp) { }
         @Override public void removeLayoutComponent(Component comp) { }
 
-        private static boolean oneRow(Container parent, Dimension left, Dimension right) {
-            int width = parent.getWidth() - parent.getInsets().left - parent.getInsets().right;
-            return !anyVisible((Container) parent.getComponent(0)) || width <= 0 || left.width + right.width <= width;
+        private static int naturalWidth(Container group) {
+            int width = 10; // two 5-pixel FlowLayout margins
+            boolean first = true;
+            for (Component c : group.getComponents()) {
+                if (!c.isVisible()) continue;
+                if (!first) width += 5;
+                width += c.getPreferredSize().width;
+                first = false;
+            }
+            return width;
+        }
+
+        private static int groupHeight(Container group, int width) {
+            group.setSize(Math.max(1, width), group.getHeight());
+            return group.getPreferredSize().height;
+        }
+
+        private static int available(Container parent) {
+            Insets in = parent.getInsets();
+            int width = parent.getWidth();
+            if (width == 0 && parent.getParent() != null) width = parent.getParent().getWidth();
+            return Math.max(1, width - in.left - in.right);
+        }
+
+        private static boolean onSameRow(Container parent, boolean others) {
+            return others && (parent.getWidth() > 0 || parent.getParent() != null && parent.getParent().getWidth() > 0) &&
+                naturalWidth((Container) parent.getComponent(0)) +
+                naturalWidth((Container) parent.getComponent(1)) <= available(parent);
         }
 
         @Override public Dimension preferredLayoutSize(Container parent) {
-            Dimension left = parent.getComponent(0).getPreferredSize();
-            Dimension right = parent.getComponent(1).getPreferredSize();
+            Container left = (Container) parent.getComponent(0);
+            Container right = (Container) parent.getComponent(1);
+            boolean others = anyVisible(left);
+            int width = parent.getWidth() > 0 || parent.getParent() != null && parent.getParent().getWidth() > 0
+                ? available(parent) : naturalWidth(left) + naturalWidth(right);
+            int height;
+            if (onSameRow(parent, others)) {
+                height = Math.max(groupHeight(left, naturalWidth(left)), groupHeight(right, naturalWidth(right)));
+            } else {
+                height = groupHeight(right, width);
+                if (others) height += ROW_GAP + groupHeight(left, width);
+            }
             Insets in = parent.getInsets();
-            boolean others = anyVisible((Container) parent.getComponent(0));
-            int height = !others ? right.height : oneRow(parent, left, right) ? Math.max(left.height, right.height)
-                : right.height + 4 + left.height;
-            return new Dimension(left.width + right.width + in.left + in.right, height + in.top + in.bottom);
+            return new Dimension(Math.max(1, width) + in.left + in.right,
+                height + in.top + in.bottom);
         }
 
         @Override public Dimension minimumLayoutSize(Container parent) {
-            Dimension right = parent.getComponent(1).getMinimumSize();
-            return new Dimension(right.width, right.height);
+            return new Dimension(100, 32);
         }
 
         @Override public void layoutContainer(Container parent) {
             Insets in = parent.getInsets();
-            int width = Math.max(0, parent.getWidth() - in.left - in.right);
-            Component left = parent.getComponent(0);
-            Component right = parent.getComponent(1);
-            Dimension l = left.getPreferredSize();
-            Dimension r = right.getPreferredSize();
-            boolean others = anyVisible((Container) left);
+            int width = available(parent);
+            Container left = (Container) parent.getComponent(0);
+            Container right = (Container) parent.getComponent(1);
+            boolean others = anyVisible(left);
             left.setVisible(others);
-            if (!others || oneRow(parent, l, r)) {
-                int height = Math.max(l.height, r.height);
-                left.setBounds(in.left, in.top, Math.max(0, width - r.width), height);
-                right.setBounds(in.left + Math.max(0, width - r.width), in.top, Math.min(width, r.width), height);
+            if (onSameRow(parent, others)) {
+                int rw = naturalWidth(right);
+                int lw = width - rw;
+                int h = Math.max(groupHeight(left, lw), groupHeight(right, rw));
+                left.setBounds(in.left, in.top, lw, h);
+                right.setBounds(in.left + lw, in.top, rw, h);
             } else {
-                right.setBounds(in.left, in.top, width, r.height);
-                left.setBounds(in.left, in.top + r.height + 4, width, l.height);
+                int rh = groupHeight(right, width);
+                right.setBounds(in.left, in.top, width, rh);
+                if (others) {
+                    int lh = groupHeight(left, width);
+                    left.setBounds(in.left, in.top + rh + ROW_GAP, width, lh);
+                } else {
+                    left.setBounds(in.left, in.top, 0, 0);
+                }
             }
         }
     }
