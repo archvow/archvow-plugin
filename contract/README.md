@@ -11,11 +11,12 @@ here is a change the plugins must follow.
 | `cli/messages.json` | every check message archvow's own tests make it print (491, 70 codes) | `tools/harvest_messages.py <archvow source> --python <venv>` | the guidance tests of both plugins |
 | `guidance/expected.json` | what a diagnostic's guidance says on each of those messages (en, fr) | `UPDATE_GUIDANCE=1 npm test` (vscode/) | `GuidanceRegression`: IntelliJ must say the same |
 | `vow-reader/expected.json` | what the Java `.vow` reader gives (tokens, problems, header, links) on every sample and on 400 vows broken on purpose | `./gradlew contractDump` (intellij/) | the VS Code extension's reader must give exactly the same |
+| `forms/forms.json` | how each command's form reads (design A, 0.14.0): plain labels, the essential fields first, the button's verb, what archvow will do | by hand (the plugins' own file) | both plugins (`ArchvowForms`, the page's `commandForm()`); `FormsRegression` and `grammar.test.ts` check every name against `cli/commands.json` |
 
 After an archvow release:
 
 ```bash
-contract/tools/take_archvow.sh ../archvow v1.18.0 ../archvow/dist/archvow-1.18.0-py3-none-any.whl
+contract/tools/take_archvow.sh ../archvow v1.19.0 ../archvow/dist/archvow-1.19.0-py3-none-any.whl
 python3 -m venv /tmp/av && /tmp/av/bin/pip install contract/archvow/archvow-*.whl
 python3 contract/tools/regenerate.py contract/archvow --python /tmp/av/bin/python
 python3 contract/tools/harvest_messages.py ../archvow --python ../archvow/.venv/bin/python   # its venv with archvow[dev]
@@ -25,4 +26,4 @@ python3 contract/tools/harvest_messages.py ../archvow --python ../archvow/.venv/
 git diff contract/                                         # review: this is what changed for the plugins
 ```
 
-Recorded from archvow 1.18.0.
+Recorded from archvow 1.19.0.

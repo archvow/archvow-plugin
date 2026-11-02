@@ -226,6 +226,22 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
       } else if (name === 'hazard remove' && p === 'id') {
         field = { kind: 'select', choices: hazards.map((h) => item(str(h, 'id'), `${str(h, 'severity')}: ${str(h, 'description') || str(h, 'guide_word')}`)),
           empty: tr(fr, 'No hazard declared in this project.', 'Aucun hazard déclaré dans ce projet.') };
+      } else if (name === 'hazard edit' && p === 'id') {
+        // choosing one fills its words and severity: change what differs
+        field = { kind: 'select', choices: hazards.map((h) => item(str(h, 'id'), `${str(h, 'severity')}: ${str(h, 'description') || str(h, 'guide_word')}`,
+          { words: str(h, 'description'), severity: str(h, 'severity') })),
+          empty: tr(fr, 'No hazard declared in this project.', 'Aucun hazard déclaré dans ce projet.') };
+      } else if (name === 'invariant edit' && p === 'id') {
+        // one linked to a decision has no words of its own: it changes with the decision
+        field = { kind: 'select', choices: objects(input.spec, 'invariants').map((i) => item(str(i, 'id'), str(i, 'statement'),
+          str(i, 'from_decision') ? undefined : { words: str(i, 'statement') })),
+          empty: tr(fr, 'No invariant in this project.', 'Aucun invariant dans ce projet.') };
+      } else if (name === 'invariant add' && p === 'from_decision') {
+        field = perComponent(byComponent((id) => decisions(id).filter((d) => str(d, 'answer'))
+          .map((d) => item(str(d, 'number'), `${str(d, 'question')} → ${str(d, 'answer')}`))),
+        tr(fr, 'No decision made on this component yet.', 'Aucune décision prise sur ce composant.'));
+        field.note = tr(fr, 'Instead of words: the invariant is what this decision answers, and follows it when it changes.',
+          'À la place des mots : l\'invariant est ce que cette décision répond, et la suit quand elle change.');
       } else if (name === 'invariant remove' && p === 'id') {
         field = { kind: 'select', choices: objects(input.spec, 'invariants').map((i) => item(str(i, 'id'), str(i, 'statement'))),
           empty: tr(fr, 'No invariant in this project.', 'Aucun invariant dans ce projet.') };

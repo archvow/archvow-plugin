@@ -22,6 +22,33 @@ plusieurs lignes (`LONG_TEXT`). Les options qu'archvow cache dans `--help` (`arg
 `contract/tools/export_grammar.py` et rangées sous « Contrôles experts », fermé (0.13.1 : leur aide
 affichait `==SUPPRESS==`).
 
+## La mise en page d'un formulaire (design A, 0.14.0)
+
+La grammaire dit ce que prend une commande ; `contract/forms/forms.json` (le fichier des plugins, lu par
+les deux) dit comment son formulaire se lit :
+
+| Dans forms.json | Dans le formulaire | Code |
+|---|---|---|
+| `labels` (par paramètre), `commands.<c>.labels` | le champ en mots simples (« Ce qu'il doit faire », « Toujours vrai »), l'option d'archvow en petit à côté | `fieldLabel()`, `ArchvowForms.label` |
+| `commands.<c>.essential` | ces champs d'abord, dans cet ordre (et chaque champ obligatoire) ; les autres sous **Plus d'options**, ouvert quand l'un a une valeur ; les contrôles experts dedans | `isEssential()`, `ArchvowForms.essential` / `ordered` |
+| `commands.<c>.title`, `verb`, `does` | le titre du formulaire ; le bouton (« Ajouter l'invariant », à côté d'Annuler) ; « Ce que va faire archvow » à droite | `commandForm()`, `buildForm` |
+| `commands.<c>.hints` | la ligne sous un champ, à la place de l'aide d'archvow | |
+
+Une commande ou un paramètre absent y prend les mots d'archvow. Un test dans chaque IDE vérifie que chaque
+nom de forms.json est l'un de `commands.json`, et celui de VS Code que chaque champ obligatoire est
+essentiel. Un paramètre d'au plus quatre valeurs fixes (gravité, criticité, verify...) est un bouton par
+valeur (`segmented()`, `ArchvowSegmented`).
+
+À droite, **la commande telle qu'elle se tape** : la page de VS Code la demande à l'extension
+(`formPreview`, après une courte pause), qui la planifie avec `planForm` - la grammaire de Run - et l'écrit
+en place (sans redessiner : le curseur reste) ; IntelliJ calcule `ArchvowForms.commandLine` à chaque
+changement. Un champ obligatoire encore vide est nommé à la place.
+
+**Le refus d'archvow en place** : après Run, le code de sortie 2 (archvow a refusé, rien d'écrit) affiche
+ses mots en rouge sous le formulaire ; les avertissements de ce qu'il a écrit quand même (les `warnings`
+d'une entrée `--json`, ou les lignes `!`) en orange (`alerts()` dans `grammar.ts`, `ArchvowForms.refusal`
+/ `warnings`, `showFormAlerts`).
+
 ## Ce qu'un champ propose
 
 Personne n'a à connaître un identifiant par cœur (0.13.0). `choiceBook()` dans `vscode/src/choices.ts`
@@ -36,6 +63,8 @@ le projet, les références du dépôt) :
 | question de `decision make` | les questions du composant, les ouvertes d'abord, puis P1, O1... ; en choisir une remplit la réponse enregistrée, proposée ou suggérée |
 | `decision propose` / `decision accept` | les questions ouvertes / les propositions de l'IA en attente |
 | numéro de `question remove` | les questions ajoutées par une personne (archvow 1.18 marque celles du modèle : `template: true` ; elles restent) |
+| id de `hazard edit` / `invariant edit` | les hazards / invariants du projet ; en choisir un remplit ses mots (et sa gravité) ; un invariant lié à une décision n'a pas de mots à remplir |
+| `--from-decision` d'`invariant add` | les décisions du composant qui ont une réponse : l'invariant est ce que cette décision répond |
 | `question add` / `decision add` | pas de numéro à donner : la ligne sous le champ dit lequel archvow donnera |
 | `assumption accept/reject`, `example remove`, `prompt --task` | les hypothèses en attente, exemples, tâches du composant |
 | mot guide de `hazard add/dismiss`, `invariant add --prevents` | les questions de sécurité (ouvertes d'abord) / les dangers du composant |

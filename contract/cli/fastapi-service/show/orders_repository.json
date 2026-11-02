@@ -152,11 +152,11 @@
       "status": "open",
       "suggestion": {
         "hazard": "an unbounded result or a flood of requests overloads the service",
-        "invariant": "None: no list query yet (decision 4)",
         "decision": {
           "number": 4,
           "answer": "None: no list query yet"
-        }
+        },
+        "not_applicable": "decision 4: None: no list query yet"
       }
     },
     {

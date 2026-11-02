@@ -2,6 +2,34 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.14.0 - 2026-11-02
+
+Built on archvow 1.19 (the contract regenerated from it): **Install archvow 1.19** when another major.minor is
+installed. The forms redesigned (design A, chosen by the user) and what archvow 1.19 adds, in both IDEs.
+
+- **Every command's form, design A**: the fields in plain words ("What it must do", "Always true",
+  "Prevents"), archvow's option small beside each; the essential fields first, the others under **More
+  options** (opened when one holds a value); a few fixed values (severity, criticality, verify...) as one
+  button each; on the right, **what archvow will do** and **the command as it is typed** (the live preview:
+  the same grammar as Run, VS Code's `planForm`); the button says what it does ("Add invariant", "Declare
+  hazard"), next to Cancel. Labels, order, verbs and the "what it does" line come from one file both
+  plugins read, `contract/forms/forms.json`.
+- **archvow's refusal in place**: when archvow says no (nothing written), its message shows in red under
+  the form; when it writes with a doubt (a rule it would contradict, a test too weak for the severity), in
+  amber.
+- **One Spec view** instead of "Open spec" and "Full vow": the card the AI implements (spec.md) and the vow
+  it is written from (spec.vow), a switch between them, both read only, each openable in the editor.
+- **A safety question a decision already answers**: "Covered by decision N" with its answer and **Confirm**
+  (the hazard, and an invariant that *is* the decision - archvow 1.19's `from_decision`); a decision that
+  says there is nothing to protect: **Confirm not applicable**, no reason to type (the decision is the reason).
+- **Change a hazard keeps its invariants**: `hazard edit` (archvow 1.19), one command, offered for every
+  recorded hazard; Remove says the invariants that protected only it go too.
+- **Questions with no safe default** offer archvow's choices as buttons ("No default (it depends on this
+  project) - to start from: ..."): one fills the answer, to complete.
+- **A component the AI created** (modes guided and free) shows **AI: to review** in the tree and its head,
+  with Accept… and Remove…; the forms `hazard edit`, `invariant edit` (choosing one fills its words) and
+  `invariant add --from-decision` (the component's decisions made) offer what exists.
+
 ## 0.13.1 - 2026-11-02
 
 Built on archvow 1.18 (unchanged). Fixes from a user's screenshots of the IntelliJ plugin, in both IDEs.

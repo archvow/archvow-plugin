@@ -116,6 +116,11 @@ A bug is something the code does that the spec does not want. Fix it test first;
 4. Fix the code until it passes. Every other test of the component stays green: they are the
    part that must not change. Never change or delete one to make the fix pass.
 
+## Skills
+The procedures of this file are also skills, in your tool's skills folder (`.claude/skills/`, `.github/skills/`):
+`archvow-implement`, `archvow-draft-spec`, `archvow-clarify`, `archvow-analyze`. Use the one that matches the task; the rules of this file
+apply in every case, with or without a skill.
+
 ## Before coding
 1. Read the spec card of the component: `.archvow/components/<component>/spec.md`
    (`archvow prompt <component>`). Start with its **Must never happen** section.

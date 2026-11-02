@@ -115,11 +115,11 @@
       "status": "open",
       "suggestion": {
         "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
-        "invariant": "None (decision 3)",
         "decision": {
           "number": 3,
           "answer": "None"
-        }
+        },
+        "not_applicable": "decision 3: None"
       }
     }
   ],

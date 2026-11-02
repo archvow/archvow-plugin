@@ -21,6 +21,31 @@ IntelliJ: `ArchvowGrammar.COMMANDS`, `renderForm`; VS Code: `commandForm()` in t
 `--rule` of `invariant add`) are flagged `hidden` by `contract/tools/export_grammar.py` and put under
 "Expert checks", closed (0.13.1: their help showed `==SUPPRESS==`).
 
+## How a form is laid out (design A, 0.14.0)
+
+The grammar says what a command takes; `contract/forms/forms.json` (the plugins' own file, read by both)
+says how its form reads:
+
+| In forms.json | In the form | Code |
+|---|---|---|
+| `labels` (by parameter), `commands.<c>.labels` | the field in plain words ("What it must do", "Always true"), archvow's option small beside it | `fieldLabel()`, `ArchvowForms.label` |
+| `commands.<c>.essential` | those fields first, in this order (and every required one); the others under **More options**, opened when one holds a value; the expert checks inside it | `isEssential()`, `ArchvowForms.essential` / `ordered` |
+| `commands.<c>.title`, `verb`, `does` | the form's title; the button ("Add invariant", next to Cancel); "What archvow will do" on the right | `commandForm()`, `buildForm` |
+| `commands.<c>.hints` | the line under a field, instead of archvow's help | |
+
+A command or a parameter missing there falls back to archvow's words. A test in each IDE checks that every
+name in forms.json is one of `commands.json`, and VS Code's that every required field is essential.
+A parameter with at most four fixed values (severity, criticality, verify...) is one button per value
+(`segmented()`, `ArchvowSegmented`).
+
+On the right, **the command as it is typed**: VS Code's page asks the extension (`formPreview`, debounced),
+which plans it with `planForm` - the grammar Run uses - and writes it in place (no redraw: the cursor stays);
+IntelliJ computes `ArchvowForms.commandLine` at each change. A required field still empty is named instead.
+
+**archvow's refusal in place**: after Run, exit code 2 (archvow refused, nothing written) shows its words
+in red under the form; the warnings of what it wrote anyway (the `warnings` of a `--json` entry, or the
+`!` lines) in amber (`alerts()` in `grammar.ts`, `ArchvowForms.refusal` / `warnings`, `showFormAlerts`).
+
 ## What a field offers
 
 Nobody has to know an id by heart (0.13.0). `choiceBook()` in `vscode/src/choices.ts` (IntelliJ:
@@ -34,6 +59,8 @@ says, for each command and parameter, what the form offers, from what archvow pr
 | `decision make` question | the component's questions, the open ones first, then P1, O1...; choosing one fills the answer recorded, proposed or suggested |
 | `decision propose` / `decision accept` | the open questions / the AI's proposals waiting |
 | `question remove` number | the questions a person added (archvow 1.18 marks the template's: `template: true`; they stay) |
+| `hazard edit` / `invariant edit` id | the project's hazards / invariants; choosing one fills its words (and severity); an invariant linked to a decision has no words to fill |
+| `invariant add --from-decision` | the component's decisions that have an answer: the invariant is what that decision answers |
 | `question add` / `decision add` | no number to give: the line under the field says which one archvow will give |
 | `assumption accept/reject`, `example remove`, `prompt --task` | the component's assumptions waiting, examples, tasks |
 | `hazard add/dismiss` guide word, `invariant add --prevents` | the safety questions (open first) / the component's hazards |

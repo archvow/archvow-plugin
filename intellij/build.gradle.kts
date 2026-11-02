@@ -50,6 +50,10 @@ tasks.named<ProcessResources>("processResources") {
         include("commands.json", "catalog.json", "kinds.json", "rules.md", "rules.fr.md", "version.txt")
         into("archvow")
     }
+    from(layout.projectDirectory.dir("../contract/forms")) {   // how each command's form is laid out
+        include("forms.json")
+        into("archvow")
+    }
 }
 
 // The tests need no IntelliJ running and no test framework: each is a main() that throws on the first

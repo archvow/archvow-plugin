@@ -215,6 +215,12 @@ final class ArchvowPanel extends JPanel {
     private final JTextPane rulesOnlyDetails = ArchvowDataView.create();
     private final JTextPane rulesDetails = ArchvowDataView.create();
     private final JTextPane vowDetails = ArchvowVowViewer.create();
+    /** The Spec view: the card the AI implements (spec.md) over the vow it is written from (spec.vow), both read only. */
+    private final JTextArea cardDetails = new JTextArea();
+    /** archvow 1.19: the answers a question without a safe default offers to start from, one button each. */
+    private final JPanel decisionChoices = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 4, 4));
+    private final JPanel specCards = new JPanel(new CardLayout());
+    private ArchvowSegmented specPart;
     private final DefaultListModel<ArchvowItemCards.Card> decisionsModel = new DefaultListModel<>();
     private final JList<ArchvowItemCards.Card> decisionsList = new JList<>(decisionsModel);
     private final DefaultListModel<ArchvowItemCards.Card> safetyModel = new DefaultListModel<>();
@@ -231,6 +237,16 @@ final class ArchvowPanel extends JPanel {
     private final JList<ArchvowGrammar.Command> commandList = new JList<>(commandModel);
     /** The command form: as wide as the view, so the lines under the fields wrap instead of running past its edge. */
     private final JPanel form = new WidthTrackingPanel(new GridBagLayout());
+    /** Design A (0.14.0): the form's title, what archvow will do, the command as it is typed, its refusal in place. */
+    private final JLabel formTitle = new JLabel();
+    private final ArchvowWrapLabel formDoes = new ArchvowWrapLabel();
+    private final JTextArea formPreview = new JTextArea(3, 22);
+    private final JPanel formAlerts = new JPanel();
+    private JButton formRunButton;
+    /** The selected safety question's decision says there is nothing to protect: Not applicable needs no reason. */
+    private boolean coveredNothing;
+    /** Accept…, shown only for a component the AI created (origin ai). */
+    private JButton aiAcceptButton;
     private final JTextArea commandHelp = area();
     private final Map<String, JComponent> fields = new LinkedHashMap<>();
     /** The comparison base: the best existing branch (ArchvowChoices.bestBase) until the person chooses one. */
@@ -1323,6 +1339,7 @@ final class ArchvowPanel extends JPanel {
 
     /** Keep the result in context; readers can ask for raw JSON, never see it by default. */
     private void storeCommandResult(JEditorPane destination, String label, ArchvowCli.Result result) {
+        if (destination == commandResult) showFormAlerts(result);  // design A: the refusal in place
         destination.putClientProperty("archvow.resultLabel", label);
         destination.putClientProperty("archvow.resultOutput", result.output);
         destination.putClientProperty("archvow.resultExit", result.exitCode);
@@ -1401,9 +1418,12 @@ final class ArchvowPanel extends JPanel {
             "Répondre à ce qui reste ouvert pour ce composant : sa prochaine question, décision ou question de sécurité."));
         clarify.addActionListener(e -> guidedNext());
         actions.addAction(clarify);
-        actions.addAction(tip(button(ArchvowI18n.text(project, "Open spec", "Ouvrir la spec"), this::openSpec),
-            "Read the task the AI implements (.archvow/components/<component>/spec.md), written by archvow from the spec. Read only: change it with Edit spec, + Question, + Rule.",
-            "Lire la tâche que l'IA implémente (.archvow/components/<composant>/spec.md), écrite par archvow depuis la spec. En lecture seule : la changer avec Modifier la spec, + Question, + Règle."));
+        aiAcceptButton = ArchvowSplitView.primary(ArchvowI18n.text(project, "Accept…", "Accepter…"));
+        aiAcceptButton.setToolTipText(ArchvowI18n.text(project, "The AI created this component: accept it as the team's (archvow component accept)",
+            "L'IA a créé ce composant : l'accepter comme celui de l'équipe (archvow component accept)"));
+        aiAcceptButton.addActionListener(e -> withComponent(c -> openCommand("component accept", Map.of("component", c.id))));
+        aiAcceptButton.setVisible(false);
+        actions.addAction(aiAcceptButton);
         actions.addAction(tip(button(ArchvowI18n.text(project, "Open code", "Ouvrir le code"), this::openCode),
             "Open this component's Python file (and its test). Change the code there; save, then Check.",
             "Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier."));
@@ -1467,7 +1487,7 @@ final class ArchvowPanel extends JPanel {
         // The question, the field and its buttons stay together; the full text stays selectable above the field.
         // No fixed height on the editor: it grows when the inline confirmation appears.
         addComponentView(viewBar, detailCards, 0, ArchvowI18n.text(project, "Decisions", "Décisions"),
-            ArchvowSplitView.create(decisionsList, decisionsScroll, compactSections(answerHeading(decisionDetails), decisionEditor,
+            ArchvowSplitView.create(decisionsList, decisionsScroll, compactSections(answerHeading(decisionDetails), decisionChoices, decisionEditor,
                 decisionInlineResultCard)));
 
         // Personal, operational and compliance questions (P1/O2/C1) are also
@@ -1572,7 +1592,7 @@ final class ArchvowPanel extends JPanel {
             ArchvowSplitView.create(assumptionList, assumptionItems, compactSections(answerHeading(assumptionDetails), assumptionActions)));
         addComponentView(viewBar, detailCards, 4, ArchvowI18n.text(project, "Rules", "Règles"), rulesPanel());
         addComponentView(viewBar, detailCards, 5, ArchvowI18n.text(project, "Tasks", "Tâches"), dataPanel());
-        addComponentView(viewBar, detailCards, 6, "Full vow", scroll(vowDetails));
+        addComponentView(viewBar, detailCards, 6, "Spec", specPanel());
         // Only genuinely unclassified or project-wide records live here.
         quickCard = quickTreatmentPanel();
         addComponentView(viewBar, detailCards, 7,
@@ -1928,18 +1948,31 @@ final class ArchvowPanel extends JPanel {
             renderForm(Map.of());
             if (constructed) afterSelectionChange();
         });
-        commandHelp.setRows(3); commandHelp.setColumns(35);
+        commandHelp.setRows(2); commandHelp.setColumns(35);
         JPanel right = new JPanel(new BorderLayout(2, 4));
         JPanel center = new JPanel(new BorderLayout());
-        JScrollPane help = scroll(commandHelp); help.setPreferredSize(new Dimension(300, 85));
-        center.add(help, BorderLayout.NORTH); center.add(scroll(form), BorderLayout.CENTER);
+        JScrollPane help = scroll(commandHelp); help.setPreferredSize(new Dimension(300, 52));
+        // design A: the title in plain words over archvow's own line, the fields left, what archvow will do right
+        formTitle.setFont(formTitle.getFont().deriveFont(Font.BOLD, formTitle.getFont().getSize2D() + 3f));
+        formTitle.setBorder(BorderFactory.createEmptyBorder(6, 4, 2, 4));
+        JPanel head = new JPanel(new BorderLayout(0, 2));
+        head.add(formTitle, BorderLayout.NORTH); head.add(help, BorderLayout.CENTER);
+        center.add(head, BorderLayout.NORTH); center.add(scroll(form), BorderLayout.CENTER);
         right.add(center, BorderLayout.CENTER);
+        right.add(formPane(), BorderLayout.EAST);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        actions.add(button(ArchvowI18n.text(project,"Run command","Exécuter la commande"), this::submitForm));
+        actions.add(button(ArchvowI18n.text(project, "Cancel", "Annuler"), () -> { formAlerts.removeAll(); formAlerts.setVisible(false); renderForm(Map.of()); }));
+        formRunButton = button(ArchvowI18n.text(project, "Run command", "Exécuter la commande"), this::submitForm);
+        actions.add(formRunButton);
         commandResultCard = inlineResultCard(commandResult, () -> commandResultCard.setVisible(false));
         JPanel bottom = new JPanel(new BorderLayout(0, 5));
         JPanel submitControls = new JPanel(new BorderLayout(0, 4));
-        submitControls.add(actions, BorderLayout.NORTH);
+        formAlerts.setLayout(new BoxLayout(formAlerts, BoxLayout.Y_AXIS));
+        formAlerts.setVisible(false);
+        JPanel alertsAndActions = new JPanel(new BorderLayout(0, 4));
+        alertsAndActions.add(formAlerts, BorderLayout.NORTH);
+        alertsAndActions.add(actions, BorderLayout.SOUTH);
+        submitControls.add(alertsAndActions, BorderLayout.NORTH);
         commandConfirmation = new ArchvowConfirmPanel();
         submitControls.add(commandConfirmation, BorderLayout.SOUTH);
         bottom.add(submitControls, BorderLayout.NORTH);
@@ -1947,6 +1980,85 @@ final class ArchvowPanel extends JPanel {
         right.add(bottom, BorderLayout.SOUTH);
         // the tool window shows the list, the editor tab the form
         return role == Role.NAVIGATION ? scroll(commandList) : right;
+    }
+
+    /** Design A: what archvow will do, and the command line as it is typed (the live preview). */
+    private JComponent formPane() {
+        JPanel pane = new JPanel();
+        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+        pane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(6, 8, 6, 4),
+            BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(mutedTextColor()), BorderFactory.createEmptyBorder(6, 10, 8, 10))));
+        JLabel heading = new JLabel(ArchvowI18n.text(project, "What archvow will do", "Ce que va faire archvow"));
+        heading.setFont(heading.getFont().deriveFont(Font.BOLD));
+        languageRefreshers.add(() -> heading.setText(ArchvowI18n.text(project, "What archvow will do", "Ce que va faire archvow")));
+        heading.setAlignmentX(LEFT_ALIGNMENT);
+        formDoes.setOpaque(false); formDoes.setAlignmentX(LEFT_ALIGNMENT);
+        JLabel commandLabel = new JLabel(ArchvowI18n.text(project, "The command", "La commande"));
+        languageRefreshers.add(() -> commandLabel.setText(ArchvowI18n.text(project, "The command", "La commande")));
+        commandLabel.setForeground(mutedTextColor()); commandLabel.setAlignmentX(LEFT_ALIGNMENT);
+        formPreview.setEditable(false); formPreview.setLineWrap(true); formPreview.setWrapStyleWord(false);
+        formPreview.setFont(new Font(Font.MONOSPACED, Font.PLAIN, formPreview.getFont().getSize()));
+        JScrollPane preview = new JScrollPane(formPreview);
+        preview.setAlignmentX(LEFT_ALIGNMENT);
+        ArchvowWrapLabel note = formHint(ArchvowI18n.text(project,
+            "If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.",
+            "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."), true);
+        pane.add(heading); pane.add(Box.createVerticalStrut(6)); pane.add(formDoes); pane.add(Box.createVerticalStrut(8));
+        pane.add(commandLabel); pane.add(preview); pane.add(Box.createVerticalStrut(6)); pane.add(note);
+        pane.setPreferredSize(new Dimension(280, 260));
+        return pane;
+    }
+
+    /** The command line the form asks for now: written into the pane at each keystroke (no run). */
+    private void updatePreview() {
+        ArchvowGrammar.Command command = commandList.getSelectedValue();
+        if (command == null || buildingForm) return;
+        formPreview.setText(ArchvowForms.commandLine(command, currentValues(), ArchvowI18n.isFrench(project)));
+    }
+
+    /** Every field of the form updates the preview when it changes. */
+    private void watchForPreview(JComponent control) {
+        if (control instanceof javax.swing.text.JTextComponent text) {
+            text.getDocument().addDocumentListener(new DocumentListener() {
+                @Override public void insertUpdate(DocumentEvent e) { updatePreview(); }
+                @Override public void removeUpdate(DocumentEvent e) { updatePreview(); }
+                @Override public void changedUpdate(DocumentEvent e) { updatePreview(); }
+            });
+        } else if (control instanceof JComboBox<?> combo) {
+            combo.addActionListener(e -> updatePreview());
+            if (combo.isEditable() && combo.getEditor().getEditorComponent() instanceof JComponent editor) watchForPreview(editor);
+        } else if (control instanceof JCheckBox check) {
+            check.addItemListener(e -> updatePreview());
+        } else if (control instanceof ArchvowSegmented segmented) {
+            segmented.onChange(this::updatePreview);
+        }
+    }
+
+    /** archvow said no (nothing written) in red, or wrote it with a doubt in amber: above the buttons. */
+    private void showFormAlerts(ArchvowCli.Result result) {
+        formAlerts.removeAll();
+        String refusal = ArchvowForms.refusal(result.exitCode, result.stderr);
+        if (!refusal.isEmpty()) formAlerts.add(formAlert(ArchvowI18n.text(project, "archvow refuses:", "archvow refuse :"), refusal, true));
+        for (String warning : ArchvowForms.warnings(result.stdout))
+            formAlerts.add(formAlert(ArchvowI18n.text(project, "Written, but:", "Écrit, mais :"), warning, false));
+        formAlerts.setVisible(formAlerts.getComponentCount() > 0);
+        formAlerts.revalidate(); formAlerts.repaint();
+    }
+
+    private JComponent formAlert(String title, String text, boolean error) {
+        Color edge = error ? new Color(0xBE, 0x11, 0x00) : new Color(0xB8, 0x95, 0x00);
+        Color fill = error ? (darkTheme() ? new Color(0x4A, 0x1F, 0x1C) : new Color(0xFD, 0xEC, 0xEA))
+            : (darkTheme() ? new Color(0x4A, 0x3F, 0x1C) : new Color(0xFF, 0xF6, 0xDB));
+        JPanel box = new JPanel(new BorderLayout(0, 2));
+        box.setBackground(fill);
+        box.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(edge), BorderFactory.createEmptyBorder(5, 8, 6, 8)));
+        JLabel heading = new JLabel(title);
+        heading.setFont(heading.getFont().deriveFont(Font.BOLD));
+        ArchvowWrapLabel body = new ArchvowWrapLabel();
+        body.setText(text); body.setOpaque(false);
+        box.add(heading, BorderLayout.NORTH); box.add(body, BorderLayout.CENTER);
+        box.setAlignmentX(LEFT_ALIGNMENT);
+        return box;
     }
 
     /** Everything this panel shows, again in the language of the settings (the box itself included). */
@@ -1968,7 +2080,7 @@ final class ArchvowPanel extends JPanel {
             if (componentViewButtons.size() >= 8) {
                 componentViewButtons.get(4).setText(ArchvowI18n.text(project, "Rules", "Règles"));
                 componentViewButtons.get(5).setText(ArchvowI18n.text(project, "Tasks", "Tâches"));
-                componentViewButtons.get(6).setText("Full vow");
+                componentViewButtons.get(6).setText("Spec");
                 componentViewButtons.get(7).setText(ArchvowI18n.text(project, "Other / Project", "Autres / Projet"));
                 if (selectedView != null) refreshViewStatus(selectedView);
                 componentViewNav.refresh();
@@ -2019,6 +2131,7 @@ final class ArchvowPanel extends JPanel {
         buildingForm = true;
         try { buildForm(command, defaults == null ? Map.of() : defaults); }
         finally { buildingForm = false; }
+        updatePreview();
     }
 
     /** What every command form offers now (ArchvowChoices, the same as VS Code's choices.ts). */
@@ -2039,6 +2152,14 @@ final class ArchvowPanel extends JPanel {
             default -> "";
         };
         commandHelp.setText("archvow " + name + "\n" + command.description + (extra.isEmpty() ? "" : "\n" + extra) + formHelpExtra);
+        boolean french = ArchvowI18n.isFrench(project);
+        String title = ArchvowForms.title(name, french);
+        formTitle.setText(title.isEmpty() ? command.description : title);
+        formDoes.setText(ArchvowForms.does(name, french));
+        String verb = ArchvowForms.verb(name, french);
+        if (formRunButton != null) formRunButton.setText(verb.isEmpty() ? ArchvowI18n.text(project, "Run command", "Exécuter la commande") : verb);
+        JToggleButton moreToggle = null;
+        java.util.List<JComponent> moreParts = new ArrayList<>();
         Map<String, ArchvowChoices.Field> offered = choiceBook().getOrDefault(name, Map.of());
         Map<String, String> values = new LinkedHashMap<>(defaults);
         List<String> own = ArchvowChoices.projectTemplates(manifest);
@@ -2047,7 +2168,7 @@ final class ArchvowPanel extends JPanel {
         // the options archvow hides from --help (invariant add's expert checks): apart, closed unless one holds a value
         JToggleButton expertToggle = null;
         java.util.List<JComponent> expertParts = new ArrayList<>();
-        for (ArchvowGrammar.Param param : command.parameters) {
+        for (ArchvowGrammar.Param param : ArchvowForms.ordered(command)) {
             // init: the template is chosen once, in "Template and its questions" (under the package); template new:
             // its answers and layer folders are in "Settings of <base>", under --extends
             if ("init".equals(name) && "answer".equals(param.name)) continue;
@@ -2075,6 +2196,8 @@ final class ArchvowPanel extends JPanel {
                 combo.setSelectedItem(text);
                 combo.setToolTipText(ArchvowBriefs.foldersLine(declared, combo.getItemCount() - 1, ArchvowI18n.isFrench(project)));
                 control = combo;
+            } else if (!param.choices.isEmpty() && param.choices.size() <= 4 && !param.hidden) {
+                control = new ArchvowSegmented(param.choices, text, param.required);  // design A: one button per value
             } else if (!param.choices.isEmpty()) {
                 JComboBox<String> combo = new JComboBox<>();
                 combo.addItem(""); for (String choice : param.choices) combo.addItem(choice);
@@ -2099,10 +2222,30 @@ final class ArchvowPanel extends JPanel {
                 });
                 form.add(toggle, wide(y++, 8));
             }
+            boolean more = !param.hidden && !ArchvowForms.essential(name, param);
+            if (more && moreToggle == null) {
+                boolean filled = command.parameters.stream().anyMatch(p -> !p.hidden && !ArchvowForms.essential(name, p)
+                    && !values.getOrDefault(p.name, "").isBlank());
+                java.util.List<String> names = new ArrayList<>();
+                for (ArchvowGrammar.Param p : command.parameters)
+                    if (!p.hidden && !ArchvowForms.essential(name, p)) names.add(ArchvowForms.label(name, p.name, french).toLowerCase(java.util.Locale.ROOT));
+                moreToggle = new JToggleButton(ArchvowI18n.text(project, "More options", "Plus d'options") + "  -  " + String.join(", ", names), filled);
+                moreToggle.setHorizontalAlignment(SwingConstants.LEFT);
+                JToggleButton toggle = moreToggle;
+                toggle.addActionListener(e -> {
+                    for (JComponent part : moreParts) part.setVisible(toggle.isSelected());
+                    form.revalidate(); form.repaint();
+                });
+                form.add(toggle, wide(y++, 8));
+            }
             GridBagConstraints label = new GridBagConstraints();
             label.gridx = 0; label.gridy = y; label.anchor = GridBagConstraints.NORTHWEST;
             label.insets = new Insets(6, 4, 2, 9);
-            JLabel labelText = new JLabel((param.required ? "* " : "") + (param.flags.isEmpty() ? param.name : param.option()));
+            // design A: the field in plain words, archvow's option small beside it
+            String flag = param.flags.isEmpty() ? "" : param.option();
+            JLabel labelText = new JLabel("<html><b>" + escapeHtml(ArchvowForms.label(name, param.name, french)) + "</b>"
+                + (param.required ? " <font color='#d9534f'>*</font>" : "")
+                + (flag.isEmpty() ? "" : " <font size='-2' color='gray'>" + escapeHtml(flag) + "</font>") + "</html>");
             form.add(labelText, label);
             JPanel cell = new JPanel(new BorderLayout(2, 2));
             cell.add(control instanceof JTextArea ? scroll(control) : control, BorderLayout.CENTER);
@@ -2121,7 +2264,8 @@ final class ArchvowPanel extends JPanel {
             }
             Object empty = control.getClientProperty("archvow.empty");
             if (empty instanceof String why && !why.isBlank()) under.add(formWarning(why));
-            String helpText = param.help;
+            String hint = ArchvowForms.hint(name, param.name, french);
+            String helpText = hint.isEmpty() ? param.help : hint;
             if (field != null && field.note != null && !"note".equals(field.kind))
                 helpText += (helpText.isBlank() ? "" : "  ·  ") + field.note;
             if ("component add".equals(name) && "spec".equals(param.name))
@@ -2157,6 +2301,12 @@ final class ArchvowPanel extends JPanel {
                 expertParts.add(cell);
                 labelText.setVisible(expertToggle.isSelected());
                 cell.setVisible(expertToggle.isSelected());
+            }
+            if (more && moreToggle != null) {
+                moreParts.add(labelText);
+                moreParts.add(cell);
+                labelText.setVisible(moreToggle.isSelected());
+                cell.setVisible(moreToggle.isSelected());
             }
             if ("init".equals(name) && "package".equals(param.name)) {
                 // the template and its questions, right under the package's name (0.12.1: it was asked twice)
@@ -2216,10 +2366,15 @@ final class ArchvowPanel extends JPanel {
             }
             updateCommandQuestion();
         }
+        for (JComponent control : fields.values()) watchForPreview(control);
         GridBagConstraints spacer = new GridBagConstraints(); spacer.gridx = 1; spacer.gridy = y; spacer.weighty = 1;
         spacer.fill = GridBagConstraints.VERTICAL; form.add(new JPanel(), spacer);
         ArchvowUiIcons.decorateTree(form);
         form.revalidate(); form.repaint();
+    }
+
+    private static String escapeHtml(String text) {
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private static GridBagConstraints wide(int y, int top) {
@@ -2478,6 +2633,7 @@ final class ArchvowPanel extends JPanel {
     private String value(String name) {
         JComponent control = fields.get(name);
         if (control instanceof JCheckBox check) return check.isSelected() ? "true" : "";
+        if (control instanceof ArchvowSegmented segmented) return segmented.value();
         if (control instanceof JComboBox<?> combo) return comboText(combo);
         if (control instanceof JTextArea area) return area.getText().trim();
         if (control instanceof JTextField text) return text.getText().trim();
@@ -2938,6 +3094,7 @@ final class ArchvowPanel extends JPanel {
     private void renderComponent(JsonObject data) {
         if (constructed && role == Role.DETAIL) SwingUtilities.invokeLater(this::afterSelectionChange);
         componentDetails.setText(buildComponentHtml(data));
+        if (aiAcceptButton != null) aiAcceptButton.setVisible("ai".equals(ArchvowGrammar.str(data, "origin")));
         componentDetails.setCaretPosition(0);
         // the same component drawn again (after an answer, a reload): each view keeps its card; another
         // component: each view starts on its first open item, the answer panel ready
@@ -2959,6 +3116,8 @@ final class ArchvowPanel extends JPanel {
         refreshDataActions(data);
         ArchvowVowViewer.display(vowDetails,
             ArchvowVowViewer.read(project.getBasePath(), ArchvowGrammar.str(data, "component")));
+        cardDetails.setText(readCard(ArchvowGrammar.str(data, "component")));
+        cardDetails.setCaretPosition(0);
         assumptionDetails.setCaretPosition(0);
         rulesDetails.setCaretPosition(0);
         rulesOnlyDetails.setCaretPosition(0);
@@ -3066,8 +3225,21 @@ final class ArchvowPanel extends JPanel {
                 ArchvowGrammar.str(entry, "spec").isBlank() ? "" : "ticket " + ArchvowGrammar.str(entry, "spec"),
                 ArchvowGrammar.str(data, "status"))) if (!part.isBlank()) meta.add(part);
         StringBuilder html = new StringBuilder(htmlBareHead());
+        // archvow 1.19, modes guided and free: a component the AI added is the AI's until a person accepts it
+        boolean byAi = "ai".equals(ArchvowGrammar.str(data, "origin"));
+        String aiBadge = byAi ? "&nbsp;<span style='background-color:" + (darkTheme() ? "#1F3550" : "#E3EEFB") + "; color:" + (darkTheme() ? "#80BBF9" : "#2366BC")
+            + "'>&nbsp;" + escape(ArchvowI18n.text(project, "AI: to review", "IA : à relire")) + "&nbsp;</span>" : "";
         html.append("<div style='").append(ArchvowHtml.size(1.6)).append("'><b>").append(escape(id)).append("</b>&nbsp;&nbsp;<span style='").append(ArchvowHtml.size(0.85)).append("'>")
-            .append(badge).append("</span></div>");
+            .append(badge).append(aiBadge).append("</span></div>");
+        if (byAi) {
+            String who = ArchvowGrammar.str(data, "created_by");
+            html.append("<div style='color:").append(darkTheme() ? "#EBB55A" : "#9B6818").append("; margin-top:3px'><b>")
+                .append(escape(ArchvowI18n.text(project, "Created by the AI", "Créé par l'IA") + (who.isBlank() ? "" : " (" + who + ")"))).append("</b> - ")
+                .append(escape(ArchvowI18n.text(project,
+                    "read what it must do, its type and its uses; change it with Edit spec if needed, then Accept. The release gate fails until a person accepts it (ARCH043).",
+                    "lire ce qu'il doit faire, son type et ce qu'il utilise ; le changer avec Modifier la spec si besoin, puis Accepter. Le contrôle de livraison échoue tant qu'une personne ne l'a pas accepté (ARCH043).")))
+                .append("</div>");
+        }
         html.append("<div style='color:").append(mutedHex()).append("; margin-top:2px'>").append(escape(String.join(" · ", meta))).append("</div>");
         String description = ArchvowGrammar.str(data, "description");
         // one bar: decisions made, safety answered, tasks done, examples tested (0.12.0, ArchvowProgress)
@@ -3216,6 +3388,21 @@ final class ArchvowPanel extends JPanel {
             if (suggestion.isBlank()) suggestion = ArchvowGrammar.str(row, "suggested");
             recorded(decisionAnswer, answer.isBlank() ? suggestion : answer);
         } else recorded(decisionAnswer, "");
+        decisionChoices.removeAll();
+        boolean offers = available && ArchvowGrammar.str(row, "answer").isBlank() && row.has("choices") && row.get("choices").isJsonArray()
+            && row.getAsJsonArray("choices").size() > 0;
+        if (offers) {
+            JLabel intro = new JLabel(ArchvowI18n.text(project, "No default (it depends on this project) - to start from:",
+                "Pas de défaut (cela dépend de ce projet) - pour partir de :"));
+            intro.setFont(intro.getFont().deriveFont(Font.BOLD));
+            decisionChoices.add(intro);
+            for (var choice : row.getAsJsonArray("choices")) {
+                String text = choice.getAsString();
+                decisionChoices.add(button(text, () -> { decisionAnswer.setText(text); decisionAnswer.requestFocusInWindow(); }));
+            }
+        }
+        decisionChoices.setVisible(offers);
+        decisionChoices.revalidate(); decisionChoices.repaint();
         if (decisionInlineResultCard != null) decisionInlineResultCard.setVisible(false);
     }
 
@@ -3382,9 +3569,21 @@ final class ArchvowPanel extends JPanel {
         safetySuggestedButton.setVisible(declaring && !proposedHazard.isBlank());
         safetySuggestedButton.setEnabled(declaring && !proposedHazard.isBlank());
         boolean suggestsInvariant = available && !ArchvowSafetyState.suggestedInvariant(row).isBlank();
-        safetySuggestedButton.setText(suggestsInvariant ? ArchvowI18n.text(project,
+        // archvow 1.19: a decision covers the question - one Confirm (hazard + the decision as its invariant),
+        // or, when it says there is nothing to protect, Confirm not applicable (the decision is the reason)
+        JsonObject covering = available && open ? ArchvowSafetyState.coveringDecision(row) : null;
+        coveredNothing = covering != null && !ArchvowSafetyState.notApplicable(row).isBlank();
+        String coveringNumber = covering == null ? "" : ArchvowGrammar.str(covering, "number");
+        safetySuggestedButton.setText(covering != null && !coveredNothing
+            ? ArchvowI18n.text(project, "Confirm (decision " + coveringNumber + ")", "Confirmer (décision " + coveringNumber + ")")
+            : suggestsInvariant ? ArchvowI18n.text(project,
             "Use proposed hazard + invariant", "Utiliser hazard + invariant proposés") : ArchvowI18n.text(project,
             "Use proposed hazard", "Utiliser le hazard proposé"));
+        if (coveredNothing) {
+            safetySuggestedButton.setVisible(false);
+            dismissInline.setText(ArchvowI18n.text(project, "Confirm not applicable (decision " + coveringNumber + ")",
+                "Confirmer non applicable (décision " + coveringNumber + ")"));
+        } else dismissInline.setText(ArchvowI18n.text(project, "Not applicable", "Non applicable"));
         safetySuggestedButton.setToolTipText(available ? ArchvowSafetyState.preview(row) : "");
         switch (safetyMode) {
             case "change" -> {
@@ -3402,11 +3601,10 @@ final class ArchvowPanel extends JPanel {
             default -> {
                 safetyInputLabel.setText(ArchvowI18n.text(project, "Hazard description or reason", "Hazard ou justification"));
                 hazardInline.setText(ArchvowI18n.text(project, "Declare hazard", "Déclarer un hazard"));
-                recorded(safetyInput, open ? proposedHazard : "");
+                recorded(safetyInput, open && !coveredNothing ? proposedHazard : "");
             }
         }
-        // a recorded hazard can be changed (remove + add again) only while no invariant points to it: archvow
-        // 1.18 has no hazard edit, and removing it would leave its invariants protecting nothing
+        // archvow 1.19: hazard edit changes a hazard in place - same id, its invariants stay (and become to review)
         boolean anyGuarded = false, anyFree = false, anyInvariant = false;
         for (JsonObject h : hazards) {
             boolean guarded = !ArchvowGrammar.objects(h, "prevented_by").isEmpty();
@@ -3415,13 +3613,11 @@ final class ArchvowPanel extends JPanel {
             anyInvariant |= guarded;
         }
         changeHazardButton.setVisible(!hazards.isEmpty() && changing == null);
-        changeHazardButton.setEnabled(anyFree);
-        changeHazardButton.setToolTipText(anyFree ? ArchvowI18n.text(project,
-                "Change its text or severity (archvow removes it and records it again)",
-                "Changer son texte ou sa sévérité (archvow le supprime et l'enregistre à nouveau)")
-            : anyGuarded ? ArchvowI18n.text(project,
-                "An invariant protects it: remove the invariant first, or wait for archvow 1.19 (hazard edit keeps its invariants)",
-                "Un invariant le protège : supprime d'abord l'invariant, ou attends archvow 1.19 (hazard edit garde ses invariants)") : "");
+        changeHazardButton.setEnabled(anyFree || anyGuarded);
+        changeHazardButton.setToolTipText(anyGuarded ? ArchvowI18n.text(project,
+                "Change its words or severity: same id, its invariants stay and become to review (hazard edit)",
+                "Changer ses mots ou sa gravité : même id, ses invariants restent et deviennent à revoir (hazard edit)")
+            : ArchvowI18n.text(project, "Change its words or severity: same id (hazard edit)", "Changer ses mots ou sa gravité : même id (hazard edit)"));
         removeHazardButton.setVisible(!hazards.isEmpty());
         removeInvariantButton.setVisible(anyInvariant);
         safetyInvariantButton.setVisible(false);  // replaced by the invariant field above
@@ -3433,15 +3629,9 @@ final class ArchvowPanel extends JPanel {
     private void startHazardChange() {
         JsonObject row = selectedRecord("safety", safetyList.getSelectedIndex());
         if (row == null || selectedComponent == null) return;
-        java.util.List<String> free = new ArrayList<>();
-        for (JsonObject h : ArchvowGrammar.objects(row, "hazards"))
-            if (ArchvowGrammar.objects(h, "prevented_by").isEmpty()) free.add(ArchvowGrammar.str(h, "id"));
-        if (free.isEmpty()) {
-            message(ArchvowI18n.text(project,
-                "An invariant protects this hazard: remove the invariant first (archvow 1.19 adds hazard edit, which keeps it).",
-                "Un invariant protège ce hazard : supprime d'abord l'invariant (archvow 1.19 ajoute hazard edit, qui le garde)."));
-            return;
-        }
+        java.util.List<String> free = new ArrayList<>();  // every recorded hazard: hazard edit keeps its invariants
+        for (JsonObject h : ArchvowGrammar.objects(row, "hazards")) free.add(ArchvowGrammar.str(h, "id"));
+        if (free.isEmpty()) return;
         String chosen = free.size() == 1 ? free.get(0) : (String) JOptionPane.showInputDialog(this,
             ArchvowI18n.text(project, "Select the hazard to change:", "Choisis le hazard à modifier :"),
             "Archvow", JOptionPane.QUESTION_MESSAGE, null, free.toArray(new String[0]), free.get(0));
@@ -3461,24 +3651,17 @@ final class ArchvowPanel extends JPanel {
         if (description.isBlank()) {
             message(ArchvowI18n.text(project, "Write what must never happen.", "Écris ce qui ne doit jamais arriver.")); return;
         }
-        List<String> removal, addition;
-        try {
-            removal = ArchvowInlineCommands.removeHazard(componentId, changingHazard);
-            addition = ArchvowInlineCommands.hazard(componentId, word, severity, description);
-        } catch (IllegalArgumentException ex) { message(ex.getMessage()); return; }
+        List<String> edit;
+        try { edit = ArchvowInlineCommands.editHazard(componentId, changingHazard, description, severity); }
+        catch (IllegalArgumentException ex) { message(ex.getMessage()); return; }
         String summary = "S" + number + " — " + ArchvowGrammar.str(row, "question") + "\n\n"
-            + ArchvowI18n.text(project, "Change " + removal.get(2) + " to (" + severity + "): " + description
-                    + "\narchvow removes it, then records it again: two commands.",
-                "Modifier " + removal.get(2) + " en (" + severity + ") : " + description
-                    + "\narchvow le supprime puis l'enregistre à nouveau : deux commandes.");
-        requestConfirmation("hazard change", summary, () -> {
-            safetyInlineResultCard.setVisible(true);
-            safetyInlineResult.setText(htmlMessage("<b>" + escape(ArchvowI18n.text(project, "Running…", "Exécution…")) + "</b>"));
-            cli.execute("hazard remove", removal, null, removed -> {
-                if (!removed.ok()) { storeCommandResult(safetyInlineResult, "hazard remove", removed); return; }
-                changingHazard = null;
-                runInlineComponentAction("hazard add", addition, componentId, number, true);
-            });
+            + ArchvowI18n.text(project, "Change " + edit.get(2) + " to (" + severity + "): " + description
+                    + "\nSame id; the invariants that protect it become to review.",
+                "Modifier " + edit.get(2) + " en (" + severity + ") : " + description
+                    + "\nMême id ; les invariants qui le protègent deviennent à revoir.");
+        requestConfirmation("hazard edit", summary, () -> {
+            changingHazard = null;
+            runInlineComponentAction("hazard edit", edit, componentId, number, true);
         }, true);
     }
 
@@ -3579,7 +3762,7 @@ final class ArchvowPanel extends JPanel {
         String word = ArchvowGrammar.str(row, "guide_word");
         if (word.isBlank()) word = "S" + number;
         String description = safetyInput.getText().trim();
-        if (dismiss && description.isBlank()) {
+        if (dismiss && description.isBlank() && !coveredNothing) {
             message(ArchvowI18n.text(project, "Explain why this hazard is not applicable.",
                 "Justifie pourquoi ce hazard n'est pas applicable.")); return;
         }
@@ -3589,7 +3772,8 @@ final class ArchvowPanel extends JPanel {
                 : ArchvowInlineCommands.hazard(id, word, String.valueOf(safetySeverity.getSelectedItem()), description);
         } catch (IllegalArgumentException ex) { message(ex.getMessage()); return; }
         String confirmation = "S" + number + " — " + ArchvowGrammar.str(row,"question") + "\n\n"
-            + (dismiss ? ArchvowI18n.text(project, "Mark as not applicable?", "Déclarer non applicable ?")
+            + (dismiss ? (description.isBlank() ? ArchvowSafetyState.notApplicable(row) + "\n" : "")
+                       + ArchvowI18n.text(project, "Mark as not applicable?", "Déclarer non applicable ?")
                        : ArchvowI18n.text(project, "Declare this hazard?", "Déclarer ce hazard ?"));
         if (!dismiss && ("critical".equalsIgnoreCase(String.valueOf(safetySeverity.getSelectedItem()))
             || "high".equalsIgnoreCase(String.valueOf(safetySeverity.getSelectedItem())))
@@ -3760,6 +3944,53 @@ final class ArchvowPanel extends JPanel {
         message(ArchvowI18n.text(project,
             "All decision and safety questions are answered for this component.",
             "Toutes les décisions et questions de sécurité sont traitées pour ce composant."));
+    }
+
+    /**
+     * Spec: one view of the component's spec - the card the AI implements (spec.md, written by archvow) and the
+     * vow it is written from (spec.vow). Two files on disk, one place to read them.
+     */
+    private JComponent specPanel() {
+        boolean fr = ArchvowI18n.isFrench(project);
+        specPart = new ArchvowSegmented(List.of(fr ? "La fiche que l'IA implémente" : "The card the AI implements",
+            fr ? "Le vow dont elle est écrite" : "The vow it is written from"), fr ? "La fiche que l'IA implémente" : "The card the AI implements", true);
+        cardDetails.setEditable(false); cardDetails.setLineWrap(true); cardDetails.setWrapStyleWord(true);
+        cardDetails.setFont(new Font(Font.MONOSPACED, Font.PLAIN, cardDetails.getFont().getSize()));
+        specCards.add(scroll(cardDetails), "card");
+        specCards.add(scroll(vowDetails), "vow");
+        specPart.onChange(() -> ((CardLayout) specCards.getLayout()).show(specCards, specPart.buttons().get(0).isSelected() ? "card" : "vow"));
+        languageRefreshers.add(() -> {  // the switch follows the language; which one is pressed stays
+            specPart.buttons().get(0).setText(ArchvowI18n.text(project, "The card the AI implements", "La fiche que l'IA implémente"));
+            specPart.buttons().get(1).setText(ArchvowI18n.text(project, "The vow it is written from", "Le vow dont elle est écrite"));
+        });
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+        bar.add(specPart);
+        bar.add(button(ArchvowI18n.text(project, "Open in the editor", "Ouvrir dans l'éditeur"), () -> {
+            if (specPart.buttons().get(0).isSelected()) openSpec(); else openVowFile();
+        }));
+        bar.add(button(ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
+        JLabel readOnly = new JLabel(ArchvowI18n.text(project, "read only: change it with the commands (Edit spec, + Question, + Rule...)",
+            "en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)"));
+        readOnly.setForeground(mutedTextColor());
+        bar.add(readOnly);
+        JPanel panel = new JPanel(new BorderLayout(0, 4));
+        panel.add(bar, BorderLayout.NORTH);
+        panel.add(specCards, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private String readCard(String component) {
+        if (component == null || component.isBlank() || project.getBasePath() == null) return "";
+        File card = new File(project.getBasePath(), ".archvow/components/" + component + "/spec.md");
+        try { return card.isFile() ? java.nio.file.Files.readString(card.toPath(), java.nio.charset.StandardCharsets.UTF_8)
+            : ArchvowI18n.text(project, "No spec.md yet: archvow docs writes it.", "Pas encore de spec.md : archvow docs l'écrit."); }
+        catch (IOException e) { return e.getMessage(); }
+    }
+
+    private void openVowFile() {
+        if (selectedComponent == null || project.getBasePath() == null) return;
+        showFirstFile(List.of(new File(project.getBasePath(), ".archvow/components/" + selectedComponent.id + "/spec.vow")),
+            "Spec not found / Spec introuvable : " + selectedComponent.id);
     }
 
     private void openSpec() {

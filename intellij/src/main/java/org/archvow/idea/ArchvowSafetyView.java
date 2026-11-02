@@ -98,13 +98,27 @@ final class ArchvowSafetyView {
                 }
             }
 
+            // archvow 1.19: a decision already answers the question - Confirm records it as that decision
+            JsonObject covering = pending ? ArchvowSafetyState.coveringDecision(question) : null;
+            if (covering != null) {
+                String n = ArchvowGrammar.str(covering, "number");
+                boolean nothing = !ArchvowSafetyState.notApplicable(question).isBlank();
+                section(doc, nothing ? (french ? "LA DÉCISION " + n + " DIT QU'IL N'Y A RIEN À PROTÉGER" : "DECISION " + n + " SAYS THERE IS NOTHING TO PROTECT")
+                    : (french ? "COUVERT PAR LA DÉCISION " + n : "COVERED BY DECISION " + n), green);
+                add(doc, ArchvowGrammar.str(covering, "answer"), body, false, 13);
+                add(doc, "\n" + (nothing
+                    ? (french ? "Confirmer non applicable : la décision est la raison." : "Confirm not applicable: the decision is the reason.")
+                    : (french ? "Confirmer enregistre le hazard et un invariant qui est cette décision : aucun mot recopié, son test marqué decision(" + n + ") le prouve."
+                              : "Confirm records the hazard and an invariant that is this decision: no words copied, its test marked decision(" + n + ") proves it.")),
+                    secondary, false, 12);
+            }
             String suggestedHazard = ArchvowSafetyState.suggestedHazard(question);
             if (!suggestedHazard.isBlank()) {
                 section(doc, french ? "HAZARD PROPOSÉ" : "PROPOSED HAZARD", blue);
                 add(doc, suggestedHazard, body, false, 13);
             }
             String suggestedInvariant = ArchvowSafetyState.suggestedInvariant(question);
-            if (!suggestedInvariant.isBlank()) {
+            if (!suggestedInvariant.isBlank() && covering == null) {
                 section(doc, french ? "INVARIANT PROPOSÉ" : "PROPOSED INVARIANT", blue);
                 add(doc, suggestedInvariant, body, false, 13);
             }

@@ -1,0 +1,23 @@
+vow 1 component logging_setup
+# archvow vow of logging_setup - what it must be and do; archvow check holds the code to it.
+# Read: archvow show logging_setup. Change: archvow specify logging_setup. Never edit by hand.
+name logging_setup
+type foundation
+layer p0_common
+module my_pipeline.p0_common.logging_setup
+description "Configure la journalisation une fois, pour le point d'entrée (niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde -, jamais un secret, une ligne de données ni une donnée personnelle)."
+uses []
+
+# --- symbols
+symbol setup_logging
+  kind function
+  signature "(level: str = \"INFO\") -> None"
+
+# --- decisions
+decision 1
+  question "(a question the template no longer asks: c1be6541bf31)"
+  answer "stderr, one line per event: time, level, component, message"
+  by architect@example.com
+  on 2026-11-02T00:56:44.374063+00:00
+
+assumptions []

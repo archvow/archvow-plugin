@@ -10,7 +10,7 @@ variables:
   GIT_DEPTH: "0"  # `archvow check --base` needs the target branch history
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   # Where CI installs archvow from (Settings > CI/CD > Variables can override it).
-  ARCHVOW_PIP_SPEC: "archvow==1.18.0"           # pinned: upgrade deliberately
+  ARCHVOW_PIP_SPEC: "archvow==1.19.0"           # pinned: upgrade deliberately
 
 workflow:  # gitflow: merge requests, then main and develop after each merge
   rules:

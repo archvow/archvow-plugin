@@ -23,6 +23,7 @@ select = [
     "ERA",      # no commented-out code (Palantir guide: rely on git)
     "RUF",
     "S",        # security (Bandit): hard-coded passwords and secrets, unsafe calls ("Errors should never pass silently")
+    "T20",      # no print(): output goes through logging, or through the command line's own layer
     "FAST",     # FastAPI: Annotated dependencies, path parameters, response models
     "ASYNC",    # blocking calls inside async functions
 ]
@@ -45,4 +46,4 @@ max-statements = 40
 known-first-party = ["orders_api"]
 
 [lint.per-file-ignores]
-"tests/**" = ["D", "PLR2004", "S101"]   # tests use assert
+"tests/**" = ["D", "PLR2004", "S101", "T20"]   # tests use assert

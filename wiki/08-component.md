@@ -15,7 +15,7 @@ dans `show --json` pour le module et le ticket).
 │ transformation · p1_domain · module ... · ticket FATTRIB-12 · verified     │
 │ Garder les lignes où montant > 0 ...                                       │
 │ Utilise : sales_schema · Utilisé par : revenue_writer    Exemples : ✓ ...  │
-│ [Clarifier] Ouvrir la spec  Ouvrir le code  Modifier la spec  ...          │  actions
+│ [Clarifier] Ouvrir le code  Modifier la spec  ...                          │  actions
 │ (Décisions · 1) (Questions) (Sécurité ✓) (Hypothèses) (Règles) (Tâches) ...  │  vues
 ├──────────────────────────────────┬────────────────────────────────────────┤
 │ 1 · Quelles lignes garde-t-elle… │ RÉPONDRE À LA DÉCISION 3               │
@@ -39,10 +39,13 @@ et inchangé, ✖ avec la raison, ARCH055/ARCH056). IntelliJ : `buildComponentHt
 `componentDetails` ; VS Code : `componentDetail()`, `openBadge()`, `meta()`.
 
 **Les actions** : Clarifier (va au premier élément ouvert : décision, puis question, puis question de
-sûreté ; `guidedNext`, `chooseNext()`), Ouvrir la spec, Ouvrir le code (le fichier du `module`),
-Modifier la spec, Instruction IA (`archvow prompt <composant>`), + Question, + Règle, + Composant.
+sûreté ; `guidedNext`, `chooseNext()`), Ouvrir le code (le fichier du `module`),
+Modifier la spec, Instruction IA (`archvow prompt <composant>`), + Question, + Règle, + Composant ;
+Accepter… pour un composant créé par l'IA (archvow 1.19, modes guided et free : son vow dit `origin ai`,
+`created_by`), qui montre **IA : à relire** dans l'arbre et son en-tête jusqu'à ce qu'une personne lance
+`component accept` (`aiBadge()`, `createdByAi()`, `buildComponentHtml`, `aiAcceptButton`).
 
-**Les vues** : Décisions, Questions, Sécurité, Hypothèses, Règles, Tâches, Full vow, Autres / Projet.
+**Les vues** : Décisions, Questions, Sécurité, Hypothèses, Règles, Tâches, Spec, Autres / Projet.
 Chaque bouton dit `· n` éléments en attente, ou ✓ quand tout est traité (`refreshViewStatus`,
 `viewCounts()`). Sous les vues, une ligne explique pourquoi le total du composant peut dépasser la vue
 (« 9 en attente · 0 dans Données et tâches · 4 dans Autres / Projet »).
@@ -74,17 +77,29 @@ carte choisie. IntelliJ : `fill()` et `renderedComponent` dans `renderComponent`
 |---|---|---|---|
 | Décisions | la réponse ou la proposition | Enregistrer la réponse, Proposer, Accepter la proposition, Utiliser la suggestion (seulement celles qui s'appliquent) | `decision make`, `decision propose`, `decision accept` |
 | Questions | la réponse | Enregistrer la réponse | `decision make <c> <clé>` |
-| Sécurité | le hazard, ou pourquoi il ne s'applique pas ; la gravité ; ou l'invariant requis | Déclarer un hazard, Non applicable, Utiliser le hazard (et l'invariant) proposé ; sur un hazard enregistré : Modifier, Supprimer ; Ajouter l'invariant (sur place), Ajouter un invariant…, Supprimer un invariant… | `hazard add`, `hazard dismiss`, `hazard remove` (+ `hazard add` pour Modifier), `invariant add` ; formulaires `invariant add`, `invariant remove` |
+| Sécurité | le hazard, ou pourquoi il ne s'applique pas ; la gravité ; ou l'invariant requis | Déclarer un hazard, Non applicable, Utiliser le hazard (et l'invariant) proposé, Confirmer (couvert par une décision), Confirmer non applicable ; sur un hazard enregistré : Modifier, Supprimer ; Ajouter l'invariant (sur place), Ajouter un invariant…, Supprimer un invariant… | `hazard add`, `hazard dismiss` (sans raison quand la décision est la raison), `hazard edit` (Modifier), `hazard remove`, `invariant add` ; formulaires `invariant add`, `invariant remove` |
 | Hypothèses | - | Accepter, Rejeter (formulaires), + Hypothèse | `assumption accept`, `assumption reject`, `assumption add` |
 
 Un seul champ, trois usages (0.13.1) : déclarer le hazard d'une question ouverte ; modifier un hazard
-enregistré (Modifier : le champ reprend son texte et sa gravité, l'enregistrement fait `hazard remove`
-puis `hazard add`, confirmés une fois - seulement tant qu'aucun invariant ne le protège, archvow 1.18
-n'ayant pas de `hazard edit`) ; écrire l'invariant qu'un hazard élevé ou critique attend (ARCH030), ici
+enregistré (Modifier : le champ reprend son texte et sa gravité, l'enregistrement fait `hazard edit` -
+0.14.0, archvow 1.19 : même id, ses invariants restent et deviennent à revoir ; proposé pour chaque hazard
+enregistré) ; écrire l'invariant qu'un hazard élevé ou critique attend (ARCH030), ici
 même, rempli avec la suggestion du template - archvow ne la donne que tant que la question est ouverte,
 les deux plugins la gardent donc (`rememberedInvariants`, `ui.suggested`). « Ajouter l'invariant requis »
 des listes En attente ouvre ce champ, plus le formulaire. Une question traitée et protégée ne montre que
-ses hazards, ses invariants et les suppressions. Son état suit les règles d'archvow :
+ses hazards, ses invariants et les suppressions.
+
+**Une question à laquelle une décision répond déjà** (archvow 1.19 : `show --json` donne la `decision`
+{number, answer} de la suggestion) : « Couvert par la décision N », sa réponse, et **Confirmer** -
+`hazard add` sans mots, archvow enregistre donc le hazard et un invariant qui *est* cette décision
+(`from_decision`). Quand la décision dit qu'il n'y a rien à protéger (`not_applicable`), **Confirmer non
+applicable** envoie `hazard dismiss` sans raison : la décision est la raison. L'invariant proposé et
+« Utiliser le hazard proposé » ne sont alors pas montrés (`ArchvowSafetyState.coveringDecision` /
+`notApplicable`).
+
+**Les décisions sans défaut sûr** (archvow 1.19 : les `choices` d'une décision) les proposent en boutons
+sous « Pas de défaut (cela dépend de ce projet) - pour partir de : » ; un bouton remplit le champ de
+réponse, à compléter (`useChoice`, `decisionChoices`). Son état suit les règles d'archvow :
 `ArchvowSafetyState`, l'objet `safety` de `vscode/src/workItems.ts`. IntelliJ range les boutons dans un
 `ArchvowWrapLayout` (un `FlowLayout` qui demande la hauteur de chaque ligne : « Supprimer un hazard… »
 sortait du panneau).
@@ -121,5 +136,5 @@ confirmation laissée ouverte : on ne confirme jamais une action préparée pour
 |---|---|---|
 | Règles | les règles qui s'appliquent au composant (R1, R2...) et leur portée | Ajouter, Modifier, Supprimer une règle (formulaires) |
 | Tâches | les colonnes à classer et les tâches de la fiche ; données personnelles | Classer la colonne (`column set`), les instructions d'une tâche (`prompt <c> --task n`, `ArchvowTaskPrompt`, `promptCommand()`) |
-| Full vow | le `spec.vow` du composant, coloré, en lecture seule | Ouvrir la spec |
+| Spec | la fiche que l'IA implémente (`spec.md`) ou le vow dont elle est écrite (`spec.vow`, coloré), un sélecteur entre les deux, en lecture seule (0.14.0 : une vue au lieu d'Ouvrir la spec et Full vow ; `vowView()`, `specPanel()`) | Ouvrir dans l'éditeur, Vow du projet |
 | Autres / Projet | les contrôles et éléments de tout le projet, ou sans composant prouvé | l'action de chaque élément ; une correction n'est tirée d'un message que si elle est documentée (`ArchvowIssueAction`, `issueFix()`), jamais exécutée telle quelle |

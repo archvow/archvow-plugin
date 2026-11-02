@@ -2,7 +2,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "1.18.0",
+      "version": "1.19.0",
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
@@ -208,6 +208,24 @@
           "default": "briefs",
           "multiple": true,
           "required": false
+        },
+        {
+          "id": "max_components",
+          "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+          "default": "",
+          "pattern": "^([1-9][0-9]*)?$",
+          "pattern_hint": "a whole number, or empty for no limit",
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "max_code_lines",
+          "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+          "default": "",
+          "pattern": "^([1-9][0-9]*)?$",
+          "pattern_hint": "a whole number, or empty for no limit",
+          "required": false,
+          "multiple": false
         },
         {
           "id": "git_hooks",
@@ -500,7 +518,7 @@
     },
     {
       "name": "pyspark-pipeline",
-      "version": "1.18.0",
+      "version": "1.19.0",
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -705,6 +723,24 @@
           "default": "briefs",
           "multiple": true,
           "required": false
+        },
+        {
+          "id": "max_components",
+          "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+          "default": "",
+          "pattern": "^([1-9][0-9]*)?$",
+          "pattern_hint": "a whole number, or empty for no limit",
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "max_code_lines",
+          "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+          "default": "",
+          "pattern": "^([1-9][0-9]*)?$",
+          "pattern_hint": "a whole number, or empty for no limit",
+          "required": false,
+          "multiple": false
         },
         {
           "id": "git_hooks",
@@ -1018,7 +1054,7 @@
     },
     {
       "name": "python-app",
-      "version": "1.18.0",
+      "version": "1.19.0",
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",
@@ -1223,6 +1259,24 @@
           "default": "briefs",
           "multiple": true,
           "required": false
+        },
+        {
+          "id": "max_components",
+          "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+          "default": "",
+          "pattern": "^([1-9][0-9]*)?$",
+          "pattern_hint": "a whole number, or empty for no limit",
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "max_code_lines",
+          "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+          "default": "",
+          "pattern": "^([1-9][0-9]*)?$",
+          "pattern_hint": "a whole number, or empty for no limit",
+          "required": false,
+          "multiple": false
         },
         {
           "id": "git_hooks",

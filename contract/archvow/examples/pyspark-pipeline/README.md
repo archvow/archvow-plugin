@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `pyspark-pipeline@1.18.0`).
+[archvow](.archvow/README.md) (template `pyspark-pipeline@1.19.0`).
 
 ## For developers
 
@@ -165,7 +165,7 @@ The type fixes the structure: the file, the public function and its signature, t
 test file; it turns the name into the component id (`sales` -> `sales_reader`). **The
 description (`-d`) is what the AI assistant - or the developer - implements**: write the real
 columns, conditions and formulas. Types: `archvow component add --help`. The AI assistant can propose
-these commands for a whole feature: `/draft-spec <the feature in plain words>`. The columns a
+these commands for a whole feature: `/archvow-draft-spec <the feature in plain words>`. The columns a
 reader or a writer works on are a `schema` component it uses; without one, `archvow check` warns
 (`ARCH019`).
 
@@ -215,6 +215,7 @@ archvow next
 ```
   component                    type            status
 ✖ config                       foundation      blocked: 2 decisions to make  -> archvow specify config
+✖ logging_setup                foundation      blocked: 1 decision to make  -> archvow specify logging_setup
 ✖ spark                        foundation      blocked: 1 decision to make  -> archvow specify spark
 ✖ clean_sales                  transformation  blocked: 9 decisions to make  -> archvow specify clean_sales
 ✖ revenue_schema               schema          blocked: 2 decisions to make  -> archvow specify revenue_schema
@@ -226,7 +227,7 @@ archvow next
 
 Safety: 1 of 20 questions answered  -> archvow specify
 
-! Not ready to run yet: my_pipeline_main needs config (planned), spark (planned), sales_schema (planned), sales_reader (planned), clean_sales (planned), revenue_schema (planned), revenue_writer (planned), my_pipeline_job (planned), my_pipeline_main (planned)
+! Not ready to run yet: my_pipeline_main needs config (planned), logging_setup (planned), spark (planned), sales_schema (planned), sales_reader (planned), clean_sales (planned), revenue_schema (planned), revenue_writer (planned), my_pipeline_job (planned), my_pipeline_main (planned)
 ```
 
 *blocked*: questions are still open; answer them as in step 3 and the component becomes
@@ -267,13 +268,13 @@ SPARK_MASTER="local[*]" ./entrypoint.sh my_pipeline <its arguments>   # that lin
 | say what a transformation computes | answer its questions 1-4: `archvow decision make clean_sales 1 "Rows with an id and an amount >= 0"` |
 | join two datasets | `archvow component add transformation add_reference -d "..." --signature "(df: DataFrame, reference: DataFrame) -> DataFrame"` |
 | ask a question, as a developer | `archvow question add clean_sales "May amount be negative for refunds?"` |
-| let the AI find what is unclear | `archvow prompt clean_sales --clarify` (in the chat: `/clarify clean_sales`) |
+| let the AI find what is unclear | `archvow prompt clean_sales --clarify` (in the chat: `/archvow-clarify clean_sales`) |
 | dismiss a safety question that does not apply | `archvow hazard dismiss sales_reader S4 "the job reads only the file it is given"` |
 | see everything about a component | `archvow show sales_reader` |
 | answer what is open, one question at a time | `archvow specify sales_reader` (in a terminal) |
-| let the AI propose the risks of a component | in the chat: `/analyze sales_reader` |
+| let the AI propose the risks of a component | in the chat: `/archvow-analyze sales_reader` |
 | build a big component one task at a time | `archvow show clean_sales` lists its tasks T1, T2...; `archvow prompt clean_sales` gives the next one; mark each test: `@pytest.mark.decision(3)` |
-| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init my_pipeline --force -a briefs=...`) | in the chat: `/draft-spec briefs/sales.md`; after the brief changes (ARCH039): `archvow brief accept briefs/sales.md#cleaning` |
+| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init my_pipeline --force -a briefs=...`) | in the chat: `/archvow-draft-spec briefs/sales.md`; after the brief changes (ARCH039): `archvow brief accept briefs/sales.md#cleaning` |
 | classify columns (GDPR) | `archvow column set sales_schema email,phone personal` |
 | say a step removes or pseudonymises them | `archvow column set clean_sales phone --removes` |
 | list what a release contains | `archvow changes --from v1.0.0 --markdown` |

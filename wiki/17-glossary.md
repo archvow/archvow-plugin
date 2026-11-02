@@ -10,7 +10,7 @@ wiki d'archvow ; voici ceux des plugins, avec où les trouver dans le code.
 | **barre latérale** (navigation) | ce qui choisit : Overview, Components, Commands. IntelliJ : la fenêtre d'outils Archvow à gauche ; VS Code : la barre d'activité | `ArchvowPanel` en rôle `NAVIGATION`, `ArchvowNavigationTabs` ; la page en rôle `nav` |
 | **l'onglet** (détail) | **un seul** onglet d'éditeur qui montre ce qui est choisi, réutilisé pour le choix suivant | `ArchvowEditorTab`, `ArchvowEditorProvider`, `ArchvowPanel` en rôle `DETAIL` ; le *webview panel*, la page en rôle `editor` |
 | **Overview** | l'écran du projet : son état, l'architecture, Check & Gates, le travail en attente et fait, les commandes de projet | page [Overview](/07-overview) |
-| **vue** (d'un composant) | Décisions, Questions, Sécurité, Hypothèses, Règles, Tâches, Full vow, Autres / Projet | `addComponentView`, la constante `VIEWS` de la page |
+| **vue** (d'un composant) | Décisions, Questions, Sécurité, Hypothèses, Règles, Tâches, Spec, Autres / Projet | `addComponentView`, la constante `VIEWS` de la page |
 | **carte** | un élément d'une vue (une décision, une question...) sur une ligne, à gauche | `ArchvowItemCards`, `cards()` |
 | **panneau de réponse** | la carte choisie, à droite (ou dessous) : la question entière, le champ, les actions | `ArchvowSplitView`, `split()` |
 | **premier élément ouvert** | la carte choisie à l'ouverture d'un composant : le premier élément sans réponse, sinon le premier | `ArchvowItemCards.firstOpen`, `current()` |

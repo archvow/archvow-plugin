@@ -1141,6 +1141,38 @@
       "empty": "No safety question for this component."
      }
     },
+    "hazard edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoice_model.H1",
+        "label": "invoice_model.H1 — high: An invoice with a negative amount is accepted",
+        "fill": {
+         "words": "An invoice with a negative amount is accepted",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "invoices_repository.H1",
+        "label": "invoices_repository.H1 — high: An invoice file is half written",
+        "fill": {
+         "words": "An invoice file is half written",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "mark_paid.H1",
+        "label": "mark_paid.H1 — high: Paying twice changes the invoice twice",
+        "fill": {
+         "words": "Paying twice changes the invoice twice",
+         "severity": "high"
+        }
+       }
+      ],
+      "empty": "No hazard declared in this project."
+     }
+    },
     "hazard remove": {
      "id": {
       "kind": "select",
@@ -1196,6 +1228,108 @@
       ],
       "empty": "No component yet: add one with component add."
      },
+     "from_decision": {
+      "kind": "select",
+      "by": "component",
+      "lists": {
+       "config": [
+        {
+         "value": "1",
+         "label": "1 — Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INF…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_passwor…"
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message? …"
+        }
+       ],
+       "invoice_model": [
+        {
+         "value": "1",
+         "label": "1 — Which fields are required, and which are optional (with which default) - e.g. number: str required, note:…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with …"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass? → Frozen…"
+        }
+       ],
+       "invoice_not_found_error": [
+        {
+         "value": "1",
+         "label": "1 — Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3? → Exit code 3"
+        },
+        {
+         "value": "2",
+         "label": "2 — What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not foun…"
+        }
+       ],
+       "invoices_repository": [
+        {
+         "value": "1",
+         "label": "1 — Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLit…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error? → Return N…"
+        },
+        {
+         "value": "3",
+         "label": "3 — A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-writt…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Two runs write the same record at the same moment: the last one wins, the second one is refused, or the s…"
+        }
+       ],
+       "mark_paid": [
+        {
+         "value": "1",
+         "label": "1 — What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a dr…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Something it needs does not exist: which domain error - e.g. InvoiceNotFound? → InvoiceNotFoundError"
+        },
+        {
+         "value": "3",
+         "label": "3 — Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no du…"
+        },
+        {
+         "value": "4",
+         "label": "4 — What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but…"
+        }
+       ],
+       "invoices_cli": [
+        {
+         "value": "1",
+         "label": "1 — Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message? → Exit code 2 with…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2…"
+        },
+        {
+         "value": "3",
+         "label": "3 — What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on st…"
+        }
+       ]
+      },
+      "empty": "No decision made on this component yet.",
+      "note": "Instead of words: the invariant is what this decision answers, and follows it when it changes."
+     },
      "prevents": {
       "kind": "select",
       "by": "component",
@@ -1224,6 +1358,35 @@
        "invoices_cli": []
       },
       "empty": "No hazard declared on this component yet."
+     }
+    },
+    "invariant edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoice_model.INV1",
+        "label": "invoice_model.INV1 — every invoice has an amount of zero or more",
+        "fill": {
+         "words": "every invoice has an amount of zero or more"
+        }
+       },
+       {
+        "value": "invoices_repository.INV1",
+        "label": "invoices_repository.INV1 — an invoice file is complete or absent",
+        "fill": {
+         "words": "an invoice file is complete or absent"
+        }
+       },
+       {
+        "value": "mark_paid.INV1",
+        "label": "mark_paid.INV1 — marking an invoice paid twice gives the same invoice as once",
+        "fill": {
+         "words": "marking an invoice paid twice gives the same invoice as once"
+        }
+       }
+      ],
+      "empty": "No invariant in this project."
      }
     },
     "invariant remove": {
@@ -2785,6 +2948,38 @@
       "empty": "Aucune question de sécurité pour ce composant."
      }
     },
+    "hazard edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoice_model.H1",
+        "label": "invoice_model.H1 — high: An invoice with a negative amount is accepted",
+        "fill": {
+         "words": "An invoice with a negative amount is accepted",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "invoices_repository.H1",
+        "label": "invoices_repository.H1 — high: An invoice file is half written",
+        "fill": {
+         "words": "An invoice file is half written",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "mark_paid.H1",
+        "label": "mark_paid.H1 — high: Paying twice changes the invoice twice",
+        "fill": {
+         "words": "Paying twice changes the invoice twice",
+         "severity": "high"
+        }
+       }
+      ],
+      "empty": "Aucun hazard déclaré dans ce projet."
+     }
+    },
     "hazard remove": {
      "id": {
       "kind": "select",
@@ -2840,6 +3035,108 @@
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
      },
+     "from_decision": {
+      "kind": "select",
+      "by": "component",
+      "lists": {
+       "config": [
+        {
+         "value": "1",
+         "label": "1 — Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INF…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_passwor…"
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message? …"
+        }
+       ],
+       "invoice_model": [
+        {
+         "value": "1",
+         "label": "1 — Which fields are required, and which are optional (with which default) - e.g. number: str required, note:…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with …"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass? → Frozen…"
+        }
+       ],
+       "invoice_not_found_error": [
+        {
+         "value": "1",
+         "label": "1 — Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3? → Exit code 3"
+        },
+        {
+         "value": "2",
+         "label": "2 — What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not foun…"
+        }
+       ],
+       "invoices_repository": [
+        {
+         "value": "1",
+         "label": "1 — Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLit…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error? → Return N…"
+        },
+        {
+         "value": "3",
+         "label": "3 — A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-writt…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Two runs write the same record at the same moment: the last one wins, the second one is refused, or the s…"
+        }
+       ],
+       "mark_paid": [
+        {
+         "value": "1",
+         "label": "1 — What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a dr…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Something it needs does not exist: which domain error - e.g. InvoiceNotFound? → InvoiceNotFoundError"
+        },
+        {
+         "value": "3",
+         "label": "3 — Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no du…"
+        },
+        {
+         "value": "4",
+         "label": "4 — What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but…"
+        }
+       ],
+       "invoices_cli": [
+        {
+         "value": "1",
+         "label": "1 — Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message? → Exit code 2 with…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2…"
+        },
+        {
+         "value": "3",
+         "label": "3 — What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on st…"
+        }
+       ]
+      },
+      "empty": "Aucune décision prise sur ce composant.",
+      "note": "À la place des mots : l'invariant est ce que cette décision répond, et la suit quand elle change."
+     },
      "prevents": {
       "kind": "select",
       "by": "component",
@@ -2868,6 +3165,35 @@
        "invoices_cli": []
       },
       "empty": "Aucun hazard déclaré sur ce composant."
+     }
+    },
+    "invariant edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoice_model.INV1",
+        "label": "invoice_model.INV1 — every invoice has an amount of zero or more",
+        "fill": {
+         "words": "every invoice has an amount of zero or more"
+        }
+       },
+       {
+        "value": "invoices_repository.INV1",
+        "label": "invoices_repository.INV1 — an invoice file is complete or absent",
+        "fill": {
+         "words": "an invoice file is complete or absent"
+        }
+       },
+       {
+        "value": "mark_paid.INV1",
+        "label": "mark_paid.INV1 — marking an invoice paid twice gives the same invoice as once",
+        "fill": {
+         "words": "marking an invoice paid twice gives the same invoice as once"
+        }
+       }
+      ],
+      "empty": "Aucun invariant dans ce projet."
      }
     },
     "invariant remove": {
@@ -5042,6 +5368,30 @@
       "empty": "No safety question for this component."
      }
     },
+    "hazard edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "create_order.H1",
+        "label": "create_order.H1 — high: An order is saved with an amount of zero or less",
+        "fill": {
+         "words": "An order is saved with an amount of zero or less",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "orders_router.H1",
+        "label": "orders_router.H1 — critical: A customer reads another customer's order",
+        "fill": {
+         "words": "A customer reads another customer's order",
+         "severity": "critical"
+        }
+       }
+      ],
+      "empty": "No hazard declared in this project."
+     }
+    },
     "hazard remove": {
      "id": {
       "kind": "select",
@@ -5105,6 +5455,174 @@
       ],
       "empty": "No component yet: add one with component add."
      },
+     "from_decision": {
+      "kind": "select",
+      "by": "component",
+      "lists": {
+       "get_current_user": [
+        {
+         "value": "1",
+         "label": "1 — What does it provide, and for how long (one request, the whole app)? → The customer id (str) from the X-C…"
+        },
+        {
+         "value": "2",
+         "label": "2 — What happens when it cannot (no token, the database is down): which error, which HTTP status in the end? …"
+        }
+       ],
+       "settings": [
+        {
+         "value": "1",
+         "label": "1 — Which settings, with which defaults (name: type = default), and which are required? → app_name: str = 'or…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which settings are secrets (never logged, never in a response), and where do they come from? → No secret …"
+        }
+       ],
+       "new_order_model": [
+        {
+         "value": "1",
+         "label": "1 — Which fields are required, and which are optional (with which default)? → amount required"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which values are valid for each field (ranges, formats, lengths, allowed states)? → amount > 0 with at mo…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which fields must never appear in a response or a log (passwords, internal ids, personal data)? → None"
+        }
+       ],
+       "order_model": [
+        {
+         "value": "1",
+         "label": "1 — Which fields are required, and which are optional (with which default)? → All fields required"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which values are valid for each field (ranges, formats, lengths, allowed states)? → amount >= 0 with 2 de…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which fields must never appear in a response or a log (passwords, internal ids, personal data)? → None: t…"
+        }
+       ],
+       "order_not_found_error": [
+        {
+         "value": "1",
+         "label": "1 — Which HTTP status does the app answer with it (404, 409, 422...)? → 404 Not Found"
+        },
+        {
+         "value": "2",
+         "label": "2 — What does its message say - and never say (internal ids, personal data, whether the resource exists)? → \"…"
+        }
+       ],
+       "orders_repository": [
+        {
+         "value": "1",
+         "label": "1 — Not found: return None, or raise which domain error? → Return None"
+        },
+        {
+         "value": "2",
+         "label": "2 — Who opens and commits the transaction (the service, never the repository)? → No transaction: memory; the …"
+        },
+        {
+         "value": "3",
+         "label": "3 — Two updates of the same record at the same time: last write wins, a version check, or a lock? → Last writ…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Which queries can return many rows, and what is their maximum? → None: no list query yet"
+        }
+       ],
+       "create_order": [
+        {
+         "value": "1",
+         "label": "1 — What does it do, step by step (read, check, change, save, call)? → Build a pending order with the next id…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Something it needs does not exist: which domain error? → Not applicable: it needs nothing that may be mis…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Who may perform it, and is that checked here or in the router? → Any authenticated customer, for themselv…"
+        },
+        {
+         "value": "5",
+         "label": "5 — What must be all or nothing (one transaction), and what happens if a call to another service fails in the…"
+        }
+       ],
+       "get_order": [
+        {
+         "value": "1",
+         "label": "1 — What does it do, step by step (read, check, change, save, call)? → Find the order; check it belongs to th…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Something it needs does not exist: which domain error? → OrderNotFoundError - also when it belongs to som…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Who may perform it, and is that checked here or in the router? → The owner only; checked here"
+        },
+        {
+         "value": "5",
+         "label": "5 — What must be all or nothing (one transaction), and what happens if a call to another service fails in the…"
+        }
+       ],
+       "main": [
+        {
+         "value": "1",
+         "label": "1 — Which routers, under which prefix (e.g. /v1)? → orders_router under /v1"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)? → OrderNotFoundError…"
+        },
+        {
+         "value": "3",
+         "label": "3 — What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails? → Nothi…"
+        },
+        {
+         "value": "4",
+         "label": "4 — CORS: which origins may call it from a browser - or none? → No CORS: not called from browsers"
+        }
+       ],
+       "orders_router": [
+        {
+         "value": "1",
+         "label": "1 — Who may call each route: anyone, an authenticated user, the owner of the resource, which role? → Authenti…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Status codes: success, not found, conflict, forbidden - and the error body format? → 201 created, 200 rea…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Invalid input: FastAPI's 422, or 400 with your own error format? → FastAPI's 422"
+        },
+        {
+         "value": "4",
+         "label": "4 — Lists: pagination, default and maximum page size - or no list route? → No list route; POST repeated: two …"
+        },
+        {
+         "value": "5",
+         "label": "5 — A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted? → No list route; PO…"
+        }
+       ]
+      },
+      "empty": "No decision made on this component yet.",
+      "note": "Instead of words: the invariant is what this decision answers, and follows it when it changes."
+     },
      "prevents": {
       "kind": "select",
       "by": "component",
@@ -5131,6 +5649,28 @@
        ]
       },
       "empty": "No hazard declared on this component yet."
+     }
+    },
+    "invariant edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "create_order.INV1",
+        "label": "create_order.INV1 — every saved order has an amount greater than zero",
+        "fill": {
+         "words": "every saved order has an amount greater than zero"
+        }
+       },
+       {
+        "value": "orders_router.INV1",
+        "label": "orders_router.INV1 — a customer only ever reads their own orders",
+        "fill": {
+         "words": "a customer only ever reads their own orders"
+        }
+       }
+      ],
+      "empty": "No invariant in this project."
      }
     },
     "invariant remove": {
@@ -7346,6 +7886,30 @@
       "empty": "Aucune question de sécurité pour ce composant."
      }
     },
+    "hazard edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "create_order.H1",
+        "label": "create_order.H1 — high: An order is saved with an amount of zero or less",
+        "fill": {
+         "words": "An order is saved with an amount of zero or less",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "orders_router.H1",
+        "label": "orders_router.H1 — critical: A customer reads another customer's order",
+        "fill": {
+         "words": "A customer reads another customer's order",
+         "severity": "critical"
+        }
+       }
+      ],
+      "empty": "Aucun hazard déclaré dans ce projet."
+     }
+    },
     "hazard remove": {
      "id": {
       "kind": "select",
@@ -7409,6 +7973,174 @@
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
      },
+     "from_decision": {
+      "kind": "select",
+      "by": "component",
+      "lists": {
+       "get_current_user": [
+        {
+         "value": "1",
+         "label": "1 — What does it provide, and for how long (one request, the whole app)? → The customer id (str) from the X-C…"
+        },
+        {
+         "value": "2",
+         "label": "2 — What happens when it cannot (no token, the database is down): which error, which HTTP status in the end? …"
+        }
+       ],
+       "settings": [
+        {
+         "value": "1",
+         "label": "1 — Which settings, with which defaults (name: type = default), and which are required? → app_name: str = 'or…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which settings are secrets (never logged, never in a response), and where do they come from? → No secret …"
+        }
+       ],
+       "new_order_model": [
+        {
+         "value": "1",
+         "label": "1 — Which fields are required, and which are optional (with which default)? → amount required"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which values are valid for each field (ranges, formats, lengths, allowed states)? → amount > 0 with at mo…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which fields must never appear in a response or a log (passwords, internal ids, personal data)? → None"
+        }
+       ],
+       "order_model": [
+        {
+         "value": "1",
+         "label": "1 — Which fields are required, and which are optional (with which default)? → All fields required"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which values are valid for each field (ranges, formats, lengths, allowed states)? → amount >= 0 with 2 de…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which fields must never appear in a response or a log (passwords, internal ids, personal data)? → None: t…"
+        }
+       ],
+       "order_not_found_error": [
+        {
+         "value": "1",
+         "label": "1 — Which HTTP status does the app answer with it (404, 409, 422...)? → 404 Not Found"
+        },
+        {
+         "value": "2",
+         "label": "2 — What does its message say - and never say (internal ids, personal data, whether the resource exists)? → \"…"
+        }
+       ],
+       "orders_repository": [
+        {
+         "value": "1",
+         "label": "1 — Not found: return None, or raise which domain error? → Return None"
+        },
+        {
+         "value": "2",
+         "label": "2 — Who opens and commits the transaction (the service, never the repository)? → No transaction: memory; the …"
+        },
+        {
+         "value": "3",
+         "label": "3 — Two updates of the same record at the same time: last write wins, a version check, or a lock? → Last writ…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Which queries can return many rows, and what is their maximum? → None: no list query yet"
+        }
+       ],
+       "create_order": [
+        {
+         "value": "1",
+         "label": "1 — What does it do, step by step (read, check, change, save, call)? → Build a pending order with the next id…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Something it needs does not exist: which domain error? → Not applicable: it needs nothing that may be mis…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Who may perform it, and is that checked here or in the router? → Any authenticated customer, for themselv…"
+        },
+        {
+         "value": "5",
+         "label": "5 — What must be all or nothing (one transaction), and what happens if a call to another service fails in the…"
+        }
+       ],
+       "get_order": [
+        {
+         "value": "1",
+         "label": "1 — What does it do, step by step (read, check, change, save, call)? → Find the order; check it belongs to th…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Something it needs does not exist: which domain error? → OrderNotFoundError - also when it belongs to som…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Who may perform it, and is that checked here or in the router? → The owner only; checked here"
+        },
+        {
+         "value": "5",
+         "label": "5 — What must be all or nothing (one transaction), and what happens if a call to another service fails in the…"
+        }
+       ],
+       "main": [
+        {
+         "value": "1",
+         "label": "1 — Which routers, under which prefix (e.g. /v1)? → orders_router under /v1"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)? → OrderNotFoundError…"
+        },
+        {
+         "value": "3",
+         "label": "3 — What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails? → Nothi…"
+        },
+        {
+         "value": "4",
+         "label": "4 — CORS: which origins may call it from a browser - or none? → No CORS: not called from browsers"
+        }
+       ],
+       "orders_router": [
+        {
+         "value": "1",
+         "label": "1 — Who may call each route: anyone, an authenticated user, the owner of the resource, which role? → Authenti…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Status codes: success, not found, conflict, forbidden - and the error body format? → 201 created, 200 rea…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Invalid input: FastAPI's 422, or 400 with your own error format? → FastAPI's 422"
+        },
+        {
+         "value": "4",
+         "label": "4 — Lists: pagination, default and maximum page size - or no list route? → No list route; POST repeated: two …"
+        },
+        {
+         "value": "5",
+         "label": "5 — A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted? → No list route; PO…"
+        }
+       ]
+      },
+      "empty": "Aucune décision prise sur ce composant.",
+      "note": "À la place des mots : l'invariant est ce que cette décision répond, et la suit quand elle change."
+     },
      "prevents": {
       "kind": "select",
       "by": "component",
@@ -7435,6 +8167,28 @@
        ]
       },
       "empty": "Aucun hazard déclaré sur ce composant."
+     }
+    },
+    "invariant edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "create_order.INV1",
+        "label": "create_order.INV1 — every saved order has an amount greater than zero",
+        "fill": {
+         "words": "every saved order has an amount greater than zero"
+        }
+       },
+       {
+        "value": "orders_router.INV1",
+        "label": "orders_router.INV1 — a customer only ever reads their own orders",
+        "fill": {
+         "words": "a customer only ever reads their own orders"
+        }
+       }
+      ],
+      "empty": "Aucun invariant dans ce projet."
      }
     },
     "invariant remove": {
@@ -8015,6 +8769,13 @@
         }
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation",
+        "fill": {
+         "description": "Configure la journalisation une fois, pour le point d'entrée (niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde -, jamais un secret, une ligne de données ni une donnée personnelle)."
+        }
+       },
+       {
         "value": "spark",
         "label": "spark — foundation",
         "fill": {
@@ -8093,6 +8854,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -8135,6 +8900,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -8181,6 +8950,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -8223,6 +8996,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -8269,6 +9046,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -8308,6 +9089,7 @@
       "by": "component",
       "notes": {
        "config": "No number to give: archvow numbers it - it becomes question 3 of config.",
+       "logging_setup": "No number to give: archvow numbers it - it becomes question 2 of logging_setup.",
        "spark": "No number to give: archvow numbers it - it becomes question 2 of spark.",
        "clean_orders": "No number to give: archvow numbers it - it becomes question 10 of clean_orders.",
        "compute_vat": "No number to give: archvow numbers it - it becomes question 10 of compute_vat.",
@@ -8326,6 +9108,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -8374,6 +9160,12 @@
         {
          "value": "2",
          "label": "2 — What happens when a value is missing or invalid (which exception, raised where)? (answered)"
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — (a question the template no longer asks: c1be6541bf31) (answered)"
         }
        ],
        "spark": [
@@ -8542,6 +9334,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -8593,6 +9389,15 @@
          "label": "2 — What happens when a value is missing or invalid (which exception, raised where)? (answered)",
          "fill": {
           "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path"
+         }
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — (a question the template no longer asks: c1be6541bf31) (answered)",
+         "fill": {
+          "answer": "stderr, one line per event: time, level, component, message"
          }
         }
        ],
@@ -8863,6 +9668,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -8902,6 +9711,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -8921,6 +9731,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -8962,6 +9776,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -8981,6 +9796,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -9022,6 +9841,7 @@
       "by": "component",
       "notes": {
        "config": "No number to give: archvow numbers it - it becomes question 3 of config.",
+       "logging_setup": "No number to give: archvow numbers it - it becomes question 2 of logging_setup.",
        "spark": "No number to give: archvow numbers it - it becomes question 2 of spark.",
        "clean_orders": "No number to give: archvow numbers it - it becomes question 10 of clean_orders.",
        "compute_vat": "No number to give: archvow numbers it - it becomes question 10 of compute_vat.",
@@ -9069,6 +9889,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -9113,6 +9937,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -9152,6 +9980,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -9173,6 +10002,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -9212,6 +10045,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -9231,6 +10065,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -9272,6 +10110,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [
         {
@@ -9392,6 +10231,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -9431,6 +10274,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [
         {
@@ -9542,6 +10386,38 @@
       "empty": "No safety question for this component."
      }
     },
+    "hazard edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "clean_orders.H1",
+        "label": "clean_orders.H1 — high: A valid input row is dropped",
+        "fill": {
+         "words": "A valid input row is dropped",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "compute_vat.H1",
+        "label": "compute_vat.H1 — high: vat is computed wrongly",
+        "fill": {
+         "words": "vat is computed wrongly",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "vat_writer.H1",
+        "label": "vat_writer.H1 — critical: Downstream reads a half-written output",
+        "fill": {
+         "words": "Downstream reads a half-written output",
+         "severity": "critical"
+        }
+       }
+      ],
+      "empty": "No hazard declared in this project."
+     }
+    },
     "hazard remove": {
      "id": {
       "kind": "select",
@@ -9569,6 +10445,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -9605,11 +10485,188 @@
       ],
       "empty": "No component yet: add one with component add."
      },
+     "from_decision": {
+      "kind": "select",
+      "by": "component",
+      "lists": {
+       "config": [
+        {
+         "value": "1",
+         "label": "1 — Which fields does JobConfig hold (name: type, required or default value)? → input_path: str and output_pa…"
+        },
+        {
+         "value": "2",
+         "label": "2 — What happens when a value is missing or invalid (which exception, raised where)? → ValueError raised in _…"
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — (a question the template no longer asks: c1be6541bf31) → stderr, one line per event: time, level, compone…"
+        }
+       ],
+       "spark": [
+        {
+         "value": "1",
+         "label": "1 — Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none? → spark.sql.s…"
+        }
+       ],
+       "clean_orders": [
+        {
+         "value": "1",
+         "label": "1 — Which rows does it keep (filter conditions), or all of them? → Rows where order_id is not null and amount…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which output columns does it produce, and how is each one computed (type, nullable)? → The schema columns…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Does it group rows? By which keys, with which aggregates - or no grouping? → No grouping"
+        },
+        {
+         "value": "4",
+         "label": "4 — Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or …"
+        },
+        {
+         "value": "5",
+         "label": "5 — Empty input: return an empty DataFrame with the output schema, or fail? → Return an empty DataFrame with …"
+        },
+        {
+         "value": "6",
+         "label": "6 — Null values in key columns: drop, keep, or fail? → Drop rows with a null order_id"
+        },
+        {
+         "value": "7",
+         "label": "7 — Duplicate keys in the input: keep first, keep last, aggregate, or fail? → Keep one row per order_id"
+        },
+        {
+         "value": "8",
+         "label": "8 — Negative or out-of-range values: keep, clamp, drop, or fail? → Drop rows where amount is negative"
+        },
+        {
+         "value": "9",
+         "label": "9 — Extra input columns not in the schema: drop silently or fail? → Drop them: output only the schema columns"
+        }
+       ],
+       "compute_vat": [
+        {
+         "value": "1",
+         "label": "1 — Which rows does it keep (filter conditions), or all of them? → All rows"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which output columns does it produce, and how is each one computed (type, nullable)? → The input columns …"
+        },
+        {
+         "value": "3",
+         "label": "3 — Does it group rows? By which keys, with which aggregates - or no grouping? → No grouping"
+        },
+        {
+         "value": "4",
+         "label": "4 — Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or …"
+        },
+        {
+         "value": "5",
+         "label": "5 — Empty input: return an empty DataFrame with the output schema, or fail? → Return an empty DataFrame with …"
+        },
+        {
+         "value": "6",
+         "label": "6 — Null values in key columns: drop, keep, or fail? → Not possible here: clean_orders runs first"
+        },
+        {
+         "value": "7",
+         "label": "7 — Duplicate keys in the input: keep first, keep last, aggregate, or fail? → Not possible here: clean_orders…"
+        },
+        {
+         "value": "8",
+         "label": "8 — Negative or out-of-range values: keep, clamp, drop, or fail? → Not possible here: clean_orders runs first"
+        },
+        {
+         "value": "9",
+         "label": "9 — Extra input columns not in the schema: drop silently or fail? → Keep them unchanged"
+        }
+       ],
+       "orders_schema": [
+        {
+         "value": "1",
+         "label": "1 — Which columns are nullable, and which must never be null? → order_id and amount are never null; customer_…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which columns hold personal data, and where may they flow? → None: the input holds no personal data"
+        }
+       ],
+       "orders_reader": [
+        {
+         "value": "1",
+         "label": "1 — The path does not exist or is empty: fail or return an empty DataFrame? → Fail with a clear error: a miss…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Records not matching the schema: fail, drop, or quarantine? → Fail the job (FAILFAST): a malformed file m…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which partitions / dates are read, and what if the latest one is missing? → Everything under the given pa…"
+        }
+       ],
+       "vat_writer": [
+        {
+         "value": "1",
+         "label": "1 — Output already exists: overwrite, append, or fail? → Overwrite"
+        },
+        {
+         "value": "2",
+         "label": "2 — A failure mid-write: how is a partial output prevented or detected? → Write to a temporary folder next to…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Re-running the same input: must the output be identical (idempotent)? → Yes: the same input gives the sam…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Partitioning columns and file format? → Parquet, not partitioned"
+        },
+        {
+         "value": "5",
+         "label": "5 — Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the jo…"
+        }
+       ],
+       "my_pipeline_job": [
+        {
+         "value": "1",
+         "label": "1 — One input is missing: skip the run, fail, or run with partial data? → Fail"
+        },
+        {
+         "value": "2",
+         "label": "2 — Retries: how many, and is a retry safe? → No automatic retry; a re-run is safe (the writer overwrites)"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which run date / partition does the job process, and who decides it? → No run date: the job processes the…"
+        }
+       ],
+       "my_pipeline_main": [
+        {
+         "value": "1",
+         "label": "1 — Invalid arguments: which exit code and message? → Exit code 2 with a usage message"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which exit codes signal which failures to the scheduler? → 0 success, 1 job failure, 2 invalid arguments"
+        }
+       ]
+      },
+      "empty": "No decision made on this component yet.",
+      "note": "Instead of words: the invariant is what this decision answers, and follows it when it changes."
+     },
      "prevents": {
       "kind": "select",
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [
         {
@@ -9635,6 +10692,35 @@
        "my_pipeline_main": []
       },
       "empty": "No hazard declared on this component yet."
+     }
+    },
+    "invariant edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "clean_orders.INV1",
+        "label": "clean_orders.INV1 — every input row with an order_id and amount >= 0 appears in the output",
+        "fill": {
+         "words": "every input row with an order_id and amount >= 0 appears in the output"
+        }
+       },
+       {
+        "value": "compute_vat.INV1",
+        "label": "compute_vat.INV1 — vat = amount * 0.2 for every row",
+        "fill": {
+         "words": "vat = amount * 0.2 for every row"
+        }
+       },
+       {
+        "value": "vat_writer.INV1",
+        "label": "vat_writer.INV1 — the output folder is complete or absent",
+        "fill": {
+         "words": "the output folder is complete or absent"
+        }
+       }
+      ],
+      "empty": "No invariant in this project."
      }
     },
     "invariant remove": {
@@ -9664,6 +10750,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -9717,6 +10807,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -9761,6 +10855,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -9800,6 +10898,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -9819,6 +10918,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -9860,6 +10963,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [
         {
@@ -10214,6 +11318,13 @@
         }
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation",
+        "fill": {
+         "description": "Configure la journalisation une fois, pour le point d'entrée (niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde -, jamais un secret, une ligne de données ni une donnée personnelle)."
+        }
+       },
+       {
         "value": "spark",
         "label": "spark — foundation",
         "fill": {
@@ -10292,6 +11403,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -10334,6 +11449,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -10380,6 +11499,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -10422,6 +11545,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -10468,6 +11595,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -10507,6 +11638,7 @@
       "by": "component",
       "notes": {
        "config": "Pas de numéro à donner : archvow la numérote - elle devient la question 3 de config.",
+       "logging_setup": "Pas de numéro à donner : archvow la numérote - elle devient la question 2 de logging_setup.",
        "spark": "Pas de numéro à donner : archvow la numérote - elle devient la question 2 de spark.",
        "clean_orders": "Pas de numéro à donner : archvow la numérote - elle devient la question 10 de clean_orders.",
        "compute_vat": "Pas de numéro à donner : archvow la numérote - elle devient la question 10 de compute_vat.",
@@ -10525,6 +11657,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -10573,6 +11709,12 @@
         {
          "value": "2",
          "label": "2 — What happens when a value is missing or invalid (which exception, raised where)? (répondue)"
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — (a question the template no longer asks: c1be6541bf31) (répondue)"
         }
        ],
        "spark": [
@@ -10741,6 +11883,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -10792,6 +11938,15 @@
          "label": "2 — What happens when a value is missing or invalid (which exception, raised where)? (répondue)",
          "fill": {
           "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path"
+         }
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — (a question the template no longer asks: c1be6541bf31) (répondue)",
+         "fill": {
+          "answer": "stderr, one line per event: time, level, component, message"
          }
         }
        ],
@@ -11062,6 +12217,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -11101,6 +12260,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -11120,6 +12280,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -11161,6 +12325,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -11180,6 +12345,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -11221,6 +12390,7 @@
       "by": "component",
       "notes": {
        "config": "Pas de numéro à donner : archvow la numérote - elle devient la question 3 de config.",
+       "logging_setup": "Pas de numéro à donner : archvow la numérote - elle devient la question 2 de logging_setup.",
        "spark": "Pas de numéro à donner : archvow la numérote - elle devient la question 2 de spark.",
        "clean_orders": "Pas de numéro à donner : archvow la numérote - elle devient la question 10 de clean_orders.",
        "compute_vat": "Pas de numéro à donner : archvow la numérote - elle devient la question 10 de compute_vat.",
@@ -11268,6 +12438,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -11312,6 +12486,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -11351,6 +12529,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -11372,6 +12551,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -11411,6 +12594,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -11430,6 +12614,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -11471,6 +12659,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [
         {
@@ -11591,6 +12780,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -11630,6 +12823,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [
         {
@@ -11741,6 +12935,38 @@
       "empty": "Aucune question de sécurité pour ce composant."
      }
     },
+    "hazard edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "clean_orders.H1",
+        "label": "clean_orders.H1 — high: A valid input row is dropped",
+        "fill": {
+         "words": "A valid input row is dropped",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "compute_vat.H1",
+        "label": "compute_vat.H1 — high: vat is computed wrongly",
+        "fill": {
+         "words": "vat is computed wrongly",
+         "severity": "high"
+        }
+       },
+       {
+        "value": "vat_writer.H1",
+        "label": "vat_writer.H1 — critical: Downstream reads a half-written output",
+        "fill": {
+         "words": "Downstream reads a half-written output",
+         "severity": "critical"
+        }
+       }
+      ],
+      "empty": "Aucun hazard déclaré dans ce projet."
+     }
+    },
     "hazard remove": {
      "id": {
       "kind": "select",
@@ -11768,6 +12994,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -11804,11 +13034,188 @@
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
      },
+     "from_decision": {
+      "kind": "select",
+      "by": "component",
+      "lists": {
+       "config": [
+        {
+         "value": "1",
+         "label": "1 — Which fields does JobConfig hold (name: type, required or default value)? → input_path: str and output_pa…"
+        },
+        {
+         "value": "2",
+         "label": "2 — What happens when a value is missing or invalid (which exception, raised where)? → ValueError raised in _…"
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — (a question the template no longer asks: c1be6541bf31) → stderr, one line per event: time, level, compone…"
+        }
+       ],
+       "spark": [
+        {
+         "value": "1",
+         "label": "1 — Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none? → spark.sql.s…"
+        }
+       ],
+       "clean_orders": [
+        {
+         "value": "1",
+         "label": "1 — Which rows does it keep (filter conditions), or all of them? → Rows where order_id is not null and amount…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which output columns does it produce, and how is each one computed (type, nullable)? → The schema columns…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Does it group rows? By which keys, with which aggregates - or no grouping? → No grouping"
+        },
+        {
+         "value": "4",
+         "label": "4 — Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or …"
+        },
+        {
+         "value": "5",
+         "label": "5 — Empty input: return an empty DataFrame with the output schema, or fail? → Return an empty DataFrame with …"
+        },
+        {
+         "value": "6",
+         "label": "6 — Null values in key columns: drop, keep, or fail? → Drop rows with a null order_id"
+        },
+        {
+         "value": "7",
+         "label": "7 — Duplicate keys in the input: keep first, keep last, aggregate, or fail? → Keep one row per order_id"
+        },
+        {
+         "value": "8",
+         "label": "8 — Negative or out-of-range values: keep, clamp, drop, or fail? → Drop rows where amount is negative"
+        },
+        {
+         "value": "9",
+         "label": "9 — Extra input columns not in the schema: drop silently or fail? → Drop them: output only the schema columns"
+        }
+       ],
+       "compute_vat": [
+        {
+         "value": "1",
+         "label": "1 — Which rows does it keep (filter conditions), or all of them? → All rows"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which output columns does it produce, and how is each one computed (type, nullable)? → The input columns …"
+        },
+        {
+         "value": "3",
+         "label": "3 — Does it group rows? By which keys, with which aggregates - or no grouping? → No grouping"
+        },
+        {
+         "value": "4",
+         "label": "4 — Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or …"
+        },
+        {
+         "value": "5",
+         "label": "5 — Empty input: return an empty DataFrame with the output schema, or fail? → Return an empty DataFrame with …"
+        },
+        {
+         "value": "6",
+         "label": "6 — Null values in key columns: drop, keep, or fail? → Not possible here: clean_orders runs first"
+        },
+        {
+         "value": "7",
+         "label": "7 — Duplicate keys in the input: keep first, keep last, aggregate, or fail? → Not possible here: clean_orders…"
+        },
+        {
+         "value": "8",
+         "label": "8 — Negative or out-of-range values: keep, clamp, drop, or fail? → Not possible here: clean_orders runs first"
+        },
+        {
+         "value": "9",
+         "label": "9 — Extra input columns not in the schema: drop silently or fail? → Keep them unchanged"
+        }
+       ],
+       "orders_schema": [
+        {
+         "value": "1",
+         "label": "1 — Which columns are nullable, and which must never be null? → order_id and amount are never null; customer_…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which columns hold personal data, and where may they flow? → None: the input holds no personal data"
+        }
+       ],
+       "orders_reader": [
+        {
+         "value": "1",
+         "label": "1 — The path does not exist or is empty: fail or return an empty DataFrame? → Fail with a clear error: a miss…"
+        },
+        {
+         "value": "2",
+         "label": "2 — Records not matching the schema: fail, drop, or quarantine? → Fail the job (FAILFAST): a malformed file m…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which partitions / dates are read, and what if the latest one is missing? → Everything under the given pa…"
+        }
+       ],
+       "vat_writer": [
+        {
+         "value": "1",
+         "label": "1 — Output already exists: overwrite, append, or fail? → Overwrite"
+        },
+        {
+         "value": "2",
+         "label": "2 — A failure mid-write: how is a partial output prevented or detected? → Write to a temporary folder next to…"
+        },
+        {
+         "value": "3",
+         "label": "3 — Re-running the same input: must the output be identical (idempotent)? → Yes: the same input gives the sam…"
+        },
+        {
+         "value": "4",
+         "label": "4 — Partitioning columns and file format? → Parquet, not partitioned"
+        },
+        {
+         "value": "5",
+         "label": "5 — Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the jo…"
+        }
+       ],
+       "my_pipeline_job": [
+        {
+         "value": "1",
+         "label": "1 — One input is missing: skip the run, fail, or run with partial data? → Fail"
+        },
+        {
+         "value": "2",
+         "label": "2 — Retries: how many, and is a retry safe? → No automatic retry; a re-run is safe (the writer overwrites)"
+        },
+        {
+         "value": "3",
+         "label": "3 — Which run date / partition does the job process, and who decides it? → No run date: the job processes the…"
+        }
+       ],
+       "my_pipeline_main": [
+        {
+         "value": "1",
+         "label": "1 — Invalid arguments: which exit code and message? → Exit code 2 with a usage message"
+        },
+        {
+         "value": "2",
+         "label": "2 — Which exit codes signal which failures to the scheduler? → 0 success, 1 job failure, 2 invalid arguments"
+        }
+       ]
+      },
+      "empty": "Aucune décision prise sur ce composant.",
+      "note": "À la place des mots : l'invariant est ce que cette décision répond, et la suit quand elle change."
+     },
      "prevents": {
       "kind": "select",
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [
         {
@@ -11834,6 +13241,35 @@
        "my_pipeline_main": []
       },
       "empty": "Aucun hazard déclaré sur ce composant."
+     }
+    },
+    "invariant edit": {
+     "id": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "clean_orders.INV1",
+        "label": "clean_orders.INV1 — every input row with an order_id and amount >= 0 appears in the output",
+        "fill": {
+         "words": "every input row with an order_id and amount >= 0 appears in the output"
+        }
+       },
+       {
+        "value": "compute_vat.INV1",
+        "label": "compute_vat.INV1 — vat = amount * 0.2 for every row",
+        "fill": {
+         "words": "vat = amount * 0.2 for every row"
+        }
+       },
+       {
+        "value": "vat_writer.INV1",
+        "label": "vat_writer.INV1 — the output folder is complete or absent",
+        "fill": {
+         "words": "the output folder is complete or absent"
+        }
+       }
+      ],
+      "empty": "Aucun invariant dans ce projet."
      }
     },
     "invariant remove": {
@@ -11863,6 +13299,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -11916,6 +13356,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -11960,6 +13404,10 @@
         "label": "config — foundation"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "spark",
         "label": "spark — foundation"
        },
@@ -11999,6 +13447,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [],
        "compute_vat": [],
@@ -12018,6 +13467,10 @@
        {
         "value": "config",
         "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "spark",
@@ -12059,6 +13512,7 @@
       "by": "component",
       "lists": {
        "config": [],
+       "logging_setup": [],
        "spark": [],
        "clean_orders": [
         {

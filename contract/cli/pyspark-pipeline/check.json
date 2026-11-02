@@ -557,6 +557,13 @@
     },
     {
       "container": "my_pipeline",
+      "component": "logging_setup",
+      "symbol": "setup_logging",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
       "component": "spark",
       "symbol": "get_spark_session",
       "status": "planned",
@@ -618,6 +625,19 @@
     {
       "container": "my_pipeline",
       "component": "config",
+      "type": "foundation",
+      "layer": "p0_common",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "my_pipeline",
+      "component": "logging_setup",
       "type": "foundation",
       "layer": "p0_common",
       "status": "planned",

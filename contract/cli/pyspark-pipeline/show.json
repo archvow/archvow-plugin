@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "my_pipeline",
-      "template": "pyspark-pipeline@1.18.0",
+      "template": "pyspark-pipeline@1.19.0",
       "package": "my_pipeline",
       "path": "src/my_pipeline",
       "components": [
@@ -37,6 +37,31 @@
               "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
               "by": "architect@example.com",
               "on": "2026-10-08T13:06:24.000829+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "logging_setup",
+          "name": "logging_setup",
+          "type": "foundation",
+          "layer": "p0_common",
+          "module": "my_pipeline.p0_common.logging_setup",
+          "description": "Configure la journalisation une fois, pour le point d'entrée (niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde -, jamais un secret, une ligne de données ni une donnée personnelle).",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "setup_logging",
+              "kind": "function",
+              "signature": "(level: str = \"INFO\") -> None"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "(a question the template no longer asks: c1be6541bf31)",
+              "answer": "stderr, one line per event: time, level, component, message",
+              "by": "architect@example.com",
+              "on": "2026-11-02T00:56:44.374063+00:00"
             }
           ],
           "assumptions": []
@@ -439,6 +464,8 @@
     "auto_approve": "yes",
     "sandbox": "yes",
     "briefs": "briefs",
+    "max_components": "",
+    "max_code_lines": "",
     "git_hooks": "githooks",
     "branch_naming": "gitflow",
     "pip_index_url": "",

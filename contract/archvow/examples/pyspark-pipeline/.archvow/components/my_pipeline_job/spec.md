@@ -45,7 +45,7 @@ Start the file with this docstring. Fill in the `<...>` values: the person respo
 - File: `tests/p3_jobs/test_my_pipeline_job.py` - required, the build fails without it (ARCH017).
 - Kind: **integration** - Real I/O in a temporary folder (files, tables, a local Derby metastore), marked @pytest.mark.integration. Never a real metastore, bucket or database.
 - One test per decision and per rule below, named after it, e.g. `test_empty_input_returns_empty_dataframe`, and marked with it: `@pytest.mark.decision(3)`, `@pytest.mark.rule("R2")` (ARCH038).
-- End to end with golden files: input files in tests/integration/actuals/, the expected output in tests/integration/expecteds/, and a test in tests/integration/ that runs the job on actuals and compares the result with expecteds (sorted, same columns and types). The card's business examples are golden files too, given by the business team: tests/examples/<component>/<example>/input/ and expected/, read as they are, never changed.
+- End to end with golden files: the business examples of the card (archvow example add: tests/examples/<component>/<example>/input/ and expected/, locked, with an optional scenario.feature saying it in Given/When/Then words), and one test per example in tests/integration/ that runs the job on input/ and compares the result with expected/ (sorted, same columns and types). Read them as they are, never change them: no example yet means a person records one first.
 
 ## Decisions made (implement exactly, do not reinterpret)
 

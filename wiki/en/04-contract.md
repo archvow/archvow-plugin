@@ -12,6 +12,7 @@ from a real archvow CLI, never written by hand.
 |---|---|---|---|
 | `contract/cli/version.txt` | `archvow --version` (today `archvow 1.17.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the version the plugin knows |
 | `contract/cli/commands.json` | every command and its parameters, drawn from archvow's argparse parser | `contract/tools/export_grammar.py` | `ArchvowGrammar`, `vscode/src/grammar.ts`: the Commands forms |
+| `contract/forms/forms.json` | how each form reads (0.14.0, design A): labels in plain words, essential fields and their order, the button's verb, what archvow will do - the plugins' own file, not archvow's | by hand | `ArchvowForms`, the page's `commandForm()`; `FormsRegression`, `grammar.test.ts` check its names against `commands.json` |
 | `contract/cli/catalog.json` | `archvow catalog --json` outside a project: the templates and their questions | `regenerate.py` | `ArchvowInitCatalog`, the `init` wizard when the CLI does not answer; `componentTypes()` |
 | `contract/cli/rules.md`, `rules.fr.md` | the meaning of each check code (archvow's `docs/rules*.md`) | `regenerate.py` (copy) | `ArchvowRuleDocs`, `ruleExplanation()`: the explanation under a diagnostic |
 | `contract/cli/<example>/show.json`, `next.json`, `check.json`, `show/<component>.json` | what the CLI prints on archvow's three examples | `regenerate.py` | the VS Code tests (`vscode/src/test/workspace.test.ts`, `layout.test.ts`) and both plugins' test setups |
@@ -36,7 +37,7 @@ The contract is not read from `contract/` at run time: it is copied into each pl
 ## After a new archvow version
 
 ```bash
-contract/tools/take_archvow.sh ../archvow v1.18.0 ../archvow/dist/archvow-1.18.0-py3-none-any.whl
+contract/tools/take_archvow.sh ../archvow v1.19.0 ../archvow/dist/archvow-1.19.0-py3-none-any.whl
 python3 -m venv /tmp/av && /tmp/av/bin/pip install contract/archvow/archvow-*.whl
 python3 contract/tools/regenerate.py contract/archvow --python /tmp/av/bin/python
 (cd intellij && ./gradlew contractDump check)

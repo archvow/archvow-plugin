@@ -4,7 +4,7 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { inline, itemId, prefill } from '../grammar';
+import { alerts, Command, inline, itemId, prefill } from '../grammar';
 import * as oniguruma from 'vscode-oniguruma';
 import * as textmate from 'vscode-textmate';
 import { tokenize, TokenKind } from '../vow/scanner';
@@ -100,4 +100,45 @@ test('Safety view (0.13.1): Remove, Change (remove + add) and the invariant writ
     assert.equal(p.hidden, ['verify', 'evidence', 'rule'].includes(p.name), p.name);
     assert.doesNotMatch(p.help, /SUPPRESS/);
   }
+});
+
+test('design A (0.14.0): forms.json names what exists, refusals and doubts show in place, the preview is the planned command', () => {
+  const root = path.join(__dirname, '..', '..', '..');
+  const forms = JSON.parse(fs.readFileSync(path.join(root, 'contract', 'forms', 'forms.json'), 'utf8'));
+  const commands = JSON.parse(fs.readFileSync(path.join(root, 'contract', 'cli', 'commands.json'), 'utf8')).commands as Command[];
+  const byName = new Map(commands.map((c) => [c.path.join(' '), c]));
+  const params = new Set(commands.flatMap((c) => c.parameters.map((p) => p.name)));
+  for (const name of Object.keys(forms.labels)) assert.ok(params.has(name), `label of an unknown parameter: ${name}`);
+  for (const p of params) assert.ok(p in forms.labels, `no plain label for ${p}`);
+  for (const [name, entry] of Object.entries(forms.commands) as [string, Record<string, unknown>][]) {
+    const command = byName.get(name);
+    assert.ok(command, `forms.json: no command ${name}`);
+    const own = new Set(command.parameters.map((p) => p.name));
+    for (const p of [...((entry.essential as string[]) ?? []), ...Object.keys((entry.hints as object) ?? {})]) assert.ok(own.has(p), `${name}: ${p}`);
+    for (const key of ['title', 'verb', 'does']) {
+      const pair = entry[key] as string[];
+      assert.ok(Array.isArray(pair) && pair.length === 2 && pair.every((x) => x.trim()), `${name}.${key}: [English, French]`);
+    }
+    for (const p of command.parameters) if (p.required && Array.isArray(entry.essential)) assert.ok((entry.essential as string[]).includes(p.name), `${name}: required ${p.name} is essential`);
+  }
+  // archvow said no: nothing written, its words in red; written with a doubt: amber
+  assert.deepEqual(alerts({ exitCode: 2, stdout: '', stderr: '✖ archvow: error: an invariant says what is always true; "none" protects nothing.\n' }),
+    { refusal: 'an invariant says what is always true; "none" protects nothing.', warnings: [] });
+  assert.deepEqual(alerts({ exitCode: 0, stdout: JSON.stringify({ id: 'c.INV1', warnings: ['c.H1 is critical: an example_test is not enough (ARCH037)'] }), stderr: '' }),
+    { refusal: '', warnings: ['c.H1 is critical: an example_test is not enough (ARCH037)'] });
+  assert.deepEqual(alerts({ exitCode: 0, stdout: '✔ Changed c.H1\n! c.INV1 is proven by an example_test (ARCH037)\n', stderr: '' }).warnings,
+    ['c.INV1 is proven by an example_test (ARCH037)']);
+  // the page asks the extension for the preview: one grammar (planForm) for the preview and for Run
+  const page = fs.readFileSync(path.join(__dirname, '..', '..', 'media', 'workspace.js'), 'utf8');
+  for (const piece of ["type: 'formPreview'", 'function fieldLabel(', 'function isEssential(', "t('More options', \"Plus d'options\")", 'function formAlerts(', "'cancelForm'", 'id="form-preview"']) {
+    assert.ok(page.includes(piece), piece);
+  }
+  const host = fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'workspace.ts'), 'utf8');
+  assert.match(host, /case 'formPreview':/);
+  assert.match(host, /planForm\(command, values, this\.state\.fr/);
+  // the Spec view: the card and the vow in one place; covered questions, choices, AI components
+  for (const piece of ["'Spec'", "data-a=\"specPart\"", "action: 'hazard suggested', covered: '1'", "action: 'hazard dismiss', covered: '1'", "'useChoice'", 'function createdByAi(', "command: 'component accept'"]) {
+    assert.ok(page.includes(piece), piece);
+  }
+  assert.ok(!page.includes("'Full vow'"));
 });

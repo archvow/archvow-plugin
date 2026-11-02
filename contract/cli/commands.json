@@ -1290,7 +1290,7 @@
           "multiToken": false,
           "optionalValue": true,
           "choices": [],
-          "help": "what must never happen, in plain words (default: the suggestion archvow show shows; for critical or high, its invariant is added too)",
+          "help": "what must never happen, in plain words (default: the suggestion archvow show shows; for critical or high, its invariant is added too - the decision that covers the question, when one does)",
           "hidden": false,
           "metavar": "description"
         }
@@ -1333,15 +1333,84 @@
         {
           "name": "rationale",
           "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "why it cannot happen here (default: the decision that says there is nothing to protect, e.g. \"decision 2: none\")",
+          "hidden": false,
+          "metavar": "rationale"
+        }
+      ]
+    },
+    {
+      "path": [
+        "hazard",
+        "edit"
+      ],
+      "description": "Change a hazard's words or severity; its id, invariants and tests stay.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "id",
+          "flags": [],
           "required": true,
           "boolean": false,
           "append": false,
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "why it cannot happen here",
+          "help": "the component (then H<n>), or the hazard's id <component>.H1",
           "hidden": false,
-          "metavar": "rationale"
+          "metavar": "WHAT"
+        },
+        {
+          "name": "more",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "with a component: its hazard H<n>",
+          "hidden": false,
+          "metavar": "H<n>"
+        },
+        {
+          "name": "words",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "what must never happen, in new words",
+          "hidden": false,
+          "metavar": "words"
+        },
+        {
+          "name": "severity",
+          "flags": [
+            "--severity"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ],
+          "help": "critical | high | medium | low",
+          "hidden": false,
+          "metavar": "severity"
         }
       ]
     },
@@ -1420,15 +1489,30 @@
         {
           "name": "statement",
           "flags": [],
-          "required": true,
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "the property, in plain words; it must be checkable",
+          "hidden": false,
+          "metavar": "statement"
+        },
+        {
+          "name": "from_decision",
+          "flags": [
+            "--from-decision"
+          ],
+          "required": false,
           "boolean": false,
           "append": false,
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "the property, in plain words; it must be checkable",
+          "help": "decision N of the component protects the hazard: the invariant says what it answers (and follows it), and its test marked decision(N) proves it",
           "hidden": false,
-          "metavar": "statement"
+          "metavar": "N"
         },
         {
           "name": "prevents",
@@ -1496,6 +1580,77 @@
           "help": "",
           "hidden": true,
           "metavar": "rule"
+        }
+      ]
+    },
+    {
+      "path": [
+        "invariant",
+        "edit"
+      ],
+      "description": "Change an invariant's words; its id, hazards and test marker stay.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "id",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the component (then INV<n>), or the id <component>.INV1",
+          "hidden": false,
+          "metavar": "WHAT"
+        },
+        {
+          "name": "more",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "with a component: its invariant INV<n>",
+          "hidden": false,
+          "metavar": "INV<n>"
+        },
+        {
+          "name": "words",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "what always holds, in new words",
+          "hidden": false,
+          "metavar": "words"
+        },
+        {
+          "name": "verify",
+          "flags": [
+            "--verify"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "static",
+            "example_test",
+            "property_test",
+            "runtime",
+            "model_check",
+            "proof"
+          ],
+          "help": "",
+          "hidden": true,
+          "metavar": "METHOD"
         }
       ]
     },

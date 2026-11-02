@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 1.18.0",
+ "archvow": "archvow 1.19.0",
  "messages": [
   {
    "code": "ACME001",
@@ -207,6 +207,13 @@
   {
    "code": "ARCH008",
    "severity": "error",
+   "message": "component 'clean_order': sales.p1_domain.clean_order is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
    "message": "component 'clean_orders': my_pipeline.p1_domain.clean_orders is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -306,6 +313,20 @@
    "code": "ARCH008",
    "severity": "error",
    "message": "component 'logging_setup': invoicing.p0_common.logging_setup is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'logging_setup': my_pipeline.p0_common.logging_setup is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'logging_setup': sales.p0_common.logging_setup is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -494,14 +515,14 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.18.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.19.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
   {
    "code": "ARCH013",
    "severity": "error",
-   "message": "syntax error: invalid syntax - archvow runs on Python 3.13 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
+   "message": "syntax error: invalid syntax - archvow runs on Python 3.12 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
    "file": "src/api/core/config.py",
    "line": 1
   },
@@ -942,6 +963,13 @@
   {
    "code": "ARCH020",
    "severity": "error",
+   "message": "limit max_components raised from 9 to no limit",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
    "message": "mode loosened from guided to free (the AI decides more on its own)",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -999,6 +1027,20 @@
    "code": "ARCH020",
    "severity": "error",
    "message": "ruff: 'S101' ignored for 'tests/**'",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: 'T20' ignored for '**/p4_entrypoints/**'",
+   "file": "ruff.toml",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "ruff: 'T20' ignored for 'tests/**'",
    "file": "ruff.toml",
    "line": 0
   },
@@ -1271,6 +1313,13 @@
   {
    "code": "ARCH031",
    "severity": "error",
+   "message": "'clean_orders' is implemented but clean_orders.INV1 'Return an empty DataFrame with the output schema (decision 5)' is not tested yet (example_test) -> mark a test @pytest.mark.decision(5) in tests/p1_domain/test_clean_orders.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH031",
+   "severity": "error",
    "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -1341,6 +1390,13 @@
   {
    "code": "ARCH033",
    "severity": "error",
+   "message": "'clean_orders' is implemented but 8 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
    "message": "'clean_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
    "file": ".archvow/components/clean_orders/spec.vow",
    "line": 0
@@ -1371,6 +1427,13 @@
    "severity": "error",
    "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
    "file": ".archvow/components/enrich_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?' - the code made a silent choice -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
+   "file": ".archvow/components/logging_setup/spec.vow",
    "line": 0
   },
   {
@@ -1434,6 +1497,41 @@
    "severity": "error",
    "message": "'clean_orders' relies on 1 assumption(s) nobody reviewed yet (number 2), e.g. 'amount is never negative' -> archvow show clean_orders, then a person runs archvow assumption accept clean_orders <number>, or reject (the code must then not rely on it)",
    "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_order': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_order",
+   "file": ".archvow/components/clean_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_order': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show clean_order",
+   "file": ".archvow/components/clean_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_order': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show clean_order",
+   "file": ".archvow/components/clean_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_order': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show clean_order",
+   "file": ".archvow/components/clean_order/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'clean_order': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show clean_order",
+   "file": ".archvow/components/clean_order/spec.vow",
    "line": 0
   },
   {
@@ -1754,6 +1852,20 @@
   {
    "code": "ARCH035",
    "severity": "warning",
+   "message": "'customers_schema': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show customers_schema",
+   "file": ".archvow/components/customers_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_schema': safety question S2 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_schema",
+   "file": ".archvow/components/customers_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
    "message": "'daily_job': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show daily_job",
    "file": ".archvow/components/daily_job/spec.vow",
    "line": 0
@@ -1840,6 +1952,41 @@
    "severity": "warning",
    "message": "'enrich_orders': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show enrich_orders",
    "file": ".archvow/components/enrich_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'flag_orders': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show flag_orders",
+   "file": ".archvow/components/flag_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'flag_orders': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show flag_orders",
+   "file": ".archvow/components/flag_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'flag_orders': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show flag_orders",
+   "file": ".archvow/components/flag_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'flag_orders': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show flag_orders",
+   "file": ".archvow/components/flag_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'flag_orders': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show flag_orders",
+   "file": ".archvow/components/flag_orders/spec.vow",
    "line": 0
   },
   {
@@ -2704,20 +2851,6 @@
    "line": 0
   },
   {
-   "code": "ARCH036",
-   "severity": "error",
-   "message": "invariant clean_orders.INV1: must mitigate at least one hazard (why does it exist?)",
-   "file": ".archvow/spec.vow",
-   "line": 0
-  },
-  {
-   "code": "ARCH036",
-   "severity": "error",
-   "message": "invariant input_reader.INV1: must mitigate at least one hazard (why does it exist?)",
-   "file": ".archvow/spec.vow",
-   "line": 0
-  },
-  {
    "code": "ARCH037",
    "severity": "error",
    "message": "clean_orders.INV1 prevents a critical hazard: a example_test is not enough, it needs one of property_test, runtime, static, model_check, proof -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H1",
@@ -2728,6 +2861,13 @@
    "code": "ARCH037",
    "severity": "error",
    "message": "clean_orders.INV2 prevents a critical hazard: a example_test is not enough, it needs one of property_test, runtime, static, model_check, proof -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H1",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH037",
+   "severity": "error",
+   "message": "clean_orders.INV2 prevents a critical hazard: a example_test is not enough, it needs one of property_test, runtime, static, model_check, proof -> archvow invariant add clean_orders \"...\" --prevents clean_orders.H2",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -2811,6 +2951,13 @@
   {
    "code": "ARCH040",
    "severity": "error",
+   "message": ".aiassistant configures 'jetbrains-ai-chat'; approved AI assistants: claude-code",
+   "file": ".aiassistant",
+   "line": 0
+  },
+  {
+   "code": "ARCH040",
+   "severity": "error",
    "message": ".aiassistant configures 'jetbrains-ai-chat'; approved AI assistants: copilot",
    "file": ".aiassistant",
    "line": 0
@@ -2869,6 +3016,13 @@
    "severity": "error",
    "message": "'claude-code' reviewed clean_orders, which it wrote (@assisted claude-code): ask another approved reviewer (codex)",
    "file": "reviews/clean_orders.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_order' was created by the AI (claude-code), not accepted by a person yet -> a person checks it (archvow show clean_order), then archvow component accept clean_order (or component remove clean_order)",
+   "file": ".archvow/components/clean_order/spec.vow",
    "line": 0
   },
   {
@@ -2965,28 +3119,35 @@
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "daily_sales_job: its task is about 950 tokens, over 500 - split it into smaller components",
+   "message": "daily_sales_job: its task is about 982 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/daily_sales_job/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "enrich_orders: its task is about 1,157 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
+   "message": "enrich_orders: its task is about 1,223 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
    "file": ".archvow/components/enrich_orders/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "orders_clean_writer: its task is about 930 tokens, over 500 - split it into smaller components",
+   "message": "logging_setup: its task is about 561 tokens, over 500 - split it into smaller components",
+   "file": ".archvow/components/logging_setup/spec.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH044",
+   "severity": "warning",
+   "message": "orders_clean_writer: its task is about 1,019 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/orders_clean_writer/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "orders_reader: its task is about 922 tokens, over 500 - split it into smaller components",
+   "message": "orders_reader: its task is about 979 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/orders_reader/spec.md",
    "line": 0
   },
@@ -3003,6 +3164,13 @@
    "message": "test_empty is the evidence of decision(2) but checks nothing (no assert that can fail) -> assert on what the component returns, or use pytest.raises",
    "file": "tests/p1_domain/test_clean_orders.py",
    "line": 16
+  },
+  {
+   "code": "ARCH045",
+   "severity": "error",
+   "message": "test_empty_input_gives_an_empty_frame is the evidence of decision(5) but checks nothing (no assert that can fail) -> assert on what the component returns, or use pytest.raises",
+   "file": "tests/p1_domain/test_clean_orders.py",
+   "line": 5
   },
   {
    "code": "ARCH045",
@@ -3098,14 +3266,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 29f41e71: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit b6d264f2: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 7d0c63f4: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit fd906dab: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -3154,6 +3322,20 @@
   {
    "code": "ARCH057",
    "severity": "warning",
+   "message": "'clean_orders': its clean_orders.H1 changed on <date>, after invariant INV1 was recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (record it again (archvow show clean_orders gives each command)); when every one still holds: archvow component accept clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH057",
+   "severity": "warning",
+   "message": "'clean_orders': its decision 5 changed on <date>, after hazard H1 was recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (record it again (archvow show clean_orders gives each command)); when every one still holds: archvow component accept clean_orders",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH057",
+   "severity": "warning",
    "message": "'clean_orders': its description changed on <date>, after decision 1 was recorded - each may no longer hold -> look at them: archvow show clean_orders; change one by recording it again (archvow decision make clean_orders 1 \"...\"); when every one still holds: archvow component accept clean_orders",
    "file": ".archvow/components/clean_orders/spec.vow",
    "line": 0
@@ -3170,6 +3352,20 @@
    "severity": "warning",
    "message": "'input_reader': its description changed on <date>, after decision 1, decision 2, decision 6, hazard H1, hazard H2, invariant INV1, not applicable (wrong) were recorded - each may no longer hold -> look at them: archvow show input_reader; change one by recording it again (archvow decision make input_reader 1 \"...\"); when every one still holds: archvow component accept input_reader",
    "file": ".archvow/components/input_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH058",
+   "severity": "error",
+   "message": "the project has 15 code lines, over its limit of 4 -> split the project, or an architect raises it: archvow init sales --force -a max_code_lines=<n>",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH058",
+   "severity": "warning",
+   "message": "the project has 9 components of its 9 (100 %)",
+   "file": ".archvow/spec.vow",
    "line": 0
   },
   {
@@ -3360,6 +3556,20 @@
    "message": "load() performs file I/O",
    "file": "src/sales/p1_domain/enrich_orders.py",
    "line": 16
+  },
+  {
+   "code": "SPK001",
+   "severity": "error",
+   "message": "logging.FileHandler() writes a log file (logs go to stderr: the cluster keeps them)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 19
+  },
+  {
+   "code": "SPK001",
+   "severity": "error",
+   "message": "logging.basicConfig() writes a log file (logs go to stderr: the cluster keeps them)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 14
   },
   {
    "code": "SPK002",

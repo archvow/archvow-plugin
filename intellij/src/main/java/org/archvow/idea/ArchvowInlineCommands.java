@@ -29,9 +29,21 @@ final class ArchvowInlineCommands {
         return List.of(base.get(0), base.get(1), base.get(2), base.get(3), base.get(4), text, "--json");
     }
 
+    /** Without a reason: the decision that says there is nothing to protect is the reason (archvow 1.19). */
     static List<String> dismiss(String component, String guideWord, String reason) {
-        return List.of("hazard", "dismiss", required(component, "component"),
-            required(guideWord, "safety question"), required(reason, "reason"), "--json");
+        String text = reason == null ? "" : reason.trim();
+        if (text.isEmpty()) return List.of("hazard", "dismiss", required(component, "component"), required(guideWord, "safety question"), "--json");
+        return List.of("hazard", "dismiss", required(component, "component"), required(guideWord, "safety question"), text, "--json");
+    }
+
+    /** {@code hazard edit <component>.H<n> ["words"] [--severity s]}: same id, its invariants stay (and become to review). */
+    static List<String> editHazard(String component, String id, String words, String severity) {
+        List<String> args = new java.util.ArrayList<>(List.of("hazard", "edit",
+            ArchvowCommandPrefill.itemId(required(component, "component"), required(id, "hazard"))));
+        if (words != null && !words.isBlank()) args.add(words.trim());
+        if (severity != null && !severity.isBlank()) { args.add("--severity"); args.add(severity.trim()); }
+        args.add("--json");
+        return List.copyOf(args);
     }
 
     /** {@code hazard remove <component>.H<n> --yes}: show --json gives the qualified id, a short H1 gets the component. */

@@ -66,5 +66,5 @@ people (`@alice`), dates, lists, JSON and comments.
 
 ## A component's vow in the workspace
 
-A component's **Full vow** view shows its `spec.vow` highlighted, read-only (`ArchvowVowViewer`;
+A component's **Spec** view shows its `spec.vow` highlighted (and its card `spec.md`), read-only (`ArchvowVowViewer`;
 VS Code: `vowView()` in the page, the extension reads the file). One colour per depth, as in the editor.

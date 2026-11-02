@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `python-app@1.18.0`).
+(template `python-app@1.19.0`).
 
 ## For developers
 
@@ -157,7 +157,7 @@ it turns the name into the component id (`invoice` -> `invoice_model`). **The de
 what the AI assistant - or the developer - implements**: write the real fields, rules and
 statuses. Types (utility, model, error, logic, repository, client, service, cli):
 `archvow component add --help`. The AI assistant can propose these commands for a whole feature:
-`/draft-spec <the feature in plain words>`.
+`/archvow-draft-spec <the feature in plain words>`.
 
 The command line (`invoices_cli`, its `main(argv) -> int`) is the entry point: it makes the
 program runnable (`python -m invoicing.p4_entrypoints.invoices_cli`). Until it and everything
@@ -255,14 +255,14 @@ make run CLI=invoices ARGS="--help"                   # the command line of the 
 | add a domain error | `archvow component add error invoice_not_found -d "No invoice with this number"` |
 | add a pure business rule | `archvow component add logic compute_total -d "Sum of the lines" --signature "(lines: list[Line]) -> Decimal"` |
 | ask a question, as a developer | `archvow question add invoice_model "May an invoice have an amount of zero?"` |
-| let the AI find what is unclear | `archvow prompt invoice_model --clarify` (in the chat: `/clarify invoice_model`) |
+| let the AI find what is unclear | `archvow prompt invoice_model --clarify` (in the chat: `/archvow-clarify invoice_model`) |
 | add a rule for every component of a type | `archvow rule add --type model "Given an unknown field, when it is parsed, then it is refused"` |
 | dismiss a safety question that does not apply | `archvow hazard dismiss invoice_model S2 "invoices hold no personal data"` |
 | see everything about a component | `archvow show invoice_model` |
 | answer what is open, one question at a time | `archvow specify invoice_model` (in a terminal) |
-| let the AI propose the risks of a component | in the chat: `/analyze invoice_model` |
+| let the AI propose the risks of a component | in the chat: `/archvow-analyze invoice_model` |
 | build a big component one task at a time | `archvow show send_invoice` lists its tasks T1, T2...; `archvow prompt send_invoice` gives the next one; mark each test: `@pytest.mark.decision(3)` |
-| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init invoicing --force -a briefs=...`) | in the chat: `/draft-spec briefs/invoices.md`; after the brief changes (ARCH039): `archvow brief accept briefs/invoices.md#sending` |
+| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init invoicing --force -a briefs=...`) | in the chat: `/archvow-draft-spec briefs/invoices.md`; after the brief changes (ARCH039): `archvow brief accept briefs/invoices.md#sending` |
 | classify columns (GDPR) | `archvow column set invoice_model email,phone personal` |
 | say a step removes or pseudonymises them | `archvow column set send_invoice phone --removes` |
 | list what a release contains | `archvow changes --from v1.0.0 --markdown` |

@@ -1,4 +1,4 @@
-// The workspace's rules, the same as the IntelliJ workspace's, on archvow 1.18's real outputs
+// The workspace's rules, the same as the IntelliJ workspace's, on archvow 1.19's real outputs
 // (../contract/cli): forms into command lines, prefill, the pending and resolved work, the counts on each
 // view, the formatter, where the project stands.
 import * as assert from 'node:assert/strict';
@@ -23,10 +23,10 @@ const EXAMPLES = ['fastapi-service', 'pyspark-pipeline', 'python-app'];
 const snapshots = (example: string): Record<string, Json> => Object.fromEntries(
   fs.readdirSync(path.join(CLI, example, 'show')).map((f) => [f.replace(/\.json$/, ''), read(example, 'show', f)]));
 
-test('the grammar is archvow 1.18\'s, with every command the workspace offers', () => {
-  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /1\.18\./);
+test('the grammar is archvow 1.19\'s, with every command the workspace offers', () => {
+  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /1\.19\./);
   for (const name of ['init', 'check', 'next', 'show', 'decision make', 'decision propose', 'decision accept', 'question add',
-    'hazard add', 'hazard dismiss', 'invariant add', 'invariant remove', 'assumption accept', 'rule add', 'column set', 'prompt', 'doctor', 'audit', 'diff', 'review']) {
+    'hazard add', 'hazard dismiss', 'hazard edit', 'invariant add', 'invariant edit', 'invariant remove', 'component accept', 'assumption accept', 'rule add', 'column set', 'prompt', 'doctor', 'audit', 'diff', 'review']) {
     command(name);
   }
 });
@@ -73,7 +73,12 @@ test('prefill: the selected component, and for "Edit spec" what the spec says, n
 test('in-place actions, task prompts', () => {
   assert.deepEqual(inline.decide('c', '2', ' Fail fast '), ['decision', 'make', 'c', '2', 'Fail fast', '--json']);
   assert.deepEqual(inline.hazard('c', 'missing', 'high', ''), ['hazard', 'add', 'c', 'missing', 'high', '--json']);
-  assert.throws(() => inline.dismiss('c', 'S2', ' '));
+  // archvow 1.19: without a reason, the decision that says there is nothing to protect is the reason
+  assert.deepEqual(inline.dismiss('c', 'S2', ' '), ['hazard', 'dismiss', 'c', 'S2', '--json']);
+  assert.deepEqual(inline.dismiss('c', 'S2', 'only one file'), ['hazard', 'dismiss', 'c', 'S2', 'only one file', '--json']);
+  // a hazard changed in place keeps its id and its invariants
+  assert.deepEqual(inline.editHazard('c', 'H1', ' new words ', 'critical'), ['hazard', 'edit', 'c.H1', 'new words', '--severity', 'critical', '--json']);
+  assert.deepEqual(inline.editHazard('c', 'c.H2', '', 'low'), ['hazard', 'edit', 'c.H2', '--severity', 'low', '--json']);
   assert.equal(taskNumber('t3'), '3');
   assert.deepEqual(promptCommand('c', ''), ['prompt', 'c']);
   assert.ok(needsFullCard(1, 'x is one task: its card is small enough'));

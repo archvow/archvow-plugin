@@ -15,7 +15,7 @@ import { ArchvowCli, CliResult, CliSettings } from './cli';
 import { Briefs, locate, readBriefs } from './briefs';
 import { bestBase, Book, choiceBook, missingRef, refNames } from './choices';
 import { renderResult } from './formatter';
-import { Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, promptCommand } from './grammar';
+import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, promptCommand } from './grammar';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
 import { knownVersion, parseVersion, problemsOf, versionWarning } from './model';
@@ -72,6 +72,8 @@ export class ArchvowProject {
   private projectCatalog: Json | null = null;
   private remoteHead = '';
   readonly known: string;
+  /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
+  private readonly forms: Json;
   state: State;
   /** The sidebar page (Overview, Components, Commands). */
   private nav: vscode.WebviewView | undefined;
@@ -102,6 +104,7 @@ export class ArchvowProject {
       this.bundledKinds = null;
     }
     this.known = knownVersion(fs.readFileSync(path.join(this.resources, 'version.txt'), 'utf8'));
+    this.forms = JSON.parse(fs.readFileSync(path.join(this.resources, 'forms.json'), 'utf8')) as Json;
     this.cli = new ArchvowCli(root, () => this.cliSettings(), (line) => log.info(line));
     void this.readInterpreter();
     this.problems = vscode.languages.createDiagnosticCollection('archvow');
@@ -571,7 +574,8 @@ export class ArchvowProject {
       ? renderResult(labelText, -1, '', result.startError, false, fr)
       : renderResult(labelText, result.exitCode, result.stdout, result.stderr, result.timedOut, fr);
     this.toOpenEditor({ type: 'result', target, label: labelText, html, raw: (result.stdout + (result.stderr ? '\n' + result.stderr : '')).trim(),
-      args: ['archvow', ...result.args].join(' '), ok: result.exitCode === 0 && !result.timedOut && result.startError === undefined });
+      args: ['archvow', ...result.args].join(' '), ok: result.exitCode === 0 && !result.timedOut && result.startError === undefined,
+      ...alerts(result) });
   }
 
   // ------------------------------------------------------------------ what the page asks
@@ -580,7 +584,7 @@ export class ArchvowProject {
     const fr = this.state.fr;
     switch (m.type) {
       case 'ready': {
-        const init = { type: 'init', commands: this.commands, catalog: this.bundledCatalog, knownVersion: this.known,
+        const init = { type: 'init', commands: this.commands, catalog: this.bundledCatalog, knownVersion: this.known, forms: this.forms,
           types: componentTypes(this.bundledCatalog),
           rules: { en: fs.readFileSync(path.join(this.resources, 'rules.md'), 'utf8'), fr: fs.readFileSync(path.join(this.resources, 'rules.fr.md'), 'utf8') } };
         const state = { type: 'state', state: this.state };
@@ -627,6 +631,9 @@ export class ArchvowProject {
       case 'form':
         return this.runForm(String(m.command), (m.values ?? {}) as Record<string, string>, stringList(m.initAnswers ?? []), String(m.selected ?? ''),
           (m.baseline ?? {}) as Record<string, string>);
+      case 'formPreview':
+        return this.formPreview(String(m.command), (m.values ?? {}) as Record<string, string>, stringList(m.initAnswers ?? []),
+          String(m.selected ?? ''), (m.baseline ?? {}) as Record<string, string>);
       case 'inline':
         return this.inlineAction(m);
       case 'install':
@@ -660,6 +667,8 @@ export class ArchvowProject {
         return this.loadCatalog(String(m.template ?? ''), m.force === true, from);
       case 'openSpec':
         return this.openSpec(String(m.component));
+      case 'openVowFile':
+        return this.openFile(path.join(this.root, '.archvow', 'components', String(m.component), 'spec.vow'), 0, '');
       case 'openCode':
         return this.openCode(String(m.component));
       case 'openProjectVow':
@@ -769,6 +778,16 @@ export class ArchvowProject {
     else if (ok && change) await this.refresh(false);
   }
 
+  /** The command line the form asks for, as it is typed: the live preview (design A), or what is still missing. */
+  private formPreview(name: string, values: Record<string, string>, initAnswers: string[], selected: string,
+    baseline: Record<string, string>): void {
+    const command = findCommand(this.commands, name);
+    if (command === undefined) return;
+    const plan = planForm(command, values, this.state.fr, { initAnswers, components: Object.keys(this.state.snapshots), selected, baseline });
+    const text = plan.kind === 'run' ? preview(plan.args.filter((a) => a !== '--json' && a !== '--no-input' && a !== '--yes')) : '';
+    this.toOpenEditor({ type: 'formPreview', command: name, text, missing: plan.kind === 'error' ? plan.message : '' });
+  }
+
   private async runForm(name: string, values: Record<string, string>, initAnswers: string[], selected: string,
     baseline: Record<string, string> = {}): Promise<void> {
     const fr = this.state.fr;
@@ -857,12 +876,13 @@ export class ArchvowProject {
           const word = String(m.word ?? '');
           const description = String(m.text ?? '').trim();
           const severity = action === 'hazard suggested' ? 'high' : String(m.severity ?? 'high');
-          if (action === 'hazard dismiss' && !description) {
+          if (action === 'hazard dismiss' && !description && m.covered !== true) {
             throw new Error(tr(fr, 'Explain why this hazard is not applicable.', 'Justifie pourquoi ce hazard n\'est pas applicable.'));
           }
           args = action === 'hazard dismiss' ? inline.dismiss(component, word, description)
             : inline.hazard(component, word, severity, action === 'hazard suggested' ? '' : description);
-          summary = `S${m.number} — ${m.question ?? ''}\n\n` + (action === 'hazard dismiss' ? tr(fr, 'Mark as not applicable?', 'Déclarer non applicable ?')
+          summary = `S${m.number} — ${m.question ?? ''}\n\n` + (action === 'hazard dismiss' ? (description ? '' : String(m.preview ?? '') + '\n')
+            + tr(fr, 'Mark as not applicable?', 'Déclarer non applicable ?')
             : action === 'hazard suggested' ? String(m.preview ?? '') + '\n' + tr(fr, 'Accept the suggested hazard and applicable invariant?',
               'Accepter le hazard suggéré et son invariant éventuel ?') : tr(fr, 'Declare this hazard?', 'Déclarer ce hazard ?'));
           if (action === 'hazard add' && ['critical', 'high'].includes(severity) && description) {
@@ -874,24 +894,19 @@ export class ArchvowProject {
         case 'hazard remove': {
           target = 'safety';
           args = inline.removeHazard(component, String(m.id ?? ''));
-          summary = `S${m.number} — ${m.question ?? ''}\n\n` + tr(fr, `Remove the hazard ${args[2]}? The invariants that protect it stay, protecting nothing (archvow check then lists them).`,
-            `Supprimer le hazard ${args[2]} ? Les invariants qui le protègent restent, sans rien protéger (archvow check les signale ensuite).`);
+          summary = `S${m.number} — ${m.question ?? ''}\n\n` + tr(fr, `Remove the hazard ${args[2]}? The invariants that protected only it go with it.`,
+            `Supprimer le hazard ${args[2]} ? Les invariants qui ne protégeaient que lui partent avec lui.`);
           break;
         }
         case 'hazard change': {
-          // remove + add again, confirmed once; the webview offers it only while no invariant points to the hazard
+          // archvow 1.19: hazard edit - same id, its invariants stay and become to review
           target = 'safety';
           const description = String(m.text ?? '').trim();
           if (!description) throw new Error(tr(fr, 'Write what must never happen.', 'Écris ce qui ne doit jamais arriver.'));
-          const removal = inline.removeHazard(component, String(m.hazard ?? ''));
-          const addition = inline.hazard(component, String(m.word ?? ''), String(m.severity ?? 'high'), description);
-          const reload = (): void => void this.reloadComponent(component);
-          this.confirm('hazard change', removal, target, `S${m.number} — ${m.question ?? ''}\n\n`
-            + tr(fr, `Change ${removal[2]} to (${m.severity}): ${description}\narchvow removes it, then records it again: two commands.`,
-              `Modifier ${removal[2]} en (${m.severity}) : ${description}\narchvow le supprime puis l'enregistre à nouveau : deux commandes.`)
-            + '\n\narchvow ' + addition.join(' '), undefined,
-            () => void this.execute('hazard add', addition, target, undefined, true, reload));
-          return;
+          args = inline.editHazard(component, String(m.hazard ?? ''), description, String(m.severity ?? ''));
+          summary = `S${m.number} — ${m.question ?? ''}\n\n` + tr(fr, `Change ${args[2]} to (${m.severity}): ${description}\nSame id; the invariants that protect it become to review.`,
+            `Modifier ${args[2]} en (${m.severity}) : ${description}\nMême id ; les invariants qui le protègent deviennent à revoir.`);
+          break;
         }
         case 'invariant add': {
           target = 'safety';
@@ -1013,7 +1028,13 @@ export class ArchvowProject {
     } catch {
       this.state.vows[component] = '';
     }
-    this.reply(from, { type: 'vow', component, text: this.state.vows[component] });
+    let card = '';  // the Spec view shows the card the AI implements and the vow it is written from, side by side
+    try {
+      card = fs.readFileSync(path.join(this.root, '.archvow', 'components', component, 'spec.md'), 'utf8');
+    } catch {
+      card = '';
+    }
+    this.reply(from, { type: 'vow', component, text: this.state.vows[component], card });
   }
 
   /** The template catalog for init: archvow's own (installed) when it answers, else the bundled one. */
@@ -1146,4 +1167,3 @@ function parse(text: string): Json | null {
 function stringList(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String) : [];
 }
-

@@ -10,7 +10,7 @@ archvow's wiki; here are the plugins' own, with where to find them in the code.
 | **sidebar** (navigation) | what chooses: Overview, Components, Commands. IntelliJ: the Archvow tool window on the left; VS Code: the activity bar | `ArchvowPanel` in the `NAVIGATION` role, `ArchvowNavigationTabs`; the page in the `nav` role |
 | **the tab** (detail) | **one single** editor tab that shows what is chosen, reused for the next choice | `ArchvowEditorTab`, `ArchvowEditorProvider`, `ArchvowPanel` in the `DETAIL` role; the *webview panel*, the page in the `editor` role |
 | **Overview** | the project's screen: its state, the architecture, Check & Gates, pending and resolved work, the project commands | page [Overview](/en/07-overview) |
-| **view** (of a component) | Decisions, Questions, Safety, Assumptions, Rules, Tasks, Full vow, Other / Project | `addComponentView`, the page's `VIEWS` constant |
+| **view** (of a component) | Decisions, Questions, Safety, Assumptions, Rules, Tasks, Spec, Other / Project | `addComponentView`, the page's `VIEWS` constant |
 | **card** | an item of a view (a decision, a question...) on one line, on the left | `ArchvowItemCards`, `cards()` |
 | **answer panel** | the chosen card, on the right (or below): the whole question, the field, the actions | `ArchvowSplitView`, `split()` |
 | **first open item** | the card chosen when a component opens: the first item without an answer, otherwise the first | `ArchvowItemCards.firstOpen`, `current()` |

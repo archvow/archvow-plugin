@@ -15,7 +15,7 @@ next to them. Everything it shows comes from `archvow show <component> --json` (
 │ transformation · p1_domain · module ... · ticket FATTRIB-12 · verified     │
 │ Keep the rows where amount > 0 ...                                         │
 │ Uses: sales_schema · Used by: revenue_writer    Examples: ✓ ...            │
-│ [Clarify] Open spec  Open code  Edit spec  ...                             │  actions
+│ [Clarify] Open code  Edit spec  ...                                        │  actions
 │ (Decisions · 1) (Questions) (Safety ✓) (Assumptions) (Rules) (Tasks) ...   │  views
 ├──────────────────────────────────┬────────────────────────────────────────┤
 │ 1 · Which rows does it keep…     │ ANSWER DECISION 3                      │
@@ -39,10 +39,13 @@ the reason, ARCH055/ARCH056). IntelliJ: `buildComponentHtml` in the `componentDe
 VS Code: `componentDetail()`, `openBadge()`, `meta()`.
 
 **The actions**: Clarify (goes to the first open item: decision, then question, then safety question;
-`guidedNext`, `chooseNext()`), Open spec, Open code (the `module`'s file), Edit spec, AI instruction
-(`archvow prompt <component>`), + Question, + Rule, + Component.
+`guidedNext`, `chooseNext()`), Open code (the `module`'s file), Edit spec, AI instruction
+(`archvow prompt <component>`), + Question, + Rule, + Component; Accept… for a component the AI created
+(archvow 1.19, modes guided and free: its vow says `origin ai`, `created_by`), which shows **AI: to
+review** in the tree and its head until a person runs `component accept` (`aiBadge()`, `createdByAi()`,
+`buildComponentHtml`, `aiAcceptButton`).
 
-**The views**: Decisions, Questions, Safety, Assumptions, Rules, Tasks, Full vow, Other / Project.
+**The views**: Decisions, Questions, Safety, Assumptions, Rules, Tasks, Spec, Other / Project.
 Each button says `· n` pending items, or ✓ when everything is resolved (`refreshViewStatus`,
 `viewCounts()`). Under the views, a line explains why the component's total may exceed the view
 ("9 pending · 0 in Data & tasks · 4 in Other / Project").
@@ -74,16 +77,27 @@ choices when the component changes.
 |---|---|---|---|
 | Decisions | the answer or the proposal | Save answer, Propose, Accept proposal, Use suggestion (only those that apply) | `decision make`, `decision propose`, `decision accept` |
 | Questions | the answer | Save answer | `decision make <c> <key>` |
-| Safety | the hazard, or why it does not apply; the severity; or the invariant it needs | Declare hazard, Not applicable, Use the suggested hazard (and invariant); on a recorded hazard: Change, Remove; Add invariant (in place), Add invariant…, Remove invariant… | `hazard add`, `hazard dismiss`, `hazard remove` (+ `hazard add` for Change), `invariant add`; forms `invariant add`, `invariant remove` |
+| Safety | the hazard, or why it does not apply; the severity; or the invariant it needs | Declare hazard, Not applicable, Use the suggested hazard (and invariant), Confirm (covered by a decision), Confirm not applicable; on a recorded hazard: Change, Remove; Add invariant (in place), Add invariant…, Remove invariant… | `hazard add`, `hazard dismiss` (no reason when the decision is the reason), `hazard edit` (Change), `hazard remove`, `invariant add`; forms `invariant add`, `invariant remove` |
 | Assumptions | - | Accept, Reject (forms), + Assumption | `assumption accept`, `assumption reject`, `assumption add` |
 
 One field, three uses (0.13.1): declare the hazard of an open question; change a recorded hazard
-(Change: the field takes its text and severity, saving runs `hazard remove` then `hazard add`, confirmed
-once - only while no invariant protects it, archvow 1.18 having no `hazard edit`); write the invariant a
+(Change: the field takes its text and severity, saving runs `hazard edit` - 0.14.0, archvow 1.19: same
+id, its invariants stay and become to review; offered for every recorded hazard); write the invariant a
 high or critical hazard needs (ARCH030), right there, filled with the template's suggestion - archvow
 gives it only while the question is open, so both plugins keep it (`rememberedInvariants`,
 `ui.suggested`). "Add required invariant" in the Pending lists opens this field, no longer the form. A
-question resolved and protected shows only its hazards, its invariants and the removals. Its state
+question resolved and protected shows only its hazards, its invariants and the removals.
+
+**A question a decision already answers** (archvow 1.19: `show --json` gives the suggestion's `decision`
+{number, answer}): "Covered by decision N", its answer, and **Confirm** - `hazard add` without words, so
+archvow records the hazard and an invariant that *is* that decision (`from_decision`). When the decision
+says there is nothing to protect (`not_applicable`), **Confirm not applicable** sends `hazard dismiss` with no
+reason: the decision is the reason. The proposed invariant and "Use the suggested hazard" are not shown
+then (`ArchvowSafetyState.coveringDecision` / `notApplicable`).
+
+**Decisions without a safe default** (archvow 1.19: a decision's `choices`) offer them as buttons under
+"No default (it depends on this project) - to start from:"; one fills the answer field, to complete
+(`useChoice`, `decisionChoices`). Its state
 follows archvow's rules: `ArchvowSafetyState`, the `safety` object of `vscode/src/workItems.ts`.
 IntelliJ lays the buttons out in an `ArchvowWrapLayout` (a `FlowLayout` that asks for the height of
 every row: "Remove hazard…" fell outside the panel).
@@ -120,5 +134,5 @@ confirmation left open: you never confirm an action prepared for something else.
 |---|---|---|
 | Rules | the rules that apply to the component (R1, R2...) and their scope | Add, Edit, Remove a rule (forms) |
 | Tasks | the columns to classify and the card's tasks; personal data | Classify column (`column set`), a task's instructions (`prompt <c> --task n`, `ArchvowTaskPrompt`, `promptCommand()`) |
-| Full vow | the component's `spec.vow`, highlighted, read-only | Open spec |
+| Spec | the card the AI implements (`spec.md`) or the vow it is written from (`spec.vow`, highlighted), a switch between them, read only (0.14.0: one view instead of Open spec and Full vow; `vowView()`, `specPanel()`) | Open in the editor, Project vow |
 | Other / Project | the checks and items of the whole project, or without a proven component | each item's action; a fix is drawn from a message only when it is documented (`ArchvowIssueAction`, `issueFix()`), never run as it is |

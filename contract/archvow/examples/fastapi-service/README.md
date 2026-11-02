@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `fastapi-service@1.18.0`).
+(template `fastapi-service@1.19.0`).
 
 ## For developers
 
@@ -157,7 +157,7 @@ it turns the name into the component id (`order` -> `order_model`). **The descri
 what the AI assistant - or the developer - implements**: write the real fields, rules and
 statuses. Types (model, error, dependency, repository, client, service, logic, router, app):
 `archvow component add --help`. The AI assistant can propose these commands for a whole feature:
-`/draft-spec <the feature in plain words>`.
+`/archvow-draft-spec <the feature in plain words>`.
 
 The app (`main`, its `create_app() -> FastAPI`) is the entry point: it makes the service runnable
 (`make run`). Until it and everything it uses are coded, `archvow next` ends with *Not ready to
@@ -255,14 +255,14 @@ make run                                             # http://127.0.0.1:8000/doc
 | add a domain error | `archvow component add error order_not_found -d "The order does not exist, or belongs to another customer"` |
 | add a pure business rule | `archvow component add logic compute_total -d "Sum of the lines" --signature "(lines: list[Line]) -> Decimal"` |
 | ask a question, as a developer | `archvow question add order_model "May an order have an amount of zero?"` |
-| let the AI find what is unclear | `archvow prompt order_model --clarify` (in the chat: `/clarify order_model`) |
+| let the AI find what is unclear | `archvow prompt order_model --clarify` (in the chat: `/archvow-clarify order_model`) |
 | add a rule for every component of a type | `archvow rule add --type model "Given an unknown field, when it is parsed, then it is refused"` |
 | dismiss a safety question that does not apply | `archvow hazard dismiss order_model S2 "orders hold no personal data"` |
 | see everything about a component | `archvow show order_model` |
 | answer what is open, one question at a time | `archvow specify order_model` (in a terminal) |
-| let the AI propose the risks of a component | in the chat: `/analyze order_model` |
+| let the AI propose the risks of a component | in the chat: `/archvow-analyze order_model` |
 | build a big component one task at a time | `archvow show orders_router` lists its tasks T1, T2...; `archvow prompt orders_router` gives the next one; mark each test: `@pytest.mark.decision(3)` |
-| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init orders_api --force -a briefs=...`) | in the chat: `/draft-spec briefs/orders.md`; after the brief changes (ARCH039): `archvow brief accept briefs/orders.md#payment` |
+| draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init orders_api --force -a briefs=...`) | in the chat: `/archvow-draft-spec briefs/orders.md`; after the brief changes (ARCH039): `archvow brief accept briefs/orders.md#payment` |
 | classify columns (GDPR) | `archvow column set order_model email,phone personal` |
 | say a step removes or pseudonymises them | `archvow column set create_order phone --removes` |
 | list what a release contains | `archvow changes --from v1.0.0 --markdown` |

@@ -10,13 +10,13 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.13.1.zip, dist/archvow-0.13.1.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.14.0.zip, dist/archvow-0.14.0.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) runs both plugins' tests, regenerates the contract with the
-archvow kept in `contract/archvow/` (the 1.18.0 wheel, its examples and rules) and requires it unchanged,
+archvow kept in `contract/archvow/` (the 1.19.0 wheel, its examples and rules) and requires it unchanged,
 runs the VS Code tests against that archvow, then opens the built `.vsix` and `.zip` as the IDEs do. The
 page [Tests](wiki/en/13-tests.md) says what each job checks.
 
@@ -30,7 +30,7 @@ page [Tests](wiki/en/13-tests.md) says what each job checks.
   the cards in a narrow tab); it opens on its first open item.
 - **The same workspace in both editors.** Overview (architecture, Check & Gates, pending and resolved
   work, Check / Next / Full check / Doctor / Audit / Budget / Diff / Review), Components (Decisions,
-  Questions, Safety, Assumptions, Rules, Tasks, Full vow, Other / Project, with their actions) and
+  Questions, Safety, Assumptions, Rules, Tasks, Spec, Other / Project, with their actions) and
   Commands (every archvow command as a form built from archvow's own parser, the init wizard built from
   `archvow catalog --json`). VS Code reproduces what the IntelliJ workspace does, rule by rule
   (`vscode/src/workItems.ts`, `grammar.ts`, `formatter.ts` name the Java class each one follows).
@@ -53,12 +53,12 @@ page [Tests](wiki/en/13-tests.md) says what each job checks.
   misreading it.
 - **No outside source at run time.** Neither plugin downloads anything on its own; for a team, the `.zip`
   and the `.vsix` go to an internal plugin repository (JetBrains `updatePlugins.xml`, a self-hosted Open
-  VSX) or a share. When archvow is missing or another major.minor, **Install archvow 1.18** shows the pip
+  VSX) or a share. When archvow is missing or another major.minor, **Install archvow 1.19** shows the pip
   command (into the project's venv, from pip's own configuration, your company's index or a wheel: the
   setting *Install archvow from*) and runs it only after **Confirm and run** - never at startup.
 
 ## Versions
 
-Both plugins have the same version (0.13.1), their own, not archvow's. They read `.vow` format 1 and run
-the archvow CLI 1.18 (`contract/cli/version.txt`, the version the contract was recorded from); each says
+Both plugins have the same version (0.14.0), their own, not archvow's. They read `.vow` format 1 and run
+the archvow CLI 1.19 (`contract/cli/version.txt`, the version the contract was recorded from); each says
 when the installed archvow is another major.minor (archvow keeps no backward compatibility).

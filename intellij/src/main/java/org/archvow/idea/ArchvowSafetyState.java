@@ -36,6 +36,18 @@ final class ArchvowSafetyState {
         if (question == null || !question.has("suggestion") || !question.get("suggestion").isJsonObject()) return "";
         return ArchvowGrammar.str(question.getAsJsonObject("suggestion"), field);
     }
+    /** archvow 1.19: the decision that already answers this question ({number, answer}), or null. */
+    static JsonObject coveringDecision(JsonObject question) {
+        if (question == null || !question.has("suggestion") || !question.get("suggestion").isJsonObject()) return null;
+        JsonObject suggestion = question.getAsJsonObject("suggestion");
+        return suggestion.has("decision") && suggestion.get("decision").isJsonObject() ? suggestion.getAsJsonObject("decision") : null;
+    }
+
+    /** archvow 1.19: "decision N: <answer>" when that decision says there is nothing to protect; '' otherwise. */
+    static String notApplicable(JsonObject question) {
+        return suggestion(question, "not_applicable");
+    }
+
     static String preview(JsonObject question) {
         StringBuilder text = new StringBuilder();
         String hazard = suggestedHazard(question);

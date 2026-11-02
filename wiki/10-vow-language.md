@@ -67,6 +67,6 @@ les textes, nombres, booléens, personnes (`@alice`), dates, listes, JSON et com
 
 ## Le vow d'un composant dans l'espace de travail
 
-La vue **Full vow** d'un composant montre son `spec.vow` coloré, en lecture seule (`ArchvowVowViewer` ;
+La vue **Spec** d'un composant montre son `spec.vow` coloré (et sa fiche `spec.md`), en lecture seule (`ArchvowVowViewer` ;
 VS Code : `vowView()` dans la page, l'extension lit le fichier). Une couleur par profondeur, comme dans
 l'éditeur.

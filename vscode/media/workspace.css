@@ -253,3 +253,30 @@ select:disabled { opacity: 0.75; }
 /* the options archvow hides from --help (invariant add's expert checks): apart, closed by default */
 details.expert { margin: 8px 0; border: 1px solid var(--vscode-panel-border, #444); border-radius: 4px; padding: 4px 8px; }
 details.expert > summary { cursor: pointer; padding: 2px 0; }
+
+/* a command's form (design A, 0.14.0): the fields on the left, what archvow will do on the right */
+.form-head h3 { margin: 12px 0 2px; }
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 34%); gap: 16px; align-items: start; margin-top: 8px; }
+@media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } }
+.field > label { display: block; } .field > label .req { color: var(--vscode-errorForeground); }
+.field > label code.flag { font-weight: normal; font-size: .85em; color: var(--vscode-descriptionForeground); }
+label.check { font-weight: normal; display: flex; gap: 6px; align-items: flex-start; }
+.segmented { display: inline-flex; flex-wrap: wrap; gap: 0; }
+.segmented button { border-radius: 0; margin-right: -1px; border: 1px solid var(--vscode-input-border, var(--vscode-panel-border)); }
+.segmented button:first-child { border-radius: 3px 0 0 3px; } .segmented button:last-child { border-radius: 0 3px 3px 0; }
+.segmented button.on { outline: none; background: var(--archvow); color: #fff; border-color: var(--archvow); }
+details.more { margin: 8px 0; border-top: 1px solid var(--vscode-panel-border, #444); padding-top: 4px; }
+details.more > summary { cursor: pointer; padding: 4px 0; font-weight: 600; }
+.form-pane { border: 1px solid var(--vscode-panel-border, #444); border-radius: 4px; padding: 6px 12px 10px;
+  background: var(--vscode-sideBar-background, transparent); position: sticky; top: 8px; }
+.form-pane h4 { margin-top: 6px; }
+pre.command-preview { padding: 6px 8px; border-radius: 3px; background: var(--vscode-textCodeBlock-background, rgba(127,127,127,.12)); }
+pre.command-preview.missing { color: var(--vscode-descriptionForeground); font-style: italic; }
+.alert { border-radius: 3px; padding: 6px 10px; margin: 8px 0; border: 1px solid; }
+.alert.error { border-color: var(--vscode-inputValidation-errorBorder, #be1100); background: var(--vscode-inputValidation-errorBackground, rgba(190,17,0,.12)); }
+.alert.warn { border-color: var(--vscode-inputValidation-warningBorder, #b89500); background: var(--vscode-inputValidation-warningBackground, rgba(184,149,0,.12)); }
+.alert > div { white-space: pre-wrap; margin-top: 2px; }
+.alert.good { border-color: var(--vscode-testing-iconPassed, #2ea043); background: rgba(46,160,67,.10); }
+.alert .row.end { margin-top: 6px; }
+.choices { margin: 2px 0 6px; }
+pre.card-md { max-height: 70vh; overflow: auto; }

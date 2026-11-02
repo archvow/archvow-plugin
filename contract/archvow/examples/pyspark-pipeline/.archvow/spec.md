@@ -10,10 +10,11 @@ PySpark pipeline for my_pipeline
 
 ```mermaid
 flowchart TB
-  subgraph my_pipeline["my_pipeline (pyspark-pipeline@1.18.0)"]
+  subgraph my_pipeline["my_pipeline (pyspark-pipeline@1.19.0)"]
     direction TB
     subgraph my_pipeline__p0_common["p0_common"]
       my_pipeline__config["config<br/><small>foundation</small>"]
+      my_pipeline__logging_setup["logging_setup<br/><small>foundation</small>"]
       my_pipeline__spark["spark<br/><small>foundation</small>"]
     end
     subgraph my_pipeline__p1_domain["p1_domain"]
@@ -48,6 +49,7 @@ What exists, where, and why. Implementation status: `archvow check` or `.archvow
 | Spec | Layer | Component | Type | File | Public symbols | Invariants |
 |---|---|---|---|---|---|---|
 | - | p0_common | config | foundation | `src/my_pipeline/p0_common/config.py` | `JobConfig` | - |
+| - | p0_common | logging_setup | foundation | `src/my_pipeline/p0_common/logging_setup.py` | `setup_logging` | - |
 | - | p0_common | spark | foundation | `src/my_pipeline/p0_common/spark.py` | `get_spark_session` | - |
 | US-001 | p1_domain | orders_schema | schema | `src/my_pipeline/p1_domain/orders_schema.py` | `ORDERS_SCHEMA` | - |
 | US-001 | p2_io | orders_reader | reader | `src/my_pipeline/p2_io/orders_reader.py` | `read_orders` | - |
@@ -141,7 +143,7 @@ What `archvow check` verifies on every component's code, family by family (the f
 | ARCH036 | error | Invalid hazard, dismissal, invariant or project rule entry |
 | ARCH037 | error | Invariant tested too weakly for the hazard's severity |
 | ARCH038 | warning | A decision or rule of an implemented component has no marked test |
-| ARCH043 | warning | A decision the AI proposed is not reviewed by a person yet (an error at the release gate in mode guided) |
+| ARCH043 | warning | A decision the AI proposed, or a component it created, is not reviewed by a person yet (an error at the release gate in mode guided) |
 | ARCH044 | warning | A component's task is too long for one AI session (over max_tokens) |
 | ARCH045 | warning | A test marked as evidence checks nothing (an error in mode strict and with --complete) |
 | ARCH046 | error | A marked test did not run and pass in the test report (check --test-report) |
@@ -154,6 +156,7 @@ What `archvow check` verifies on every component's code, family by family (the f
 | ARCH055 | error | A business example's files differ from the ones a person recorded |
 | ARCH056 | warning | A business example has no marked test (an error in mode strict and with --complete) |
 | ARCH057 | warning | An item recorded before its component changed is not reviewed yet (an error with --complete) |
+| ARCH058 | error | The project is over its limit of components or lines of code (a warning from 90 %) |
 | ARCH021 | warning | New suppression compared to the base branch |
 | ARCH022 | error | Change too big for one merge request (files or lines over the budget) |
 | ARCH023 | error | Third-party package imported without approval |

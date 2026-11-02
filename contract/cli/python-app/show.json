@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "invoicing",
-      "template": "python-app@1.18.0",
+      "template": "python-app@1.19.0",
       "package": "invoicing",
       "path": "src/invoicing",
       "components": [
@@ -337,6 +337,8 @@
     "auto_approve": "yes",
     "sandbox": "yes",
     "briefs": "briefs",
+    "max_components": "",
+    "max_code_lines": "",
     "git_hooks": "githooks",
     "branch_naming": "gitflow",
     "pip_index_url": "",

@@ -65,7 +65,7 @@ Start the file with this docstring. Fill in the `<...>` values: the person respo
 - One test per decision and per rule below, named after it, e.g. `test_empty_input_returns_empty_dataframe`, and marked with it: `@pytest.mark.decision(3)`, `@pytest.mark.rule("R2")` (ARCH038).
 - The test of orders_router.INV1, as described under *Must never happen*.
 - Test through FastAPI's TestClient with the app from the app component, one test per route and status code; for who may call it, a Hypothesis test that generates two users and checks one never sees the other's data.
-- Contract with golden files: each request in tests/integration/actuals/<route>.json, the expected status and body in tests/integration/expecteds/<route>.json, and one test that sends every actual through the TestClient and compares the response with its expected (generated ids and dates replaced first). The card's business examples follow the same shape, given by the business team: tests/examples/<component>/<example>/input/request.json and expected/response.json, never changed.
+- Contract with golden files: the business examples of the card (archvow example add: tests/examples/<component>/<example>/input/request.json and expected/response.json, locked, with an optional scenario.feature in Given/When/Then words), and one test that sends each request through the TestClient and compares the response with its expected one (generated ids and dates replaced first). Never change them: no example yet means a person records one first.
 
 ## Decisions made (implement exactly, do not reinterpret)
 

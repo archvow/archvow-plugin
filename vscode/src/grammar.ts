@@ -212,8 +212,19 @@ export const inline = {
     const text = (description ?? '').trim();
     return text ? [...base, text, '--json'] : [...base, '--json'];
   },
-  dismiss: (component: string, question: string, reason: string): string[] =>
-    ['hazard', 'dismiss', required(component, 'component'), required(question, 'safety question'), required(reason, 'reason'), '--json'],
+  /** Without a reason: the decision that says there is nothing to protect is the reason (archvow 1.19). */
+  dismiss: (component: string, question: string, reason: string): string[] => {
+    const base = ['hazard', 'dismiss', required(component, 'component'), required(question, 'safety question')];
+    const text = (reason ?? '').trim();
+    return text ? [...base, text, '--json'] : [...base, '--json'];
+  },
+  /** `hazard edit <component>.H<n> ["words"] [--severity s]`: same id, its invariants stay (and become to review). */
+  editHazard: (component: string, id: string, words: string, severity: string): string[] => {
+    const args = ['hazard', 'edit', itemId(component, required(id, 'hazard'))];
+    if ((words ?? '').trim()) args.push(words.trim());
+    if ((severity ?? '').trim()) args.push('--severity', severity.trim());
+    return [...args, '--json'];
+  },
   /** `hazard remove <component>.H<n> --yes`: show --json gives the qualified id, a short H1 gets the component. */
   removeHazard: (component: string, id: string): string[] =>
     ['hazard', 'remove', itemId(component, required(id, 'hazard')), '--yes', '--json'],
@@ -246,4 +257,24 @@ export function needsFullCard(exitCode: number, output: string): boolean {
   if (exitCode === 0 || !output) return false;
   const s = output.toLowerCase();
   return s.includes('is one task: its card is small enough') || s.includes('has tasks t1..t');
+}
+
+/**
+ * What a form shows in place (design A): archvow's refusal in red (exit code 2: nothing was written) and
+ * its doubts in amber (the "!" lines of what it wrote anyway: a rule it would contradict, a weak test).
+ */
+export function alerts(result: { exitCode: number; stdout: string; stderr: string }): { refusal: string; warnings: string[] } {
+  const refusal = result.exitCode === 2
+    ? result.stderr.split(/\r?\n/).map((l) => l.replace(/^\s*✖\s*/, '').replace(/^archvow: error:\s*/, '').trim()).filter((l) => l).join('\n')
+    : '';
+  let warnings: string[] = [];
+  try {  // --json: the entry carries them
+    const parsed = JSON.parse(result.stdout) as unknown;
+    if (parsed !== null && typeof parsed === 'object' && Array.isArray((parsed as Record<string, unknown>).warnings)) {
+      warnings = ((parsed as Record<string, unknown>).warnings as unknown[]).map(String);
+    }
+  } catch {  // the text: its "!" lines
+    warnings = result.stdout.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.startsWith('!')).map((l) => l.replace(/^!\s*/, ''));
+  }
+  return { refusal, warnings };
 }

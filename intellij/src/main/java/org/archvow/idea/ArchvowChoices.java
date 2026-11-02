@@ -337,6 +337,27 @@ final class ArchvowChoices {
                     List<Choice> choices = new ArrayList<>();
                     for (JsonObject h : hazards) choices.add(item(str(h, "id"), hazardText(h)));
                     field = select(choices, tr(fr, "No hazard declared in this project.", "Aucun hazard déclaré dans ce projet."));
+                } else if ("hazard edit".equals(name) && "id".equals(p)) {
+                    // choosing one fills its words and severity: change what differs
+                    List<Choice> choices = new ArrayList<>();
+                    for (JsonObject h : hazards)
+                        choices.add(item(str(h, "id"), hazardText(h), Map.of("words", str(h, "description"), "severity", str(h, "severity"))));
+                    field = select(choices, tr(fr, "No hazard declared in this project.", "Aucun hazard déclaré dans ce projet."));
+                } else if ("invariant edit".equals(name) && "id".equals(p)) {
+                    // one linked to a decision has no words of its own: it changes with the decision
+                    List<Choice> choices = new ArrayList<>();
+                    for (JsonObject i : objects(input.spec(), "invariants"))
+                        choices.add(item(str(i, "id"), str(i, "statement"), str(i, "from_decision").isEmpty() ? Map.of("words", str(i, "statement")) : null));
+                    field = select(choices, tr(fr, "No invariant in this project.", "Aucun invariant dans ce projet."));
+                } else if ("invariant add".equals(name) && "from_decision".equals(p)) {
+                    field = perComponent(byComponent.apply(id -> {
+                        List<Choice> out = new ArrayList<>();
+                        for (JsonObject d : decisions.apply(id))
+                            if (!str(d, "answer").isEmpty()) out.add(item(str(d, "number"), str(d, "question") + " → " + str(d, "answer")));
+                        return out;
+                    }), tr(fr, "No decision made on this component yet.", "Aucune décision prise sur ce composant."));
+                    field.note = tr(fr, "Instead of words: the invariant is what this decision answers, and follows it when it changes.",
+                            "À la place des mots : l'invariant est ce que cette décision répond, et la suit quand elle change.");
                 } else if ("invariant remove".equals(name) && "id".equals(p)) {
                     List<Choice> choices = new ArrayList<>();
                     for (JsonObject i : objects(input.spec(), "invariants")) choices.add(item(str(i, "id"), str(i, "statement")));

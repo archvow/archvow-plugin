@@ -1,0 +1,46 @@
+{
+  "component": "logging_setup",
+  "type": "foundation",
+  "layer": "p0_common",
+  "known_columns": [],
+  "description": "Configure la journalisation une fois, pour le point d'entrée (niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde -, jamais un secret, une ligne de données ni une donnée personnelle).",
+  "uses": [],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    }
+  ],
+  "examples": [],
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "(a question the template no longer asks: c1be6541bf31)",
+      "answer": "stderr, one line per event: time, level, component, message",
+      "template": false,
+      "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-11-02",
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [],
+  "assumptions": [],
+  "tasks": [],
+  "to_review": []
+}

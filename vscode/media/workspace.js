@@ -11,7 +11,7 @@
   /** What archvow said, from the extension. */
   let S = null;
   /** The grammar, the bundled catalog, the rule docs, the component types. */
-  let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {} };
+  let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {} };
   /** What the person chose on the page. */
   const ui = {
     tab: 'overview', overSub: 'architecture', forceWorkspace: false,
@@ -20,9 +20,13 @@
     component: '', view: 0, filter: 'all',
     sel: { decision: '', question: '', safety: '', assumption: '', data: '', other: -1 },
     otherList: 0, drafts: {}, severity: {}, changing: {}, suggested: {}, results: {}, raw: {}, confirm: null,
+    /** The Spec view: the card (spec.md) or the vow (spec.vow), and the cards read. */
+    specPart: 'card', cards: {},
     /** The editor tab: the component (and its view) a command was opened from, for Back; null without. */
     back: null, backArmed: null,
     command: NAV ? '' : 'check', commandFilter: '', form: {}, formHelp: '',
+    /** The form's live preview (design A): the command line, or what is still missing. */
+    preview: { text: '', missing: '' },
     catalog: null, catalogSource: '', initTemplate: '', initAnswers: {}, initTouched: {}, advanced: false,
     /** Edit spec: the values the form opened with (only the changed ones are sent); template new: its settings. */
     formBaseline: {}, tplAnswers: {}, tplLayers: {},
@@ -79,7 +83,7 @@
     const m = event.data;
     switch (m.type) {
       case 'init':
-        I = { commands: m.commands || [], catalog: m.catalog, knownVersion: m.knownVersion, rules: m.rules || { en: '', fr: '' }, types: m.types || {} };
+        I = { commands: m.commands || [], catalog: m.catalog, knownVersion: m.knownVersion, rules: m.rules || { en: '', fr: '' }, types: m.types || {}, forms: m.forms || {} };
         break;
       case 'state':
         S = m.state;
@@ -110,7 +114,7 @@
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; ui.back = null; }
         break;
       case 'result':
-        ui.results[m.target] = { html: m.html, raw: m.raw, args: m.args, ok: m.ok, label: m.label };
+        ui.results[m.target] = { html: m.html, raw: m.raw, args: m.args, ok: m.ok, label: m.label, refusal: m.refusal || '', warnings: m.warnings || [] };
         ui.raw[m.target] = false;
         if (ui.confirm && ui.confirm.target === m.target) ui.confirm = null;
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; }
@@ -128,6 +132,7 @@
         break;
       case 'vow':
         if (S) S.vows[m.component] = m.text;
+        ui.cards[m.component] = m.card || '';
         break;
       case 'catalog':
         ui.catalog = m.data;
@@ -142,6 +147,14 @@
       case 'browsed':
         ui.form[m.field] = m.path;
         break;
+      case 'formPreview': {
+        // the command line as it is typed: written in place, no redraw (the cursor stays where it is)
+        if (m.command !== ui.command) return;
+        ui.preview = { text: m.text || '', missing: m.missing || '' };
+        const pre = document.getElementById('form-preview');
+        if (pre) { pre.textContent = ui.preview.text || ui.preview.missing; pre.classList.toggle('missing', !ui.preview.text); }
+        return;
+      }
       default:
         return;
     }
@@ -457,19 +470,18 @@
       tree += `<li class="container">▾ ${esc(str(c, 'id'))}<ul>${[...layers.entries()].map(([layer, comps]) => `<li class="layer">▾ ${esc(layer)}<ul>${comps.map((comp) => {
         const id = str(comp, 'id');
         const p = pending[id] || 0;
-        return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span> ${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
+        return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span>${aiBadge(comp)} ${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
       }).join('')}</ul></li>`).join('')}</ul></li>`;
     }
     return `<div class="row">${filters.map(([id, l]) => btn(l, 'filter', attrs({ filter: id }) + ` title="${esc(ui.filter === id ? t('Current filter', 'Filtre actif') : t('Filter components', 'Filtrer les composants'))}"`, ui.filter === id, 'secondary small')).join('')}</div>
   <ul class="tree" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No component.', 'Aucun composant.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
   }
 
-  const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Full vow', t('Other / Project', 'Autres / Projet')];
+  const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Other / Project', 'Autres / Projet')];
 
   function componentDetail() {
     const actions = [
       btn(t('Clarify', 'Clarifier'), 'clarify', `title="${esc(t('Answer what is still open for this component: its next question, decision or safety question.', 'Répondre à ce qui reste ouvert pour ce composant : sa prochaine question, décision ou question de sécurité.'))}"`),
-      btn(t('Open spec', 'Ouvrir la spec'), 'openSpec', `title="${esc(t('Read the task the AI implements (.archvow/components/<component>/spec.md), written by archvow from the spec. Read only: change it with Edit spec, + Question, + Rule.', "Lire la tâche que l'IA implémente (.archvow/components/<composant>/spec.md), écrite par archvow depuis la spec. En lecture seule : la changer avec Modifier la spec, + Question, + Règle."))}"`, false, 'secondary'),
       btn(t('Open code', 'Ouvrir le code'), 'openCode', `title="${esc(t("Open this component's Python file (and its test). Change the code there; save, then Check.", 'Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier.'))}"`, false, 'secondary'),
       btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }) + ` title="${esc(t('Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.', 'Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et hazards restent tels quels : revoir ceux que le changement touche.'))}"`, false, 'secondary'),
       btn(t('AI prompt', 'Instruction IA'), 'aiPrompt', `title="${esc(t("Copy the instruction to give the AI for this component's next task (archvow prompt).", "Copier l'instruction à donner à l'IA pour la prochaine tâche de ce composant (archvow prompt)."))}"`, false, 'secondary'),
@@ -494,7 +506,7 @@
     else if (!view) body = `<p class="muted">${esc(t('Loading', 'Chargement'))}: ${esc(ui.component)}…</p>`;
     else body = [decisionsView, questionsView, safetyView, assumptionsView, rulesView, tasksView, vowView][ui.view](view, d);
     // Other / Project is the project's, not the component's: no component head over it (as in IntelliJ)
-    const head = view && ui.view !== 7 ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}</h2><p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
+    const head = view && ui.view !== 7 ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
   <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
@@ -503,6 +515,17 @@
     return `${head}${ui.view === 7 ? '' : `<div class="row wrap actions">${actions.join('')}</div>`}
   <nav class="tabs views">${viewBar}</nav>${pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
+  }
+
+  /** archvow 1.19, modes guided and free: a component the AI added is the AI's until a person accepts it. */
+  const aiBadge = (comp) => (str(comp, 'origin') === 'ai'
+    ? ` <span class="chip blue" title="${esc(t('Created by the AI (', "Créé par l'IA (") + (str(comp, 'created_by') || 'AI') + t('): to review, then Accept', ') : à relire, puis Accepter'))}">${esc(t('AI: to review', 'IA : à relire'))}</span>` : '');
+  function createdByAi(view) {
+    if (str(view, 'origin') !== 'ai') return '';
+    return `<div class="alert warn"><b>${esc(t('Created by the AI', "Créé par l'IA") + (str(view, 'created_by') ? ` (${str(view, 'created_by')})` : ''))}</b>
+  <div>${esc(t('Read what it must do, its type and its uses; change it with Edit spec if needed. The release gate fails until a person accepts it (ARCH043).',
+    "Lire ce qu'il doit faire, son type et ce qu'il utilise ; le changer avec Modifier la spec si besoin. Le contrôle de livraison échoue tant qu'une personne ne l'a pas accepté (ARCH043)."))}</div>
+  <div class="row end">${btn(t('Remove…', 'Retirer…'), 'openCommand', attrs({ command: 'component remove', component: ui.component }), false, 'secondary')}${btn(t('Accept…', 'Accepter…'), 'openCommand', attrs({ command: 'component accept', component: ui.component }))}</div></div>`;
   }
 
   /** "1 open item" next to the component's name (the count the sidebar shows), "✓ resolved" without. */
@@ -713,6 +736,9 @@
         + (answer && byOn(row) ? `<p class="muted small">${esc(t('Recorded by ', 'Enregistrée par ') + byOn(row))}</p>` : '')
         + (proposed ? `<p class="hint"><b class="tone-blue">${esc(t('AI proposal', 'Proposition IA'))}</b> ${esc(proposed)}</p>` : '')
         + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)}</p>` : '')
+        // archvow 1.19: a question with no safe default offers answers to start from, none chosen
+        + (pending && Array.isArray(row.choices) && row.choices.length ? `<p class="hint"><b>${esc(t('No default (it depends on this project) - to start from:', 'Pas de défaut (cela dépend de ce projet) - pour partir de :'))}</b></p>
+  <div class="row wrap choices">${row.choices.map((c) => btn(String(c), 'useChoice', attrs({ key, value: String(c) }), false, 'secondary small')).join('')}</div>` : '')
         + answerEditor(key, answer || proposed || suggested, t('Your answer or proposal', 'Votre réponse ou proposition'), secondary,
           btn(t('Save answer', 'Enregistrer la réponse'), 'decide', attrs({ action: 'decision make' })), 'decision')
         + confirmation('decision') + resultCard('decision');
@@ -745,6 +771,8 @@
     return split(left, rows.length ? right : '');
   }
 
+  const open0 = (row) => str(row, 'status').toLowerCase() === 'open';
+
   function safetyView(view, d) {
     const rows = list(view, 'safety');
     const label = (r) => 'S' + str(r, 'number');
@@ -770,18 +798,29 @@
       if (str(suggestion, 'invariant')) ui.suggested[remembered] = str(suggestion, 'invariant');
       let block = `<p class="answer-q">${esc(str(row, 'question'))}</p>`;
       if (str(suggestion, 'hazard')) block += `<p class="hint"><b>${esc(t('Proposed hazard', 'Hazard proposé'))}</b> ${esc(str(suggestion, 'hazard'))}</p>`;
-      if (str(suggestion, 'invariant')) block += `<p class="hint"><b>${esc(t('Proposed invariant', 'Invariant proposé'))}</b> ${esc(str(suggestion, 'invariant'))}</p>`;
+      if (str(suggestion, 'invariant') && !suggestion.decision) block += `<p class="hint"><b>${esc(t('Proposed invariant', 'Invariant proposé'))}</b> ${esc(str(suggestion, 'invariant'))}</p>`;
+      // archvow 1.19: a decision already answers the question - Confirm records it as that decision
+      const decision = suggestion.decision && typeof suggestion.decision === 'object' ? suggestion.decision : null;
+      const covered = decision && open0(row) ? (str(suggestion, 'not_applicable')
+        ? `<div class="alert good"><b>${esc(t(`Decision ${str(decision, 'number')} says there is nothing to protect`, `La décision ${str(decision, 'number')} dit qu'il n'y a rien à protéger`))}</b>
+  <div>${esc(str(decision, 'answer'))}</div><div class="row end">${btn(t('Confirm not applicable', 'Confirmer non applicable'), 'safety', attrs({ action: 'hazard dismiss', covered: '1',
+    preview: t('Reason: ', 'Raison : ') + str(suggestion, 'not_applicable') }))}</div></div>`
+        : `<div class="alert good"><b>${esc(t(`Covered by decision ${str(decision, 'number')}`, `Couvert par la décision ${str(decision, 'number')}`))}</b>
+  <div>${esc(str(decision, 'answer'))}</div><div class="muted small">${esc(t('Confirm records the hazard and an invariant that is this decision: no words copied, its test marked decision(' + str(decision, 'number') + ') proves it.',
+    "Confirmer enregistre le hazard et un invariant qui est cette décision : aucun mot recopié, son test marqué decision(" + str(decision, 'number') + ') le prouve.'))}</div>
+  <div class="row end">${btn(t('Confirm', 'Confirmer'), 'safety', attrs({ action: 'hazard suggested', covered: '1', preview: t('Hazard: ', 'Hazard : ') + str(suggestion, 'hazard') + '\n' + t('Invariant: decision ', 'Invariant : décision ') + str(decision, 'number') + ' - ' + str(decision, 'answer') }))}</div></div>`) : '';
+      block += covered;
       if (!hazards.length && !str(suggestion, 'hazard') && str(row, 'status').toLowerCase() === 'open') {
         block += `<p class="tone-warn"><b>${esc(t('No hazard recorded yet. Declare one or mark the question not applicable.', "Aucun hazard déclaré. Déclare un hazard ou indique que la question ne s'applique pas."))}</b></p>`;
       }
       for (const h of hazards) {
         const guards = list(h, 'prevented_by');
         // Change = remove + add again: safe only while no invariant points to it (archvow keeps no link otherwise)
-        const changeTip = guards.length ? t('An invariant protects it: remove the invariant first, or wait for archvow 1.19 (hazard edit keeps its invariants)',
-          "Un invariant le protège : supprime d'abord l'invariant, ou attends archvow 1.19 (hazard edit garde ses invariants)")
-          : t('Change its text or severity (archvow removes it and records it again)', "Changer son texte ou sa sévérité (archvow le supprime et l'enregistre à nouveau)");
+        const changeTip = guards.length ? t('Change its words or severity: same id, its invariants stay and become to review (hazard edit)',
+          'Changer ses mots ou sa gravité : même id, ses invariants restent et deviennent à revoir (hazard edit)')
+          : t('Change its words or severity: same id (hazard edit)', 'Changer ses mots ou sa gravité : même id (hazard edit)');
         block += `<div class="recorded"><div class="row hazard-head"><p class="grow"><b>Hazard ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b><br>${esc(str(h, 'description'))}</p>`
-          + `<span class="row">${btn(t('Change', 'Modifier'), 'hazardChange', attrs({ id: str(h, 'id'), text: str(h, 'description'), severity: str(h, 'severity') }) + ` title="${esc(changeTip)}"`, guards.length > 0, 'secondary small')}`
+          + `<span class="row">${btn(t('Change', 'Modifier'), 'hazardChange', attrs({ id: str(h, 'id'), text: str(h, 'description'), severity: str(h, 'severity') }) + ` title="${esc(changeTip)}"`, false, 'secondary small')}`
           + `${btn(t('Remove', 'Supprimer'), 'hazardRemove', attrs({ id: str(h, 'id') }) + ` title="${esc(t('Remove this hazard (asks first)', 'Supprimer ce hazard (demande avant)'))}"`, false, 'secondary small')}</span></div>`;
         for (const g of guards) {
           block += `<p class="tone-good">↳ <b>Invariant ${esc(str(g, 'id'))}</b> <span class="body">${esc(str(g, 'statement'))}</span>${g.tested === false ? ` <span class="muted">[${esc(t('test not verified', 'test non vérifié'))}]</span>` : ''}</p>`;
@@ -796,7 +835,7 @@
       const missing = d && d.safety[i] ? d.safety[i].unprotected : '';
       const key = `s:${ui.component}:${str(row, 'number')}`;
       const severity = ui.severity[key] || 'high';
-      const proposed = !!str(suggestion, 'hazard');
+      const proposed = !!str(suggestion, 'hazard') && !suggestion.decision;  // covered: Confirm above does it
       // a change that is done (or a hazard that is gone): back to the normal view
       if (ui.changing[key] && !hazards.some((h) => str(h, 'id') === ui.changing[key])) { delete ui.changing[key]; delete ui.drafts[key]; }
       const changing = ui.changing[key] || '';
@@ -896,20 +935,34 @@
   ${resultCard('data')}<div class="details">${summary}</div>`;
   }
 
+  /**
+   * Spec: one view of the component's spec - the card the AI implements (spec.md, written by archvow)
+   * and the vow it is written from (spec.vow). Two files on disk, one place to read them; both read only.
+   */
   function vowView() {
     const text = S.vows[ui.component];
     if (text === undefined) {
       post({ type: 'vow', component: ui.component });
       return `<p class="muted">${esc(t('Loading', 'Chargement'))}…</p>`;
     }
-    if (!text) return `<p class="muted">${esc(t('No spec.vow for this component.', 'Pas de spec.vow pour ce composant.'))}</p>`;
+    const part = ui.specPart === 'vow' ? 'vow' : 'card';
+    const toggle = `<div class="segmented" role="radiogroup">${[['card', t('The card the AI implements', "La fiche que l'IA implémente")], ['vow', t('The vow it is written from', 'Le vow dont elle est écrite')]]
+      .map(([id, l]) => `<button type="button" role="radio" aria-checked="${part === id}" class="${part === id ? 'on' : 'secondary'}" data-a="specPart" data-id="${id}">${esc(l)}</button>`).join('')}</div>`;
+    const file = `.archvow/components/${ui.component}/${part === 'vow' ? 'spec.vow' : 'spec.md'}`;
+    const bar = `<div class="row wrap">${toggle}<span class="muted small"><code>${esc(file)}</code> - ${esc(t('read only: change it with the commands (Edit spec, + Question, + Rule...)', 'en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)'))}</span>
+  ${btn(t('Open in the editor', "Ouvrir dans l'éditeur"), part === 'vow' ? 'openVowFile' : 'openSpec', '', false, 'secondary')}${btn(t('Project vow', 'Vow du projet'), 'openProjectVow', '', false, 'secondary')}</div>`;
+    if (part === 'card') {
+      const card = ui.cards[ui.component] || '';
+      return bar + (card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('No spec.md yet: archvow docs writes it.', 'Pas encore de spec.md : archvow docs l\'écrit.'))}</p>`);
+    }
+    if (!text) return bar + `<p class="muted">${esc(t('No spec.vow for this component.', 'Pas de spec.vow pour ce composant.'))}</p>`;
     const lines = text.split('\n').map((line) => {
       const m = /^(\s*)("(?:[^"\\]|\\.)*"|[A-Za-z_][A-Za-z0-9_./-]*)(.*)$/.exec(line);
       if (line.trimStart().startsWith('#') || !m) return `<span class="${line.trimStart().startsWith('#') ? 'comment' : ''}">${esc(line)}</span>`;
       const depth = Math.min(3, Math.floor(m[1].length / 2));
       return `${esc(m[1])}<span class="key${depth}">${esc(m[2])}</span>${esc(m[3])}`;
     });
-    return `<div class="row">${btn(t('Open spec', 'Ouvrir la spec'), 'openSpec', '', false, 'secondary')}${btn(t('Project vow', 'Vow du projet'), 'openProjectVow', '', false, 'secondary')}</div><pre class="vow">${lines.join('\n')}</pre>`;
+    return bar + `<pre class="vow">${lines.join('\n')}</pre>`;
   }
 
   function otherView() {
@@ -970,6 +1023,9 @@
     ui.tplAnswers = {};
     ui.tplLayers = {};
     if (ui.confirm && ui.confirm.target === 'command') ui.confirm = null;
+    ui.preview = { text: '', missing: '' };
+    delete ui.results.command;
+    askPreview(0);
     if (name === 'init') {
       if (!('no_input' in ui.form)) ui.form.no_input = 'true';
       post({ type: 'catalog', template: ui.form.template || '' });
@@ -1022,60 +1078,129 @@
       + choices.map((c) => `<option value="${esc(c.value)}" ${c.value === value ? 'selected' : ''}>${esc(c.label)}</option>`).join('') + '</select>';
   }
 
+  // ---------------------------------------------------------------- a command's form (design A)
+
+  /** [English, French] from contract/forms/forms.json, in the page's language. */
+  const pair = (p) => (Array.isArray(p) && p.length === 2 ? t(p[0], p[1]) : '');
+  const formEntry = (name) => (((I.forms || {}).commands || {})[name]) || {};
+  /** A parameter in plain words (forms.json), else archvow's own name. */
+  function fieldLabel(name, param) {
+    return pair((formEntry(name).labels || {})[param]) || pair(((I.forms || {}).labels || {})[param]) || param.replace(/_/g, ' ');
+  }
+  /** Shown first: the command's essential fields (forms.json) and every required one; the rest under More options. */
+  function isEssential(name, p) {
+    const essential = formEntry(name).essential;
+    return p.required || !Array.isArray(essential) || essential.includes(p.name);
+  }
+  let previewTimer = null;
+  /** The live preview: the extension plans the command as Run would (one grammar), a moment after typing stops. */
+  function askPreview(delay = 150) {
+    if (NAV || !ui.command) return;
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => post({ type: 'formPreview', command: ui.command, values: Object.assign({}, ui.form),
+      initAnswers: ui.command === 'init' ? initAnswers() : [], selected: ui.component, baseline: ui.formBaseline }), delay);
+  }
+
+  /** A few fixed values (severity, verify, criticality...): one button each, the chosen one pressed. */
+  function segmented(p, value) {
+    return `<div class="segmented" role="radiogroup">${p.choices.map((c) => `<button type="button" role="radio" aria-checked="${c === value}" class="${c === value ? 'on' : 'secondary'}" data-a="segment" ${attrs({ name: p.name, value: c === value && !p.required ? '' : c })}>${esc(c)}</button>`).join('')}</div>`;
+  }
+
+  function fieldRow(name, p) {
+    const value = ui.form[p.name] || '';
+    const id = 'f-' + p.name;
+    let control;
+    if (p.boolean) {
+      control = `<label class="check"><input type="checkbox" data-change="formBool" data-name="${esc(p.name)}" ${value === 'true' ? 'checked' : ''}> ${esc(p.help || '')}</label>`;
+    } else if (p.flags.includes('--from')) {
+      control = briefField(p.name, value, id);
+    } else if (p.choices.length && p.choices.length <= 4) {
+      control = segmented(p, value);
+    } else if (p.choices.length) {
+      control = `<select data-change="form" data-name="${esc(p.name)}"><option value=""></option>${p.choices.map((c) => `<option ${c === value ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`;
+    } else if (LONG_TEXT.has(p.name)) {
+      control = `<textarea rows="3" data-input="form" data-name="${esc(p.name)}" data-keep="${id}">${esc(value)}</textarea>`;
+    } else {
+      control = `<input data-input="form" data-name="${esc(p.name)}" data-keep="${id}" value="${esc(value)}">`;
+    }
+    const field = p.boolean ? null : fieldOf(name, p.name);
+    if (field) control = choiceControl(p, field, value, id, control);
+    if (name === 'component add' && p.name === 'type') {
+      const def = I.types[value];
+      control += `<div class="muted small">${esc(def ? `${value} — ${def.description}${def.hint ? ' | ' + t('Name', 'Nom') + ': ' + def.hint : ''}${def.pattern ? ' | name_pattern: ' + def.pattern : ''}`
+        : t('Choose a type: its name rule and its kinds follow.', 'Choisis un type : sa règle de nom et ses sortes suivent.'))}</div>`;
+    }
+    if (name === 'init' && p.name === 'dir') control = `<div class="row">${control}${btn(t('Browse…', 'Parcourir…'), 'browse', attrs({ field: 'dir' }), false, 'secondary')}</div>`;
+    let help = pair((formEntry(name).hints || {})[p.name]) || (p.boolean ? '' : p.help);
+    if (field && field.note && field.kind !== 'note') help += (help ? '  ·  ' : '') + field.note;
+    if (help === '==SUPPRESS==') help = '';  // an older grammar: archvow's hidden marker is not a help text
+    const flag = p.flags.length ? option(p) : '';
+    return `<div class="field"><label>${esc(fieldLabel(name, p.name))}${p.required ? ' <span class="req">*</span>' : ''}${flag ? ` <code class="flag">${esc(flag)}</code>` : ''}</label><div>${control}${help ? `<div class="muted small">${esc(help)}</div>` : ''}</div></div>`;
+  }
+
+  /** archvow said no (nothing written), or wrote it with a doubt: in place, above the buttons. */
+  function formAlerts() {
+    const r = ui.results.command;
+    if (!r || r.running) return '';
+    const refusal = r.refusal ? `<div class="alert error" role="alert"><b>${esc(t('archvow refuses:', 'archvow refuse :'))}</b><div>${esc(r.refusal)}</div></div>` : '';
+    const warnings = (r.warnings || []).map((w) => `<div class="alert warn" role="status"><b>${esc(t('Written, but:', 'Écrit, mais :'))}</b><div>${esc(w)}</div></div>`).join('');
+    return refusal + warnings;
+  }
+
   function commandForm(command) {
     const name = command.path.join(' ');
+    const entry = formEntry(name);
     const extra = name === 'specify' ? t('IDE mode: clarification without interactive terminal.', 'Mode IDE : clarification sans terminal interactif.')
       : name === 'rule add' ? t('One argument per line in words.', 'Un argument par ligne dans le champ words.') : '';
     let fields = '';
+    let more = '';
+    const moreNames = [];
     let expert = '';
-    for (const p of command.parameters) {
+    // the essential fields in the order forms.json gives them (invariant add: the hazard before the words)
+    const order = Array.isArray(entry.essential) ? entry.essential : [];
+    const rank = (p) => (order.includes(p.name) ? order.indexOf(p.name) : order.length);
+    const params = command.parameters.map((p, i) => [p, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(([p]) => p);
+    for (const p of params) {
       // init: the template is chosen once, in Template questions (under the package); template new: its
       // answers and layer folders are in Settings of the base, under --extends
       if (name === 'init' && (p.name === 'answer' || p.name === 'template')) continue;
       if (name === 'template new' && (p.name === 'answer' || p.name === 'layer')) continue;
-      const value = ui.form[p.name] || '';
-      const id = 'f-' + p.name;
-      let control;
-      if (p.boolean) {
-        control = `<input type="checkbox" data-change="formBool" data-name="${esc(p.name)}" ${value === 'true' ? 'checked' : ''}>`;
-      } else if (p.flags.includes('--from')) {
-        control = briefField(p.name, value, id);
-      } else if (p.choices.length) {
-        control = `<select data-change="form" data-name="${esc(p.name)}"><option value=""></option>${p.choices.map((c) => `<option ${c === value ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`;
-      } else if (LONG_TEXT.has(p.name)) {
-        control = `<textarea rows="3" data-input="form" data-name="${esc(p.name)}" data-keep="${id}">${esc(value)}</textarea>`;
-      } else {
-        control = `<input data-input="form" data-name="${esc(p.name)}" data-keep="${id}" value="${esc(value)}">`;
-      }
-      const field = p.boolean ? null : fieldOf(name, p.name);
-      if (field) control = choiceControl(p, field, value, id, control);
-      if (name === 'component add' && p.name === 'type') {
-        const def = I.types[value];
-        control += `<div class="muted small">${esc(def ? `${value} — ${def.description}${def.hint ? ' | ' + t('Name', 'Nom') + ': ' + def.hint : ''}${def.pattern ? ' | name_pattern: ' + def.pattern : ''}`
-          : t('Choose a type: its name rule and its kinds follow.', 'Choisis un type : sa règle de nom et ses sortes suivent.'))}</div>`;
-      }
-      if (name === 'init' && p.name === 'dir') control = `<div class="row">${control}${btn(t('Browse…', 'Parcourir…'), 'browse', attrs({ field: 'dir' }), false, 'secondary')}</div>`;
-      let help = p.help;
-      if (field && field.note && field.kind !== 'note') help += (help ? '  ·  ' : '') + field.note;
-      if (name === 'component add' && p.name === 'spec') help += t('  ·  Example: US-001 or a ticket reference from your backlog (optional; do not enter a .vow path).', '  ·  Exemple : US-001 ou une référence de ticket (facultatif ; pas un chemin .vow).');
-      if (help === '==SUPPRESS==') help = '';  // an older grammar: archvow's hidden marker is not a help text
-      const row = `<div class="field"><label>${p.required ? '* ' : ''}${esc(p.flags.length ? option(p) : p.name)}</label><div>${control}${help ? `<div class="muted small">${esc(help)}</div>` : ''}</div></div>`;
+      const row = fieldRow(name, p);
       // options archvow hides from --help (the expert checks of invariant add): apart, closed
       if (p.hidden || p.help === '==SUPPRESS==') { expert += row; continue; }
-      fields += row;
-      if (name === 'init' && p.name === 'package') fields += initWizard();
-      if (name === 'template new' && p.name === 'extends') fields += templateWizard();
+      if (isEssential(name, p)) {
+        fields += row;
+        if (name === 'init' && p.name === 'package') fields += initWizard();
+        if (name === 'template new' && p.name === 'extends') fields += templateWizard();
+      } else {
+        more += row;
+        moreNames.push(fieldLabel(name, p.name).toLowerCase());
+      }
     }
     if (expert) {
-      fields += `<details class="expert"${['verify', 'evidence', 'rule'].some((k) => ui.form[k]) ? ' open' : ''}><summary>${esc(t('Expert checks', 'Contrôles experts'))}</summary>`
+      more += `<details class="expert"${['verify', 'evidence', 'rule'].some((k) => ui.form[k]) ? ' open' : ''}><summary>${esc(t('Expert checks', 'Contrôles experts'))}</summary>`
         + `<p class="muted small">${esc(t('How the invariant is proven when a test is not enough: a model checked or a proof (--verify model_check|proof --evidence <file>), or a rule that enforces it (--verify static --rule <code>). Empty: the weakest test its severity accepts.',
           "Comment l'invariant est prouvé quand un test ne suffit pas : un modèle vérifié ou une preuve (--verify model_check|proof --evidence <fichier>), ou une règle qui l'impose (--verify static --rule <code>). Vide : le test le plus faible que sa gravité accepte."))}</p>${expert}</details>`;
+      moreNames.push(t('expert checks', 'contrôles experts'));
+    }
+    if (more) {
+      const open = command.parameters.some((p) => !isEssential(name, p) && (ui.form[p.name] || '').trim());
+      fields += `<details class="more"${open ? ' open' : ''}><summary>${esc(t('More options', "Plus d'options"))} <span class="muted small">- ${esc(moreNames.join(', '))}</span></summary>${more}</details>`;
     }
     if (name === 'init') fields += initOtherAnswers();
     if (['decision make', 'decision propose', 'decision accept', 'question remove'].includes(name)) fields += questionPreview(name);
-    return `<pre class="help">archvow ${esc(name)}\n${esc(command.description)}${extra ? '\n' + esc(extra) : ''}${ui.formHelp ? '\n\n' + esc(ui.formHelp) : ''}</pre>
-  <div class="form">${fields}</div>
-  <div class="row end">${btn(t('Run command', 'Exécuter la commande'), 'runForm')}</div>${confirmation('command')}${resultCard('command')}`;
+    const title = pair(entry.title) || command.description;
+    const verb = pair(entry.verb) || t('Run command', 'Exécuter la commande');
+    const does = pair(entry.does);
+    const shown = ui.preview.text || ui.preview.missing;
+    const pane = `<aside class="form-pane"><h4>${esc(t('What archvow will do', 'Ce que va faire archvow'))}</h4>
+  ${does ? `<p>${esc(does)}</p>` : ''}<div class="muted small">${esc(t('The command', 'La commande'))}</div>
+  <pre id="form-preview" class="command-preview${ui.preview.text ? '' : ' missing'}">${esc(shown || 'archvow ' + name)}</pre>
+  <p class="muted small">${esc(t('If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.',
+    "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."))}</p></aside>`;
+    return `<div class="form-head"><h3>${esc(title)}</h3><div class="muted small"><code>archvow ${esc(name)}</code> - ${esc(command.description)}${extra ? ' ' + esc(extra) : ''}</div>${ui.formHelp ? `<pre class="help">${esc(ui.formHelp)}</pre>` : ''}</div>
+  <div class="form-grid"><div class="form">${fields}${formAlerts()}
+  <div class="row end">${btn(t('Cancel', 'Annuler'), 'cancelForm', '', false, 'secondary')}${btn(verb, 'runForm')}</div></div>${pane}</div>${confirmation('command')}${resultCard('command')}`;
   }
 
   function questionPreview(name) {
@@ -1505,6 +1630,8 @@
     quickPrimary, quickSecondary,
     clarify: () => { if (!ui.component) post({ type: 'message', text: t('Select a component.', 'Sélectionne un composant.') }); else chooseNext(); },
     openSpec: () => { if (ui.component) post({ type: 'openSpec', component: ui.component }); },
+    openVowFile: () => { if (ui.component) post({ type: 'openVowFile', component: ui.component }); },
+    specPart: (e) => { ui.specPart = e.dataset.id; },
     openCode: () => { if (ui.component) post({ type: 'openCode', component: ui.component }); },
     aiPrompt: () => { if (ui.component) post({ type: 'run', label: 'prompt', args: ['prompt', ui.component], target: 'component' }); },
     addRule: () => post({ type: 'openCommand', command: 'rule add', values: ui.component ? { words: ui.component + '\n' } : {}, selected: ui.component }),
@@ -1562,8 +1689,10 @@
       const i = list(snapshot(), 'safety').indexOf(row);
       post({ type: 'inline', action: e.dataset.action, component: ui.component, number: str(row, 'number'),
         word: str(row, 'guide_word') || 'S' + str(row, 'number'), text: draft(key, str(suggestion, 'hazard')), severity: ui.severity[key] || 'high',
-        question: str(row, 'question'), preview: d && d.safety[i] ? d.safety[i].preview : '', hazard: ui.changing[key] || '' });
+        question: str(row, 'question'), preview: e.dataset.covered ? e.dataset.preview : d && d.safety[i] ? d.safety[i].preview : '', hazard: ui.changing[key] || '',
+        ...(e.dataset.covered ? { covered: true, text: '' } : {}) });
     },
+    useChoice: (e) => { ui.drafts[e.dataset.key] = e.dataset.value; },
     hazardChange: (e) => {
       const row = selectedRow('safety');
       if (!row) return;
@@ -1598,6 +1727,8 @@
       else post({ type: 'taskPrompt', component: ui.component, task: item.id });
     },
     command: (e) => { ui.command = e.dataset.name; post({ type: 'openCommand', command: e.dataset.name, values: {}, selected: '' }); },
+    segment: (e) => { ui.form[e.dataset.name] = e.dataset.value; askPreview(0); },
+    cancelForm: () => { setCommand(ui.command, {}, ''); },
     runForm: () => {
       const values = Object.assign({}, ui.form);
       if (ui.command === 'template new') {
@@ -1670,6 +1801,7 @@
       case 'commandFilter': ui.commandFilter = e.value; render(); return;
       case 'form':
         ui.form[e.dataset.name] = e.value;
+        askPreview();
         if (['component', 'question', 'number', 'type', 'extends'].includes(e.dataset.name)) render();
         return;
       case 'initAnswer': ui.initAnswers[e.dataset.id] = e.value; ui.initTouched[e.dataset.id] = true; return;
@@ -1734,10 +1866,11 @@
       case 'form':
         ui.form[e.dataset.name] = e.value;
         if (ui.command === 'init' && e.dataset.name === 'template') post({ type: 'catalog', template: e.value });
+        askPreview(0);
         render();
         return;
-      case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; return;
-      case 'choice': choose(e.dataset.name, e.value); render(); return;
+      case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; askPreview(0); return;
+      case 'choice': choose(e.dataset.name, e.value); askPreview(0); render(); return;
       case 'tplAnswer': ui.tplAnswers[e.dataset.id] = e.value; render(); return;
       case 'tplMulti': {
         const q = list(baseTemplate(), 'questions').find((x) => str(x, 'id') === e.dataset.id);

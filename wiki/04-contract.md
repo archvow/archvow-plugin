@@ -12,6 +12,7 @@ les plugins doivent suivre**. Il est enregistré depuis une vraie CLI archvow, j
 |---|---|---|---|
 | `contract/cli/version.txt` | `archvow --version` (aujourd'hui `archvow 1.17.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()` : la version que le plugin connaît |
 | `contract/cli/commands.json` | chaque commande et ses paramètres, tirés du parseur argparse d'archvow | `contract/tools/export_grammar.py` | `ArchvowGrammar`, `vscode/src/grammar.ts` : les formulaires de Commands |
+| `contract/forms/forms.json` | comment se lit chaque formulaire (0.14.0, design A) : les libellés en mots simples, les champs essentiels et leur ordre, le verbe du bouton, ce que va faire archvow - le fichier des plugins, pas d'archvow | à la main | `ArchvowForms`, `commandForm()` de la page ; `FormsRegression`, `grammar.test.ts` vérifient ses noms face à `commands.json` |
 | `contract/cli/catalog.json` | `archvow catalog --json` hors projet : les templates et leurs questions | `regenerate.py` | `ArchvowInitCatalog`, l'assistant `init` quand la CLI ne répond pas ; `componentTypes()` |
 | `contract/cli/rules.md`, `rules.fr.md` | la signification de chaque code de contrôle (`docs/rules*.md` d'archvow) | `regenerate.py` (copie) | `ArchvowRuleDocs`, `ruleExplanation()` : l'explication sous un diagnostic |
 | `contract/cli/<exemple>/show.json`, `next.json`, `check.json`, `show/<composant>.json` | ce que la CLI affiche sur les trois exemples d'archvow | `regenerate.py` | les tests VS Code (`vscode/src/test/workspace.test.ts`, `layout.test.ts`) et les montages de test des deux plugins |
@@ -37,7 +38,7 @@ construction.
 ## Après une nouvelle version d'archvow
 
 ```bash
-contract/tools/take_archvow.sh ../archvow v1.18.0 ../archvow/dist/archvow-1.18.0-py3-none-any.whl
+contract/tools/take_archvow.sh ../archvow v1.19.0 ../archvow/dist/archvow-1.19.0-py3-none-any.whl
 python3 -m venv /tmp/av && /tmp/av/bin/pip install contract/archvow/archvow-*.whl
 python3 contract/tools/regenerate.py contract/archvow --python /tmp/av/bin/python
 (cd intellij && ./gradlew contractDump check)
