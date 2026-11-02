@@ -74,12 +74,21 @@ choices when the component changes.
 |---|---|---|---|
 | Decisions | the answer or the proposal | Save answer, Propose, Accept proposal, Use suggestion (only those that apply) | `decision make`, `decision propose`, `decision accept` |
 | Questions | the answer | Save answer | `decision make <c> <key>` |
-| Safety | the hazard, or why it does not apply; the severity | Declare hazard, Not applicable, Use the suggested hazard (and invariant), Add required invariant, Add invariant…, Remove… | `hazard add`, `hazard dismiss`, forms `invariant add`, `hazard remove`, `invariant remove` |
+| Safety | the hazard, or why it does not apply; the severity; or the invariant it needs | Declare hazard, Not applicable, Use the suggested hazard (and invariant); on a recorded hazard: Change, Remove; Add invariant (in place), Add invariant…, Remove invariant… | `hazard add`, `hazard dismiss`, `hazard remove` (+ `hazard add` for Change), `invariant add`; forms `invariant add`, `invariant remove` |
 | Assumptions | - | Accept, Reject (forms), + Assumption | `assumption accept`, `assumption reject`, `assumption add` |
 
-A safety question already resolved shows no field: only the invariants and the removals. Its state
-follows archvow's rules (a high or critical hazard without an invariant stays "needs invariant",
-ARCH030): `ArchvowSafetyState`, the `safety` object of `vscode/src/workItems.ts`.
+One field, three uses (0.13.1): declare the hazard of an open question; change a recorded hazard
+(Change: the field takes its text and severity, saving runs `hazard remove` then `hazard add`, confirmed
+once - only while no invariant protects it, archvow 1.18 having no `hazard edit`); write the invariant a
+high or critical hazard needs (ARCH030), right there, filled with the template's suggestion - archvow
+gives it only while the question is open, so both plugins keep it (`rememberedInvariants`,
+`ui.suggested`). "Add required invariant" in the Pending lists opens this field, no longer the form. A
+question resolved and protected shows only its hazards, its invariants and the removals. Its state
+follows archvow's rules: `ArchvowSafetyState`, the `safety` object of `vscode/src/workItems.ts`.
+IntelliJ lays the buttons out in an `ArchvowWrapLayout` (a `FlowLayout` that asks for the height of
+every row: "Remove hazard…" fell outside the panel).
+
+"hazard" and "invariant" are keywords: French keeps them ("Déclarer un hazard").
 
 ## Saving an answer, end to end
 

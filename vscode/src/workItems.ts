@@ -52,7 +52,7 @@ export const safety = {
     let text = '';
     const hazard = safety.suggestedHazard(question);
     const invariant = safety.suggestedInvariant(question);
-    if (hazard) text += 'Suggested hazard / Danger suggéré: ' + hazard + '\n';
+    if (hazard) text += 'Suggested hazard / Hazard suggéré: ' + hazard + '\n';
     if (invariant) text += 'Suggested invariant / Invariant suggéré: ' + invariant + '\n';
     for (const h of objects(question, 'hazards')) {
       text += `Hazard ${str(h, 'id')} (${str(h, 'severity')}) — ${str(h, 'description')}\n`;
@@ -305,7 +305,7 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
       if (missing) preset.prevents = missing;
       add({ kind: pending ? 'QUESTION' : 'RESOLVED', title: `${id} · ${word} ${short(question, 60)}`,
         detail: question + '\n' + safety.preview(s), component: id, pending,
-        action: pending ? (missing ? tr(fr, 'Add required invariant', "Ajouter l'invariant requis") : tr(fr, 'Review hazard', 'Examiner le danger')) : open,
+        action: pending ? (missing ? tr(fr, 'Add required invariant', "Ajouter l'invariant requis") : tr(fr, 'Review hazard', 'Examiner le hazard')) : open,
         command: pending ? (missing ? 'invariant add' : 'hazard add') : 'component-show', preset });
     }
     for (const a of objects(data, 'assumptions')) {

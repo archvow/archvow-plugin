@@ -14,6 +14,11 @@ versions.
 | un texte | `ArchvowI18n.text(project, "Save answer", "Enregistrer la réponse")` | `t('Save answer', 'Enregistrer la réponse')` dans la page, `tr(fr, ...)` dans l'extension |
 | où le changer | en bas d'Overview, ou Settings > Tools > Archvow | en bas d'Overview, ou les réglages |
 
+Changer la langue redessine tout ce qui est ouvert, sans le fermer (0.13.1) : IntelliJ, la fenêtre
+d'outils prévient l'onglet d'éditeur (`languageChanged()`, le formulaire ouvert garde ce qui est saisi) ;
+VS Code recalcule aussi les libellés des listes En attente (`recompute()`) avant d'envoyer l'état aux deux
+pages.
+
 Ce qui vient d'archvow (ses messages, les questions de ses templates) est affiché tel quel : la langue
 du projet est celle qu'archvow lui a donnée à `init`. Les mots-clés `.vow` et les codes (ARCH012) ne se
 traduisent jamais.

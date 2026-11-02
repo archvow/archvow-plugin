@@ -2802,7 +2802,7 @@
         "label": "mark_paid.H1 — high: Paying twice changes the invoice twice"
        }
       ],
-      "empty": "Aucun danger déclaré dans ce projet."
+      "empty": "Aucun hazard déclaré dans ce projet."
      }
     },
     "invariant add": {
@@ -2867,7 +2867,7 @@
        ],
        "invoices_cli": []
       },
-      "empty": "Aucun danger déclaré sur ce composant."
+      "empty": "Aucun hazard déclaré sur ce composant."
      }
     },
     "invariant remove": {
@@ -7359,7 +7359,7 @@
         "label": "orders_router.H1 — critical: A customer reads another customer's order"
        }
       ],
-      "empty": "Aucun danger déclaré dans ce projet."
+      "empty": "Aucun hazard déclaré dans ce projet."
      }
     },
     "invariant add": {
@@ -7434,7 +7434,7 @@
         }
        ]
       },
-      "empty": "Aucun danger déclaré sur ce composant."
+      "empty": "Aucun hazard déclaré sur ce composant."
      }
     },
     "invariant remove": {
@@ -11758,7 +11758,7 @@
         "label": "vat_writer.H1 — critical: Downstream reads a half-written output"
        }
       ],
-      "empty": "Aucun danger déclaré dans ce projet."
+      "empty": "Aucun hazard déclaré dans ce projet."
      }
     },
     "invariant add": {
@@ -11833,7 +11833,7 @@
        "my_pipeline_job": [],
        "my_pipeline_main": []
       },
-      "empty": "Aucun danger déclaré sur ce composant."
+      "empty": "Aucun hazard déclaré sur ce composant."
      }
     },
     "invariant remove": {

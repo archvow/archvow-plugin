@@ -19,7 +19,7 @@
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
     sel: { decision: '', question: '', safety: '', assumption: '', data: '', other: -1 },
-    otherList: 0, drafts: {}, severity: {}, results: {}, raw: {}, confirm: null,
+    otherList: 0, drafts: {}, severity: {}, changing: {}, suggested: {}, results: {}, raw: {}, confirm: null,
     /** The editor tab: the component (and its view) a command was opened from, for Back; null without. */
     back: null, backArmed: null,
     command: NAV ? '' : 'check', commandFilter: '', form: {}, formHelp: '',
@@ -471,7 +471,7 @@
       btn(t('Clarify', 'Clarifier'), 'clarify', `title="${esc(t('Answer what is still open for this component: its next question, decision or safety question.', 'Répondre à ce qui reste ouvert pour ce composant : sa prochaine question, décision ou question de sécurité.'))}"`),
       btn(t('Open spec', 'Ouvrir la spec'), 'openSpec', `title="${esc(t('Read the task the AI implements (.archvow/components/<component>/spec.md), written by archvow from the spec. Read only: change it with Edit spec, + Question, + Rule.', "Lire la tâche que l'IA implémente (.archvow/components/<composant>/spec.md), écrite par archvow depuis la spec. En lecture seule : la changer avec Modifier la spec, + Question, + Règle."))}"`, false, 'secondary'),
       btn(t('Open code', 'Ouvrir le code'), 'openCode', `title="${esc(t("Open this component's Python file (and its test). Change the code there; save, then Check.", 'Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier.'))}"`, false, 'secondary'),
-      btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }) + ` title="${esc(t('Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.', 'Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et dangers restent tels quels : revoir ceux que le changement touche.'))}"`, false, 'secondary'),
+      btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }) + ` title="${esc(t('Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.', 'Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et hazards restent tels quels : revoir ceux que le changement touche.'))}"`, false, 'secondary'),
       btn(t('AI prompt', 'Instruction IA'), 'aiPrompt', `title="${esc(t("Copy the instruction to give the AI for this component's next task (archvow prompt).", "Copier l'instruction à donner à l'IA pour la prochaine tâche de ce composant (archvow prompt)."))}"`, false, 'secondary'),
       btn(t('+ Question', '+ Question'), 'openCommand', attrs({ command: 'question add', component: ui.component })
         + ` title="${esc(t('Add a question to this component', 'Ajouter une question à ce composant'))}"`, false, 'secondary'),
@@ -754,7 +754,7 @@
     const recorded = (r) => {
       const hazard = list(r, 'hazards')[0];
       if (str(r, 'dismissed')) return t('Not applicable: ', 'Non applicable : ') + str(r, 'dismissed');
-      return hazard ? `${t('Hazard', 'Danger')} ${str(hazard, 'id')} · ${str(hazard, 'severity')}: ${str(hazard, 'description')}` : '';
+      return hazard ? `Hazard ${str(hazard, 'id')} · ${str(hazard, 'severity')}: ${str(hazard, 'description')}` : '';
     };
     const left = cards('safety', rows, label, (r, i) => ({ number: label(r), title: str(r, 'question'), open: isOpen(r, i),
       state: isOpen(r, i) ? statusOf(r, i) : '', answer: recorded(r), note: isOpen(r, i) ? recorded(r) : '' }));
@@ -765,20 +765,29 @@
       const pending = status !== 'RESOLVED';
       const suggestion = row.suggestion || {};
       const hazards = list(row, 'hazards');
+      // archvow 1.18 gives the suggestion only while the question is open: remember it for the invariant
+      const remembered = `${ui.component}:${str(row, 'number')}`;
+      if (str(suggestion, 'invariant')) ui.suggested[remembered] = str(suggestion, 'invariant');
       let block = `<p class="answer-q">${esc(str(row, 'question'))}</p>`;
-      if (str(suggestion, 'hazard')) block += `<p class="hint"><b>${esc(t('Proposed hazard', 'Danger proposé'))}</b> ${esc(str(suggestion, 'hazard'))}</p>`;
+      if (str(suggestion, 'hazard')) block += `<p class="hint"><b>${esc(t('Proposed hazard', 'Hazard proposé'))}</b> ${esc(str(suggestion, 'hazard'))}</p>`;
       if (str(suggestion, 'invariant')) block += `<p class="hint"><b>${esc(t('Proposed invariant', 'Invariant proposé'))}</b> ${esc(str(suggestion, 'invariant'))}</p>`;
       if (!hazards.length && !str(suggestion, 'hazard') && str(row, 'status').toLowerCase() === 'open') {
-        block += `<p class="tone-warn"><b>${esc(t('No hazard recorded yet. Declare one or mark the question not applicable.', "Aucun danger déclaré. Déclare un danger ou indique que la question ne s'applique pas."))}</b></p>`;
+        block += `<p class="tone-warn"><b>${esc(t('No hazard recorded yet. Declare one or mark the question not applicable.', "Aucun hazard déclaré. Déclare un hazard ou indique que la question ne s'applique pas."))}</b></p>`;
       }
       for (const h of hazards) {
         const guards = list(h, 'prevented_by');
-        block += `<div class="recorded"><p><b>${esc(t('Hazard', 'Danger'))} ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b><br>${esc(str(h, 'description'))}</p>`;
+        // Change = remove + add again: safe only while no invariant points to it (archvow keeps no link otherwise)
+        const changeTip = guards.length ? t('An invariant protects it: remove the invariant first, or wait for archvow 1.19 (hazard edit keeps its invariants)',
+          "Un invariant le protège : supprime d'abord l'invariant, ou attends archvow 1.19 (hazard edit garde ses invariants)")
+          : t('Change its text or severity (archvow removes it and records it again)', "Changer son texte ou sa sévérité (archvow le supprime et l'enregistre à nouveau)");
+        block += `<div class="recorded"><div class="row hazard-head"><p class="grow"><b>Hazard ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b><br>${esc(str(h, 'description'))}</p>`
+          + `<span class="row">${btn(t('Change', 'Modifier'), 'hazardChange', attrs({ id: str(h, 'id'), text: str(h, 'description'), severity: str(h, 'severity') }) + ` title="${esc(changeTip)}"`, guards.length > 0, 'secondary small')}`
+          + `${btn(t('Remove', 'Supprimer'), 'hazardRemove', attrs({ id: str(h, 'id') }) + ` title="${esc(t('Remove this hazard (asks first)', 'Supprimer ce hazard (demande avant)'))}"`, false, 'secondary small')}</span></div>`;
         for (const g of guards) {
           block += `<p class="tone-good">↳ <b>Invariant ${esc(str(g, 'id'))}</b> <span class="body">${esc(str(g, 'statement'))}</span>${g.tested === false ? ` <span class="muted">[${esc(t('test not verified', 'test non vérifié'))}]</span>` : ''}</p>`;
         }
         if (!guards.length && ['high', 'critical'].includes(str(h, 'severity').toLowerCase())) {
-          block += `<p class="tone-warn"><b>ARCH030 — ${esc(t('An invariant is required before this hazard can be considered protected.', 'Un invariant est obligatoire pour que ce danger soit considéré protégé.'))}</b></p>`;
+          block += `<p class="tone-warn"><b>ARCH030 — ${esc(t('An invariant is required before this hazard can be considered protected.', 'Un invariant est obligatoire pour que ce hazard soit considéré protégé.'))}</b></p>`;
         }
         block += '</div>';
       }
@@ -788,19 +797,32 @@
       const key = `s:${ui.component}:${str(row, 'number')}`;
       const severity = ui.severity[key] || 'high';
       const proposed = !!str(suggestion, 'hazard');
-      const editor = open ? `<div class="row answer-label"><span>${esc(t('Hazard description or reason', 'Danger ou justification'))}</span>
+      // a change that is done (or a hazard that is gone): back to the normal view
+      if (ui.changing[key] && !hazards.some((h) => str(h, 'id') === ui.changing[key])) { delete ui.changing[key]; delete ui.drafts[key]; }
+      const changing = ui.changing[key] || '';
+      const editor = open || changing ? `<div class="row answer-label"><span>${esc(changing ? t('Change hazard ', 'Modifier le hazard ') + changing
+          : t('Hazard description or reason', 'Hazard ou justification'))}</span>
   <label>${esc(t('Severity', 'Sévérité'))} <select data-change="severity" data-key="${esc(key)}">${['critical', 'high', 'medium', 'low'].map((s) => `<option ${s === severity ? 'selected' : ''}>${s}</option>`).join('')}</select></label></div>`
-        + answerEditor(key, str(suggestion, 'hazard'), t('What must never happen, or why it cannot', "Ce qui ne doit jamais arriver, ou pourquoi c'est impossible"),
-          btn(t('Not applicable', 'Non applicable'), 'safety', attrs({ action: 'hazard dismiss' }), false, 'secondary')
-          + (proposed ? btn(str(suggestion, 'invariant') ? t('Use proposed hazard + invariant', 'Utiliser danger + invariant proposés') : t('Use proposed hazard', 'Utiliser le danger proposé'),
-            'safety', attrs({ action: 'hazard suggested' }) + ` title="${esc(d && d.safety[i] ? d.safety[i].preview : '')}"`, false, 'secondary') : ''),
-          btn(t('Declare hazard', 'Déclarer un danger'), 'safety', attrs({ action: 'hazard add' })), 'safety') : '';
-      const more = `<div class="row wrap more">${missing ? btn(t('Add required invariant', "Ajouter l'invariant requis"), 'choose', attrs({ purpose: 'invariant add', only: 'true' })) : ''}
+        + (changing
+          ? answerEditor(key, '', t('What must never happen', 'Ce qui ne doit jamais arriver'),
+            btn(t('Keep it as it is', 'Le garder tel quel'), 'cancelChange', attrs({ key }), false, 'secondary'),
+            btn(t('Save the change', 'Enregistrer la modification'), 'safety', attrs({ action: 'hazard change' })), 'safety')
+          : answerEditor(key, str(suggestion, 'hazard'), t('What must never happen, or why it cannot', "Ce qui ne doit jamais arriver, ou pourquoi c'est impossible"),
+            btn(t('Not applicable', 'Non applicable'), 'safety', attrs({ action: 'hazard dismiss' }), false, 'secondary')
+            + (proposed ? btn(str(suggestion, 'invariant') ? t('Use proposed hazard + invariant', 'Utiliser hazard + invariant proposés') : t('Use proposed hazard', 'Utiliser le hazard proposé'),
+              'safety', attrs({ action: 'hazard suggested' }) + ` title="${esc(d && d.safety[i] ? d.safety[i].preview : '')}"`, false, 'secondary') : ''),
+            btn(t('Declare hazard', 'Déclarer un hazard'), 'safety', attrs({ action: 'hazard add' })), 'safety')) : '';
+      // a high or critical hazard without its invariant: the invariant is written right here, filled with the suggestion
+      const ikey = `i:${ui.component}:${str(row, 'number')}`;
+      const invariantEditor = missing && !changing ? `<div class="row answer-label"><span>${esc(t('Invariant - what is always true, so that ', 'Invariant - ce qui est toujours vrai, pour que ')
+          + missing + t(' cannot happen', ' ne puisse pas arriver'))}</span></div>`
+        + answerEditor(ikey, str(suggestion, 'invariant') || ui.suggested[remembered] || '', t('What is always true in the code', 'Ce qui est toujours vrai dans le code'), '',
+          btn(t('Add invariant', "Ajouter l'invariant"), 'invariantInline', attrs({ hazard: missing })), 'safety') : '';
+      const more = `<div class="row wrap more">
   ${btn(t('Add invariant…', 'Ajouter un invariant…'), 'choose', attrs({ purpose: 'invariant add' }), false, 'secondary small')}
-  ${btn(t('Remove hazard…', 'Supprimer un danger…'), 'choose', attrs({ purpose: 'hazard remove' }), false, 'secondary small')}
   ${btn(t('Remove invariant…', 'Supprimer un invariant…'), 'choose', attrs({ purpose: 'invariant remove' }), false, 'secondary small')}</div>`;
       right = answerHead(`${t('Safety', 'Sécurité')} S${str(row, 'number')}${str(row, 'guide_word') ? ' · ' + str(row, 'guide_word') : ''}`, status, !pending)
-        + block + editor + more + confirmation('safety') + resultCard('safety');
+        + block + editor + invariantEditor + more + confirmation('safety') + resultCard('safety');
     }
     return split(left, rows.length ? right : '');
   }
@@ -1005,6 +1027,7 @@
     const extra = name === 'specify' ? t('IDE mode: clarification without interactive terminal.', 'Mode IDE : clarification sans terminal interactif.')
       : name === 'rule add' ? t('One argument per line in words.', 'Un argument par ligne dans le champ words.') : '';
     let fields = '';
+    let expert = '';
     for (const p of command.parameters) {
       // init: the template is chosen once, in Template questions (under the package); template new: its
       // answers and layer folders are in Settings of the base, under --extends
@@ -1035,9 +1058,18 @@
       let help = p.help;
       if (field && field.note && field.kind !== 'note') help += (help ? '  ·  ' : '') + field.note;
       if (name === 'component add' && p.name === 'spec') help += t('  ·  Example: US-001 or a ticket reference from your backlog (optional; do not enter a .vow path).', '  ·  Exemple : US-001 ou une référence de ticket (facultatif ; pas un chemin .vow).');
-      fields += `<div class="field"><label>${p.required ? '* ' : ''}${esc(p.flags.length ? option(p) : p.name)}</label><div>${control}${help ? `<div class="muted small">${esc(help)}</div>` : ''}</div></div>`;
+      if (help === '==SUPPRESS==') help = '';  // an older grammar: archvow's hidden marker is not a help text
+      const row = `<div class="field"><label>${p.required ? '* ' : ''}${esc(p.flags.length ? option(p) : p.name)}</label><div>${control}${help ? `<div class="muted small">${esc(help)}</div>` : ''}</div></div>`;
+      // options archvow hides from --help (the expert checks of invariant add): apart, closed
+      if (p.hidden || p.help === '==SUPPRESS==') { expert += row; continue; }
+      fields += row;
       if (name === 'init' && p.name === 'package') fields += initWizard();
       if (name === 'template new' && p.name === 'extends') fields += templateWizard();
+    }
+    if (expert) {
+      fields += `<details class="expert"${['verify', 'evidence', 'rule'].some((k) => ui.form[k]) ? ' open' : ''}><summary>${esc(t('Expert checks', 'Contrôles experts'))}</summary>`
+        + `<p class="muted small">${esc(t('How the invariant is proven when a test is not enough: a model checked or a proof (--verify model_check|proof --evidence <file>), or a rule that enforces it (--verify static --rule <code>). Empty: the weakest test its severity accepts.',
+          "Comment l'invariant est prouvé quand un test ne suffit pas : un modèle vérifié ou une preuve (--verify model_check|proof --evidence <fichier>), ou une règle qui l'impose (--verify static --rule <code>). Vide : le test le plus faible que sa gravité accepte."))}</p>${expert}</details>`;
     }
     if (name === 'init') fields += initOtherAnswers();
     if (['decision make', 'decision propose', 'decision accept', 'question remove'].includes(name)) fields += questionPreview(name);
@@ -1332,10 +1364,11 @@
     const item = quickItem();
     if (!item) return;
     switch (item.command) {
-      case 'decision make': case 'decision accept': case 'decision propose': case 'hazard add': case 'hazard dismiss':
+      // the invariant a hazard needs is written in the component's Safety view, filled with the suggestion
+      case 'decision make': case 'decision accept': case 'decision propose': case 'hazard add': case 'hazard dismiss': case 'invariant add':
         if (!item.component) return;
         goToComponent(item.component);
-        ui.view = item.command.startsWith('hazard') ? 2 : viewForItem(item);
+        ui.view = item.command.startsWith('hazard') || item.command === 'invariant add' ? 2 : viewForItem(item);
         selectFromItem(item);
         return;
       case 'schema-create': {
@@ -1343,7 +1376,7 @@
         post({ type: 'openCommand', command: 'component add', values: Object.assign({ type: 'schema' }, container ? { container: str(container, 'id') } : {}), selected: ui.component });
         return;
       }
-      case 'component edit': case 'invariant add':
+      case 'component edit':
         post({ type: 'openCommand', command: item.command, values: item.preset, selected: ui.component });
         return;
       case 'open-file':
@@ -1529,7 +1562,33 @@
       const i = list(snapshot(), 'safety').indexOf(row);
       post({ type: 'inline', action: e.dataset.action, component: ui.component, number: str(row, 'number'),
         word: str(row, 'guide_word') || 'S' + str(row, 'number'), text: draft(key, str(suggestion, 'hazard')), severity: ui.severity[key] || 'high',
-        question: str(row, 'question'), preview: d && d.safety[i] ? d.safety[i].preview : '' });
+        question: str(row, 'question'), preview: d && d.safety[i] ? d.safety[i].preview : '', hazard: ui.changing[key] || '' });
+    },
+    hazardChange: (e) => {
+      const row = selectedRow('safety');
+      if (!row) return;
+      const key = `s:${ui.component}:${str(row, 'number')}`;
+      ui.changing[key] = e.dataset.id;
+      ui.drafts[key] = e.dataset.text || '';
+      ui.severity[key] = e.dataset.severity || 'high';
+    },
+    cancelChange: (e) => {
+      delete ui.changing[e.dataset.key];
+      delete ui.drafts[e.dataset.key];
+      delete ui.severity[e.dataset.key];
+    },
+    hazardRemove: (e) => {
+      const row = selectedRow('safety');
+      post({ type: 'inline', action: 'hazard remove', component: ui.component, id: e.dataset.id,
+        number: row ? str(row, 'number') : '', question: row ? str(row, 'question') : '' });
+    },
+    invariantInline: (e) => {
+      const row = selectedRow('safety');
+      if (!row) return;
+      const suggestion = row.suggestion || {};
+      const initial = str(suggestion, 'invariant') || ui.suggested[`${ui.component}:${str(row, 'number')}`] || '';
+      post({ type: 'inline', action: 'invariant add', component: ui.component, hazard: e.dataset.hazard, number: str(row, 'number'),
+        text: draft(`i:${ui.component}:${str(row, 'number')}`, initial), question: str(row, 'question') });
     },
     dataAction: () => {
       const d = derived();

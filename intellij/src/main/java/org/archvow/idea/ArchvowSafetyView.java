@@ -68,7 +68,7 @@ final class ArchvowSafetyView {
             for (JsonObject hazard : hazards) {
                 String id = ArchvowGrammar.str(hazard, "id");
                 String severity = ArchvowGrammar.str(hazard, "severity");
-                section(doc, (french ? "DANGER ENREGISTRÉ" : "RECORDED HAZARD")
+                section(doc, (french ? "HAZARD ENREGISTRÉ" : "RECORDED HAZARD")
                     + (id.isBlank() ? "" : "  ·  " + id), blue);
                 if (!severity.isBlank()) {
                     boolean serious = ArchvowSafetyState.requiresInvariant(hazard);
@@ -93,14 +93,14 @@ final class ArchvowSafetyView {
                 if (ArchvowSafetyState.requiresInvariant(hazard) && invariants.isEmpty()) {
                     section(doc, "ARCH030  ·  " + (french ? "ACTION REQUISE" : "ACTION REQUIRED"), amber);
                     add(doc, french
-                        ? "Ajoute un invariant protégeant ce danger avant de le considérer comme traité."
+                        ? "Ajoute un invariant protégeant ce hazard avant de le considérer comme traité."
                         : "Add a protecting invariant before considering this hazard resolved.", body, false, 13);
                 }
             }
 
             String suggestedHazard = ArchvowSafetyState.suggestedHazard(question);
             if (!suggestedHazard.isBlank()) {
-                section(doc, french ? "DANGER PROPOSÉ" : "PROPOSED HAZARD", blue);
+                section(doc, french ? "HAZARD PROPOSÉ" : "PROPOSED HAZARD", blue);
                 add(doc, suggestedHazard, body, false, 13);
             }
             String suggestedInvariant = ArchvowSafetyState.suggestedInvariant(question);
@@ -111,7 +111,7 @@ final class ArchvowSafetyView {
             if (pending && hazards.isEmpty() && dismissal.isBlank() && suggestedHazard.isBlank()) {
                 section(doc, french ? "À FAIRE" : "NEXT STEP", amber);
                 add(doc, french
-                    ? "Déclare un danger ou justifie pourquoi cette question ne s'applique pas."
+                    ? "Déclare un hazard ou justifie pourquoi cette question ne s'applique pas."
                     : "Declare a hazard or justify why this question does not apply.", body, false, 13);
             }
         } catch (BadLocationException e) {

@@ -17,7 +17,10 @@ Chaque paramètre a un nom, ses options (`-d`, `--description`), obligatoire ou 
 (booléen), une liste de choix, plusieurs valeurs (une par ligne), et son aide (affichée sous le champ).
 IntelliJ : `ArchvowGrammar.COMMANDS`, `renderForm` ; VS Code : `commandForm()` dans la page,
 `findCommand()`. Les champs de texte long (`description`, `answer`, `statement`, `words`...) sont sur
-plusieurs lignes (`LONG_TEXT`).
+plusieurs lignes (`LONG_TEXT`). Les options qu'archvow cache dans `--help` (`argparse.SUPPRESS` :
+`--verify`, `--evidence`, `--rule` d'`invariant add`) sont marquées `hidden` par
+`contract/tools/export_grammar.py` et rangées sous « Contrôles experts », fermé (0.13.1 : leur aide
+affichait `==SUPPRESS==`).
 
 ## Ce qu'un champ propose
 

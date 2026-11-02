@@ -74,12 +74,22 @@ carte choisie. IntelliJ : `fill()` et `renderedComponent` dans `renderComponent`
 |---|---|---|---|
 | Décisions | la réponse ou la proposition | Enregistrer la réponse, Proposer, Accepter la proposition, Utiliser la suggestion (seulement celles qui s'appliquent) | `decision make`, `decision propose`, `decision accept` |
 | Questions | la réponse | Enregistrer la réponse | `decision make <c> <clé>` |
-| Sécurité | le danger, ou pourquoi il ne s'applique pas ; la gravité | Déclarer le danger, Non applicable, Utiliser le danger (et l'invariant) proposé, Ajouter l'invariant requis, Ajouter un invariant…, Supprimer… | `hazard add`, `hazard dismiss`, formulaires `invariant add`, `hazard remove`, `invariant remove` |
+| Sécurité | le hazard, ou pourquoi il ne s'applique pas ; la gravité ; ou l'invariant requis | Déclarer un hazard, Non applicable, Utiliser le hazard (et l'invariant) proposé ; sur un hazard enregistré : Modifier, Supprimer ; Ajouter l'invariant (sur place), Ajouter un invariant…, Supprimer un invariant… | `hazard add`, `hazard dismiss`, `hazard remove` (+ `hazard add` pour Modifier), `invariant add` ; formulaires `invariant add`, `invariant remove` |
 | Hypothèses | - | Accepter, Rejeter (formulaires), + Hypothèse | `assumption accept`, `assumption reject`, `assumption add` |
 
-Une question de sûreté déjà traitée ne montre pas de champ : seulement les invariants et les
-suppressions. Son état suit les règles d'archvow (un danger élevé ou critique sans invariant reste
-« invariant requis », ARCH030) : `ArchvowSafetyState`, l'objet `safety` de `vscode/src/workItems.ts`.
+Un seul champ, trois usages (0.13.1) : déclarer le hazard d'une question ouverte ; modifier un hazard
+enregistré (Modifier : le champ reprend son texte et sa gravité, l'enregistrement fait `hazard remove`
+puis `hazard add`, confirmés une fois - seulement tant qu'aucun invariant ne le protège, archvow 1.18
+n'ayant pas de `hazard edit`) ; écrire l'invariant qu'un hazard élevé ou critique attend (ARCH030), ici
+même, rempli avec la suggestion du template - archvow ne la donne que tant que la question est ouverte,
+les deux plugins la gardent donc (`rememberedInvariants`, `ui.suggested`). « Ajouter l'invariant requis »
+des listes En attente ouvre ce champ, plus le formulaire. Une question traitée et protégée ne montre que
+ses hazards, ses invariants et les suppressions. Son état suit les règles d'archvow :
+`ArchvowSafetyState`, l'objet `safety` de `vscode/src/workItems.ts`. IntelliJ range les boutons dans un
+`ArchvowWrapLayout` (un `FlowLayout` qui demande la hauteur de chaque ligne : « Supprimer un hazard… »
+sortait du panneau).
+
+« hazard » et « invariant » sont des mots-clés : le français les garde (« Déclarer un hazard »).
 
 ## Enregistrer une réponse, de bout en bout
 

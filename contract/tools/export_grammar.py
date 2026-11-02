@@ -29,7 +29,10 @@ def walk(parser, path=()):
             "multiToken": action.nargs in ("+", "*"),
             "optionalValue": action.nargs == "?",
             "choices": [str(v) for v in action.choices] if action.choices else [],
-            "help": action.help or "",
+            # archvow hides some expert options from --help (argparse.SUPPRESS): no help text to show, and
+            # the forms put them apart ("Expert checks") instead of showing argparse's marker
+            "help": "" if action.help == argparse.SUPPRESS else (action.help or ""),
+            "hidden": action.help == argparse.SUPPRESS,
             "metavar": (str(action.metavar) if action.metavar is not None else action.dest),
         })
     yield {"path": list(path), "description": parser.description or "", "json": any("--json" in a.option_strings for a in parser._actions), "parameters": params}

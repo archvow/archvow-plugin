@@ -34,6 +34,17 @@ final class ArchvowInlineCommands {
             required(guideWord, "safety question"), required(reason, "reason"), "--json");
     }
 
+    /** {@code hazard remove <component>.H<n> --yes}: show --json gives the qualified id, a short H1 gets the component. */
+    static List<String> removeHazard(String component, String id) {
+        return List.of("hazard", "remove", ArchvowCommandPrefill.itemId(required(component, "component"), required(id, "hazard")),
+            "--yes", "--json");
+    }
+
+    static List<String> invariant(String component, String statement, String hazard) {
+        return List.of("invariant", "add", required(component, "component"), required(statement, "invariant"), "--prevents",
+            ArchvowCommandPrefill.itemId(component.trim(), required(hazard, "hazard")), "--json");
+    }
+
     private static String required(String value, String name) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException("Missing " + name);
         return value.trim();

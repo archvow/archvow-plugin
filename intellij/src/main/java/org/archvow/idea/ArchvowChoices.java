@@ -325,7 +325,7 @@ final class ArchvowChoices {
                         List<Choice> out = new ArrayList<>();
                         for (JsonObject h : hazards) if (id.equals(str(h, "component"))) out.add(item(str(h, "id"), hazardText(h)));
                         return out;
-                    }), tr(fr, "No hazard declared on this component yet.", "Aucun danger déclaré sur ce composant."));
+                    }), tr(fr, "No hazard declared on this component yet.", "Aucun hazard déclaré sur ce composant."));
                 } else if ("prompt".equals(name) && "task".equals(p)) {
                     field = perComponent(byComponent.apply(id -> {
                         List<Choice> out = new ArrayList<>();
@@ -336,7 +336,7 @@ final class ArchvowChoices {
                 } else if ("hazard remove".equals(name) && "id".equals(p)) {
                     List<Choice> choices = new ArrayList<>();
                     for (JsonObject h : hazards) choices.add(item(str(h, "id"), hazardText(h)));
-                    field = select(choices, tr(fr, "No hazard declared in this project.", "Aucun danger déclaré dans ce projet."));
+                    field = select(choices, tr(fr, "No hazard declared in this project.", "Aucun hazard déclaré dans ce projet."));
                 } else if ("invariant remove".equals(name) && "id".equals(p)) {
                     List<Choice> choices = new ArrayList<>();
                     for (JsonObject i : objects(input.spec(), "invariants")) choices.add(item(str(i, "id"), str(i, "statement")));

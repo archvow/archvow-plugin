@@ -4,7 +4,7 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { itemId, prefill } from '../grammar';
+import { inline, itemId, prefill } from '../grammar';
 import * as oniguruma from 'vscode-oniguruma';
 import * as textmate from 'vscode-textmate';
 import { tokenize, TokenKind } from '../vow/scanner';
@@ -80,4 +80,24 @@ test('hazard / invariant remove: the id show --json gives (clean_sales.H1) is ke
   assert.equal(itemId('clean_sales', 'H1'), 'clean_sales.H1');
   assert.equal(itemId('clean_sales', ' INV3 '), 'clean_sales.INV3');
   assert.equal(itemId('', 'H1'), 'H1');
+});
+
+test('Safety view (0.13.1): Remove, Change (remove + add) and the invariant written in place send what archvow 1.18 takes', () => {
+  assert.deepEqual(inline.removeHazard('orders_reader', 'orders_reader.H1'), ['hazard', 'remove', 'orders_reader.H1', '--yes', '--json']);
+  assert.deepEqual(inline.removeHazard('orders_reader', 'H2'), ['hazard', 'remove', 'orders_reader.H2', '--yes', '--json']);
+  assert.deepEqual(inline.invariant('orders_reader', ' every file is read once ', 'orders_reader.H1'),
+    ['invariant', 'add', 'orders_reader', 'every file is read once', '--prevents', 'orders_reader.H1', '--json']);
+  assert.throws(() => inline.invariant('orders_reader', ' ', 'orders_reader.H1'));
+  assert.throws(() => inline.removeHazard('orders_reader', ''));
+  const page = fs.readFileSync(path.join(__dirname, '..', '..', 'media', 'workspace.js'), 'utf8');
+  for (const action of ['hazardChange', 'hazardRemove', 'invariantInline', 'cancelChange']) assert.match(page, new RegExp(`${action}: \\(`), action);
+  // French keeps the keyword hazard (the user's rule): no "danger" in what the page says
+  assert.doesNotMatch(page, /'[^']*\b[Dd]angers?\b[^']*'/);
+  // invariant add: archvow's hidden expert options are flagged, never shown as "==SUPPRESS=="
+  const commands = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'contract', 'cli', 'commands.json'), 'utf8')).commands;
+  const invariant = commands.find((c: { path: string[] }) => c.path.join(' ') === 'invariant add');
+  for (const p of invariant.parameters) {
+    assert.equal(p.hidden, ['verify', 'evidence', 'rule'].includes(p.name), p.name);
+    assert.doesNotMatch(p.help, /SUPPRESS/);
+  }
 });

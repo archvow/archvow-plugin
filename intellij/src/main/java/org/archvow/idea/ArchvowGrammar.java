@@ -22,8 +22,12 @@ final class ArchvowGrammar {
         final String name, help, metavar;
         final List<String> flags, choices;
         final boolean required, bool, append, multiToken, optionalValue;
+        /** archvow hides it from --help (argparse.SUPPRESS): an expert option, shown apart. */
+        final boolean hidden;
         Param(JsonObject obj) {
-            name = str(obj, "name"); help = str(obj, "help"); metavar = str(obj, "metavar");
+            String text = str(obj, "help");
+            hidden = flag(obj, "hidden") || "==SUPPRESS==".equals(text);
+            name = str(obj, "name"); help = "==SUPPRESS==".equals(text) ? "" : text; metavar = str(obj, "metavar");
             flags = strings(obj, "flags"); choices = strings(obj, "choices");
             required = flag(obj, "required"); bool = flag(obj, "boolean");
             append = flag(obj, "append"); multiToken = flag(obj, "multiToken");

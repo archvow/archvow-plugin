@@ -110,7 +110,7 @@ test('the pyspark example has work to do: decisions or safety questions pending,
   const work = buildWork(read('pyspark-pipeline', 'show.json'), read('pyspark-pipeline', 'check.json'), '', snapshots('pyspark-pipeline'), true);
   assert.ok(work.pending.length > 0);
   assert.ok(work.pending.some((i) => i.command === 'hazard add'), 'safety questions to answer');
-  assert.ok(work.pending.some((i) => i.action === 'Examiner le danger'), 'French labels');
+  assert.ok(work.pending.some((i) => i.action === 'Examiner le hazard'), 'French labels');
 });
 
 test('a diagnostic with a documented fix prefills a form, never runs it', () => {

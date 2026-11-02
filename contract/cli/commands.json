@@ -17,6 +17,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "snake_case Python package the code will live in (also the project name)",
+          "hidden": false,
           "metavar": "package"
         },
         {
@@ -32,6 +33,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "architecture template: a name (default: python-app; list: archvow catalog) or the folder of a company template; a company template is copied into .archvow/templates/",
+          "hidden": false,
           "metavar": "TEMPLATE"
         },
         {
@@ -47,6 +49,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "what the system does, in one line: goes into the vow, the README and every spec card (default: the package name)",
+          "hidden": false,
           "metavar": "TEXT"
         },
         {
@@ -62,6 +65,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "answer one of the template's questions (repeatable); the keys are listed below",
+          "hidden": false,
           "metavar": "KEY=VALUE"
         },
         {
@@ -76,6 +80,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "repository root (default: current folder)",
+          "hidden": false,
           "metavar": "dir"
         },
         {
@@ -90,6 +95,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "source root (default: src)",
+          "hidden": false,
           "metavar": "src"
         },
         {
@@ -104,6 +110,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "in a folder that is already a project: rewrite the generated files from the template (AGENTS.md, CI, hooks...). A committed spec is always kept; to start over, git rm -r .archvow and commit",
+          "hidden": false,
           "metavar": "force"
         },
         {
@@ -118,6 +125,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "do not create a Git repository (default: one is created, branch main)",
+          "hidden": false,
           "metavar": "no_git"
         },
         {
@@ -132,6 +140,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "never ask: in a terminal, init asks the main questions no -a answered (scripts and CI are never asked)",
+          "hidden": false,
           "metavar": "no_input"
         },
         {
@@ -146,6 +155,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "existing code: propose `layer_paths` from folder and file names (core, models, crud, services, api...) so the files stay where they are; written into .archvow/spec.vow and printed for the architects to review (with --force in a project: adds the files not mapped yet)",
+          "hidden": false,
           "metavar": "adopt"
         }
       ]
@@ -176,6 +186,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component type (listed below)",
+          "hidden": false,
           "metavar": "type"
         },
         {
@@ -188,6 +199,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "short snake_case name; the type turns it into the component id (below)",
+          "hidden": false,
           "metavar": "name"
         },
         {
@@ -203,6 +215,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "what the component must do - the instruction the AI assistant or developer implements, with the details that matter (change it with archvow component edit)",
+          "hidden": false,
           "metavar": "TEXT"
         },
         {
@@ -218,6 +231,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "ticket or user story it implements, e.g. US-001",
+          "hidden": false,
           "metavar": "TICKET"
         },
         {
@@ -233,6 +247,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "comma-separated ids of the components it uses",
+          "hidden": false,
           "metavar": "IDS"
         },
         {
@@ -248,6 +263,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "for the types that have kinds (listed below): what it reads or writes, e.g. a reader of files (the default), a table, a database (jdbc), a connector or custom code; fixed once added (remove and add again to change it)",
+          "hidden": false,
           "metavar": "KIND"
         },
         {
@@ -262,6 +278,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "replace the public function's signature (only for the types that allow it, listed below; e.g. a second input)",
+          "hidden": false,
           "metavar": "signature"
         },
         {
@@ -276,6 +293,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "container id, when the project has several (default: the first)",
+          "hidden": false,
           "metavar": "container"
         },
         {
@@ -291,6 +309,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "a folder inside the layer, to organise many components, e.g. orders: <layer>/orders/<file>.py and tests/<layer>/orders/test_<id>.py",
+          "hidden": false,
           "metavar": "GROUP"
         },
         {
@@ -306,6 +325,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "for a router: one route, \"<function>: <METHOD> <path>\" (repeatable), e.g. \"get_order: GET /orders/{order_id}\"",
+          "hidden": false,
           "metavar": "ROUTE"
         },
         {
@@ -320,6 +340,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "hidden": false,
           "metavar": "BRIEF"
         },
         {
@@ -334,6 +355,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "adopt an existing module where it is (path from the project root): its layer comes from `layer_paths`, its symbols are the public functions, classes, constants and routes the file has today",
+          "hidden": false,
           "metavar": "PATH"
         }
       ]
@@ -356,6 +378,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -371,6 +394,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the new description (what gets implemented); what was recorded before is then to review (archvow component accept)",
+          "hidden": false,
           "metavar": "TEXT"
         },
         {
@@ -386,6 +410,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the new ticket or user story",
+          "hidden": false,
           "metavar": "TICKET"
         },
         {
@@ -401,6 +426,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the complete new list, comma-separated ('' for none)",
+          "hidden": false,
           "metavar": "IDS"
         },
         {
@@ -415,6 +441,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "only for types with an overridable signature",
+          "hidden": false,
           "metavar": "signature"
         },
         {
@@ -430,6 +457,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "move it to another folder inside its layer ('' for none); then git mv its files",
+          "hidden": false,
           "metavar": "GROUP"
         },
         {
@@ -445,6 +473,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "for a router: the complete new list of routes, one -r each",
+          "hidden": false,
           "metavar": "ROUTE"
         },
         {
@@ -459,6 +488,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "who approves changes to its vow besides the architects: @user, @group (several with spaces or commas; '' for the architects only). Written in CODEOWNERS; a weakened guard still needs the architects (ARCH020)",
+          "hidden": false,
           "metavar": "WHO"
         },
         {
@@ -473,6 +503,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "hidden": false,
           "metavar": "BRIEF"
         }
       ]
@@ -495,6 +526,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         }
       ]
@@ -517,6 +549,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -531,6 +564,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "do not ask for confirmation (scripts)",
+          "hidden": false,
           "metavar": "yes"
         }
       ]
@@ -552,6 +586,7 @@
           "optionalValue": true,
           "choices": [],
           "help": "one component, a rule R1, or a file (file.py or file.py:<line>)",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -564,6 +599,7 @@
           "optionalValue": true,
           "choices": [],
           "help": "one of its hazards or invariants",
+          "hidden": false,
           "metavar": "H<n>|INV<n>"
         }
       ]
@@ -585,6 +621,7 @@
           "optionalValue": true,
           "choices": [],
           "help": "only this component (default: all)",
+          "hidden": false,
           "metavar": "component"
         }
       ]
@@ -607,6 +644,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -619,6 +657,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the question; a person answers it with archvow decision make",
+          "hidden": false,
           "metavar": "question"
         },
         {
@@ -633,6 +672,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "hidden": false,
           "metavar": "BRIEF"
         }
       ]
@@ -655,6 +695,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -667,6 +708,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the question's number, as archvow show prints it",
+          "hidden": false,
           "metavar": "number"
         },
         {
@@ -681,6 +723,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "do not ask for confirmation (scripts)",
+          "hidden": false,
           "metavar": "yes"
         }
       ]
@@ -703,6 +746,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it (with --type: the question's number)",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -715,6 +759,7 @@
           "optionalValue": true,
           "choices": [],
           "help": "the question's number in archvow show: 1, 3,4, P1 or O2 (with --type: the answer)",
+          "hidden": false,
           "metavar": "number"
         },
         {
@@ -727,6 +772,7 @@
           "optionalValue": true,
           "choices": [],
           "help": "the decision, in plain words; it becomes a test (none: the template's suggested answer, when it gives one)",
+          "hidden": false,
           "metavar": "answer"
         },
         {
@@ -741,6 +787,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "answer the question once for every component of this type, today's and later ones (an architect's decision; a component's own answer still wins)",
+          "hidden": false,
           "metavar": "TYPE"
         },
         {
@@ -755,6 +802,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "with --type: no longer answer it for the whole type (each component answers it again)",
+          "hidden": false,
           "metavar": "unset"
         }
       ]
@@ -777,6 +825,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -789,6 +838,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the question's number in archvow show",
+          "hidden": false,
           "metavar": "number"
         },
         {
@@ -801,6 +851,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the answer the AI chose, in plain words",
+          "hidden": false,
           "metavar": "answer"
         }
       ]
@@ -823,6 +874,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -835,6 +887,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the question's number in archvow show",
+          "hidden": false,
           "metavar": "number"
         }
       ]
@@ -857,6 +910,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -869,6 +923,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the new question",
+          "hidden": false,
           "metavar": "question"
         },
         {
@@ -881,6 +936,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the decision, in plain words; it becomes a test",
+          "hidden": false,
           "metavar": "answer"
         },
         {
@@ -895,6 +951,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "hidden": false,
           "metavar": "BRIEF"
         }
       ]
@@ -917,6 +974,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "<component>[,<component>...] \"rule\", or only \"rule\" with --type/--all",
+          "hidden": false,
           "metavar": "ARG"
         },
         {
@@ -931,6 +989,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "every component of this type, including later ones",
+          "hidden": false,
           "metavar": "TYPE"
         },
         {
@@ -945,6 +1004,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "every component",
+          "hidden": false,
           "metavar": "all"
         },
         {
@@ -959,6 +1019,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
+          "hidden": false,
           "metavar": "BRIEF"
         }
       ]
@@ -981,6 +1042,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the rule's id, e.g. R3",
+          "hidden": false,
           "metavar": "RULE"
         },
         {
@@ -993,6 +1055,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the new text",
+          "hidden": false,
           "metavar": "text"
         }
       ]
@@ -1015,6 +1078,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the rule's id, e.g. R3",
+          "hidden": false,
           "metavar": "RULE"
         },
         {
@@ -1029,6 +1093,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "do not ask for confirmation (scripts)",
+          "hidden": false,
           "metavar": "yes"
         }
       ]
@@ -1051,6 +1116,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1063,6 +1129,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "what the implementer assumed",
+          "hidden": false,
           "metavar": "text"
         }
       ]
@@ -1085,6 +1152,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1097,6 +1165,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "assumption number, as archvow show shows it",
+          "hidden": false,
           "metavar": "number"
         }
       ]
@@ -1119,6 +1188,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1131,6 +1201,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "assumption number, as archvow show shows it",
+          "hidden": false,
           "metavar": "number"
         }
       ]
@@ -1153,6 +1224,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "briefs/<file>.md, or briefs/<file>.md#<section>",
+          "hidden": false,
           "metavar": "BRIEF"
         }
       ]
@@ -1175,6 +1247,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, or 'system' for the whole system",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1187,6 +1260,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the safety question's number in archvow show, S2 or 2 (or its guide word, listed below)",
+          "hidden": false,
           "metavar": "number"
         },
         {
@@ -1204,6 +1278,7 @@
             "low"
           ],
           "help": "critical | high | medium | low",
+          "hidden": false,
           "metavar": "severity"
         },
         {
@@ -1216,6 +1291,7 @@
           "optionalValue": true,
           "choices": [],
           "help": "what must never happen, in plain words (default: the suggestion archvow show shows; for critical or high, its invariant is added too)",
+          "hidden": false,
           "metavar": "description"
         }
       ]
@@ -1238,6 +1314,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, or 'system'",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1250,6 +1327,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the safety question's number in archvow show, S2 or 2 (or its guide word, listed below); several: S2,S4",
+          "hidden": false,
           "metavar": "number"
         },
         {
@@ -1262,6 +1340,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "why it cannot happen here",
+          "hidden": false,
           "metavar": "rationale"
         }
       ]
@@ -1284,6 +1363,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the component (then H<n> or S<n>), or the hazard's id <component>.H1",
+          "hidden": false,
           "metavar": "WHAT"
         },
         {
@@ -1296,6 +1376,7 @@
           "optionalValue": true,
           "choices": [],
           "help": "with a component: its hazard H<n>, or the safety question S<n> marked not applicable",
+          "hidden": false,
           "metavar": "H<n>|S<n>"
         },
         {
@@ -1310,6 +1391,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "do not ask for confirmation (scripts)",
+          "hidden": false,
           "metavar": "yes"
         }
       ]
@@ -1332,6 +1414,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, or 'system'",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1344,6 +1427,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the property, in plain words; it must be checkable",
+          "hidden": false,
           "metavar": "statement"
         },
         {
@@ -1358,6 +1442,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the hazard(s) it prevents: H1 (this component's), orders_reader.H1 (another's) (default: the component's one hazard that no invariant prevents yet)",
+          "hidden": false,
           "metavar": "IDS"
         },
         {
@@ -1378,7 +1463,8 @@
             "model_check",
             "proof"
           ],
-          "help": "==SUPPRESS==",
+          "help": "",
+          "hidden": true,
           "metavar": "METHOD"
         },
         {
@@ -1392,7 +1478,8 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "==SUPPRESS==",
+          "help": "",
+          "hidden": true,
           "metavar": "FILE"
         },
         {
@@ -1406,7 +1493,8 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "==SUPPRESS==",
+          "help": "",
+          "hidden": true,
           "metavar": "rule"
         }
       ]
@@ -1429,6 +1517,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the component, then INV<n> (or the id <component>.INV1)",
+          "hidden": false,
           "metavar": "WHAT"
         },
         {
@@ -1441,6 +1530,7 @@
           "optionalValue": true,
           "choices": [],
           "help": "the invariant's number in that component, e.g. INV1",
+          "hidden": false,
           "metavar": "INV<n>"
         },
         {
@@ -1455,6 +1545,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "do not ask for confirmation (scripts)",
+          "hidden": false,
           "metavar": "yes"
         }
       ]
@@ -1477,6 +1568,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "a schema or model component (classes); any component for --removes / --pseudonymises",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1489,6 +1581,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "column names, separated by commas",
+          "hidden": false,
           "metavar": "names"
         },
         {
@@ -1505,6 +1598,7 @@
             "none"
           ],
           "help": "personal | special | none",
+          "hidden": false,
           "metavar": "kind"
         },
         {
@@ -1519,6 +1613,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "this component drops these columns",
+          "hidden": false,
           "metavar": "removes"
         },
         {
@@ -1533,6 +1628,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "this component pseudonymises or encrypts them",
+          "hidden": false,
           "metavar": "pseudonymises"
         }
       ]
@@ -1555,6 +1651,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the package, as requirements.txt names it",
+          "hidden": false,
           "metavar": "name"
         },
         {
@@ -1569,6 +1666,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "who provides and maintains it",
+          "hidden": false,
           "metavar": "WHO"
         },
         {
@@ -1583,6 +1681,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "its licence (SPDX name, e.g. Apache-2.0, MIT)",
+          "hidden": false,
           "metavar": "SPDX"
         },
         {
@@ -1601,6 +1700,7 @@
             "minor"
           ],
           "help": "critical (the service stops without it; pinned with ==) | important | minor",
+          "hidden": false,
           "metavar": "LEVEL"
         }
       ]
@@ -1623,6 +1723,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the package",
+          "hidden": false,
           "metavar": "name"
         }
       ]
@@ -1645,6 +1746,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1657,6 +1759,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "its folder name: letters, digits, - and _, often the ticket first",
+          "hidden": false,
           "metavar": "example"
         },
         {
@@ -1672,6 +1775,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the ticket it comes from (e.g. the Jira story)",
+          "hidden": false,
           "metavar": "TICKET"
         }
       ]
@@ -1694,6 +1798,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1706,6 +1811,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the example, as archvow show <component> lists it",
+          "hidden": false,
           "metavar": "example"
         },
         {
@@ -1720,6 +1826,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "do not ask for confirmation (scripts)",
+          "hidden": false,
           "metavar": "yes"
         }
       ]
@@ -1741,6 +1848,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
           "metavar": "component"
         },
         {
@@ -1755,6 +1863,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "a card cut into tasks (archvow show lists them): task N instead of the next open one",
+          "hidden": false,
           "metavar": "N"
         },
         {
@@ -1769,6 +1878,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "ask the AI to list ambiguities as questions instead (it answers none)",
+          "hidden": false,
           "metavar": "clarify"
         }
       ]
@@ -1792,6 +1902,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the branch the merge request targets (main, origin/main): counts the change against its review budget (ARCH022); when it is full, nothing more is ready",
+          "hidden": false,
           "metavar": "REF"
         }
       ]
@@ -1815,6 +1926,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "only report violations for this file (an IDE, or an AI checking the file it writes)",
+          "hidden": false,
           "metavar": "file"
         },
         {
@@ -1829,6 +1941,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "read --file content from stdin (unsaved buffer)",
+          "hidden": false,
           "metavar": "stdin"
         },
         {
@@ -1843,6 +1956,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "git ref to compare guards with, e.g. origin/main",
+          "hidden": false,
           "metavar": "REF"
         },
         {
@@ -1857,6 +1971,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "report ARCH020 as a warning (pass only after architect approval)",
+          "hidden": false,
           "metavar": "accept_weakening"
         },
         {
@@ -1871,6 +1986,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "also fail on planned components not built yet (release gate)",
+          "hidden": false,
           "metavar": "complete"
         },
         {
@@ -1885,6 +2001,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "list every warning one by one (by default the open safety questions, ARCH035, and the tests not marked with their decision or rule, ARCH038, are counted on one line)",
+          "hidden": false,
           "metavar": "all"
         },
         {
@@ -1899,6 +2016,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "pytest's JUnit report (pytest --junitxml=...): every invariant's test must have run and passed (DORA004)",
+          "hidden": false,
           "metavar": "JUNIT_XML"
         }
       ]
@@ -1922,6 +2040,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the branch the merge request targets, e.g. origin/main: the components changed since then are reviewed",
+          "hidden": false,
           "metavar": "REF"
         },
         {
@@ -1936,6 +2055,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "a person has read the report: HIGH findings no longer fail (CI passes it when the merge request has the label review-acknowledged)",
+          "hidden": false,
           "metavar": "acknowledged"
         }
       ]
@@ -1967,6 +2087,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "exit 1 if any record is flagged",
+          "hidden": false,
           "metavar": "strict"
         }
       ]
@@ -1990,6 +2111,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the previous release (a tag or a commit)",
+          "hidden": false,
           "metavar": "REF"
         },
         {
@@ -2004,6 +2126,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "the release (default: HEAD)",
+          "hidden": false,
           "metavar": "REF"
         },
         {
@@ -2018,6 +2141,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "Markdown output",
+          "hidden": false,
           "metavar": "markdown"
         }
       ]
@@ -2041,6 +2165,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "git ref, e.g. origin/main",
+          "hidden": false,
           "metavar": "REF"
         },
         {
@@ -2055,6 +2180,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "Markdown output for merge-request reports",
+          "hidden": false,
           "metavar": "markdown"
         }
       ]
@@ -2088,6 +2214,7 @@
             "powershell"
           ],
           "help": "the shell to complete in",
+          "hidden": false,
           "metavar": "shell"
         },
         {
@@ -2102,6 +2229,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "write the script to ~/.archvow-completion.<ext> and load it from the shell's startup file (once); it works even when archvow is not on the PATH yet when the shell starts",
+          "hidden": false,
           "metavar": "install"
         }
       ]
@@ -2125,6 +2253,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "fail if committed specs are stale or edited by hand (CI)",
+          "hidden": false,
           "metavar": "check"
         }
       ]
@@ -2147,6 +2276,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "name of the new template",
+          "hidden": false,
           "metavar": "name"
         },
         {
@@ -2161,6 +2291,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "template it builds on",
+          "hidden": false,
           "metavar": "TEMPLATE"
         },
         {
@@ -2175,6 +2306,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "catalog folder to create it in (a company template; no project needed). Default: the current project's .archvow/templates/",
+          "hidden": false,
           "metavar": "FOLDER"
         },
         {
@@ -2190,6 +2322,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "what the template is for (one line)",
+          "hidden": false,
           "metavar": "TEXT"
         },
         {
@@ -2205,6 +2338,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "a company default for an init answer, repeatable (-a ci=jenkins -a sonar=yes); a project can still override it",
+          "hidden": false,
           "metavar": "KEY=VALUE"
         },
         {
@@ -2219,6 +2353,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "top folders of Python files that are not components, comma-separated (devops,tools): no ARCH015 there; added to the base's",
+          "hidden": false,
           "metavar": "FOLDERS"
         },
         {
@@ -2233,6 +2368,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "folders of files/ copied exactly as they are, .j2 included, comma-separated (templates,deploy/ansible)",
+          "hidden": false,
           "metavar": "FOLDERS"
         },
         {
@@ -2247,6 +2383,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "rename a layer's folder, repeatable (--layer p1_domain=domain): src/<package>/domain/, tests/domain/; the others keep the base's",
+          "hidden": false,
           "metavar": "LAYER=FOLDER"
         },
         {
@@ -2261,6 +2398,7 @@
           "optionalValue": false,
           "choices": [],
           "help": "never ask: without options, the settings stay commented examples",
+          "hidden": false,
           "metavar": "no_input"
         }
       ]

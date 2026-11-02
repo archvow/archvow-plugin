@@ -218,14 +218,14 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
       } else if (name === 'invariant add' && p === 'prevents') {
         field = perComponent(byComponent((id) => hazards.filter((h) => str(h, 'component') === id)
           .map((h) => item(str(h, 'id'), `${str(h, 'severity')}: ${str(h, 'description') || str(h, 'guide_word')}`))),
-        tr(fr, 'No hazard declared on this component yet.', 'Aucun danger déclaré sur ce composant.'));
+        tr(fr, 'No hazard declared on this component yet.', 'Aucun hazard déclaré sur ce composant.'));
       } else if (name === 'prompt' && p === 'task') {
         field = perComponent(byComponent((id) => objects(view(id), 'tasks').map((t) => item(str(t, 'task'),
           str(t, 'summary') + (t.done === true ? tr(fr, ' (done)', ' (fait)') : '')))),
         tr(fr, 'No task for this component.', 'Aucune tâche pour ce composant.'));
       } else if (name === 'hazard remove' && p === 'id') {
         field = { kind: 'select', choices: hazards.map((h) => item(str(h, 'id'), `${str(h, 'severity')}: ${str(h, 'description') || str(h, 'guide_word')}`)),
-          empty: tr(fr, 'No hazard declared in this project.', 'Aucun danger déclaré dans ce projet.') };
+          empty: tr(fr, 'No hazard declared in this project.', 'Aucun hazard déclaré dans ce projet.') };
       } else if (name === 'invariant remove' && p === 'id') {
         field = { kind: 'select', choices: objects(input.spec, 'invariants').map((i) => item(str(i, 'id'), str(i, 'statement'))),
           empty: tr(fr, 'No invariant in this project.', 'Aucun invariant dans ce projet.') };

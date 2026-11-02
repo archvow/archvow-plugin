@@ -2,6 +2,25 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.13.1 - 2026-11-02
+
+Built on archvow 1.18 (unchanged). Fixes from a user's screenshots of the IntelliJ plugin, in both IDEs.
+
+- **Language**: changing it redraws everything open - IntelliJ's editor tab no longer needs closing and
+  reopening, an open form keeps what is typed; VS Code's Pending lists follow too.
+- **hazard stays a keyword in French**: "Déclarer un hazard", "Supprimer un hazard…", "Hazard proposé" (it
+  said "danger").
+- **A recorded hazard can be removed and changed**: Remove and Change next to it. IntelliJ: the buttons
+  under the field wrap (the row did not: "Remove hazard…" and "Remove invariant…" were out of sight).
+  Change puts its text and severity in the field; saving runs `hazard remove` then `hazard add`, confirmed
+  once - offered while no invariant protects it (archvow 1.18 has no `hazard edit`).
+- **The invariant a hazard needs is written in place**: right after a high or critical hazard is declared,
+  the Safety view shows the invariant field, filled with the template's suggestion; "Add required
+  invariant" (Pending lists) opens it there instead of the Commands form.
+- **`invariant add`**: `--verify`, `--evidence` and `--rule` (options archvow hides from `--help`) are
+  under "Expert checks", closed; their help no longer shows `==SUPPRESS==` (`export_grammar.py` marks
+  them `hidden`).
+
 ## 0.13.0 - 2026-10-30
 
 Built on archvow 1.18 (the contract regenerated from it): **Install archvow 1.18** when another

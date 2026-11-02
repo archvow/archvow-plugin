@@ -247,3 +247,9 @@ dl.guide dd { margin: 0; overflow-wrap: anywhere; }
 .note.warn { color: var(--vscode-editorWarning-foreground); }
 input.invalid { border-color: var(--vscode-inputValidation-errorBorder); }
 select:disabled { opacity: 0.75; }
+/* a recorded hazard: its text, then Change and Remove on the same line */
+.split-answer .recorded .hazard-head { align-items: flex-start; gap: 8px; }
+.split-answer .recorded .hazard-head .grow { flex: 1 1 auto; margin: 0; }
+/* the options archvow hides from --help (invariant add's expert checks): apart, closed by default */
+details.expert { margin: 8px 0; border: 1px solid var(--vscode-panel-border, #444); border-radius: 4px; padding: 4px 8px; }
+details.expert > summary { cursor: pointer; padding: 2px 0; }

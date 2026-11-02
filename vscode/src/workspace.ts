@@ -116,6 +116,7 @@ export class ArchvowProject {
         if (e.affectsConfiguration('archvow.language')) {
           this.state.fr = this.french();
           this.state.languageMode = this.languageMode();
+          this.recompute();  // the pending items' labels ("Review hazard"...) are made in the language too
           this.publish();
         }
       }));
@@ -857,17 +858,46 @@ export class ArchvowProject {
           const description = String(m.text ?? '').trim();
           const severity = action === 'hazard suggested' ? 'high' : String(m.severity ?? 'high');
           if (action === 'hazard dismiss' && !description) {
-            throw new Error(tr(fr, 'Explain why this hazard is not applicable.', 'Justifie pourquoi ce danger n\'est pas applicable.'));
+            throw new Error(tr(fr, 'Explain why this hazard is not applicable.', 'Justifie pourquoi ce hazard n\'est pas applicable.'));
           }
           args = action === 'hazard dismiss' ? inline.dismiss(component, word, description)
             : inline.hazard(component, word, severity, action === 'hazard suggested' ? '' : description);
           summary = `S${m.number} — ${m.question ?? ''}\n\n` + (action === 'hazard dismiss' ? tr(fr, 'Mark as not applicable?', 'Déclarer non applicable ?')
             : action === 'hazard suggested' ? String(m.preview ?? '') + '\n' + tr(fr, 'Accept the suggested hazard and applicable invariant?',
-              'Accepter le danger suggéré et son invariant éventuel ?') : tr(fr, 'Declare this hazard?', 'Déclarer ce danger ?'));
+              'Accepter le hazard suggéré et son invariant éventuel ?') : tr(fr, 'Declare this hazard?', 'Déclarer ce hazard ?'));
           if (action === 'hazard add' && ['critical', 'high'].includes(severity) && description) {
             summary += '\n\n' + tr(fr, 'Important: this high/critical hazard will stay pending until an invariant is added.',
-              "Important : ce danger élevé/critique restera en attente jusqu'à l'ajout d'un invariant.");
+              "Important : ce hazard élevé/critique restera en attente jusqu'à l'ajout d'un invariant.");
           }
+          break;
+        }
+        case 'hazard remove': {
+          target = 'safety';
+          args = inline.removeHazard(component, String(m.id ?? ''));
+          summary = `S${m.number} — ${m.question ?? ''}\n\n` + tr(fr, `Remove the hazard ${args[2]}? The invariants that protect it stay, protecting nothing (archvow check then lists them).`,
+            `Supprimer le hazard ${args[2]} ? Les invariants qui le protègent restent, sans rien protéger (archvow check les signale ensuite).`);
+          break;
+        }
+        case 'hazard change': {
+          // remove + add again, confirmed once; the webview offers it only while no invariant points to the hazard
+          target = 'safety';
+          const description = String(m.text ?? '').trim();
+          if (!description) throw new Error(tr(fr, 'Write what must never happen.', 'Écris ce qui ne doit jamais arriver.'));
+          const removal = inline.removeHazard(component, String(m.hazard ?? ''));
+          const addition = inline.hazard(component, String(m.word ?? ''), String(m.severity ?? 'high'), description);
+          const reload = (): void => void this.reloadComponent(component);
+          this.confirm('hazard change', removal, target, `S${m.number} — ${m.question ?? ''}\n\n`
+            + tr(fr, `Change ${removal[2]} to (${m.severity}): ${description}\narchvow removes it, then records it again: two commands.`,
+              `Modifier ${removal[2]} en (${m.severity}) : ${description}\narchvow le supprime puis l'enregistre à nouveau : deux commandes.`)
+            + '\n\narchvow ' + addition.join(' '), undefined,
+            () => void this.execute('hazard add', addition, target, undefined, true, reload));
+          return;
+        }
+        case 'invariant add': {
+          target = 'safety';
+          args = inline.invariant(component, String(m.text ?? ''), String(m.hazard ?? ''));
+          summary = `S${m.number} — ${m.question ?? ''}\n\n` + tr(fr, `Add this invariant, protecting ${m.hazard}?`, `Ajouter cet invariant, qui protège ${m.hazard} ?`)
+            + `\n\n${args[3]}`;
           break;
         }
         default:
@@ -895,7 +925,7 @@ export class ArchvowProject {
     if (name === 'component edit' && snapshot) {
       help = tr(fr, 'The fields hold what the component has: change what must change; only that is sent. The decisions, hazards and '
         + 'examples recorded stay (from archvow 1.18, a person is asked to look at them again after such a change).',
-      'Les champs contiennent ce que le composant a : change ce qui doit changer ; seul cela est envoyé. Les décisions, dangers et '
+      'Les champs contiennent ce que le composant a : change ce qui doit changer ; seul cela est envoyé. Les décisions, hazards et '
         + 'exemples enregistrés restent (depuis archvow 1.18, une personne doit les revoir après un tel changement).');
     } else if (Object.keys(known).length) {
       help = tr(fr, 'Known information prefilled from the current spec or diagnostic. Review before running; blank optional fields are unchanged.',
@@ -933,10 +963,10 @@ export class ArchvowProject {
     if (purpose === 'invariant add') {
       const ids = objects(question, 'hazards').map((h) => str(h, 'id')).filter((x) => x);
       if (ids.length === 0) {
-        void vscode.window.showInformationMessage(tr(fr, 'Declare a hazard before adding an invariant.', "Déclare un danger avant d'ajouter un invariant."));
+        void vscode.window.showInformationMessage(tr(fr, 'Declare a hazard before adding an invariant.', "Déclare un hazard avant d'ajouter un invariant."));
         return;
       }
-      const picked = ids.length === 1 && m.only ? ids[0] : await vscode.window.showQuickPick(ids, { placeHolder: tr(fr, 'Protect which hazard?', 'Quel danger protéger ?') });
+      const picked = ids.length === 1 && m.only ? ids[0] : await vscode.window.showQuickPick(ids, { placeHolder: tr(fr, 'Protect which hazard?', 'Quel hazard protéger ?') });
       if (!picked) return;
       const values: Record<string, string> = { component, prevents: picked };
       const suggestion = str(question.suggestion ?? null, 'invariant');
@@ -956,7 +986,7 @@ export class ArchvowProject {
         return;
       }
       const picked = await vscode.window.showQuickPick(ids, { placeHolder: purpose === 'hazard remove'
-        ? tr(fr, 'Select the hazard to remove:', 'Choisis le danger à supprimer :') : tr(fr, 'Select the invariant to remove:', "Choisis l'invariant à supprimer :") });
+        ? tr(fr, 'Select the hazard to remove:', 'Choisis le hazard à supprimer :') : tr(fr, 'Select the invariant to remove:', "Choisis l'invariant à supprimer :") });
       if (picked) this.openCommand(purpose, { id: itemId(component, picked) }, component);
     }
   }

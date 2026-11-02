@@ -40,7 +40,7 @@ final class ArchvowSafetyState {
         StringBuilder text = new StringBuilder();
         String hazard = suggestedHazard(question);
         String invariant = suggestedInvariant(question);
-        if (!hazard.isBlank()) text.append("Suggested hazard / Danger suggéré: ").append(hazard).append("\n");
+        if (!hazard.isBlank()) text.append("Suggested hazard / Hazard suggéré: ").append(hazard).append("\n");
         if (!invariant.isBlank()) text.append("Suggested invariant / Invariant suggéré: ").append(invariant).append("\n");
         for (JsonObject h : ArchvowGrammar.objects(question, "hazards")) {
             text.append("Hazard ").append(ArchvowGrammar.str(h, "id")).append(" (")

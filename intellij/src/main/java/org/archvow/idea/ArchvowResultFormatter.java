@@ -176,7 +176,7 @@ final class ArchvowResultFormatter {
             chip(flagged + tr(fr, " to review", " à vérifier"), flagged > 0 ? p.warn : p.good)));
         if (entries.size() == 0) {
             empty(out, p, tr(fr, "No recorded decisions, assumptions, hazards or invariants yet.",
-                "Aucune décision, hypothèse, danger ou invariant enregistré."));
+                "Aucune décision, hypothèse, hazard ou invariant enregistré."));
             return;
         }
         if (flagged > 0) section(out, p, tr(fr, "Records to review", "Enregistrements à vérifier"));

@@ -319,7 +319,7 @@ function specific(code: string, message: string, fr: boolean, command: GuideComm
       return {
         todo: code === 'ARCH035'
           ? tr(fr, "Open each component's Safety view: for every open question, add the hazard it could cause, or mark it not applicable with a reason. archvow check --all lists them one by one.",
-            "Ouvrez la vue Sécurité de chaque composant : pour chaque question ouverte, ajoutez le danger qu'elle pourrait causer, ou déclarez-la non applicable avec une raison. archvow check --all les liste une par une.")
+            "Ouvrez la vue Sécurité de chaque composant : pour chaque question ouverte, ajoutez le hazard qu'elle pourrait causer, ou déclarez-la non applicable avec une raison. archvow check --all les liste une par une.")
           : tr(fr, 'Mark the tests: @pytest.mark.decision(<n>) on the test of each decision, @pytest.mark.rule("R<n>") for a rule. archvow check --all lists them one by one.',
             'Marquez les tests : @pytest.mark.decision(<n>) sur le test de chaque décision, @pytest.mark.rule("R<n>") pour une règle. archvow check --all les liste un par un.'),
       };

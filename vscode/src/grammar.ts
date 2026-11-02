@@ -14,6 +14,8 @@ export interface Param {
   choices: string[];
   help: string;
   metavar: string;
+  /** archvow hides it from --help (argparse.SUPPRESS): an expert option, shown apart. */
+  hidden?: boolean;
 }
 
 export interface Command {
@@ -212,6 +214,12 @@ export const inline = {
   },
   dismiss: (component: string, question: string, reason: string): string[] =>
     ['hazard', 'dismiss', required(component, 'component'), required(question, 'safety question'), required(reason, 'reason'), '--json'],
+  /** `hazard remove <component>.H<n> --yes`: show --json gives the qualified id, a short H1 gets the component. */
+  removeHazard: (component: string, id: string): string[] =>
+    ['hazard', 'remove', itemId(component, required(id, 'hazard')), '--yes', '--json'],
+  invariant: (component: string, statement: string, hazard: string): string[] =>
+    ['invariant', 'add', required(component, 'component'), required(statement, 'invariant'), '--prevents',
+      itemId(component, required(hazard, 'hazard')), '--json'],
 };
 
 // ------------------------------------------------------------------ task prompts

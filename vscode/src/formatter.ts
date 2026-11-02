@@ -171,7 +171,7 @@ function audit(out: Out, entries: Json[], fr: boolean): void {
   out.heading(tr(fr, 'Audit · Human decisions & traceability', 'Audit · Décisions humaines et traçabilité'), flagged === 0 ? 'good' : 'warn');
   out.chips([[rows.length + tr(fr, ' records', ' enregistrements'), 'blue'], [flagged + tr(fr, ' to review', ' à vérifier'), flagged > 0 ? 'warn' : 'good']]);
   if (rows.length === 0) {
-    out.paragraph(tr(fr, 'No recorded decisions, assumptions, hazards or invariants yet.', 'Aucune décision, hypothèse, danger ou invariant enregistré.'), 'muted');
+    out.paragraph(tr(fr, 'No recorded decisions, assumptions, hazards or invariants yet.', 'Aucune décision, hypothèse, hazard ou invariant enregistré.'), 'muted');
     return;
   }
   if (flagged > 0) out.section(tr(fr, 'Records to review', 'Enregistrements à vérifier'));

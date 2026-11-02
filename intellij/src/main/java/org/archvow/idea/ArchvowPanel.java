@@ -201,6 +201,17 @@ final class ArchvowPanel extends JPanel {
     private JPanel dataActionsPanel;
     private final JButton safetySuggestedButton = new JButton();
     private final JButton safetyInvariantButton = new JButton();
+    private final JButton changeHazardButton = new JButton();
+    private final JButton keepHazardButton = new JButton();
+    private final JButton removeHazardButton = new JButton();
+    private final JButton removeInvariantButton = new JButton();
+    private final JPanel safetySeverityBox = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+    /** What the Safety editor does now: "hazard" (declare), "change" (a recorded hazard), "invariant" (the one a hazard needs), "" (nothing). */
+    private String safetyMode = "";
+    /** The hazard being changed (its id), while the person changes it; null otherwise. */
+    private String changingHazard;
+    /** archvow 1.18 gives a safety question's suggestion only while it is open: kept for its invariant (component:number). */
+    private final Map<String, String> rememberedInvariants = new java.util.HashMap<>();
     private final JTextPane rulesOnlyDetails = ArchvowDataView.create();
     private final JTextPane rulesDetails = ArchvowDataView.create();
     private final JTextPane vowDetails = ArchvowVowViewer.create();
@@ -284,6 +295,7 @@ final class ArchvowPanel extends JPanel {
     private boolean constructed;
     /** The navigation follows the editor tab (a selection made there): no routing back. */
     private boolean syncing;
+    private boolean syncingLanguage;  // the language box set by the code, not by a person
     /** The editor tab: what Overview's last command was, for its title. */
     private String resultLabel = "";
     private final JLabel detailKind = new JLabel();
@@ -360,10 +372,13 @@ final class ArchvowPanel extends JPanel {
         String mode = ArchvowSettings.get(project).getState().languageMode;
         languageMode.setSelectedItem(mode == null || mode.isBlank() ? "IDE" : mode);
         languageMode.addActionListener(e -> {
+            if (syncingLanguage) return;
             ArchvowSettings.get(project).getState().languageMode = String.valueOf(languageMode.getSelectedItem());
-            refreshStaticTexts();
-            updateOverview();
-            if (selectedView != null) renderComponent(selectedView);
+            languageChanged();
+            // the other Archvow panel of the project (the editor tab, or the tool window) speaks the new language too,
+            // without closing and opening it again
+            ArchvowPanel other = role == Role.NAVIGATION ? ArchvowEditorTab.openPanel(project) : navigation();
+            if (other != null && other != this) other.languageChanged();
         });
         logoLabel.setIcon(loadLogoIcon(64, 64));
     }
@@ -1395,7 +1410,7 @@ final class ArchvowPanel extends JPanel {
         actions.addAction(tip(button(ArchvowI18n.text(project, "Edit spec", "Modifier la spec"),
             () -> withComponent(c -> openCommand("component edit", Map.of("component", c.id)))),
             "Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.",
-            "Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et dangers restent tels quels : revoir ceux que le changement touche."));
+            "Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et hazards restent tels quels : revoir ceux que le changement touche."));
         actions.addAction(tip(button(ArchvowI18n.text(project, "AI prompt", "Instruction IA"), () -> withComponent(c -> executeDirect("prompt", List.of("prompt", c.id), null, false))),
             "Copy the instruction to give the AI for this component's next task (archvow prompt).",
             "Copier l'instruction à donner à l'IA pour la prochaine tâche de ce composant (archvow prompt)."));
@@ -1490,34 +1505,39 @@ final class ArchvowPanel extends JPanel {
         JPanel safetyScroll = cardsScroll(safetyList);
         answerField(safetyInput);
         JPanel safetyHeading = new JPanel(new BorderLayout(6, 0));
-        safetyInputLabel.setText(ArchvowI18n.text(project, "Hazard description or reason", "Danger ou justification"));
+        safetyInputLabel.setText(ArchvowI18n.text(project, "Hazard description or reason", "Hazard ou justification"));
         safetyInputLabel.setFont(safetyInputLabel.getFont().deriveFont(Font.BOLD, 12f));
         safetyHeading.add(safetyInputLabel, BorderLayout.WEST);
-        JPanel severity = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        severity.add(new JLabel(ArchvowI18n.text(project, "Severity", "Sévérité")));
-        severity.add(safetySeverity);
-        safetyHeading.add(severity, BorderLayout.EAST);
+        safetySeverityBox.add(new JLabel(ArchvowI18n.text(project, "Severity", "Sévérité")));
+        safetySeverityBox.add(safetySeverity);
+        safetyHeading.add(safetySeverityBox, BorderLayout.EAST);
         JScrollPane safetyInputScroll = scroll(safetyInput);
         safetyInputScroll.setPreferredSize(new Dimension(150, 96));
-        hazardInline.setText(ArchvowI18n.text(project, "Declare hazard", "Déclarer un danger"));
+        hazardInline.setText(ArchvowI18n.text(project, "Declare hazard", "Déclarer un hazard"));
         dismissInline.setText(ArchvowI18n.text(project, "Not applicable", "Non applicable"));
         hazardInline.addActionListener(e -> submitInlineSafety(false));
         dismissInline.addActionListener(e -> submitInlineSafety(true));
-        safetySuggestedButton.setText(ArchvowI18n.text(project, "Use proposed hazard + invariant", "Utiliser danger + invariant proposés"));
+        safetySuggestedButton.setText(ArchvowI18n.text(project, "Use proposed hazard + invariant", "Utiliser hazard + invariant proposés"));
         safetySuggestedButton.addActionListener(e -> submitSuggestedSafety());
         safetyInvariantButton.setText(ArchvowI18n.text(project, "Add required invariant", "Ajouter l'invariant requis"));
         safetyInvariantButton.addActionListener(e -> openSelectedSafetyInvariant());
         JButton addInvariant = button(ArchvowI18n.text(project,"Add invariant…","Ajouter un invariant…"),
             this::openAnySelectedSafetyInvariant);
-        JButton removeHazard = button(ArchvowI18n.text(project,"Remove hazard…","Supprimer un danger…"),
-            () -> removeSelectedSafetyArtifact(false));
-        JButton removeInvariant = button(ArchvowI18n.text(project,"Remove invariant…","Supprimer un invariant…"),
-            () -> removeSelectedSafetyArtifact(true));
+        removeHazardButton.setText(ArchvowI18n.text(project, "Remove hazard…", "Supprimer un hazard…"));
+        removeHazardButton.addActionListener(e -> removeSelectedSafetyArtifact(false));
+        removeInvariantButton.setText(ArchvowI18n.text(project, "Remove invariant…", "Supprimer un invariant…"));
+        removeInvariantButton.addActionListener(e -> removeSelectedSafetyArtifact(true));
+        changeHazardButton.setText(ArchvowI18n.text(project, "Change hazard", "Modifier le hazard"));
+        changeHazardButton.addActionListener(e -> startHazardChange());
+        keepHazardButton.setText(ArchvowI18n.text(project, "Keep it as it is", "Le garder tel quel"));
+        keepHazardButton.addActionListener(e -> { changingHazard = null; showSafety(); });
         JButton safetyCancel = cancelButton(safetyInput, this::showSafety);
-        JPanel safetyActions = answerButtons(List.of(dismissInline, safetySuggestedButton), safetyCancel, hazardInline);
-        // what can be done on a question already answered: under the field, apart
-        JPanel safetyMore = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
-        for (JButton more : List.of(safetyInvariantButton, addInvariant, removeHazard, removeInvariant)) safetyMore.add(more);
+        JPanel safetyActions = answerButtons(List.of(dismissInline, safetySuggestedButton, keepHazardButton), safetyCancel, hazardInline);
+        // what can be done on a question already answered: under the field, apart; the row wraps (a plain
+        // FlowLayout hid the buttons that did not fit on its one line)
+        JPanel safetyMore = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 5, 2));
+        for (JButton more : List.of(changeHazardButton, removeHazardButton, addInvariant, removeInvariantButton, safetyInvariantButton))
+            safetyMore.add(more);
         safetyMore.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, borderColor()),
             BorderFactory.createEmptyBorder(4, 0, 0, 0)));
         JPanel safetyButtons = new JPanel(new BorderLayout(0, 6));
@@ -1929,6 +1949,19 @@ final class ArchvowPanel extends JPanel {
         return role == Role.NAVIGATION ? scroll(commandList) : right;
     }
 
+    /** Everything this panel shows, again in the language of the settings (the box itself included). */
+    void languageChanged() {
+        String mode = ArchvowSettings.get(project).getState().languageMode;
+        syncingLanguage = true;
+        try { languageMode.setSelectedItem(mode == null || mode.isBlank() ? "IDE" : mode); }
+        finally { syncingLanguage = false; }
+        refreshStaticTexts();
+        updateOverview();
+        if (selectedView != null) renderComponent(selectedView);
+        revalidate();
+        repaint();
+    }
+
     private void refreshStaticTexts() {
         if (componentViewNav != null) {
             componentViewNav.setFrench(ArchvowI18n.isFrench(project));
@@ -1945,11 +1978,13 @@ final class ArchvowPanel extends JPanel {
         proposeInline.setText(ArchvowI18n.text(project, "Propose", "Proposer"));
         acceptInline.setText(ArchvowI18n.text(project, "Accept proposal", "Accepter la proposition"));
         suggestedInline.setText(ArchvowI18n.text(project, "Use suggestion", "Utiliser la suggestion"));
-        safetyInputLabel.setText(ArchvowI18n.text(project, "Hazard description or reason", "Danger ou justification"));
-        hazardInline.setText(ArchvowI18n.text(project, "Declare hazard", "Déclarer un danger"));
         dismissInline.setText(ArchvowI18n.text(project, "Not applicable", "Non applicable"));
-        safetySuggestedButton.setText(ArchvowI18n.text(project, "Use proposed hazard + invariant", "Utiliser danger + invariant proposés"));
         safetyInvariantButton.setText(ArchvowI18n.text(project, "Add required invariant", "Ajouter l'invariant requis"));
+        changeHazardButton.setText(ArchvowI18n.text(project, "Change hazard", "Modifier le hazard"));
+        keepHazardButton.setText(ArchvowI18n.text(project, "Keep it as it is", "Le garder tel quel"));
+        removeHazardButton.setText(ArchvowI18n.text(project, "Remove hazard…", "Supprimer un hazard…"));
+        removeInvariantButton.setText(ArchvowI18n.text(project, "Remove invariant…", "Supprimer un invariant…"));
+        if (constructed) showSafety();  // its labels and buttons depend on the selected question
         assumptionAcceptButton.setText(ArchvowI18n.text(project, "Accept", "Accepter"));
         assumptionRejectButton.setText(ArchvowI18n.text(project, "Reject", "Rejeter"));
         if (allComponentsFilter != null) allComponentsFilter.setText(ArchvowI18n.text(project, "All", "Tous"));
@@ -1972,7 +2007,7 @@ final class ArchvowPanel extends JPanel {
         quickSecondary.setText(ArchvowI18n.text(project, "Go to component", "Aller au composant"));
         quickSecondary.setIcon(loadLogoIcon(14, 14));
         openSettingsButton.setIcon(loadLogoIcon(14, 14));
-        renderForm(Map.of());
+        renderForm(constructed ? currentValues() : Map.of());  // what is typed in an open form stays
         // Reapply semantic icons to dynamically localized button labels.
         ArchvowUiIcons.decorateTree(this);
     }
@@ -2009,6 +2044,9 @@ final class ArchvowPanel extends JPanel {
         List<String> own = ArchvowChoices.projectTemplates(manifest);
         if ("init".equals(name) && values.getOrDefault("template", "").isBlank() && !own.isEmpty()) values.put("template", own.get(0));
         int y = 0;
+        // the options archvow hides from --help (invariant add's expert checks): apart, closed unless one holds a value
+        JToggleButton expertToggle = null;
+        java.util.List<JComponent> expertParts = new ArrayList<>();
         for (ArchvowGrammar.Param param : command.parameters) {
             // init: the template is chosen once, in "Template and its questions" (under the package); template new:
             // its answers and layer folders are in "Settings of <base>", under --extends
@@ -2047,10 +2085,25 @@ final class ArchvowPanel extends JPanel {
                 control = input;
             } else control = new JTextField(text, 25);
             fields.put(param.name, control);
+            if (param.hidden && expertToggle == null) {
+                boolean filled = command.parameters.stream().anyMatch(p -> p.hidden && !values.getOrDefault(p.name, "").isBlank());
+                expertToggle = new JToggleButton(ArchvowI18n.text(project, "Expert checks", "Contrôles experts"), filled);
+                expertToggle.setHorizontalAlignment(SwingConstants.LEFT);
+                expertToggle.setToolTipText(ArchvowI18n.text(project,
+                    "How the invariant is proven when a test is not enough: a model checked or a proof (--verify model_check|proof --evidence <file>), or a rule that enforces it (--verify static --rule <code>). Empty: the weakest test its severity accepts.",
+                    "Comment l'invariant est prouvé quand un test ne suffit pas : un modèle vérifié ou une preuve (--verify model_check|proof --evidence <fichier>), ou une règle qui l'impose (--verify static --rule <code>). Vide : le test le plus faible que sa gravité accepte."));
+                JToggleButton toggle = expertToggle;
+                toggle.addActionListener(e -> {
+                    for (JComponent part : expertParts) part.setVisible(toggle.isSelected());
+                    form.revalidate(); form.repaint();
+                });
+                form.add(toggle, wide(y++, 8));
+            }
             GridBagConstraints label = new GridBagConstraints();
             label.gridx = 0; label.gridy = y; label.anchor = GridBagConstraints.NORTHWEST;
             label.insets = new Insets(6, 4, 2, 9);
-            form.add(new JLabel((param.required ? "* " : "") + (param.flags.isEmpty() ? param.name : param.option())), label);
+            JLabel labelText = new JLabel((param.required ? "* " : "") + (param.flags.isEmpty() ? param.name : param.option()));
+            form.add(labelText, label);
             JPanel cell = new JPanel(new BorderLayout(2, 2));
             cell.add(control instanceof JTextArea ? scroll(control) : control, BorderLayout.CENTER);
             JPanel under = new JPanel();
@@ -2099,6 +2152,12 @@ final class ArchvowPanel extends JPanel {
             GridBagConstraints entry = new GridBagConstraints();
             entry.gridx = 1; entry.gridy = y++; entry.weightx = 1; entry.fill = GridBagConstraints.HORIZONTAL;
             entry.insets = new Insets(3, 2, 3, 4); form.add(cell, entry);
+            if (param.hidden && expertToggle != null) {
+                expertParts.add(labelText);
+                expertParts.add(cell);
+                labelText.setVisible(expertToggle.isSelected());
+                cell.setVisible(expertToggle.isSelected());
+            }
             if ("init".equals(name) && "package".equals(param.name)) {
                 // the template and its questions, right under the package's name (0.12.1: it was asked twice)
                 initQuestions = new ArchvowInitQuestions(ArchvowI18n.isFrench(project),
@@ -2584,7 +2643,7 @@ final class ArchvowPanel extends JPanel {
                 "The fields hold what the component has: change what must change; only that is sent. The decisions, hazards and "
                     + "examples recorded stay (from archvow 1.18, a person is asked to look at them again after such a change).",
                 "Les champs contiennent ce que le composant a : change ce qui doit changer ; seul cela est envoyé. Les décisions, "
-                    + "dangers et exemples enregistrés restent (depuis archvow 1.18, une personne doit les revoir après un tel changement).");
+                    + "hazards et exemples enregistrés restent (depuis archvow 1.18, une personne doit les revoir après un tel changement).");
         } else if (!known.isEmpty()) {
             formHelpExtra += "\n" + ArchvowI18n.text(project,
                 "Known information prefilled from the current spec or diagnostic. Review before running; blank optional fields are unchanged.",
@@ -3064,7 +3123,7 @@ final class ArchvowPanel extends JPanel {
         String suggestedInvariant = ArchvowSafetyState.suggestedInvariant(q);
         if (!suggestedHazard.isBlank()) {
             out.append("<p><font color='").append(muted).append("'><b>")
-                .append(escape(ArchvowI18n.text(project,"Proposed hazard", "Danger proposé")))
+                .append(escape(ArchvowI18n.text(project,"Proposed hazard", "Hazard proposé")))
                 .append("</b></font><br><font color='").append(bodyColor).append("'>")
                 .append(escape(suggestedHazard)).append("</font></p>");
         }
@@ -3079,14 +3138,14 @@ final class ArchvowPanel extends JPanel {
             out.append("<p><font color='").append(accent).append("'><b>")
                 .append(escape(ArchvowI18n.text(project,
                     "No hazard recorded yet. Declare one or mark the question not applicable.",
-                    "Aucun danger déclaré. Déclare un danger ou indique que la question ne s'applique pas.")))
+                    "Aucun hazard déclaré. Déclare un hazard ou indique que la question ne s'applique pas.")))
                 .append("</b></font></p>");
         }
         for (JsonObject hazard : hazards) {
             String id = ArchvowGrammar.str(hazard, "id");
             String severity = ArchvowGrammar.str(hazard, "severity");
             out.append("<hr><p><font color='").append(bodyColor).append("'><b>")
-                .append(escape(ArchvowI18n.text(project,"Hazard", "Danger"))).append(" ")
+                .append(escape(ArchvowI18n.text(project,"Hazard", "Hazard"))).append(" ")
                 .append(escape(id)).append(" · ").append(escape(severity))
                 .append("</b><br>").append(escape(ArchvowGrammar.str(hazard,"description")))
                 .append("</font></p>");
@@ -3103,7 +3162,7 @@ final class ArchvowPanel extends JPanel {
                 out.append("<p><font color='#C89035'><b>ARCH030 — ")
                     .append(escape(ArchvowI18n.text(project,
                         "An invariant is required before this hazard can be considered protected.",
-                        "Un invariant est obligatoire pour que ce danger soit considéré protégé.")))
+                        "Un invariant est obligatoire pour que ce hazard soit considéré protégé.")))
                     .append("</b></font></p>");
             }
         }
@@ -3247,11 +3306,11 @@ final class ArchvowPanel extends JPanel {
         if (ids.isEmpty()) {
             message(ArchvowI18n.text(project,
                 "Declare a hazard before adding an invariant.",
-                "Déclare un danger avant d'ajouter un invariant."));
+                "Déclare un hazard avant d'ajouter un invariant."));
             return;
         }
         String selected = (String) JOptionPane.showInputDialog(this,
-            ArchvowI18n.text(project,"Protect which hazard?", "Quel danger protéger ?"),
+            ArchvowI18n.text(project,"Protect which hazard?", "Quel hazard protéger ?"),
             "Archvow", JOptionPane.QUESTION_MESSAGE, null, ids.toArray(new String[0]), ids.get(0));
         if (selected == null) return;
         Map<String,String> form = new LinkedHashMap<>();
@@ -3284,7 +3343,7 @@ final class ArchvowPanel extends JPanel {
         String chosen = (String) JOptionPane.showInputDialog(this,
             ArchvowI18n.text(project,
                 invariant ? "Select the invariant to remove:" : "Select the hazard to remove:",
-                invariant ? "Choisis l'invariant à supprimer :" : "Choisis le danger à supprimer :"),
+                invariant ? "Choisis l'invariant à supprimer :" : "Choisis le hazard à supprimer :"),
             "Archvow", JOptionPane.QUESTION_MESSAGE, null, ids.toArray(new String[0]), ids.get(0));
         if (chosen == null) return;
         // show --json gives the id with its component (clean_orders.H1): never prefix it twice
@@ -3297,23 +3356,145 @@ final class ArchvowPanel extends JPanel {
         boolean available = row != null;
         ArchvowSafetyView.display(safetyDetails, row, ArchvowI18n.isFrench(project), darkTheme());
         boolean open = available && "open".equalsIgnoreCase(ArchvowGrammar.str(row, "status"));
-        boolean missingInvariant = available && !ArchvowSafetyState.unprotectedHazard(row).isBlank();
-        hazardInline.setEnabled(open);
-        dismissInline.setEnabled(open);
-        safetyInput.setEnabled(open);
-        safetySeverity.setEnabled(open);
-        recorded(safetyInput, open ? ArchvowSafetyState.suggestedHazard(row) : "");
-        for (JComponent part : safetyEditorParts) part.setVisible(open);
-        safetySuggestedButton.setEnabled(open && !ArchvowSafetyState.suggestedHazard(row).isBlank());
-        safetyInvariantButton.setEnabled(missingInvariant);
-        safetyInvariantButton.setVisible(missingInvariant);
-        safetySuggestedButton.setVisible(open && !ArchvowSafetyState.suggestedHazard(row).isBlank());
+        String unprotected = available ? ArchvowSafetyState.unprotectedHazard(row) : "";
+        java.util.List<JsonObject> hazards = available ? ArchvowGrammar.objects(row, "hazards") : java.util.List.of();
+        JsonObject changing = null;
+        for (JsonObject h : hazards) if (ArchvowGrammar.str(h, "id").equals(changingHazard)) changing = h;
+        if (changing == null) changingHazard = null;  // done, or another question: back to the normal view
+        String rememberKey = (selectedComponent == null ? "" : selectedComponent.id) + ":" + (available ? ArchvowGrammar.str(row, "number") : "");
+        String suggestedInvariant = available ? ArchvowSafetyState.suggestedInvariant(row) : "";
+        if (!suggestedInvariant.isBlank()) rememberedInvariants.put(rememberKey, suggestedInvariant);
+        else suggestedInvariant = rememberedInvariants.getOrDefault(rememberKey, "");
+        // one editor, three uses: declare the hazard; change a recorded one; write the invariant a high or
+        // critical hazard needs, right here, filled with the suggestion (no jump to the Commands form)
+        safetyMode = changing != null ? "change" : open ? "hazard" : !unprotected.isBlank() ? "invariant" : "";
+        boolean editing = !safetyMode.isEmpty();
+        for (JComponent part : safetyEditorParts) part.setVisible(editing);
+        safetySeverityBox.setVisible(!"invariant".equals(safetyMode));
+        safetyInput.setEnabled(editing);
+        safetySeverity.setEnabled(editing);
+        hazardInline.setEnabled(editing);
+        boolean declaring = "hazard".equals(safetyMode);
+        dismissInline.setVisible(declaring);
+        dismissInline.setEnabled(declaring);
+        keepHazardButton.setVisible("change".equals(safetyMode));
+        String proposedHazard = available ? ArchvowSafetyState.suggestedHazard(row) : "";
+        safetySuggestedButton.setVisible(declaring && !proposedHazard.isBlank());
+        safetySuggestedButton.setEnabled(declaring && !proposedHazard.isBlank());
         boolean suggestsInvariant = available && !ArchvowSafetyState.suggestedInvariant(row).isBlank();
         safetySuggestedButton.setText(suggestsInvariant ? ArchvowI18n.text(project,
-            "Use proposed hazard + invariant", "Utiliser danger + invariant proposés") : ArchvowI18n.text(project,
-            "Use proposed hazard", "Utiliser le danger proposé"));
+            "Use proposed hazard + invariant", "Utiliser hazard + invariant proposés") : ArchvowI18n.text(project,
+            "Use proposed hazard", "Utiliser le hazard proposé"));
         safetySuggestedButton.setToolTipText(available ? ArchvowSafetyState.preview(row) : "");
+        switch (safetyMode) {
+            case "change" -> {
+                safetyInputLabel.setText(ArchvowI18n.text(project, "Change hazard ", "Modifier le hazard ") + changingHazard);
+                hazardInline.setText(ArchvowI18n.text(project, "Save the change", "Enregistrer la modification"));
+                safetySeverity.setSelectedItem(ArchvowGrammar.str(changing, "severity").toLowerCase(java.util.Locale.ROOT));
+                recorded(safetyInput, ArchvowGrammar.str(changing, "description"));
+            }
+            case "invariant" -> {
+                safetyInputLabel.setText(ArchvowI18n.text(project, "Invariant - what is always true, so that ", "Invariant - ce qui est toujours vrai, pour que ")
+                    + unprotected + ArchvowI18n.text(project, " cannot happen", " ne puisse pas arriver"));
+                hazardInline.setText(ArchvowI18n.text(project, "Add invariant", "Ajouter l'invariant"));
+                recorded(safetyInput, suggestedInvariant);
+            }
+            default -> {
+                safetyInputLabel.setText(ArchvowI18n.text(project, "Hazard description or reason", "Hazard ou justification"));
+                hazardInline.setText(ArchvowI18n.text(project, "Declare hazard", "Déclarer un hazard"));
+                recorded(safetyInput, open ? proposedHazard : "");
+            }
+        }
+        // a recorded hazard can be changed (remove + add again) only while no invariant points to it: archvow
+        // 1.18 has no hazard edit, and removing it would leave its invariants protecting nothing
+        boolean anyGuarded = false, anyFree = false, anyInvariant = false;
+        for (JsonObject h : hazards) {
+            boolean guarded = !ArchvowGrammar.objects(h, "prevented_by").isEmpty();
+            anyGuarded |= guarded;
+            anyFree |= !guarded;
+            anyInvariant |= guarded;
+        }
+        changeHazardButton.setVisible(!hazards.isEmpty() && changing == null);
+        changeHazardButton.setEnabled(anyFree);
+        changeHazardButton.setToolTipText(anyFree ? ArchvowI18n.text(project,
+                "Change its text or severity (archvow removes it and records it again)",
+                "Changer son texte ou sa sévérité (archvow le supprime et l'enregistre à nouveau)")
+            : anyGuarded ? ArchvowI18n.text(project,
+                "An invariant protects it: remove the invariant first, or wait for archvow 1.19 (hazard edit keeps its invariants)",
+                "Un invariant le protège : supprime d'abord l'invariant, ou attends archvow 1.19 (hazard edit garde ses invariants)") : "");
+        removeHazardButton.setVisible(!hazards.isEmpty());
+        removeInvariantButton.setVisible(anyInvariant);
+        safetyInvariantButton.setVisible(false);  // replaced by the invariant field above
         if (safetyInlineResultCard != null) safetyInlineResultCard.setVisible(false);
+        safetyInput.revalidate();
+    }
+
+    /** Change hazard: the field takes its text and severity; saving removes it and records it again. */
+    private void startHazardChange() {
+        JsonObject row = selectedRecord("safety", safetyList.getSelectedIndex());
+        if (row == null || selectedComponent == null) return;
+        java.util.List<String> free = new ArrayList<>();
+        for (JsonObject h : ArchvowGrammar.objects(row, "hazards"))
+            if (ArchvowGrammar.objects(h, "prevented_by").isEmpty()) free.add(ArchvowGrammar.str(h, "id"));
+        if (free.isEmpty()) {
+            message(ArchvowI18n.text(project,
+                "An invariant protects this hazard: remove the invariant first (archvow 1.19 adds hazard edit, which keeps it).",
+                "Un invariant protège ce hazard : supprime d'abord l'invariant (archvow 1.19 ajoute hazard edit, qui le garde)."));
+            return;
+        }
+        String chosen = free.size() == 1 ? free.get(0) : (String) JOptionPane.showInputDialog(this,
+            ArchvowI18n.text(project, "Select the hazard to change:", "Choisis le hazard à modifier :"),
+            "Archvow", JOptionPane.QUESTION_MESSAGE, null, free.toArray(new String[0]), free.get(0));
+        if (chosen == null) return;
+        changingHazard = chosen;
+        showSafety();
+        safetyInput.requestFocusInWindow();
+    }
+
+    private void submitHazardChange(JsonObject row) {
+        String componentId = selectedComponent.id;
+        String number = ArchvowGrammar.str(row, "number");
+        String word = ArchvowGrammar.str(row, "guide_word");
+        if (word.isBlank()) word = "S" + number;
+        String description = safetyInput.getText().trim();
+        String severity = String.valueOf(safetySeverity.getSelectedItem());
+        if (description.isBlank()) {
+            message(ArchvowI18n.text(project, "Write what must never happen.", "Écris ce qui ne doit jamais arriver.")); return;
+        }
+        List<String> removal, addition;
+        try {
+            removal = ArchvowInlineCommands.removeHazard(componentId, changingHazard);
+            addition = ArchvowInlineCommands.hazard(componentId, word, severity, description);
+        } catch (IllegalArgumentException ex) { message(ex.getMessage()); return; }
+        String summary = "S" + number + " — " + ArchvowGrammar.str(row, "question") + "\n\n"
+            + ArchvowI18n.text(project, "Change " + removal.get(2) + " to (" + severity + "): " + description
+                    + "\narchvow removes it, then records it again: two commands.",
+                "Modifier " + removal.get(2) + " en (" + severity + ") : " + description
+                    + "\narchvow le supprime puis l'enregistre à nouveau : deux commandes.");
+        requestConfirmation("hazard change", summary, () -> {
+            safetyInlineResultCard.setVisible(true);
+            safetyInlineResult.setText(htmlMessage("<b>" + escape(ArchvowI18n.text(project, "Running…", "Exécution…")) + "</b>"));
+            cli.execute("hazard remove", removal, null, removed -> {
+                if (!removed.ok()) { storeCommandResult(safetyInlineResult, "hazard remove", removed); return; }
+                changingHazard = null;
+                runInlineComponentAction("hazard add", addition, componentId, number, true);
+            });
+        }, true);
+    }
+
+    private void submitInlineInvariant(JsonObject row) {
+        String componentId = selectedComponent.id;
+        String number = ArchvowGrammar.str(row, "number");
+        String hazard = ArchvowSafetyState.unprotectedHazard(row);
+        List<String> args;
+        try { args = ArchvowInlineCommands.invariant(componentId, safetyInput.getText(), hazard); }
+        catch (IllegalArgumentException ex) {
+            message(ArchvowI18n.text(project, "Write what is always true.", "Écris ce qui est toujours vrai.")); return;
+        }
+        requestConfirmation("invariant add", "S" + number + " — " + ArchvowGrammar.str(row, "question") + "\n\n"
+                + ArchvowI18n.text(project, "Add this invariant, protecting " + hazard + "?", "Ajouter cet invariant, qui protège " + hazard + " ?")
+                + "\n\n" + args.get(3),
+            () -> runInlineComponentAction("invariant add", args, componentId, number, true), true);
     }
 
     private void submitSuggestedSafety() {
@@ -3324,13 +3505,13 @@ final class ArchvowPanel extends JPanel {
         String proposal = ArchvowSafetyState.preview(row);
         if (ArchvowSafetyState.suggestedInvariant(row).isBlank()) proposal += "\n" + ArchvowI18n.text(project,
             "No invariant suggestion: a high-severity hazard will still need an invariant.",
-            "Aucun invariant suggéré : un danger élevé nécessitera encore un invariant.");
+            "Aucun invariant suggéré : un hazard élevé nécessitera encore un invariant.");
         // Without a description, archvow records the template's suggestion.
         // At high severity it also records the suggested invariant when one exists.
         String componentId = selectedComponent.id;
         String number = ArchvowGrammar.str(row, "number");
         requestConfirmation("hazard add", proposal + "\n" + ArchvowI18n.text(project,
-            "Accept the suggested hazard and applicable invariant?", "Accepter le danger suggéré et son invariant éventuel ?"),
+            "Accept the suggested hazard and applicable invariant?", "Accepter le hazard suggéré et son invariant éventuel ?"),
             () -> runInlineComponentAction("hazard add",
                 ArchvowInlineCommands.hazard(componentId, word, "high", ""), componentId, number, true), true);
     }
@@ -3390,6 +3571,8 @@ final class ArchvowPanel extends JPanel {
     private void submitInlineSafety(boolean dismiss) {
         JsonObject row = selectedRecord("safety", safetyList.getSelectedIndex());
         if (row == null || selectedComponent == null) return;
+        if (!dismiss && "invariant".equals(safetyMode)) { submitInlineInvariant(row); return; }
+        if (!dismiss && "change".equals(safetyMode)) { submitHazardChange(row); return; }
         if (!"open".equalsIgnoreCase(ArchvowGrammar.str(row, "status"))) return;
         String id = selectedComponent.id;
         String number = ArchvowGrammar.str(row, "number");
@@ -3398,7 +3581,7 @@ final class ArchvowPanel extends JPanel {
         String description = safetyInput.getText().trim();
         if (dismiss && description.isBlank()) {
             message(ArchvowI18n.text(project, "Explain why this hazard is not applicable.",
-                "Justifie pourquoi ce danger n'est pas applicable.")); return;
+                "Justifie pourquoi ce hazard n'est pas applicable.")); return;
         }
         List<String> args;
         try {
@@ -3407,12 +3590,12 @@ final class ArchvowPanel extends JPanel {
         } catch (IllegalArgumentException ex) { message(ex.getMessage()); return; }
         String confirmation = "S" + number + " — " + ArchvowGrammar.str(row,"question") + "\n\n"
             + (dismiss ? ArchvowI18n.text(project, "Mark as not applicable?", "Déclarer non applicable ?")
-                       : ArchvowI18n.text(project, "Declare this hazard?", "Déclarer ce danger ?"));
+                       : ArchvowI18n.text(project, "Declare this hazard?", "Déclarer ce hazard ?"));
         if (!dismiss && ("critical".equalsIgnoreCase(String.valueOf(safetySeverity.getSelectedItem()))
             || "high".equalsIgnoreCase(String.valueOf(safetySeverity.getSelectedItem())))
             && !description.isBlank()) confirmation += "\n\n" + ArchvowI18n.text(project,
             "Important: this high/critical hazard will stay pending until an invariant is added.",
-            "Important : ce danger élevé/critique restera en attente jusqu'à l'ajout d'un invariant.");
+            "Important : ce hazard élevé/critique restera en attente jusqu'à l'ajout d'un invariant.");
         String name = dismiss ? "hazard dismiss" : "hazard add";
         requestConfirmation(name, confirmation,
             () -> runInlineComponentAction(name, args, id, number, true), true);
@@ -3813,7 +3996,7 @@ final class ArchvowPanel extends JPanel {
                 if (!missingProtection.isBlank()) preset.put("prevents", missingProtection);
                 addQuickItem(keys,new QuickItem(pending ? QuickKind.QUESTION : QuickKind.RESOLVED,
                     title, detail, id, pending,
-                    pending ? (missingProtection.isBlank() ? ArchvowI18n.text(project,"Review hazard", "Examiner le danger")
+                    pending ? (missingProtection.isBlank() ? ArchvowI18n.text(project,"Review hazard", "Examiner le hazard")
                         : ArchvowI18n.text(project,"Add required invariant", "Ajouter l'invariant requis"))
                         : ArchvowI18n.text(project,"Open component", "Ouvrir le composant"),
                     safetyAction, preset));
@@ -4039,7 +4222,8 @@ final class ArchvowPanel extends JPanel {
         QuickItem item = selectedQuickItem;
         if (item == null) return;
         switch (item.commandLabel) {
-            case "decision make", "decision accept", "decision propose", "hazard add", "hazard dismiss" ->
+            // the invariant a hazard needs is written in the component's Safety view, filled with the suggestion
+            case "decision make", "decision accept", "decision propose", "hazard add", "hazard dismiss", "invariant add" ->
                 openQuickItemInline(item);
             case "schema-create" -> {
                 Map<String, String> context = new java.util.LinkedHashMap<>();
@@ -4048,7 +4232,7 @@ final class ArchvowPanel extends JPanel {
                 if (!container.isBlank()) context.put("container", container);
                 openCommand("component add", context);
             }
-            case "component edit", "invariant add" -> openCommand(item.commandLabel, item.preset);
+            case "component edit" -> openCommand(item.commandLabel, item.preset);
             case "open-file" -> openViolationFile(item);
             case "open-diagnostics" -> showDiagnostics();
             case "open-project-vow" -> openProjectVow();
@@ -4072,7 +4256,7 @@ final class ArchvowPanel extends JPanel {
         }
         selectedView = snapshot;
         renderComponent(snapshot);
-        if (item.commandLabel.startsWith("hazard")) {
+        if (item.commandLabel.startsWith("hazard") || item.commandLabel.equals("invariant add")) {
             selectComponentView(2);
             String word = item.preset.getOrDefault("guide_word", "");
             String number = word.startsWith("S") ? word.substring(1) : word;

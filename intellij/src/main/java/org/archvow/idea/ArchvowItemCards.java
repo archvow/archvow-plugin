@@ -60,7 +60,7 @@ final class ArchvowItemCards {
         if (!dismissed.isBlank()) recorded = (french ? "Non applicable : " : "Not applicable: ") + dismissed;
         else if (!hazards.isEmpty()) {
             JsonObject h = hazards.get(0);
-            recorded = (french ? "Danger " : "Hazard ") + ArchvowGrammar.str(h, "id") + " · "
+            recorded = "Hazard " + ArchvowGrammar.str(h, "id") + " · "
                 + ArchvowGrammar.str(h, "severity") + ": " + ArchvowGrammar.str(h, "description");
         }
         return new Card("S" + ArchvowGrammar.str(q, "number"), ArchvowGrammar.str(q, "question"), open,

@@ -13,6 +13,10 @@ in English; every text shown goes through a small function that takes both versi
 | a text | `ArchvowI18n.text(project, "Save answer", "Enregistrer la réponse")` | `t('Save answer', 'Enregistrer la réponse')` in the page, `tr(fr, ...)` in the extension |
 | where to change it | at the bottom of Overview, or Settings > Tools > Archvow | at the bottom of Overview, or the settings |
 
+Changing the language redraws everything open, without closing it (0.13.1): IntelliJ, the tool window
+tells the editor tab (`languageChanged()`; an open form keeps what is typed); VS Code also recomputes the
+Pending lists' labels (`recompute()`) before sending the state to both pages.
+
 What comes from archvow (its messages, its templates' questions) is shown as it is: the project's
 language is the one archvow gave it at `init`. `.vow` keywords and codes (ARCH012) are never translated.
 

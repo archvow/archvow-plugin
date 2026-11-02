@@ -17,7 +17,9 @@ Each parameter has a name, its options (`-d`, `--description`), required or not,
 (boolean), a list of choices, several values (one per line), and its help (shown under the field).
 IntelliJ: `ArchvowGrammar.COMMANDS`, `renderForm`; VS Code: `commandForm()` in the page,
 `findCommand()`. Long text fields (`description`, `answer`, `statement`, `words`...) span several lines
-(`LONG_TEXT`).
+(`LONG_TEXT`). The options archvow hides from `--help` (`argparse.SUPPRESS`: `--verify`, `--evidence`,
+`--rule` of `invariant add`) are flagged `hidden` by `contract/tools/export_grammar.py` and put under
+"Expert checks", closed (0.13.1: their help showed `==SUPPRESS==`).
 
 ## What a field offers
 
