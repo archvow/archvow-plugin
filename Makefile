@@ -16,3 +16,11 @@ release: bundle zip
 
 patch:
 	./apply_patch.sh $(NAME)-*
+
+ # Build intellij plugin : requires jdk 17 otherwise use IDE conf
+ide:
+	cd intellij && ./gradlew clean buildPlugin
+
+ # Build vscode : requires node
+vs:
+	cd vscode && npm install && npm run package
