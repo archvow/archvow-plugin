@@ -24,6 +24,44 @@ public final class CommandFormLayoutRegression {
         for (Component part : container.getComponents()) if (part instanceof Container inner) layout(inner);
     }
 
+    /**
+     * A short form may fit entirely in the viewport on CI (different font metrics).
+     * The regression is not "a scrollbar always exists": it is that the last
+     * panel is reachable, whether by direct visibility or by vertical scrolling.
+     */
+    private static boolean checkLowerPanelReachable(String command, int width, JScrollPane scroll,
+                                                 JPanel form, JComponent lower, int viewportHeight) {
+        scroll.setSize(width, viewportHeight);
+        scroll.doLayout();
+        scroll.getViewport().doLayout();
+        layout(form);
+
+        JViewport viewport = scroll.getViewport();
+        Dimension viewSize = viewport.getViewSize();
+        Dimension extent = viewport.getExtentSize();
+        check(extent.height > 0, command + ": viewport has no height");
+        check(lower.getHeight() > 0, command + ": lower panel was collapsed or clipped");
+        Rectangle lowerBounds = SwingUtilities.convertRectangle(lower.getParent(), lower.getBounds(), form);
+        int maxScrollY = Math.max(0, viewSize.height - extent.height);
+        if (maxScrollY > 0) {
+            JScrollBar bar = scroll.getVerticalScrollBar();
+            check(bar.getMaximum() > bar.getVisibleAmount(),
+                command + ": vertical scrollbar missing for overflowing content");
+        }
+        viewport.setViewPosition(new Point(0, maxScrollY));
+        Rectangle visible = viewport.getViewRect();
+        check(visible.intersects(lowerBounds),
+            command + ": lower panel inaccessible (height=" + viewportHeight
+                + ", form=" + viewSize.height + ", visible=" + visible
+                + ", lower=" + lowerBounds + ")");
+        // The bottom of the lower panel must be reachable even if the panel is
+        // taller than the viewport; just seeing its title is not sufficient.
+        check(lowerBounds.y + lowerBounds.height <= visible.y + visible.height,
+            command + ": lower panel bottom inaccessible (height=" + viewportHeight + ")");
+        viewport.setViewPosition(new Point(0, 0));
+        return maxScrollY > 0;
+    }
+
     private static void cycle(String command, String[] optionalLabels, int viewportWidth) {
         JPanel form = new ArchvowCommandFormLayout.WidthTrackingPanel(new GridBagLayout());
         form.add(ArchvowCommandFormLayout.fieldLabel("Composant", "--component", true, Color.GRAY), cell(0, 0, 1, false));
@@ -64,8 +102,8 @@ public final class CommandFormLayoutRegression {
             check(label.getPreferredSize().height >= 24, command + ": title/flag clipped");
         }
         check(preview.getY() >= optional.get(optional.size()-1).getY(), command + ": bottom form overlaps opened options");
-        check(scroll.getVerticalScrollBar().getMaximum() > scroll.getVerticalScrollBar().getVisibleAmount(),
-            command + ": lower panel inaccessible by vertical scrolling");
+        // At 240px a single-option form can fit on some JDKs/look-and-feels.
+        checkLowerPanelReachable(command, viewportWidth, scroll, form, preview, 240);
         toggle.setSelected(false);
         ArchvowCommandFormLayout.setSectionExpanded(form, scroll, toggle, optional);
         Dimension collapsed = form.getPreferredSize();
@@ -80,6 +118,12 @@ public final class CommandFormLayoutRegression {
                 command + ": label shrunk after reopen: " + label.getWidth());
         }
         check(preview.isVisible(), command + ": lower panel must remain visible");
+        // Force overflow after a second expansion. This checks real scrolling
+        // on every platform, independent of UI font metrics and insets.
+        check(checkLowerPanelReachable(command, viewportWidth, scroll, form, preview, 140),
+            command + ": short viewport must require scrolling");
+        check(!checkLowerPanelReachable(command, viewportWidth, scroll, form, preview, 1000),
+            command + ": tall viewport must show the entire form without scrolling");
     }
 
     public static void main(String[] args) throws Exception {
