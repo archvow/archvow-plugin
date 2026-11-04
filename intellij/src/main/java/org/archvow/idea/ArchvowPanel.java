@@ -257,7 +257,7 @@ final class ArchvowPanel extends JPanel {
     private final ArchvowWrapLabel formDoes = new ArchvowWrapLabel();
     private final JTextArea formPreview = new JTextArea(3, 22);
     /** 0.15.0: the files the command writes, under the command (ArchvowFilePlan). */
-    private final JEditorPane formFiles = new JEditorPane("text/html", "");
+    private final ArchvowFilePlanView formFiles = new ArchvowFilePlanView();
     private final JPanel formAlerts = new JPanel();
     private JButton formRunButton;
     /** The selected safety question's decision says there is nothing to protect: Not applicable needs no reason. */
@@ -2313,8 +2313,6 @@ final class ArchvowPanel extends JPanel {
             "If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.",
             "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."), true);
         pane.add(heading); pane.add(Box.createVerticalStrut(6)); pane.add(formDoes); pane.add(Box.createVerticalStrut(8));
-        formFiles.setEditable(false); formFiles.setOpaque(false); formFiles.setAlignmentX(LEFT_ALIGNMENT);
-        formFiles.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
         pane.add(commandLabel); pane.add(preview); pane.add(formFiles); pane.add(Box.createVerticalStrut(6)); pane.add(note);
         // BorderLayout.EAST stretches its child to the height of the whole form.
         // Anchor the actual help card at the top and measure its text rather than
@@ -2355,9 +2353,7 @@ final class ArchvowPanel extends JPanel {
         String output = ArchvowForms.output(command, values);
         boolean exists = !output.isEmpty() && project.getBasePath() != null && new File(project.getBasePath(), output).exists();
         JsonObject catalog = projectCatalog != null ? projectCatalog : ArchvowInitCatalog.bundled();
-        String files = ArchvowFilePlan.html(ArchvowFilePlan.plan(command.label, values, manifest, catalog, ArchvowForms.DATA, fr, exists), fr);
-        formFiles.setText(files.isEmpty() ? "" : "<html><body>" + files + "</body></html>");
-        formFiles.setVisible(!files.isEmpty());
+        formFiles.showRows(ArchvowFilePlan.plan(command.label, values, manifest, catalog, ArchvowForms.DATA, fr, exists), fr);
         // changes / diff with Save to a file: the button says what it does
         if (formRunButton != null) {
             String verb = ArchvowForms.verb(command.label, fr);

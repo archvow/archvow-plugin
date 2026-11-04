@@ -1,0 +1,121 @@
+package org.archvow.idea;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Native Swing equivalent of VS Code's filesBlock: a folder icon on each directory,
+ * a document/folder icon on each item, its change status and optional note.
+ * The drawings come from the shared icons.json (via ArchvowTreeIcons), so their
+ * stroke and colour follow IntelliJ's active light or dark theme.
+ */
+final class ArchvowFilePlanView extends JPanel {
+    private static final Map<String, String> EN = Map.of(
+        "new", "new", "updated", "updated", "removed", "removed", "kept", "kept", "planned", "planned");
+    private static final Map<String, String> FR = Map.of(
+        "new", "nouveau", "updated", "modifié", "removed", "retiré", "kept", "gardé", "planned", "prévu");
+
+    ArchvowFilePlanView() {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setOpaque(false);
+        setAlignmentX(LEFT_ALIGNMENT);
+        setVisible(false);
+    }
+
+    void showRows(List<ArchvowFilePlan.Row> rows, boolean fr) {
+        removeAll();
+        for (boolean planned : new boolean[]{false, true}) {
+            List<ArchvowFilePlan.Row> part = new ArrayList<>();
+            for (ArchvowFilePlan.Row row : rows)
+                if ("planned".equals(row.change()) == planned) part.add(row);
+            if (part.isEmpty()) continue;
+            String heading = planned
+                ? (fr ? "Prévus - écrits plus tard par l'IA ou un développeur (archvow n'écrit jamais de code)"
+                      : "Planned - written later by the AI or a developer (archvow never writes code)")
+                : (fr ? "Fichiers" : "Files");
+            ArchvowWrapLabel head = wrapped(heading, muted());
+            head.setBorder(BorderFactory.createEmptyBorder(6, 0, 2, 0));
+            add(head);
+            String folder = null;
+            for (ArchvowFilePlan.Row row : part) {
+                String path = row.path();
+                boolean isDir = path.endsWith("/");
+                int cut = isDir ? path.substring(0, path.length() - 1).lastIndexOf('/') : path.lastIndexOf('/');
+                String dir = cut >= 0 ? path.substring(0, cut + 1) : "";
+                String leaf = cut >= 0 ? path.substring(cut + 1) : path;
+                if (!dir.equals(folder)) {
+                    add(folderLine(dir.isEmpty() ? "./" : dir));
+                    folder = dir;
+                }
+                JPanel file = new JPanel();
+                file.setLayout(new BoxLayout(file, BoxLayout.X_AXIS));
+                file.setOpaque(false);
+                file.setAlignmentX(LEFT_ALIGNMENT);
+                file.setBorder(BorderFactory.createEmptyBorder(1, 14, 0, 0));
+                JLabel name = iconLabel(isDir ? "folder" : "document", leaf, true);
+                file.add(name);
+                file.add(Box.createHorizontalStrut(5));
+                JLabel status = new JLabel((fr ? FR : EN).getOrDefault(row.change(), row.change()));
+                status.putClientProperty("html.disable", Boolean.TRUE);
+                status.setForeground(changeColor(row.change()));
+                file.add(status);
+                file.add(Box.createHorizontalGlue());
+                add(file);
+                if (!row.note().isBlank()) {
+                    ArchvowWrapLabel note = wrapped(row.note(), muted());
+                    note.setBorder(BorderFactory.createEmptyBorder(1, 38, 2, 0));
+                    add(note);
+                }
+            }
+        }
+        setVisible(!rows.isEmpty());
+        revalidate();
+        repaint();
+    }
+
+    private static JPanel folderLine(String path) {
+        JPanel line = new JPanel(new BorderLayout());
+        line.setOpaque(false);
+        line.setAlignmentX(LEFT_ALIGNMENT);
+        line.setBorder(BorderFactory.createEmptyBorder(1, 0, 0, 0));
+        JLabel label = iconLabel("folder", path, false);
+        label.setForeground(muted());
+        line.add(label, BorderLayout.WEST);
+        return line;
+    }
+
+    private static JLabel iconLabel(String kind, String text, boolean code) {
+        JLabel label = new JLabel(text, ArchvowTreeIcons.icon(kind, null), SwingConstants.LEFT);
+        // Paths are plain text, including when a user-supplied name starts with <html>.
+        label.putClientProperty("html.disable", Boolean.TRUE);
+        label.setIconTextGap(6);
+        if (code) label.setFont(new Font(Font.MONOSPACED, Font.PLAIN, label.getFont().getSize()));
+        return label;
+    }
+
+    private static ArchvowWrapLabel wrapped(String text, Color ink) {
+        ArchvowWrapLabel label = new ArchvowWrapLabel();
+        label.setText(text);
+        label.setOpaque(false);
+        label.setForeground(ink);
+        label.setAlignmentX(LEFT_ALIGNMENT);
+        return label;
+    }
+
+    private static Color muted() {
+        return ArchvowMotion.dark() ? new Color(162, 172, 186) : new Color(85, 95, 110);
+    }
+
+    private static Color changeColor(String change) {
+        boolean dark = ArchvowMotion.dark();
+        return switch (change) {
+            case "new" -> dark ? new Color(96, 207, 143) : new Color(29, 149, 83);
+            case "updated" -> dark ? new Color(99, 172, 255) : new Color(48, 116, 220);
+            case "removed" -> dark ? new Color(255, 118, 109) : new Color(190, 50, 45);
+            default -> muted();
+        };
+    }
+}

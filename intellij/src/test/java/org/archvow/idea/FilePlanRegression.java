@@ -90,6 +90,7 @@ public final class FilePlanRegression {
         // the trees' icons: a drawing for every type, group and command
         for (JsonElement t : catalog.getAsJsonArray("templates"))
             for (String type : t.getAsJsonObject().getAsJsonObject("component_types").keySet()) check(ArchvowTreeIcons.has(type), "no icon for " + type);
+        check(ArchvowTreeIcons.has("folder") && ArchvowTreeIcons.has("document"), "file preview uses VS Code's folder/document drawings");
         for (ArchvowForms.Group g : ArchvowForms.commandGroups(false)) check(ArchvowTreeIcons.has(ArchvowTreeIcons.groupKind(g.id())), "group " + g.id());
         for (ArchvowGrammar.Command c : ArchvowGrammar.COMMANDS) check(ArchvowTreeIcons.has(ArchvowTreeIcons.commandKind(c.path)), "command " + c.label);
         check("component".equals(ArchvowTreeIcons.typeKind("a_company_type")), "an unknown type: a page");
@@ -102,10 +103,47 @@ public final class FilePlanRegression {
         int ink = 0;
         for (int x = 0; x < 16; x++) for (int y = 0; y < 16; y++) if ((image.getRGB(x, y) >>> 24) > 0) ink++;
         check(ink > 20, "the icons draw something");
-        check(ArchvowFilePlan.html(ArchvowFilePlan.plan("component add", Map.of("type", "reader", "name", "orders", "description", "x"),
-            read(contract.resolve("cli/pyspark-pipeline/show.json")), catalog, ArchvowForms.DATA, false, false), false).contains("orders_reader.py"), "the Files block");
-        SwingUtilities.invokeAndWait(FilePlanRegression::tables);
+        check(ArchvowFilePlan.plan("component add", Map.of("type", "reader", "name", "orders", "description", "x"),
+            read(contract.resolve("cli/pyspark-pipeline/show.json")), catalog, ArchvowForms.DATA, false, false)
+            .stream().anyMatch(r -> r.path().contains("orders_reader.py")), "the Files block");
+        SwingUtilities.invokeAndWait(() -> { filesView(); tables(); });
         System.out.println("OK: " + plans + " file plans identical to VS Code's, layers to add to, Save to a file, the first commit, icons, answer tables");
+    }
+
+    /** Icons, grouping and theme-independent wording in the editor tab's native Files preview. */
+    private static void filesView() {
+        ArchvowFilePlanView view = new ArchvowFilePlanView();
+        check(!view.isVisible(), "empty Files preview is hidden");
+        view.showRows(List.of(
+            new ArchvowFilePlan.Row("updated", ".archvow/components/orders_reader/spec.vow", "what was recorded before becomes to review"),
+            new ArchvowFilePlan.Row("updated", ".archvow/components/orders_reader/spec.md", ""),
+            new ArchvowFilePlan.Row("new", ".archvow/", ""),
+            new ArchvowFilePlan.Row("planned", "src/sales/readers/orders_reader.py", "written later")
+        ), true);
+        check(view.isVisible(), "Files preview shown when files are present");
+        java.util.List<JLabel> labels = new java.util.ArrayList<>();
+        collectLabels(view, labels);
+        long folders = labels.stream().filter(l -> iconKind(l).equals("folder")).count();
+        long documents = labels.stream().filter(l -> iconKind(l).equals("document")).count();
+        check(folders == 4, "one folder per group, and a folder icon for a directory row: " + folders);
+        check(documents == 3, "a document icon for each file row: " + documents);
+        check(labels.stream().filter(l -> l.getText().equals(".archvow/components/orders_reader/")).count() == 1,
+            "shared folder is shown once");
+        check(labels.stream().anyMatch(l -> l.getText().equals("modifié")), "status localised in French");
+        check(labels.stream().anyMatch(l -> l.getText().equals("orders_reader.py")), "planned files included");
+        view.showRows(List.of(), false);
+        check(!view.isVisible() && view.getComponentCount() == 0, "Files preview clears when the form has no files");
+    }
+
+    private static String iconKind(JLabel label) {
+        return label.getIcon() instanceof ArchvowTreeIcons.ShapeIcon icon ? icon.kind : "";
+    }
+
+    private static void collectLabels(java.awt.Container panel, java.util.List<JLabel> into) {
+        for (java.awt.Component c : panel.getComponents()) {
+            if (c instanceof JLabel label) into.add(label);
+            if (c instanceof java.awt.Container child) collectLabels(child, into);
+        }
     }
 
     private static void tables() {

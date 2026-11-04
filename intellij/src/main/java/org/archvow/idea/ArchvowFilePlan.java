@@ -235,43 +235,6 @@ final class ArchvowFilePlan {
         return rows;
     }
 
-    private static String esc(String s) { return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"); }
-
-    /** The Files block of the form pane, as VS Code's filesBlock: a folder line, its files with what happens to them, then the planned code. */
-    static String html(List<Row> rows, boolean fr) {
-        if (rows.isEmpty()) return "";
-        Map<String, String> word = Map.of("new", fr ? "nouveau" : "new", "updated", fr ? "modifié" : "updated",
-            "removed", fr ? "retiré" : "removed", "kept", fr ? "gardé" : "kept", "planned", fr ? "prévu" : "planned");
-        Map<String, String> colour = Map.of("new", "#3fa55b", "updated", "#3794ff", "removed", "#e5534b", "kept", "#8b8b8b", "planned", "#8b8b8b");
-        StringBuilder out = new StringBuilder();
-        for (boolean later : new boolean[] {false, true}) {
-            List<Row> part = new ArrayList<>();
-            for (Row r : rows) if ("planned".equals(r.change()) == later) part.add(r);
-            if (part.isEmpty()) continue;
-            out.append("<div style='color:#8b8b8b;margin-top:6px'>").append(esc(later
-                ? (fr ? "Prévus - écrits plus tard par l'IA ou un développeur (archvow n'écrit jamais de code)"
-                      : "Planned - written later by the AI or a developer (archvow never writes code)")
-                : (fr ? "Fichiers" : "Files"))).append("</div>");
-            String folder = null;
-            for (Row r : part) {
-                String path = r.path();
-                boolean dir = path.endsWith("/");
-                int cut = dir ? path.substring(0, path.length() - 1).lastIndexOf('/') : path.lastIndexOf('/');
-                String parent = cut >= 0 ? path.substring(0, cut + 1) : "";
-                String leaf = cut >= 0 ? path.substring(cut + 1) : path;
-                if (!parent.equals(folder)) {
-                    out.append("<div style='font-family:monospace'>▸ ").append(esc(parent.isEmpty() ? "./" : parent)).append("</div>");
-                    folder = parent;
-                }
-                out.append("<div style='margin-left:14px'><code>").append(esc(leaf)).append("</code> <span style='color:")
-                    .append(colour.getOrDefault(r.change(), "#8b8b8b")).append("'>").append(esc(word.getOrDefault(r.change(), r.change()))).append("</span>");
-                if (!r.note().isEmpty()) out.append("<div style='color:#8b8b8b;margin-left:8px'>").append(esc(r.note())).append("</div>");
-                out.append("</div>");
-            }
-        }
-        return out.toString();
-    }
-
     /** The types a person can add in each layer of the project's template, the layers in the template's order. */
     static Map<String, List<Addable>> addableByLayer(JsonObject spec, JsonObject catalog) {
         Map<String, List<Addable>> out = new LinkedHashMap<>();
