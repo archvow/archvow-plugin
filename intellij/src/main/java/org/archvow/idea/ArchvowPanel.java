@@ -228,6 +228,7 @@ final class ArchvowPanel extends JPanel {
     private final JTextArea cardDetails = new JTextArea();
     /** archvow 1.19: the answers a question without a safe default offers to start from, one button each. */
     private final JPanel decisionChoices = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 4, 4));
+    private final ArchvowColumnAnswerPanel columnAnswerPanel = new ArchvowColumnAnswerPanel(decisionAnswer);
     private final JPanel specCards = new JPanel(new CardLayout());
     private ArchvowSegmented specPart;
     private final DefaultListModel<ArchvowItemCards.Card> decisionsModel = new DefaultListModel<>();
@@ -244,6 +245,7 @@ final class ArchvowPanel extends JPanel {
     private JButton allComponentsFilter, pendingComponentsFilter, resolvedComponentsFilter;
     private final DefaultListModel<ArchvowGrammar.Command> commandModel = new DefaultListModel<>();
     private final JList<ArchvowGrammar.Command> commandList = new JList<>(commandModel);
+    private JTree commandTree;
     /** The command form: as wide as the view, so the lines under the fields wrap instead of running past its edge. */
     private final JPanel form = new ArchvowCommandFormLayout.WidthTrackingPanel(new GridBagLayout());
     private JScrollPane formScroller;
@@ -1155,6 +1157,7 @@ final class ArchvowPanel extends JPanel {
         }));
         commands.addAction(overviewAction("Diff", () -> openCommand("diff", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
         commands.addAction(overviewAction("Review", () -> openCommand("review", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
+        commands.addAction(overviewAction(ArchvowI18n.text(project, "Command reference", "Docs des commandes"), this::openCommandReference));
         comparisonBaseButton = overviewAction(baseLabel(), this::chooseComparisonBase);
         comparisonBaseButton.setToolTipText(ArchvowI18n.text(project,
             "Git comparison base for Review / Diff / Budget: a branch of this repository",
@@ -1619,7 +1622,7 @@ final class ArchvowPanel extends JPanel {
         // The question, the field and its buttons stay together; the full text stays selectable above the field.
         // No fixed height on the editor: it grows when the inline confirmation appears.
         addComponentView(viewBar, detailCards, 0, ArchvowI18n.text(project, "Decisions", "Décisions"),
-            ArchvowSplitView.create(decisionsList, decisionsScroll, compactSections(answerHeading(decisionDetails), decisionChoices, decisionEditor,
+            ArchvowSplitView.create(decisionsList, decisionsScroll, compactSections(answerHeading(decisionDetails), decisionChoices, columnAnswerPanel, decisionEditor,
                 decisionInlineResultCard)));
 
         // Personal, operational and compliance questions (P1/O2/C1) are also
@@ -2116,7 +2119,107 @@ final class ArchvowPanel extends JPanel {
         bottom.add(commandResultCard, BorderLayout.CENTER);
         right.add(bottom, BorderLayout.SOUTH);
         // the tool window shows the list, the editor tab the form
-        return role == Role.NAVIGATION ? scroll(commandList) : right;
+        return role == Role.NAVIGATION ? commandBrowser() : right;
+    }
+
+    /** Grouped tree built from the shared forms.json contract; unknown commands go to Other. */
+    private JComponent commandBrowser() {
+        JPanel browser = new JPanel(new BorderLayout(0, 5));
+        JTextField filter = new JTextField();
+        filter.setToolTipText(ArchvowI18n.text(project, "Filter commands", "Filtrer les commandes"));
+        commandTree = new JTree();
+        commandTree.setRootVisible(false);
+        commandTree.setShowsRootHandles(true);
+        commandTree.setCellRenderer(new javax.swing.tree.DefaultTreeCellRenderer() {
+            @Override public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected,
+                    boolean expanded, boolean leaf, int row, boolean focused) {
+                super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, focused);
+                Object user = value instanceof DefaultMutableTreeNode node ? node.getUserObject() : value;
+                if (user instanceof ArchvowGrammar.Command command) setText(command.label);
+                return this;
+            }
+        });
+        commandTree.addTreeSelectionListener(e -> {
+            Object selected = commandTree.getLastSelectedPathComponent();
+            if (selected instanceof DefaultMutableTreeNode node && node.getUserObject() instanceof ArchvowGrammar.Command cmd)
+                commandList.setSelectedValue(cmd, true);
+        });
+        Runnable rebuild = () -> {
+            String query = filter.getText().strip().toLowerCase(java.util.Locale.ROOT);
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode("Commands");
+            Set<ArchvowGrammar.Command> known = new LinkedHashSet<>();
+            for (ArchvowForms.Group group : ArchvowForms.commandGroups(ArchvowI18n.isFrench(project))) {
+                DefaultMutableTreeNode parent = new DefaultMutableTreeNode(group.label());
+                for (ArchvowGrammar.Command cmd : ArchvowGrammar.COMMANDS) {
+                    if (!group.prefixes().contains(cmd.path.get(0))) continue;
+                    known.add(cmd);
+                    if (!query.isBlank() && !(cmd.label + " " + cmd.description + " " + group.label()).toLowerCase(java.util.Locale.ROOT).contains(query)) continue;
+                    parent.add(new DefaultMutableTreeNode(cmd));
+                }
+                if (parent.getChildCount() > 0) root.add(parent);
+            }
+            DefaultMutableTreeNode other = new DefaultMutableTreeNode(ArchvowI18n.text(project, "Other commands", "Autres commandes"));
+            for (ArchvowGrammar.Command cmd : ArchvowGrammar.COMMANDS)
+                if (!known.contains(cmd) && (query.isBlank() || (cmd.label + " " + cmd.description).toLowerCase(java.util.Locale.ROOT).contains(query)))
+                    other.add(new DefaultMutableTreeNode(cmd));
+            if (other.getChildCount() > 0) root.add(other);
+            commandTree.setModel(new DefaultTreeModel(root));
+            // Expand only when searching; normal navigation remains compact.
+            if (!query.isBlank()) for (int row = 0; row < commandTree.getRowCount(); row++) commandTree.expandRow(row);
+        };
+        filter.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { rebuild.run(); }
+            @Override public void removeUpdate(DocumentEvent e) { rebuild.run(); }
+            @Override public void changedUpdate(DocumentEvent e) { rebuild.run(); }
+        });
+        rebuild.run();
+        browser.add(filter, BorderLayout.NORTH);
+        browser.add(scroll(commandTree), BorderLayout.CENTER);
+        languageRefreshers.add(rebuild);
+        return browser;
+    }
+
+    /** Read-only documentation: this is not `archvow docs` (which writes generated files). */
+    private void openCommandReference() {
+        if (role == Role.NAVIGATION) {
+            ArchvowPanel editor = ArchvowEditorTab.panel(project);
+            if (editor != null) editor.openCommandReference();
+            return;
+        }
+        StringBuilder html = new StringBuilder("<h2>")
+            .append(escape(ArchvowI18n.text(project, "Command reference", "Documentation des commandes")))
+            .append("</h2><p>").append(escape(ArchvowI18n.text(project,
+                "Read-only reference from the bundled Archvow grammar. The configured CLI remains authoritative.",
+                "Référence du catalogue livré avec le plugin. La CLI configurée fait autorité."))).append("</p>");
+        Set<ArchvowGrammar.Command> grouped = new LinkedHashSet<>();
+        for (ArchvowForms.Group group : ArchvowForms.commandGroups(ArchvowI18n.isFrench(project))) {
+            html.append("<h3>").append(escape(group.label())).append("</h3>");
+            for (ArchvowGrammar.Command cmd : ArchvowGrammar.COMMANDS) if (group.prefixes().contains(cmd.path.get(0))) {
+                grouped.add(cmd);
+                appendCommandReference(html, cmd);
+            }
+        }
+        for (ArchvowGrammar.Command cmd : ArchvowGrammar.COMMANDS) if (!grouped.contains(cmd)) appendCommandReference(html, cmd);
+        showWorkspace();
+        resultLabel = ArchvowI18n.text(project, "Command reference", "Docs des commandes");
+        showDetailHome("result");
+        overviewResult.setText(htmlBare(html.toString()));
+        overviewResult.setCaretPosition(0);
+        overviewResultCard.setVisible(true);
+        tabs.setSelectedIndex(0);
+        afterSelectionChange();
+    }
+
+    private void appendCommandReference(StringBuilder html, ArchvowGrammar.Command command) {
+        html.append("<h4>archvow ").append(escape(command.label)).append("</h4><p>")
+            .append(escape(command.description)).append("</p>");
+        if (!command.parameters.isEmpty()) {
+            html.append("<p>");
+            for (ArchvowGrammar.Param param : command.parameters)
+                html.append("<code>").append(escape(param.flags.isEmpty() ? param.name : param.option())).append("</code>")
+                    .append(param.required ? " * " : " ");
+            html.append("</p>");
+        }
     }
 
     /** Design A: what archvow will do, and the command line as it is typed (the live preview). */
@@ -2345,7 +2448,16 @@ final class ArchvowPanel extends JPanel {
             String text = values.getOrDefault(param.name, "");
             ArchvowChoices.Field field = param.bool ? null : offered.get(param.name);
             JComponent control;
-            if (param.bool) {
+            if ("uses".equals(param.name) && ("component edit".equals(name) || "component add".equals(name))) {
+                Map<String, String> available = new LinkedHashMap<>();
+                for (JsonObject container : ArchvowGrammar.objects(manifest, "containers"))
+                    for (JsonObject candidate : ArchvowGrammar.objects(container, "components")) {
+                        String id = ArchvowGrammar.str(candidate, "id");
+                        if (!id.isBlank()) available.put(id, id + "  ·  "
+                            + ArchvowGrammar.str(candidate, "type") + "  ·  " + ArchvowGrammar.str(candidate, "layer"));
+                    }
+                control = new ArchvowUsesPicker(text, available, values.getOrDefault("component", ""), french, this::updatePreview);
+            } else if (param.bool) {
                 JCheckBox checkbox = new JCheckBox();
                 checkbox.setSelected("true".equals(text) || ("init".equals(name) && "no_input".equals(param.name) && !values.containsKey("no_input")));
                 control = checkbox;
@@ -2776,6 +2888,7 @@ final class ArchvowPanel extends JPanel {
 
     private String value(String name) {
         JComponent control = fields.get(name);
+        if (control instanceof ArchvowUsesPicker picker) return picker.value();
         if (control instanceof JCheckBox check) return check.isSelected() ? "true" : "";
         if (control instanceof ArchvowSegmented segmented) return segmented.value();
         if (control instanceof JComboBox<?> combo) return comboText(combo);
@@ -3562,6 +3675,7 @@ final class ArchvowPanel extends JPanel {
             }
         }
         decisionChoices.setVisible(offers);
+        columnAnswerPanel.showFor(selectedView, row, ArchvowI18n.isFrench(project));
         decisionChoices.revalidate(); decisionChoices.repaint();
         if (decisionInlineResultCard != null) decisionInlineResultCard.setVisible(false);
     }

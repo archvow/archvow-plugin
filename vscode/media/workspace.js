@@ -24,12 +24,12 @@
     specPart: 'card', cards: {},
     /** The editor tab: the component (and its view) a command was opened from, for Back; null without. */
     back: null, backArmed: null,
-    command: NAV ? '' : 'check', commandFilter: '', form: {}, formHelp: '',
+    command: NAV ? '' : 'check', commandFilter: '', commandGroupsOpen: {}, formSections: {}, form: {}, formHelp: '',
     /** The form's live preview (design A): the command line, or what is still missing. */
     preview: { text: '', missing: '' },
     catalog: null, catalogSource: '', initTemplate: '', initAnswers: {}, initTouched: {}, advanced: false,
     /** Edit spec: the values the form opened with (only the changed ones are sent); template new: its settings. */
-    formBaseline: {}, tplAnswers: {}, tplLayers: {},
+    formBaseline: {}, tplAnswers: {}, tplLayers: {}, smartRows: {}, smartQuestions: {},
     /** The comparison base: the extension's best one (an existing branch) until the person types another. */
     base: '', baseTouched: false, checkSel: 0, explained: {},
     /** A result's height, once dragged or expanded. */
@@ -122,6 +122,9 @@
       case 'confirm':
         ui.confirm = { token: m.token, title: m.title, summary: m.summary, target: m.target, command: m.command };
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.title || ''; }
+        break;
+      case 'commandDocs':
+        ui.forceWorkspace = true; ui.mode = 'commandDocs'; ui.back = null;
         break;
       case 'openCommand':
         ui.forceWorkspace = true;
@@ -218,6 +221,7 @@
   function editorTitle() {
     if (ui.mode === 'component') return 'archvow: ' + (ui.component || t('Components', 'Composants'));
     if (ui.mode === 'checks') return 'archvow: ' + t('Check & Gates', 'Contrôles et validations');
+    if (ui.mode === 'commandDocs') return 'archvow: ' + t('Command reference', 'Docs des commandes');
     if (ui.mode === 'project') return 'archvow: ' + t('Project items', 'Éléments du projet');
     if (ui.mode === 'command') return 'archvow: ' + ui.command;
     if (ui.mode === 'result') return 'archvow: ' + (ui.resultLabel || t('Result', 'Résultat'));
@@ -236,9 +240,11 @@
     }
     const what = ui.mode === 'component' ? ui.component
       : ui.mode === 'checks' ? t('Check & Gates', 'Contrôles et validations')
+        : ui.mode === 'commandDocs' ? t('Command reference', 'Docs des commandes')
         : ui.mode === 'project' ? t('Project items', 'Éléments du projet')
         : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'result' ? ui.resultLabel : '';
     const kind = ui.mode === 'component' ? t('Component', 'Composant') : ui.mode === 'command' ? t('Command', 'Commande')
+      : ui.mode === 'commandDocs' ? t('Reference', 'Référence')
       : ui.mode === 'checks' ? t('Checks', 'Contrôles') : ui.mode === 'project' ? t('Project', 'Projet') : ui.mode === 'result' ? t('Result', 'Résultat') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
     const named = ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot();
@@ -254,6 +260,7 @@
   function editorBody() {
     if (ui.mode === 'component') return `<section class="detail-only">${componentDetail()}</section>`;
     if (ui.mode === 'checks') return `<section class="detail-only checks-editor">${checksView(true)}</section>`;
+    if (ui.mode === 'commandDocs') return `<section class="detail-only">${commandReference()}</section>`;
     if (ui.mode === 'project') return `<section class="detail-only"><div class="card"><h3>${esc(t('Project items', 'Éléments du projet'))}</h3>${otherView()}</div></section>`;
     if (ui.mode === 'command') {
       const command = commandByName(ui.command);
@@ -370,6 +377,7 @@
       btn('Budget / Next', 'budget'),
       btn('Diff', 'openCommand', attrs({ command: 'diff', field: 'base' })),
       btn('Review', 'openCommand', attrs({ command: 'review', field: 'base' })),
+      btn(t('Command reference', 'Docs des commandes'), 'commandDocs', '', false, 'secondary'),
       `<label class="base" title="${esc(t('Git comparison base for Review / Diff / Budget: a branch of this repository', 'Base de comparaison Git pour Review / Diff / Budget : une branche de ce dépôt'))}">Base: <input list="refs" data-input="base" data-keep="base" value="${esc(baseNow())}" size="14" placeholder="${esc(t('no other branch', "pas d'autre branche"))}"><datalist id="refs">${(S.refs || []).map((r) => `<option value="${esc(r)}">`).join('')}</datalist></label>`,
     ].join('');
     const sub = ui.overSub === 'checks' ? checksView(false) : architectureView();
@@ -782,6 +790,69 @@
       : t('Nothing to undo: the field holds the recorded text', 'Rien à annuler : le champ contient le texte enregistré');
   }
 
+  /** Optional structured editor: relevant only when the question is about column properties.
+   * It never changes the CLI schema, guesses no nullability, and does not save on its own. */
+  function canEditColumns(question) {
+    const q = String(question || '').toLocaleLowerCase();
+    const keywords = (((I.forms || {}).smart_answers || {}).schema_columns || {}).keywords || [];
+    const aboutColumn = /\bcolumns?|\bfields?|colonnes?|champs?/i.test(q);
+    const aboutProperty = /(nullab|not null|required|optional|person|privat|gdpr|rgpd|obligatoire|facultati|manquant|missing|types?|datatype)/i.test(q);
+    return aboutColumn && aboutProperty && keywords.some((k) => q.includes(k.toLocaleLowerCase()));
+  }
+
+  function knownColumnRows(view) {
+    const names = new Map();
+    for (const group of list(view, 'known_columns')) {
+      for (const name of Array.isArray(group.columns) ? group.columns : [])
+        if (typeof name === 'string' && name.trim()) names.set(name.trim(), { name: name.trim(), type: '', nullable: 'unknown', personal: 'unknown' });
+    }
+    for (const c of list(view, 'columns')) {
+      const name = str(c, 'name');
+      if (!name) continue;
+      const kind = str(c, 'class');
+      const base = names.get(name) || { name, type: '', nullable: 'unknown', personal: 'unknown' };
+      const personal = ['personal', 'special'].includes(kind) ? 'yes' : kind === 'none' ? 'no' : 'unknown';
+      names.set(name, { ...base, type: str(c, 'type') || base.type, personal });
+    }
+    return Array.from(names.values()).slice(0, 60);
+  }
+
+  function structuredAnswer(rows, question = '') {
+    const q = question.toLocaleLowerCase();
+    const withNull = /(null|requir|option|obligat|facultat)/.test(q);
+    const withPersonal = /(person|privat|gdpr|rgpd)/.test(q);
+    const withType = /(\btypes?\b|datatype|data type)/.test(q);
+    return rows.filter((r) => r.name.trim()).map((r) => {
+      const parts = [];
+      if (withType) parts.push(r.type.trim() || t('type unknown', 'type inconnu'));
+      if (withNull) parts.push(r.nullable === 'yes' ? 'nullable' : r.nullable === 'no' ? t('not null', 'non nullable') : t('nullability unknown', 'nullabilité inconnue'));
+      if (withPersonal) parts.push(r.personal === 'yes' ? t('personal data', 'donnée personnelle') : r.personal === 'no' ? t('not personal data', 'non personnel') : t('personal-data classification unknown', 'classification des données inconnue'));
+      return r.name.trim() + ': ' + parts.join(', ');
+    }).join('\n');
+  }
+
+  function smartColumns(view, row, key) {
+    if (!canEditColumns(str(row, 'question'))) return '';
+    if (!ui.smartRows[key]) ui.smartRows[key] = knownColumnRows(view).map((x) => ({ ...x }));
+    const rows = ui.smartRows[key];
+    ui.smartQuestions[key] = str(row, 'question');
+    const answerText = () => structuredAnswer(rows, ui.smartQuestions[key]);
+    const select = (name, idx, value, opts) => `<select data-change="smartField" data-key="${esc(key)}" data-row="${idx}" data-name="${name}">${opts.map(([id, label]) => `<option value="${id}" ${value === id ? 'selected' : ''}>${esc(label)}</option>`).join('')}</select>`;
+    const yesNo = [['unknown', t('Unknown', 'Inconnu')], ['no', t('No', 'Non')], ['yes', t('Yes', 'Oui')]];
+    return `<details class="card smart-answer"${ui.smartExpanded === key ? ' open' : ''} data-smart-key="${esc(key)}"><summary>${esc(t('Structured answer assistant (optional)', 'Assistant de réponse structurée (facultatif)'))}</summary>
+      <p class="muted small">${esc(t('Fill known columns or add new ones. Unknown is intentional. This is a draft only; review the text before saving.', 'Renseigne les colonnes connues ou ajoute les tiennes. Inconnu est volontaire. Il s’agit d’un brouillon à relire avant enregistrement.'))}</p>
+      <datalist id="archvow-type-suggestions">${['string','integer','float','double','decimal','boolean','date','timestamp','object'].map((type) => `<option value="${type}">`).join('')}</datalist>
+      <div class="smart-table">${rows.map((r, i) => `<div class="smart-row"><label>${esc(t('Column', 'Colonne'))}<input data-input="smartField" data-key="${esc(key)}" data-row="${i}" data-name="name" value="${esc(r.name)}"></label>
+        <label>${esc(t('Type', 'Type'))}<input data-input="smartField" data-key="${esc(key)}" data-row="${i}" data-name="type" list="archvow-type-suggestions" value="${esc(r.type)}" placeholder="${esc(t('Unknown', 'Inconnu'))}"></label>
+        <label>${esc(t('Nullable', 'Nullable'))}${select('nullable', i, r.nullable, yesNo)}</label>
+        <label>${esc(t('Personal', 'Personnel'))}${select('personal', i, r.personal, yesNo)}</label>
+        ${btn('×', 'smartRemove', attrs({ key, row: i }), false, 'secondary')}</div>`).join('')}</div>
+      <div class="row wrap">${btn(t('Add column', 'Ajouter une colonne'), 'smartAdd', attrs({ key }), false, 'secondary')}
+      ${btn(t('Use structured answer', 'Utiliser cette réponse'), 'smartUse', attrs({ key }), !answerText().trim(), 'secondary')}</div>
+      <pre class="smart-preview">${esc(answerText() || t('Add a column to prepare a response.', 'Ajoute une colonne pour préparer la réponse.'))}</pre>
+    </details>`;
+  }
+
   function decisionsView(view) {
     const rows = list(view, 'decisions');
     const label = (r) => 'D' + str(r, 'number');
@@ -810,6 +881,7 @@
         // archvow 1.19: a question with no safe default offers answers to start from, none chosen
         + (pending && Array.isArray(row.choices) && row.choices.length ? `<p class="hint"><b>${esc(t('No default (it depends on this project) - to start from:', 'Pas de défaut (cela dépend de ce projet) - pour partir de :'))}</b></p>
   <div class="row wrap choices">${row.choices.map((c) => btn(String(c), 'useChoice', attrs({ key, value: String(c) }), false, 'secondary small')).join('')}</div>` : '')
+        + smartColumns(view, row, key)
         + answerEditor(key, answer || proposed || suggested, t('Your answer or proposal', 'Votre réponse ou proposition'), secondary,
           btn(t('Save answer', 'Enregistrer la réponse'), 'decide', attrs({ action: 'decision make' })), 'decision')
         + confirmation('decision') + resultCard('decision');
@@ -1096,6 +1168,7 @@
   function setCommand(name, values, help) {
     ui.command = name;
     ui.form = Object.assign({}, values);
+    ui.formSections = {};
     ui.formHelp = help || '';
     // Edit spec: what the component has now (not what a diagnostic asks to change); only differences are sent
     ui.formBaseline = name === 'component edit' ? whatTheComponentHas((values.component || '').trim()) : {};
@@ -1119,13 +1192,47 @@
     return Object.assign({}, (picked && picked.fill) || {});
   }
 
+  /** Command groups belong to the shared form contract, never to a particular project template. */
+  function groupsOfCommands() {
+    const definitions = (I.forms && I.forms.command_groups) || [];
+    const remaining = I.commands.slice();
+    const groups = definitions.map((g) => {
+      const prefixes = g.prefixes || [];
+      const items = remaining.filter((c) => prefixes.includes(c.path[0]));
+      for (const c of items) remaining.splice(remaining.indexOf(c), 1);
+      return { id: g.id, label: pair(g.label) || g.id, items };
+    }).filter((g) => g.items.length);
+    if (remaining.length) groups.push({ id: 'other', label: t('Other commands', 'Autres commandes'), items: remaining });
+    return groups;
+  }
+
   function commandsTab() {
-    const filter = ui.commandFilter.toLowerCase();
-    const items = I.commands.filter((c) => !filter || c.path.join(' ').includes(filter));
-    const command = commandByName(ui.command);
+    const filter = ui.commandFilter.toLocaleLowerCase();
+    const groups = groupsOfCommands().map((g) => ({ ...g,
+      items: g.items.filter((c) => !filter || g.label.toLocaleLowerCase().includes(filter)
+        || (c.path.join(' ') + ' ' + c.description).toLocaleLowerCase().includes(filter))
+    })).filter((g) => g.items.length);
+    const selected = ui.command;
     return `<section class="browser-only commands-list"><input data-input="commandFilter" data-keep="commandFilter" placeholder="${esc(t('Filter commands', 'Filtrer les commandes'))}" value="${esc(ui.commandFilter)}">
-  <ul class="list items" data-scroll="commands">${items.map((c) => `<li class="${command && c.path.join(' ') === ui.command ? 'selected' : ''}" data-a="command" data-name="${esc(c.path.join(' '))}" title="${esc(c.description)}"><b>${esc(c.path.join(' '))}</b><div class="muted small">${esc(short(c.description || '', 90))}</div></li>`).join('')}</ul>
-  <p class="muted small">${esc(t('A command opens its form in the editor.', "Une commande ouvre son formulaire dans l'éditeur."))}</p></section>`;
+  <div class="command-tree" data-scroll="commands">${groups.map((g) => {
+    const expanded = filter || ui.commandGroupsOpen[g.id] !== false;
+    return `<div class="command-group"><button class="command-group-toggle" data-a="commandGroup" data-id="${esc(g.id)}" aria-expanded="${expanded ? 'true' : 'false'}"><span>${expanded ? '▾' : '▸'} ${esc(g.label)}</span><span class="count">${g.items.length}</span></button>
+    ${expanded ? `<ul class="list items command-children">${g.items.map((c) => `<li class="${c.path.join(' ') === selected ? 'selected' : ''}" data-a="command" data-name="${esc(c.path.join(' '))}" title="${esc(c.description)}"><b>${esc(c.path.join(' '))}</b><div class="muted small">${esc(short(c.description || '', 90))}</div></li>`).join('')}</ul>` : ''}</div>`;
+  }).join('')}</div>
+  <p class="muted small">${esc(t('Select a command to open its form in the editor.', "Choisis une commande pour ouvrir son formulaire dans l'éditeur."))}</p></section>`;
+  }
+
+  /** Read-only reference generated from the installed CLI grammar and the shared form descriptions. */
+  function commandReference() {
+    const groups = groupsOfCommands();
+    return `<div class="card"><h3>${esc(t('Command reference', 'Documentation des commandes'))}</h3>
+    <p class="muted">${esc(t('Commands documented by this plugin version. Your configured CLI is authoritative; no command is executed.', 'Commandes documentées par cette version du plugin. La CLI configurée fait autorité ; aucune commande n\'est exécutée.'))}</p>
+    ${groups.map((g) => `<h4>${esc(g.label)}</h4>${g.items.map((c) => {
+      const name = c.path.join(' ');
+      return `<div class="reference-command"><b>archvow ${esc(name)}</b><p>${esc(c.description)}</p>${pair(formEntry(name).does) ? `<p class="muted small">${esc(pair(formEntry(name).does))}</p>` : ''}
+      ${c.parameters.length ? `<div class="muted small">${c.parameters.map((p) => `<code>${esc(p.flags.join(', ') || p.name)}</code>${p.required ? ' *' : ''}`).join(' · ')}</div>` : ''}
+      ${btn(t('Open form', 'Ouvrir le formulaire'), 'openCommand', attrs({ command: name }), false, 'secondary small')}</div>`;
+    }).join('')}`).join('')}</div>`;
   }
 
   /**
@@ -1155,6 +1262,24 @@
     return `<select data-change="choice" data-name="${esc(p.name)}" data-keep="${id}"><option value="">${esc(placeholder)}</option>`
       + (value && !known ? `<option selected value="${esc(value)}">${esc(value)}</option>` : '')
       + choices.map((c) => `<option value="${esc(c.value)}" ${c.value === value ? 'selected' : ''}>${esc(c.label)}</option>`).join('') + '</select>';
+  }
+
+  /** Multi-select uses only declared components; existing unknown values remain visible and removable. */
+  function usesPicker(value) {
+    const current = (ui.form.component || '').trim();
+    const selected = value.split(',').map((v) => v.trim()).filter(Boolean);
+    const known = componentIds().filter((id) => id !== current);
+    const choices = known.filter((id) => !selected.includes(id));
+    const display = (id) => {
+      const component = list(S && S.spec, 'containers').flatMap((c) => list(c, 'components'))
+        .find((c) => str(c, 'id') === id);
+      return [id, str(component, 'type'), str(component, 'layer')].filter(Boolean).join(' · ');
+    };
+    return `<div class="uses-picker"><div class="uses-tags">${selected.map((id) => `<span class="use-tag">${esc(id)} <button class="icon" type="button" data-a="removeUse" data-id="${esc(id)}" aria-label="${esc(t('Remove dependency', 'Retirer la dépendance') + ': ' + id)}">×</button></span>`).join('')}
+       ${!selected.length ? `<span class="muted small">${esc(t('No dependencies', 'Aucune dépendance'))}</span>` : ''}</div>
+     <select data-change="addUse"><option value="">${esc(t('Add an existing component…', 'Ajouter un composant existant…'))}</option>${choices.map((id) => `<option value="${esc(id)}">${esc(display(id))}</option>`).join('')}</select>
+     <details class="use-manual"><summary>${esc(t('Advanced: edit the list manually', 'Avancé : saisir la liste manuellement'))}</summary>
+     <input data-input="form" data-name="uses" data-keep="f-uses" value="${esc(value)}" aria-label="--uses"></details></div>`;
   }
 
   // ---------------------------------------------------------------- a command's form (design A)
@@ -1191,6 +1316,8 @@
     let control;
     if (p.boolean) {
       control = `<label class="check"><input type="checkbox" data-change="formBool" data-name="${esc(p.name)}" ${value === 'true' ? 'checked' : ''}> ${esc(p.help || '')}</label>`;
+    } else if (p.name === 'uses' && ['component add', 'component edit'].includes(name)) {
+      control = usesPicker(value);
     } else if (p.flags.includes('--from')) {
       control = briefField(p.name, value, id);
     } else if (p.choices.length && p.choices.length <= 4) {
@@ -1257,14 +1384,14 @@
       }
     }
     if (expert) {
-      more += `<details class="expert"${['verify', 'evidence', 'rule'].some((k) => ui.form[k]) ? ' open' : ''}><summary>${esc(t('Expert checks', 'Contrôles experts'))}</summary>`
+      more += `<details class="expert" data-form-section="expert"${(ui.formSections.expert ?? ['verify', 'evidence', 'rule'].some((k) => ui.form[k])) ? ' open' : ''}><summary>${esc(t('Expert checks', 'Contrôles experts'))}</summary>`
         + `<p class="muted small">${esc(t('How the invariant is proven when a test is not enough: a model checked or a proof (--verify model_check|proof --evidence <file>), or a rule that enforces it (--verify static --rule <code>). Empty: the weakest test its severity accepts.',
           "Comment l'invariant est prouvé quand un test ne suffit pas : un modèle vérifié ou une preuve (--verify model_check|proof --evidence <fichier>), ou une règle qui l'impose (--verify static --rule <code>). Vide : le test le plus faible que sa gravité accepte."))}</p>${expert}</details>`;
       moreNames.push(t('expert checks', 'contrôles experts'));
     }
     if (more) {
-      const open = command.parameters.some((p) => !isEssential(name, p) && (ui.form[p.name] || '').trim());
-      fields += `<details class="more"${open ? ' open' : ''}><summary>${esc(t('More options', "Plus d'options"))} <span class="muted small">- ${esc(moreNames.join(', '))}</span></summary>${more}</details>`;
+      const open = ui.formSections.more ?? command.parameters.some((p) => !isEssential(name, p) && (ui.form[p.name] || '').trim());
+      fields += `<details class="more" data-form-section="more"${open ? ' open' : ''}><summary>${esc(t('More options', "Plus d'options"))} <span class="muted small">- ${esc(moreNames.join(', '))}</span></summary>${more}</details>`;
     }
     if (name === 'init') fields += initOtherAnswers();
     if (['decision make', 'decision propose', 'decision accept', 'question remove'].includes(name)) fields += questionPreview(name);
@@ -1769,6 +1896,12 @@
         ui.confirm = null;
       }
     },
+    smartAdd: (e) => { (ui.smartRows[e.dataset.key] ||= []).push({ name: '', type: '', nullable: 'unknown', personal: 'unknown' }); ui.smartExpanded = e.dataset.key; },
+    smartRemove: (e) => { (ui.smartRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; },
+    smartUse: (e) => {
+      const text = structuredAnswer(ui.smartRows[e.dataset.key] || [], ui.smartQuestions[e.dataset.key] || '');
+      if (text.trim()) { ui.drafts[e.dataset.key] = text; ui.smartExpanded = e.dataset.key; }
+    },
     useSuggestion: () => {
       const row = selectedRow('decision');
       if (row) ui.drafts[`d:${ui.component}:${str(row, 'number')}`] = str(row, 'suggested');
@@ -1826,6 +1959,9 @@
       if (item.kind === 'COLUMN') post({ type: 'openCommand', command: 'column set', values: { component: ui.component, names: item.id }, selected: ui.component });
       else post({ type: 'taskPrompt', component: ui.component, task: item.id });
     },
+    commandGroup: (e) => { ui.commandGroupsOpen[e.dataset.id] = ui.commandGroupsOpen[e.dataset.id] === false; },
+    commandDocs: () => post({ type: 'commandDocs' }),
+    removeUse: (e) => { ui.form.uses = (ui.form.uses || '').split(',').map((x) => x.trim()).filter((x) => x && x !== e.dataset.id).join(','); askPreview(0); },
     command: (e) => { ui.command = e.dataset.name; post({ type: 'openCommand', command: e.dataset.name, values: {}, selected: '' }); },
     segment: (e) => { ui.form[e.dataset.name] = e.dataset.value; askPreview(0); },
     cancelForm: () => { setCommand(ui.command, {}, ''); },
@@ -1897,6 +2033,14 @@
         }
         return;
       }
+      case 'smartField': {
+        const rows = ui.smartRows[e.dataset.key] || [];
+        const row = rows[Number(e.dataset.row)];
+        if (row && ['name', 'type', 'nullable', 'personal'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
+        const preview = document.querySelector('.smart-answer .smart-preview');
+        if (preview) preview.textContent = structuredAnswer(rows, ui.smartQuestions[e.dataset.key] || '');
+        return;
+      }
       case 'base': ui.base = e.value; ui.baseTouched = true; return;
       case 'commandFilter': ui.commandFilter = e.value; render(); return;
       case 'form':
@@ -1958,6 +2102,12 @@
     window.addEventListener('mouseup', up);
   });
 
+  document.body.addEventListener('toggle', (event) => {
+    const e = event.target;
+    if (e.dataset && e.dataset.smartKey) ui.smartExpanded = e.open ? e.dataset.smartKey : '';
+    if (e.dataset && e.dataset.formSection) ui.formSections[e.dataset.formSection] = e.open;
+  }, true);
+
   document.body.addEventListener('change', (event) => {
     const e = event.target;
     switch (e.dataset.change) {
@@ -1969,6 +2119,16 @@
         askPreview(0);
         render();
         return;
+      case 'addUse':
+        if (e.value && !((ui.form.uses || '').split(',').map((x) => x.trim()).includes(e.value)))
+          ui.form.uses = [...(ui.form.uses || '').split(',').map((x) => x.trim()).filter(Boolean), e.value].join(',');
+        askPreview(0); render(); return;
+      case 'smartField': {
+        const rows = ui.smartRows[e.dataset.key] || [];
+        const row = rows[Number(e.dataset.row)];
+        if (row && ['name','type','nullable','personal'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
+        ui.smartExpanded = e.dataset.key; render(); return;
+      }
       case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; askPreview(0); return;
       case 'choice': choose(e.dataset.name, e.value); askPreview(0); render(); return;
       case 'tplAnswer': ui.tplAnswers[e.dataset.id] = e.value; render(); return;

@@ -656,6 +656,9 @@ export class ArchvowProject {
         this.pendingConfirmations.delete(String(m.token));
         this.pendingInstall.delete(String(m.token));
         return;
+      case 'commandDocs':
+        this.toEditor({ type: 'commandDocs' });
+        return;
       case 'openCommand':
         return this.openCommand(String(m.command), (m.values ?? {}) as Record<string, string>, String(m.selected ?? ''));
       case 'selectComponent':

@@ -291,3 +291,30 @@ pre.card-md { max-height: 70vh; overflow: auto; }
 .checks-editor .check-detail { min-width: 0; overflow-wrap: anywhere; }
 .checks-editor .check-detail h4 { font-size: 1.15em; margin: 0 0 12px; }
 .checks-editor .check-message { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+
+/* Generic command groups and dependency multi-select (shared CLI grammar, no project-specific names). */
+.command-tree { overflow:auto; max-height:calc(100vh - 255px); }
+.command-group { border-bottom:1px solid var(--vscode-panel-border); }
+.command-group-toggle { display:flex; width:100%; align-items:center; justify-content:space-between;
+  color:var(--vscode-foreground); background:transparent; text-align:left; font-weight:600; }
+.command-group-toggle:hover:not([disabled]) { background:var(--vscode-list-hoverBackground); }
+.command-children { max-height:none; border:0; margin:0 0 5px 8px; }
+.command-children li { padding:5px 9px; }
+.reference-command { border-bottom:1px solid var(--vscode-panel-border); padding:8px 2px; }
+.reference-command p { margin:5px 0; }
+.uses-picker { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.uses-picker select { width:100%; }
+.uses-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.use-tag { display:inline-flex; align-items:center; border:1px solid var(--vscode-panel-border);
+  background:var(--vscode-editorWidget-background); border-radius:5px; padding:0 3px 0 7px; }
+.use-tag button.icon { padding:0 4px; }
+.use-manual > input { width:100%; box-sizing:border-box; }
+/* Structured answers are optional helpers; the original text answer and confirmation stay authoritative. */
+.smart-answer { background:var(--vscode-editorWidget-background); }
+.smart-answer summary { cursor:pointer; font-weight:600; }
+.smart-table { display:flex; flex-direction:column; gap:6px; margin:8px 0; }
+.smart-row { display:grid; grid-template-columns:minmax(115px,1.4fr) minmax(90px,1fr) minmax(90px,1fr) minmax(95px,1fr) auto; gap:6px; align-items:end; }
+.smart-row label { min-width:0; font-size:.85em; color:var(--vscode-descriptionForeground); }
+.smart-row input, .smart-row select { display:block; width:100%; box-sizing:border-box; margin-top:3px; }
+.smart-preview { padding:8px; background:var(--vscode-textCodeBlock-background, var(--vscode-editor-background)); white-space:pre-wrap; }
+@media (max-width:740px) { .smart-row { grid-template-columns:1fr 1fr; } }

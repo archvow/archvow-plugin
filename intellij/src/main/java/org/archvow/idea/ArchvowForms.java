@@ -69,6 +69,41 @@ final class ArchvowForms {
         return out;
     }
 
+    /** Groups defined once for both IDEs in forms.json, never inferred from a project template. */
+    static List<Group> commandGroups(boolean french) {
+        List<Group> result = new ArrayList<>();
+        JsonArray groups = DATA.getAsJsonArray("command_groups");
+        if (groups != null) for (JsonElement raw : groups) {
+            JsonObject group = raw.getAsJsonObject();
+            String label = pair(group.get("label"), french);
+            List<String> prefixes = new ArrayList<>();
+            for (JsonElement value : group.getAsJsonArray("prefixes")) prefixes.add(value.getAsString());
+            result.add(new Group(group.get("id").getAsString(), label, prefixes));
+        }
+        return result;
+    }
+
+    record Group(String id, String label, List<String> prefixes) {}
+
+    /** Trigger based on the current question, not on a hard-coded component type or package. */
+    static boolean supportsColumnAnswer(String question) {
+        if (question == null) return false;
+        String q = question.toLowerCase(java.util.Locale.ROOT);
+        boolean aboutColumns = q.contains("column") || q.contains("field") || q.contains("colonne") || q.contains("champ");
+        boolean aboutProperties = q.contains("null") || q.contains("person") || q.contains("priv") || q.contains("required")
+            || q.contains("optional") || q.contains("obligat") || q.contains("facultat") || q.contains("gdpr") || q.contains("rgpd") || q.contains("type");
+        if (!aboutColumns || !aboutProperties) return false;
+        JsonObject smart = DATA.getAsJsonObject("smart_answers");
+        if (smart == null) return false;
+        JsonObject schema = smart.getAsJsonObject("schema_columns");
+        if (schema == null) return false;
+        JsonArray words = schema.getAsJsonArray("keywords");
+        if (words == null) return false;
+        for (JsonElement word : words) if (q.contains(word.getAsString().toLowerCase(java.util.Locale.ROOT))) return true;
+        return false;
+    }
+
+
     /** Shown first: the command's essential fields and every required one; the others under More options. */
     static boolean essential(String command, ArchvowGrammar.Param param) {
         return param.required || !entry(command).has("essential") || essentials(command).contains(param.name);

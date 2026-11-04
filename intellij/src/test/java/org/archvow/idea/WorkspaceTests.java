@@ -22,6 +22,7 @@ public final class WorkspaceTests {
         run("CheckActionsRegression", () -> CheckActionsRegression.main(NONE));
         run("CommandPrefillRegression", () -> CommandPrefillRegression.main(NONE));
         run("CommandFormLayoutRegression", () -> CommandFormLayoutRegression.main(NONE));
+        run("GenericUiRegression", () -> GenericUiRegression.main(NONE));
         run("CompactViewsRegression", () -> CompactViewsRegression.main(NONE));
         run("DetailAndLogRegression", () -> DetailAndLogRegression.main(NONE));
         run("EditorTabLookRegression", () -> EditorTabLookRegression.main(NONE));
