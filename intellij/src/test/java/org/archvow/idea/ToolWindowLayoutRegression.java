@@ -58,9 +58,8 @@ public final class ToolWindowLayoutRegression {
             detail.setStripVisible(false);
             detail.setSize(800, 600);
             detail.doLayout();
-            for (Component child : detail.getComponents()) {
-                if (child instanceof JScrollPane strip) must(!strip.isVisible(), "the editor tab has no strip");
-            }
+            Component header = detail.getComponent(0);
+            must(!header.isVisible(), "the editor tab has no strip");
             detail.setSelectedIndex(2);
             must(command.isVisible() && !component.isVisible(), "the command card is shown");
             detail.setSelectedIndex(1);

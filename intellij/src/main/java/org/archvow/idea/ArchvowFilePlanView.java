@@ -55,7 +55,12 @@ final class ArchvowFilePlanView extends JPanel {
                 file.setOpaque(false);
                 file.setAlignmentX(LEFT_ALIGNMENT);
                 file.setBorder(BorderFactory.createEmptyBorder(1, 14, 0, 0));
-                JLabel name = iconLabel(isDir ? "folder" : "document", leaf, true);
+                // VS Code renders file names as code chips, distinct from the muted description below.
+                // Keep the icon OUTSIDE the chip, as in its filesBlock tree.
+                JLabel icon = iconLabel(isDir ? "folder" : "document", "", false);
+                file.add(icon);
+                file.add(Box.createHorizontalStrut(5));
+                JLabel name = fileName(leaf);
                 file.add(name);
                 file.add(Box.createHorizontalStrut(5));
                 JLabel status = new JLabel((fr ? FR : EN).getOrDefault(row.change(), row.change()));
@@ -93,6 +98,29 @@ final class ArchvowFilePlanView extends JPanel {
         label.putClientProperty("html.disable", Boolean.TRUE);
         label.setIconTextGap(6);
         if (code) label.setFont(new Font(Font.MONOSPACED, Font.PLAIN, label.getFont().getSize()));
+        return label;
+    }
+
+    /** A compact code-style filename badge that adapts its contrast to IntelliJ's theme. */
+    private static JLabel fileName(String filename) {
+        JLabel label = new JLabel(filename) {
+            @Override protected void paintComponent(Graphics graphics) {
+                Graphics2D g = (Graphics2D) graphics.create();
+                try {
+                    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g.setColor(ArchvowMotion.dark() ? new Color(62, 61, 66) : new Color(237, 237, 237));
+                    g.fillRoundRect(0, 0, getWidth(), getHeight(), 5, 5);
+                } finally {
+                    g.dispose();
+                }
+                setForeground(ArchvowMotion.dark() ? new Color(255, 142, 132) : new Color(166, 35, 37));
+                super.paintComponent(graphics);
+            }
+        };
+        label.putClientProperty("html.disable", Boolean.TRUE);
+        label.setOpaque(false);
+        label.setFont(new Font(Font.MONOSPACED, Font.PLAIN, label.getFont().getSize()));
+        label.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
         return label;
     }
 

@@ -46,10 +46,52 @@ public final class NavigationTabsRegression {
                     tabs.setTitleAt(2, "Quick treatment (123)");
                     if (!tabs.getNavigationButton(2).getText().equals("Quick treatment (123)"))
                         throw new AssertionError("Title update missing");
-                    tabs.setSize(240, 420); // narrow sidebar must scroll instead of destroying buttons
+                    tabs.setSize(240, 420); // the noncompact strip still scrolls horizontally
                     tabs.doLayout();
                     tabs.getNavigationButton(2).doClick();
                     if (tabs.getSelectedIndex() != 2) throw new AssertionError("Narrow window navigation failed");
+                    // The sidebar instead wraps all three buttons (French included), without a
+                    // horizontal scrollbar covering the tabs at 300px like in the screenshot.
+                    ArchvowNavigationTabs sidebar = new ArchvowNavigationTabs();
+                    sidebar.addTab("Vue d'ensemble", new JPanel());
+                    sidebar.addTab("Composants", new JPanel());
+                    sidebar.addTab("Commandes", new JPanel());
+                    sidebar.setCompact(true);
+                    sidebar.setSize(275, 500);
+                    sidebar.doLayout();
+                    Container header = (Container) sidebar.getComponent(0);
+                    header.doLayout();
+                    Component[] contents = header.getComponents();
+                    if (contents.length != 1 || !(contents[0] instanceof JPanel tabStrip))
+                        throw new AssertionError("Compact tabs must not use a horizontal scroller");
+                    tabStrip.doLayout();
+                    int maxBottom = 0, minTop = Integer.MAX_VALUE;
+                    for (int i = 0; i < 3; i++) {
+                        AbstractButton button = sidebar.getNavigationButton(i);
+                        if (button.getWidth() == 0 || button.getHeight() == 0)
+                            throw new AssertionError("Compact tab was hidden: " + i);
+                        maxBottom = Math.max(maxBottom, button.getY() + button.getHeight());
+                        minTop = Math.min(minTop, button.getY());
+                    }
+                    if (maxBottom - minTop <= sidebar.getNavigationButton(0).getHeight())
+                        throw new AssertionError("Compact tabs failed to wrap in a narrow sidebar");
+                    if (header.getHeight() < maxBottom)
+                        throw new AssertionError("Responsive header clips its second line");
+                    sidebar.getNavigationButton(2).doClick();
+                    if (sidebar.getSelectedIndex() != 2)
+                        throw new AssertionError("Wrapped Commands tab is not clickable");
+                    sidebar.setSize(750, 500);
+                    sidebar.doLayout();
+                    header.doLayout();
+                    tabStrip.doLayout();
+                    if (sidebar.getNavigationButton(0).getY() != sidebar.getNavigationButton(2).getY())
+                        throw new AssertionError("Tabs did not return to one row after widening");
+                    sidebar.setCompact(false);
+                    if (!(header.getComponent(0) instanceof JScrollPane))
+                        throw new AssertionError("Full-width tabs lost their scrollable strip");
+                    sidebar.setCompact(true);
+                    if (!(header.getComponent(0) instanceof JPanel))
+                        throw new AssertionError("Tool-window tabs failed to restore wrapping");
                 }
             }
         });

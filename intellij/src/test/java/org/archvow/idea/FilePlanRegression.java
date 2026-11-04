@@ -131,6 +131,19 @@ public final class FilePlanRegression {
             "shared folder is shown once");
         check(labels.stream().anyMatch(l -> l.getText().equals("modifié")), "status localised in French");
         check(labels.stream().anyMatch(l -> l.getText().equals("orders_reader.py")), "planned files included");
+        JLabel filename = labels.stream().filter(l -> l.getText().equals("spec.vow")).findFirst()
+            .orElseThrow(() -> new AssertionError("Filename badge missing"));
+        check(filename.getIcon() == null && filename.getBorder() != null
+            && filename.getFont().getFamily().equals(java.awt.Font.MONOSPACED),
+            "Filename is a separate code badge, not its icon or description");
+        filename.setSize(filename.getPreferredSize());
+        java.awt.image.BufferedImage preview = new java.awt.image.BufferedImage(
+            filename.getWidth(), filename.getHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D graphics = preview.createGraphics();
+        filename.paint(graphics);
+        graphics.dispose();
+        check((preview.getRGB(1, filename.getHeight() / 2) >>> 24) != 0,
+            "Filename badge paints a visible background");
         view.showRows(List.of(), false);
         check(!view.isVisible() && view.getComponentCount() == 0, "Files preview clears when the form has no files");
     }
