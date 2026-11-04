@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "my_pipeline",
-      "template": "pyspark-pipeline@1.19.0",
+      "template": "pyspark-pipeline@1.20.0",
       "package": "my_pipeline",
       "path": "src/my_pipeline",
       "components": [

@@ -328,6 +328,42 @@
       }
      }
     },
+    "question accept": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "invoice_model",
+        "label": "invoice_model — model"
+       },
+       {
+        "value": "invoice_not_found_error",
+        "label": "invoice_not_found_error — error"
+       },
+       {
+        "value": "invoices_repository",
+        "label": "invoices_repository — repository"
+       },
+       {
+        "value": "mark_paid",
+        "label": "mark_paid — service"
+       },
+       {
+        "value": "invoices_cli",
+        "label": "invoices_cli — cli"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     }
+    },
     "question remove": {
      "component": {
       "kind": "select",
@@ -2133,6 +2169,42 @@
        "mark_paid": "Pas de numéro à donner : archvow la numérote - elle devient la question 5 de mark_paid.",
        "invoices_cli": "Pas de numéro à donner : archvow la numérote - elle devient la question 4 de invoices_cli."
       }
+     }
+    },
+    "question accept": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "invoice_model",
+        "label": "invoice_model — model"
+       },
+       {
+        "value": "invoice_not_found_error",
+        "label": "invoice_not_found_error — error"
+       },
+       {
+        "value": "invoices_repository",
+        "label": "invoices_repository — repository"
+       },
+       {
+        "value": "mark_paid",
+        "label": "mark_paid — service"
+       },
+       {
+        "value": "invoices_cli",
+        "label": "invoices_cli — cli"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
      }
     },
     "question remove": {
@@ -4040,6 +4112,54 @@
        "main": "No number to give: archvow numbers it - it becomes question 5 of main.",
        "orders_router": "No number to give: archvow numbers it - it becomes question 6 of orders_router."
       }
+     }
+    },
+    "question accept": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "get_current_user",
+        "label": "get_current_user — dependency"
+       },
+       {
+        "value": "settings",
+        "label": "settings — foundation"
+       },
+       {
+        "value": "new_order_model",
+        "label": "new_order_model — model"
+       },
+       {
+        "value": "order_model",
+        "label": "order_model — model"
+       },
+       {
+        "value": "order_not_found_error",
+        "label": "order_not_found_error — error"
+       },
+       {
+        "value": "orders_repository",
+        "label": "orders_repository — repository"
+       },
+       {
+        "value": "create_order",
+        "label": "create_order — service"
+       },
+       {
+        "value": "get_order",
+        "label": "get_order — service"
+       },
+       {
+        "value": "main",
+        "label": "main — app"
+       },
+       {
+        "value": "orders_router",
+        "label": "orders_router — router"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
      }
     },
     "question remove": {
@@ -6558,6 +6678,54 @@
        "main": "Pas de numéro à donner : archvow la numérote - elle devient la question 5 de main.",
        "orders_router": "Pas de numéro à donner : archvow la numérote - elle devient la question 6 de orders_router."
       }
+     }
+    },
+    "question accept": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "get_current_user",
+        "label": "get_current_user — dependency"
+       },
+       {
+        "value": "settings",
+        "label": "settings — foundation"
+       },
+       {
+        "value": "new_order_model",
+        "label": "new_order_model — model"
+       },
+       {
+        "value": "order_model",
+        "label": "order_model — model"
+       },
+       {
+        "value": "order_not_found_error",
+        "label": "order_not_found_error — error"
+       },
+       {
+        "value": "orders_repository",
+        "label": "orders_repository — repository"
+       },
+       {
+        "value": "create_order",
+        "label": "create_order — service"
+       },
+       {
+        "value": "get_order",
+        "label": "get_order — service"
+       },
+       {
+        "value": "main",
+        "label": "main — app"
+       },
+       {
+        "value": "orders_router",
+        "label": "orders_router — router"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
      }
     },
     "question remove": {
@@ -9099,6 +9267,54 @@
        "my_pipeline_job": "No number to give: archvow numbers it - it becomes question 4 of my_pipeline_job.",
        "my_pipeline_main": "No number to give: archvow numbers it - it becomes question 3 of my_pipeline_main."
       }
+     }
+    },
+    "question accept": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "spark",
+        "label": "spark — foundation"
+       },
+       {
+        "value": "clean_orders",
+        "label": "clean_orders — transformation"
+       },
+       {
+        "value": "compute_vat",
+        "label": "compute_vat — transformation"
+       },
+       {
+        "value": "orders_schema",
+        "label": "orders_schema — schema"
+       },
+       {
+        "value": "orders_reader",
+        "label": "orders_reader — reader"
+       },
+       {
+        "value": "vat_writer",
+        "label": "vat_writer — writer"
+       },
+       {
+        "value": "my_pipeline_job",
+        "label": "my_pipeline_job — job"
+       },
+       {
+        "value": "my_pipeline_main",
+        "label": "my_pipeline_main — entrypoint"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
      }
     },
     "question remove": {
@@ -11648,6 +11864,54 @@
        "my_pipeline_job": "Pas de numéro à donner : archvow la numérote - elle devient la question 4 de my_pipeline_job.",
        "my_pipeline_main": "Pas de numéro à donner : archvow la numérote - elle devient la question 3 de my_pipeline_main."
       }
+     }
+    },
+    "question accept": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "spark",
+        "label": "spark — foundation"
+       },
+       {
+        "value": "clean_orders",
+        "label": "clean_orders — transformation"
+       },
+       {
+        "value": "compute_vat",
+        "label": "compute_vat — transformation"
+       },
+       {
+        "value": "orders_schema",
+        "label": "orders_schema — schema"
+       },
+       {
+        "value": "orders_reader",
+        "label": "orders_reader — reader"
+       },
+       {
+        "value": "vat_writer",
+        "label": "vat_writer — writer"
+       },
+       {
+        "value": "my_pipeline_job",
+        "label": "my_pipeline_job — job"
+       },
+       {
+        "value": "my_pipeline_main",
+        "label": "my_pipeline_main — entrypoint"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
      }
     },
     "question remove": {

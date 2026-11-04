@@ -92,6 +92,16 @@ list of diagnostics. The chosen diagnostic shows its message, its file, and **it
 taken from `contract/cli/rules.md` (`ArchvowRuleDocs`, `ruleExplanation()`). View rule opens the checks
 reference; Open file goes to the line.
 
+## Briefs (0.16.0)
+
+A third sub-tab beside Architecture and Check & Gates, from archvow 1.20's `brief show --json` (read with the
+architecture; an older archvow has no such command: the tab says so). Each brief file, section by section: ✓
+used (the items drawn from it), ○ not used yet with **Draft with AI…** (the draft-spec launch form, the section
+filled in), ! changed since with **Review…** (opens the section) and **Accept change…** (the `brief accept`
+form). Its count is the sections not used plus the ones changed; the "Brief folders" line of the status strip
+links to it. **Add a briefs folder (architect)…** opens the init form prefilled. VS Code: `briefsView()`,
+`briefsDue()`; IntelliJ: `ArchvowBriefs.statusHtml`, `ArchvowBriefs.due`, links `DRAFT_LINK`, `ACCEPT_LINK`.
+
 ## The language
 
 At the bottom of Overview: the workspace's language (the IDE's, English or French). It is there, and

@@ -116,6 +116,27 @@ des paramètres (`smartParameters()`, `ArchvowColumnAnswerPanel` en mode `PARAME
 (vide = obligatoire), notes ; il relit une réponse déjà écrite ainsi, pas une phrase. Rien n'est enregistré :
 **Utiliser cette réponse** remplit le champ, à relire avant d'enregistrer.
 
+## D'où vient un élément, et ce que l'IA a ajouté (0.16.0)
+
+Pas d'onglet à part : ce que l'IA ajoute est dans Décisions, Sécurité et Règles, marqué. `aiView()` (VS Code,
+`vscode/src/aiSkills.ts`, calculé par l'extension pour chaque composant dans `state.ai`) et
+`ArchvowAiSkills.view` (IntelliJ) lisent `show --json` d'archvow 1.20 et donnent à chaque décision, hazard et
+règle une **origine** : `ai` (`added_by`, ou une réponse proposée par l'IA), `project` (`origin: type`), `brief`
+(`source`), `template` (une question du template, un hazard suggéré) - ou rien, celle d'une personne. Une
+étiquette par carte (`originTag()`, `ArchvowItemCards.tag`) ; `to_accept` la rend **À relire** (un contour bleu).
+Les vues les comptent (un point bleu sur la vue, « N de l'IA à relire » à côté du nom), **Tout / Ouverts / À
+relire** filtre les cartes (IntelliJ retrouve la ligne d'une carte filtrée par son numéro : `selectedRecord`).
+Dans les panneaux de réponse : **Pourquoi l'IA a demandé** ; une question de l'IA a **Garder, répondre plus
+tard** (`question accept`) et **Retirer la question**, Enregistrer la réponse la garde aussi ; un hazard de l'IA
+**Garder** (`hazard accept`) ; une règle de l'IA **Garder** / **Retirer** (`rule accept`, `rule remove`).
+
+**Suggéré ensuite avec l'IA** (`suggestStrip()`, `refreshSuggestion`) : une suggestion, avec sa raison - ce que
+l'IA a ajouté d'abord, puis Trouver les questions manquantes (tant qu'une personne ne l'a pas lancé ici : les
+skills lancés sont gardés par composant, état de l'espace de travail / `PropertiesComponent`), les décisions
+(pas de suggestion : au tour d'une personne), Trouver les risques, Implémenter, Relire les changements. **Skills
+IA ▾** (`aiMenu()`, `showAiMenu`) liste les cinq, le suggéré marqué, un skill qui ne peut pas encore tourner grisé
+avec sa raison (`blocked`).
+
 ## Enregistrer une réponse, de bout en bout
 
 ```mermaid

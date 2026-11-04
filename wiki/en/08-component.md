@@ -114,6 +114,26 @@ none); only what the question asks about is shown (a personal-data question has 
 back an answer written that way, not a sentence. Nothing is saved: **Use this answer** fills the field, to read
 before saving.
 
+## Where an item came from, and what the AI added (0.16.0)
+
+No tab of its own: what the AI added sits in Decisions, Safety and Rules, marked. `aiView()` (VS Code,
+`vscode/src/aiSkills.ts`, computed by the extension for each component as `state.ai`) and
+`ArchvowAiSkills.view` (IntelliJ) read archvow 1.20's `show --json` and give each decision, hazard and rule an
+**origin**: `ai` (`added_by`, or an answer the AI proposed), `project` (`origin: type`), `brief` (`source`),
+`template` (a template question, a suggested hazard) - or nothing, a person's own. One tag per card
+(`originTag()`, `ArchvowItemCards.tag`); `to_accept` makes it **To review** (a blue outline). The views count
+them (a blue dot on the view, "N from AI to review" next to the name), **All / Open / To review** filters the
+cards (IntelliJ finds the row of a filtered card by its number: `selectedRecord`). In the answer panels: **Why
+the AI asked**; an AI question has **Keep, answer later** (`question accept`) and **Remove question**, Save answer
+keeps it too; an AI hazard **Keep** (`hazard accept`); an AI rule **Keep** / **Remove** (`rule accept`, `rule
+remove`).
+
+**Suggested next with AI** (`suggestStrip()`, `refreshSuggestion`): one suggestion, with why - what the AI added
+first, then Find missing questions (until a person started it here: the skills started are kept per component,
+workspace state / `PropertiesComponent`), the decisions (no suggestion: a person's turn), Find risks, Implement,
+Review changes. **AI skills ▾** (`aiMenu()`, `showAiMenu`) lists the five, the suggested one marked, a skill that
+cannot run yet disabled with why (`blocked`).
+
 ## Saving an answer, end to end
 
 ```mermaid

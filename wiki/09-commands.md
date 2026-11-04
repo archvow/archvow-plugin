@@ -114,6 +114,18 @@ est demandé en Markdown et écrit dans ce fichier du projet, puis ouvert (`writ
 `archvow changes --from ... --markdown > CHANGES.md`. Le premier commit du dépôt (`git rev-list --max-parents=0
 HEAD`) est proposé en premier pour `--from`.
 
+## Les skills IA (0.16.0)
+
+Après les groupes propres à archvow, Commandes a **Skills IA** (`aiSkillsGroup()`, un `SkillNode` dans l'arbre
+d'IntelliJ) : les cinq en mots simples. Chacun ouvre le **formulaire de lancement** (`skillForm()`,
+`ArchvowSkillForm` dans une boîte de dialogue), design A : le composant (ou la section du brief pour draft-spec),
+au plus combien de questions (clarify), où va la demande (les `ai_tools` du projet) ; à droite ce qui va se
+passer, ce que l'IA peut ajouter, ce que la personne décide encore et la demande exacte (`request()`,
+`ArchvowAiSkills.request` : la commande slash de l'outil, sinon la phrase dans la langue de la page). Rien ne
+tourne : VS Code ouvre Copilot Chat avec la demande tapée (`workbench.action.chat.open`, `isPartialQuery`), sinon
+la copie ; IntelliJ la copie. Ce que l'assistant ajoute revient marqué comme celui de l'IA au rafraîchissement
+suivant.
+
 ## Confirmer avant de changer
 
 Une commande qui ne change rien (premier mot dans `READ_ONLY` : `show`, `catalog`, `next`, `check`,

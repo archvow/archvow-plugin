@@ -20,6 +20,11 @@ final class ArchvowDecisionView {
     }
 
     static void display(JTextPane pane, JsonObject row, boolean fr, boolean dark) {
+        display(pane, row, null, fr, dark);
+    }
+
+    /** 0.16.0: with where the decision came from - its origin tag, and why the AI asked when it did. */
+    static void display(JTextPane pane, JsonObject row, ArchvowAiSkills.Origin origin, boolean fr, boolean dark) {
         StyledDocument doc = pane.getStyledDocument();
         Color body = dark ? new Color(225, 231, 240) : new Color(42, 52, 67);
         Color secondary = dark ? new Color(164, 177, 192) : new Color(93, 106, 123);
@@ -37,8 +42,18 @@ final class ArchvowDecisionView {
             add(doc, pending ? (fr ? "RÉPONDRE À LA DÉCISION " : "ANSWER DECISION ") + number
                 : (fr ? "DÉCISION " : "DECISION ") + number, secondary, true, 11);
             if (!pending) add(doc, "   " + (fr ? "● TRAITÉE" : "● ANSWERED"), green, true, 11);
+            String tag = ArchvowItemCards.tag(origin, fr);
+            if (!tag.isEmpty()) add(doc, "   " + tag, "ai".equals(origin.tag()) ? blue : secondary, true, 11);
             add(doc, "\n", secondary, false, 6);
             add(doc, ArchvowGrammar.str(row, "question"), body, false, 15);
+            if (origin != null && "ai".equals(origin.tag()) && !origin.proposal()) {
+                add(doc, "\n\n" + (fr ? "POURQUOI L'IA A DEMANDÉ" : "WHY THE AI ASKED") + "\n", blue, true, 11);
+                if (!origin.why().isEmpty()) add(doc, origin.why() + "\n", body, false, 13);
+                add(doc, (fr ? "Ajouté par " : "Added by ") + (origin.who().isEmpty() ? "AI" : origin.who()), secondary, false, 11);
+                if (origin.toReview()) add(doc, "\n" + (fr
+                    ? "Enregistrer la réponse garde la question et enregistre ta décision en une fois."
+                    : "Save answer keeps the question and records your decision in one step."), secondary, false, 11);
+            }
             String recorded = ArchvowItemCards.byOn(row);
             if (!pending && !recorded.isBlank()) {
                 add(doc, "\n" + (fr ? "Enregistrée par " : "Recorded by ") + recorded, secondary, false, 11);

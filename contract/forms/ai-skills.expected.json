@@ -1,0 +1,389 @@
+[
+  {
+    "name": "every origin, what waits for a person",
+    "ai": {
+      "decisions": [
+        {
+          "tag": "template",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        },
+        {
+          "tag": "project",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        },
+        {
+          "tag": "brief",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "cleaning",
+          "proposal": false
+        },
+        {
+          "tag": "ai",
+          "toReview": true,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": true
+        },
+        {
+          "tag": "ai",
+          "toReview": true,
+          "who": "claude-code",
+          "why": "the brief shows cancelled orders",
+          "section": "",
+          "proposal": false
+        },
+        {
+          "tag": "ai",
+          "toReview": false,
+          "who": "copilot",
+          "why": "",
+          "section": "",
+          "proposal": false
+        },
+        {
+          "tag": "",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        }
+      ],
+      "hazards": {
+        "clean_orders.H1": {
+          "tag": "template",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        },
+        "clean_orders.H2": {
+          "tag": "ai",
+          "toReview": true,
+          "who": "claude-code",
+          "why": "a rerun doubles rows",
+          "section": "",
+          "proposal": false
+        },
+        "clean_orders.H3": {
+          "tag": "ai",
+          "toReview": true,
+          "who": "copilot",
+          "why": "said in review",
+          "section": "",
+          "proposal": false
+        }
+      },
+      "safety": [
+        false,
+        true,
+        true,
+        false
+      ],
+      "rules": {
+        "R1": {
+          "tag": "brief",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "cleaning",
+          "proposal": false
+        },
+        "R2": {
+          "tag": "ai",
+          "toReview": true,
+          "who": "claude-code",
+          "why": "the brief says so",
+          "section": "",
+          "proposal": false
+        },
+        "R3": {
+          "tag": "",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        }
+      },
+      "blocked": {
+        "implement": [
+          "Not yet: 6 items from the AI to review",
+          "Pas encore : 6 éléments de l'IA à relire"
+        ],
+        "review": [
+          "Nothing to review yet: no code",
+          "Rien à relire encore : pas de code"
+        ]
+      },
+      "suggest": {
+        "skill": "to-review",
+        "count": 6,
+        "reason": [
+          "6 items added by the AI wait for you: keep, change or remove each one.",
+          "6 éléments ajoutés par l'IA t'attendent : garder, changer ou retirer chacun."
+        ]
+      },
+      "toReview": {
+        "decisions": 2,
+        "safety": 2,
+        "rules": 1,
+        "assumptions": 1,
+        "component": 0,
+        "total": 6
+      }
+    }
+  },
+  {
+    "name": "a new component: look for what is open first",
+    "ai": {
+      "decisions": [
+        {
+          "tag": "template",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        }
+      ],
+      "hazards": {},
+      "safety": [
+        false
+      ],
+      "rules": {},
+      "blocked": {
+        "implement": [
+          "Not yet: 1 decision still to make",
+          "Pas encore : 1 décision encore à prendre"
+        ],
+        "review": [
+          "Nothing to review yet: no code",
+          "Rien à relire encore : pas de code"
+        ]
+      },
+      "suggest": {
+        "skill": "clarify",
+        "count": 0,
+        "reason": [
+          "No one has looked for what the spec leaves open yet: the AI adds up to 5 questions, you answer them.",
+          "Personne n'a encore cherché ce que la spec laisse ouvert : l'IA ajoute jusqu'à 5 questions, tu y réponds."
+        ]
+      },
+      "toReview": {
+        "decisions": 0,
+        "safety": 0,
+        "rules": 0,
+        "assumptions": 0,
+        "component": 0,
+        "total": 0
+      }
+    }
+  },
+  {
+    "name": "questions looked for: a person answers them",
+    "ai": {
+      "decisions": [
+        {
+          "tag": "template",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        }
+      ],
+      "hazards": {},
+      "safety": [
+        false
+      ],
+      "rules": {},
+      "blocked": {
+        "implement": [
+          "Not yet: 1 decision still to make",
+          "Pas encore : 1 décision encore à prendre"
+        ],
+        "review": [
+          "Nothing to review yet: no code",
+          "Rien à relire encore : pas de code"
+        ]
+      },
+      "suggest": null,
+      "toReview": {
+        "decisions": 0,
+        "safety": 0,
+        "rules": 0,
+        "assumptions": 0,
+        "component": 0,
+        "total": 0
+      }
+    }
+  },
+  {
+    "name": "decisions made: the risks",
+    "ai": {
+      "decisions": [
+        {
+          "tag": "template",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        }
+      ],
+      "hazards": {},
+      "safety": [
+        false,
+        false
+      ],
+      "rules": {},
+      "blocked": {
+        "review": [
+          "Nothing to review yet: no code",
+          "Rien à relire encore : pas de code"
+        ]
+      },
+      "suggest": {
+        "skill": "analyze",
+        "count": 2,
+        "reason": [
+          "2 safety questions are open. The AI proposes a hazard and an invariant for each; nothing counts until you keep it.",
+          "2 questions de sûreté sont ouvertes. L'IA propose un hazard et un invariant pour chacune ; rien ne compte tant que tu ne l'as pas gardé."
+        ]
+      },
+      "toReview": {
+        "decisions": 0,
+        "safety": 0,
+        "rules": 0,
+        "assumptions": 0,
+        "component": 0,
+        "total": 0
+      }
+    }
+  },
+  {
+    "name": "nothing open: implement",
+    "ai": {
+      "decisions": [
+        {
+          "tag": "template",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        }
+      ],
+      "hazards": {},
+      "safety": [
+        false
+      ],
+      "rules": {},
+      "blocked": {
+        "review": [
+          "Nothing to review yet: no code",
+          "Rien à relire encore : pas de code"
+        ]
+      },
+      "suggest": {
+        "skill": "implement",
+        "count": 0,
+        "reason": [
+          "Nothing is open: the AI can write the code and the tests.",
+          "Rien n'est ouvert : l'IA peut écrire le code et les tests."
+        ]
+      },
+      "toReview": {
+        "decisions": 0,
+        "safety": 0,
+        "rules": 0,
+        "assumptions": 0,
+        "component": 0,
+        "total": 0
+      }
+    }
+  },
+  {
+    "name": "the code exists: review",
+    "ai": {
+      "decisions": [
+        {
+          "tag": "template",
+          "toReview": false,
+          "who": "",
+          "why": "",
+          "section": "",
+          "proposal": false
+        }
+      ],
+      "hazards": {},
+      "safety": [],
+      "rules": {},
+      "blocked": {},
+      "suggest": {
+        "skill": "review",
+        "count": 0,
+        "reason": [
+          "The code exists: the AI reviews it against the spec and writes a report.",
+          "Le code existe : l'IA le relit par rapport à la spec et écrit un rapport."
+        ]
+      },
+      "toReview": {
+        "decisions": 0,
+        "safety": 0,
+        "rules": 0,
+        "assumptions": 0,
+        "component": 0,
+        "total": 0
+      }
+    }
+  },
+  {
+    "name": "a component the AI created",
+    "ai": {
+      "decisions": [],
+      "hazards": {},
+      "safety": [],
+      "rules": {},
+      "blocked": {
+        "implement": [
+          "Not yet: 1 item from the AI to review",
+          "Pas encore : 1 élément de l'IA à relire"
+        ],
+        "review": [
+          "Nothing to review yet: no code",
+          "Rien à relire encore : pas de code"
+        ]
+      },
+      "suggest": {
+        "skill": "to-review",
+        "count": 1,
+        "reason": [
+          "1 item added by the AI waits for you: keep, change or remove each one.",
+          "1 élément ajouté par l'IA t'attend : garder, changer ou retirer chacun."
+        ]
+      },
+      "toReview": {
+        "decisions": 0,
+        "safety": 0,
+        "rules": 0,
+        "assumptions": 0,
+        "component": 1,
+        "total": 1
+      }
+    }
+  }
+]

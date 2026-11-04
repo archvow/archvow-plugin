@@ -10,7 +10,7 @@ Orders
 
 ```mermaid
 flowchart TB
-  subgraph orders_api["orders_api (fastapi-service@1.19.0)"]
+  subgraph orders_api["orders_api (fastapi-service@1.20.0)"]
     direction TB
     subgraph orders_api__p0_common["p0_common"]
       orders_api__get_current_user["get_current_user<br/><small>dependency - US-001</small>"]
@@ -171,7 +171,7 @@ What `archvow check` verifies on every component's code, family by family (the f
 | ARCH036 | error | Invalid hazard, dismissal, invariant or project rule entry |
 | ARCH037 | error | Invariant tested too weakly for the hazard's severity |
 | ARCH038 | warning | A decision or rule of an implemented component has no marked test |
-| ARCH043 | warning | A decision the AI proposed, or a component it created, is not reviewed by a person yet (an error at the release gate in mode guided) |
+| ARCH043 | warning | What the AI proposed or added (a decision, a component, a question, a hazard, a rule) is not reviewed by a person yet (an error at the release gate in mode guided) |
 | ARCH044 | warning | A component's task is too long for one AI session (over max_tokens) |
 | ARCH045 | warning | A test marked as evidence checks nothing (an error in mode strict and with --complete) |
 | ARCH046 | error | A marked test did not run and pass in the test report (check --test-report) |

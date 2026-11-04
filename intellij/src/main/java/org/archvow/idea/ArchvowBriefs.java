@@ -220,6 +220,85 @@ final class ArchvowBriefs {
             + (files == 1 ? (french ? "fichier" : "file") : (french ? "fichiers" : "files"));
     }
 
+    /** archvow 1.20 brief show --json: the sections not used yet plus the ones changed since (Overview › Briefs). */
+    static int due(JsonObject status) {
+        if (status == null) return 0;
+        return number(status, "to_draft") + number(status, "changed");
+    }
+
+    private static int number(JsonObject o, String key) {
+        try { return o.has(key) ? o.get(key).getAsInt() : 0; } catch (RuntimeException e) { return 0; }
+    }
+
+    static final String DRAFT_LINK = "archvow-draft:";
+    static final String ACCEPT_LINK = "archvow-brief-accept:";
+
+    /**
+     * Overview › Briefs (0.16.0, the same as the VS Code page's briefsView()): every brief, section by section -
+     * ✓ what the spec draws from it, ○ not used yet (Draft with AI…), ! changed since (Review… opens the
+     * section, Accept change… records it). Links: {@link #BRIEF_LINK}, {@link #DRAFT_LINK}, {@link #ACCEPT_LINK},
+     * {@link #INIT_LINK} (add a folder, for an architect).
+     */
+    static String statusHtml(JsonObject status, String pkg, boolean french) {
+        if (status == null) return "<p style='color:#6B7280'>" + escape(french
+            ? "Cet archvow ne sait pas lister les briefs section par section (archvow 1.20 ou plus récent le fait)."
+            : "This archvow cannot list the briefs section by section (archvow 1.20 or later does).") + "</p>";
+        StringBuilder out = new StringBuilder();
+        List<String> folders = new ArrayList<>();
+        if (status.has("folders") && status.get("folders").isJsonArray())
+            for (JsonElement f : status.getAsJsonArray("folders")) folders.add(f.getAsString());
+        out.append("<p style='color:#6B7280'>").append(french ? "dossiers : " : "folders: ")
+            .append(escape(String.join(", ", folders.stream().map(f -> f + "/").toList()))).append("</p>");
+        boolean any = false;
+        if (status.has("files") && status.get("files").isJsonArray()) for (JsonElement fe : status.getAsJsonArray("files")) {
+            if (!fe.isJsonObject()) continue;
+            any = true;
+            JsonObject f = fe.getAsJsonObject();
+            String file = text(f, "file");
+            List<JsonObject> rows = new ArrayList<>();
+            if (f.has("sections") && f.get("sections").isJsonArray())
+                for (JsonElement r : f.getAsJsonArray("sections")) if (r.isJsonObject()) rows.add(r.getAsJsonObject());
+            long used = rows.stream().filter(r -> r.has("items") && r.getAsJsonArray("items").size() > 0).count();
+            out.append("<p><b>").append(escape(file)).append("</b> &nbsp;<span style='color:#6B7280'>")
+                .append(french ? used + " sections utilisées sur " + rows.size() : used + " of " + rows.size() + " sections used")
+                .append("</span></p><table cellpadding='2'>");
+            for (JsonObject r : rows) {
+                String section = text(r, "section");
+                String ref = section.isEmpty() ? file : file + "#" + section;
+                String code = URLEncoder.encode(ref, StandardCharsets.UTF_8);
+                String name = section.isEmpty() ? (french ? "(tout le fichier)" : "(the whole file)") : "#" + section;
+                List<String> items = new ArrayList<>();
+                if (r.has("items") && r.get("items").isJsonArray()) for (JsonElement i : r.getAsJsonArray("items")) items.add(i.getAsString());
+                boolean changed = r.has("changed") && r.get("changed").getAsBoolean();
+                String open = "<a href='" + BRIEF_LINK + code + "'>" + escape(name) + "</a>";
+                if (changed) out.append("<tr><td style='color:#B0761A'><b>!</b></td><td>").append(open).append("</td><td style='color:#B0761A'>")
+                    .append(escape((french ? "changé depuis : " : "changed since: ") + String.join(", ", items)))
+                    .append("</td><td><a href='").append(BRIEF_LINK).append(code).append("'>").append(french ? "Relire…" : "Review…")
+                    .append("</a> &nbsp;<a href='").append(ACCEPT_LINK).append(code).append("'>")
+                    .append(french ? "Accepter le changement…" : "Accept change…").append("</a></td></tr>");
+                else if (!items.isEmpty()) out.append("<tr><td style='color:#18844F'><b>✓</b></td><td>").append(open)
+                    .append("</td><td style='color:#6B7280'>").append(escape(String.join(", ", items))).append("</td><td></td></tr>");
+                else out.append("<tr><td style='color:#B0761A'><b>○</b></td><td>").append(open).append("</td><td style='color:#6B7280'>")
+                    .append(french ? "pas encore utilisée" : "not used yet").append("</td><td><a href='").append(DRAFT_LINK).append(code)
+                    .append("'>").append(french ? "Rédiger avec l'IA…" : "Draft with AI…").append("</a></td></tr>");
+            }
+            out.append("</table>");
+        }
+        if (!any) out.append("<p style='color:#6B7280'>").append(escape(french ? "Aucun fichier .md ou .txt dans les dossiers de briefs pour le moment."
+            : "No .md or .txt file in the briefs folders yet.")).append("</p>");
+        out.append("<p style='color:#6B7280'>").append(escape(french ? "✓ utilisée par la spec · ○ pas encore utilisée · ! changée depuis son acceptation (ARCH039)"
+            : "✓ used by the spec · ○ not used yet · ! changed since accepted (ARCH039)")).append("</p>");
+        out.append("<p><a href='").append(INIT_LINK).append(URLEncoder.encode(pkg == null ? "" : pkg, StandardCharsets.UTF_8)).append("|")
+            .append(URLEncoder.encode("briefs=" + String.join(",", folders) + ",", StandardCharsets.UTF_8)).append("'>")
+            .append(french ? "Ajouter un dossier de briefs (architecte)…" : "Add a briefs folder (architect)…").append("</a></p>");
+        return out.toString();
+    }
+
+    /** The brief reference of a Draft / Accept link, or "". */
+    static String linkRef(String link, String prefix) {
+        return link != null && link.startsWith(prefix) ? URLDecoder.decode(link.substring(prefix.length()), StandardCharsets.UTF_8) : "";
+    }
+
     private static String text(JsonObject o, String key) {
         return o.has(key) && o.get(key).isJsonPrimitive() ? o.get(key).getAsString() : "";
     }

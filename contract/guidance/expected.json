@@ -2676,11 +2676,11 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.19.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.20.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.19.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
-   "todo": "Upgrade the project to 1.19.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
+   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.20.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
+   "todo": "Upgrade the project to 1.20.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
    "who": "An architect: it changes the guards of the whole project.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then commit: the warning disappears.",
@@ -2700,11 +2700,11 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.19.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.20.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.19.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
-   "todo": "Mettez le projet en 1.19.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
+   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.20.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
+   "todo": "Mettez le projet en 1.20.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
    "who": "Un architecte : cela change les garde-fous de tout le projet.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite commitez : l'avertissement disparaît.",
@@ -18289,8 +18289,8 @@
   "message": "'clean_order' was created by the AI (claude-code), not accepted by a person yet -> a person checks it (archvow show clean_order), then archvow component accept clean_order (or component remove clean_order)",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18312,8 +18312,8 @@
   "message": "'clean_order' was created by the AI (claude-code), not accepted by a person yet -> a person checks it (archvow show clean_order), then archvow component accept clean_order (or component remove clean_order)",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18335,8 +18335,8 @@
   "message": "'clean_orders' decision 1 was proposed by the AI, not reviewed yet: \"answer 1\" -> a person runs archvow decision accept clean_orders 1 (or decision make clean_orders 1 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18359,8 +18359,8 @@
   "message": "'clean_orders' decision 1 was proposed by the AI, not reviewed yet: \"answer 1\" -> a person runs archvow decision accept clean_orders 1 (or decision make clean_orders 1 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18383,8 +18383,8 @@
   "message": "'clean_orders' decision 10 was proposed by the AI, not reviewed yet: \"UTC\" -> a person runs archvow decision accept clean_orders 10 (or decision make clean_orders 10 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18407,8 +18407,8 @@
   "message": "'clean_orders' decision 10 was proposed by the AI, not reviewed yet: \"UTC\" -> a person runs archvow decision accept clean_orders 10 (or decision make clean_orders 10 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18431,8 +18431,8 @@
   "message": "'clean_orders' decision 11 was proposed by the AI, not reviewed yet: \"UTC\" -> a person runs archvow decision accept clean_orders 11 (or decision make clean_orders 11 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18455,8 +18455,8 @@
   "message": "'clean_orders' decision 11 was proposed by the AI, not reviewed yet: \"UTC\" -> a person runs archvow decision accept clean_orders 11 (or decision make clean_orders 11 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18479,8 +18479,8 @@
   "message": "'clean_orders' decision 2 was proposed by the AI, not reviewed yet: \"answer 2\" -> a person runs archvow decision accept clean_orders 2 (or decision make clean_orders 2 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18503,8 +18503,8 @@
   "message": "'clean_orders' decision 2 was proposed by the AI, not reviewed yet: \"answer 2\" -> a person runs archvow decision accept clean_orders 2 (or decision make clean_orders 2 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18527,8 +18527,8 @@
   "message": "'clean_orders' decision 3 was proposed by the AI, not reviewed yet: \"answer 3\" -> a person runs archvow decision accept clean_orders 3 (or decision make clean_orders 3 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18551,8 +18551,8 @@
   "message": "'clean_orders' decision 3 was proposed by the AI, not reviewed yet: \"answer 3\" -> a person runs archvow decision accept clean_orders 3 (or decision make clean_orders 3 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18575,8 +18575,8 @@
   "message": "'clean_orders' decision 4 was proposed by the AI, not reviewed yet: \"answer 4\" -> a person runs archvow decision accept clean_orders 4 (or decision make clean_orders 4 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18599,8 +18599,8 @@
   "message": "'clean_orders' decision 4 was proposed by the AI, not reviewed yet: \"answer 4\" -> a person runs archvow decision accept clean_orders 4 (or decision make clean_orders 4 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18623,8 +18623,8 @@
   "message": "'clean_orders' decision 5 was proposed by the AI, not reviewed yet: \"answer 5\" -> a person runs archvow decision accept clean_orders 5 (or decision make clean_orders 5 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18647,8 +18647,8 @@
   "message": "'clean_orders' decision 5 was proposed by the AI, not reviewed yet: \"answer 5\" -> a person runs archvow decision accept clean_orders 5 (or decision make clean_orders 5 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18671,8 +18671,8 @@
   "message": "'clean_orders' decision 6 was proposed by the AI, not reviewed yet: \"Drop the row\" -> a person runs archvow decision accept clean_orders 6 (or decision make clean_orders 6 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18695,8 +18695,8 @@
   "message": "'clean_orders' decision 6 was proposed by the AI, not reviewed yet: \"Drop the row\" -> a person runs archvow decision accept clean_orders 6 (or decision make clean_orders 6 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18719,8 +18719,8 @@
   "message": "'clean_orders' decision 7 was proposed by the AI, not reviewed yet: \"answer 7\" -> a person runs archvow decision accept clean_orders 7 (or decision make clean_orders 7 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18743,8 +18743,8 @@
   "message": "'clean_orders' decision 7 was proposed by the AI, not reviewed yet: \"answer 7\" -> a person runs archvow decision accept clean_orders 7 (or decision make clean_orders 7 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18767,8 +18767,8 @@
   "message": "'clean_orders' decision 8 was proposed by the AI, not reviewed yet: \"answer 8\" -> a person runs archvow decision accept clean_orders 8 (or decision make clean_orders 8 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18791,8 +18791,8 @@
   "message": "'clean_orders' decision 8 was proposed by the AI, not reviewed yet: \"answer 8\" -> a person runs archvow decision accept clean_orders 8 (or decision make clean_orders 8 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18815,8 +18815,8 @@
   "message": "'clean_orders' decision 9 was proposed by the AI, not reviewed yet: \"answer 9\" -> a person runs archvow decision accept clean_orders 9 (or decision make clean_orders 9 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, or a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet",
-   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`)",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -18839,8 +18839,8 @@
   "message": "'clean_orders' decision 9 was proposed by the AI, not reviewed yet: \"answer 9\" -> a person runs archvow decision accept clean_orders 9 (or decision make clean_orders 9 \"...\")",
   "guide": {
    "code": "ARCH043",
-   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, ou un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté",
-   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`)",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -18851,6 +18851,346 @@
      "number": "9"
     },
     "text": "archvow decision accept clean_orders 9",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH043",
+  "message": "'clean_orders' question 10 was asked by the AI (claude-code), not kept by a person yet: \"A cancelled order: keep, drop, or drop and count it?\" -> a person answers it (archvow decision make clean_orders 10 \"...\"), keeps it (archvow question accept clean_orders 10) or removes it (question remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "clean_orders",
+     "question": "10"
+    },
+    "text": "archvow decision make clean_orders 10 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH043",
+  "message": "'clean_orders' question 10 was asked by the AI (claude-code), not kept by a person yet: \"A cancelled order: keep, drop, or drop and count it?\" -> a person answers it (archvow decision make clean_orders 10 \"...\"), keeps it (archvow question accept clean_orders 10) or removes it (question remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "clean_orders",
+     "question": "10"
+    },
+    "text": "archvow decision make clean_orders 10 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH043",
+  "message": "'clean_orders' question 11 was asked by the AI (claude-code), not kept by a person yet: \"Negative amounts: reject the row or the file?\" -> a person answers it (archvow decision make clean_orders 11 \"...\"), keeps it (archvow question accept clean_orders 11) or removes it (question remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "clean_orders",
+     "question": "11"
+    },
+    "text": "archvow decision make clean_orders 11 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH043",
+  "message": "'clean_orders' question 11 was asked by the AI (claude-code), not kept by a person yet: \"Negative amounts: reject the row or the file?\" -> a person answers it (archvow decision make clean_orders 11 \"...\"), keeps it (archvow question accept clean_orders 11) or removes it (question remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "clean_orders",
+     "question": "11"
+    },
+    "text": "archvow decision make clean_orders 11 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH043",
+  "message": "'config' question 3 was asked by the AI (claude-code), not kept by a person yet: \"Which encoding?\" -> a person answers it (archvow decision make config 3 \"...\"), keeps it (archvow question accept config 3) or removes it (question remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "config",
+     "question": "3"
+    },
+    "text": "archvow decision make config 3 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH043",
+  "message": "'config' question 3 was asked by the AI (claude-code), not kept by a person yet: \"Which encoding?\" -> a person answers it (archvow decision make config 3 \"...\"), keeps it (archvow question accept config 3) or removes it (question remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "config",
+     "question": "3"
+    },
+    "text": "archvow decision make config 3 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH043",
+  "message": "R1 was added by the AI (claude-code), not kept by a person yet: \"Rows with is_test are never written\" -> archvow rule accept R1 (or rule edit / rule remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "rule accept",
+    "values": {
+     "id": "R1"
+    },
+    "text": "archvow rule accept R1",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH043",
+  "message": "R1 was added by the AI (claude-code), not kept by a person yet: \"Rows with is_test are never written\" -> archvow rule accept R1 (or rule edit / rule remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "rule accept",
+    "values": {
+     "id": "R1"
+    },
+    "text": "archvow rule accept R1",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH043",
+  "message": "R2 was added by the AI (claude-code), not kept by a person yet: \"Amounts are in cents\" -> archvow rule accept R2 (or rule edit / rule remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "rule accept",
+    "values": {
+     "id": "R2"
+    },
+    "text": "archvow rule accept R2",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH043",
+  "message": "R2 was added by the AI (claude-code), not kept by a person yet: \"Amounts are in cents\" -> archvow rule accept R2 (or rule edit / rule remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "rule accept",
+    "values": {
+     "id": "R2"
+    },
+    "text": "archvow rule accept R2",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH043",
+  "message": "clean_orders.H1 was added by the AI (claude-code), not kept by a person yet -> archvow hazard accept clean_orders.H1 (or hazard edit / hazard remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "hazard accept",
+    "values": {
+     "id": "clean_orders.H1"
+    },
+    "text": "archvow hazard accept clean_orders.H1",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH043",
+  "message": "clean_orders.H1 was added by the AI (claude-code), not kept by a person yet -> archvow hazard accept clean_orders.H1 (or hazard edit / hazard remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "hazard accept",
+    "values": {
+     "id": "clean_orders.H1"
+    },
+    "text": "archvow hazard accept clean_orders.H1",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH043",
+  "message": "clean_orders.INV1 was added by the AI (claude-code), not kept by a person yet -> archvow hazard accept clean_orders.H1 (or invariant edit / invariant remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "hazard accept",
+    "values": {
+     "id": "clean_orders.H1"
+    },
+    "text": "archvow hazard accept clean_orders.H1",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH043",
+  "message": "clean_orders.INV1 was added by the AI (claude-code), not kept by a person yet -> archvow hazard accept clean_orders.H1 (or invariant edit / invariant remove)",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "hazard accept",
+    "values": {
+     "id": "clean_orders.H1"
+    },
+    "text": "archvow hazard accept clean_orders.H1",
     "missing": [],
     "readOnly": false
    },
@@ -19040,7 +19380,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "logging_setup: its task is about 561 tokens, over 500 - split it into smaller components",
+  "message": "logging_setup: its task is about 602 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -19058,7 +19398,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "logging_setup: its task is about 561 tokens, over 500 - split it into smaller components",
+  "message": "logging_setup: its task is about 602 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -19724,43 +20064,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit b6d264f2: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
-   "todo": "Redo the commit with the hooks on: git reset --soft HEAD~1, then git commit. If the hooks never run on your machine: git config core.hooksPath .githooks.",
-   "who": "You, who made the commit.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then push again: CI checks the branch again.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "ARCH053",
-  "message": "commit b6d264f2: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
-   "todo": "Refaites le commit avec les hooks : git reset --soft HEAD~1, puis git commit. Si les hooks ne tournent jamais sur votre poste : git config core.hooksPath .githooks.",
-   "who": "Vous, qui avez fait le commit.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "ARCH053",
-  "message": "commit fd906dab: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 4ca4bd00: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
@@ -19778,7 +20082,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit fd906dab: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 4ca4bd00: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
@@ -19786,6 +20090,42 @@
    "who": "Vous, puis les architectes.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH053",
+  "message": "commit 7c793c56: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
+   "todo": "Redo the commit with the hooks on: git reset --soft HEAD~1, then git commit. If the hooks never run on your machine: git config core.hooksPath .githooks.",
+   "who": "You, who made the commit.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then push again: CI checks the branch again.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH053",
+  "message": "commit 7c793c56: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
+   "todo": "Refaites le commit avec les hooks : git reset --soft HEAD~1, puis git commit. Si les hooks ne tournent jamais sur votre poste : git config core.hooksPath .githooks.",
+   "who": "Vous, qui avez fait le commit.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",

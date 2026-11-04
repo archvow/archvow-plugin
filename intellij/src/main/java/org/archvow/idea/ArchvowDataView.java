@@ -144,6 +144,11 @@ final class ArchvowDataView {
     }
 
     static void renderRules(JTextPane pane, JsonObject component, boolean french) {
+        renderRules(pane, component, java.util.Map.of(), french);
+    }
+
+    /** 0.16.0: with each rule's origin (Brief, AI · agent · To review) and why the AI added it. */
+    static void renderRules(JTextPane pane, JsonObject component, java.util.Map<String, ArchvowAiSkills.Origin> origins, boolean french) {
         boolean dark = isDark();
         Color main = dark ? new Color(222,229,237) : new Color(35,47,66);
         StyledDocument document = new DefaultStyledDocument();
@@ -162,6 +167,10 @@ final class ArchvowDataView {
                 String text = ArchvowGrammar.str(rule,"text");
                 String scope = readable(rule.get("scope"));
                 append(document, "\n" + (id.isBlank() ? "•" : id) + "  " + text + "\n", plain);
+                ArchvowAiSkills.Origin origin = origins.get(id);
+                String tag = ArchvowItemCards.tag(origin, french);
+                if (!tag.isEmpty()) append(document, tag + (origin.why().isEmpty() ? "" : " - " + (french ? "pourquoi : " : "why: ") + origin.why()) + "\n",
+                    style(dark ? new Color(128, 170, 245) : new Color(46, 90, 172), "ai".equals(origin.tag()), 12));
                 if (!scope.isBlank() && !"—".equals(scope))
                     append(document, (french ? "Portée : " : "Scope: ") + scope + "\n", muted);
             }

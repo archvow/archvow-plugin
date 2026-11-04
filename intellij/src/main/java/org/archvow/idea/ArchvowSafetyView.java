@@ -25,6 +25,12 @@ final class ArchvowSafetyView {
     }
 
     static void display(JTextPane pane, JsonObject question, boolean french, boolean dark) {
+        display(pane, question, java.util.Map.of(), french, dark);
+    }
+
+    /** 0.16.0: with each hazard's origin (Template, AI · agent · To review) and why the AI added it. */
+    static void display(JTextPane pane, JsonObject question, java.util.Map<String, ArchvowAiSkills.Origin> origins,
+                        boolean french, boolean dark) {
         StyledDocument doc = pane.getStyledDocument();
         Color body = dark ? new Color(225, 231, 240) : new Color(42, 52, 67);
         Color secondary = dark ? new Color(164, 177, 192) : new Color(93, 106, 123);
@@ -75,8 +81,13 @@ final class ArchvowSafetyView {
                     add(doc, (french ? "Gravité" : "Severity") + "  ·  " + severity + "\n",
                         serious ? amber : secondary, true, 12);
                 }
+                ArchvowAiSkills.Origin origin = origins.get(id);
+                String tag = ArchvowItemCards.tag(origin, french);
+                if (!tag.isEmpty()) add(doc, tag + "\n", "ai".equals(origin.tag()) ? blue : secondary, true, 11);
                 String description = ArchvowGrammar.str(hazard, "description");
                 add(doc, description.isBlank() ? "—" : description, body, false, 13);
+                if (origin != null && !origin.why().isEmpty())
+                    add(doc, "\n" + (french ? "Pourquoi : " : "Why: ") + origin.why(), secondary, false, 12);
 
                 List<JsonObject> invariants = ArchvowGrammar.objects(hazard, "prevented_by");
                 for (JsonObject invariant : invariants) {

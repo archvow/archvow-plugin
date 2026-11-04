@@ -12,6 +12,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ArchvowCli, CliResult, CliSettings } from './cli';
+import { aiView, AiView, request } from './aiSkills';
 import { Briefs, locate, readBriefs } from './briefs';
 import { bestBase, Book, choiceBook, missingRef, refNames } from './choices';
 import { renderResult } from './formatter';
@@ -58,6 +59,14 @@ export interface State {
   choices: Book;
   /** The types a person can add in each layer (the Components tab's "+", 0.15.0). */
   addable: Record<string, { type: string; description: string }[]>;
+  /** Per component, where each item came from, what the AI added that waits for a person, the next skill (0.16.0). */
+  ai: Record<string, AiView>;
+  /** The skills a person started from here, per component (kept in the workspace), so the suggestion moves on. */
+  launched: Record<string, string[]>;
+  /** `archvow brief show --json` (archvow 1.20): every brief, section by section; null with an older archvow. */
+  briefStatus: Json | null;
+  /** The project's approved AI tools (init answer ai_tools): where a skill's request goes. */
+  aiTools: string[];
 }
 
 type Target = 'overview' | 'component' | 'command' | 'quick' | 'decision' | 'question' | 'safety' | 'data';
@@ -189,7 +198,8 @@ export class ArchvowProject {
       readiness: readiness(this.root), welcomeError: '', branch: '', loading: '', spec: null, check: null, checkFailure: '',
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
-      refs: [], base: '', choices: {}, addable: {},
+      refs: [], base: '', choices: {}, addable: {}, ai: {},
+      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, aiTools: [],
     };
   }
 
@@ -239,6 +249,9 @@ export class ArchvowProject {
       this.state.welcomeError = '';
       this.state.spec = spec;
       this.state.briefs = readBriefs(this.root, spec);
+      this.state.aiTools = Array.isArray(spec.ai_tools) ? spec.ai_tools.map(String) : [];
+      // archvow 1.20: what each brief section gives (an older archvow has no `brief show`: no Briefs view)
+      this.state.briefStatus = parse((await this.cli.run(['brief', 'show', '--json'])).stdout);
       // the project's catalog: its template's types and kinds, and the project's own templates (component add, template new)
       const catalog = parse((await this.cli.run(['catalog', '--json'])).stdout);
       if (catalog !== null && objects(catalog, 'templates').length > 0) this.projectCatalog = catalog;
@@ -288,6 +301,7 @@ export class ArchvowProject {
       fs.readFileSync(path.join(this.resources, s.fr ? 'rules.fr.md' : 'rules.md'), 'utf8'), this.commands);
     s.rows = architectureRows(s.spec, s.check, s.snapshots, s.work.pendingByComponent);
     s.derived = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, derive(view)]));
+    s.ai = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, aiView(view, s.launched[id] ?? [])]));
     this.recomputeChoices();
     this.changed.fire();
   }
@@ -709,6 +723,11 @@ export class ArchvowProject {
         const where = locate(this.state.briefs, String(m.ref ?? ''));
         return this.openProjectFile(where.file, where.line);
       }
+      case 'openSkill':
+        this.toEditor({ type: 'skill', skill: String(m.skill), values: (m.values ?? {}) as Record<string, string> });
+        return;
+      case 'askAi':
+        return this.askAi(String(m.skill), String(m.tool ?? ''), (m.values ?? {}) as Record<string, string>, m.send === true);
       case 'copy':
         await vscode.env.clipboard.writeText(String(m.text ?? ''));
         void vscode.window.showInformationMessage(tr(fr, 'Copied.', 'Copié.'));
@@ -729,6 +748,38 @@ export class ArchvowProject {
         await vscode.commands.executeCommand('archvow.workspace.focus');
         return;
     }
+  }
+
+  /**
+   * An AI skill, started by a person (0.16.0): the request goes to the assistant's chat, typed and not sent
+   * (Copilot Chat in VS Code), or to the clipboard for the others. The skill is remembered for the component so
+   * the suggestion moves on. archvow is never run here: the assistant runs it, and what it adds comes back
+   * marked as the AI's (archvow 1.20) at the next refresh.
+   */
+  private async askAi(skill: string, tool: string, values: Record<string, string>, send: boolean): Promise<void> {
+    const fr = this.state.fr;
+    const text = request((this.forms.ai_skills ?? {}) as Json, skill, tool, values, fr);
+    if (!text) return;
+    const component = values.component ?? '';
+    if (component) {
+      const done = new Set(this.state.launched[component] ?? []);
+      done.add(skill);
+      this.state.launched = { ...this.state.launched, [component]: [...done] };
+      await this.context.workspaceState.update('archvow.launched', this.state.launched);
+      this.recompute();
+      this.publish();
+    }
+    if (send && tool === 'copilot') {
+      try {
+        await vscode.commands.executeCommand('workbench.action.chat.open', { query: text, isPartialQuery: true });
+        return;
+      } catch {
+        // no chat in this VS Code: the clipboard below
+      }
+    }
+    await vscode.env.clipboard.writeText(text);
+    void vscode.window.showInformationMessage(tr(fr, `Request copied: paste it in ${tool || 'your AI assistant'}.`,
+      `Demande copiée : colle-la dans ${tool || 'ton assistant IA'}.`));
   }
 
   /** Check from the sidebar's title bar or the command palette: the result in the editor tab, the checks in Overview. */

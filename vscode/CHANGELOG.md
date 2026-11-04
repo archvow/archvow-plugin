@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.16.0 - 2026-11-04
+
+Built on archvow 1.20 (the contract regenerated from it). The AI skills become easy to reach and their work easy to
+review, without a new tab: what the AI adds sits in the views it belongs to, marked. Both IDEs, the same functions.
+
+- **One origin tag per card**, in Decisions, Safety and Rules: **Template** (came with the component type),
+  **Project** (answered once for every component of the type), **Brief #section** (drawn from a brief), **AI ·
+  agent** (added by an AI agent) - nothing for a person's own. What the AI added and no person kept yet is outlined
+  in blue and says **To review**; its answer panel shows **Why the AI asked**.
+- **Keep or remove what the AI added, where it is**: an AI question - **Save answer** keeps it and decides it in
+  one step, **Keep, answer later** (`question accept`), **Remove question**; an AI hazard - **Keep**
+  (`hazard accept`, with the invariants the AI added to prevent it); an AI rule - **Keep** / **Remove**.
+- **All / Open / To review** beside the views, a blue dot and a count on each view that has something from the
+  AI, and "N from AI to review" next to the component's name.
+- **Suggested next with AI**: one suggestion at a time under the description, with why - what the AI added waits
+  first, then Find missing questions, Find risks, Implement, Review changes, from the component's state.
+- **AI skills ▾** on every component: the five skills in plain words, in the order of the work, the skill's own
+  name small beside it, and why one cannot run yet ("Not yet: 2 decisions still to make").
+- **The launch form of a skill** (design A): what the AI reads, at most how many questions, where the request
+  goes (the project's `ai_tools`); on the right what will happen, what the AI may add, what you still decide and the
+  exact request. VS Code opens Copilot Chat with it typed (you press Enter), or copies it for the other tools;
+  IntelliJ copies it.
+- **Commands: an "AI skills" group** after archvow's commands.
+- **Overview › Briefs**, beside Architecture and Check & Gates (`archvow brief show`): every brief section by
+  section - used (and by what), not used yet (**Draft with AI…**), changed since (**Review…**, **Accept change…**);
+  the "Brief folders" line links to it.
+- The skills, the origins and the requests live once in `contract/forms/forms.json` (`ai_skills`); both IDEs
+  compute the same view of a component (`ai-skills.scenarios.json` / `ai-skills.expected.json`).
+
 ## 0.15.0 - 2026-11-04
 
 Built on archvow 1.19 (works with 1.19.0 and 1.19.1: the parameters questions of 1.19.1 say "no default =

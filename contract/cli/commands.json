@@ -674,6 +674,57 @@
           "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
           "hidden": false,
           "metavar": "BRIEF"
+        },
+        {
+          "name": "why",
+          "flags": [
+            "--why"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "why it is added, in a few words (what in the card or the brief leaves it open) - shown to the person who keeps it",
+          "hidden": false,
+          "metavar": "REASON"
+        }
+      ]
+    },
+    {
+      "path": [
+        "question",
+        "accept"
+      ],
+      "description": "Keep a question the AI asked, to answer it later (a person, never the AI; answering it keeps it too).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or the spec cards show it",
+          "hidden": false,
+          "metavar": "component"
+        },
+        {
+          "name": "number",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question's number, as archvow show prints it",
+          "hidden": false,
+          "metavar": "number"
         }
       ]
     },
@@ -1021,6 +1072,21 @@
           "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); archvow check warns when that text changes (ARCH039)",
           "hidden": false,
           "metavar": "BRIEF"
+        },
+        {
+          "name": "why",
+          "flags": [
+            "--why"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "why it is added, in a few words (what in the card or the brief leaves it open) - shown to the person who keeps it",
+          "hidden": false,
+          "metavar": "REASON"
         }
       ]
     },
@@ -1057,6 +1123,29 @@
           "help": "the new text",
           "hidden": false,
           "metavar": "text"
+        }
+      ]
+    },
+    {
+      "path": [
+        "rule",
+        "accept"
+      ],
+      "description": "Keep a rule the AI added (a person, never the AI).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "id",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the rule's id, e.g. R3",
+          "hidden": false,
+          "metavar": "RULE"
         }
       ]
     },
@@ -1209,6 +1298,15 @@
     {
       "path": [
         "brief",
+        "show"
+      ],
+      "description": "Every brief, section by section: what the spec draws from it, the sections not used yet, the ones changed since.",
+      "json": true,
+      "parameters": []
+    },
+    {
+      "path": [
+        "brief",
         "accept"
       ],
       "description": "The brief changed and what was drawn from it is reviewed: record its new text (a person, never the AI).",
@@ -1293,6 +1391,21 @@
           "help": "what must never happen, in plain words (default: the suggestion archvow show shows; for critical or high, its invariant is added too - the decision that covers the question, when one does)",
           "hidden": false,
           "metavar": "description"
+        },
+        {
+          "name": "why",
+          "flags": [
+            "--why"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "why it is added, in a few words (what in the card or the brief leaves it open) - shown to the person who keeps it",
+          "hidden": false,
+          "metavar": "REASON"
         }
       ]
     },
@@ -1411,6 +1524,42 @@
           "help": "critical | high | medium | low",
           "hidden": false,
           "metavar": "severity"
+        }
+      ]
+    },
+    {
+      "path": [
+        "hazard",
+        "accept"
+      ],
+      "description": "Keep a hazard the AI added, with the invariants it added to prevent it (a person, never the AI).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "id",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the component (then H<n>), or the hazard's id <component>.H1",
+          "hidden": false,
+          "metavar": "WHAT"
+        },
+        {
+          "name": "more",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "with a component: its hazard H<n>",
+          "hidden": false,
+          "metavar": "H<n>"
         }
       ]
     },
@@ -1550,6 +1699,21 @@
           "help": "",
           "hidden": true,
           "metavar": "METHOD"
+        },
+        {
+          "name": "why",
+          "flags": [
+            "--why"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "why it is added, in a few words - shown to the person who keeps it",
+          "hidden": false,
+          "metavar": "REASON"
         },
         {
           "name": "evidence",
@@ -2035,6 +2199,21 @@
           "help": "ask the AI to list ambiguities as questions instead (it answers none)",
           "hidden": false,
           "metavar": "clarify"
+        },
+        {
+          "name": "max",
+          "flags": [
+            "--max"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "with --clarify: at most N questions, the riskiest first (default 5)",
+          "hidden": false,
+          "metavar": "N"
         }
       ]
     },

@@ -36,6 +36,9 @@
     base: '', baseTouched: false, checkSel: 0, explained: {},
     /** A result's height, once dragged or expanded. */
     resultHeight: {},
+    /** 0.16.0: the cards shown (all, open, or what the AI added that waits for a person), the "All AI skills"
+     *  menu, and the AI skill whose launch form is open with its values. */
+    originFilter: 'all', aiMenu: false, skill: '', skillValues: {},
   };
 
   // ---------------------------------------------------------------- helpers
@@ -56,6 +59,38 @@
   };
   const btn = (label, action, extra = '', disabled = false, cls = '') =>
     `<button class="${cls}" data-a="${action}" ${extra} ${disabled ? 'disabled' : ''}>${esc(label)}</button>`;
+  // ---------------------------------------------------------------- AI skills and origins (0.16.0)
+
+  /** forms.json ai_skills: the five skills in plain words, the request each sends, the origin tags. */
+  const AI = () => (I.forms && I.forms.ai_skills) || { order: [], skills: {}, origins: {} };
+  const skillDef = (id) => (AI().skills || {})[id] || null;
+  const skillLabel = (id) => { const d = skillDef(id); return d ? pair(d.label) : id; };
+  /** The extension's view of a component (aiSkills.ts): origins, what waits for a person, the suggestion. */
+  const aiOf = (id) => (S && S.ai && S.ai[id || ui.component]) || null;
+  const originWord = (key) => pair((AI().origins || {})[key]) || key;
+  /** The tag on a card: Template, Project, Brief #section, AI · agent - nothing for a person's own; To review. */
+  function originTag(o) {
+    if (!o || !o.tag) return '';
+    let text = originWord(o.tag);
+    if (o.tag === 'brief' && o.section) text += ' #' + o.section;
+    if (o.tag === 'ai') text += o.proposal ? ' · ' + t('proposed answer', 'réponse proposée') : o.who ? ' · ' + o.who : '';
+    const tip = o.tag === 'ai' ? (o.why ? t('Why: ', 'Pourquoi : ') + o.why : t('Added by the AI', "Ajouté par l'IA"))
+      : o.tag === 'template' ? t('Came with the component type', 'Vient avec le type de composant')
+      : o.tag === 'project' ? t('Answered once for every component of this type', 'Répondu une fois pour tous les composants de ce type')
+      : t('Drawn from the brief section', 'Tiré de la section du brief');
+    return `<span class="origin o-${esc(o.tag)}" title="${esc(tip)}">${esc(text)}</span>`
+      + (o.toReview ? ` <span class="to-review">${esc(originWord('to_review'))}</span>` : '');
+  }
+  /** The "Why the AI asked" box of the answer panel, and the AI's agent. */
+  function aiWhy(o, head) {
+    if (!o || o.tag !== 'ai' || o.proposal) return '';
+    return `<div class="ai-why"><b>${esc(head)}</b>${o.why ? `<div>${esc(o.why)}</div>` : ''}<div class="muted small">${esc(t('Added by ', 'Ajouté par ') + (o.who || 'AI'))}</div></div>`;
+  }
+  /** The AI's items count of a view, as a blue dot and a number in its chip. */
+  const aiDot = (n) => (n > 0 ? ` <span class="ai-dot" title="${esc(t(`${n} from the AI to review`, `${n} de l'IA à relire`))}">● ${n}</span>` : '');
+  /** All / Open / To review: which cards the views show. */
+  const keepCard = (open, review) => ui.originFilter === 'all' || (ui.originFilter === 'open' ? open || review : review);
+
   /** A circle turning clockwise, open at the top right, its arrowhead at the top: Reload (the IntelliJ plugin draws the same). */
   const REFRESH = '<svg class="glyph" viewBox="0 0 14 14" aria-hidden="true"><path d="M11.70 5.29 A5 5 0 1 1 7.87 2.08" fill="none" '
     + 'stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/><path d="M10.23 2.50 L7.63 0.01 L6.93 3.95 Z" fill="currentColor"/></svg>';
@@ -167,6 +202,15 @@
         ui.mode = 'command';
         setCommand(m.command, m.values || {}, m.help || '');
         break;
+      case 'skill':
+        ui.forceWorkspace = true;
+        ui.back = ui.backArmed;
+        ui.backArmed = null;
+        ui.mode = 'skill';
+        ui.aiMenu = false;
+        ui.skill = m.skill;
+        ui.skillValues = Object.assign({ max: '5' }, m.values || {});
+        break;
       case 'vow':
         if (S) S.vows[m.component] = m.text;
         ui.cards[m.component] = m.card || '';
@@ -260,6 +304,7 @@
     if (ui.mode === 'commandDocs') return 'archvow: ' + t('Command reference', 'Docs des commandes');
     if (ui.mode === 'project') return 'archvow: ' + t('Project items', 'Éléments du projet');
     if (ui.mode === 'command') return 'archvow: ' + ui.command;
+    if (ui.mode === 'skill') return 'archvow: ' + skillLabel(ui.skill);
     if (ui.mode === 'result') return 'archvow: ' + (ui.resultLabel || t('Result', 'Résultat'));
     return 'archvow';
   }
@@ -278,8 +323,9 @@
       : ui.mode === 'checks' ? t('Check & Gates', 'Contrôles et validations')
         : ui.mode === 'commandDocs' ? t('Command reference', 'Docs des commandes')
         : ui.mode === 'project' ? t('Project items', 'Éléments du projet')
-        : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'result' ? ui.resultLabel : '';
+        : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'skill' ? skillLabel(ui.skill) : ui.mode === 'result' ? ui.resultLabel : '';
     const kind = ui.mode === 'component' ? t('Component', 'Composant') : ui.mode === 'command' ? t('Command', 'Commande')
+      : ui.mode === 'skill' ? t('AI skill', 'Skill IA')
       : ui.mode === 'commandDocs' ? t('Reference', 'Référence')
       : ui.mode === 'checks' ? t('Checks', 'Contrôles') : ui.mode === 'project' ? t('Project', 'Projet') : ui.mode === 'result' ? t('Result', 'Résultat') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
@@ -302,6 +348,7 @@
       const command = commandByName(ui.command);
       return `<section class="detail-only">${command ? commandForm(command) : `<p class="muted">${esc(t('Select a command in the Archvow sidebar.', 'Sélectionne une commande dans le panneau Archvow.'))}</p>`}</section>`;
     }
+    if (ui.mode === 'skill') return `<section class="detail-only">${skillForm()}</section>`;
     if (ui.mode === 'result') {
       const body = confirmation('overview') + resultCard('overview');
       return `<section class="detail-only">${body || `<p class="muted">${esc(t('No result. Run a command from Overview in the Archvow sidebar.', "Aucun résultat. Lance une commande depuis la Vue d'ensemble du panneau Archvow."))}</p>`}</section>`;
@@ -394,7 +441,41 @@
     const b = S && S.briefs;
     if (!b || !S.spec) return '';
     const names = b.folders.length ? b.folders.map((f) => f + '/').join(', ') : t('none declared', 'aucun déclaré');
-    return `<p class="brief-folders muted small" title="${esc(t('An architect changes them: archvow init <package> --force -a briefs=...', 'Un architecte les change : archvow init <package> --force -a briefs=...'))}">${esc(t('Brief folders (--from)', 'Dossiers de briefs (--from)'))}: ${esc(names)} · ${b.files.length} ${esc(b.files.length === 1 ? t('file', 'fichier') : t('files', 'fichiers'))}</p>`;
+    const due = briefsDue();
+    const link = S.briefStatus && due ? ` · <button class="link" data-a="overSub" data-sub="briefs">${esc(t(`${due} section${due === 1 ? '' : 's'} to look at →`, `${due} section${due === 1 ? '' : 's'} à regarder →`))}</button>` : '';
+    return `<p class="brief-folders muted small" title="${esc(t('An architect changes them: archvow init <package> --force -a briefs=...', 'Un architecte les change : archvow init <package> --force -a briefs=...'))}">${esc(t('Brief folders (--from)', 'Dossiers de briefs (--from)'))}: ${esc(names)} · ${b.files.length} ${esc(b.files.length === 1 ? t('file', 'fichier') : t('files', 'fichiers'))}${link}</p>`;
+  }
+
+  /** Sections not used yet plus sections changed since (archvow brief show, 1.20): the Briefs sub-tab's count. */
+  const briefsDue = () => (S && S.briefStatus ? (Number(S.briefStatus.to_draft) || 0) + (Number(S.briefStatus.changed) || 0) : 0);
+
+  /**
+   * Overview › Briefs (0.16.0): every brief, section by section - what the spec draws from it (✓), not used yet
+   * (○, Draft with AI…), changed since it was drawn (!, Review… opens the section, Accept records it).
+   */
+  function briefsView() {
+    const b = S.briefStatus;
+    if (!b) return `<div class="card"><p class="muted">${esc(t('This archvow cannot list the briefs section by section (archvow 1.20 or later does).', 'Cet archvow ne sait pas lister les briefs section par section (archvow 1.20 ou plus récent le fait).'))}</p></div>`;
+    const files = list(b, 'files');
+    const folders = Array.isArray(b.folders) ? b.folders.map(String) : [];
+    const pkg = str(list(S.spec, 'containers')[0], 'package');
+    const rows = files.map((f) => {
+      const sections = list(f, 'sections');
+      const used = sections.filter((r) => list(r, 'items').length || (Array.isArray(r.items) && r.items.length)).length;
+      return `<div class="brief-file"><div class="row brief-head"><b class="grow">${esc(str(f, 'file'))}</b><span class="muted small">${esc(t(`${used} of ${sections.length} sections used`, `${used} sections utilisées sur ${sections.length}`))}</span></div>
+  ${sections.map((r) => {
+    const items = Array.isArray(r.items) ? r.items.map(String) : [];
+    const ref = str(f, 'file') + (str(r, 'section') ? '#' + str(r, 'section') : '');
+    const name = str(r, 'section') ? '#' + str(r, 'section') : t('(the whole file)', '(tout le fichier)');
+    if (r.changed) return `<div class="brief-sec changed"><span class="st warn">!</span><button class="link" data-a="openBrief" data-ref="${esc(ref)}">${esc(name)}</button><span class="muted small grow">${esc(t('changed since: ', 'changé depuis : ') + items.join(', '))}</span>${btn(t('Review…', 'Relire…'), 'openBrief', attrs({ ref }), false, 'secondary small')}${btn(t('Accept change…', 'Accepter le changement…'), 'openCommand', attrs({ command: 'brief accept', brief: ref }), false, 'small')}</div>`;
+    if (items.length) return `<div class="brief-sec"><span class="st good">✓</span><button class="link" data-a="openBrief" data-ref="${esc(ref)}">${esc(name)}</button><span class="muted small grow">${esc(items.join(', '))}</span></div>`;
+    return `<div class="brief-sec"><span class="st open">○</span><button class="link" data-a="openBrief" data-ref="${esc(ref)}">${esc(name)}</button><span class="muted small grow">${esc(t('not used yet', 'pas encore utilisée'))}</span>${btn(t('Draft with AI…', "Rédiger avec l'IA…"), 'openSkill', attrs({ skill: 'draft-spec', brief: ref }), false, 'secondary small')}</div>`;
+  }).join('')}</div>`;
+    }).join('');
+    return `<div class="card briefs-card"><div class="card-head"><h3>Briefs</h3><span class="muted small">${esc(t('folders: ', 'dossiers : ') + folders.map((x) => x + '/').join(', '))}</span></div>
+  ${rows || `<p class="muted">${esc(t('No .md or .txt file in the briefs folders yet.', 'Aucun fichier .md ou .txt dans les dossiers de briefs pour le moment.'))}</p>`}
+  <p class="muted small">${esc(t('✓ used by the spec · ○ not used yet · ! changed since accepted (ARCH039)', '✓ utilisée par la spec · ○ pas encore utilisée · ! changée depuis son acceptation (ARCH039)'))}</p>
+  <div class="row">${btn(t('Add a briefs folder (architect)…', 'Ajouter un dossier de briefs (architecte)…'), 'addFolder', attrs({ package: pkg, answer: 'briefs=' + folders.join(',') + ',' }), false, 'secondary small')}</div></div>`;
   }
 
   function overviewTab() {
@@ -416,7 +497,7 @@
       btn(t('Command reference', 'Docs des commandes'), 'commandDocs', '', false, 'secondary'),
       `<label class="base" title="${esc(t('Git comparison base for Review / Diff / Budget: a branch of this repository', 'Base de comparaison Git pour Review / Diff / Budget : une branche de ce dépôt'))}">Base: <input list="refs" data-input="base" data-keep="base" value="${esc(baseNow())}" size="14" placeholder="${esc(t('no other branch', "pas d'autre branche"))}"><datalist id="refs">${(S.refs || []).map((r) => `<option value="${esc(r)}">`).join('')}</datalist></label>`,
     ].join('');
-    const sub = ui.overSub === 'checks' ? checksView(false) : architectureView();
+    const sub = ui.overSub === 'checks' ? checksView(false) : ui.overSub === 'briefs' ? briefsView() : architectureView();
     const issues = list(S.check, 'violations');
     const failedChecks = issues.filter((v) => str(v, 'severity').toLowerCase() === 'error').length;
     const warnedChecks = issues.filter((v) => str(v, 'severity').toLowerCase() === 'warning').length;
@@ -433,8 +514,9 @@
   ${branchWarning}${briefFolders()}
   ${S.install && S.install.reason === 'version' ? installCard() + confirmation('welcome') + resultCard('welcome') : ''}
   <div class="toolbar"><div class="row wrap">${toolbar}</div><span class="muted" title="${esc(t('Current Git branch', 'Branche Git courante'))}">Git: ${esc(S.branch || '—')}</span></div>
-  <nav class="tabs sub">${[['architecture', 'Architecture'], ['checks', t('Check & Gates', 'Contrôles et validations')]]
-    .map(([id, l]) => `<button class="tab ${ui.overSub === id ? 'current' : ''}" data-a="overSub" data-sub="${id}">${esc(l)}${` <span class="count${id === 'checks' ? ' check-count' : ''}">${id === 'architecture' ? architecturePending : checksPending}</span>`}</button>`).join('')}</nav>
+  <nav class="tabs sub">${[['architecture', 'Architecture'], ['checks', t('Check & Gates', 'Contrôles et validations')], ...(S.briefStatus ? [['briefs', 'Briefs']] : [])]
+    .map(([id, l]) => `<button class="tab ${ui.overSub === id ? 'current' : ''}" data-a="overSub" data-sub="${id}">${esc(l)}${id === 'briefs' ? (briefsDue() ? ` <span class="count brief-count">${briefsDue()}</span>` : '')
+      : ` <span class="count${id === 'checks' ? ' check-count' : ''}">${id === 'architecture' ? architecturePending : checksPending}</span>`}</button>`).join('')}</nav>
   ${issues.length ? `<div class="checks-badges" aria-label="${esc(t('Project checks', 'Contrôles du projet'))}"><span class="chip ${failedChecks ? 'bad' : 'good'}">${failedChecks} ${esc(t('errors', 'erreurs'))}</span><span class="chip ${warnedChecks ? 'warn' : 'good'}">${warnedChecks} ${esc(t('warnings', 'avertissements'))}</span></div>` : ''}
   ${sub}
   <footer class="hint"><label>${esc(t('Language', 'Langue'))} <select data-change="language">${[['auto', t('Follow VS Code', 'Suivre VS Code')], ['en', 'English'], ['fr', 'Français']]
@@ -612,33 +694,42 @@
       btn(t('+ Rule', '+ Règle'), 'addRule', `title="${esc(t('Add a rule on this component', 'Ajouter une règle sur ce composant'))}"`, false, 'secondary'),
       btn(t('+ Component', '+ Composant'), 'openCommand', attrs({ command: 'component add' })
         + ` title="${esc(t('Add a component', 'Ajouter un composant'))}"`, false, 'secondary'),
+      `<span class="ai-anchor">${btn(t('AI skills ▾', 'Skills IA ▾'), 'aiMenu', `title="${esc(t('What the AI can do for this component: it adds, you decide', "Ce que l'IA peut faire pour ce composant : elle ajoute, tu décides"))}"`, false, 'secondary ai-skills')}${ui.aiMenu ? aiMenu() : ''}</span>`,
     ];
     const view = snapshot();
+    const ai = aiOf();
     const d = derived();
     const counts = d ? d.counts : { pending: [0, 0, 0, 0, 0, 0], total: [0, 0, 0, 0, 0, 0] };
     const names = VIEWS();
     const localOtherPending = S.work.otherPending.filter((item) => isLocalOther(item)).length;
     const localOtherResolved = S.work.otherResolved.filter((item) => isLocalOther(item)).length;
+    const aiCount = (i) => (!ai ? 0 : i === 0 ? ai.toReview.decisions : i === 2 ? ai.toReview.safety : i === 3 ? ai.toReview.assumptions : i === 4 ? ai.toReview.rules : 0);
     const viewBar = names.map((name, i) => {
       const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] : counts.total[i] > 0 ? ' ✓' : '')
         : i === 7 ? name + (localOtherPending ? ' · ' + localOtherPending : localOtherResolved ? ' ✓' : '') : name;
+      const dot = aiCount(i);
       const tip = i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('pending items', 'éléments en attente')}` : t('No open items', 'Aucun élément ouvert'))
         : i === 7 ? t('Only issues of this component; project checks are in Check & Gates.', 'Seulement les éléments de ce composant ; les contrôles globaux sont dans Check & Gates.') : '';
-      return `<button class="tab ${ui.view === i ? 'current' : ''} ${(i < 6 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) ? 'has-pending' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}</button>`;
+      return `<button class="tab ${ui.view === i ? 'current' : ''} ${(i < 6 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) ? 'has-pending' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}${aiDot(dot)}</button>`;
     }).join('');
+    // All / Open / To review: the views whose cards carry an origin (decisions, safety, rules)
+    const filterBar = [0, 2, 4].includes(ui.view) ? `<span class="origin-filter segmented compact" role="group" aria-label="${esc(t('Show', 'Afficher'))}">${[['all', t('All', 'Tout')],
+      ['open', t('Open', 'Ouverts')], ['review', t('To review', 'À relire')]].map(([id, l]) => `<button class="${ui.originFilter === id ? 'on' : 'secondary'}" data-a="originFilter" data-id="${id}">${esc(l)}</button>`).join('')}</span>` : '';
     let body;
     if (ui.view === 7) body = otherView();
     else if (!ui.component) body = `<p class="muted">${esc(t('Select a component in the Archvow sidebar.', 'Sélectionne un composant dans le panneau Archvow.'))}</p>`;
     else if (!view) body = `<p class="muted">${esc(t('Loading', 'Chargement'))}: ${esc(ui.component)}…</p>`;
     else body = [decisionsView, questionsView, safetyView, assumptionsView, rulesView, tasksView, vowView][ui.view](view, d);
     // A component's 'Others' belongs to this component; global diagnostics are in Check & Gates.
-    const head = view ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
-  <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
+    const waiting = ai ? ai.toReview.total - ai.toReview.component : 0;
+    const waitingBadge = waiting > 0 ? ` <button class="badge-ai" data-a="toReview" title="${esc(t('Show only what the AI added and no person kept yet', "N'afficher que ce que l'IA a ajouté et qu'aucune personne n'a encore gardé"))}">${esc(t(`${waiting} from AI to review`, `${waiting} de l'IA à relire`))}</button>` : '';
+    const head = view ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}${waitingBadge}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
+  <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${suggestStrip(ai)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
     // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
     return `${head}<div class="row wrap actions">${actions.join('')}</div>
-  <nav class="tabs views">${viewBar}</nav>${pendingExplanation()}
+  <nav class="tabs views">${viewBar}${filterBar}</nav>${pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
   }
 
@@ -651,6 +742,89 @@
   <div>${esc(t('Read what it must do, its type and its uses; change it with Edit spec if needed. The release gate fails until a person accepts it (ARCH043).',
     "Lire ce qu'il doit faire, son type et ce qu'il utilise ; le changer avec Modifier la spec si besoin. Le contrôle de livraison échoue tant qu'une personne ne l'a pas accepté (ARCH043)."))}</div>
   <div class="row end">${btn(t('Remove…', 'Retirer…'), 'openCommand', attrs({ command: 'component remove', component: ui.component }), false, 'secondary')}${btn(t('Accept…', 'Accepter…'), 'openCommand', attrs({ command: 'component accept', component: ui.component }))}</div></div>`;
+  }
+
+  /** One suggestion at a time (aiSkills.ts): what the AI added waits first, then the next skill, with why. */
+  function suggestStrip(ai) {
+    const sg = ai && ai.suggest;
+    if (!sg) return '';
+    const review = sg.skill === 'to-review';
+    const title = review ? t('The AI added things for you to review', "L'IA a ajouté des éléments à relire") : t('Suggested next with AI: ', 'Suggéré ensuite avec l\'IA : ') + skillLabel(sg.skill);
+    const go = review ? btn(t('Show them', 'Les afficher'), 'toReview', '', false, 'primary-ai')
+      : btn(skillLabel(sg.skill) + '…', 'openSkill', attrs({ skill: sg.skill }), false, 'primary-ai');
+    return `<div class="suggest ${review ? 'review' : ''}"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg>
+  <div class="grow"><b>${esc(title)}</b><div class="small">${esc(pair(sg.reason))}</div></div>${go}</div>`;
+  }
+
+  /** "All AI skills": the five, in the order of the work, plain names, the skill small, and why one cannot run yet. */
+  function aiMenu() {
+    const ai = aiOf();
+    const sg = ai && ai.suggest ? ai.suggest.skill : '';
+    const items = (AI().order || []).map((id) => {
+      const def = skillDef(id);
+      if (!def) return '';
+      const blocked = ai && ai.blocked && ai.blocked[id];
+      return `<button class="ai-item ${sg === id ? 'suggested' : ''}" data-a="openSkill" data-skill="${esc(id)}" ${blocked ? 'disabled' : ''}>
+  <span class="grow"><b>${esc(pair(def.label))}</b>${sg === id ? ` <span class="sugg">${esc(t('SUGGESTED', 'SUGGÉRÉ'))}</span>` : ''}<span class="small ${blocked ? 'tone-warn' : ''}">${esc(blocked ? pair(blocked) : pair(def.does))}</span></span>
+  <span class="mono small muted">${esc(id)}</span></button>`;
+    }).join('');
+    return `<div class="ai-menu" role="menu"><div class="ai-menu-head">${esc(t('AI SKILLS · in the order of the work', "SKILLS IA · dans l'ordre du travail"))}</div>${items}</div>`;
+  }
+
+  /**
+   * The launch form of an AI skill (design A): what the AI reads, at most how many, where the request goes; on
+   * the right what will happen, what the AI may add, what you still decide, and the exact request. Nothing runs
+   * here: the request goes to the assistant, which runs archvow; what it adds comes back marked as the AI's.
+   */
+  function skillForm() {
+    const id = ui.skill;
+    const def = skillDef(id);
+    if (!def) return `<p class="muted">${esc(t('Unknown skill.', 'Skill inconnu.'))}</p>`;
+    const v = ui.skillValues;
+    const tools = (S && S.aiTools && S.aiTools.length ? S.aiTools : ['copilot']);
+    if (!v.tool || !tools.includes(v.tool)) v.tool = tools[0];
+    const ids = componentIds();
+    const field = (name, label, control) => `<div class="field"><label for="sk-${name}">${esc(label)}</label>${control}</div>`;
+    const controls = [];
+    if (def.target === 'brief') {
+      const refs = (S.briefStatus ? list(S.briefStatus, 'files') : []).flatMap((f) => [str(f, 'file'), ...list(f, 'sections').filter((r) => str(r, 'section')).map((r) => str(f, 'file') + '#' + str(r, 'section'))]);
+      controls.push(field('brief', t('The brief, or one section of it', "Le brief, ou une de ses sections"), `<input id="sk-brief" list="sk-briefs" data-input="skill" data-name="brief" data-keep="sk-brief" value="${esc(v.brief || '')}" placeholder="briefs/orders.md#cleaning"><datalist id="sk-briefs">${refs.map((r) => `<option value="${esc(r)}">`).join('')}</datalist>`));
+    } else {
+      controls.push(field('component', t('Component', 'Composant'), `<select id="sk-component" data-change="skill" data-name="component">${ids.map((c) => `<option ${c === v.component ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`));
+      if (!v.component && ids.length) v.component = ids[0];
+    }
+    if (def.max) controls.push(field('max', t('At most', 'Au plus'), `<span class="segmented">${['3', '5', '10'].map((n) => `<button class="${v.max === n ? 'on' : 'secondary'}" data-a="skillValue" data-name="max" data-value="${n}">${n}</button>`).join('')}</span><div class="muted small">${esc(t('The riskiest first. Fewer questions get read.', 'Les plus risquées d\'abord. Moins de questions, mieux lues.'))}</div>`));
+    controls.push(field('tool', t('Send to', 'Envoyer à'), `<span class="segmented">${tools.map((x) => `<button class="${v.tool === x ? 'on' : 'secondary'}" data-a="skillValue" data-name="tool" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</span><div class="muted small">${esc(t("Your project's AI tools (init answer ai_tools).", "Les outils IA du projet (réponse d'init ai_tools)."))}</div>`));
+    const ai = aiOf(v.component);
+    const blocked = def.target !== 'brief' && ai && ai.blocked && ai.blocked[id];
+    const ready = def.target === 'brief' ? !!(v.brief || '').trim() : !!v.component;
+    const text = skillRequest(id, v);
+    const chat = v.tool === 'copilot';
+    const steps = [
+      chat ? t('Copilot Chat opens with the request below already typed. You press Enter.', 'Copilot Chat s\'ouvre avec la demande ci-dessous déjà tapée. Tu appuies sur Entrée.')
+        : t(`The request is copied: paste it in ${v.tool}.`, `La demande est copiée : colle-la dans ${v.tool}.`),
+      pair(def.reads), pair(def.may_add),
+      t('What it adds appears in the component\'s tabs, marked AI and To review, for you to keep, change or remove.',
+        'Ce qu\'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire, pour que tu le gardes, le changes ou le retires.')];
+    const right = `<aside class="what"><div class="what-head">${esc(t('WHAT WILL HAPPEN', 'CE QUI VA SE PASSER'))}</div>
+  <ol class="steps">${steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
+  <div class="two"><div class="box"><b class="tone-blue">${esc(t('The AI can', "L'IA peut"))}</b><div class="small">${esc(pair(def.may_add))}</div></div>
+  <div class="box"><b class="tone-good">${esc(t('You still', 'Toi, tu'))}</b><div class="small">${esc(pair(def.you))}</div></div></div>
+  <div class="muted small">${esc(t('Sent to the AI', "Envoyé à l'IA"))}</div><pre class="request">${esc(text)}</pre></aside>`;
+    return `<div class="skill-form"><h2>${esc(pair(def.label))} <span class="mono small muted">skill: archvow-${esc(id)}</span></h2>
+  <p>${esc(pair(def.does))}</p>${blocked ? `<div class="alert warn">${esc(pair(blocked))}</div>` : ''}
+  <div class="split"><div class="split-list">${controls.join('')}</div>${right}</div>
+  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'secondary')}${btn(t('Copy request', 'Copier la demande'), 'askAi', attrs({ send: '' }), !ready, 'secondary')}
+  ${btn(chat ? t('Ask Copilot Chat', 'Demander à Copilot Chat') : t('Copy for ', 'Copier pour ') + v.tool, 'askAi', attrs({ send: '1' }), !ready)}</div></div>`;
+  }
+
+  /** The request the skill sends (forms.json: the tool's own form, or the sentence) - the extension sends the same. */
+  function skillRequest(id, v) {
+    const def = skillDef(id);
+    const req = (def && def.request) || {};
+    const own = req[v.tool];
+    const text = own || (Array.isArray(req.default) ? (fr() ? req.default[1] : req.default[0]) : String(req.default || ''));
+    return String(text || '').replace(/\{(\w+)\}/g, (_, k) => v[k] || '');
   }
 
   /** "1 open item" next to the component's name (the count the sidebar shows), "✓ resolved" without. */
@@ -679,15 +853,16 @@
 
   /** The items as cards: "n · question", then the recorded answer (green) with who and when, or "● Open". */
   function cards(kind, rows, label, card) {
-    return `<ul class="cards" data-scroll="cards-${kind}">${rows.map((row, i) => {
+    const shown = rows.map((row, i) => [row, i, card(row, i)]).filter(([, , c]) => !c.origin || keepCard(c.open, c.origin.toReview));
+    const hidden = rows.length - shown.length;
+    return `<ul class="cards" data-scroll="cards-${kind}">${shown.map(([row, i, c]) => {
       const key = label(row, i);
-      const c = card(row, i);
-      return `<li class="item-card ${ui.sel[kind] === key ? 'selected' : ''} ${c.open ? 'open' : 'done'}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}">
-  <div class="card-q" title="${esc(c.title)}"><b>${esc(c.number)}</b> · ${esc(c.title)}</div>
+      return `<li class="item-card ${ui.sel[kind] === key ? 'selected' : ''} ${c.open ? 'open' : 'done'}${c.origin && c.origin.toReview ? ' ai-wait' : ''}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}">
+  <div class="card-q" title="${esc(c.title)}"><b>${esc(c.number)}</b>${c.origin ? ' ' + originTag(c.origin) : ''} · ${esc(c.title)}</div>
   ${c.open ? `<div class="card-open">● ${esc(c.state || t('Open', 'Ouvert'))}</div>${c.note ? `<div class="card-note">${esc(short(c.note, 160))}</div>` : ''}`
     : `<div class="card-a" title="${esc(c.answer || '')}">${esc(short(c.answer || c.state || t('Resolved', 'Traité'), 220))}</div>`}
   ${c.by ? `<div class="card-by muted">${esc(c.by)}</div>` : ''}</li>`;
-    }).join('') || `<li class="muted empty">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>`;
+    }).join('') || `<li class="muted empty">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}${hidden ? `<li class="muted small hidden-note">${esc(t(`${hidden} hidden by the filter`, `${hidden} masqué${hidden === 1 ? '' : 's'} par le filtre`))}</li>` : ''}</ul>`;
   }
 
   /** "architect@example.com · 2026-10-08": who recorded an answer, and the day. */
@@ -986,8 +1161,10 @@
     const label = (r) => 'D' + str(r, 'number');
     const isOpen = (r) => !str(r, 'answer');
     const row = current('decision', rows, label, isOpen);
-    const left = cards('decision', rows, label, (r) => ({ number: str(r, 'number'), title: str(r, 'question'), open: isOpen(r), answer: str(r, 'answer'),
-      by: isOpen(r) ? '' : byOn(r), note: str(r, 'proposed') ? t('AI proposal: ', 'Proposition IA : ') + str(r, 'proposed') : '' }));
+    const ai = aiOf();
+    const originOf = (i) => (ai && ai.decisions[i]) || null;
+    const left = cards('decision', rows, label, (r, i) => ({ number: str(r, 'number'), title: str(r, 'question'), open: isOpen(r), answer: str(r, 'answer'),
+      by: isOpen(r) ? '' : byOn(r), note: str(r, 'proposed') ? t('AI proposal: ', 'Proposition IA : ') + str(r, 'proposed') : '', origin: originOf(i) }));
     let right = `<p class="muted">${esc(t('Select a decision.', 'Sélectionne une décision.'))}</p>`;
     if (row) {
       const number = str(row, 'number');
@@ -996,13 +1173,19 @@
       const suggested = str(row, 'suggested');
       const pending = !answer;
       const key = `d:${ui.component}:${number}`;
-      const secondary = [pending ? btn(t('Propose', 'Proposer'), 'decide', attrs({ action: 'decision propose' })
+      const origin = originOf(rows.indexOf(row));
+      const asked = origin && origin.tag === 'ai' && origin.toReview && !origin.proposal;  // the AI's question, not kept yet
+      const secondary = [asked ? btn(t('Remove question', 'Retirer la question'), 'openCommand', attrs({ command: 'question remove', component: ui.component, number }), false, 'secondary') : '',
+      asked ? btn(t('Keep, answer later', 'Garder, répondre plus tard'), 'openCommand', attrs({ command: 'question accept', component: ui.component, number })
+        + ` title="${esc(t('The question stays open, as the team\'s own (archvow question accept)', "La question reste ouverte, comme celle de l'équipe (archvow question accept)"))}"`, false, 'secondary') : '',
+      pending ? btn(t('Propose', 'Proposer'), 'decide', attrs({ action: 'decision propose' })
         + ` title="${esc(t('Record the text as a proposal, not yet the answer', 'Enregistrer le texte comme proposition, pas encore comme réponse'))}"`, false, 'secondary') : '',
       pending && proposed ? btn(t('Accept proposal', 'Accepter la proposition'), 'decide', attrs({ action: 'decision accept' }), false, 'secondary') : '',
       suggested ? btn(t('Use suggestion', 'Utiliser la suggestion'), 'useSuggestion', '', false, 'secondary') : ''].join('');
       right = answerHead(pending ? t(`Answer decision ${number}`, `Répondre à la décision ${number}`) : t(`Decision ${number}`, `Décision ${number}`),
-        pending ? '' : t('ANSWERED', 'TRAITÉE'), true)
-        + `<p class="answer-q">${esc(str(row, 'question'))}</p>`
+        pending ? '' : t('ANSWERED', 'TRAITÉE'), true) + (origin && origin.tag ? `<p>${originTag(origin)}</p>` : '')
+        + `<p class="answer-q">${esc(str(row, 'question'))}</p>` + aiWhy(origin, t('Why the AI asked', "Pourquoi l'IA a demandé"))
+        + (asked ? `<p class="muted small">${esc(t('Save answer keeps the question and records your decision in one step.', 'Enregistrer la réponse garde la question et enregistre ta décision en une fois.'))}</p>` : '')
         + (answer && byOn(row) ? `<p class="muted small">${esc(t('Recorded by ', 'Enregistrée par ') + byOn(row))}</p>` : '')
         + (proposed ? `<p class="hint"><b class="tone-blue">${esc(t('AI proposal', 'Proposition IA'))}</b> ${esc(proposed)}</p>` : '')
         + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)}</p>` : '')
@@ -1055,8 +1238,16 @@
       if (str(r, 'dismissed')) return t('Not applicable: ', 'Non applicable : ') + str(r, 'dismissed');
       return hazard ? `Hazard ${str(hazard, 'id')} · ${str(hazard, 'severity')}: ${str(hazard, 'description')}` : '';
     };
+    const ai = aiOf();
+    const hazardOrigin = (h) => (ai && ai.hazards[str(h, 'id')]) || null;
+    // the card's tag: the first hazard's origin (the AI's when one of its hazards waits for a person)
+    const safetyOrigin = (r, i) => {
+      const hz = list(r, 'hazards');
+      const waiting = hz.map(hazardOrigin).find((o) => o && o.toReview);
+      return waiting || (hz.length ? hazardOrigin(hz[0]) : null) || { tag: '', toReview: !!(ai && ai.safety[i]) };
+    };
     const left = cards('safety', rows, label, (r, i) => ({ number: label(r), title: str(r, 'question'), open: isOpen(r, i),
-      state: isOpen(r, i) ? statusOf(r, i) : '', answer: recorded(r), note: isOpen(r, i) ? recorded(r) : '' }));
+      state: isOpen(r, i) ? statusOf(r, i) : '', answer: recorded(r), note: isOpen(r, i) ? recorded(r) : '', origin: safetyOrigin(r, i) }));
     let right = `<p class="muted">${esc(t('Select a safety question to see details.', 'Choisis une question de sécurité pour afficher les détails.'))}</p>`;
     if (row) {
       const i = rows.indexOf(row);
@@ -1090,11 +1281,15 @@
         const changeTip = guards.length ? t('Change its words or severity: same id, its invariants stay and become to review (hazard edit)',
           'Changer ses mots ou sa gravité : même id, ses invariants restent et deviennent à revoir (hazard edit)')
           : t('Change its words or severity: same id (hazard edit)', 'Changer ses mots ou sa gravité : même id (hazard edit)');
-        block += `<div class="recorded"><div class="row hazard-head"><p class="grow"><b>Hazard ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b><br>${esc(str(h, 'description'))}</p>`
-          + `<span class="row">${btn(t('Change', 'Modifier'), 'hazardChange', attrs({ id: str(h, 'id'), text: str(h, 'description'), severity: str(h, 'severity') }) + ` title="${esc(changeTip)}"`, false, 'secondary small')}`
+        const ho = hazardOrigin(h);
+        const keep = ho && ho.toReview ? btn(t('Keep', 'Garder'), 'openCommand', attrs({ command: 'hazard accept', id: str(h, 'id') })
+          + ` title="${esc(t('Keep this hazard and the invariants the AI added to prevent it (archvow hazard accept)', "Garder ce hazard et les invariants que l'IA a ajoutés pour l'empêcher (archvow hazard accept)"))}"`, false, 'small') : '';
+        block += `<div class="recorded ${ho && ho.toReview ? 'ai-wait' : ''}"><div class="row hazard-head"><p class="grow"><b>Hazard ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b>${ho && ho.tag ? ' ' + originTag(ho) : ''}<br>${esc(str(h, 'description'))}</p>`
+          + `<span class="row">${keep}${btn(t('Change', 'Modifier'), 'hazardChange', attrs({ id: str(h, 'id'), text: str(h, 'description'), severity: str(h, 'severity') }) + ` title="${esc(changeTip)}"`, false, 'secondary small')}`
           + `${btn(t('Remove', 'Supprimer'), 'hazardRemove', attrs({ id: str(h, 'id') }) + ` title="${esc(t('Remove this hazard (asks first)', 'Supprimer ce hazard (demande avant)'))}"`, false, 'secondary small')}</span></div>`;
+        if (ho && ho.why) block += `<p class="muted small">${esc(t('Why: ', 'Pourquoi : ') + ho.why)}</p>`;
         for (const g of guards) {
-          block += `<p class="tone-good">↳ <b>Invariant ${esc(str(g, 'id'))}</b> <span class="body">${esc(str(g, 'statement'))}</span>${g.tested === false ? ` <span class="muted">[${esc(t('test not verified', 'test non vérifié'))}]</span>` : ''}</p>`;
+          block += `<p class="tone-good">↳ <b>Invariant ${esc(str(g, 'id'))}</b>${g.to_accept === true ? ` <span class="to-review">${esc(originWord('to_review'))}</span>` : ''} <span class="body">${esc(str(g, 'statement'))}</span>${g.tested === false ? ` <span class="muted">[${esc(t('test not verified', 'test non vérifié'))}]</span>` : ''}</p>`;
         }
         if (!guards.length && ['high', 'critical'].includes(str(h, 'severity').toLowerCase())) {
           block += `<p class="tone-warn"><b>ARCH030 — ${esc(t('An invariant is required before this hazard can be considered protected.', 'Un invariant est obligatoire pour que ce hazard soit considéré protégé.'))}</b></p>`;
@@ -1168,11 +1363,18 @@
 
   function rulesView(view) {
     const rules = list(view, 'rules');
+    const ai = aiOf();
     return `<div class="row">${btn(t('Add rule…', 'Ajouter une règle…'), 'addRule')}${btn(t('Edit rule…', 'Modifier une règle…'), 'choose', attrs({ purpose: 'rule edit' }), false, 'secondary')}
   ${btn(t('Remove rule…', 'Supprimer une règle…'), 'choose', attrs({ purpose: 'rule remove' }), false, 'secondary')}</div>
-  <div class="details"><h4>${esc(t('Applicable rules', 'Règles applicables'))}</h4>${rules.length ? rules.map((r) => {
+  <div class="details"><h4>${esc(t('Applicable rules', 'Règles applicables'))}</h4>${rules.length ? rules.filter((r) => {
+    const o = ai && ai.rules[str(r, 'id')];
+    return keepCard(true, !!(o && o.toReview));
+  }).map((r) => {
     const scope = readable(r.scope);
-    return `<p><b>${esc(str(r, 'id') || '•')}</b> ${esc(str(r, 'text'))}</p>${scope && scope !== '—' ? `<p class="muted small">${esc(t('Scope', 'Portée'))}: ${esc(scope)}</p>` : ''}`;
+    const o = ai && ai.rules[str(r, 'id')];
+    const waiting = o && o.toReview;
+    const keep = waiting ? `<span class="row">${btn(t('Keep', 'Garder'), 'openCommand', attrs({ command: 'rule accept', id: str(r, 'id') }), false, 'small')}${btn(t('Remove', 'Retirer'), 'openCommand', attrs({ command: 'rule remove', id: str(r, 'id') }), false, 'secondary small')}</span>` : '';
+    return `<div class="rule ${waiting ? 'ai-wait' : ''}"><div class="row"><p class="grow"><b>${esc(str(r, 'id') || '•')}</b>${o && o.tag ? ' ' + originTag(o) : ''} ${esc(str(r, 'text'))}</p>${keep}</div>${o && o.why ? `<p class="muted small">${esc(t('Why: ', 'Pourquoi : ') + o.why)}</p>` : ''}${scope && scope !== '—' ? `<p class="muted small">${esc(t('Scope', 'Portée'))}: ${esc(scope)}</p>` : ''}</div>`;
   }).join('') : `<p class="muted">${esc(t('No applicable rules.', 'Aucune règle applicable.'))}</p>`}</div>`;
   }
 
@@ -1347,8 +1549,18 @@
     const groupIcon = ((I.icons || {}).groups || {})[g.id] || 'other';
     return `<div class="command-group"><button class="command-group-toggle" data-a="commandGroup" data-id="${esc(g.id)}" aria-expanded="${expanded ? 'true' : 'false'}"><span class="node">${expanded ? '▾' : '▸'} ${icon(groupIcon)}<span>${esc(g.label)}</span></span><span class="count">${g.items.length}</span></button>
     ${expanded ? `<ul class="list items command-children">${g.items.map((c) => `<li class="${c.path.join(' ') === selected ? 'selected' : ''}" data-a="command" data-name="${esc(c.path.join(' '))}" title="${esc(c.description)}"><b class="node">${icon(commandIcon(c.path))}<span>${esc(c.path.join(' '))}</span></b><div class="muted small">${esc(short(c.description || '', 90))}</div></li>`).join('')}</ul>` : ''}</div>`;
-  }).join('')}</div>
+  }).join('')}${aiSkillsGroup(filter)}</div>
   <p class="muted small">${esc(t('Select a command to open its form in the editor.', "Choisis une commande pour ouvrir son formulaire dans l'éditeur."))}</p></section>`;
+  }
+
+  /** Commands: the AI skills, one group after archvow's, plain names (0.16.0). They open the launch form. */
+  function aiSkillsGroup(filter) {
+    const items = (AI().order || []).filter((id) => skillDef(id)).filter((id) => !filter
+      || (skillLabel(id) + ' ' + id + ' ' + pair(skillDef(id).does)).toLocaleLowerCase().includes(filter));
+    if (!items.length) return '';
+    const expanded = filter || ui.commandGroupsOpen.ai !== false;
+    return `<div class="command-group ai-group"><button class="command-group-toggle" data-a="commandGroup" data-id="ai" aria-expanded="${expanded ? 'true' : 'false'}"><span class="node">${expanded ? '▾' : '▸'} <svg class="spark small" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg><span>${esc(t('AI skills', 'Skills IA'))}</span></span><span class="count">${items.length}</span></button>
+    ${expanded ? `<p class="muted small ai-note">${esc(t('The AI proposes or adds, you decide.', "L'IA propose ou ajoute, tu décides."))}</p><ul class="list items command-children">${items.map((id) => `<li data-a="openSkill" data-skill="${esc(id)}" title="${esc(pair(skillDef(id).does))}"><b class="node"><span>${esc(skillLabel(id))}</span><span class="mono small muted">${esc(id)}</span></b><div class="muted small">${esc(short(pair(skillDef(id).does), 90))}</div></li>`).join('')}</ul>` : ''}</div>`;
   }
 
   /** Read-only reference generated from the installed CLI grammar and the shared form descriptions. */
@@ -2029,8 +2241,30 @@
       const values = {};
       if (e.dataset.component) values.component = e.dataset.component;
       if (e.dataset.number) values.number = e.dataset.number;
+      if (e.dataset.id) values.id = e.dataset.id;  // hazard accept, rule accept / remove (0.16.0)
+      if (e.dataset.brief) values.brief = e.dataset.brief;  // brief accept, from Overview › Briefs
       if (e.dataset.field === 'base' && baseNow().trim()) values.base = baseNow().trim();
       post({ type: 'openCommand', command: e.dataset.command, values, selected: ui.component });
+    },
+    // ---- AI skills (0.16.0)
+    aiMenu: () => { ui.aiMenu = !ui.aiMenu; },
+    openSkill: (e) => {
+      const values = { component: e.dataset.component || (ui.mode === 'component' ? ui.component : ''), brief: e.dataset.brief || '' };
+      if (NAV) { post({ type: 'openSkill', skill: e.dataset.skill, values }); return; }
+      if (ui.mode === 'component' && ui.component) ui.back = { component: ui.component, view: ui.view };
+      ui.aiMenu = false;
+      ui.mode = 'skill';
+      ui.skill = e.dataset.skill;
+      ui.skillValues = Object.assign({ max: '5' }, values);
+    },
+    skillValue: (e) => { ui.skillValues[e.dataset.name] = e.dataset.value; },
+    askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1' }),
+    originFilter: (e) => { ui.originFilter = e.dataset.id; },
+    toReview: () => {
+      // what the AI added and no person kept yet: the first view that has some, filtered to them
+      const ai = aiOf();
+      ui.originFilter = 'review';
+      if (ai) ui.view = ai.toReview.decisions ? 0 : ai.toReview.safety ? 2 : ai.toReview.rules ? 4 : ai.toReview.assumptions ? 3 : ui.view;
     },
     choose: (e) => {
       const row = selectedRow('safety');
@@ -2228,6 +2462,13 @@
       }
       case 'base': ui.base = e.value; ui.baseTouched = true; return;
       case 'commandFilter': ui.commandFilter = e.value; render(); return;
+      case 'skill': {
+        ui.skillValues[e.dataset.name] = e.value;
+        const pre = document.querySelector('.skill-form pre.request');
+        if (pre) pre.textContent = skillRequest(ui.skill, ui.skillValues);
+        document.querySelectorAll('.skill-form [data-a="askAi"]').forEach((b) => { b.disabled = !e.value.trim(); });
+        return;
+      }
       case 'form':
         ui.form[e.dataset.name] = e.value;
         askPreview();
@@ -2346,6 +2587,7 @@
         return;
       }
       case 'advanced': ui.advanced = e.checked; render(); return;
+      case 'skill': ui.skillValues[e.dataset.name] = e.value; render(); return;
       default:
     }
   });

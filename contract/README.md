@@ -16,7 +16,7 @@ here is a change the plugins must follow.
 After an archvow release:
 
 ```bash
-contract/tools/take_archvow.sh ../archvow v1.19.0 ../archvow/dist/archvow-1.19.0-py3-none-any.whl
+contract/tools/take_archvow.sh ../archvow v1.20.0 ../archvow/dist/archvow-1.20.0-py3-none-any.whl
 python3 -m venv /tmp/av && /tmp/av/bin/pip install contract/archvow/archvow-*.whl
 python3 contract/tools/regenerate.py contract/archvow --python /tmp/av/bin/python
 python3 contract/tools/harvest_messages.py ../archvow --python ../archvow/.venv/bin/python   # its venv with archvow[dev]
@@ -26,4 +26,4 @@ python3 contract/tools/harvest_messages.py ../archvow --python ../archvow/.venv/
 git diff contract/                                         # review: this is what changed for the plugins
 ```
 
-Recorded from archvow 1.19.0.
+Recorded from archvow 1.20.0.

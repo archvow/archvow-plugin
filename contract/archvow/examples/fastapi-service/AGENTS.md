@@ -193,8 +193,8 @@ When you change a file someone else wrote, keep its `@author` and add your name 
    (use name@example.com).
 
 ## Never
-11. Never edit `.archvow/` by hand (only through the `archvow question add` / `assumption add` commands
-    above, and commit what they change), nor this file, `CLAUDE.md`, `ruff.toml`, `.githooks/` or
+11. Never edit `.archvow/` by hand (only through the archvow commands above that are yours to run -
+    `question add`, `assumption add` - and commit what they change), nor this file, `CLAUDE.md`, `ruff.toml`, `.githooks/` or
     `.gitlab-ci.yml`, `.gitlab/`; never add `# noqa`,
     `# type: ignore` or suppressions; never delete, skip or weaken a test, nor change the files of
     `tests/examples/`. When a marked test fails, fix the code; if the test or an example looks

@@ -78,11 +78,11 @@ test('a violation names its component by its vow file', () => {
 test('the CLI version: the contract\'s major.minor, older, newer, absent (EN and FR)', () => {
   const recorded = fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8');
   const known = knownVersion(recorded);
-  assert.equal(known, '1.19');
+  assert.equal(known, '1.20');
   assert.equal(versionWarning(parseVersion(recorded), known), null, recorded);
-  assert.equal(versionWarning([1, 19, 4], known), null);
+  assert.equal(versionWarning([1, 20, 4], known), null);
   assert.match(versionWarning([1, 11, 0], known) ?? '', /older.*update archvow/);
-  assert.match(versionWarning([1, 20, 0], known) ?? '', /newer.*update the plugin/);
+  assert.match(versionWarning([1, 21, 0], known) ?? '', /newer.*update the plugin/);
   assert.match(versionWarning([1, 13, 0], known, true) ?? '', /plus ancien/);
   assert.match(versionWarning(parseVersion('command not found'), known) ?? '', /installed/);
 });

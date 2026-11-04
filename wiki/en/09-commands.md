@@ -107,6 +107,17 @@ signature), which the AI or a developer will write. `changes` and `diff` have a 
 file of the project, then opened (`writeReport()`) - the preview shows `archvow changes --from ... --markdown >
 CHANGES.md`. The repository's first commit (`git rev-list --max-parents=0 HEAD`) is offered first for `--from`.
 
+## The AI skills (0.16.0)
+
+After archvow's own groups, Commands has **AI skills** (`aiSkillsGroup()`, a `SkillNode` in IntelliJ's tree): the
+five in plain words. Each opens the **launch form** (`skillForm()`, `ArchvowSkillForm` in a dialog), design A:
+the component (or the brief section for draft-spec), at most how many questions (clarify), where the request goes
+(the project's `ai_tools`); on the right what will happen, what the AI may add, what the person still decides and
+the exact request (`request()`, `ArchvowAiSkills.request`: the tool's own slash command, else the sentence in the
+page's language). Nothing runs: VS Code opens Copilot Chat with the request typed
+(`workbench.action.chat.open`, `isPartialQuery`), else copies it; IntelliJ copies it. What the assistant adds
+comes back marked as the AI's at the next refresh.
+
 ## Confirming before changing
 
 A command that changes nothing (first word in `READ_ONLY`: `show`, `catalog`, `next`, `check`,

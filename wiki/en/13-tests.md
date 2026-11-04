@@ -34,6 +34,8 @@ what it protects:
 | `VersionRegression` | "archvow 1.17 is not the known version" |
 | `ChoicesRegression` | the command forms offer what exists (`ArchvowChoices`): on the three examples, in English and French, exactly what VS Code offers (`contract/choices/expected.json`), and the same comparison base |
 | `FilePlanRegression` | the files a form announces (`ArchvowFilePlan`): exactly VS Code's on `contract/forms/file-plans.expected.json`; the layers to add to, Save to a file, the first commit, the icons (`ArchvowTreeIcons`), the answer tables (a bin per row, the parameters) |
+| `AiSkillsRegression` | the AI view of a component (`ArchvowAiSkills`): exactly VS Code's on `contract/forms/ai-skills.expected.json` (origins, To review counts, suggestion, blocked skills); the requests each tool gets |
+| `SkillFormRegression` | the launch form of a skill (`ArchvowSkillForm`): the request, Copy disabled without a brief, "Not yet"; Overview › Briefs (`ArchvowBriefs.statusHtml`); the cards' origin tags and the All / Open / To review filter |
 | `GuidanceRegression` | every diagnostic says what to do (`ArchvowGuidance`): each documented code, and on each real message exactly the guidance of VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Install archvow: the Python chosen, the pip line per source, WSL, pip only from a confirmation |
 | `ProgressRegression` | the progress bar on the recorded `clean_orders` (9/9, 1/5, 0/2) |

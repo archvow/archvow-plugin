@@ -1,10 +1,8 @@
 ---
 name: archvow-draft-spec
-description: "Propose the archvow commands that specify a feature described in plain words, or a brief (a file of a briefs folder: briefs/ by default)"
+description: "Draft the archvow spec of a feature described in plain words, or of a brief (a file of a briefs folder: briefs/ by default): proposed in mode strict, recorded as the AI's in modes guided and free"
 ---
 
-What to give: <the feature, in plain words> | briefs/<file>.md | specs/<feature>/plan.md.
+What to give: <the feature, in plain words> | briefs/<file>.md | briefs/<file>.md#<section> | specs/<feature>/plan.md.
 
-Draft the spec of this feature, as AGENTS.md defines "Draft the spec of <feature>" - or, when it is a file of a briefs folder (briefs/, or another folder the project declares), "Draft the spec from <brief>": what the person gives (a component, a feature or a file)
-
-Propose the commands; run none of them and write no code.
+Draft the spec of this feature, as AGENTS.md defines "Draft the spec of <feature>" - or, when it is a file of a briefs folder (briefs/, or another folder the project declares), "Draft the spec from <brief>": in mode strict, propose the commands and run none; in modes guided and free, run them yourself with `--from` and `--why` (each item stays the AI's until a person keeps it). Write no code.

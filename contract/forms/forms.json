@@ -13,6 +13,8 @@
     "group": ["Group (sub-folder)", "Groupe (sous-dossier)"],
     "route": ["Routes", "Routes"],
     "source": ["Drawn from a brief", "Tiré d'un brief"],
+    "max": ["At most (questions)", "Au plus (questions)"],
+    "why": ["Why (shown to the person who keeps it)", "Pourquoi (montré à la personne qui le garde)"],
     "file": ["Existing file", "Fichier existant"],
     "owners": ["Owners", "Responsables"],
     "item": ["Item (hazard, invariant, rule, file)", "Élément (hazard, invariant, règle, fichier)"],
@@ -96,12 +98,14 @@
     "component remove": [["removed", ".archvow/components/{component}/", ["its vow and its card, with its hazards and invariants", "son vow et sa fiche, avec ses hazards et invariants"]], ["updated", ".archvow/spec.md", null], ["kept", "{code}", ["the code stays: archvow never deletes code", "le code reste : archvow ne supprime jamais de code"]]],
     "question add": [["updated", ".archvow/components/{component}/spec.vow", ["a new numbered question, open", "une nouvelle question numérotée, ouverte"]], ["updated", ".archvow/components/{component}/spec.md", ["the card stops the AI until it is answered", "la fiche arrête l'IA jusqu'à la réponse"]]],
     "question remove": [["updated", ".archvow/components/{component}/spec.vow", null], ["updated", ".archvow/components/{component}/spec.md", null]],
+    "question accept": [["updated", ".archvow/components/{component}/spec.vow", ["the AI's question becomes the team's, still open", "la question de l'IA devient celle de l'équipe, toujours ouverte"]], ["updated", ".archvow/components/{component}/spec.md", null]],
     "decision make": [["updated", ".archvow/components/{component}/spec.vow", ["the answer, signed with your name", "la réponse, signée de votre nom"]], ["updated", ".archvow/components/{component}/spec.md", null]],
     "decision add": [["updated", ".archvow/components/{component}/spec.vow", ["a new numbered question, answered", "une nouvelle question numérotée, répondue"]], ["updated", ".archvow/components/{component}/spec.md", null]],
     "decision propose": [["updated", ".archvow/proposals.vow", ["until a person accepts it", "jusqu'à ce qu'une personne l'accepte"]]],
     "decision accept": [["updated", ".archvow/components/{component}/spec.vow", null], ["updated", ".archvow/proposals.vow", ["the proposal leaves it", "la proposition en sort"]], ["updated", ".archvow/components/{component}/spec.md", null]],
     "rule add": [["updated", ".archvow/spec.vow", ["the rule R<n>", "la règle R<n>"]], ["updated", ".archvow/spec.md", null], ["updated", "{covered}", ["each one needs a test marked with the rule", "chacun a besoin d'un test marqué par la règle"]]],
     "rule edit": [["updated", ".archvow/spec.vow", null], ["updated", ".archvow/spec.md", null], ["updated", "{covered}", null]],
+    "rule accept": [["updated", ".archvow/spec.vow", ["the AI's rule becomes the team's", "la règle de l'IA devient celle de l'équipe"]], ["updated", ".archvow/spec.md", null], ["updated", "{covered}", null]],
     "rule remove": [["updated", ".archvow/spec.vow", null], ["updated", ".archvow/spec.md", null], ["updated", "{covered}", null]],
     "assumption add": [["updated", ".archvow/components/{component}/spec.vow", ["proposed until a person accepts or rejects it", "proposée jusqu'à ce qu'une personne l'accepte ou la rejette"]], ["updated", ".archvow/components/{component}/spec.md", null]],
     "assumption accept": [["updated", ".archvow/components/{component}/spec.vow", null], ["updated", ".archvow/components/{component}/spec.md", null]],
@@ -109,6 +113,7 @@
     "hazard add": [["updated", ".archvow/components/{component}/spec.vow", ["the hazard (and its invariant for critical or high)", "le hazard (et son invariant pour critical ou high)"]], ["updated", ".archvow/components/{component}/spec.md", null], ["updated", ".archvow/spec.md", ["Hazards, Invariants", "Hazards, Invariants"]]],
     "hazard dismiss": [["updated", ".archvow/components/{component}/spec.vow", ["not applicable, with the reason", "non applicable, avec la raison"]], ["updated", ".archvow/components/{component}/spec.md", null], ["updated", ".archvow/spec.md", null]],
     "hazard edit": [["updated", ".archvow/components/{component}/spec.vow", null], ["updated", ".archvow/components/{component}/spec.md", null], ["updated", ".archvow/spec.md", null]],
+    "hazard accept": [["updated", ".archvow/components/{component}/spec.vow", ["the AI's hazard and its invariants become the team's", "le hazard de l'IA et ses invariants deviennent ceux de l'équipe"]], ["updated", ".archvow/components/{component}/spec.md", null], ["updated", ".archvow/spec.md", null]],
     "hazard remove": [["updated", ".archvow/components/{component}/spec.vow", null], ["updated", ".archvow/components/{component}/spec.md", null], ["updated", ".archvow/spec.md", null]],
     "invariant add": [["updated", ".archvow/components/{component}/spec.vow", ["its test is marked invariant(...)", "son test est marqué invariant(...)"]], ["updated", ".archvow/components/{component}/spec.md", null], ["updated", ".archvow/spec.md", null]],
     "invariant edit": [["updated", ".archvow/components/{component}/spec.vow", null], ["updated", ".archvow/components/{component}/spec.md", null], ["updated", ".archvow/spec.md", null]],
@@ -134,20 +139,24 @@
     "show": {"title": ["Show", "Afficher"], "verb": ["Show", "Afficher"], "does": ["Reads only.", "Lit seulement."]},
     "question add": {"title": ["Ask a question", "Poser une question"], "verb": ["Add question", "Ajouter la question"], "does": ["The component is blocked until a person answers it.", "Le composant est bloqué jusqu'à ce qu'une personne y réponde."], "essential": ["component", "question"]},
     "question remove": {"title": ["Remove a question", "Retirer une question"], "verb": ["Remove", "Retirer"], "does": ["Only a question a person added goes, with its answer.", "Seule une question ajoutée par une personne part, avec sa réponse."], "essential": ["component", "number"]},
+    "question accept": {"title": ["Keep a question the AI asked", "Garder une question de l'IA"], "verb": ["Keep", "Garder"], "does": ["It stays open, as the team's own; answering it later keeps it too.", "Elle reste ouverte, comme celle de l'équipe ; y répondre plus tard la garde aussi."], "essential": ["component", "number"]},
     "decision make": {"title": ["Make a decision", "Prendre une décision"], "verb": ["Decide", "Décider"], "does": ["Records the answer, signed with your name.", "Enregistre la réponse, signée de votre nom."], "essential": ["component", "question", "answer"]},
     "decision propose": {"title": ["Propose a decision (AI)", "Proposer une décision (IA)"], "verb": ["Propose", "Proposer"], "does": ["Goes into proposals.vow until a person accepts it.", "Va dans proposals.vow jusqu'à ce qu'une personne l'accepte."]},
     "decision accept": {"title": ["Accept the AI's proposal", "Accepter la proposition de l'IA"], "verb": ["Accept", "Accepter"], "does": ["The proposal becomes the component's decision.", "La proposition devient la décision du composant."]},
     "decision add": {"title": ["Add a question with its answer", "Ajouter une question avec sa réponse"], "verb": ["Add decision", "Ajouter la décision"], "does": ["A new numbered question, already answered.", "Une nouvelle question numérotée, déjà répondue."]},
     "rule add": {"title": ["Add a project rule", "Ajouter une règle du projet"], "verb": ["Add rule", "Ajouter la règle"], "does": ["A rule in plain words; each component it covers needs a test marked with it.", "Une règle en mots simples ; chaque composant concerné a besoin d'un test marqué."], "essential": ["words", "type", "all"]},
     "rule edit": {"title": ["Edit a rule", "Modifier une règle"], "verb": ["Save", "Enregistrer"], "does": ["Its scope stays.", "Sa portée reste."]},
+    "rule accept": {"title": ["Keep a rule the AI added", "Garder une règle de l'IA"], "verb": ["Keep", "Garder"], "does": ["It becomes the team's own; an edit keeps it too.", "Elle devient celle de l'équipe ; une modification la garde aussi."]},
     "rule remove": {"title": ["Remove a rule", "Retirer une règle"], "verb": ["Remove", "Retirer"], "does": ["Its tests' markers become unknown (ARCH038).", "Les marqueurs de ses tests deviennent inconnus (ARCH038)."], "essential": ["id"]},
     "assumption add": {"title": ["Record an assumption", "Noter une hypothèse"], "verb": ["Add assumption", "Ajouter l'hypothèse"], "does": ["Proposed until a person accepts or rejects it.", "Proposée jusqu'à ce qu'une personne l'accepte ou la rejette."]},
     "assumption accept": {"title": ["Accept an assumption", "Accepter une hypothèse"], "verb": ["Accept", "Accepter"], "does": ["Signed with your name.", "Signée de votre nom."]},
     "assumption reject": {"title": ["Reject an assumption", "Rejeter une hypothèse"], "verb": ["Reject", "Rejeter"], "does": ["The code that relied on it must change.", "Le code qui s'appuyait dessus doit changer."]},
     "brief accept": {"title": ["Accept a changed brief", "Accepter un brief modifié"], "verb": ["Accept", "Accepter"], "does": ["What was drawn from it is reviewed.", "Ce qui en a été tiré est relu."]},
+    "brief show": {"title": ["See the briefs", "Voir les briefs"], "verb": ["Show", "Afficher"], "does": ["Each section: what is drawn from it, not used yet, changed since.", "Chaque section : ce qui en est tiré, pas encore utilisée, changée depuis."]},
     "hazard add": {"title": ["Declare a hazard", "Déclarer un hazard"], "verb": ["Declare hazard", "Déclarer le hazard"], "does": ["Without words: the suggested hazard, and for critical or high its invariant (the decision that covers it, when one does).", "Sans mots : le hazard suggéré et, pour critical ou high, son invariant (la décision qui le couvre, s'il y en a une)."], "essential": ["component", "guide_word", "severity", "description"]},
     "hazard dismiss": {"title": ["Not applicable", "Non applicable"], "verb": ["Mark not applicable", "Marquer non applicable"], "does": ["No H number; the reason is kept. Empty: the decision that says there is nothing to protect.", "Pas de numéro H ; la raison est gardée. Vide : la décision qui dit qu'il n'y a rien à protéger."]},
     "hazard edit": {"title": ["Change a hazard", "Modifier un hazard"], "verb": ["Save", "Enregistrer"], "does": ["Same id; the invariants that protect it become to review.", "Même id ; les invariants qui le protègent deviennent à revoir."], "essential": ["id", "words", "severity"]},
+    "hazard accept": {"title": ["Keep a hazard the AI added", "Garder un hazard de l'IA"], "verb": ["Keep", "Garder"], "does": ["With the invariants the AI added to prevent it; an edit keeps it too.", "Avec les invariants que l'IA a ajoutés pour l'empêcher ; une modification le garde aussi."], "essential": ["id"]},
     "hazard remove": {"title": ["Remove a hazard", "Retirer un hazard"], "verb": ["Remove", "Retirer"], "does": ["The invariants that protected only it go too.", "Les invariants qui ne protégeaient que lui partent aussi."], "essential": ["id"]},
     "invariant add": {"title": ["Add an invariant", "Ajouter un invariant"], "verb": ["Add invariant", "Ajouter l'invariant"], "does": ["What is always true in the code, so that a hazard cannot happen.", "Ce qui est toujours vrai dans le code, pour qu'un hazard ne puisse pas arriver."], "essential": ["component", "prevents", "statement", "from_decision"]},
     "invariant edit": {"title": ["Change an invariant", "Modifier un invariant"], "verb": ["Save", "Enregistrer"], "does": ["Same id, hazards and test marker. One linked to a decision changes with the decision.", "Même id, hazards et marqueur de test. Celui lié à une décision change avec la décision."], "essential": ["id", "words"]},
@@ -165,5 +174,86 @@
     "diff": {"title": ["Spec changes", "Changements de spec"], "verb": ["Show", "Afficher"], "does": ["Reads only. With Save to a file: writes the report there, for the merge request.", "Lit seulement. Avec Enregistrer dans un fichier : y écrit le rapport, pour la merge request."], "hints": {"output": ["e.g. SPEC-CHANGES.md for the merge request: written to this file (replaced), then opened; empty: shown here", "par ex. SPEC-CHANGES.md pour la merge request : écrit dans ce fichier (remplacé), puis ouvert ; vide : affiché ici"]}},
     "docs": {"title": ["Specs (spec.md)", "Specs (spec.md)"], "verb": ["Write the specs", "Écrire les specs"], "does": ["Writes every spec.md from the vows.", "Écrit chaque spec.md à partir des vows."]},
     "template new": {"title": ["New company template", "Nouveau modèle d'entreprise"], "verb": ["Create", "Créer"], "does": ["A template that extends a built-in one.", "Un modèle qui étend un modèle intégré."], "essential": ["name", "extends", "dir", "description"]}
+  },
+  "ai_skills": {
+    "about": "The AI skills archvow generates (.claude/skills, .github/skills): one plain name each, what it reads, what it may add, what the person decides, and the request sent to the assistant. Both plugins show them the same way: the 'All AI skills' menu of a component, the launch form, the 'AI skills' group of Commands. {component}, {brief}, {max}, {base} are filled from the form.",
+    "order": [
+      "draft-spec",
+      "clarify",
+      "analyze",
+      "implement",
+      "review"
+    ],
+    "skills": {
+      "draft-spec": {
+        "label": ["Draft from a brief", "Rédiger depuis un brief"],
+        "does": ["Specifies what a brief section asks: components, rules and questions drawn from it.", "Spécifie ce que demande une section de brief : composants, règles et questions qui en sont tirés."],
+        "reads": ["The brief section, the components that exist and the catalog.", "La section du brief, les composants existants et le catalogue."],
+        "may_add": ["In modes guided and free: components, rules and questions, each marked as the AI's and drawn from the section. In mode strict: nothing, it proposes the commands.", "En modes guided et free : composants, règles et questions, chacun marqué comme celui de l'IA et tiré de la section. En mode strict : rien, elle propose les commandes."],
+        "you": ["Keep, edit or remove each one (in strict: run the commands you agree with).", "Garder, modifier ou retirer chacun (en strict : lancer les commandes avec lesquelles vous êtes d'accord)."],
+        "target": "brief",
+        "request": {
+          "claude-code": "/archvow-draft-spec {brief}",
+          "default": ["Use the archvow-draft-spec skill: draft the spec from {brief}", "Utilise le skill archvow-draft-spec : rédige la spec depuis {brief}"]
+        }
+      },
+      "clarify": {
+        "label": ["Find missing questions", "Trouver les questions manquantes"],
+        "does": ["Finds the cases the spec of the component does not define yet, and records them as open questions.", "Trouve les cas que la spec du composant ne définit pas encore, et les enregistre en questions ouvertes."],
+        "reads": ["Its spec card, its brief section, the components it uses and that use it.", "Sa fiche de spec, sa section de brief, les composants qu'il utilise et qui l'utilisent."],
+        "may_add": ["Questions only, each marked as the AI's with why it asked. Never an answer.", "Des questions seulement, chacune marquée comme celle de l'IA avec sa raison. Jamais une réponse."],
+        "you": ["Answer each question, keep it to answer later, or remove it. An open question blocks Implement.", "Répondre à chaque question, la garder pour plus tard, ou la retirer. Une question ouverte bloque Implémenter."],
+        "target": "component",
+        "max": true,
+        "request": {
+          "claude-code": "/archvow-clarify {component} (at most {max} questions)",
+          "default": ["Use the archvow-clarify skill on {component}: at most {max} questions (archvow prompt {component} --clarify --max {max})", "Utilise le skill archvow-clarify sur {component} : au plus {max} questions (archvow prompt {component} --clarify --max {max})"]
+        }
+      },
+      "analyze": {
+        "label": ["Find risks", "Trouver les risques"],
+        "does": ["For each open safety question, the hazard (what must never happen) and the invariant that prevents it.", "Pour chaque question de sûreté ouverte, le hazard (ce qui ne doit jamais arriver) et l'invariant qui l'empêche."],
+        "reads": ["Its safety questions, its decisions, its columns and the template's suggestions.", "Ses questions de sûreté, ses décisions, ses colonnes et les suggestions du template."],
+        "may_add": ["In modes guided and free: hazards and invariants, marked as the AI's. In mode strict: nothing, it proposes the commands. 'Not applicable' is always only proposed.", "En modes guided et free : hazards et invariants, marqués comme ceux de l'IA. En mode strict : rien, elle propose les commandes. « Non applicable » est toujours seulement proposé."],
+        "you": ["Keep, change or remove each hazard; decide the 'not applicable' ones.", "Garder, changer ou retirer chaque hazard ; décider des « non applicable »."],
+        "target": "component",
+        "request": {
+          "claude-code": "/archvow-analyze {component}",
+          "default": ["Use the archvow-analyze skill: analyze the risks of {component}", "Utilise le skill archvow-analyze : analyse les risques de {component}"]
+        }
+      },
+      "implement": {
+        "label": ["Implement", "Implémenter"],
+        "does": ["Writes the code and the tests of the component, one task at a time.", "Écrit le code et les tests du composant, une tâche à la fois."],
+        "reads": ["The spec card, task by task.", "La fiche de spec, tâche par tâche."],
+        "may_add": ["Code and tests. An assumption when it had to guess.", "Du code et des tests. Une hypothèse quand elle a dû deviner."],
+        "you": ["Accept or reject each assumption; commit.", "Accepter ou rejeter chaque hypothèse ; commiter."],
+        "target": "component",
+        "request": {
+          "claude-code": "/archvow-implement {component}",
+          "default": ["Use the archvow-implement skill: implement {component}", "Utilise le skill archvow-implement : implémente {component}"]
+        }
+      },
+      "review": {
+        "label": ["Review changes", "Relire les changements"],
+        "does": ["Reviews the change of this branch against the spec and writes a report in reviews/.", "Relit le changement de cette branche par rapport à la spec et écrit un rapport dans reviews/."],
+        "reads": ["The change against the base branch, the spec cards.", "Le changement par rapport à la branche de base, les fiches de spec."],
+        "may_add": ["A report only (approved reviewers). It changes no code.", "Un rapport seulement (relecteurs approuvés). Elle ne change aucun code."],
+        "you": ["Fix or acknowledge each finding.", "Corriger ou accepter chaque remarque."],
+        "target": "component",
+        "request": {
+          "claude-code": "/archvow-review {component}",
+          "default": ["Use the archvow-review skill: review {component}", "Utilise le skill archvow-review : relis {component}"]
+        }
+      }
+    },
+    "origins": {
+      "about": "The tag on a card: where the item came from (none: a person's own).",
+      "template": ["Template", "Template"],
+      "project": ["Project", "Projet"],
+      "brief": ["Brief", "Brief"],
+      "ai": ["AI", "IA"],
+      "to_review": ["To review", "À relire"]
+    }
   }
 }

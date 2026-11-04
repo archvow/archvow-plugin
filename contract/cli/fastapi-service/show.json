@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "orders_api",
-      "template": "fastapi-service@1.19.0",
+      "template": "fastapi-service@1.20.0",
       "package": "orders_api",
       "path": "src/orders_api",
       "components": [

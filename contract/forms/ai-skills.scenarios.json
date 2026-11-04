@@ -1,0 +1,45 @@
+{
+  "about": "Component views (the fields of archvow 1.20 show --json the AI view reads) and the skills a person already started on each. Both plugins compute the AI view of each (vscode/src/aiSkills.ts, IntelliJ ArchvowAiSkills) and compare it with ai-skills.expected.json (UPDATE_AI_SKILLS=1 npm test writes it).",
+  "scenarios": [
+    {
+      "name": "every origin, what waits for a person",
+      "launched": [],
+      "view": {
+        "status": "planned",
+        "decisions": [
+          {"number": 1, "question": "Which rows are kept?", "answer": "Orders with a customer_id", "template": true, "by": "marc", "on": "2026-10-28"},
+          {"number": 2, "question": "A null in an identifying column?", "answer": "Drop the row", "template": true, "origin": "type"},
+          {"number": 3, "question": "Amounts: cents or euros?", "answer": "Cents", "template": false, "source": {"file": "briefs/orders.md", "section": "cleaning"}},
+          {"number": 4, "question": "Data not there yet?", "answer": null, "template": true, "proposed": "Fail the run"},
+          {"number": 5, "question": "A cancelled order?", "answer": null, "template": false, "added_by": "claude-code", "to_accept": true, "why": "the brief shows cancelled orders"},
+          {"number": 6, "question": "Negative amounts?", "answer": "Reject the row", "template": false, "added_by": "copilot", "to_accept": false},
+          {"number": 7, "question": "Which encoding?", "answer": null, "template": false}
+        ],
+        "safety": [
+          {"number": 1, "status": "answered", "hazards": [{"id": "clean_orders.H1", "severity": "critical", "description": "rows lost", "suggested": true, "prevented_by": []}]},
+          {"number": 2, "status": "answered", "hazards": [{"id": "clean_orders.H2", "severity": "high", "description": "counted twice", "suggested": false, "added_by": "claude-code", "to_accept": true, "why": "a rerun doubles rows", "prevented_by": [{"id": "clean_orders.INV1", "added_by": "claude-code", "to_accept": true}]}]},
+          {"number": 3, "status": "answered", "hazards": [{"id": "clean_orders.H3", "severity": "medium", "description": "late", "suggested": false, "prevented_by": [{"id": "clean_orders.INV2", "added_by": "copilot", "to_accept": true, "why": "said in review"}]}]},
+          {"number": 4, "status": "open"}
+        ],
+        "rules": [
+          {"id": "R1", "text": "Drop is_test rows", "source": {"file": "briefs/orders.md", "section": "cleaning"}},
+          {"id": "R2", "text": "Amounts are in cents", "added_by": "claude-code", "to_accept": true, "why": "the brief says so"},
+          {"id": "R3", "text": "Never log a row"}
+        ],
+        "assumptions": [{"number": 1, "text": "amount >= 0", "status": "proposed"}, {"number": 2, "text": "UTF-8", "status": "accepted"}]
+      }
+    },
+    {"name": "a new component: look for what is open first", "launched": [],
+     "view": {"status": "planned", "decisions": [{"number": 1, "question": "q", "answer": null, "template": true}], "safety": [{"number": 1, "status": "open"}], "rules": [], "assumptions": []}},
+    {"name": "questions looked for: a person answers them", "launched": ["clarify"],
+     "view": {"status": "planned", "decisions": [{"number": 1, "question": "q", "answer": null, "template": true}], "safety": [{"number": 1, "status": "open"}], "rules": [], "assumptions": []}},
+    {"name": "decisions made: the risks", "launched": ["clarify"],
+     "view": {"status": "planned", "decisions": [{"number": 1, "question": "q", "answer": "a", "template": true}], "safety": [{"number": 1, "status": "open"}, {"number": 2, "status": "open"}], "rules": [], "assumptions": []}},
+    {"name": "nothing open: implement", "launched": ["clarify", "analyze"],
+     "view": {"status": "planned", "decisions": [{"number": 1, "question": "q", "answer": "a", "template": true}], "safety": [{"number": 1, "status": "answered"}], "rules": [], "assumptions": []}},
+    {"name": "the code exists: review", "launched": [],
+     "view": {"status": "implemented", "decisions": [{"number": 1, "question": "q", "answer": "a", "template": true}], "safety": [], "rules": [], "assumptions": []}},
+    {"name": "a component the AI created", "launched": [],
+     "view": {"status": "planned", "origin": "ai", "created_by": "claude-code", "decisions": [], "safety": [], "rules": [], "assumptions": []}}
+  ]
+}

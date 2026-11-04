@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `pyspark-pipeline@1.19.0`).
+[archvow](.archvow/README.md) (template `pyspark-pipeline@1.20.0`).
 
 ## For developers
 

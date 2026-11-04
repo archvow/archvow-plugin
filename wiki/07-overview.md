@@ -95,6 +95,17 @@ ARCH053 1 »), puis la liste des diagnostics. Le diagnostic choisi montre son me
 et **l'explication de sa règle**, tirée de `contract/cli/rules.md` (`ArchvowRuleDocs`,
 `ruleExplanation()`). Voir la règle ouvre la référence des contrôles ; Ouvrir le fichier va à la ligne.
 
+## Briefs (0.16.0)
+
+Un troisième sous-onglet à côté d'Architecture et de Check & Gates, depuis `brief show --json` d'archvow 1.20 (lu
+avec l'architecture ; un archvow plus ancien n'a pas cette commande : l'onglet le dit). Chaque fichier de brief,
+section par section : ✓ utilisée (les éléments qui en sont tirés), ○ pas encore utilisée avec **Rédiger avec
+l'IA…** (le formulaire de draft-spec, la section remplie), ! changée depuis avec **Relire…** (ouvre la section) et
+**Accepter le changement…** (le formulaire de `brief accept`). Son compte est les sections pas utilisées plus
+celles qui ont changé ; la ligne « Dossiers de briefs » de la bande d'état y mène. **Ajouter un dossier de briefs
+(architecte)…** ouvre le formulaire d'init prérempli. VS Code : `briefsView()`, `briefsDue()` ; IntelliJ :
+`ArchvowBriefs.statusHtml`, `ArchvowBriefs.due`, liens `DRAFT_LINK`, `ACCEPT_LINK`.
+
 ## La langue
 
 En bas d'Overview : la langue de l'espace de travail (celle de l'IDE, anglais ou français). Elle est

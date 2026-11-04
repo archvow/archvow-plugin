@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 1.19.0",
+ "archvow": "archvow 1.20.0",
  "messages": [
   {
    "code": "ACME001",
@@ -515,7 +515,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.19.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.20.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -3103,6 +3103,55 @@
    "line": 0
   },
   {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' question 10 was asked by the AI (claude-code), not kept by a person yet: \"A cancelled order: keep, drop, or drop and count it?\" -> a person answers it (archvow decision make clean_orders 10 \"...\"), keeps it (archvow question accept clean_orders 10) or removes it (question remove)",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'clean_orders' question 11 was asked by the AI (claude-code), not kept by a person yet: \"Negative amounts: reject the row or the file?\" -> a person answers it (archvow decision make clean_orders 11 \"...\"), keeps it (archvow question accept clean_orders 11) or removes it (question remove)",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "'config' question 3 was asked by the AI (claude-code), not kept by a person yet: \"Which encoding?\" -> a person answers it (archvow decision make config 3 \"...\"), keeps it (archvow question accept config 3) or removes it (question remove)",
+   "file": ".archvow/components/config/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "R1 was added by the AI (claude-code), not kept by a person yet: \"Rows with is_test are never written\" -> archvow rule accept R1 (or rule edit / rule remove)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "R2 was added by the AI (claude-code), not kept by a person yet: \"Amounts are in cents\" -> archvow rule accept R2 (or rule edit / rule remove)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "clean_orders.H1 was added by the AI (claude-code), not kept by a person yet -> archvow hazard accept clean_orders.H1 (or hazard edit / hazard remove)",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "clean_orders.INV1 was added by the AI (claude-code), not kept by a person yet -> archvow hazard accept clean_orders.H1 (or invariant edit / invariant remove)",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
    "code": "ARCH044",
    "severity": "warning",
    "message": "clean_orders: its task is about 1,250 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
@@ -3133,7 +3182,7 @@
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "logging_setup: its task is about 561 tokens, over 500 - split it into smaller components",
+   "message": "logging_setup: its task is about 602 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/logging_setup/spec.md",
    "line": 0
   },
@@ -3266,14 +3315,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit b6d264f2: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 4ca4bd00: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit fd906dab: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit 7c793c56: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },

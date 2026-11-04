@@ -32,6 +32,8 @@ nom de ce qu'elle protège :
 | `TextSizeRegression` | aucun `px` ni `<h1>`-`<h6>` dans le HTML affiché, le conseil de branche sur plusieurs lignes |
 | `ChoicesRegression` | les formulaires de commande proposent ce qui existe (`ArchvowChoices`) : sur les trois exemples, en anglais et en français, exactement ce que propose VS Code (`contract/choices/expected.json`), et la même base de comparaison |
 | `FilePlanRegression` | les fichiers qu'un formulaire annonce (`ArchvowFilePlan`) : exactement ceux de VS Code sur `contract/forms/file-plans.expected.json` ; les couches où ajouter, Enregistrer dans un fichier, le premier commit, les icônes (`ArchvowTreeIcons`), les tableaux de réponse (une corbeille par ligne, les paramètres) |
+| `AiSkillsRegression` | la vue IA d'un composant (`ArchvowAiSkills`) : exactement celle de VS Code sur `contract/forms/ai-skills.expected.json` (origines, nombres à relire, suggestion, skills bloqués) ; les demandes que reçoit chaque outil |
+| `SkillFormRegression` | le formulaire de lancement d'un skill (`ArchvowSkillForm`) : la demande, Copier grisé sans brief, « Pas encore » ; Vue d'ensemble › Briefs (`ArchvowBriefs.statusHtml`) ; les étiquettes d'origine des cartes et le filtre Tout / Ouverts / À relire |
 | `GuidanceRegression` | chaque diagnostic dit quoi faire (`ArchvowGuidance`) : chaque code documenté, et sur chaque message réel exactement le guidage de VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Installer archvow : le Python choisi, la ligne pip par source, WSL, pip seulement depuis une confirmation |
 | `ProgressRegression` | la barre d'avancement sur le `clean_orders` enregistré (9/9, 1/5, 0/2) |

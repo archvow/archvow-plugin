@@ -20,9 +20,35 @@ final class ArchvowItemCards {
 
     private ArchvowItemCards() { }
 
-    /** One item: its number, its question (or text), open or not, and what was recorded. */
-    record Card(String number, String title, boolean open, String state, String answer, String by, String note) {
+    /** One item: its number, its question (or text), open or not, what was recorded, and where it came from
+     *  (0.16.0: the origin tag - Template, Project, Brief, AI - and whether a person must still keep it). */
+    record Card(String number, String title, boolean open, String state, String answer, String by, String note,
+                ArchvowAiSkills.Origin origin) {
+        Card(String number, String title, boolean open, String state, String answer, String by, String note) {
+            this(number, title, open, state, answer, by, note, null);
+        }
+        boolean toReview() { return origin != null && origin.toReview(); }
+        Card withOrigin(ArchvowAiSkills.Origin o) { return new Card(number, title, open, state, answer, by, note, o); }
         @Override public String toString() { return number + " · " + title; }
+    }
+
+    /** The origin tag's words: "Template", "Project", "Brief #cleaning", "AI · claude-code", "AI · proposed answer". */
+    static String tag(ArchvowAiSkills.Origin o, boolean french) {
+        if (o == null || o.tag().isEmpty()) return "";
+        String text = switch (o.tag()) {
+            case "template" -> "Template";
+            case "project" -> french ? "Projet" : "Project";
+            case "brief" -> "Brief" + (o.section().isEmpty() ? "" : " #" + o.section());
+            default -> (french ? "IA" : "AI") + (o.proposal() ? (french ? " · réponse proposée" : " · proposed answer")
+                : o.who().isEmpty() ? "" : " · " + o.who());
+        };
+        return o.toReview() ? text + (french ? " · À relire" : " · To review") : text;
+    }
+
+    /** All / Open / To review (0.16.0): whether a card is shown. */
+    static boolean shown(Card card, String filter) {
+        if (filter == null || filter.equals("all")) return true;
+        return filter.equals("open") ? card.open() || card.toReview() : card.toReview();
     }
 
     /** "architect@example.com · 2026-10-08": who recorded the answer, and the day. */
@@ -133,18 +159,25 @@ final class ArchvowItemCards {
                 status.setText(fit(status, card == null ? "" : card.answer().isBlank() ? card.state() : card.answer(), width));
                 status.setForeground(green);
             }
-            by.setText(card == null ? "" : card.by());
-            by.setForeground(muted);
+            String tag = card == null ? "" : tag(card.origin(), french(list));
+            by.setText(card == null ? "" : tag.isEmpty() ? card.by() : card.by().isBlank() ? tag : tag + "  ·  " + card.by());
+            Color blue = dark ? new Color(128, 170, 245) : new Color(46, 90, 172);
+            by.setForeground(card != null && card.origin() != null && "ai".equals(card.origin().tag()) ? blue : muted);
             float hover = ArchvowMotion.hoverLevel(list, index);
             Color fill = selected ? ArchvowMotion.blend(background, ArchvowMotion.accent(), dark ? .22 : .12)
                 : ArchvowMotion.blend(background, ArchvowMotion.accent(), (dark ? .10 : .05) * hover);
             setBackground(list.getBackground());
-            Color line = card != null && card.open() ? amber
+            Color line = card != null && card.toReview() ? blue : card != null && card.open() ? amber
                 : ArchvowMotion.blend(background, list.getForeground(), dark ? .22 : .18);
             setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(3, 2, 3, 2),
                 BorderFactory.createCompoundBorder(new CardBorder(line, fill, selected ? ArchvowMotion.accent() : null),
                     BorderFactory.createEmptyBorder(6, 11, 6, 10))));
             return this;
+        }
+
+        /** The list's language: a client property the panel sets ("archvow.french"), English without. */
+        private static boolean french(JList<?> list) {
+            return Boolean.TRUE.equals(list.getClientProperty("archvow.french"));
         }
 
         /** The text cut with "…" to the width of the card. */
