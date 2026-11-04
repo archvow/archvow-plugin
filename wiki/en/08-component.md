@@ -104,6 +104,16 @@ every row: "Remove hazard…" fell outside the panel).
 
 "hazard" and "invariant" are keywords: French keeps them ("Déclarer un hazard").
 
+### Answer with a table (0.15.0)
+
+Under a decision about columns (nullable, personal data, type), an optional table: one row per known column,
+Never null / Nullable / Unknown and Yes / No / Unknown as buttons, notes, and a bin on every row (IntelliJ had
+none); only what the question asks about is shown (a personal-data question has no Nullable column). Under a
+`name: type = default` question (config, settings), the parameters table (`smartParameters()`,
+`ArchvowColumnAnswerPanel` in `PARAMETERS` mode): parameter, type, default (empty = required), notes; it reads
+back an answer written that way, not a sentence. Nothing is saved: **Use this answer** fills the field, to read
+before saving.
+
 ## Saving an answer, end to end
 
 ```mermaid

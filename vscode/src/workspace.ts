@@ -15,7 +15,9 @@ import { ArchvowCli, CliResult, CliSettings } from './cli';
 import { Briefs, locate, readBriefs } from './briefs';
 import { bestBase, Book, choiceBook, missingRef, refNames } from './choices';
 import { renderResult } from './formatter';
-import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, promptCommand } from './grammar';
+import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, previewWithOutput, promptCommand,
+  withPluginParameters } from './grammar';
+import { addableByLayer, filePlan } from './filePlan';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
 import { knownVersion, parseVersion, problemsOf, versionWarning } from './model';
@@ -54,6 +56,8 @@ export interface State {
   base: string;
   /** What each command form offers to choose from (choices.ts, 0.12.1). */
   choices: Book;
+  /** The types a person can add in each layer (the Components tab's "+", 0.15.0). */
+  addable: Record<string, { type: string; description: string }[]>;
 }
 
 type Target = 'overview' | 'component' | 'command' | 'quick' | 'decision' | 'question' | 'safety' | 'data';
@@ -63,7 +67,7 @@ type From = 'nav' | 'editor';
 /** The archvow project of the window: its CLI, its state, its problems, its sidebar and its one editor tab. */
 export class ArchvowProject {
   readonly cli: ArchvowCli;
-  readonly commands: Command[];
+  commands: Command[];
   private readonly resources: string;
   private readonly bundledCatalog: Json | null;
   /** The kinds of the component types (contract/cli/kinds.json), for an archvow whose catalog lacks them. */
@@ -71,9 +75,13 @@ export class ArchvowProject {
   /** `archvow catalog --json` in the project: its template, with the project's own templates. */
   private projectCatalog: Json | null = null;
   private remoteHead = '';
+  /** The repository's first commit: changes --from it reports everything (0.15.0). */
+  private firstCommit = '';
   readonly known: string;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
+  /** The trees' icons (contract/forms/icons.json, 0.15.0). */
+  private readonly icons: Json;
   state: State;
   /** The sidebar page (Overview, Components, Commands). */
   private nav: vscode.WebviewView | undefined;
@@ -105,6 +113,8 @@ export class ArchvowProject {
     }
     this.known = knownVersion(fs.readFileSync(path.join(this.resources, 'version.txt'), 'utf8'));
     this.forms = JSON.parse(fs.readFileSync(path.join(this.resources, 'forms.json'), 'utf8')) as Json;
+    this.commands = withPluginParameters(this.commands, this.forms);
+    this.icons = JSON.parse(fs.readFileSync(path.join(this.resources, 'icons.json'), 'utf8')) as Json;
     this.cli = new ArchvowCli(root, () => this.cliSettings(), (line) => log.info(line));
     void this.readInterpreter();
     this.problems = vscode.languages.createDiagnosticCollection('archvow');
@@ -179,7 +189,7 @@ export class ArchvowProject {
       readiness: readiness(this.root), welcomeError: '', branch: '', loading: '', spec: null, check: null, checkFailure: '',
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
-      refs: [], base: '', choices: {},
+      refs: [], base: '', choices: {}, addable: {},
     };
   }
 
@@ -288,7 +298,8 @@ export class ArchvowProject {
     const gitflow = str(s.spec ? s.spec.init_answers : null, 'branch_naming') === 'gitflow';
     s.base = bestBase(s.refs, s.branch, gitflow, this.remoteHead);
     s.choices = choiceBook(this.commands, { spec: s.spec, snapshots: s.snapshots, catalog: this.projectCatalog ?? this.bundledCatalog,
-      kinds: this.bundledKinds, refs: s.refs, base: s.base, fr: s.fr });
+      kinds: this.bundledKinds, refs: s.refs, base: s.base, fr: s.fr, firstCommit: this.firstCommit });
+    s.addable = addableByLayer(s.spec, this.projectCatalog ?? this.bundledCatalog);
   }
 
   private async checkVersion(): Promise<void> {
@@ -390,13 +401,18 @@ export class ArchvowProject {
 
   /** The branch, the branches and tags that exist (Diff, Review, Budget compare with one of them). */
   private async readBranch(): Promise<void> {
-    const [current, refs, head] = await Promise.all([this.git(['branch', '--show-current']),
+    const [current, refs, head, roots] = await Promise.all([this.git(['branch', '--show-current']),
       this.git(['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes', 'refs/tags']),
-      this.git(['symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD'])]);
+      this.git(['symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD']),
+      this.git(['rev-list', '--max-parents=0', 'HEAD'])]);
     const name = current === null ? '—' : current.trim() || '(detached)';
     const known = refNames(refs ?? '');
     this.remoteHead = (head ?? '').trim();
-    if (name !== this.state.branch || known.join('\n') !== this.state.refs.join('\n')) {
+    // several roots (merged histories): the oldest is the last one listed
+    const first = (roots ?? '').trim().split('\n').filter((l) => l.trim()).pop() ?? '';
+    const firstChanged = first !== this.firstCommit;
+    this.firstCommit = first;
+    if (firstChanged || name !== this.state.branch || known.join('\n') !== this.state.refs.join('\n')) {
       this.state.branch = name;
       this.state.refs = known;
       this.recomputeChoices();
@@ -584,7 +600,7 @@ export class ArchvowProject {
     const fr = this.state.fr;
     switch (m.type) {
       case 'ready': {
-        const init = { type: 'init', commands: this.commands, catalog: this.bundledCatalog, knownVersion: this.known, forms: this.forms,
+        const init = { type: 'init', commands: this.commands, catalog: this.bundledCatalog, knownVersion: this.known, forms: this.forms, icons: this.icons,
           types: componentTypes(this.bundledCatalog),
           rules: { en: fs.readFileSync(path.join(this.resources, 'rules.md'), 'utf8'), fr: fs.readFileSync(path.join(this.resources, 'rules.fr.md'), 'utf8') } };
         const state = { type: 'state', state: this.state };
@@ -793,8 +809,12 @@ export class ArchvowProject {
     const command = findCommand(this.commands, name);
     if (command === undefined) return;
     const plan = planForm(command, values, this.state.fr, { initAnswers, components: Object.keys(this.state.snapshots), selected, baseline });
-    const text = plan.kind === 'run' ? preview(plan.args.filter((a) => a !== '--json' && a !== '--no-input' && a !== '--yes')) : '';
-    this.toOpenEditor({ type: 'formPreview', command: name, text, missing: plan.kind === 'error' ? plan.message : '' });
+    const text = plan.kind === 'run' ? previewWithOutput(plan.args, plan.output) : '';
+    // the files it writes: what is new, updated, removed, and the code a new component plans (0.15.0)
+    const output = (values.output ?? '').trim();
+    const files = filePlan(name, values, { spec: this.state.spec, catalog: this.projectCatalog ?? this.bundledCatalog, forms: this.forms,
+      fr: this.state.fr, outputExists: output !== '' && fs.existsSync(path.resolve(this.root, output)) });
+    this.toOpenEditor({ type: 'formPreview', command: name, text, missing: plan.kind === 'error' ? plan.message : '', files });
   }
 
   private async runForm(name: string, values: Record<string, string>, initAnswers: string[], selected: string,
@@ -842,8 +862,37 @@ export class ArchvowProject {
       }
       stdin = editor.document.getText();
     }
+    if (plan.output) {
+      await this.writeReport(name, args, plan.output);
+      return;
+    }
     if (plan.mutating) this.confirm(name, args, 'command', preview(args), stdin);
     else await this.execute(name, args, 'command', stdin, false);
+  }
+
+  /** changes / diff with Save to a file: archvow's report written to the project's file, then opened (0.15.0). */
+  private async writeReport(name: string, args: string[], output: string): Promise<void> {
+    const fr = this.state.fr;
+    const file = path.resolve(this.root, output);
+    const relative = path.relative(this.root, file);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      void vscode.window.showWarningMessage(tr(fr, `${output} is outside the project: choose a file inside it.`,
+        `${output} est hors du projet : choisis un fichier à l'intérieur.`));
+      return;
+    }
+    this.toEditor({ type: 'running', target: 'command', label: name, args: previewWithOutput(args, output) });
+    const result = await this.cli.run(args, undefined, true);
+    const ok = result.exitCode === 0 && result.startError === undefined && !result.timedOut;
+    if (!ok) {
+      this.sendResult('command', name, result);
+      return;
+    }
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, result.stdout.endsWith('\n') ? result.stdout : result.stdout + '\n', 'utf8');
+    const lines = result.stdout.split('\n').filter((l) => l.trim()).length;
+    this.sendResult('command', name, { ...result, stdout: tr(fr, `Saved ${relative} (${lines} lines): the report of archvow ${args.join(' ')}`,
+      `Enregistré ${relative} (${lines} lignes) : le rapport de archvow ${args.join(' ')}`) });
+    await vscode.window.showTextDocument(vscode.Uri.file(file), { preview: false, viewColumn: vscode.ViewColumn.Beside });
   }
 
   /** The buttons inside a component's views: decide, propose, accept, answer, hazard, dismiss... */

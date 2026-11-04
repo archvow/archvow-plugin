@@ -1,0 +1,133 @@
+package org.archvow.idea;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import javax.swing.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 0.15.0, the same as VS Code (vscode/src/test/filePlan.test.ts): the files a form shows it will write, on every
+ * example of ../contract/forms/file-plans.expected.json, in English and in French; the Components tab's types per
+ * layer; Save to a file (archvow changes ... --markdown > CHANGES.md); the trees' icons; the first commit offered
+ * to changes --from; and the answer tables (a bin per row, only what the question asks, parameters).
+ */
+public final class FilePlanRegression {
+    private static void check(boolean ok, String message) {
+        if (!ok) throw new AssertionError(message);
+    }
+
+    private static JsonObject read(Path file) throws Exception {
+        return JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+    }
+
+    private static Map<String, String> values(JsonObject o) {
+        Map<String, String> out = new LinkedHashMap<>();
+        for (Map.Entry<String, JsonElement> e : o.entrySet()) out.put(e.getKey(), e.getValue().getAsString());
+        return out;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Path contract = Path.of(System.getProperty("archvow.contract.root", "../contract"));
+        JsonObject expected = read(contract.resolve("forms/file-plans.expected.json"));
+        JsonObject catalog = read(contract.resolve("cli/catalog.json"));
+        int plans = 0;
+        for (JsonElement e : expected.getAsJsonArray("plans")) {
+            JsonObject want = e.getAsJsonObject();
+            String command = want.get("command").getAsString();
+            boolean fr = want.get("fr").getAsBoolean();
+            JsonObject spec = read(contract.resolve("cli/" + want.get("example").getAsString() + "/show.json"));
+            List<ArchvowFilePlan.Row> got = ArchvowFilePlan.plan(command, values(want.getAsJsonObject("values")), spec, catalog, ArchvowForms.DATA, fr, false);
+            var rows = want.getAsJsonArray("rows");
+            String where = command + " " + want.getAsJsonObject("values") + (fr ? " fr" : "");
+            check(rows.size() == got.size(), where + ": " + got.size() + " rows, VS Code " + rows.size() + " " + got);
+            for (int i = 0; i < rows.size(); i++) {
+                JsonObject r = rows.get(i).getAsJsonObject();
+                ArchvowFilePlan.Row g = got.get(i);
+                check(r.get("change").getAsString().equals(g.change()) && r.get("path").getAsString().equals(g.path())
+                    && r.get("note").getAsString().equals(g.note()), where + " row " + i + ": " + g + " vs " + r);
+            }
+            plans++;
+        }
+        check(plans >= 40, "every example, in English and in French");
+        for (JsonElement e : expected.getAsJsonArray("addable")) {
+            JsonObject want = e.getAsJsonObject();
+            JsonObject spec = read(contract.resolve("cli/" + want.get("example").getAsString() + "/show.json"));
+            Map<String, List<ArchvowFilePlan.Addable>> got = ArchvowFilePlan.addableByLayer(spec, catalog);
+            JsonObject layers = want.getAsJsonObject("layers");
+            check(List.copyOf(layers.keySet()).equals(List.copyOf(got.keySet())), "the layers, in the template's order: " + got.keySet());
+            for (String layer : layers.keySet()) {
+                var types = layers.getAsJsonArray(layer);
+                check(types.size() == got.get(layer).size(), layer + ": " + got.get(layer));
+                for (int i = 0; i < types.size(); i++)
+                    check(types.get(i).getAsJsonObject().get("type").getAsString().equals(got.get(layer).get(i).type()), layer + " type " + i);
+            }
+        }
+        // Save to a file: the plugin's own field, after As Markdown, never on archvow's line
+        ArchvowGrammar.Command changes = ArchvowGrammar.find("changes");
+        int at = -1;
+        for (int i = 0; i < changes.parameters.size(); i++) if ("output".equals(changes.parameters.get(i).name)) at = i;
+        check(at > 0 && changes.parameters.get(at).plugin && changes.parameters.get(at - 1).name.equals("markdown"), "output after markdown");
+        for (JsonElement e : expected.getAsJsonArray("outputs")) {
+            JsonObject want = e.getAsJsonObject();
+            ArchvowGrammar.Command command = ArchvowGrammar.find(want.get("command").getAsString());
+            Map<String, String> v = values(want.getAsJsonObject("values"));
+            check(want.get("line").getAsString().equals(ArchvowForms.commandLine(command, v, false)),
+                "the line: " + ArchvowForms.commandLine(command, v, false) + " vs " + want.get("line"));
+            check(want.get("output").getAsString().equals(ArchvowForms.output(command, v)), "the output file");
+        }
+        // the first commit, offered first to changes --from (as choices.ts)
+        var book = ArchvowChoices.book(ArchvowGrammar.COMMANDS, new ArchvowChoices.Input(read(contract.resolve("cli/pyspark-pipeline/show.json")),
+            Map.of(), catalog, null, List.of("main", "v1.0.0"), "main", false, "a1b2c3d"));
+        var start = book.get("changes").get("start");
+        check(start.choices.get(0).value().equals("a1b2c3d") && start.choices.get(0).label().contains("the first commit"), "first commit first");
+        check(start.choices.size() == 3, "then the refs");
+        // the trees' icons: a drawing for every type, group and command
+        for (JsonElement t : catalog.getAsJsonArray("templates"))
+            for (String type : t.getAsJsonObject().getAsJsonObject("component_types").keySet()) check(ArchvowTreeIcons.has(type), "no icon for " + type);
+        for (ArchvowForms.Group g : ArchvowForms.commandGroups(false)) check(ArchvowTreeIcons.has(ArchvowTreeIcons.groupKind(g.id())), "group " + g.id());
+        for (ArchvowGrammar.Command c : ArchvowGrammar.COMMANDS) check(ArchvowTreeIcons.has(ArchvowTreeIcons.commandKind(c.path)), "command " + c.label);
+        check("component".equals(ArchvowTreeIcons.typeKind("a_company_type")), "an unknown type: a page");
+        java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(16, 16, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        for (String kind : ArchvowTreeIcons.DATA.getAsJsonObject("shapes").keySet()) {
+            java.awt.Graphics2D g = image.createGraphics();
+            ArchvowTreeIcons.icon(kind, java.awt.Color.BLACK).paintIcon(null, g, 0, 0);  // every path parses and paints
+            g.dispose();
+        }
+        int ink = 0;
+        for (int x = 0; x < 16; x++) for (int y = 0; y < 16; y++) if ((image.getRGB(x, y) >>> 24) > 0) ink++;
+        check(ink > 20, "the icons draw something");
+        check(ArchvowFilePlan.html(ArchvowFilePlan.plan("component add", Map.of("type", "reader", "name", "orders", "description", "x"),
+            read(contract.resolve("cli/pyspark-pipeline/show.json")), catalog, ArchvowForms.DATA, false, false), false).contains("orders_reader.py"), "the Files block");
+        SwingUtilities.invokeAndWait(FilePlanRegression::tables);
+        System.out.println("OK: " + plans + " file plans identical to VS Code's, layers to add to, Save to a file, the first commit, icons, answer tables");
+    }
+
+    private static void tables() {
+        JTextArea target = new JTextArea();
+        ArchvowColumnAnswerPanel panel = new ArchvowColumnAnswerPanel(target);
+        JsonObject view = JsonParser.parseString("{\"known_columns\":[{\"columns\":[\"order_id\",\"amount\",\"szsz\"]}],\"columns\":[]}").getAsJsonObject();
+        panel.showFor(view, JsonParser.parseString("{\"question\":\"Which columns hold personal data (name, email...), and which outputs may receive them?\"}").getAsJsonObject(), false);
+        check(panel.mode() == ArchvowColumnAnswerPanel.Mode.COLUMNS && panel.rowCount() == 3, "a row per known column");
+        check(!panel.headers().contains("Nullable?") && panel.headers().contains("Personal data?"), "only what the question asks: " + panel.headers());
+        check(panel.bins().size() == 3, "a bin per row (the screenshot: IntelliJ had none)");
+        panel.bins().get(2).doClick();
+        check(panel.rowCount() == 2 && !panel.answer().contains("szsz"), "the bin removes its row");
+        check(panel.answer().equals("order_id: personal-data classification unknown\namount: personal-data classification unknown"), panel.answer());
+        // the parameters of the config: name: type = default, no default = required
+        panel.showFor(new JsonObject(), JsonParser.parseString("{\"question\":\"The job's parameters, name: type = default separated by commas (no default = required) - e.g. input_path: str, run_date: date, output_format: str = \\\"parquet\\\" - or none?\","
+            + "\"answer\":\"input_path: str (required), run_date: date, output_format: str = \\\"parquet\\\" (the format)\"}").getAsJsonObject(), false);
+        check(panel.mode() == ArchvowColumnAnswerPanel.Mode.PARAMETERS && panel.rowCount() == 3, "a row per parameter");
+        check(panel.answer().equals("input_path: str, run_date: date, output_format: str = \"parquet\" (the format)"), panel.answer());
+        check(ArchvowColumnAnswerPanel.parseParameters("input_path: str and output_path: str, both required") == null, "a sentence is not a list");
+        check(ArchvowColumnAnswerPanel.parseParameters("none").isEmpty(), "none");
+        panel.bins().get(0).doClick();
+        check(panel.answer().startsWith("run_date: date"), "the bin removes a parameter");
+        check(target.getText().isEmpty(), "nothing is written until Use this answer");
+    }
+}

@@ -106,6 +106,16 @@ sortait du panneau).
 
 « hazard » et « invariant » sont des mots-clés : le français les garde (« Déclarer un hazard »).
 
+### Répondre avec un tableau (0.15.0)
+
+Sous une décision sur des colonnes (nullable, données personnelles, type), un tableau facultatif : une ligne par
+colonne connue, Jamais nul / Nullable / Inconnu et Oui / Non / Inconnu en boutons, des notes, et une corbeille
+par ligne (IntelliJ n'en avait pas) ; seul ce que la question demande est montré (une question de données
+personnelles n'a pas de colonne Nullable). Sous une question `nom: type = défaut` (config, settings), le tableau
+des paramètres (`smartParameters()`, `ArchvowColumnAnswerPanel` en mode `PARAMETERS`) : paramètre, type, défaut
+(vide = obligatoire), notes ; il relit une réponse déjà écrite ainsi, pas une phrase. Rien n'est enregistré :
+**Utiliser cette réponse** remplit le champ, à relire avant d'enregistrer.
+
 ## Enregistrer une réponse, de bout en bout
 
 ```mermaid

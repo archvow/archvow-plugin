@@ -59,8 +59,9 @@ final class ArchvowPanel extends JPanel {
     private static final Set<String> READ_ONLY = Set.of("show", "catalog", "next", "check", "audit", "doctor", "changes", "diff", "prompt");
     private static final Pattern QUOTED_COMPONENT = Pattern.compile("'([^']+)'");
 
-    private record NodeComponent(String id, String type, String layer, String container) {
+    private record NodeComponent(String id, String type, String layer, String container) implements ArchvowTreeIcons.Kinded {
         @Override public String toString() { return id + "  ·  " + type; }
+        @Override public String iconKind() { return ArchvowTreeIcons.typeKind(type); }
     }
     private enum QuickKind { ERROR, WARNING, QUESTION, DECISION, SUGGESTION, RESOLVED }
     private static final class QuickItem {
@@ -106,6 +107,8 @@ final class ArchvowPanel extends JPanel {
     private JsonObject bundledKinds;
     /** The repository's branches and tags, the current branch, what origin's HEAD names (the comparison base). */
     private List<String> gitRefs = List.of();
+    /** The repository's first commit: changes --from it reports everything (0.15.0). */
+    private String firstCommit = "";
     private String gitCurrent = "", remoteHead = "";
     /** The person chose the base: it no longer follows the best existing branch. */
     private boolean baseTouched;
@@ -239,10 +242,10 @@ final class ArchvowPanel extends JPanel {
     private String renderedComponent = "";
     /** The safety answer field, its heading and buttons: shown for an open safety question only. */
     private List<JComponent> safetyEditorParts = List.of();
-    private final DefaultMutableTreeNode componentsRoot = new DefaultMutableTreeNode("Architecture");
+    private final DefaultMutableTreeNode componentsRoot = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node("Architecture", "architecture", ""));
     private final JTree componentsTree = new JTree(componentsRoot);
     private String componentFilter = "all";
-    private JButton allComponentsFilter, pendingComponentsFilter, resolvedComponentsFilter;
+    private JButton allComponentsFilter, pendingComponentsFilter, resolvedComponentsFilter, addComponentButton;
     private final DefaultListModel<ArchvowGrammar.Command> commandModel = new DefaultListModel<>();
     private final JList<ArchvowGrammar.Command> commandList = new JList<>(commandModel);
     private JTree commandTree;
@@ -253,6 +256,8 @@ final class ArchvowPanel extends JPanel {
     private final JLabel formTitle = new JLabel();
     private final ArchvowWrapLabel formDoes = new ArchvowWrapLabel();
     private final JTextArea formPreview = new JTextArea(3, 22);
+    /** 0.15.0: the files the command writes, under the command (ArchvowFilePlan). */
+    private final JEditorPane formFiles = new JEditorPane("text/html", "");
     private final JPanel formAlerts = new JPanel();
     private JButton formRunButton;
     /** The selected safety question's decision says there is nothing to protect: Not applicable needs no reason. */
@@ -436,19 +441,24 @@ final class ArchvowPanel extends JPanel {
                 String current = git(root, "branch", "--show-current");
                 String refs = git(root, "for-each-ref", "--format=%(refname)", "refs/heads", "refs/remotes", "refs/tags");
                 String head = git(root, "symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD");
+                String roots = git(root, "rev-list", "--max-parents=0", "HEAD");
+                // several roots (merged histories): the oldest is the last one listed
+                String first = "";
+                if (roots != null) for (String line : roots.split("\\R")) if (!line.isBlank()) first = line.trim();
                 return new String[] {current == null ? "—" : current.isBlank() ? "(detached)" : current.trim(),
-                    refs == null ? "" : refs, head == null ? "" : head.trim()};
+                    refs == null ? "" : refs, head == null ? "" : head.trim(), first};
             }
             @Override protected void done() {
                 String[] read;
                 try { read = get(); }
-                catch (Exception ex) { read = new String[] {"—", "", ""}; }
+                catch (Exception ex) { read = new String[] {"—", "", "", ""}; }
                 gitBranchLabel.setText("Git: " + read[0]);
                 gitBranchLabel.setToolTipText(root);
                 updateBranchWarning(read[0]);
                 gitCurrent = read[0];
                 gitRefs = ArchvowChoices.refNames(read[1]);
                 remoteHead = read[2];
+                firstCommit = read[3];
                 followBestBase();
             }
         }.execute();
@@ -680,6 +690,7 @@ final class ArchvowPanel extends JPanel {
         componentSnapshots.putAll(source.componentSnapshots);
         projectCatalog = source.projectCatalog;
         gitRefs = source.gitRefs;
+        firstCommit = source.firstCommit;
         gitCurrent = source.gitCurrent;
         remoteHead = source.remoteHead;
         if (!baseTouched && !source.baseTouched) followBestBase();
@@ -1794,7 +1805,20 @@ final class ArchvowPanel extends JPanel {
             filter.setMargin(new Insets(3, 6, 3, 6));
             filterRow.add(filter);
         }
-        componentBrowser.add(filterRow, BorderLayout.NORTH);
+        // 0.15.0: the shortcut to component add, and on a layer (right-click) the types of that layer
+        addComponentButton = button(ArchvowI18n.text(project, "Add component", "Ajouter un composant"), () -> openCommand("component add", Map.of()));
+        addComponentButton.setIcon(ArchvowTreeIcons.icon("add", null));
+        addComponentButton.setMargin(new Insets(3, 6, 3, 6));
+        addComponentButton.setToolTipText(ArchvowI18n.text(project, "Add a component (archvow component add): its type, name and what it must do. Or right-click a layer.",
+            "Ajouter un composant (archvow component add) : son type, son nom et ce qu'il doit faire. Ou clic droit sur une couche."));
+        languageRefreshers.add(() -> addComponentButton.setText(ArchvowI18n.text(project, "Add component", "Ajouter un composant")));
+        JPanel tools = new JPanel(new BorderLayout());
+        tools.add(filterRow, BorderLayout.CENTER);
+        JPanel addRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 2));
+        addRow.add(addComponentButton);
+        tools.add(addRow, BorderLayout.EAST);
+        installLayerMenu();
+        componentBrowser.add(tools, BorderLayout.NORTH);
         componentBrowser.add(scroll(componentsTree), BorderLayout.CENTER);
         updateFilterButtons();
         // the tool window shows the tree, the editor tab the component
@@ -1817,6 +1841,47 @@ final class ArchvowPanel extends JPanel {
             filter.setToolTipText(active ? ArchvowI18n.text(project, "Current filter", "Filtre actif") :
                 ArchvowI18n.text(project, "Filter components", "Filtrer les composants"));
         }
+    }
+
+    /** The types a person can add in each layer of the project's template (ArchvowFilePlan, as VS Code's addable). */
+    private Map<String, List<ArchvowFilePlan.Addable>> addableByLayer() {
+        JsonObject catalog = projectCatalog != null ? projectCatalog : ArchvowInitCatalog.bundled();
+        return ArchvowFilePlan.addableByLayer(manifest, catalog);
+    }
+
+    /** Right-click on a layer (or its empty line): Add a schema, a transformation... to it; a double-click on the empty line too. */
+    private void installLayerMenu() {
+        componentsTree.addMouseListener(new java.awt.event.MouseAdapter() {
+            private String layerAt(java.awt.event.MouseEvent e) {
+                TreePath path = componentsTree.getPathForLocation(e.getX(), e.getY());
+                if (path == null || !(path.getLastPathComponent() instanceof DefaultMutableTreeNode node)) return "";
+                return node.getUserObject() instanceof ArchvowTreeIcons.Node n ? n.layer() : "";
+            }
+            private void menu(java.awt.event.MouseEvent e) {
+                String layer = layerAt(e);
+                List<ArchvowFilePlan.Addable> types = addableByLayer().getOrDefault(layer, List.of());
+                if (layer.isEmpty() || types.isEmpty()) return;
+                JPopupMenu popup = new JPopupMenu(ArchvowI18n.text(project, "Add to " + layer, "Ajouter à " + layer));
+                for (ArchvowFilePlan.Addable t : types) {
+                    JMenuItem item = new JMenuItem(ArchvowI18n.text(project, "Add a component: " + t.type() + "…",
+                        "Ajouter un composant : " + t.type() + "…"), ArchvowTreeIcons.icon(ArchvowTreeIcons.typeKind(t.type()), null));
+                    item.setToolTipText(t.description());
+                    item.addActionListener(a -> openCommand("component add", Map.of("type", t.type())));
+                    popup.add(item);
+                }
+                popup.show(componentsTree, e.getX(), e.getY());
+            }
+            @Override public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) menu(e); }
+            @Override public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) menu(e); }
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    TreePath path = componentsTree.getPathForLocation(e.getX(), e.getY());
+                    if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode node && node.isLeaf()
+                        && node.getUserObject() instanceof ArchvowTreeIcons.Node n && !n.layer().isEmpty()) menu(e);
+                }
+            }
+        });
+        componentsTree.setToolTipText(ArchvowI18n.text(project, "Right-click a layer to add a component to it", "Clic droit sur une couche pour y ajouter un composant"));
     }
 
     private boolean showComponentInTree(String id) {
@@ -2135,7 +2200,11 @@ final class ArchvowPanel extends JPanel {
                     boolean expanded, boolean leaf, int row, boolean focused) {
                 super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, focused);
                 Object user = value instanceof DefaultMutableTreeNode node ? node.getUserObject() : value;
-                if (user instanceof ArchvowGrammar.Command command) setText(command.label);
+                if (user instanceof ArchvowGrammar.Command command) {
+                    setText(command.label);
+                    setIcon(ArchvowTreeIcons.icon(ArchvowTreeIcons.commandKind(command.path), null));
+                } else if (user instanceof ArchvowTreeIcons.Kinded kinded) setIcon(ArchvowTreeIcons.icon(kinded.iconKind(), null));
+                setIconTextGap(6);
                 return this;
             }
         });
@@ -2149,7 +2218,7 @@ final class ArchvowPanel extends JPanel {
             DefaultMutableTreeNode root = new DefaultMutableTreeNode("Commands");
             Set<ArchvowGrammar.Command> known = new LinkedHashSet<>();
             for (ArchvowForms.Group group : ArchvowForms.commandGroups(ArchvowI18n.isFrench(project))) {
-                DefaultMutableTreeNode parent = new DefaultMutableTreeNode(group.label());
+                DefaultMutableTreeNode parent = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(group.label(), ArchvowTreeIcons.groupKind(group.id()), ""));
                 for (ArchvowGrammar.Command cmd : ArchvowGrammar.COMMANDS) {
                     if (!group.prefixes().contains(cmd.path.get(0))) continue;
                     known.add(cmd);
@@ -2158,7 +2227,7 @@ final class ArchvowPanel extends JPanel {
                 }
                 if (parent.getChildCount() > 0) root.add(parent);
             }
-            DefaultMutableTreeNode other = new DefaultMutableTreeNode(ArchvowI18n.text(project, "Other commands", "Autres commandes"));
+            DefaultMutableTreeNode other = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(ArchvowI18n.text(project, "Other commands", "Autres commandes"), "other", ""));
             for (ArchvowGrammar.Command cmd : ArchvowGrammar.COMMANDS)
                 if (!known.contains(cmd) && (query.isBlank() || (cmd.label + " " + cmd.description).toLowerCase(java.util.Locale.ROOT).contains(query)))
                     other.add(new DefaultMutableTreeNode(cmd));
@@ -2244,7 +2313,9 @@ final class ArchvowPanel extends JPanel {
             "If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.",
             "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."), true);
         pane.add(heading); pane.add(Box.createVerticalStrut(6)); pane.add(formDoes); pane.add(Box.createVerticalStrut(8));
-        pane.add(commandLabel); pane.add(preview); pane.add(Box.createVerticalStrut(6)); pane.add(note);
+        formFiles.setEditable(false); formFiles.setOpaque(false); formFiles.setAlignmentX(LEFT_ALIGNMENT);
+        formFiles.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        pane.add(commandLabel); pane.add(preview); pane.add(formFiles); pane.add(Box.createVerticalStrut(6)); pane.add(note);
         // BorderLayout.EAST stretches its child to the height of the whole form.
         // Anchor the actual help card at the top and measure its text rather than
         // stretching the bordered card through the empty bottom of the editor.
@@ -2277,7 +2348,22 @@ final class ArchvowPanel extends JPanel {
     private void updatePreview() {
         ArchvowGrammar.Command command = commandList.getSelectedValue();
         if (command == null || buildingForm) return;
-        formPreview.setText(ArchvowForms.commandLine(command, currentValues(), ArchvowI18n.isFrench(project)));
+        Map<String, String> values = currentValues();
+        boolean fr = ArchvowI18n.isFrench(project);
+        formPreview.setText(ArchvowForms.commandLine(command, values, fr));
+        // the files it writes: what is new, updated, removed, and the code a new component plans
+        String output = ArchvowForms.output(command, values);
+        boolean exists = !output.isEmpty() && project.getBasePath() != null && new File(project.getBasePath(), output).exists();
+        JsonObject catalog = projectCatalog != null ? projectCatalog : ArchvowInitCatalog.bundled();
+        String files = ArchvowFilePlan.html(ArchvowFilePlan.plan(command.label, values, manifest, catalog, ArchvowForms.DATA, fr, exists), fr);
+        formFiles.setText(files.isEmpty() ? "" : "<html><body>" + files + "</body></html>");
+        formFiles.setVisible(!files.isEmpty());
+        // changes / diff with Save to a file: the button says what it does
+        if (formRunButton != null) {
+            String verb = ArchvowForms.verb(command.label, fr);
+            formRunButton.setText(!output.isEmpty() ? ArchvowI18n.text(project, "Save the report", "Enregistrer le rapport")
+                : verb.isEmpty() ? ArchvowI18n.text(project, "Run command", "Exécuter la commande") : verb);
+        }
     }
 
     /** Every field of the form updates the preview when it changes. */
@@ -2407,7 +2493,7 @@ final class ArchvowPanel extends JPanel {
         JsonObject catalog = projectCatalog != null ? projectCatalog : liveInitCatalog != null ? liveInitCatalog : ArchvowInitCatalog.bundled();
         if (bundledKinds == null) bundledKinds = ArchvowInitCatalog.kinds();
         return ArchvowChoices.book(ArchvowGrammar.COMMANDS, new ArchvowChoices.Input(manifest, componentSnapshots, catalog, bundledKinds,
-            gitRefs, branch.getText().trim(), ArchvowI18n.isFrench(project)));
+            gitRefs, branch.getText().trim(), ArchvowI18n.isFrench(project), firstCommit));
     }
 
     private void buildForm(ArchvowGrammar.Command command, Map<String, String> defaults) {
@@ -2920,8 +3006,13 @@ final class ArchvowPanel extends JPanel {
         // Edit spec opened with what the component has: a field left as it was is not sent (no change recorded)
         boolean edit = "component edit".equals(command.label) && !formBaseline.isEmpty();
         int changed = 0;
+        String output = "";
         for (ArchvowGrammar.Param param : command.parameters) {
             String text = value(param.name);
+            if (param.plugin) {  // the plugin's own field (Save to a file): never on archvow's line
+                if ("output".equals(param.name)) output = text.trim();
+                continue;
+            }
             if (edit && !param.required && !text.isBlank() && formBaseline.containsKey(param.name)
                 && text.equals(formBaseline.get(param.name).trim())) continue;
             if (!param.required && !text.isBlank()) changed++;
@@ -2982,6 +3073,12 @@ final class ArchvowPanel extends JPanel {
             }
         }
         if ("init".equals(command.label) && !args.contains("--no-input")) args.add("--no-input");
+        if (!output.isEmpty()) {
+            // changes / diff with Save to a file: the report as archvow prints it for a person, written to the file
+            if (ArchvowForms.markdownOutput(command) && !args.contains("--markdown")) args.add("--markdown");
+            writeReport(command.label, List.copyOf(args), output);
+            return;
+        }
         if (command.json && !args.contains("--json")) args.add("--json");
         boolean destructive = DESTRUCTIVE.contains(command.label);
         boolean mutating = destructive || ("docs".equals(command.label) ? !args.contains("--check") :
@@ -3012,6 +3109,35 @@ final class ArchvowPanel extends JPanel {
             requestConfirmation(command.label, ArchvowConfirmPanel.preview(prepared),
                 () -> executeDirect(command.label, prepared, finalStdin, true), false);
         } else executeDirect(command.label, prepared, finalStdin, false);
+    }
+
+    /** changes / diff with Save to a file: archvow's report written to the project's file, then opened (0.15.0). */
+    private void writeReport(String label, List<String> args, String output) {
+        String root = project.getBasePath();
+        if (root == null) return;
+        Path base = Path.of(root).toAbsolutePath().normalize();
+        Path file = base.resolve(output).normalize();
+        if (!file.startsWith(base)) {
+            message(ArchvowI18n.text(project, output + " is outside the project: choose a file inside it.", output + " est hors du projet : choisis un fichier à l'intérieur."));
+            return;
+        }
+        commandResultCard.setVisible(true);
+        commandResult.setText(htmlMessage("<b>⏳ " + escape(ArchvowI18n.text(project, "Running", "Exécution")) + "</b> · "
+            + escape(ArchvowForms.commandLine(commandList.getSelectedValue(), currentValues(), ArchvowI18n.isFrench(project)))));
+        cli.execute(label, args, null, result -> {
+            if (!result.ok()) { storeCommandResult(commandResult, label, result); return; }
+            try {
+                java.nio.file.Files.createDirectories(file.getParent());
+                String text = result.stdout.endsWith("\n") ? result.stdout : result.stdout + "\n";
+                java.nio.file.Files.writeString(file, text, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (IOException e) { message(e.getMessage()); return; }
+            long lines = result.stdout.lines().filter(l -> !l.isBlank()).count();
+            String relative = base.relativize(file).toString();
+            commandResult.setText(htmlMessage("<b>✔ " + escape(ArchvowI18n.text(project, "Saved " + relative + " (" + lines + " lines)",
+                "Enregistré " + relative + " (" + lines + " lignes)")) + "</b> · " + escape("archvow " + String.join(" ", args))));
+            var found = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file);
+            if (found != null) FileEditorManager.getInstance(project).openFile(found, true);
+        });
     }
 
     private void selectCommand(String name) {
@@ -3299,20 +3425,30 @@ final class ArchvowPanel extends JPanel {
         componentsRoot.removeAllChildren();
         for (JsonObject container : ArchvowGrammar.objects(manifest, "containers")) {
             String containerId = ArchvowGrammar.str(container, "id");
-            DefaultMutableTreeNode containerNode = new DefaultMutableTreeNode(containerId);
+            DefaultMutableTreeNode containerNode = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(containerId, "system", ""));
             Map<String, DefaultMutableTreeNode> layers = new LinkedHashMap<>();
+            // 0.15.0: under All, the template's layers in their order, an empty one too (it can get its first component)
+            if ("all".equals(componentFilter) && componentsRoot.getChildCount() == 0)
+                for (String layer : addableByLayer().keySet()) {
+                    DefaultMutableTreeNode layerNode = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(layer, "layer", layer));
+                    layers.put(layer, layerNode); containerNode.add(layerNode);
+                }
             for (JsonObject component : ArchvowGrammar.objects(container, "components")) {
                 String id = ArchvowGrammar.str(component, "id");
                 if (!showComponentInTree(id)) continue;
                 String layer = ArchvowGrammar.str(component, "layer");
                 DefaultMutableTreeNode layerNode = layers.get(layer);
                 if (layerNode == null) {
-                    layerNode = new DefaultMutableTreeNode(layer);
+                    layerNode = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(layer, "layer", layer));
                     layers.put(layer, layerNode); containerNode.add(layerNode);
                 }
                 layerNode.add(new DefaultMutableTreeNode(new NodeComponent(id,
                     ArchvowGrammar.str(component, "type"), layer, containerId)));
             }
+            for (DefaultMutableTreeNode layerNode : layers.values())
+                if (layerNode.getChildCount() == 0) layerNode.add(new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(
+                    ArchvowI18n.text(project, "No component yet - right-click the layer to add one", "Pas encore de composant - clic droit sur la couche pour en ajouter un"),
+                    "add", ((ArchvowTreeIcons.Node) layerNode.getUserObject()).layer())));
             if (containerNode.getChildCount() > 0) componentsRoot.add(containerNode);
         }
         ((DefaultTreeModel) componentsTree.getModel()).reload();

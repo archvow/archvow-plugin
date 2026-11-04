@@ -4,7 +4,7 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { alerts, Command, inline, itemId, prefill } from '../grammar';
+import { alerts, Command, inline, itemId, prefill, withPluginParameters } from '../grammar';
 import * as oniguruma from 'vscode-oniguruma';
 import * as textmate from 'vscode-textmate';
 import { tokenize, TokenKind } from '../vow/scanner';
@@ -105,7 +105,8 @@ test('Safety view (0.13.1): Remove, Change (remove + add) and the invariant writ
 test('design A (0.14.0): forms.json names what exists, refusals and doubts show in place, the preview is the planned command', () => {
   const root = path.join(__dirname, '..', '..', '..');
   const forms = JSON.parse(fs.readFileSync(path.join(root, 'contract', 'forms', 'forms.json'), 'utf8'));
-  const commands = JSON.parse(fs.readFileSync(path.join(root, 'contract', 'cli', 'commands.json'), 'utf8')).commands as Command[];
+  // with the plugins' own fields (extra_parameters: output on changes and diff)
+  const commands = withPluginParameters(JSON.parse(fs.readFileSync(path.join(root, 'contract', 'cli', 'commands.json'), 'utf8')).commands as Command[], forms);
   const byName = new Map(commands.map((c) => [c.path.join(' '), c]));
   const params = new Set(commands.flatMap((c) => c.parameters.map((p) => p.name)));
   for (const name of Object.keys(forms.labels)) assert.ok(params.has(name), `label of an unknown parameter: ${name}`);

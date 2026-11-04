@@ -24,7 +24,12 @@ final class ArchvowGrammar {
         final boolean required, bool, append, multiToken, optionalValue;
         /** archvow hides it from --help (argparse.SUPPRESS): an expert option, shown apart. */
         final boolean hidden;
+        /** The plugin's own field (forms.json extra_parameters), never on archvow's line: `output` (0.15.0). */
+        final boolean plugin;
+        /** With `output`: the report is written as Markdown (--markdown added). */
+        final boolean markdown;
         Param(JsonObject obj) {
+            plugin = false; markdown = false;
             String text = str(obj, "help");
             hidden = flag(obj, "hidden") || "==SUPPRESS==".equals(text);
             name = str(obj, "name"); help = "==SUPPRESS==".equals(text) ? "" : text; metavar = str(obj, "metavar");
@@ -33,6 +38,13 @@ final class ArchvowGrammar {
             append = flag(obj, "append"); multiToken = flag(obj, "multiToken");
             optionalValue = flag(obj, "optionalValue");
         }
+        /** A field of the plugin itself, as VS Code's withPluginParameters makes it. */
+        Param(String name, String help, boolean markdown) {
+            this.name = name; this.help = help; metavar = name.toUpperCase(java.util.Locale.ROOT);
+            flags = List.of(); choices = List.of();
+            required = false; bool = false; append = false; multiToken = false; optionalValue = false; hidden = false;
+            plugin = true; this.markdown = markdown;
+        }
         String option() { return flags.isEmpty() ? "" : flags.get(flags.size() - 1); }
     }
     static final class Command {
@@ -40,11 +52,26 @@ final class ArchvowGrammar {
         final String label, description;
         final boolean json;
         final List<Param> parameters;
-        Command(JsonObject obj) {
+        Command(JsonObject obj) { this(obj, null); }
+        /** With the plugins' own fields of forms.json `extra_parameters` (output on changes and diff). */
+        Command(JsonObject obj, JsonObject extra) {
             path = strings(obj, "path"); label = String.join(" ", path);
             description = str(obj, "description"); json = flag(obj, "json");
             List<Param> ps = new ArrayList<>();
             for (JsonObject p : objects(obj, "parameters")) ps.add(new Param(p));
+            if (extra != null && extra.has(label) && extra.get(label).isJsonArray()) {
+                for (JsonElement e : extra.getAsJsonArray(label)) {
+                    if (!e.isJsonObject()) continue;
+                    JsonObject x = e.getAsJsonObject();
+                    String name = str(x, "name");
+                    if (ps.stream().anyMatch(p -> p.name.equals(name))) continue;
+                    JsonArray hint = x.getAsJsonArray("hint");
+                    Param param = new Param(name, hint != null && hint.size() > 0 ? hint.get(0).getAsString() : "", flag(x, "markdown"));
+                    int at = -1;
+                    for (int i = 0; i < ps.size(); i++) if (ps.get(i).name.equals(str(x, "after"))) at = i;
+                    ps.add(at >= 0 ? at + 1 : ps.size(), param);
+                }
+            }
             parameters = Collections.unmodifiableList(ps);
         }
         @Override public String toString() { return label; }
@@ -55,8 +82,15 @@ final class ArchvowGrammar {
     private static List<Command> load() {
         try (InputStream source = Objects.requireNonNull(ArchvowGrammar.class.getResourceAsStream("/archvow/commands.json"), "Missing commands.json")) {
             JsonObject root = JsonParser.parseReader(new InputStreamReader(source, StandardCharsets.UTF_8)).getAsJsonObject();
+            JsonObject extra = null;
+            try (InputStream forms = ArchvowGrammar.class.getResourceAsStream("/archvow/forms.json")) {
+                if (forms != null) {
+                    JsonObject f = JsonParser.parseReader(new InputStreamReader(forms, StandardCharsets.UTF_8)).getAsJsonObject();
+                    if (f.has("extra_parameters") && f.get("extra_parameters").isJsonObject()) extra = f.getAsJsonObject("extra_parameters");
+                }
+            }
             List<Command> result = new ArrayList<>();
-            for (JsonObject obj : objects(root, "commands")) result.add(new Command(obj));
+            for (JsonObject obj : objects(root, "commands")) result.add(new Command(obj, extra));
             return Collections.unmodifiableList(result);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to load Archvow command grammar", e);

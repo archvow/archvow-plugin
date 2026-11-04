@@ -97,6 +97,16 @@ required field is refused; a ticked box gives its option; several values give th
 | `prompt --task T2` becomes `--task 2` | the CLI expects a number (`ArchvowTaskPrompt`, `taskNumber()`) |
 | `init` gets `--no-input` and the wizard's answers (`--answer KEY=VALUE`) | no terminal to ask the questions |
 
+### What a command writes, and Save to a file (0.15.0)
+
+Under the command, in "What archvow will do", the **Files** block (`filePlan()`, `filesBlock()`; IntelliJ
+`ArchvowFilePlan`): the files new, updated, removed or kept, from `files` in forms.json and what the project
+already says; for `component add`, also the **planned** code and test (the path archvow gives, its function and
+signature), which the AI or a developer will write. `changes` and `diff` have a **Save to a file** field
+(`output`, a field of the plugins, never on archvow's line): the report is asked as Markdown, written to that
+file of the project, then opened (`writeReport()`) - the preview shows `archvow changes --from ... --markdown >
+CHANGES.md`. The repository's first commit (`git rev-list --max-parents=0 HEAD`) is offered first for `--from`.
+
 ## Confirming before changing
 
 A command that changes nothing (first word in `READ_ONLY`: `show`, `catalog`, `next`, `check`,

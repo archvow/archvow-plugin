@@ -59,6 +59,17 @@ les règles, les types de composants) puis `state`. La page de l'onglet envoie `
 montre change : c'est le titre de l'onglet. La sécurité : une Content-Security-Policy stricte
 (`html()`), un *nonce* par script, rien chargé de l'extérieur.
 
+## L'onglet Composants (0.15.0)
+
+L'arbre dessine ce qu'est chaque nœud (`contract/forms/icons.json`) : le système, chaque couche, le type de
+chaque composant (schema, reader, writer, transformation, job, point d'entrée...) dans la couleur de son état,
+et l'onglet Commandes chaque groupe et chaque commande par son verbe. **Ajouter un composant**, à côté de
+Tous / En attente / Traités, ouvre le formulaire `component add` ; sur une couche, **+** (VS Code) ou un clic
+droit (IntelliJ, `installLayerMenu()`) liste les types de cette couche (`addableByLayer()`, `ArchvowFilePlan`)
+et ouvre le formulaire avec le type choisi. Sous Tous, les couches vides du modèle s'affichent aussi (« Pas
+encore de composant ») : le premier job ou point d'entrée a sa place. Un bouton dans l'arbre plutôt qu'une
+commande de plus : l'ajout se fait là où l'on regarde l'architecture, au bon niveau.
+
 ## Retour
 
 Une commande ouverte **depuis un composant** (Modifier la spec, + Question, + Rule, Accepter...)

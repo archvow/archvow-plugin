@@ -103,6 +103,17 @@ Quelques cas sont tenus à la main :
 | `prompt --task T2` devient `--task 2` | la CLI attend un nombre (`ArchvowTaskPrompt`, `taskNumber()`) |
 | `init` reçoit `--no-input` et les réponses de l'assistant (`--answer CLÉ=VALEUR`) | pas de terminal pour poser les questions |
 
+### Ce qu'une commande écrit, et Enregistrer dans un fichier (0.15.0)
+
+Sous la commande, dans « Ce que va faire archvow », le bloc **Fichiers** (`filePlan()`, `filesBlock()` ;
+IntelliJ `ArchvowFilePlan`) : les fichiers nouveaux, modifiés, retirés ou gardés, d'après `files` de forms.json
+et ce que le projet dit déjà ; pour `component add`, aussi le code et le test **prévus** (le chemin que donne
+archvow, sa fonction et sa signature), qu'écriront l'IA ou un développeur. `changes` et `diff` ont un champ
+**Enregistrer dans un fichier** (`output`, un champ des plugins, jamais sur la ligne d'archvow) : le rapport
+est demandé en Markdown et écrit dans ce fichier du projet, puis ouvert (`writeReport()`) - l'aperçu montre
+`archvow changes --from ... --markdown > CHANGES.md`. Le premier commit du dépôt (`git rev-list --max-parents=0
+HEAD`) est proposé en premier pour `--from`.
+
 ## Confirmer avant de changer
 
 Une commande qui ne change rien (premier mot dans `READ_ONLY` : `show`, `catalog`, `next`, `check`,

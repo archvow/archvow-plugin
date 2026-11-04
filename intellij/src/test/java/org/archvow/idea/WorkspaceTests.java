@@ -48,6 +48,7 @@ public final class WorkspaceTests {
         run("SafetyDetailsRegression", () -> SafetyDetailsRegression.main(NONE));
         run("SafetyEditRegression", () -> SafetyEditRegression.main(NONE));
         run("FormsRegression", () -> FormsRegression.main(NONE));
+        run("FilePlanRegression", () -> FilePlanRegression.main(NONE));
         run("SplitViewRegression", () -> SplitViewRegression.main(NONE));
         run("StatusPaletteRegression", () -> StatusPaletteRegression.main(NONE));
         run("TaskPromptRegression", () -> TaskPromptRegression.main(NONE));

@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.15.0 - 2026-11-04
+
+Built on archvow 1.19 (works with 1.19.0 and 1.19.1: the parameters questions of 1.19.1 say "no default =
+required" instead of showing `(required)` in their example). From the user's ten screenshots, both IDEs.
+
+- **Components tab: Add component, and "+" on a layer.** A button **Add component** beside All / Pending /
+  Resolved opens the component add form; on a layer, **+** (VS Code) or a right-click (IntelliJ) lists the types
+  of that layer (p2_io: reader, writer) and opens the form with the type chosen. Under All, the template's empty
+  layers show too ("No component yet"), so the first job or entry point has a place to go.
+- **Meaningful icons** in the Components and Commands trees: the system, each layer, each component's type
+  (schema, reader, writer, transformation, job, entry point, model, router, repository...) in its status colour,
+  each command group and each command by its verb (add, edit, remove, accept...). One drawing each, in
+  `contract/forms/icons.json`, painted by both IDEs.
+- **What a command writes, before it runs**: under the command in the form, a **Files** block - the files new,
+  updated, removed or kept (`.archvow/components/orders_reader/spec.vow`, its card, the project's page) - and for
+  `component add` the code and test files it plans, with the function it declares (written later by the AI or
+  a developer: archvow never writes code). The command preview stays. From `files` in forms.json.
+- **Save to a file** on `changes` and `diff`: `archvow changes --from <first commit> --to v1.0.0 --markdown >
+  CHANGES.md` in one form - the report is written to the project's file (replaced) and opened. The repository's
+  first commit is offered first for `--from` ("everything the project contains").
+- **Answer with a table** (the image-4 design): columns with Never null / Nullable / Unknown and Yes / No /
+  Unknown as buttons, notes, and a bin on every row - IntelliJ had no way to remove a column; only what the
+  question asks about is shown (a personal-data question has no Nullable column). A **parameters table** for the
+  `name: type = default` questions (config, settings): parameter, type, default (empty = required), notes.
+
 ## 0.14.0 - 2026-11-02
 
 Built on archvow 1.19 (the contract regenerated from it): **Install archvow 1.19** when another major.minor is

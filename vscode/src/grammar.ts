@@ -16,6 +16,10 @@ export interface Param {
   metavar: string;
   /** archvow hides it from --help (argparse.SUPPRESS): an expert option, shown apart. */
   hidden?: boolean;
+  /** The plugin's own field (forms.json extra_parameters), never on archvow's command line: `output`. */
+  plugin?: boolean;
+  /** With `output`: the report is written as Markdown (--markdown added). */
+  markdown?: boolean;
 }
 
 export interface Command {
@@ -57,11 +61,41 @@ export function preview(args: string[]): string {
 }
 
 export type FormPlan =
-  | { kind: 'run'; args: string[]; mutating: boolean; stdinFromEditor: boolean }
+  | { kind: 'run'; args: string[]; mutating: boolean; stdinFromEditor: boolean; output?: string }
   | { kind: 'clarify'; component: string }
   | { kind: 'error'; message: string };
 
 const lines = (text: string): string[] => text.split(/\r?\n/).map((s) => s.trim()).filter((s) => s !== '');
+
+/**
+ * The commands with the plugins' own fields (contract/forms/forms.json `extra_parameters`): `output`
+ * on changes and diff writes the report to a file instead of showing it. Placed after the parameter
+ * they follow (`after`); the IntelliJ plugin adds the same (ArchvowForms.withPluginParameters).
+ */
+export function withPluginParameters(commands: Command[], forms: Record<string, unknown> | null): Command[] {
+  const extra = forms && typeof forms.extra_parameters === 'object' && forms.extra_parameters
+    ? forms.extra_parameters as Record<string, { name: string; after?: string; hint?: string[]; markdown?: boolean }[]> : {};
+  return commands.map((command) => {
+    const added = extra[label(command)];
+    if (!Array.isArray(added) || !added.length) return command;
+    const parameters = [...command.parameters];
+    for (const e of added) {
+      if (parameters.some((p) => p.name === e.name)) continue;
+      const param: Param = { name: e.name, flags: [], required: false, boolean: false, append: false, multiToken: false,
+        optionalValue: false, choices: [], help: Array.isArray(e.hint) ? String(e.hint[0] ?? '') : '', metavar: e.name.toUpperCase(),
+        plugin: true, markdown: e.markdown === true };
+      const at = parameters.findIndex((p) => p.name === e.after);
+      parameters.splice(at >= 0 ? at + 1 : parameters.length, 0, param);
+    }
+    return { ...command, parameters };
+  });
+}
+
+/** How the preview shows a command whose report goes to a file: `archvow changes ... > CHANGES.md`. */
+export function previewWithOutput(args: string[], output?: string): string {
+  const shown = preview(args.filter((a) => a !== '--json' && a !== '--no-input' && a !== '--yes'));
+  return output ? `${shown} > ${output.includes(' ') ? '"' + output + '"' : output}` : shown;
+}
 
 /**
  * The command line a form asks for. `values` are the fields by parameter name ("true" for a ticked
@@ -88,8 +122,13 @@ export function planForm(command: Command, values: Record<string, string>, fr: b
   // records no change (and nothing to review) for a field left as it was
   const baseline = name === 'component edit' ? options.baseline ?? {} : {};
   let changed = 0;
+  let output = '';
   for (const param of command.parameters) {
     let text = value(param.name);
+    if (param.plugin) {
+      if (param.name === 'output' && text) output = text;
+      continue;
+    }
     if (!param.required && text && param.name in baseline && text === (baseline[param.name] ?? '').trim()) continue;
     if (name === 'prompt' && param.name === 'task' && text) {
       const parsed = taskNumber(text);
@@ -131,6 +170,11 @@ export function planForm(command: Command, values: Record<string, string>, fr: b
     }
   }
   if (name === 'init' && !args.includes('--no-input')) args.push('--no-input');
+  if (output) {
+    // the report goes to a file: written as archvow prints it for a person (Markdown when asked), not JSON
+    if (command.parameters.some((p) => p.plugin && p.name === 'output' && p.markdown) && !args.includes('--markdown')) args.push('--markdown');
+    return { kind: 'run', args, mutating: false, stdinFromEditor: false, output };
+  }
   if (command.json && !args.includes('--json')) args.push('--json');
   const mutating = isMutating(command, args);
   if (DESTRUCTIVE.has(name) && !args.includes('--yes')) args.push('--yes');

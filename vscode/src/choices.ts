@@ -39,6 +39,8 @@ export interface ChoiceInput {
   refs: string[];
   base: string;
   fr: boolean;
+  /** The repository's first commit (git rev-list --max-parents=0 HEAD): changes --from it lists everything. */
+  firstCommit?: string;
 }
 
 const LABEL = 110;
@@ -264,6 +266,10 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
       } else if (name === 'component add' && p === 'kind') {
         field = { kind: 'select', by: 'type', lists: kinds,
           empty: tr(fr, 'This type has no kinds: leave it empty.', "Ce type n'a pas de sortes : laisser vide.") };
+      } else if (name === 'changes' && p === 'start' && input.firstCommit) {
+        // from the very beginning: the first commit, then the tags and branches
+        field = { kind: 'suggest', choices: [item(input.firstCommit, tr(fr, 'the first commit: everything the project contains',
+          'le premier commit : tout ce que contient le projet')), ...refs.map((r) => item(r, ''))], note: baseNote };
       } else if (p === 'base' || (name === 'changes' && (p === 'start' || p === 'end'))) {
         field = { kind: 'suggest', choices: refs.map((r) => item(r, '')), note: baseNote };
       }

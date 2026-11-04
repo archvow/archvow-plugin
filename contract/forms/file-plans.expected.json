@@ -1,0 +1,1252 @@
+{
+ "plans": [
+  {
+   "command": "component add",
+   "values": {
+    "type": "reader",
+    "name": "orders",
+    "description": "Read the orders",
+    "kind": "files"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/orders_reader/spec.vow",
+     "note": "its vow: what it must be and do"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/orders_reader/spec.md",
+     "note": "its card: the task the AI or the developer reads"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "the project's page: architecture, traceability"
+    },
+    {
+     "change": "planned",
+     "path": "src/my_pipeline/p2_io/orders_reader.py",
+     "note": "read_orders(spark: SparkSession, path: str) -> DataFrame"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p2_io/test_orders_reader.py",
+     "note": "its test, marked with its decisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "reader",
+    "name": "orders",
+    "description": "Read the orders",
+    "kind": "files"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/orders_reader/spec.vow",
+     "note": "son vow : ce qu'il doit être et faire"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/orders_reader/spec.md",
+     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "la page du projet : architecture, traçabilité"
+    },
+    {
+     "change": "planned",
+     "path": "src/my_pipeline/p2_io/orders_reader.py",
+     "note": "read_orders(spark: SparkSession, path: str) -> DataFrame"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p2_io/test_orders_reader.py",
+     "note": "son test, marqué par ses décisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "transformation",
+    "name": "clean_refunds",
+    "description": "x",
+    "group": "refunds"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/clean_refunds/spec.vow",
+     "note": "its vow: what it must be and do"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/clean_refunds/spec.md",
+     "note": "its card: the task the AI or the developer reads"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "the project's page: architecture, traceability"
+    },
+    {
+     "change": "planned",
+     "path": "src/my_pipeline/p1_domain/refunds/clean_refunds.py",
+     "note": "clean_refunds(df: DataFrame) -> DataFrame"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p1_domain/refunds/test_clean_refunds.py",
+     "note": "its test, marked with its decisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "transformation",
+    "name": "clean_refunds",
+    "description": "x",
+    "group": "refunds"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/clean_refunds/spec.vow",
+     "note": "son vow : ce qu'il doit être et faire"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/clean_refunds/spec.md",
+     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "la page du projet : architecture, traçabilité"
+    },
+    {
+     "change": "planned",
+     "path": "src/my_pipeline/p1_domain/refunds/clean_refunds.py",
+     "note": "clean_refunds(df: DataFrame) -> DataFrame"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p1_domain/refunds/test_clean_refunds.py",
+     "note": "son test, marqué par ses décisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "transformation",
+    "name": "join_stores",
+    "description": "x",
+    "signature": "(sales: DataFrame, stores: DataFrame) -> DataFrame"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/join_stores/spec.vow",
+     "note": "its vow: what it must be and do"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/join_stores/spec.md",
+     "note": "its card: the task the AI or the developer reads"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "the project's page: architecture, traceability"
+    },
+    {
+     "change": "planned",
+     "path": "src/my_pipeline/p1_domain/join_stores.py",
+     "note": "join_stores(sales: DataFrame, stores: DataFrame) -> DataFrame"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p1_domain/test_join_stores.py",
+     "note": "its test, marked with its decisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "transformation",
+    "name": "join_stores",
+    "description": "x",
+    "signature": "(sales: DataFrame, stores: DataFrame) -> DataFrame"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/join_stores/spec.vow",
+     "note": "son vow : ce qu'il doit être et faire"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/join_stores/spec.md",
+     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "la page du projet : architecture, traçabilité"
+    },
+    {
+     "change": "planned",
+     "path": "src/my_pipeline/p1_domain/join_stores.py",
+     "note": "join_stores(sales: DataFrame, stores: DataFrame) -> DataFrame"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p1_domain/test_join_stores.py",
+     "note": "son test, marqué par ses décisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "reader",
+    "name": "legacy",
+    "description": "x",
+    "file": "src/my_pipeline/legacy/read.py"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/legacy_reader/spec.vow",
+     "note": "its vow: what it must be and do"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/legacy_reader/spec.md",
+     "note": "its card: the task the AI or the developer reads"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "the project's page: architecture, traceability"
+    },
+    {
+     "change": "kept",
+     "path": "src/my_pipeline/legacy/read.py",
+     "note": "the existing file, adopted where it is"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "reader",
+    "name": "legacy",
+    "description": "x",
+    "file": "src/my_pipeline/legacy/read.py"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/legacy_reader/spec.vow",
+     "note": "son vow : ce qu'il doit être et faire"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/legacy_reader/spec.md",
+     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "la page du projet : architecture, traçabilité"
+    },
+    {
+     "change": "kept",
+     "path": "src/my_pipeline/legacy/read.py",
+     "note": "le fichier existant, adopté là où il est"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "router",
+    "name": "orders",
+    "description": "x",
+    "route": "list_orders: GET /orders"
+   },
+   "example": "fastapi-service",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/orders_router/spec.vow",
+     "note": "its vow: what it must be and do"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/orders_router/spec.md",
+     "note": "its card: the task the AI or the developer reads"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "the project's page: architecture, traceability"
+    },
+    {
+     "change": "planned",
+     "path": "src/orders_api/p4_api/orders_router.py",
+     "note": "router(...), list_orders: GET /orders"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p4_api/test_orders_router.py",
+     "note": "its test, marked with its decisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "router",
+    "name": "orders",
+    "description": "x",
+    "route": "list_orders: GET /orders"
+   },
+   "example": "fastapi-service",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/components/orders_router/spec.vow",
+     "note": "son vow : ce qu'il doit être et faire"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/components/orders_router/spec.md",
+     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "la page du projet : architecture, traçabilité"
+    },
+    {
+     "change": "planned",
+     "path": "src/orders_api/p4_api/orders_router.py",
+     "note": "router(...), list_orders: GET /orders"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p4_api/test_orders_router.py",
+     "note": "son test, marqué par ses décisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "unknown_type",
+    "name": "x",
+    "description": "x"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "the project's page: architecture, traceability"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "unknown_type",
+    "name": "x",
+    "description": "x"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "la page du projet : architecture, traçabilité"
+    }
+   ]
+  },
+  {
+   "command": "component edit",
+   "values": {
+    "component": "clean_orders",
+    "description": "Keep rows where amount > 1"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.vow",
+     "note": "what was recorded before becomes to review"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "component edit",
+   "values": {
+    "component": "clean_orders",
+    "description": "Keep rows where amount > 1"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.vow",
+     "note": "ce qui était enregistré devient à revoir"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "component remove",
+   "values": {
+    "component": "compute_vat"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "removed",
+     "path": ".archvow/components/compute_vat/",
+     "note": "its vow and its card, with its hazards and invariants"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    },
+    {
+     "change": "kept",
+     "path": "src/my_pipeline/p1_domain/compute_vat.py",
+     "note": "the code stays: archvow never deletes code"
+    }
+   ]
+  },
+  {
+   "command": "component remove",
+   "values": {
+    "component": "compute_vat"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "removed",
+     "path": ".archvow/components/compute_vat/",
+     "note": "son vow et sa fiche, avec ses hazards et invariants"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    },
+    {
+     "change": "kept",
+     "path": "src/my_pipeline/p1_domain/compute_vat.py",
+     "note": "le code reste : archvow ne supprime jamais de code"
+    }
+   ]
+  },
+  {
+   "command": "decision make",
+   "values": {
+    "component": "clean_orders",
+    "question": "3",
+    "answer": "x"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.vow",
+     "note": "the answer, signed with your name"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "decision make",
+   "values": {
+    "component": "clean_orders",
+    "question": "3",
+    "answer": "x"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.vow",
+     "note": "la réponse, signée de votre nom"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "decision propose",
+   "values": {
+    "component": "clean_orders",
+    "question": "3",
+    "answer": "x"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/proposals.vow",
+     "note": "until a person accepts it"
+    }
+   ]
+  },
+  {
+   "command": "decision propose",
+   "values": {
+    "component": "clean_orders",
+    "question": "3",
+    "answer": "x"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/proposals.vow",
+     "note": "jusqu'à ce qu'une personne l'accepte"
+    }
+   ]
+  },
+  {
+   "command": "question add",
+   "values": {
+    "component": "orders_reader",
+    "question": "x?"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/orders_reader/spec.vow",
+     "note": "a new numbered question, open"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/orders_reader/spec.md",
+     "note": "the card stops the AI until it is answered"
+    }
+   ]
+  },
+  {
+   "command": "question add",
+   "values": {
+    "component": "orders_reader",
+    "question": "x?"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/orders_reader/spec.vow",
+     "note": "une nouvelle question numérotée, ouverte"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/orders_reader/spec.md",
+     "note": "la fiche arrête l'IA jusqu'à la réponse"
+    }
+   ]
+  },
+  {
+   "command": "hazard add",
+   "values": {
+    "component": "vat_writer",
+    "guide_word": "partial",
+    "severity": "critical"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/vat_writer/spec.vow",
+     "note": "the hazard (and its invariant for critical or high)"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/vat_writer/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "Hazards, Invariants"
+    }
+   ]
+  },
+  {
+   "command": "hazard add",
+   "values": {
+    "component": "vat_writer",
+    "guide_word": "partial",
+    "severity": "critical"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/vat_writer/spec.vow",
+     "note": "le hazard (et son invariant pour critical ou high)"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/vat_writer/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "Hazards, Invariants"
+    }
+   ]
+  },
+  {
+   "command": "rule add",
+   "values": {
+    "words": "clean_orders,compute_vat\nAmounts are rounded half up",
+    "type": ""
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "the rule R<n>"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.md",
+     "note": "each one needs a test marked with the rule"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/compute_vat/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "rule add",
+   "values": {
+    "words": "clean_orders,compute_vat\nAmounts are rounded half up",
+    "type": ""
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "la règle R<n>"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.md",
+     "note": "chacun a besoin d'un test marqué par la règle"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/compute_vat/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "rule add",
+   "values": {
+    "words": "Every log line has the run date",
+    "all": "true"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "the rule R<n>"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/config/spec.md",
+     "note": "each one needs a test marked with the rule - and 6 more"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/logging_setup/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/spark/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "rule add",
+   "values": {
+    "words": "Every log line has the run date",
+    "all": "true"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "la règle R<n>"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/config/spec.md",
+     "note": "chacun a besoin d'un test marqué par la règle - et 6 autres"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/logging_setup/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/spark/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/clean_orders/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "rule add",
+   "values": {
+    "words": "Readers fail on a missing file",
+    "type": "reader"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "the rule R<n>"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/orders_reader/spec.md",
+     "note": "each one needs a test marked with the rule"
+    }
+   ]
+  },
+  {
+   "command": "rule add",
+   "values": {
+    "words": "Readers fail on a missing file",
+    "type": "reader"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "la règle R<n>"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/orders_reader/spec.md",
+     "note": "chacun a besoin d'un test marqué par la règle"
+    }
+   ]
+  },
+  {
+   "command": "example add",
+   "values": {
+    "component": "compute_vat",
+    "name": "vat-20"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/compute_vat/spec.vow",
+     "note": "the example's fingerprint"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/compute_vat/spec.md",
+     "note": ""
+    },
+    {
+     "change": "kept",
+     "path": "tests/examples/compute_vat/vat-20/",
+     "note": "input/, expected/ and scenario.feature, yours"
+    }
+   ]
+  },
+  {
+   "command": "example add",
+   "values": {
+    "component": "compute_vat",
+    "name": "vat-20"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/components/compute_vat/spec.vow",
+     "note": "l'empreinte de l'exemple"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/components/compute_vat/spec.md",
+     "note": ""
+    },
+    {
+     "change": "kept",
+     "path": "tests/examples/compute_vat/vat-20/",
+     "note": "input/, expected/ et scenario.feature, les vôtres"
+    }
+   ]
+  },
+  {
+   "command": "dependency add",
+   "values": {
+    "name": "acme_io",
+    "supplier": "ACME",
+    "licence": "MIT",
+    "criticality": "important"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "the third-party register"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "dependency add",
+   "values": {
+    "name": "acme_io",
+    "supplier": "ACME",
+    "licence": "MIT",
+    "criticality": "important"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "le registre des tiers"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "template new",
+   "values": {
+    "name": "acme-pyspark",
+    "extends": "pyspark-pipeline",
+    "dir": "/srv/templates/"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": "/srv/templates/acme-pyspark/",
+     "note": "template.yaml and files/, a guard the architects approve"
+    }
+   ]
+  },
+  {
+   "command": "template new",
+   "values": {
+    "name": "acme-pyspark",
+    "extends": "pyspark-pipeline",
+    "dir": "/srv/templates/"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": "/srv/templates/acme-pyspark/",
+     "note": "template.yaml et files/, une garde que les architectes approuvent"
+    }
+   ]
+  },
+  {
+   "command": "changes",
+   "values": {
+    "start": "v1.0.0",
+    "output": "CHANGES.md"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": "CHANGES.md",
+     "note": "replaced if it exists"
+    }
+   ]
+  },
+  {
+   "command": "changes",
+   "values": {
+    "start": "v1.0.0",
+    "output": "CHANGES.md"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": "CHANGES.md",
+     "note": "remplacé s'il existe"
+    }
+   ]
+  },
+  {
+   "command": "changes",
+   "values": {
+    "start": "v1.0.0"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": []
+  },
+  {
+   "command": "changes",
+   "values": {
+    "start": "v1.0.0"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": []
+  },
+  {
+   "command": "check",
+   "values": {},
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": []
+  },
+  {
+   "command": "check",
+   "values": {},
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": []
+  }
+ ],
+ "addable": [
+  {
+   "example": "pyspark-pipeline",
+   "layers": {
+    "p0_common": [
+     {
+      "type": "utility",
+      "description": "Shared helper or constants module (no Spark actions, no I/O)."
+     }
+    ],
+    "p1_domain": [
+     {
+      "type": "schema",
+      "description": "Explicit StructType contract for a dataset."
+     },
+     {
+      "type": "transformation",
+      "description": "Pure, lazy DataFrame -> DataFrame function."
+     }
+    ],
+    "p2_io": [
+     {
+      "type": "reader",
+      "description": "Reads one dataset and enforces its schema."
+     },
+     {
+      "type": "writer",
+      "description": "Writes one dataset."
+     }
+    ],
+    "p3_jobs": [
+     {
+      "type": "job",
+      "description": "Orchestrates read -> transform -> write for one output."
+     }
+    ],
+    "p4_entrypoints": [
+     {
+      "type": "entrypoint",
+      "description": "Process entry point that parses arguments and runs one job."
+     }
+    ]
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "layers": {
+    "p0_common": [
+     {
+      "type": "utility",
+      "description": "A small helper every layer may use (no business rule, no I/O beyond what it says)."
+     },
+     {
+      "type": "dependency",
+      "description": "Something routes receive through Depends (the database session, the current user...)."
+     }
+    ],
+    "p1_domain": [
+     {
+      "type": "model",
+      "description": "A Pydantic model - the shape and the validation of one kind of data."
+     },
+     {
+      "type": "error",
+      "description": "A domain error - raised by services and the domain, mapped to an HTTP status by the app."
+     },
+     {
+      "type": "logic",
+      "description": "A pure business rule - a function of its inputs, no I/O."
+     }
+    ],
+    "p2_io": [
+     {
+      "type": "repository",
+      "description": "Stores and finds one kind of data (the database, or memory to start)."
+     },
+     {
+      "type": "client",
+      "description": "Calls one other service (HTTP API, message broker...)."
+     }
+    ],
+    "p3_services": [
+     {
+      "type": "service",
+      "description": "One business operation - calls repositories and clients, applies the rules, owns the transaction."
+     }
+    ],
+    "p4_api": [
+     {
+      "type": "router",
+      "description": "The HTTP routes of one resource - input, permissions, status codes, response."
+     },
+     {
+      "type": "app",
+      "description": "The FastAPI app - routers, prefix, lifespan, error mapping. Run with uvicorn --factory."
+     }
+    ]
+   }
+  },
+  {
+   "example": "python-app",
+   "layers": {
+    "p0_common": [
+     {
+      "type": "utility",
+      "description": "A small helper every layer may use (no business rule, no I/O beyond what it says)."
+     }
+    ],
+    "p1_domain": [
+     {
+      "type": "model",
+      "description": "A data class - the shape and the validation of one kind of data."
+     },
+     {
+      "type": "error",
+      "description": "A domain error - raised by the domain and the services, turned into a message and an exit code by the entry point."
+     },
+     {
+      "type": "logic",
+      "description": "A pure business rule - a function of its inputs, no I/O."
+     }
+    ],
+    "p2_io": [
+     {
+      "type": "repository",
+      "description": "Stores and finds one kind of data (files, a database)."
+     },
+     {
+      "type": "client",
+      "description": "Talks to one other system (an HTTP API, a mail server, a message broker...)."
+     }
+    ],
+    "p3_services": [
+     {
+      "type": "service",
+      "description": "One operation - calls repositories and clients and applies the domain's rules."
+     }
+    ],
+    "p4_entrypoints": [
+     {
+      "type": "cli",
+      "description": "The command line - parses the arguments, calls a service, prints the result, sets the exit code."
+     }
+    ]
+   }
+  }
+ ],
+ "outputs": [
+  {
+   "command": "changes",
+   "values": {
+    "start": "a1b2c3d",
+    "end": "v1.0.0",
+    "output": "CHANGES.md"
+   },
+   "line": "archvow changes --from a1b2c3d --to v1.0.0 --markdown > CHANGES.md",
+   "output": "CHANGES.md"
+  },
+  {
+   "command": "changes",
+   "values": {
+    "start": "v1"
+   },
+   "line": "archvow changes --from v1",
+   "output": ""
+  },
+  {
+   "command": "diff",
+   "values": {
+    "base": "develop",
+    "output": "SPEC-CHANGES.md"
+   },
+   "line": "archvow diff --base develop --markdown > SPEC-CHANGES.md",
+   "output": "SPEC-CHANGES.md"
+  }
+ ]
+}

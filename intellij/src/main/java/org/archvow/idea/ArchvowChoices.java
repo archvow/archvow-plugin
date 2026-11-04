@@ -48,7 +48,12 @@ final class ArchvowChoices {
 
     /** What the book is made from. */
     record Input(JsonObject spec, Map<String, JsonObject> snapshots, JsonObject catalog, JsonObject kinds,
-                 List<String> refs, String base, boolean fr) {}
+                 List<String> refs, String base, boolean fr, String firstCommit) {
+        Input(JsonObject spec, Map<String, JsonObject> snapshots, JsonObject catalog, JsonObject kinds,
+              List<String> refs, String base, boolean fr) {
+            this(spec, snapshots, catalog, kinds, refs, base, fr, "");
+        }
+    }
 
     private static final int LABEL = 110;
 
@@ -388,6 +393,14 @@ final class ArchvowChoices {
                     field = new Field("select");
                     field.by = "type"; field.lists = kinds;
                     field.empty = tr(fr, "This type has no kinds: leave it empty.", "Ce type n'a pas de sortes : laisser vide.");
+                } else if ("changes".equals(name) && "start".equals(p) && input.firstCommit() != null && !input.firstCommit().isEmpty()) {
+                    // from the very beginning: the first commit, then the tags and branches (as choices.ts)
+                    field = new Field("suggest");
+                    field.choices = new ArrayList<>();
+                    field.choices.add(item(input.firstCommit(), tr(fr, "the first commit: everything the project contains",
+                        "le premier commit : tout ce que contient le projet")));
+                    for (String r : refs) field.choices.add(item(r, ""));
+                    field.note = baseNote;
                 } else if ("base".equals(p) || ("changes".equals(name) && ("start".equals(p) || "end".equals(p)))) {
                     field = new Field("suggest");
                     field.choices = new ArrayList<>();

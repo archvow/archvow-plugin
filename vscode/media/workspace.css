@@ -318,3 +318,40 @@ pre.card-md { max-height: 70vh; overflow: auto; }
 .smart-row input, .smart-row select { display:block; width:100%; box-sizing:border-box; margin-top:3px; }
 .smart-preview { padding:8px; background:var(--vscode-textCodeBlock-background, var(--vscode-editor-background)); white-space:pre-wrap; }
 @media (max-width:740px) { .smart-row { grid-template-columns:1fr 1fr; } }
+
+/* 0.15.0: the trees' icons (contract/forms/icons.json), drawn in the text's colour */
+svg.ico { width: 14px; height: 14px; flex: none; vertical-align: -2px; }
+svg.ico.warn { color: var(--vscode-charts-orange, #d18616); }
+svg.ico.good { color: var(--vscode-charts-green, #388a34); }
+.tree .node, .command-group-toggle .node, .command-children .node { display: inline-flex; align-items: center; gap: 6px; }
+.tree .component { display: flex; align-items: center; gap: 6px; }
+.tree .component > span:first-of-type { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree .layer > .node { width: 100%; }
+.tree .empty-layer { padding: 2px 6px; font-style: italic; }
+/* the Components tab's shortcuts: Add component, and "+" on a layer for its types */
+.tree-tools { align-items: center; }
+.tree-tools .grow { flex: 1 1 auto; }
+button.add-component { display: inline-flex; align-items: center; gap: 5px; }
+button.icon.add-here { margin-left: auto; padding: 0 4px; opacity: .55; background: transparent; color: inherit; border: none; }
+.tree .layer > .node:hover button.add-here, button.icon.add-here.on, button.icon.add-here:focus { opacity: 1; }
+.add-types { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0 4px 20px; }
+.add-types button { display: inline-flex; align-items: center; gap: 5px; }
+/* the structured answers: a table of columns or of parameters */
+.smart-grid { display: grid; gap: 6px 8px; align-items: center; margin: 8px 0; }
+.smart-grid .smart-head { font-size: .85em; color: var(--vscode-descriptionForeground); }
+.smart-grid input { width: 100%; box-sizing: border-box; min-width: 0; }
+.segmented.compact button { padding: 2px 7px; font-size: .9em; white-space: nowrap; }
+button.icon.smart-remove { background: transparent; color: var(--vscode-descriptionForeground); border: none; padding: 2px; }
+button.icon.smart-remove:hover { color: var(--vscode-errorForeground, #f14c4c); }
+@media (max-width: 740px) { .smart-grid { grid-template-columns: 1fr 1fr !important; } .smart-grid .smart-head { display: none; } }
+/* the form pane: the files the command writes */
+#form-files { margin-top: 8px; }
+.files-head { margin: 8px 0 2px; }
+.file-dir { display: flex; align-items: center; gap: 5px; font-family: var(--vscode-editor-font-family); font-size: .9em; }
+ul.file-list { list-style: none; margin: 2px 0 4px 8px; padding-left: 10px; border-left: 1px solid var(--vscode-panel-border, #444); }
+li.file-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 1px 0; }
+li.file-row code { font-size: .92em; }
+li.file-row .file-note { flex-basis: 100%; margin-left: 19px; }
+.badge { font-size: .75em; padding: 0 5px; border-radius: 8px; border: 1px solid currentColor; }
+.badge.new { color: var(--vscode-charts-green, #388a34); } .badge.updated { color: var(--vscode-charts-blue, #3794ff); }
+.badge.removed { color: var(--vscode-errorForeground, #f14c4c); } .badge.kept, .badge.planned { color: var(--vscode-descriptionForeground); }

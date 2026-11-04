@@ -11,7 +11,7 @@
   /** What archvow said, from the extension. */
   let S = null;
   /** The grammar, the bundled catalog, the rule docs, the component types. */
-  let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {} };
+  let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {}, icons: {} };
   /** What the person chose on the page. */
   const ui = {
     tab: 'overview', overSub: 'architecture', forceWorkspace: false,
@@ -26,10 +26,12 @@
     back: null, backArmed: null,
     command: NAV ? '' : 'check', commandFilter: '', commandGroupsOpen: {}, formSections: {}, form: {}, formHelp: '',
     /** The form's live preview (design A): the command line, or what is still missing. */
-    preview: { text: '', missing: '' },
+    preview: { text: '', missing: '', files: [] },
     catalog: null, catalogSource: '', initTemplate: '', initAnswers: {}, initTouched: {}, advanced: false,
     /** Edit spec: the values the form opened with (only the changed ones are sent); template new: its settings. */
-    formBaseline: {}, tplAnswers: {}, tplLayers: {}, smartRows: {}, smartQuestions: {},
+    formBaseline: {}, tplAnswers: {}, tplLayers: {}, smartRows: {}, smartQuestions: {}, paramRows: {},
+    /** The layer whose "+" is open in the Components tab (its types to add), or ''. */
+    addLayer: '',
     /** The comparison base: the extension's best one (an existing branch) until the person types another. */
     base: '', baseTouched: false, checkSel: 0, explained: {},
     /** A result's height, once dragged or expanded. */
@@ -57,6 +59,37 @@
   /** A circle turning clockwise, open at the top right, its arrowhead at the top: Reload (the IntelliJ plugin draws the same). */
   const REFRESH = '<svg class="glyph" viewBox="0 0 14 14" aria-hidden="true"><path d="M11.70 5.29 A5 5 0 1 1 7.87 2.08" fill="none" '
     + 'stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/><path d="M10.23 2.50 L7.63 0.01 L6.93 3.95 Z" fill="currentColor"/></svg>';
+  /** The trees' icons (contract/forms/icons.json): one drawing each, in the text's colour; IntelliJ paints the same. */
+  const ICONS = new Map();
+  function icon(kind, cls = '') {
+    const key = kind + '|' + cls;
+    if (ICONS.has(key)) return ICONS.get(key);
+    const shapes = ((I.icons || {}).shapes || {})[kind];
+    if (!Array.isArray(shapes)) return '';
+    const stroke = `fill="none" stroke="currentColor" stroke-width="${Number((I.icons || {}).stroke) || 1.4}" stroke-linecap="round" stroke-linejoin="round"`;
+    const n = (v) => Number(v) || 0;
+    const body = shapes.map(([k, ...a]) => {
+      if (k === 'l') return `<line x1="${n(a[0])}" y1="${n(a[1])}" x2="${n(a[2])}" y2="${n(a[3])}" ${stroke}/>`;
+      if (k === 'c') return `<circle cx="${n(a[0])}" cy="${n(a[1])}" r="${n(a[2])}" ${stroke}/>`;
+      if (k === 'C') return `<circle cx="${n(a[0])}" cy="${n(a[1])}" r="${n(a[2])}" fill="currentColor"/>`;
+      if (k === 'e') return `<ellipse cx="${n(a[0])}" cy="${n(a[1])}" rx="${n(a[2])}" ry="${n(a[3])}" ${stroke}/>`;
+      if (k === 'r') return `<rect x="${n(a[0])}" y="${n(a[1])}" width="${n(a[2])}" height="${n(a[3])}" rx="${n(a[4])}" ${stroke}/>`;
+      if (k === 'p') return `<path d="${esc(a[0])}" ${stroke}/>`;
+      if (k === 'P') return `<path d="${esc(a[0])}" fill="currentColor"/>`;
+      return '';
+    }).join('');
+    const svg = `<svg class="ico${cls ? ' ' + cls : ''}" viewBox="0 0 14 14" aria-hidden="true">${body}</svg>`;
+    ICONS.set(key, svg);
+    return svg;
+  }
+  /** A component's type drawn (schema, reader, writer...), or a page for a type the icons do not know. */
+  const typeIcon = (type) => (((I.icons || {}).shapes || {})[type] ? type : 'component');
+  /** A command's drawing: its own (init, check...), else its verb's (add, edit, remove...). */
+  function commandIcon(path) {
+    const ic = I.icons || {};
+    const name = path.join(' ');
+    return (ic.commands || {})[name] || (ic.commands || {})[path[0]] || (ic.verbs || {})[path[path.length - 1]] || 'other';
+  }
   const iconBtn = (svg, action, title) => `<button class="icon" data-a="${action}" title="${esc(title)}" aria-label="${esc(title)}">${svg}</button>`;
   const attrs = (o) => Object.entries(o).map(([k, v]) => `data-${k}="${esc(v)}"`).join(' ');
   const snapshot = () => (S && ui.component ? S.snapshots[ui.component] : null);
@@ -83,7 +116,8 @@
     const m = event.data;
     switch (m.type) {
       case 'init':
-        I = { commands: m.commands || [], catalog: m.catalog, knownVersion: m.knownVersion, rules: m.rules || { en: '', fr: '' }, types: m.types || {}, forms: m.forms || {} };
+        I = { commands: m.commands || [], catalog: m.catalog, knownVersion: m.knownVersion, rules: m.rules || { en: '', fr: '' }, types: m.types || {}, forms: m.forms || {}, icons: m.icons || {} };
+        ICONS.clear();
         break;
       case 'state':
         S = m.state;
@@ -168,9 +202,11 @@
       case 'formPreview': {
         // the command line as it is typed: written in place, no redraw (the cursor stays where it is)
         if (m.command !== ui.command) return;
-        ui.preview = { text: m.text || '', missing: m.missing || '' };
+        ui.preview = { text: m.text || '', missing: m.missing || '', files: Array.isArray(m.files) ? m.files : [] };
         const pre = document.getElementById('form-preview');
         if (pre) { pre.textContent = ui.preview.text || ui.preview.missing; pre.classList.toggle('missing', !ui.preview.text); }
+        const files = document.getElementById('form-files');
+        if (files) files.innerHTML = filesBlock(ui.preview.files);
         return;
       }
       default:
@@ -533,9 +569,11 @@
     const resolved = S.work.resolvedByComponent || {};
     const show = (id) => (ui.filter === 'pending' ? (pending[id] || 0) > 0 : ui.filter === 'resolved' ? (resolved[id] || 0) > 0 : true);
     const containers = list(S.spec, 'containers');
+    const addable = S.addable || {};
     let tree = '';
-    for (const c of containers) {
-      const layers = new Map();
+    containers.forEach((c, index) => {
+      // the template's layers in their order (an empty one too, under All: it can get its first component)
+      const layers = new Map(index === 0 && ui.filter === 'all' ? Object.keys(addable).map((l) => [l, []]) : []);
       for (const comp of list(c, 'components')) {
         const id = str(comp, 'id');
         if (!show(id)) continue;
@@ -543,13 +581,21 @@
         if (!layers.has(layer)) layers.set(layer, []);
         layers.get(layer).push(comp);
       }
-      tree += `<li class="container">▾ ${esc(str(c, 'id'))}<ul>${[...layers.entries()].map(([layer, comps]) => `<li class="layer">▾ ${esc(layer)}<ul>${comps.map((comp) => {
-        const id = str(comp, 'id');
-        const p = pending[id] || 0;
-        return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span>${aiBadge(comp)} ${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
-      }).join('')}</ul></li>`).join('')}</ul></li>`;
-    }
-    return `<div class="row">${filters.map(([id, l]) => btn(l, 'filter', attrs({ filter: id }) + ` title="${esc(ui.filter === id ? t('Current filter', 'Filtre actif') : t('Filter components', 'Filtrer les composants'))}"`, ui.filter === id, 'secondary small')).join('')}</div>
+      tree += `<li class="container"><div class="node">${icon('system')}<span>${esc(str(c, 'id'))}</span></div><ul>${[...layers.entries()].map(([layer, comps]) => {
+        const types = index === 0 ? addable[layer] || [] : [];
+        const open = ui.addLayer === layer && types.length > 0;
+        const plus = types.length ? `<button class="icon add-here${open ? ' on' : ''}" data-a="addHere" data-id="${esc(layer)}" aria-expanded="${open}" title="${esc(t(`Add a component to ${layer}: ${types.map((x) => x.type).join(', ')}`, `Ajouter un composant à ${layer} : ${types.map((x) => x.type).join(', ')}`))}">${icon('add')}</button>` : '';
+        const chooser = open ? `<div class="add-types" role="group" aria-label="${esc(t('Types of ' + layer, 'Types de ' + layer))}"><span class="muted small">${esc(t('Add:', 'Ajouter :'))}</span>${types.map((x) => `<button class="secondary small" data-a="addType" data-id="${esc(x.type)}" title="${esc(x.description)}">${icon(typeIcon(x.type))}${esc(x.type)}</button>`).join('')}</div>` : '';
+        const rows = comps.map((comp) => {
+          const id = str(comp, 'id');
+          const p = pending[id] || 0;
+          return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} ${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
+        }).join('') || `<li class="muted small empty-layer">${esc(t('No component yet', 'Pas encore de composant'))}</li>`;
+        return `<li class="layer"><div class="node">${icon('layer')}<span>${esc(layer)}</span>${plus}</div>${chooser}<ul>${rows}</ul></li>`;
+      }).join('')}</ul></li>`;
+    });
+    const add = S.spec ? `<button class="secondary small add-component" data-a="addComponent" title="${esc(t('Add a component (archvow component add): its type, name and what it must do', 'Ajouter un composant (archvow component add) : son type, son nom et ce qu\'il doit faire'))}">${icon('add')}${esc(t('Add component', 'Ajouter un composant'))}</button>` : '';
+    return `<div class="row tree-tools">${filters.map(([id, l]) => btn(l, 'filter', attrs({ filter: id }) + ` title="${esc(ui.filter === id ? t('Current filter', 'Filtre actif') : t('Filter components', 'Filtrer les composants'))}"`, ui.filter === id, 'secondary small')).join('')}<span class="grow"></span>${add}</div>
   <ul class="tree" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No component.', 'Aucun composant.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
   }
 
@@ -793,6 +839,7 @@
   /** Optional structured editor: relevant only when the question is about column properties.
    * It never changes the CLI schema, guesses no nullability, and does not save on its own. */
   function canEditColumns(question) {
+    if (canEditParameters(question)) return false;  // name: type = default: the parameters table
     const q = String(question || '').toLocaleLowerCase();
     const keywords = (((I.forms || {}).smart_answers || {}).schema_columns || {}).keywords || [];
     const aboutColumn = /\bcolumns?|\bfields?|colonnes?|champs?/i.test(q);
@@ -802,54 +849,135 @@
 
   function knownColumnRows(view) {
     const names = new Map();
+    const blank = (name) => ({ name, type: '', nullable: 'unknown', personal: 'unknown', note: '' });
     for (const group of list(view, 'known_columns')) {
       for (const name of Array.isArray(group.columns) ? group.columns : [])
-        if (typeof name === 'string' && name.trim()) names.set(name.trim(), { name: name.trim(), type: '', nullable: 'unknown', personal: 'unknown' });
+        if (typeof name === 'string' && name.trim()) names.set(name.trim(), blank(name.trim()));
     }
     for (const c of list(view, 'columns')) {
       const name = str(c, 'name');
       if (!name) continue;
       const kind = str(c, 'class');
-      const base = names.get(name) || { name, type: '', nullable: 'unknown', personal: 'unknown' };
+      const base = names.get(name) || blank(name);
       const personal = ['personal', 'special'].includes(kind) ? 'yes' : kind === 'none' ? 'no' : 'unknown';
       names.set(name, { ...base, type: str(c, 'type') || base.type, personal });
     }
     return Array.from(names.values()).slice(0, 60);
   }
 
+  /** What a column question asks about: its type, whether it may be null, whether it is personal data. */
+  function columnAsks(question) {
+    const q = String(question || '').toLocaleLowerCase();
+    return { type: /(\btypes?\b|datatype|data type)/.test(q), nullable: /(null|requir|option|obligat|facultat)/.test(q),
+      personal: /(person|privat|gdpr|rgpd)/.test(q) };
+  }
+
   function structuredAnswer(rows, question = '') {
-    const q = question.toLocaleLowerCase();
-    const withNull = /(null|requir|option|obligat|facultat)/.test(q);
-    const withPersonal = /(person|privat|gdpr|rgpd)/.test(q);
-    const withType = /(\btypes?\b|datatype|data type)/.test(q);
+    const asks = columnAsks(question);
     return rows.filter((r) => r.name.trim()).map((r) => {
       const parts = [];
-      if (withType) parts.push(r.type.trim() || t('type unknown', 'type inconnu'));
-      if (withNull) parts.push(r.nullable === 'yes' ? 'nullable' : r.nullable === 'no' ? t('not null', 'non nullable') : t('nullability unknown', 'nullabilité inconnue'));
-      if (withPersonal) parts.push(r.personal === 'yes' ? t('personal data', 'donnée personnelle') : r.personal === 'no' ? t('not personal data', 'non personnel') : t('personal-data classification unknown', 'classification des données inconnue'));
-      return r.name.trim() + ': ' + parts.join(', ');
+      if (asks.type) parts.push(r.type.trim() || t('type unknown', 'type inconnu'));
+      if (asks.nullable) parts.push(r.nullable === 'yes' ? 'nullable' : r.nullable === 'no' ? t('not null', 'non nullable') : t('nullability unknown', 'nullabilité inconnue'));
+      if (asks.personal) parts.push(r.personal === 'yes' ? t('personal data', 'donnée personnelle') : r.personal === 'no' ? t('not personal data', 'non personnel') : t('personal-data classification unknown', 'classification des données inconnue'));
+      const note = String(r.note || '').trim();
+      return r.name.trim() + ': ' + parts.join(', ') + (note ? ` (${note})` : '');
     }).join('\n');
   }
+
+  /** Three fixed answers as buttons, the chosen one pressed (the row's Nullable, Personal...). */
+  function smartSegments(kind, key, row, name, value, options) {
+    return `<div class="segmented compact" role="radiogroup">${options.map(([id, label]) => `<button type="button" role="radio" aria-checked="${value === id}" class="${value === id ? 'on' : 'secondary'}" data-a="smartSeg" ${attrs({ kind, key, row, name, value: id })}>${esc(label)}</button>`).join('')}</div>`;
+  }
+
+  const TRASH = () => icon('remove');
 
   function smartColumns(view, row, key) {
     if (!canEditColumns(str(row, 'question'))) return '';
     if (!ui.smartRows[key]) ui.smartRows[key] = knownColumnRows(view).map((x) => ({ ...x }));
     const rows = ui.smartRows[key];
+    if (!rows.length) rows.push({ name: '', type: '', nullable: 'unknown', personal: 'unknown', note: '' });
     ui.smartQuestions[key] = str(row, 'question');
-    const answerText = () => structuredAnswer(rows, ui.smartQuestions[key]);
-    const select = (name, idx, value, opts) => `<select data-change="smartField" data-key="${esc(key)}" data-row="${idx}" data-name="${name}">${opts.map(([id, label]) => `<option value="${id}" ${value === id ? 'selected' : ''}>${esc(label)}</option>`).join('')}</select>`;
-    const yesNo = [['unknown', t('Unknown', 'Inconnu')], ['no', t('No', 'Non')], ['yes', t('Yes', 'Oui')]];
-    return `<details class="card smart-answer"${ui.smartExpanded === key ? ' open' : ''} data-smart-key="${esc(key)}"><summary>${esc(t('Structured answer assistant (optional)', 'Assistant de réponse structurée (facultatif)'))}</summary>
-      <p class="muted small">${esc(t('Fill known columns or add new ones. Unknown is intentional. This is a draft only; review the text before saving.', 'Renseigne les colonnes connues ou ajoute les tiennes. Inconnu est volontaire. Il s’agit d’un brouillon à relire avant enregistrement.'))}</p>
-      <datalist id="archvow-type-suggestions">${['string','integer','float','double','decimal','boolean','date','timestamp','object'].map((type) => `<option value="${type}">`).join('')}</datalist>
-      <div class="smart-table">${rows.map((r, i) => `<div class="smart-row"><label>${esc(t('Column', 'Colonne'))}<input data-input="smartField" data-key="${esc(key)}" data-row="${i}" data-name="name" value="${esc(r.name)}"></label>
-        <label>${esc(t('Type', 'Type'))}<input data-input="smartField" data-key="${esc(key)}" data-row="${i}" data-name="type" list="archvow-type-suggestions" value="${esc(r.type)}" placeholder="${esc(t('Unknown', 'Inconnu'))}"></label>
-        <label>${esc(t('Nullable', 'Nullable'))}${select('nullable', i, r.nullable, yesNo)}</label>
-        <label>${esc(t('Personal', 'Personnel'))}${select('personal', i, r.personal, yesNo)}</label>
-        ${btn('×', 'smartRemove', attrs({ key, row: i }), false, 'secondary')}</div>`).join('')}</div>
-      <div class="row wrap">${btn(t('Add column', 'Ajouter une colonne'), 'smartAdd', attrs({ key }), false, 'secondary')}
-      ${btn(t('Use structured answer', 'Utiliser cette réponse'), 'smartUse', attrs({ key }), !answerText().trim(), 'secondary')}</div>
-      <pre class="smart-preview">${esc(answerText() || t('Add a column to prepare a response.', 'Ajoute une colonne pour préparer la réponse.'))}</pre>
+    const asks = columnAsks(ui.smartQuestions[key]);
+    const answerText = structuredAnswer(rows, ui.smartQuestions[key]);
+    // only what this question asks about: a personal-data question has no Nullable column
+    const heads = [t('Column', 'Colonne'), ...(asks.type ? [t('Type', 'Type')] : []), ...(asks.nullable ? [t('Nullable?', 'Nullable ?')] : []),
+      ...(asks.personal ? [t('Personal data?', 'Donnée personnelle ?')] : []), t('Notes', 'Notes'), ''];
+    const cols = ['minmax(110px,1.2fr)', ...(asks.type ? ['minmax(90px,.9fr)'] : []), ...(asks.nullable ? ['auto'] : []), ...(asks.personal ? ['auto'] : []), 'minmax(90px,1fr)', '28px'].join(' ');
+    const field = (i, name, value, extra = '') => `<input data-input="smartField" data-key="${esc(key)}" data-row="${i}" data-name="${name}" value="${esc(value)}" ${extra}>`;
+    return `<details class="card smart-answer"${ui.smartExpanded === key ? ' open' : ''} data-smart-key="${esc(key)}"><summary>${esc(t('Answer with a table (optional)', 'Répondre avec un tableau (facultatif)'))}</summary>
+      <p class="muted small">${esc(t('One row per column: what is not known stays Unknown. It writes the answer below for you to read before saving.', 'Une ligne par colonne : ce qui n’est pas connu reste Inconnu. Cela écrit la réponse ci-dessous, à relire avant d’enregistrer.'))}</p>
+      <datalist id="archvow-type-suggestions">${['string','integer','long','float','double','decimal','boolean','date','timestamp'].map((type) => `<option value="${type}">`).join('')}</datalist>
+      <div class="smart-grid" style="grid-template-columns:${cols}">${heads.map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
+      ${rows.map((r, i) => [field(i, 'name', r.name, `placeholder="${esc(t('column', 'colonne'))}"`),
+        ...(asks.type ? [field(i, 'type', r.type, `list="archvow-type-suggestions" placeholder="${esc(t('Unknown', 'Inconnu'))}"`)] : []),
+        ...(asks.nullable ? [smartSegments('column', key, i, 'nullable', r.nullable, [['no', t('Never null', 'Jamais nul')], ['yes', 'Nullable'], ['unknown', t('Unknown', 'Inconnu')]])] : []),
+        ...(asks.personal ? [smartSegments('column', key, i, 'personal', r.personal, [['yes', t('Yes', 'Oui')], ['no', t('No', 'Non')], ['unknown', t('Unknown', 'Inconnu')]])] : []),
+        field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`),
+        `<button class="icon smart-remove" data-a="smartRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this column from the table', 'Retirer cette colonne du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`].join('')).join('')}</div>
+      <div class="row wrap">${btn(t('+ Add column', '+ Ajouter une colonne'), 'smartAdd', attrs({ key }), false, 'secondary')}
+      ${btn(t('Use this answer', 'Utiliser cette réponse'), 'smartUse', attrs({ key }), !answerText.trim(), 'secondary')}</div>
+      <div class="muted small">${esc(t('Answer preview', 'Aperçu de la réponse'))}</div>
+      <pre class="smart-preview" data-preview="column">${esc(answerText || t('Add a column to prepare a response.', 'Ajoute une colonne pour préparer la réponse.'))}</pre>
+    </details>`;
+  }
+
+  // ---------------------------------------------------------------- parameters: name: type = default
+
+  /** A question that asks for parameters as `name: type = default` (the config, settings of a template). */
+  function canEditParameters(question) {
+    const q = String(question || '').toLocaleLowerCase();
+    const markers = ((((I.forms || {}).smart_answers || {}).parameters || {}).markers) || ['name: type', 'nom: type'];
+    return markers.some((m) => q.includes(String(m).toLocaleLowerCase()));
+  }
+
+  /** `input_path: str, run_date: date = today (the day to read)` -> rows; null for an answer in sentences.
+   * The same reading as archvow's runline.parameters: no default = required, the older (required) too. */
+  function parseParameters(text) {
+    const flat = String(text || '').trim().replace(/\.$/, '');
+    if (!flat || /^(none|aucun|aucune|no|non|-)$/i.test(flat)) return [];
+    const rows = [];
+    for (const part of flat.split(/[,;\n]\s*(?=[a-z_][a-z0-9_]*\s*:)/)) {
+      const m = /^\s*([a-z_][a-z0-9_]*)\s*:\s*([^=(]+?)\s*(?:=\s*([^()]+?))?\s*(\((.*)\))?\s*$/.exec(part);
+      // a type is a word (str, date, list[str], str | None): a sentence is not a list of parameters
+      if (!m || !/^[A-Za-z_][\w.]*(\[[\w., |]*\])?( *\| *[A-Za-z_][\w.]*)*$/.test(m[2].trim())) return null;
+      const note = (m[5] || '').replace(/^(required|obligatoire)$/i, '');
+      rows.push({ name: m[1], type: m[2].trim(), default: (m[3] || '').trim(), note: note.trim() });
+    }
+    return rows;
+  }
+
+  function parametersAnswer(rows) {
+    return rows.filter((r) => r.name.trim()).map((r) => {
+      const type = r.type.trim() || 'str';
+      const value = String(r.default || '').trim();
+      const note = String(r.note || '').trim().replace(/[()]/g, '');
+      return `${r.name.trim()}: ${type}${value ? ' = ' + value : ''}${note ? ` (${note})` : ''}`;
+    }).join(', ');
+  }
+
+  function smartParameters(row, key, initial) {
+    if (!canEditParameters(str(row, 'question'))) return '';
+    if (!ui.paramRows[key]) ui.paramRows[key] = (parseParameters(initial) || []).map((x) => ({ ...x }));
+    const rows = ui.paramRows[key];
+    if (!rows.length) rows.push({ name: '', type: 'str', default: '', note: '' });
+    const conf = (((I.forms || {}).smart_answers || {}).parameters || {});
+    const types = Array.isArray(conf.types) ? conf.types : ['str', 'int', 'float', 'bool', 'date'];
+    const answerText = parametersAnswer(rows);
+    const field = (i, name, value, extra = '') => `<input data-input="paramField" data-key="${esc(key)}" data-row="${i}" data-name="${name}" value="${esc(value)}" ${extra}>`;
+    return `<details class="card smart-answer"${ui.smartExpanded === key ? ' open' : ''} data-smart-key="${esc(key)}"><summary>${esc(t('Answer with a table (optional)', 'Répondre avec un tableau (facultatif)'))}</summary>
+      <p class="muted small">${esc(pair(conf.note) || t('One row per parameter. No default = required.', 'Une ligne par paramètre. Sans défaut = obligatoire.'))}</p>
+      <datalist id="archvow-param-types">${types.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
+      <div class="smart-grid" style="grid-template-columns:minmax(110px,1.1fr) minmax(70px,.6fr) minmax(110px,1fr) auto minmax(90px,1fr) 28px">
+      ${[t('Parameter', 'Paramètre'), t('Type', 'Type'), t('Default', 'Défaut'), '', t('Notes', 'Notes'), ''].map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
+      ${rows.map((r, i) => [field(i, 'name', r.name, 'placeholder="input_path"'), field(i, 'type', r.type, 'list="archvow-param-types"'),
+        field(i, 'default', r.default, `placeholder="${esc(t('none: required', 'aucun : obligatoire'))}"`),
+        `<span class="chip ${String(r.default || '').trim() ? '' : 'warn'}" data-required="${i}">${esc(String(r.default || '').trim() ? t('optional', 'facultatif') : t('required', 'obligatoire'))}</span>`,
+        field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`),
+        `<button class="icon smart-remove" data-a="paramRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this parameter from the table', 'Retirer ce paramètre du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`].join('')).join('')}</div>
+      <div class="row wrap">${btn(t('+ Add parameter', '+ Ajouter un paramètre'), 'paramAdd', attrs({ key }), false, 'secondary')}
+      ${btn(t('Use this answer', 'Utiliser cette réponse'), 'paramUse', attrs({ key }), !answerText.trim(), 'secondary')}</div>
+      <div class="muted small">${esc(t('Answer preview', 'Aperçu de la réponse'))}</div>
+      <pre class="smart-preview" data-preview="param">${esc(answerText || t('Add a parameter to prepare a response.', 'Ajoute un paramètre pour préparer la réponse.'))}</pre>
     </details>`;
   }
 
@@ -881,7 +1009,7 @@
         // archvow 1.19: a question with no safe default offers answers to start from, none chosen
         + (pending && Array.isArray(row.choices) && row.choices.length ? `<p class="hint"><b>${esc(t('No default (it depends on this project) - to start from:', 'Pas de défaut (cela dépend de ce projet) - pour partir de :'))}</b></p>
   <div class="row wrap choices">${row.choices.map((c) => btn(String(c), 'useChoice', attrs({ key, value: String(c) }), false, 'secondary small')).join('')}</div>` : '')
-        + smartColumns(view, row, key)
+        + smartColumns(view, row, key) + smartParameters(row, key, draft(key, answer || proposed || suggested))
         + answerEditor(key, answer || proposed || suggested, t('Your answer or proposal', 'Votre réponse ou proposition'), secondary,
           btn(t('Save answer', 'Enregistrer la réponse'), 'decide', attrs({ action: 'decision make' })), 'decision')
         + confirmation('decision') + resultCard('decision');
@@ -1175,7 +1303,7 @@
     ui.tplAnswers = {};
     ui.tplLayers = {};
     if (ui.confirm && ui.confirm.target === 'command') ui.confirm = null;
-    ui.preview = { text: '', missing: '' };
+    ui.preview = { text: '', missing: '', files: [] };
     delete ui.results.command;
     askPreview(0);
     if (name === 'init') {
@@ -1216,8 +1344,9 @@
     return `<section class="browser-only commands-list"><input data-input="commandFilter" data-keep="commandFilter" placeholder="${esc(t('Filter commands', 'Filtrer les commandes'))}" value="${esc(ui.commandFilter)}">
   <div class="command-tree" data-scroll="commands">${groups.map((g) => {
     const expanded = filter || ui.commandGroupsOpen[g.id] !== false;
-    return `<div class="command-group"><button class="command-group-toggle" data-a="commandGroup" data-id="${esc(g.id)}" aria-expanded="${expanded ? 'true' : 'false'}"><span>${expanded ? '▾' : '▸'} ${esc(g.label)}</span><span class="count">${g.items.length}</span></button>
-    ${expanded ? `<ul class="list items command-children">${g.items.map((c) => `<li class="${c.path.join(' ') === selected ? 'selected' : ''}" data-a="command" data-name="${esc(c.path.join(' '))}" title="${esc(c.description)}"><b>${esc(c.path.join(' '))}</b><div class="muted small">${esc(short(c.description || '', 90))}</div></li>`).join('')}</ul>` : ''}</div>`;
+    const groupIcon = ((I.icons || {}).groups || {})[g.id] || 'other';
+    return `<div class="command-group"><button class="command-group-toggle" data-a="commandGroup" data-id="${esc(g.id)}" aria-expanded="${expanded ? 'true' : 'false'}"><span class="node">${expanded ? '▾' : '▸'} ${icon(groupIcon)}<span>${esc(g.label)}</span></span><span class="count">${g.items.length}</span></button>
+    ${expanded ? `<ul class="list items command-children">${g.items.map((c) => `<li class="${c.path.join(' ') === selected ? 'selected' : ''}" data-a="command" data-name="${esc(c.path.join(' '))}" title="${esc(c.description)}"><b class="node">${icon(commandIcon(c.path))}<span>${esc(c.path.join(' '))}</span></b><div class="muted small">${esc(short(c.description || '', 90))}</div></li>`).join('')}</ul>` : ''}</div>`;
   }).join('')}</div>
   <p class="muted small">${esc(t('Select a command to open its form in the editor.', "Choisis une commande pour ouvrir son formulaire dans l'éditeur."))}</p></section>`;
   }
@@ -1396,17 +1525,48 @@
     if (name === 'init') fields += initOtherAnswers();
     if (['decision make', 'decision propose', 'decision accept', 'question remove'].includes(name)) fields += questionPreview(name);
     const title = pair(entry.title) || command.description;
-    const verb = pair(entry.verb) || t('Run command', 'Exécuter la commande');
+    // changes / diff with Save to a file: the button says what it does
+    const verb = (ui.form.output || '').trim() && command.parameters.some((p) => p.plugin && p.name === 'output')
+      ? t('Save the report', 'Enregistrer le rapport') : pair(entry.verb) || t('Run command', 'Exécuter la commande');
     const does = pair(entry.does);
     const shown = ui.preview.text || ui.preview.missing;
     const pane = `<aside class="form-pane"><h4>${esc(t('What archvow will do', 'Ce que va faire archvow'))}</h4>
   ${does ? `<p>${esc(does)}</p>` : ''}<div class="muted small">${esc(t('The command', 'La commande'))}</div>
   <pre id="form-preview" class="command-preview${ui.preview.text ? '' : ' missing'}">${esc(shown || 'archvow ' + name)}</pre>
+  <div id="form-files">${filesBlock(ui.preview.files)}</div>
   <p class="muted small">${esc(t('If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.',
     "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."))}</p></aside>`;
     return `<div class="form-head"><h3>${esc(title)}</h3><div class="muted small"><code>archvow ${esc(name)}</code> - ${esc(command.description)}${extra ? ' ' + esc(extra) : ''}</div>${ui.formHelp ? `<pre class="help">${esc(ui.formHelp)}</pre>` : ''}</div>
   <div class="form-grid"><div class="form">${fields}${formAlerts()}
   <div class="row end">${btn(t('Cancel', 'Annuler'), 'cancelForm', '', false, 'secondary')}${btn(verb, 'runForm')}</div></div>${pane}</div>${confirmation('command')}${resultCard('command')}`;
+  }
+
+  /** The files the command writes (filePlan.ts): a small tree per folder, then the code it plans. */
+  function filesBlock(rows) {
+    if (!Array.isArray(rows) || !rows.length) return '';
+    const word = { new: t('new', 'nouveau'), updated: t('updated', 'modifié'), removed: t('removed', 'retiré'), kept: t('kept', 'gardé'), planned: t('planned', 'prévu') };
+    const part = (items) => {
+      let html = '';
+      let folder = null;
+      for (const r of items) {
+        const path = String(r.path || '');
+        const isDir = path.endsWith('/');
+        const cut = isDir ? path.slice(0, -1).lastIndexOf('/') : path.lastIndexOf('/');
+        const dir = cut >= 0 ? path.slice(0, cut + 1) : '';
+        const leaf = cut >= 0 ? path.slice(cut + 1) : path;
+        if (dir !== folder) {
+          if (folder !== null) html += '</ul>';
+          html += `<div class="file-dir">${icon('folder')}<span>${esc(dir || './')}</span></div><ul class="file-list">`;
+          folder = dir;
+        }
+        html += `<li class="file-row change-${esc(r.change)}">${icon(isDir ? 'folder' : 'document')}<code>${esc(leaf)}</code><span class="badge ${esc(r.change)}">${esc(word[r.change] || r.change)}</span>${r.note ? `<div class="muted small file-note">${esc(r.note)}</div>` : ''}</li>`;
+      }
+      return html + (folder !== null ? '</ul>' : '');
+    };
+    const now = rows.filter((r) => r.change !== 'planned');
+    const later = rows.filter((r) => r.change === 'planned');
+    return (now.length ? `<div class="muted small files-head">${esc(t('Files', 'Fichiers'))}</div>${part(now)}` : '')
+      + (later.length ? `<div class="muted small files-head">${esc(t('Planned - written later by the AI or a developer (archvow never writes code)', "Prévus - écrits plus tard par l'IA ou un développeur (archvow n'écrit jamais de code)"))}</div>${part(later)}` : '');
   }
 
   function questionPreview(name) {
@@ -1835,6 +1995,9 @@
     openComponentRow: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
     pick: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
     filter: (e) => { ui.filter = e.dataset.filter; },
+    addComponent: () => post({ type: 'openCommand', command: 'component add', values: {}, selected: '' }),
+    addHere: (e) => { ui.addLayer = ui.addLayer === e.dataset.id ? '' : e.dataset.id; },
+    addType: (e) => { ui.addLayer = ''; post({ type: 'openCommand', command: 'component add', values: { type: e.dataset.id }, selected: '' }); },
     view: (e) => {
       const i = Number(e.dataset.i);
       if (ui.view !== i && ui.confirm && ['decision', 'question', 'safety'].includes(ui.confirm.target)) {
@@ -1896,7 +2059,19 @@
         ui.confirm = null;
       }
     },
-    smartAdd: (e) => { (ui.smartRows[e.dataset.key] ||= []).push({ name: '', type: '', nullable: 'unknown', personal: 'unknown' }); ui.smartExpanded = e.dataset.key; },
+    smartAdd: (e) => { (ui.smartRows[e.dataset.key] ||= []).push({ name: '', type: '', nullable: 'unknown', personal: 'unknown', note: '' }); ui.smartExpanded = e.dataset.key; },
+    smartSeg: (e) => {
+      const rows = e.dataset.kind === 'param' ? ui.paramRows[e.dataset.key] : ui.smartRows[e.dataset.key];
+      const row = (rows || [])[Number(e.dataset.row)];
+      if (row) row[e.dataset.name] = e.dataset.value;
+      ui.smartExpanded = e.dataset.key;
+    },
+    paramAdd: (e) => { (ui.paramRows[e.dataset.key] ||= []).push({ name: '', type: 'str', default: '', note: '' }); ui.smartExpanded = e.dataset.key; },
+    paramRemove: (e) => { (ui.paramRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; },
+    paramUse: (e) => {
+      const text = parametersAnswer(ui.paramRows[e.dataset.key] || []);
+      if (text.trim()) { ui.drafts[e.dataset.key] = text; ui.smartExpanded = e.dataset.key; }
+    },
     smartRemove: (e) => { (ui.smartRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; },
     smartUse: (e) => {
       const text = structuredAnswer(ui.smartRows[e.dataset.key] || [], ui.smartQuestions[e.dataset.key] || '');
@@ -2036,9 +2211,19 @@
       case 'smartField': {
         const rows = ui.smartRows[e.dataset.key] || [];
         const row = rows[Number(e.dataset.row)];
-        if (row && ['name', 'type', 'nullable', 'personal'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
-        const preview = document.querySelector('.smart-answer .smart-preview');
+        if (row && ['name', 'type', 'nullable', 'personal', 'note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
+        const preview = document.querySelector('.smart-answer .smart-preview[data-preview="column"]');
         if (preview) preview.textContent = structuredAnswer(rows, ui.smartQuestions[e.dataset.key] || '');
+        return;
+      }
+      case 'paramField': {
+        const rows = ui.paramRows[e.dataset.key] || [];
+        const row = rows[Number(e.dataset.row)];
+        if (row && ['name', 'type', 'default', 'note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
+        const preview = document.querySelector('.smart-answer .smart-preview[data-preview="param"]');
+        if (preview) preview.textContent = parametersAnswer(rows);
+        const chip = row && e.dataset.name === 'default' ? document.querySelector(`.smart-answer [data-required="${Number(e.dataset.row)}"]`) : null;
+        if (chip) { chip.textContent = e.value.trim() ? t('optional', 'facultatif') : t('required', 'obligatoire'); chip.classList.toggle('warn', !e.value.trim()); }
         return;
       }
       case 'base': ui.base = e.value; ui.baseTouched = true; return;
@@ -2046,7 +2231,8 @@
       case 'form':
         ui.form[e.dataset.name] = e.value;
         askPreview();
-        if (['component', 'question', 'number', 'type', 'extends'].includes(e.dataset.name)) render();
+        if (['component', 'question', 'number', 'type', 'extends'].includes(e.dataset.name)
+          || (e.dataset.name === 'output' && !!e.value.trim() !== !!(ui.outputShown || ''))) { ui.outputShown = e.value.trim() ? '1' : ''; render(); }
         return;
       case 'initAnswer': ui.initAnswers[e.dataset.id] = e.value; ui.initTouched[e.dataset.id] = true; return;
       case 'tplAnswer': ui.tplAnswers[e.dataset.id] = e.value; return;
@@ -2126,7 +2312,7 @@
       case 'smartField': {
         const rows = ui.smartRows[e.dataset.key] || [];
         const row = rows[Number(e.dataset.row)];
-        if (row && ['name','type','nullable','personal'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
+        if (row && ['name','type','nullable','personal','note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
         ui.smartExpanded = e.dataset.key; render(); return;
       }
       case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; askPreview(0); return;

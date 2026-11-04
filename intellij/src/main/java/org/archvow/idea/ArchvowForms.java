@@ -129,7 +129,9 @@ final class ArchvowForms {
      */
     static String commandLine(ArchvowGrammar.Command command, Map<String, String> values, boolean fr) {
         List<String> args = new ArrayList<>(command.path);
+        String output = output(command, values);
         for (ArchvowGrammar.Param param : command.parameters) {
+            if (param.plugin) continue;
             String text = values.getOrDefault(param.name, "").trim();
             if (text.isEmpty()) {
                 if (param.required) return (fr ? "Champ obligatoire : " : "Required field: ") + param.name;
@@ -149,13 +151,36 @@ final class ArchvowForms {
                 args.add(text);
             }
         }
+        if (!output.isEmpty() && markdownOutput(command) && !args.contains("--markdown")) args.add("--markdown");
         StringBuilder line = new StringBuilder("archvow");
         for (String a : args) {
             line.append(' ');
             line.append(a.contains(" ") || a.contains("\n") ? '"' + a.replace("\n", "\\n").replace("\"", "\\\"") + '"' : a);
         }
+        if (!output.isEmpty()) line.append(" > ").append(output.contains(" ") ? '"' + output + '"' : output);
         return line.toString();
     }
+
+    /** changes / diff with Save to a file: the file the report goes to ('' to show it), as VS Code's plan.output. */
+    static String output(ArchvowGrammar.Command command, Map<String, String> values) {
+        for (ArchvowGrammar.Param p : command.parameters)
+            if (p.plugin && "output".equals(p.name)) return values.getOrDefault("output", "").trim();
+        return "";
+    }
+
+    /** The report goes to a file as Markdown (--markdown added, no --json). */
+    static boolean markdownOutput(ArchvowGrammar.Command command) {
+        for (ArchvowGrammar.Param p : command.parameters) if (p.plugin && "output".equals(p.name) && p.markdown) return true;
+        return false;
+    }
+
+    /** The other forms.json tables (files, smart_answers...), for ArchvowFilePlan and the answer tables. */
+    static JsonObject section(String key) {
+        JsonElement e = DATA.get(key);
+        return e != null && e.isJsonObject() ? e.getAsJsonObject() : new JsonObject();
+    }
+
+    static String text(JsonElement pair, boolean fr) { return pair(pair, fr); }
 
     /** archvow said no (exit code 2): its words, without "✖ archvow: error:"; '' otherwise. As VS Code's alerts(). */
     static String refusal(int exitCode, String stderr) {

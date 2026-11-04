@@ -58,6 +58,16 @@ component types) then `state`. The tab's page sends `title` when what it shows c
 tab's title. Security: a strict Content-Security-Policy (`html()`), a *nonce* per script, nothing
 loaded from outside.
 
+## The Components tab (0.15.0)
+
+The tree draws what each node is (`contract/forms/icons.json`): the system, each layer, each component's type
+(schema, reader, writer, transformation, job, entry point...) in its status colour, and the Commands tab each
+group and each command by its verb. **Add component**, beside All / Pending / Resolved, opens the
+`component add` form; on a layer, **+** (VS Code) or a right-click (IntelliJ, `installLayerMenu()`) lists the
+types of that layer (`addableByLayer()`, `ArchvowFilePlan`) and opens the form with the type chosen. Under All,
+the template's empty layers show too ("No component yet"): the first job or entry point has a place to go. A
+button in the tree rather than one more command: adding happens where the architecture is read, at its level.
+
 ## Back
 
 A command opened **from a component** (Edit spec, + Question, + Rule, Accept...) shows
