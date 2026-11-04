@@ -144,6 +144,14 @@ public final class FilePlanRegression {
         graphics.dispose();
         check((preview.getRGB(1, filename.getHeight() / 2) >>> 24) != 0,
             "Filename badge paints a visible background");
+        // Descriptions are wrapping text areas (ArchvowWrapLabel), not JLabels.
+        ArchvowWrapLabel note = java.util.Arrays.stream(view.getComponents())
+            .filter(ArchvowWrapLabel.class::isInstance)
+            .map(ArchvowWrapLabel.class::cast)
+            .filter(l -> l.getText().contains("what was recorded before becomes to review"))
+            .findFirst().orElseThrow(() -> new AssertionError("Description note missing"));
+        check(note.getFont().getSize2D() == 10.5f,
+            "Description note uses hint-sized text: " + note.getFont().getSize2D());
         view.showRows(List.of(), false);
         check(!view.isVisible() && view.getComponentCount() == 0, "Files preview clears when the form has no files");
     }

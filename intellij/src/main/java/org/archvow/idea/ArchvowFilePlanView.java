@@ -36,7 +36,7 @@ final class ArchvowFilePlanView extends JPanel {
                 ? (fr ? "Prévus - écrits plus tard par l'IA ou un développeur (archvow n'écrit jamais de code)"
                       : "Planned - written later by the AI or a developer (archvow never writes code)")
                 : (fr ? "Fichiers" : "Files");
-            ArchvowWrapLabel head = wrapped(heading, muted());
+            ArchvowWrapLabel head = wrapped(heading, muted(), false);
             head.setBorder(BorderFactory.createEmptyBorder(6, 0, 2, 0));
             add(head);
             String folder = null;
@@ -70,7 +70,7 @@ final class ArchvowFilePlanView extends JPanel {
                 file.add(Box.createHorizontalGlue());
                 add(file);
                 if (!row.note().isBlank()) {
-                    ArchvowWrapLabel note = wrapped(row.note(), muted());
+                    ArchvowWrapLabel note = wrapped(row.note(), muted(), true);
                     note.setBorder(BorderFactory.createEmptyBorder(1, 38, 2, 0));
                     add(note);
                 }
@@ -124,11 +124,12 @@ final class ArchvowFilePlanView extends JPanel {
         return label;
     }
 
-    private static ArchvowWrapLabel wrapped(String text, Color ink) {
+    private static ArchvowWrapLabel wrapped(String text, Color ink, boolean compact) {
         ArchvowWrapLabel label = new ArchvowWrapLabel();
         label.setText(text);
         label.setOpaque(false);
         label.setForeground(ink);
+        if (compact) label.setFont(label.getFont().deriveFont(10.5f));
         label.setAlignmentX(LEFT_ALIGNMENT);
         return label;
     }
