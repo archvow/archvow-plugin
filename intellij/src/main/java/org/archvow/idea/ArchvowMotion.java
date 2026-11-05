@@ -92,23 +92,26 @@ final class ArchvowMotion {
                 // 0.15.0: each node draws what it is (icons.json): the system, a layer, the component's type
                 Object user = value instanceof DefaultMutableTreeNode n ? n.getUserObject() : null;
                 if (user instanceof ArchvowTreeIcons.Kinded kinded) setIcon(ArchvowTreeIcons.icon(kinded.iconKind(), null));
-                // Status markers come from the component actions, not the raw hazard count.
-                if (value instanceof DefaultMutableTreeNode node && node.isLeaf() && !(user instanceof ArchvowTreeIcons.Node)) {
+                // 0.17.4, as VS Code: the name in the text colour, its type muted; the status is the type's drawing in
+                // its colour, the bar, the pill or ✓ that ArchvowComponentTree paints (no "(2)" / "✓" in the text)
+                setFont(source.getFont());
+                String id = ArchvowComponentTree.componentId(value);
+                if (!id.isEmpty()) {
                     String original = getText();
-                    String id = original.contains("  ·  ") ? original.substring(0, original.indexOf("  ·  ")) : original;
-                    int pending = statusCount(source, "archvow.pendingCounts", id);
-                    int resolved = statusCount(source, "archvow.resolvedCounts", id);
-                    Color tint = null;
-                    if (pending > 0) {
-                        setText(original + "  (" + pending + ")");
-                        tint = dark() ? new Color(255, 193, 114) : new Color(150, 89, 17);
-                    } else if (resolved > 0) {
-                        setText(original + "  ✓");
-                        tint = dark() ? new Color(121, 224, 158) : new Color(23, 121, 68);
+                    String type = original.contains("  ·  ") ? original.substring(original.indexOf("  ·  ") + 5) : "";
+                    if (!type.isEmpty()) {
+                        Color typeColor = blend(background, selected ? getTextSelectionColor() : source.getForeground(), .6);
+                        setText("<html>" + escape(id) + "<span style='color:" + hex(typeColor) + "'> · " + escape(type) + "</span></html>");
                     }
-                    if (tint != null && !selected) setForeground(tint);
-                    // the type's drawing in the status colour, even when selected (the text says it too)
+                    int pending = statusCount(source, ArchvowComponentTree.PENDING, id);
+                    int resolved = statusCount(source, ArchvowComponentTree.RESOLVED, id);
+                    Color tint = pending > 0 ? ArchvowComponentTree.pendingColor() : resolved > 0 ? ArchvowComponentTree.doneColor() : null;
                     if (user instanceof ArchvowTreeIcons.Kinded kinded && tint != null) setIcon(ArchvowTreeIcons.icon(kinded.iconKind(), tint));
+                } else if (user instanceof ArchvowTreeIcons.Node n && "add".equals(n.kind())) {
+                    // the empty line under a layer: italic, muted, no drawing (the layer's ⊕ adds)
+                    setIcon(null);
+                    setFont(source.getFont().deriveFont(Font.ITALIC));
+                    if (!selected) setForeground(blend(background, source.getForeground(), .55));
                 }
                 setIconTextGap(6);
                 return this;
@@ -116,6 +119,12 @@ final class ArchvowMotion {
         });
     }
 
+
+    private static String escape(String text) {
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private static String hex(Color c) { return String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue()); }
 
     private static int statusCount(JTree tree, String property, String id) {
         Object value = tree.getClientProperty(property);

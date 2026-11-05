@@ -22,9 +22,13 @@ final class ArchvowUiIcons {
         }
     }
 
+    /** A button whose own text carries its sign (+ Add ▾): no pictogram beside it (0.17.3). */
+    static final String NO_ICON = "archvow.icon.none";
+
     static void decorate(AbstractButton button) {
         if (button == null) return;
         if (button instanceof JButton pushButton) ArchvowMotion.installButton(pushButton);
+        if (Boolean.TRUE.equals(button.getClientProperty(NO_ICON))) return;
         String kind = kindForLabel(button.getText());
         if (kind == null) return; // Not every text needs a decorative pictogram.
         Object custom = button.getClientProperty("archvow.icon.kind");

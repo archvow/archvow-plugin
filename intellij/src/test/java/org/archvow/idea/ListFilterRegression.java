@@ -59,7 +59,7 @@ public final class ListFilterRegression {
         for (String gone : List.of("\"Clarify\", \"Clarifier\"", "\"+ Component\", \"+ Composant\"", "\"AI skills ▾\"", "originFilterButtons", "saveMore",
             "headAndSuggestion.add(suggestStrip"))
             if (panel.contains(gone)) throw new AssertionError("still in the panel: " + gone);
-        for (String there : List.of("\"+ Add ▾\", \"+ Ajouter ▾\"", "\"✦ AI ▾\", \"✦ IA ▾\"", "Copier la fiche pour une autre IA",
+        for (String there : List.of("\"+ Add ▾\", \"+ Ajouter ▾\"", "\"✦ AI spec ▾\"", "Copier la fiche pour une autre IA",
             "Enregistrer comme proposition", "nextOpenAfter", "ArchvowMenu.create", "answerButtons(List.of(proposeInline)"))
             if (!panel.contains(there)) throw new AssertionError("missing in the panel: " + there);
         // 0.17.2: the user's order - AI (the filled one), Add, Edit spec, Open code
@@ -67,7 +67,24 @@ public final class ListFilterRegression {
             edit = panel.indexOf("\"Edit spec\", \"Modifier la spec\"),\n"), open = panel.indexOf("\"Open code\", \"Ouvrir le code\"), this::openCode)");
         if (!(ai > 0 && ai < add && add < edit && edit < open)) throw new AssertionError("the actions are not AI, Add, Edit spec, Open code: " + ai + " " + add + " " + edit + " " + open);
         if (!panel.contains("JButton aiSkills = ArchvowSplitView.primary(")) throw new AssertionError("AI ▾ is the filled button");
-        System.out.println("OK: the list line, a done view, the next open item, links, four quiet actions");
+        // 0.17.3: + Add ▾ shows its own "+" only (no ⊕ pictogram beside it); the AI button says "AI spec"
+        JButton plain = new JButton("+ Ajouter ▾");
+        ArchvowUiIcons.decorate(plain);
+        if (plain.getIcon() == null) throw new AssertionError("a button saying Ajouter gets its pictogram by default");
+        JButton addButton = new JButton("+ Ajouter ▾");
+        addButton.putClientProperty(ArchvowUiIcons.NO_ICON, Boolean.TRUE);
+        ArchvowUiIcons.decorate(addButton);
+        if (addButton.getIcon() != null) throw new AssertionError("+ Add ▾ has an icon beside its +");
+        if (!panel.contains("add.putClientProperty(ArchvowUiIcons.NO_ICON, Boolean.TRUE)")) throw new AssertionError("+ Add ▾ is not marked NO_ICON");
+        if (panel.contains("\"✦ AI ▾\"") || panel.contains("\"✦ IA ▾\"")) throw new AssertionError("the AI button still says AI ▾");
+        // 0.17.3: the command form's head as VS Code - the title, then [archvow <command>] - what it does; no
+        // scrolled monospaced box (it clipped the lines and ran under the title in IntelliJ)
+        if (panel.contains("scroll(commandHelp)") || panel.contains("commandHelp.setText(\"archvow \" + name + \"\\n\""))
+            throw new AssertionError("the command's line is still a scrolled text box");
+        for (String head : List.of("commandChip.setText(\"archvow \" + name)", "commandHelp.setText(\"- \" + command.description",
+            "commandNote.setVisible(!formHelpExtra.isBlank())", "head.add(commandLine, BorderLayout.CENTER)"))
+            if (!panel.contains(head)) throw new AssertionError("the command form's head lacks: " + head);
+        System.out.println("OK: the list line, a done view, the next open item, links, four quiet actions, the command head");
     }
 
     private static ArchvowItemCards.Card card(String n, boolean open) {

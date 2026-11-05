@@ -151,7 +151,7 @@ later, Remove question and Undo are links (`button.link`, `ArchvowSplitView.link
 
 The menus (✦ AI ▾, + Add ▾, Save ▾) are `ArchvowMenu` rows in IntelliJ (0.17.1): a heading, a line between the groups, the row under the mouse highlighted, a step that cannot run yet greyed with why, the suggested one tinted. The strip's button keeps its size and goes under the text when the strip is narrower than 720 px (`STRIP_SIDE_BY_SIDE`).
 
-Since 0.17.2, no "Suggested next" strip: the actions are, in this order, **✦ AI ▾** (the one filled button; its menu marks the suggested step), **+ Add ▾**, **Edit spec**, **Open code**; **Save as a proposal** is a real button beside Save answer.
+Since 0.17.2, no "Suggested next" strip: the actions are, in this order, **✦ AI ▾** (**✦ AI spec ▾** in IntelliJ since 0.17.3; the one filled button; its menu marks the suggested step), **+ Add ▾**, **Edit spec**, **Open code**; **Save as a proposal** is a real button beside Save answer.
 
 ## Saving an answer, end to end
 

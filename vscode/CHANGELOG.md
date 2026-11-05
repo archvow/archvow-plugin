@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.17.4 - 2026-11-05
+
+Built on archvow 1.20 (contract unchanged). IntelliJ only (VS Code unchanged but for the version): the Components
+tree as VS Code's (bar, count pill, ✓, ⊕ on the layers).
+
+## 0.17.3 - 2026-11-05
+
+Built on archvow 1.20 (contract unchanged). IntelliJ only (VS Code unchanged but for the version): a command
+form's head as in VS Code, the AI button says **✦ AI spec ▾**, **+ Add ▾** without the ⊕ pictogram.
+
 ## 0.17.2 - 2026-11-05
 
 Built on archvow 1.20 (contract unchanged). Both IDEs.

@@ -270,7 +270,7 @@ final class ArchvowPanel extends JPanel {
     /** The safety answer field, its heading and buttons: shown for an open safety question only. */
     private List<JComponent> safetyEditorParts = List.of();
     private final DefaultMutableTreeNode componentsRoot = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node("Architecture", "architecture", ""));
-    private final JTree componentsTree = new JTree(componentsRoot);
+    private final ArchvowComponentTree componentsTree = new ArchvowComponentTree(componentsRoot);
     private String componentFilter = "all";
     private JButton allComponentsFilter, pendingComponentsFilter, resolvedComponentsFilter, addComponentButton;
     private final DefaultListModel<ArchvowGrammar.Command> commandModel = new DefaultListModel<>();
@@ -291,7 +291,12 @@ final class ArchvowPanel extends JPanel {
     private boolean coveredNothing;
     /** Accept…, shown only for a component the AI created (origin ai). */
     private JButton aiAcceptButton;
-    private final JTextArea commandHelp = area();
+    /** 0.17.3: under the title, as VS Code: the command as a chip, then what it does; the prefill note apart. */
+    private final JLabel commandChip = new JLabel() {
+        @Override public void updateUI() { super.updateUI(); styleCommandChip(this); }
+    };
+    private final ArchvowWrapLabel commandHelp = new ArchvowWrapLabel();
+    private final ArchvowWrapLabel commandNote = new ArchvowWrapLabel();
     private final Map<String, JComponent> fields = new LinkedHashMap<>();
     /** The comparison base: the best existing branch (ArchvowChoices.bestBase) until the person chooses one. */
     private final JTextField branch = new JTextField("", 14);
@@ -1615,12 +1620,13 @@ final class ArchvowPanel extends JPanel {
         aiAcceptButton.addActionListener(e -> withComponent(c -> openCommand("component accept", Map.of("component", c.id))));
         aiAcceptButton.setVisible(false);
         actions.addAction(aiAcceptButton);
-        JButton aiSkills = ArchvowSplitView.primary(ArchvowI18n.text(project, "✦ AI ▾", "✦ IA ▾"));
+        JButton aiSkills = ArchvowSplitView.primary("✦ AI spec ▾");
         aiSkills.setToolTipText(ArchvowI18n.text(project, "What you ask the AI for this component: it adds, you decide",
             "Ce que tu demandes à l'IA pour ce composant : elle ajoute, tu décides"));
         aiSkills.addActionListener(e -> showAiMenu(aiSkills));
         actions.addAction(aiSkills);
         JButton add = new JButton(ArchvowI18n.text(project, "+ Add ▾", "+ Ajouter ▾"));
+        add.putClientProperty(ArchvowUiIcons.NO_ICON, Boolean.TRUE);  // 0.17.3: its "+" says it, no ⊕ beside it
         add.setToolTipText(ArchvowI18n.text(project, "What you add yourself to this component", "Ce que tu ajoutes toi-même à ce composant"));
         add.addActionListener(e -> showAddMenu(add));
         actions.addAction(add);
@@ -1951,8 +1957,8 @@ final class ArchvowPanel extends JPanel {
                 if (path == null || !(path.getLastPathComponent() instanceof DefaultMutableTreeNode node)) return "";
                 return node.getUserObject() instanceof ArchvowTreeIcons.Node n ? n.layer() : "";
             }
-            private void menu(java.awt.event.MouseEvent e) {
-                String layer = layerAt(e);
+            private void menu(java.awt.event.MouseEvent e) { menu(e, layerAt(e)); }
+            private void menu(java.awt.event.MouseEvent e, String layer) {
                 List<ArchvowFilePlan.Addable> types = addableByLayer().getOrDefault(layer, List.of());
                 if (layer.isEmpty() || types.isEmpty()) return;
                 JPopupMenu popup = new JPopupMenu(ArchvowI18n.text(project, "Add to " + layer, "Ajouter à " + layer));
@@ -1968,6 +1974,9 @@ final class ArchvowPanel extends JPanel {
             @Override public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) menu(e); }
             @Override public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) menu(e); }
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                // 0.17.4: the ⊕ at the right of a layer, as VS Code's: its Add menu
+                String plus = SwingUtilities.isLeftMouseButton(e) ? componentsTree.addLayerAt(e.getPoint()) : "";
+                if (!plus.isEmpty()) { menu(e, plus); return; }
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     TreePath path = componentsTree.getPathForLocation(e.getX(), e.getY());
                     if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode node && node.isLeaf()
@@ -1976,6 +1985,7 @@ final class ArchvowPanel extends JPanel {
             }
         });
         componentsTree.setToolTipText(ArchvowI18n.text(project, "Right-click a layer to add a component to it", "Clic droit sur une couche pour y ajouter un composant"));
+        componentsTree.addTip = layer -> ArchvowI18n.text(project, "Add a component to " + layer, "Ajouter un composant à " + layer);
     }
 
     private boolean showComponentInTree(String id) {
@@ -2248,15 +2258,30 @@ final class ArchvowPanel extends JPanel {
             renderForm(Map.of());
             if (constructed) afterSelectionChange();
         });
-        commandHelp.setRows(2); commandHelp.setColumns(35);
         JPanel right = new JPanel(new BorderLayout(2, 4));
         JPanel center = new JPanel(new BorderLayout());
-        JScrollPane help = scroll(commandHelp); help.setPreferredSize(new Dimension(300, 52));
-        // design A: the title in plain words over archvow's own line, the fields left, what archvow will do right
+        // design A: the title in plain words over archvow's own line, the fields left, what archvow will do right.
+        // 0.17.3: as VS Code - the title, then one muted line "[archvow <command>] - what it does" (no scrolled
+        // monospaced box: it clipped the lines and ran under the title), then the prefill note when there is one.
         formTitle.setFont(formTitle.getFont().deriveFont(Font.BOLD, formTitle.getFont().getSize2D() + 3f));
         formTitle.setBorder(BorderFactory.createEmptyBorder(6, 4, 2, 4));
+        styleCommandChip(commandChip);
+        commandHelp.setOpaque(false); commandHelp.setForeground(mutedTextColor());
+        commandHelp.setBorder(BorderFactory.createEmptyBorder(3, 0, 0, 0));
+        commandNote.setOpaque(false); commandNote.setForeground(mutedTextColor());
+        commandNote.setBorder(BorderFactory.createEmptyBorder(4, 4, 0, 4));
+        commandNote.setVisible(false);
+        JPanel commandLine = new JPanel(new BorderLayout(6, 0));
+        commandLine.setOpaque(false);
+        commandLine.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
+        JPanel chipHolder = new JPanel(new BorderLayout());
+        chipHolder.setOpaque(false);
+        chipHolder.add(commandChip, BorderLayout.NORTH);
+        commandLine.add(chipHolder, BorderLayout.WEST);
+        commandLine.add(commandHelp, BorderLayout.CENTER);
         JPanel head = new JPanel(new BorderLayout(0, 2));
-        head.add(formTitle, BorderLayout.NORTH); head.add(help, BorderLayout.CENTER);
+        head.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
+        head.add(formTitle, BorderLayout.NORTH); head.add(commandLine, BorderLayout.CENTER); head.add(commandNote, BorderLayout.SOUTH);
         center.add(head, BorderLayout.NORTH);
         formScroller = scroll(form);
         formScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -2617,7 +2642,12 @@ final class ArchvowPanel extends JPanel {
             case "rule add" -> ArchvowI18n.text(project, "One argument per line in words.", "Un argument par ligne dans le champ words.");
             default -> "";
         };
-        commandHelp.setText("archvow " + name + "\n" + command.description + (extra.isEmpty() ? "" : "\n" + extra) + formHelpExtra);
+        commandChip.setText("archvow " + name);
+        commandHelp.setText("- " + command.description + (extra.isEmpty() ? "" : " " + extra));
+        commandHelp.setForeground(mutedTextColor());
+        commandNote.setText(formHelpExtra.strip());
+        commandNote.setForeground(mutedTextColor());
+        commandNote.setVisible(!formHelpExtra.isBlank());
         boolean french = ArchvowI18n.isFrench(project);
         String title = ArchvowForms.title(name, french);
         formTitle.setText(title.isEmpty() ? command.description : title);
@@ -5853,6 +5883,23 @@ final class ArchvowPanel extends JPanel {
             BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(borderColor()),
                 BorderFactory.createEmptyBorder(6, 9, 7, 9))));
+    }
+
+    /** The command as typed, a code chip (VS Code's <code>): monospaced, a tinted background, a thin outline. */
+    private static void styleCommandChip(JLabel chip) {
+        Font base = UIManager.getFont("Label.font");
+        int size = base == null ? 12 : Math.max(11, base.getSize() - 1);
+        chip.setFont(new Font(Font.MONOSPACED, Font.PLAIN, size));
+        Color panel = UIManager.getColor("Panel.background");
+        Color text = UIManager.getColor("Label.foreground");
+        if (panel == null) panel = darkTheme() ? new Color(43, 45, 48) : Color.WHITE;
+        if (text == null) text = darkTheme() ? Color.WHITE : Color.BLACK;
+        chip.setOpaque(true);
+        chip.setBackground(ArchvowMotion.blend(panel, text, darkTheme() ? .12 : .07));
+        chip.setForeground(text);
+        chip.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ArchvowMotion.blend(panel, text, darkTheme() ? .22 : .16)),
+            BorderFactory.createEmptyBorder(1, 5, 1, 5)));
     }
 
     private static Color mutedTextColor() {

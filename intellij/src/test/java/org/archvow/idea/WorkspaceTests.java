@@ -20,6 +20,7 @@ public final class WorkspaceTests {
         run("BriefsRegression", () -> BriefsRegression.main(NONE));
         run("ButtonHoverRegression", () -> ButtonHoverRegression.main(NONE));
         run("CheckActionsRegression", () -> CheckActionsRegression.main(NONE));
+        run("ComponentTreeRegression", () -> ComponentTreeRegression.main(NONE));
         run("CommandPrefillRegression", () -> CommandPrefillRegression.main(NONE));
         run("CommandFormLayoutRegression", () -> CommandFormLayoutRegression.main(NONE));
         run("GenericUiRegression", () -> GenericUiRegression.main(NONE));

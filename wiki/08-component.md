@@ -156,7 +156,7 @@ Retirer la question et Annuler sont des liens (`button.link`, `ArchvowSplitView.
 
 Les menus (✦ IA ▾, + Ajouter ▾, Enregistrer ▾) sont des lignes d'`ArchvowMenu` dans IntelliJ (0.17.1) : un titre, un trait entre les groupes, la ligne sous la souris éclairée, une étape pas encore possible grisée avec sa raison, la suggérée teintée. Le bouton de la bande garde sa taille et passe sous le texte quand la bande fait moins de 720 px (`STRIP_SIDE_BY_SIDE`).
 
-Depuis la 0.17.2, plus de bande « Suggéré ensuite » : les actions sont, dans cet ordre, **✦ IA ▾** (le seul bouton plein ; son menu marque l'étape suggérée), **+ Ajouter ▾**, **Modifier la spec**, **Ouvrir le code** ; **Enregistrer comme proposition** est un vrai bouton à côté d'Enregistrer la réponse.
+Depuis la 0.17.2, plus de bande « Suggéré ensuite » : les actions sont, dans cet ordre, **✦ IA ▾** (**✦ AI spec ▾** dans IntelliJ depuis la 0.17.3 ; le seul bouton plein ; son menu marque l'étape suggérée), **+ Ajouter ▾**, **Modifier la spec**, **Ouvrir le code** ; **Enregistrer comme proposition** est un vrai bouton à côté d'Enregistrer la réponse.
 
 ## Enregistrer une réponse, de bout en bout
 

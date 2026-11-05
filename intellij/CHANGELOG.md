@@ -2,6 +2,26 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.17.4 - 2026-11-05
+
+Built on archvow 1.20 (contract unchanged). IntelliJ only (VS Code unchanged but for the version).
+
+- **The Components tree as VS Code's**: a component's name in the text colour and its type muted; a thin bar in
+  the status colour on its left (orange: something to do, green: done); its count in a grey pill or a green ✓
+  at the right edge; a ⊕ at the right of each layer (a click opens its Add menu, as the right-click does);
+  "No component yet" in italics. Before, the whole row was orange or green with "(2)" or "✓" after the type
+  (`ArchvowComponentTree`, `ComponentTreeRegression`).
+
+## 0.17.3 - 2026-11-05
+
+Built on archvow 1.20 (contract unchanged). IntelliJ only (VS Code unchanged but for the version).
+
+- **A command form's head as in VS Code**: the title, then one muted line - the command as a chip
+  (`archvow component add`) and what it does - then, only when fields were prefilled, the note saying so. The
+  scrolled monospaced box of before clipped its lines and ran under the title.
+- **✦ AI spec ▾**: the component's AI button says what it works on (it was ✦ AI ▾ / ✦ IA ▾).
+- **+ Add ▾ without the ⊕ pictogram**: its own "+" says it (`ArchvowUiIcons.NO_ICON` keeps a button bare).
+
 ## 0.17.2 - 2026-11-05
 
 Built on archvow 1.20 (contract unchanged). Both IDEs.
