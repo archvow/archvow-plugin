@@ -59,7 +59,7 @@ public final class ListFilterRegression {
         for (String gone : List.of("\"Clarify\", \"Clarifier\"", "\"+ Component\", \"+ Composant\"", "\"AI skills ▾\"", "originFilterButtons", "saveMore",
             "headAndSuggestion.add(suggestStrip"))
             if (panel.contains(gone)) throw new AssertionError("still in the panel: " + gone);
-        for (String there : List.of("\"+ Add ▾\", \"+ Ajouter ▾\"", "\"✦ AI spec ▾\"", "Copier la fiche pour une autre IA",
+        for (String there : List.of("\"+ Add ▾\", \"+ Ajouter ▾\"", "\"✦ AI spec ▾\", \"✦ Spec IA ▾\"", "Copier la fiche pour une autre IA",
             "Enregistrer comme proposition", "nextOpenAfter", "ArchvowMenu.create", "answerButtons(List.of(proposeInline)"))
             if (!panel.contains(there)) throw new AssertionError("missing in the panel: " + there);
         // 0.17.2: the user's order - AI (the filled one), Add, Edit spec, Open code

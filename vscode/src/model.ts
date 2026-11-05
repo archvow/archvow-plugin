@@ -239,6 +239,12 @@ export function parseVersion(output: string): number[] | null {
   return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
 }
 
+/** `archvow show <id> --json` as that component's view, or null: a name that is no longer a component (removed,
+ *  renamed) is searched instead, and the search result (no `component`) is not a view. */
+export function componentView(view: Record<string, unknown> | null, id: string): Record<string, unknown> | null {
+  return view !== null && id !== '' && view.component === id ? view : null;
+}
+
 /** "1.14" from the contract's version.txt ("archvow 1.14.0"). */
 export function knownVersion(versionTxt: string): string {
   const v = parseVersion(versionTxt);

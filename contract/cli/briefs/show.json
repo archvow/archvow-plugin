@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "invoicing",
-      "template": "python-app@1.20.0",
+      "template": "python-app@1.21.0",
       "package": "invoicing",
       "path": "src/invoicing",
       "components": [
@@ -312,7 +312,21 @@
               "on": "2026-10-21T16:20:54.764143+00:00"
             }
           ],
-          "assumptions": []
+          "assumptions": [],
+          "examples": [
+            {
+              "name": "US-001-pay-a-sent-invoice",
+              "ticket": "US-001",
+              "source": {
+                "file": "briefs/invoices.md",
+                "section": "paying-a-sent-invoice",
+                "hash": "9652dc816ffb"
+              },
+              "fingerprint": "d1fe7f61cfa6",
+              "by": "architect@example.com",
+              "on": "2026-11-05T12:00:00+00:00"
+            }
+          ]
         }
       ]
     }

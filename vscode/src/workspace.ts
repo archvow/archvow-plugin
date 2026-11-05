@@ -21,7 +21,7 @@ import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard
 import { addableByLayer, filePlan } from './filePlan';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
-import { knownVersion, parseVersion, problemsOf, versionWarning } from './model';
+import { componentView, knownVersion, parseVersion, problemsOf, versionWarning } from './model';
 import { moduleFiles } from './vow/links';
 import { architectureRows, buildWork, Json, objects, str, Work } from './workItems';
 import { componentTypes, derive, Derived, readiness, Readiness, ruleExplanation } from './projectState';
@@ -267,7 +267,7 @@ export class ArchvowProject {
       const ids = objects(spec, 'containers').flatMap((c) => objects(c, 'components').map((x) => str(x, 'id')));
       const snapshots: Record<string, Json> = {};
       for (let i = 0; i < ids.length; i++) {
-        const view = parse((await this.cli.run(['show', ids[i], '--json'])).stdout);
+        const view = componentView(parse((await this.cli.run(['show', ids[i], '--json'])).stdout), ids[i]);
         if (view !== null) snapshots[ids[i]] = view;
         if (i % 5 === 4) {
           this.state.snapshots = { ...this.state.snapshots, ...snapshots };
@@ -447,7 +447,7 @@ export class ArchvowProject {
 
   /** One component again (after a change), without reading the whole project. */
   async reloadComponent(id: string, first = true): Promise<void> {
-    const view = parse((await this.cli.run(['show', id, '--json'], undefined, first)).stdout);
+    const view = componentView(parse((await this.cli.run(['show', id, '--json'], undefined, first)).stdout), id);
     if (view !== null) {
       this.state.snapshots = { ...this.state.snapshots, [id]: view };
       delete this.state.vows[id];
@@ -533,6 +533,43 @@ export class ArchvowProject {
     }
     const hint = view === null ? (result.startError ?? result.stderr).trim() : str(view, 'hint');
     void vscode.window.showInformationMessage(hint || tr(this.state.fr, 'No component owns this file.', "Aucun composant ne possède ce fichier."));
+  }
+
+  /** archvow show <name> --json (0.18.0): where a name is in the project, and the problems naming it, shown in
+   *  the editor tab; a component's name opens the component, as archvow does. Each hit gets the lines around it
+   *  (read here, so the page shows them without asking again). */
+  async search(name: string): Promise<void> {
+    const wanted = name.trim();
+    if (!wanted) return;
+    const result = await this.cli.run(['show', wanted, '--json']);
+    const view = parse(result.stdout);
+    if (view === null) {
+      void vscode.window.showWarningMessage((result.startError ?? result.stderr).trim() || tr(this.state.fr, 'archvow found nothing to show.', "archvow n'a rien trouvé à montrer."));
+      return;
+    }
+    if (str(view, 'component') && !Array.isArray(view.groups)) {
+      this.show(str(view, 'component'));
+      return;
+    }
+    for (const group of Array.isArray(view.groups) ? view.groups as Json[] : []) {
+      for (const hit of Array.isArray(group.hits) ? group.hits as Json[] : []) {
+        hit.around = this.around(str(hit, 'file'), Number(hit.line) || 0);
+      }
+    }
+    this.toEditor({ type: 'search', name: wanted, result: view });
+  }
+
+  /** Two lines before a hit, the hit, two after: [{n, text}] (none for a folder, a missing file or line 0). */
+  private around(relative: string, line: number): Json[] {
+    if (!relative || line <= 0) return [];
+    const file = path.resolve(this.root, relative);
+    if (!file.startsWith(this.root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return [];
+    const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+    const from = Math.max(1, line - 2);
+    const to = Math.min(lines.length, line + 2);
+    const out: Json[] = [];
+    for (let n = from; n <= to; n++) out.push({ n, text: lines[n - 1] ?? '' });
+    return out;
   }
 
   /** The editor tab, opened if it is closed; revealed without taking the focus from the sidebar. */
@@ -726,6 +763,8 @@ export class ArchvowProject {
         return this.openRule(String(m.code));
       case 'openFile':
         return this.openProjectFile(String(m.file), Number(m.line) || 0);
+      case 'search':
+        return this.search(String(m.name ?? ''));
       case 'openBrief': {
         const where = locate(this.state.briefs, String(m.ref ?? ''));
         return this.openProjectFile(where.file, where.line);

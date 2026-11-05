@@ -18,7 +18,7 @@ import * as path from 'node:path';
 import { test } from 'node:test';
 import { ArchvowCli, CliSettings } from '../cli';
 import { Command, DESTRUCTIVE, findCommand, isMutating, READ_ONLY } from '../grammar';
-import { buildTree, CheckResult, knownVersion, NextRow, parseVersion, problemsOf, Spec, versionWarning } from '../model';
+import { buildTree, CheckResult, componentView, knownVersion, NextRow, parseVersion, problemsOf, Spec, versionWarning } from '../model';
 import { derive } from '../projectState';
 
 const CONTRACT = path.resolve(__dirname, '..', '..', '..', 'contract');
@@ -184,5 +184,10 @@ test('live: an archvow error is a sentence, never a traceback, and the JSON read
   const result = await cli.run(['show', 'no_such_component', '--json']);
   assert.notEqual(result.exitCode, 0);
   assert.doesNotMatch(result.stderr + result.stdout, /Traceback/);
-  await assert.rejects(cli.json(['show', 'no_such_component', '--json']), /no_such_component|not|unknown/i);
+  // a name that is not a component is searched: its result (found nowhere, close names) is never a component's view
+  const { data } = await cli.json<Record<string, unknown>>(['show', 'no_such_component', '--json']);
+  assert.equal(data.total, 0);
+  assert.equal(componentView(data, 'no_such_component'), null);
+  assert.equal(componentView((await cli.json<Record<string, unknown>>(['show', 'mark_paid', '--json'])).data, 'mark_paid')?.component, 'mark_paid');
+  await assert.rejects(cli.json(['show', '--no-such-option']), /failed \(exit 2\)/);
 });

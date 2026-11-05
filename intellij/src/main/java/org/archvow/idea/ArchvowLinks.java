@@ -54,17 +54,20 @@ final class ArchvowLinks {
         for (JsonElement e : view.getAsJsonArray("examples")) {
             if (e == null || !e.isJsonObject()) continue;
             JsonObject example = e.getAsJsonObject();
-            boolean tested = flag(example, "tested", false);
+            // archvow 1.21: the test's own verdict (result) - the test decides, archvow shows
+            ArchvowExamples.State state = ArchvowExamples.state(example, french);
             boolean unchanged = flag(example, "unchanged", true);
             String why = !unchanged ? (french ? "fichiers modifiés depuis leur enregistrement (ARCH055)" : "files changed since recorded (ARCH055)")
-                : tested ? (french ? "testé" : "tested")
-                : (french ? "pas encore de test marqué (ARCH056)" : "no marked test yet (ARCH056)");
+                : state.text();
             String ticket = text(example, "ticket");
-            rows.add("<li><b>" + ((tested && unchanged) ? "✓ " : "✖ ") + escape(text(example, "name")) + "</b>"
+            rows.add("<li><b>" + (unchanged ? state.mark() : "✖") + " " + escape(text(example, "name")) + "</b>"
                 + (ticket.isBlank() ? "" : " (" + escape(ticket) + ")") + " - " + escape(text(example, "folder")) + "/ · "
                 + escape(text(example, "level")) + " · " + escape(why) + "</li>");
         }
-        return rows.isEmpty() ? "" : "<p><b>" + (french ? "Exemples métier" : "Business examples") + "</b></p><ul>"
+        int failing = ArchvowExamples.counts(view)[2];
+        String badge = failing == 0 ? "" : " <span style='color:#cf222e'>" + escape(french
+            ? failing + " exemple" + (failing == 1 ? "" : "s") + " en échec" : failing + " example" + (failing == 1 ? "" : "s") + " failing") + "</span>";
+        return rows.isEmpty() ? "" : "<p><b>" + (french ? "Exemples métier" : "Business examples") + "</b>" + badge + "</p><ul>"
             + String.join("", rows) + "</ul>";
     }
 

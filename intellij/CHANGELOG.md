@@ -2,6 +2,26 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.18.0 - 2026-11-05
+
+Built on archvow 1.21 (contract regenerated from the 1.21.0 wheel). The same as VS Code 0.18.0.
+
+- **The Examples view** (`ArchvowExamplesView`, `ArchvowExamples`), shown right after Rules
+  (`ArchvowCompactViews.addView(button, position)`): the examples as cards with their test's verdict, the
+  selected one's state, rule, brief, scenario and output files expected/ | actual/ side by side; Open test,
+  Copy command; the head says how many fail; the progress bar counts the passing ones. The states are VS Code's
+  (`contract/forms/examples.expected.json`, `ExamplesAndSearchRegression`).
+- **Find in the project**: a field under the tool window's header, and **Find in Archvow Project** in the editor
+  menu (`FindNameArchvowAction`): `archvow show <name> --json` in the editor tab (`ArchvowSearchView`,
+  `ArchvowSearch`) - groups, places, the lines around the selected one, Open at line N, Show <component>, Rule;
+  close names as buttons.
+- **Initialize Archvow…** on the Welcome screen (`ArchvowInitFromWelcomeAction`): open any folder, then the `init`
+  form starts there; the form's Files list covers `init` too.
+- The Git base choices say local branch, remote branch (fetched) or tag (`ArchvowChoices`).
+- The AI button says **✦ Spec IA ▾** in French (user decision of 0.17.5, not in the 0.17.4 bundle).
+- Fixed for archvow 1.21: `show <name> --json` on a name that is no longer a component gives a search result; it
+  is no longer stored as that component's view (`ArchvowGrammar.componentView`), and the tab says the component is gone.
+
 ## 0.17.4 - 2026-11-05
 
 Built on archvow 1.20 (contract unchanged). IntelliJ only (VS Code unchanged but for the version).

@@ -585,7 +585,7 @@
           "multiToken": false,
           "optionalValue": true,
           "choices": [],
-          "help": "one component, a rule R1, or a file (file.py or file.py:<line>)",
+          "help": "one component, a rule R1, a file (file.py or file.py:<line>), or any other name to find in the project",
           "hidden": false,
           "metavar": "component"
         },
@@ -2096,6 +2096,21 @@
           "help": "the ticket it comes from (e.g. the Jira story)",
           "hidden": false,
           "metavar": "TICKET"
+        },
+        {
+          "name": "source",
+          "flags": [
+            "--from"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the brief it is drawn from: briefs/<file>.md, or briefs/<file>.md#<section> (a heading); a link only (a person copies the rows into the files); archvow check warns when that text changes (ARCH039)",
+          "hidden": false,
+          "metavar": "BRIEF"
         }
       ]
     },

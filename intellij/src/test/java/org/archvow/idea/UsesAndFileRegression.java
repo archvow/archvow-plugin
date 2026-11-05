@@ -38,6 +38,7 @@ public final class UsesAndFileRegression {
         ok.addProperty("level", "unit");
         ok.addProperty("tested", true);
         ok.addProperty("unchanged", true);
+        ok.addProperty("result", "passing");
         JsonObject changed = ok.deepCopy();
         changed.addProperty("name", "SALES-7-late");
         changed.addProperty("unchanged", false);
@@ -45,8 +46,8 @@ public final class UsesAndFileRegression {
         examples.add(changed);
         withExamples.add("examples", examples);
         String shown = ArchvowLinks.examplesHtml(withExamples, false);
-        check(shown.contains("✓ SALES-5-negative</b> (SALES-5) - tests/examples/clean_orders/SALES-5-negative/ · unit · tested"),
-            "tested example: " + shown);
+        check(shown.contains("✔ SALES-5-negative</b> (SALES-5) - tests/examples/clean_orders/SALES-5-negative/ · unit · passing"),
+            "passing example: " + shown);
         check(shown.contains("✖ SALES-7-late</b>") && shown.contains("files changed since recorded (ARCH055)"), "changed files");
         check(ArchvowLinks.examplesHtml(withExamples, true).contains("Exemples métier"), "French title");
         check(ArchvowLinks.examplesHtml(new JsonObject(), false).isEmpty(), "no examples: nothing");

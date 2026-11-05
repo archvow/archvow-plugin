@@ -2,7 +2,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "1.20.0",
+      "version": "1.21.0",
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
@@ -518,7 +518,7 @@
     },
     {
       "name": "pyspark-pipeline",
-      "version": "1.20.0",
+      "version": "1.21.0",
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -1054,7 +1054,7 @@
     },
     {
       "name": "python-app",
-      "version": "1.20.0",
+      "version": "1.21.0",
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",

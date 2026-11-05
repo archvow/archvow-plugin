@@ -1569,7 +1569,12 @@
        "invoice_not_found_error": [],
        "invoices_repository": [],
        "mark_paid": [],
-       "invoices_cli": []
+       "invoices_cli": [
+        {
+         "value": "US-001-pay-a-sent-invoice",
+         "label": "US-001-pay-a-sent-invoice"
+        }
+       ]
       },
       "empty": "No business example on this component."
      }
@@ -3412,7 +3417,12 @@
        "invoice_not_found_error": [],
        "invoices_repository": [],
        "mark_paid": [],
-       "invoices_cli": []
+       "invoices_cli": [
+        {
+         "value": "US-001-pay-a-sent-invoice",
+         "label": "US-001-pay-a-sent-invoice"
+        }
+       ]
       },
       "empty": "Aucun exemple métier sur ce composant."
      }
@@ -5972,7 +5982,12 @@
        "create_order": [],
        "get_order": [],
        "main": [],
-       "orders_router": []
+       "orders_router": [
+        {
+         "value": "US-001-another-customers-order",
+         "label": "US-001-another-customers-order"
+        }
+       ]
       },
       "empty": "No business example on this component."
      }
@@ -6040,11 +6055,11 @@
        "orders_router": [
         {
          "value": "T1",
-         "label": "T1 — the file and its public API, decisions 1-5, orders_router.INV1 (done)"
+         "label": "T1 — the file and its public API, decisions 1-5, example US-001-another-customers-order (done)"
         },
         {
          "value": "T2",
-         "label": "T2 — decisions P1, P2 (done)"
+         "label": "T2 — decisions P1, P2, orders_router.INV1 (done)"
         }
        ]
       },
@@ -8538,7 +8553,12 @@
        "create_order": [],
        "get_order": [],
        "main": [],
-       "orders_router": []
+       "orders_router": [
+        {
+         "value": "US-001-another-customers-order",
+         "label": "US-001-another-customers-order"
+        }
+       ]
       },
       "empty": "Aucun exemple métier sur ce composant."
      }
@@ -8606,11 +8626,11 @@
        "orders_router": [
         {
          "value": "T1",
-         "label": "T1 — the file and its public API, decisions 1-5, orders_router.INV1 (fait)"
+         "label": "T1 — the file and its public API, decisions 1-5, example US-001-another-customers-order (fait)"
         },
         {
          "value": "T2",
-         "label": "T2 — decisions P1, P2 (fait)"
+         "label": "T2 — decisions P1, P2, orders_router.INV1 (fait)"
         }
        ]
       },
@@ -11116,8 +11136,22 @@
        "config": [],
        "logging_setup": [],
        "spark": [],
-       "clean_orders": [],
-       "compute_vat": [],
+       "clean_orders": [
+        {
+         "value": "US-002-negative-amount",
+         "label": "US-002-negative-amount"
+        },
+        {
+         "value": "US-002-zero-amount-kept",
+         "label": "US-002-zero-amount-kept"
+        }
+       ],
+       "compute_vat": [
+        {
+         "value": "US-002-vat-20",
+         "label": "US-002-vat-20"
+        }
+       ],
        "orders_schema": [],
        "orders_reader": [],
        "vat_writer": [],
@@ -11188,7 +11222,11 @@
         },
         {
          "value": "T2",
-         "label": "T2 — decisions 5-9, clean_orders.INV1"
+         "label": "T2 — decisions 5-9"
+        },
+        {
+         "value": "T3",
+         "label": "T3 — examples US-002-negative-amount, US-002-zero-amount-kept, clean_orders.INV1"
         }
        ],
        "compute_vat": [
@@ -11202,7 +11240,7 @@
         },
         {
          "value": "T3",
-         "label": "T3 — compute_vat.INV1"
+         "label": "T3 — example US-002-vat-20, compute_vat.INV1"
         }
        ],
        "orders_schema": [],
@@ -13713,8 +13751,22 @@
        "config": [],
        "logging_setup": [],
        "spark": [],
-       "clean_orders": [],
-       "compute_vat": [],
+       "clean_orders": [
+        {
+         "value": "US-002-negative-amount",
+         "label": "US-002-negative-amount"
+        },
+        {
+         "value": "US-002-zero-amount-kept",
+         "label": "US-002-zero-amount-kept"
+        }
+       ],
+       "compute_vat": [
+        {
+         "value": "US-002-vat-20",
+         "label": "US-002-vat-20"
+        }
+       ],
        "orders_schema": [],
        "orders_reader": [],
        "vat_writer": [],
@@ -13785,7 +13837,11 @@
         },
         {
          "value": "T2",
-         "label": "T2 — decisions 5-9, clean_orders.INV1"
+         "label": "T2 — decisions 5-9"
+        },
+        {
+         "value": "T3",
+         "label": "T3 — examples US-002-negative-amount, US-002-zero-amount-kept, clean_orders.INV1"
         }
        ],
        "compute_vat": [
@@ -13799,7 +13855,7 @@
         },
         {
          "value": "T3",
-         "label": "T3 — compute_vat.INV1"
+         "label": "T3 — example US-002-vat-20, compute_vat.INV1"
         }
        ],
        "orders_schema": [],

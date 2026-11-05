@@ -70,6 +70,20 @@ et ouvre le formulaire avec le type choisi. Sous Tous, les couches vides du mod�
 encore de composant ») : le premier job ou point d'entrée a sa place. Un bouton dans l'arbre plutôt qu'une
 commande de plus : l'ajout se fait là où l'on regarde l'architecture, au bon niveau.
 
+## Chercher un nom (0.18.0)
+
+Le champ **Chercher** au-dessus des onglets (`findBox()` dans VS Code, `ArchvowPanel.withFindField` dans IntelliJ),
+ou **Find in Archvow Project** dans le menu de l'éditeur (le mot sous le curseur : la commande `archvow.findName`,
+`FindNameArchvowAction`), lance `archvow show <nom> --json`. Un composant ouvre le composant ; sinon le panneau de
+recherche montre où archvow trouve le nom : la spec, le code, les tests, les exemples, les briefs, le modèle, les
+problèmes. À gauche les groupes avec leur nombre, au milieu les endroits, à droite les lignes autour de l'endroit
+choisi (`around()` côté hôte) ; un double-clic ouvre le fichier à la ligne. Un nom introuvable propose les noms
+proches d'archvow, chacun un bouton qui relance la recherche.
+
+IntelliJ : `ArchvowSearch` (les groupes, les endroits, le titre ; sans API d'IDE) et `ArchvowSearchView` (le
+panneau), affiché par `ArchvowEditorTab.showSearch` ; VS Code : `searchView()`, `searchHits()`, et
+`ArchvowProject.search` dans `src/workspace.ts`.
+
 ## Retour
 
 Une commande ouverte **depuis un composant** (Modifier la spec, + Question, + Rule, Accepter...)

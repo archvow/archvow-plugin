@@ -40,7 +40,8 @@ what it protects:
 | `ListFilterRegression` | the line under the views (`ArchvowListFilter`), a done view says where the work is, the next open item after a save, the links, the four quiet actions |
 | `GuidanceRegression` | every diagnostic says what to do (`ArchvowGuidance`): each documented code, and on each real message exactly the guidance of VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Install archvow: the Python chosen, the pip line per source, WSL, pip only from a confirmation |
-| `ProgressRegression` | the progress bar on the recorded `clean_orders` (9/9, 1/5, 0/2) |
+| `ProgressRegression` | the progress bar on the recorded `clean_orders` (9/9, 1/5, 0/3, 0/2) |
+| `ExamplesAndSearchRegression` | the Examples view (the states as VS Code, groups by rule, the detail and its differences, Copy command) and the search (groups, lines around, close names), Examples after Rules |
 | `BriefsRegression` | the brief folders, archvow's slugs, the `--from` choices, Drawn from, Add this folder, ARCH039 |
 
 A new regression is added in `WorkspaceTests.main` (one `run(...)` line): a class not listed there does
@@ -78,6 +79,7 @@ tested, the page is read as text.
 | `guidance.test.ts` | every diagnostic says what it means, what to do, who does it, whether it blocks and what then (`guidance.ts`): all the codes of `rules.md` and `rules.fr.md`, all the real messages of `contract/cli/messages.json`; the command a message names becomes a form that runs as it is or leaves only the person's part empty; writes `contract/guidance/expected.json` with `UPDATE_GUIDANCE=1` |
 | `briefs.test.ts` | the brief folders, archvow's slugs, the `--from` choices, Drawn from, the refusal -> init form, ARCH039 (on `contract/cli/briefs`) |
 | `filePlan.test.ts` | the Files block (`filePlan()`): component add with a group, a signature, an existing file, an unknown type; removals, rules and the cards they reach; Save to a file (`withPluginParameters()`, `previewWithOutput()`); the types per layer; an icon for every type, group and command; writes `contract/forms/file-plans.expected.json` with `UPDATE_FILE_PLANS=1` |
+| `examples.test.ts` | the Examples view and the search on what archvow prints (`contract/cli/python-app/examples`, `search/`): the state from the test, the button, cards by rule, files side by side, the Find field and the editor command; writes `contract/forms/examples.expected.json` with `UPDATE_EXAMPLES=1` |
 | `wiki.test.ts` | the wiki follows the code (below) |
 | `release.test.ts` | before a release, nothing built: one version (`package.json`, `gradle.properties`, README, both changelogs), one archvow (`contract/cli/version.txt`, the pip requirement, the README), both builds package the same contract files, the command lists (`DESTRUCTIVE`, `READ_ONLY`, `LONG_TEXT`) identical in `grammar.ts` and `ArchvowPanel` and made of archvow's commands, every command that asks for confirmation gets `--yes`, `package.json` and `plugin.xml` name only commands, settings, classes and files that exist |
 | `live.test.ts` | a real archvow, run through `ArchvowCli`: its version is the contract's, `catalog --json` is the recorded one, on archvow's three examples with their code every output is **exactly** the contract, read-only commands change no vow, `question add` then `question remove --yes` round-trip, an error is a sentence. Skipped without `ARCHVOW_PYTHON` (or `ARCHVOW_EXECUTABLE`) and `ARCHVOW_SOURCE`; `ARCHVOW_LIVE=required` makes the skip a failure |

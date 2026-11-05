@@ -68,6 +68,20 @@ types of that layer (`addableByLayer()`, `ArchvowFilePlan`) and opens the form w
 the template's empty layers show too ("No component yet"): the first job or entry point has a place to go. A
 button in the tree rather than one more command: adding happens where the architecture is read, at its level.
 
+## Finding a name (0.18.0)
+
+The **Find** field above the tabs (`findBox()` in VS Code, `ArchvowPanel.withFindField` in IntelliJ), or **Find in
+Archvow Project** in the editor menu (the word under the caret: the `archvow.findName` command,
+`FindNameArchvowAction`), runs `archvow show <name> --json`. A component opens the component; otherwise the search
+panel shows where archvow finds the name: the spec, the code, the tests, the examples, the briefs, the template,
+the problems. On the left the groups with their counts, in the middle the places, on the right the lines around
+the chosen place (`around()` on the host side); a double-click opens the file at the line. A name found nowhere
+offers archvow's close names, each a button that searches again.
+
+IntelliJ: `ArchvowSearch` (the groups, the places, the heading; no IDE API) and `ArchvowSearchView` (the panel),
+shown by `ArchvowEditorTab.showSearch`; VS Code: `searchView()`, `searchHits()`, and `ArchvowProject.search` in
+`src/workspace.ts`.
+
 ## Back
 
 A command opened **from a component** (Edit spec, + Question, + Rule, Accept...) shows

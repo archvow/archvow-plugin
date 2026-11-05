@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "orders_api",
-      "template": "fastapi-service@1.20.0",
+      "template": "fastapi-service@1.21.0",
       "package": "orders_api",
       "path": "src/orders_api",
       "components": [
@@ -478,7 +478,22 @@
               "by": "architect@example.com",
               "on": "2026-10-12T00:46:56.107070+00:00"
             }
-          }
+          },
+          "examples": [
+            {
+              "name": "US-001-another-customers-order",
+              "ticket": "US-001",
+              "rule": "orders_router.INV1",
+              "source": {
+                "file": "briefs/orders.md",
+                "section": "reading-an-order",
+                "hash": "a70f6aed477a"
+              },
+              "fingerprint": "6c402b9415ce",
+              "by": "architect@example.com",
+              "on": "2026-11-05T12:00:00+00:00"
+            }
+          ]
         }
       ]
     }

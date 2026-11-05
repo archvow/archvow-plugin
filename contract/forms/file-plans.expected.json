@@ -898,7 +898,7 @@
     {
      "change": "kept",
      "path": "tests/examples/compute_vat/vat-20/",
-     "note": "input/, expected/ and scenario.feature, yours"
+     "note": "input/, expected/ and scenario.feature, yours; actual/ is written by its test"
     }
    ]
   },
@@ -924,7 +924,7 @@
     {
      "change": "kept",
      "path": "tests/examples/compute_vat/vat-20/",
-     "note": "input/, expected/ et scenario.feature, les vôtres"
+     "note": "input/, expected/ et scenario.feature, les vôtres ; actual/ est écrit par son test"
     }
    ]
   },

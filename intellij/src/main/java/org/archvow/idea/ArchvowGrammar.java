@@ -129,6 +129,13 @@ final class ArchvowGrammar {
         if (arr != null) for (JsonElement el : arr) if (el.isJsonObject()) out.add(el.getAsJsonObject());
         return out;
     }
+    /** {@code archvow show <id> --json} as that component's view, or null: since archvow 1.21 a name that is no longer
+     *  a component (removed, renamed) is searched instead, and the search result (no {@code component}) is not a view. */
+    static JsonObject componentView(String output, String id) {
+        JsonObject view = parseObject(output);
+        return view != null && id != null && id.equals(str(view, "component")) ? view : null;
+    }
+
     static JsonObject parseObject(String output) {
         try {
             JsonElement root = JsonParser.parseString(output);

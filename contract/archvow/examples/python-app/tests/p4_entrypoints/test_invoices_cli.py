@@ -1,5 +1,7 @@
 """Tests of invoices_cli."""
 
+import json
+import shutil
 from decimal import Decimal
 from pathlib import Path
 
@@ -8,6 +10,8 @@ import pytest
 from invoicing.p1_domain.invoice_model import Invoice
 from invoicing.p2_io.invoices_repository import InvoicesRepository
 from invoicing.p4_entrypoints.invoices_cli import main
+
+EXAMPLE = Path(__file__).parents[1] / "examples/invoices_cli/US-001-pay-a-sent-invoice"
 
 
 @pytest.mark.decision(1)
@@ -33,3 +37,23 @@ def test_the_invoice_on_stdout_errors_on_stderr(
     assert capsys.readouterr().out == "F-1 Ada 12.50 paid\n"
     main(["--data-dir", str(tmp_path), "pay", "F-404"])
     assert capsys.readouterr().err == "Invoice not found: F-404\n"
+
+
+@pytest.mark.example("US-001-pay-a-sent-invoice")
+def test_example_pay_a_sent_invoice(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    data = tmp_path / "invoices"
+    shutil.copytree(EXAMPLE / "input/invoices", data)
+    assert main(["--data-dir", str(data), "pay", "F-7"]) == 0
+    printed = capsys.readouterr().out
+    actual = EXAMPLE / "actual"  # what it gave, for archvow show (not committed)
+    (actual / "invoices").mkdir(parents=True, exist_ok=True)
+    (actual / "stdout.txt").write_text(printed, encoding="utf-8", newline="")
+    shutil.copy(data / "F-7.json", actual / "invoices/F-7.json")
+    expected = EXAMPLE / "expected"
+    assert printed == (expected / "stdout.txt").read_text(encoding="utf-8")
+    saved = json.loads((data / "F-7.json").read_text(encoding="utf-8"))
+    assert saved == json.loads(
+        (expected / "invoices/F-7.json").read_text(encoding="utf-8")
+    )

@@ -10,7 +10,7 @@ Orders
 
 ```mermaid
 flowchart TB
-  subgraph orders_api["orders_api (fastapi-service@1.20.0)"]
+  subgraph orders_api["orders_api (fastapi-service@1.21.0)"]
     direction TB
     subgraph orders_api__p0_common["p0_common"]
       orders_api__get_current_user["get_current_user<br/><small>dependency - US-001</small>"]
@@ -130,6 +130,14 @@ Every column the spec classifies as personal or special (GDPR art. 9), and the c
 | orders_repository | P2 Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? | The service's own memory, in the EU |
 | orders_router | P1 Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team? | Take and show the orders of each customer, for that customer only |
 | orders_router | P2 Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing? | Contract: the customer's orders (terms of sale) |
+
+## Briefs - orders_api
+
+Where the spec comes from: each component, question and rule drawn from a brief (`--from`). `archvow check` warns when a section changes (ARCH039); after review, `archvow brief accept <brief>` records its new text.
+
+| Brief | Drawn from it | Text recorded |
+|---|---|---|
+| `briefs/orders.md#reading-an-order` | orders_router example US-001-another-customers-order | `a70f6aed477a` |
 
 ## Checks
 

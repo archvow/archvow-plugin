@@ -15,10 +15,13 @@
   /** What the person chose on the page. */
   const ui = {
     tab: 'overview', overSub: 'architecture', forceWorkspace: false,
-    /** The editor tab: 'empty', 'component', 'checks', 'project', 'command' or 'result'. */
+    /** The editor tab: 'empty', 'component', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
-    sel: { decision: '', question: '', safety: '', assumption: '', data: '', other: -1 },
+    sel: { decision: '', question: '', safety: '', assumption: '', data: '', example: '', other: -1 },
+    /** 0.18.0: the output file shown per example (Examples view); the search (show <name> --json), its
+     *  group filter and selected hit, and the text typed in the sidebar's find field. */
+    exampleFile: {}, search: null, searchName: '', searchGroup: '', searchSel: 0, findText: '',
     otherList: 0, drafts: {}, severity: {}, changing: {}, suggested: {}, results: {}, raw: {}, confirm: null,
     /** The Spec view: the card (spec.md) or the vow (spec.vow), and the cards read. */
     specPart: 'card', cards: {},
@@ -195,6 +198,12 @@
       case 'commandDocs':
         ui.forceWorkspace = true; ui.mode = 'commandDocs'; ui.back = null;
         break;
+      case 'search':
+        // archvow show <name> --json (0.18.0): where a name is, and the problems naming it
+        if (NAV) return;
+        ui.forceWorkspace = true; ui.mode = 'search'; ui.back = null;
+        ui.search = m.result || null; ui.searchName = m.name || ''; ui.searchGroup = ''; ui.searchSel = 0;
+        break;
       case 'openCommand':
         ui.forceWorkspace = true;
         ui.back = ui.backArmed;
@@ -306,6 +315,7 @@
     if (ui.mode === 'command') return 'archvow: ' + ui.command;
     if (ui.mode === 'skill') return 'archvow: ' + skillLabel(ui.skill);
     if (ui.mode === 'result') return 'archvow: ' + (ui.resultLabel || t('Result', 'Résultat'));
+    if (ui.mode === 'search') return 'archvow: ' + t('find ', 'chercher ') + ui.searchName;
     return 'archvow';
   }
 
@@ -323,11 +333,13 @@
       : ui.mode === 'checks' ? t('Check & Gates', 'Contrôles et validations')
         : ui.mode === 'commandDocs' ? t('Command reference', 'Docs des commandes')
         : ui.mode === 'project' ? t('Project items', 'Éléments du projet')
-        : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'skill' ? skillLabel(ui.skill) : ui.mode === 'result' ? ui.resultLabel : '';
+        : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'skill' ? skillLabel(ui.skill) : ui.mode === 'result' ? ui.resultLabel
+          : ui.mode === 'search' ? ui.searchName : '';
     const kind = ui.mode === 'component' ? t('Component', 'Composant') : ui.mode === 'command' ? t('Command', 'Commande')
       : ui.mode === 'skill' ? t('AI skill', 'Skill IA')
       : ui.mode === 'commandDocs' ? t('Reference', 'Référence')
-      : ui.mode === 'checks' ? t('Checks', 'Contrôles') : ui.mode === 'project' ? t('Project', 'Projet') : ui.mode === 'result' ? t('Result', 'Résultat') : '';
+      : ui.mode === 'checks' ? t('Checks', 'Contrôles') : ui.mode === 'project' ? t('Project', 'Projet') : ui.mode === 'result' ? t('Result', 'Résultat')
+        : ui.mode === 'search' ? t('Find', 'Recherche') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
     const named = ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot();
     const back = ui.back && ui.mode !== 'component' ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.component)}">← ${esc(ui.back.component)}</button>` : '';
@@ -349,6 +361,7 @@
       return `<section class="detail-only">${command ? commandForm(command) : `<p class="muted">${esc(t('Select a command in the Archvow sidebar.', 'Sélectionne une commande dans le panneau Archvow.'))}</p>`}</section>`;
     }
     if (ui.mode === 'skill') return `<section class="detail-only">${skillForm()}</section>`;
+    if (ui.mode === 'search') return `<section class="detail-only">${searchView(ui.search)}</section>`;
     if (ui.mode === 'result') {
       const body = confirmation('overview') + resultCard('overview');
       return `<section class="detail-only">${body || `<p class="muted">${esc(t('No result. Run a command from Overview in the Archvow sidebar.', "Aucun résultat. Lance une commande depuis la Vue d'ensemble du panneau Archvow."))}</p>`}</section>`;
@@ -396,8 +409,65 @@
   function tabs() {
     const names = [['overview', t('Overview', "Vue d'ensemble")], ['components', t('Components', 'Composants')], ['commands', t('Commands', 'Commandes')]];
     const body = ui.tab === 'components' ? `<section class="browser-only">${componentBrowser()}</section>` : ui.tab === 'commands' ? commandsTab() : overviewTab();
-    return `<nav class="tabs main">${names.map(([id, l]) => `<button class="tab ${ui.tab === id ? 'current' : ''}" data-a="tab" data-tab="${id}">${esc(l)}</button>`).join('')}</nav>
+    return `${findBox()}<nav class="tabs main">${names.map(([id, l]) => `<button class="tab ${ui.tab === id ? 'current' : ''}" data-a="tab" data-tab="${id}">${esc(l)}</button>`).join('')}</nav>
 <main>${body}</main>`;
+  }
+
+  /** The sidebar's find field (0.18.0): a name - a function, a column, a ticket, an example - and Enter runs
+   *  archvow show <name> --json; the result opens in the editor tab. */
+  function findBox() {
+    return `<div class="find-box" role="search"><label class="muted small" for="find">${esc(t('Find in the project', 'Chercher dans le projet'))}</label>
+  <div class="row"><input id="find" class="grow mono" data-input="find" data-keep="find" value="${esc(ui.findText)}" placeholder="${esc(t('a name: function, column, ticket, example…', 'un nom : fonction, colonne, ticket, exemple…'))}">${btn(t('Find', 'Chercher'), 'find', '', false, 'secondary small')}</div></div>`;
+  }
+
+  const SEARCH_GROUPS = () => ({ spec: t('Spec', 'Spec'), code: t('Code', 'Code'), tests: t('Tests', 'Tests'), examples: t('Examples', 'Exemples'),
+    briefs: t('Briefs', 'Briefs'), template: t('Template', 'Template'), problems: t('Problems', 'Problèmes') });
+
+  /** Every hit of a search, in its groups' order, each with its group: the list the selection indexes. */
+  function searchHits(result, only) {
+    return list(result, 'groups').filter((g) => !only || str(g, 'group') === only)
+      .flatMap((g) => list(g, 'hits').map((h) => Object.assign({ group: str(g, 'group') }, h)));
+  }
+
+  /** archvow show <name> --json: groups left (with counts, a click filters), the places in the middle, the
+   *  selected one's lines right; a name found nowhere gives its close names. As IntelliJ's search panel. */
+  function searchView(result) {
+    if (!result) return `<p class="muted">${esc(t('Type a name in the find field of the Archvow sidebar.', 'Tape un nom dans le champ de recherche du panneau Archvow.'))}</p>`;
+    const name = str(result, 'name');
+    const total = Number(result.total) || 0;
+    if (!total) {
+      const close = list(result, 'close');
+      return `<div class="card search-empty"><h2 class="mono">${esc(name)}</h2>
+  <p class="tone-warn">${esc(t(`'${name}' is not a component, a file or an item, and is nowhere in the project.`, `'${name}' n'est ni un composant, ni un fichier, ni un élément, et n'est nulle part dans le projet.`))}</p>
+  ${close.length ? `<p class="muted">${esc(t('Close names - click one to search it:', 'Noms proches - clique pour le chercher :'))}</p><div class="row wrap">${close.map((c) => btn(`${str(c, 'name')} · ${str(c, 'what')}`, 'find', attrs({ id: str(c, 'name') }), false, 'secondary')).join('')}</div>` : ''}</div>`;
+    }
+    const groups = SEARCH_GROUPS();
+    const nav = [`<button class="search-group ${ui.searchGroup ? '' : 'on'}" data-a="searchGroup" data-id=""><span>${esc(t('All', 'Tout'))}</span><span class="n">${total}</span></button>`,
+      ...list(result, 'groups').map((g) => `<button class="search-group ${ui.searchGroup === str(g, 'group') ? 'on' : ''} ${str(g, 'group') === 'problems' ? 'tone-bad' : ''}" data-a="searchGroup" data-id="${esc(str(g, 'group'))}"><span>${esc(groups[str(g, 'group')] || str(g, 'title'))}</span><span class="n">${list(g, 'hits').length}</span></button>`)].join('');
+    const hits = searchHits(result, ui.searchGroup);
+    if (ui.searchSel >= hits.length) ui.searchSel = 0;
+    let shownGroup = '';
+    const rows = hits.map((h, i) => {
+      const heading = h.group !== shownGroup ? `<li class="search-heading ${h.group === 'problems' ? 'tone-bad' : ''}">${esc(groups[h.group] || h.group)}${h.group === 'spec' ? ` <span class="muted">${esc(t('(the vow - the spec card shows the same)', '(le vow - la fiche de spec montre la même chose)'))}</span>` : ''}</li>` : '';
+      shownGroup = h.group;
+      const where = str(h, 'file') + (Number(h.line) ? ':' + h.line : '');
+      const part = str(h, 'part') + (str(h, 'what') ? ` (${str(h, 'what')})` : '') + (str(h, 'marks') ? ` [${str(h, 'marks')}]` : '');
+      return `${heading}<li class="search-hit ${i === ui.searchSel ? 'selected' : ''}" data-a="searchHit" data-i="${i}" title="${esc(t('Double-click: open the file at this line', 'Double-clic : ouvrir le fichier à cette ligne'))}">
+  <span class="hit-component muted">${esc(str(h, 'component') || '—')}</span><span class="hit-part ${h.group === 'problems' ? 'tone-bad' : ''}">${esc(part)}</span>
+  <span class="hit-text"><span>${esc(str(h, 'text'))}</span><span class="hit-where mono">${esc(where)}</span></span></li>`;
+    }).join('');
+    const hit = hits[ui.searchSel];
+    const around = hit && Array.isArray(hit.around) ? hit.around : [];
+    const preview = hit ? `<div class="answer-head"><span>${esc((groups[hit.group] || hit.group) + ' · ' + (str(hit, 'component') || t('no component', 'aucun composant')))}</span></div>
+  <h3>${esc(str(hit, 'part'))}</h3><p class="mono small hit-where">${esc(str(hit, 'file') + (Number(hit.line) ? ':' + hit.line : ''))}</p>
+  ${around.length ? `<pre class="plain around">${around.map((l) => `<span class="${Number(l.n) === Number(hit.line) ? 'here' : ''}">${esc(String(l.n).padStart(4))}  ${esc(str(l, 'text'))}</span>`).join('\n')}</pre>` : `<p>${esc(str(hit, 'text'))}</p>`}
+  ${hit.group === 'problems' ? `<div class="alert bad"><b>${esc(str(hit, 'part'))}</b> ${esc(str(hit, 'text'))}</div>` : ''}
+  <div class="row wrap">${str(hit, 'file') && !str(hit, 'file').startsWith('archvow/') && !str(hit, 'file').startsWith('template ') ? btn(Number(hit.line) ? t(`Open at line ${hit.line}`, `Ouvrir à la ligne ${hit.line}`) : t('Open', 'Ouvrir'), 'openFile', attrs({ file: str(hit, 'file').replace(/\/$/, ''), line: Number(hit.line) || 0 })) : ''}
+  ${str(hit, 'component') && str(hit, 'component') !== 'project' ? btn(t(`Show ${str(hit, 'component')}`, `Afficher ${str(hit, 'component')}`), 'pick', attrs({ id: str(hit, 'component') }), false, 'secondary') : ''}
+  ${hit.group === 'problems' ? btn(t(`Rule ${str(hit, 'part')}`, `Règle ${str(hit, 'part')}`), 'openRule', attrs({ code: str(hit, 'part') }), false, 'secondary') : ''}</div>` : '';
+    return `<div class="search-head"><h2 class="mono">${esc(name)}</h2><span class="muted">${esc(t(`found in ${total} place${total === 1 ? '' : 's'}`, `trouvé à ${total} endroit${total === 1 ? '' : 's'}`))}${str(result, 'summary') ? ' · ' + esc(str(result, 'summary')) : ''}</span>
+  <p class="muted small">${esc(t(`archvow show ${name} --json · whole words only`, `archvow show ${name} --json · mots entiers seulement`))}</p></div>
+  <div class="search-grid"><nav class="search-groups">${nav}</nav><ul class="search-hits" data-scroll="search-hits">${rows}</ul><aside class="search-preview">${preview}</aside></div>`;
   }
 
   // ---------------------------------------------------------------- shared: result card, confirmation
@@ -686,7 +756,9 @@
   <ul class="tree" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No component.', 'Aucun composant.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
   }
 
-  const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Other', 'Autres')];
+  const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Other', 'Autres'), t('Examples', 'Exemples')];
+  /** The order of the view chips (0.18.0): Examples (view 8) right after Rules, as IntelliJ shows it. */
+  const VIEW_ORDER = [0, 1, 2, 3, 4, 8, 5, 6, 7];
 
   function componentDetail() {
     // 0.17.2 (the user's order): AI, Add, Edit spec, Open code - what you ask the AI first, the one filled button
@@ -705,24 +777,31 @@
     const localOtherPending = S.work.otherPending.filter((item) => isLocalOther(item)).length;
     const localOtherResolved = S.work.otherResolved.filter((item) => isLocalOther(item)).length;
     const aiCount = (i) => (!ai ? 0 : i === 0 ? ai.toReview.decisions : i === 2 ? ai.toReview.safety : i === 3 ? ai.toReview.assumptions : i === 4 ? ai.toReview.rules : 0);
-    const viewBar = names.map((name, i) => {
+    const ex = exampleCounts(view);
+    const viewBar = VIEW_ORDER.filter((i) => i !== 8 || ex.total > 0).map((i) => {
+      const name = names[i];
       const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] : counts.total[i] > 0 ? ' ✓' : '')
-        : i === 7 ? name + (localOtherPending ? ' · ' + localOtherPending : localOtherResolved ? ' ✓' : '') : name;
+        : i === 7 ? name + (localOtherPending ? ' · ' + localOtherPending : localOtherResolved ? ' ✓' : '')
+        : i === 8 ? name + ' ' + ex.total + (ex.failing ? ' · ' + ex.failing + ' ✖' : ex.passing === ex.total ? ' ✓' : '') : name;
       const dot = aiCount(i);
       const tip = i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('pending items', 'éléments en attente')}` : t('No open items', 'Aucun élément ouvert'))
-        : i === 7 ? t('Only issues of this component; project checks are in Check & Gates.', 'Seulement les éléments de ce composant ; les contrôles globaux sont dans Check & Gates.') : '';
-      return `<button class="tab ${ui.view === i ? 'current' : ''} ${(i < 6 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) ? 'has-pending' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}${aiDot(dot)}</button>`;
+        : i === 7 ? t('Only issues of this component; project checks are in Check & Gates.', 'Seulement les éléments de ce composant ; les contrôles globaux sont dans Check & Gates.')
+        : i === 8 ? t(`Business examples: ${ex.passing} passing, ${ex.failing} failing, ${ex.total - ex.passing - ex.failing} without a passing run`,
+          `Exemples métier : ${ex.passing} réussis, ${ex.failing} en échec, ${ex.total - ex.passing - ex.failing} sans lancement réussi`) : '';
+      const pendingTab = (i < 6 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) || (i === 8 && ex.failing > 0);
+      return `<button class="tab ${ui.view === i ? 'current' : ''} ${pendingTab ? 'has-pending' : ''}${i === 8 ? ' examples-tab' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}${aiDot(dot)}</button>`;
     }).join('');
     const listBar = listFilter(counts, aiCount, localOtherPending);
     let body;
     if (ui.view === 7) body = otherView();
     else if (!ui.component) body = `<p class="muted">${esc(t('Select a component in the Archvow sidebar.', 'Sélectionne un composant dans le panneau Archvow.'))}</p>`;
     else if (!view) body = `<p class="muted">${esc(t('Loading', 'Chargement'))}: ${esc(ui.component)}…</p>`;
+    else if (ui.view === 8) body = examplesView(view);
     else body = [decisionsView, questionsView, safetyView, assumptionsView, rulesView, tasksView, vowView][ui.view](view, d);
     // A component's 'Others' belongs to this component; global diagnostics are in Check & Gates.
     const waiting = ai ? ai.toReview.total - ai.toReview.component : 0;
     const waitingBadge = waiting > 0 ? ` <button class="badge-ai" data-a="toReview" title="${esc(t('Show only what the AI added and no person kept yet', "N'afficher que ce que l'IA a ajouté et qu'aucune personne n'a encore gardé"))}">${esc(t(`${waiting} from AI to review`, `${waiting} de l'IA à relire`))}</button>` : '';
-    const head = view ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}${waitingBadge}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
+    const head = view ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}${waitingBadge}${failingBadge(view)}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
   <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
@@ -893,8 +972,10 @@
   const byOn = (row) => [str(row, 'by'), str(row, 'on').substring(0, 10)].filter((x) => x).join(' · ');
 
   /** The answer panel's heading: "ANSWER DECISION 3", "DECISION 1 · ANSWERED". */
+  /** A panel's head: its title and a state, green when `good` is true, amber when false, or in the tone named. */
   function answerHead(text, state, good) {
-    return `<div class="answer-head"><span>${esc(text)}</span>${state ? ` <b class="${good ? 'tone-good' : 'tone-warn'}">${esc(state)}</b>` : ''}</div>`;
+    const tone = typeof good === 'string' ? good : good ? 'good' : 'warn';
+    return `<div class="answer-head"><span>${esc(text)}</span>${state ? ` <b class="tone-${tone}">${esc(state)}</b>` : ''}</div>`;
   }
 
   /** What the component uses and what uses it (show --json `uses`, `used_by`), each one a link: what a
@@ -908,19 +989,162 @@
     return parts.length ? `<p class="links muted small">${parts.join('  ·  ')}</p>` : '';
   }
 
-  /** The component's business examples (show --json `examples`): ✓ when its test is marked and its files
-   *  are the recorded ones, else what is missing (ARCH056, ARCH055). As the IntelliJ details show them. */
+  /** The component's business examples (show --json `examples`) in its head: each one's state from its test's
+   *  own verdict (archvow 1.21 `result`: ✔ passing, ✖ failing, ○ no test yet, · not run), or its files changed
+   *  since recorded (ARCH055). The Examples view shows them whole. As the IntelliJ details show them. */
   function examples(view) {
     const rows = list(view, 'examples');
     if (!rows.length) return '';
     const item = (e) => {
-      const ok = e.tested === true && e.unchanged !== false;
-      const why = e.unchanged === false ? t('files changed since recorded (ARCH055)', 'fichiers modifiés depuis leur enregistrement (ARCH055)')
-        : e.tested === true ? t('tested', 'testé') : t('no marked test yet (ARCH056)', 'pas encore de test marqué (ARCH056)');
+      const state = exampleState(e);
+      const changed = e.unchanged === false;
+      const why = changed ? t('files changed since recorded (ARCH055)', 'fichiers modifiés depuis leur enregistrement (ARCH055)') : state.text;
       const tip = `${str(e, 'folder')}/ · ${str(e, 'level')} · ${why}`;
-      return `<span class="${ok ? 'ok' : 'tone-warn'}" title="${esc(tip)}">${ok ? '✓' : '✖'} ${esc(str(e, 'name'))}${str(e, 'ticket') ? ` (${esc(str(e, 'ticket'))})` : ''}</span>`;
+      return `<span class="${state.tone === 'good' && !changed ? 'ok' : state.tone === 'bad' || changed ? 'tone-bad' : 'tone-warn'}" title="${esc(tip)}">${changed ? '✖' : state.mark} ${esc(str(e, 'name'))}${str(e, 'ticket') ? ` (${esc(str(e, 'ticket'))})` : ''}</span>`;
     };
     return `<p class="examples small">${esc(t('Examples', 'Exemples'))}: ${rows.map(item).join('  ·  ')}</p>`;
+  }
+
+  /** One example's state, from its test's verdict (the test decides; archvow only shows): mark, tone, words. */
+  function exampleState(e) {
+    const result = str(e, 'result') || (e.tested === true ? 'not_run' : 'no_test');
+    const files = list(e, 'files').filter((f) => ['differs', 'missing', 'extra'].includes(str(f, 'state')));
+    const differ = files.map((f) => {
+      const n = Number(f.differences) || 0;
+      const table = ['table', 'records'].includes(str(f, 'kind'));
+      if (str(f, 'state') === 'missing') return t(`${str(f, 'name')} missing in actual/`, `${str(f, 'name')} absent d'actual/`);
+      if (str(f, 'state') === 'extra') return t(`${str(f, 'name')} only in actual/`, `${str(f, 'name')} seulement dans actual/`);
+      return t(`${str(f, 'name')}: ${n} ${table ? 'row' : 'line'}${n === 1 ? ' differs' : 's differ'}`, `${str(f, 'name')} : ${n} ligne${n === 1 ? ' diffère' : 's diffèrent'}`);
+    }).join('; ');
+    if (result === 'passing') return { result, mark: '✔', tone: 'good', text: t('passing', 'réussi') + (differ ? ' · ' + t('actual/ differs in form only', 'actual/ ne diffère que par la forme') : '') };
+    if (result === 'failing') return { result, mark: '✖', tone: 'bad', text: t('failing', 'en échec') + (differ ? ' - ' + differ : e.actual === false ? ' - ' + t('actual/ not written by the test', "actual/ pas écrit par le test") : '') };
+    if (result === 'no_test') return { result, mark: '○', tone: 'warn', text: t('no marked test yet (ARCH056)', 'pas encore de test marqué (ARCH056)') };
+    if (result === 'skipped') return { result, mark: '·', tone: 'muted', text: t('skipped in test-results.xml', 'sauté dans test-results.xml') };
+    if (str(e, 'run_on')) return { result, mark: '·', tone: 'muted', text: t(`not in the last run (test-results.xml of ${str(e, 'run_on')})`, `absent du dernier lancement (test-results.xml du ${str(e, 'run_on')})`) };
+    return { result, mark: '·', tone: 'muted', text: t('not run yet (make test writes test-results.xml)', 'pas encore lancé (make test écrit test-results.xml)') };
+  }
+
+  /** How many examples pass, fail, and in all: the Examples chip and the head's badge. */
+  function exampleCounts(view) {
+    const rows = view ? list(view, 'examples') : [];
+    const states = rows.map((e) => exampleState(e).result);
+    return { total: rows.length, passing: states.filter((x) => x === 'passing').length, failing: states.filter((x) => x === 'failing').length };
+  }
+
+  /** "1 example failing" next to the component's name: opens the Examples view. */
+  function failingBadge(view) {
+    const n = exampleCounts(view).failing;
+    return n ? ` <button class="badge-bad" data-a="view" data-i="8" title="${esc(t('Show the Examples view', 'Afficher la vue Exemples'))}">${esc(t(`${n} example${n === 1 ? '' : 's'} failing`, `${n} exemple${n === 1 ? '' : 's'} en échec`))}</button>` : '';
+  }
+
+  /** The examples grouped by the rule they show (the scenario's Rule:), in their order; "No rule named" last. */
+  function exampleGroups(view) {
+    const rows = list(view, 'examples');
+    const texts = view && typeof view.rule_texts === 'object' && view.rule_texts ? view.rule_texts : {};
+    const rules = [...new Set(rows.map((e) => str(e, 'rule')))];
+    const ordered = [...rules.filter((r) => r), ...(rules.includes('') ? [''] : [])];
+    return ordered.map((rule) => ({ rule, text: rule ? str(texts, rule) : '', items: rows.filter((e) => str(e, 'rule') === rule) }));
+  }
+
+  /** The Examples view (0.18.0): the examples as cards grouped by rule, left; the selected one, right - its
+   *  scenario, then each output file expected/ | actual/ side by side, by kind, with the differences marked. */
+  function examplesView(view) {
+    const rows = list(view, 'examples');
+    if (!rows.length) {
+      return split(`<p class="muted">${esc(t('No business example on this component.', "Aucun exemple métier sur ce composant."))}</p>
+  <div class="row">${btn(t('Record an example…', 'Enregistrer un exemple…'), 'openCommand', attrs({ command: 'example add', component: ui.component }), false, 'secondary')}</div>`, '');
+    }
+    if (!rows.some((e) => str(e, 'name') === ui.sel.example)) {
+      const first = rows.find((e) => exampleState(e).result === 'failing') || rows[0];
+      ui.sel.example = str(first, 'name');
+    }
+    const grouped = exampleGroups(view).map((g) => `<div class="example-rule"><b class="mono">${esc(g.rule || t('No rule named', 'Aucune règle nommée'))}</b>${g.text ? ` <span class="muted small">${esc(g.text)}</span>` : ''}</div>
+  <ul class="cards" data-scroll="cards-example-${esc(g.rule || 'none')}">${g.items.map((e) => {
+    const state = exampleState(e);
+    const name = str(e, 'name');
+    return `<li class="item-card example-card ${ui.sel.example === name ? 'selected' : ''} ${state.result === 'passing' ? 'done' : 'open'}" data-a="sel" data-kind="example" data-key="${esc(name)}">
+  <div class="card-q" title="${esc(name)}"><b class="mark tone-${state.tone}">${esc(state.mark)}</b> ${esc(name)}</div>
+  <div class="card-note tone-${state.tone}" title="${esc(state.text)}">${esc(state.result === 'passing' ? [str(e, 'level'), byOn(e)].filter(Boolean).join(' · ') : state.text)}</div></li>`;
+  }).join('')}</ul>`).join('');
+    const selected = rows.find((e) => str(e, 'name') === ui.sel.example);
+    return split(grouped, exampleDetail(view, selected));
+  }
+
+  /** The test of an example, from show --json `evidence` ("example NAME" -> ["file::test"]). */
+  function exampleTest(view, name) {
+    const row = list(view, 'evidence').find((r) => str(r, 'item') === 'example ' + name);
+    const first = row && Array.isArray(row.tests) ? row.tests[0] : '';  // "file::test" texts (list() keeps objects only)
+    return first ? String(first).split('::')[0] : '';
+  }
+
+  /** The selected example: what the business team said, and what the code gave. */
+  function exampleDetail(view, e) {
+    const name = str(e, 'name');
+    const state = exampleState(e);
+    const folder = str(e, 'folder');
+    const files = list(e, 'files');
+    let shown = files.find((f) => str(f, 'name') === ui.exampleFile[name]);
+    if (!shown) shown = files.find((f) => ['differs', 'missing', 'extra'].includes(str(f, 'state'))) || files[0];
+    const src = e.source && typeof e.source === 'object' ? e.source : null;
+    const ref = src && str(src, 'file') ? (str(src, 'section') ? `${str(src, 'file')}#${str(src, 'section')}` : str(src, 'file')) : '';
+    const test = exampleTest(view, name);
+    const command = `archvow example add ${ui.component} ${name}`;
+    const fileButtons = files.length > 1 ? `<div class="row wrap example-files">${files.map((f) => btn(str(f, 'name'), 'exampleFile', attrs({ id: name, key: str(f, 'name') })
+      + ` title="${esc(str(f, 'kind') + ' · ' + str(f, 'state'))}"`, false, shown && str(shown, 'name') === str(f, 'name') ? 'on small' : 'secondary small')).join('')}</div>` : '';
+    const opens = [
+      shown ? btn(t('Open expected/', 'Ouvrir expected/'), 'openFile', attrs({ file: `${folder}/expected/${str(shown, 'name')}`, line: 0 }), str(shown, 'state') === 'extra', 'secondary small') : '',
+      shown && e.actual ? btn(t('Open actual/', 'Ouvrir actual/'), 'openFile', attrs({ file: `${folder}/actual/${str(shown, 'name')}`, line: 0 }), str(shown, 'state') === 'missing', 'secondary small') : '',
+      test ? btn(t('Open test', 'Ouvrir le test'), 'openFile', attrs({ file: test, line: 0 }), false, 'secondary small') : '',
+    ].join('');
+    const fix = state.result === 'failing' ? `<div class="alert bad"><b>${esc(t('Fix the code, not the example.', "Corrige le code, pas l'exemple."))}</b>
+  <div>${esc(t('The AI is told the same. If the business team says the expected result is wrong, a person replaces the files and records them again:', "L'IA a la même consigne. Si le métier dit que le résultat attendu est faux, une personne remplace les fichiers et les enregistre à nouveau :"))}</div>
+  <div class="row"><code class="command grow">${esc(command)}</code>${btn(t('Copy command', 'Copier la commande'), 'copyText', attrs({ text: command }), false, 'small')}</div></div>`
+      : state.result === 'no_test' ? `<div class="alert warn"><b>${esc(t('No test yet, so no actual/.', "Pas encore de test, donc pas d'actual/."))}</b>
+  <div>${esc(t(`Ask the AI: implement the test of example ${name}. Its card lists the files and the mark @pytest.mark.example("${name}").`,
+    `Demande à l'IA : implémente le test de l'exemple ${name}. Sa fiche donne les fichiers et la marque @pytest.mark.example("${name}").`))}</div></div>` : '';
+    return `${answerHead(t('Example', 'Exemple') + (str(e, 'ticket') ? ' · ' + str(e, 'ticket') : ''), state.mark + ' ' + (state.result === 'failing' ? t('failing', 'en échec') : state.result === 'passing' ? t('passing', 'réussi') : state.result === 'no_test' ? t('no test yet', 'pas encore de test') : t('not run', 'pas lancé')), state.tone)}
+  <h3 class="example-name">${esc(name)}</h3>
+  <p class="muted small">${esc([str(e, 'rule') ? t('rule ', 'règle ') + str(e, 'rule') : t('no rule named', 'aucune règle nommée'), str(e, 'level'), byOn(e),
+    str(e, 'run_on') ? t('last run ', 'dernier lancement ') + str(e, 'run_on') : ''].filter(Boolean).join(' · '))}</p>
+  ${ref ? `<p class="drawn-from muted small">${esc(t('Drawn from', 'Tiré de'))}: <span class="link" data-a="openBrief" data-ref="${esc(ref)}">${esc(ref)}</span></p>` : ''}
+  ${e.unchanged === false ? `<p class="tone-bad small">${esc(t('Its files changed since they were recorded (ARCH055): put them back, or a person records them again.', 'Ses fichiers ont changé depuis leur enregistrement (ARCH055) : les remettre, ou une personne les enregistre à nouveau.'))}</p>` : ''}
+  ${str(e, 'scenario') ? `<pre class="plain scenario">${esc(str(e, 'scenario'))}</pre>` : ''}
+  ${fileButtons}${shown ? exampleDiff(shown, e) : ''}
+  <div class="row wrap">${opens}</div>${fix}`;
+  }
+
+  /** One output file, expected/ | actual/ side by side (show --json `files`): a table (CSV, JSON Lines) row by
+   *  row, the changed cells marked; a document or a text line by line. + only in actual, − only in expected,
+   *  ~ changed. archvow compared texts; the test decided. */
+  function exampleDiff(f, e) {
+    const table = ['table', 'records'].includes(str(f, 'kind'));
+    const state = str(f, 'state');
+    const rows = list(f, 'rows');
+    const header = f.header && typeof f.header === 'object' ? f.header : {};
+    const head = table ? (Array.isArray(header.expected) ? header.expected : Array.isArray(header.actual) ? header.actual : []) : [];
+    const width = Math.max(1, head.length, ...rows.map((r) => Math.max(Array.isArray(r.expected) ? r.expected.length : 0, Array.isArray(r.actual) ? r.actual.length : 0)));
+    const mark = { same: '', missing: '−', extra: '+', changed: '~' };
+    const cells = (values, changed) => {
+      if (!table) return `<td class="line">${values === null || values === undefined ? '' : esc(String(values))}</td>`;
+      if (!Array.isArray(values)) return `<td class="none" colspan="${width}"></td>`;
+      return Array.from({ length: width }, (_, i) => `<td class="${changed.includes(i) ? 'cell-changed' : ''}">${esc(values[i] === undefined ? '' : String(values[i]))}</td>`).join('');
+    };
+    const body = rows.map((r) => {
+      const op = str(r, 'op');
+      const changed = Array.isArray(r.cells) ? r.cells : [];
+      return `<tr class="op-${esc(op)}"><td class="mark">${esc(op === 'extra' ? '' : mark[op] || '')}</td>${cells(r.expected, changed)}<td class="gap"></td><td class="mark">${esc(op === 'missing' ? '' : mark[op] || '')}</td>${cells(r.actual, changed)}</tr>`;
+    }).join('');
+    const colspan = table ? width : 1;
+    const titles = `<tr class="sides"><th></th><th colspan="${colspan}">expected/ <span class="muted">· ${esc(t('locked', 'verrouillé'))}</span></th><th class="gap"></th><th></th><th colspan="${colspan}">actual/ <span class="muted">· ${esc(e.actual ? (str(e, 'actual_on') ? t('written ', 'écrit le ') + str(e, 'actual_on') : t('last run', 'dernier lancement')) : t('none yet', 'pas encore'))}</span></th></tr>`;
+    const columns = table && head.length ? `<tr class="columns"><th></th>${head.map((h) => `<th>${esc(String(h))}</th>`).join('')}${head.length < width ? `<th colspan="${width - head.length}"></th>` : ''}<th class="gap"></th><th></th>${(Array.isArray(header.actual) ? header.actual : head).map((h) => `<th>${esc(String(h))}</th>`).join('')}</tr>` : '';
+    const summary = state === 'no_actual' ? t('expected only: the test has not written actual/ yet', "expected seulement : le test n'a pas encore écrit actual/")
+      : state === 'same' ? t('same as expected/', 'identique à expected/')
+        : state === 'missing' ? t('missing in actual/', "absent d'actual/") : state === 'extra' ? t('only in actual/', 'seulement dans actual/')
+          : t(`${f.differences} difference${Number(f.differences) === 1 ? '' : 's'}`, `${f.differences} différence${Number(f.differences) === 1 ? '' : 's'}`);
+    return `<div class="example-file"><div class="row"><b class="mono">${esc(str(f, 'name'))}</b><span class="muted small">${esc(str(f, 'kind'))} · ${esc(summary)}</span></div>
+  ${str(f, 'note') ? `<p class="tone-warn small">${esc(str(f, 'note'))}</p>` : ''}
+  ${state === 'no_actual' ? `<p class="muted small">${esc(t('Open expected/ to read it.', 'Ouvre expected/ pour le lire.'))}</p>` : `<div class="diff-box" data-scroll="diff-${esc(str(f, 'name'))}"><table class="example-diff ${table ? 'table' : 'lines'}">${titles}${columns}${body}</table></div>
+  <p class="legend muted small"><span class="op-extra">+</span> ${esc(t('only in actual (the code kept it)', 'seulement dans actual (le code l\'a gardé)'))} · <span class="op-missing">−</span> ${esc(t('only in expected (the code dropped it)', 'seulement dans expected (le code l\'a écarté)'))}${table ? ` · <span class="op-changed">~</span> ${esc(t('same place, another value', 'même place, autre valeur'))}` : ''}</p>`}</div>`;
   }
 
   /** The briefs folders of archvow 1.17 (S.briefs, read by the extension): the --from field offers their
@@ -968,7 +1192,7 @@
       part('decisions', t('Decisions made', 'Décisions prises'), list(view, 'decisions'), (d) => d.answer !== null && d.answer !== undefined && String(d.answer).trim() !== ''),
       part('safety', t('Safety answered', 'Sûreté traitée'), list(view, 'safety'), (q) => q.status === 'answered'),
       part('tasks', t('Tasks done', 'Tâches faites'), list(view, 'tasks'), (x) => x.done === true),
-      part('examples', t('Examples tested', 'Exemples testés'), list(view, 'examples'), (e) => e.tested === true && e.unchanged !== false),
+      part('examples', t('Examples passing', 'Exemples réussis'), list(view, 'examples'), (e) => exampleState(e).result === 'passing' && e.unchanged !== false),
     ].filter((p) => p.total > 0).map((p) => ({ ...p, complete: p.done === p.total }));
   }
 
@@ -2208,6 +2432,15 @@
     openChecks: () => post({ type: 'openChecks' }),
     projectWork: () => post({ type: 'showProjectWork', index: 0 }),
     openRule: (e) => post({ type: 'openRule', code: e.dataset.code }),
+    find: (e) => {
+      const name = (e.dataset.id || ui.findText || '').trim();
+      if (e.dataset.id) ui.findText = e.dataset.id;
+      if (name) post({ type: 'search', name });
+    },
+    searchGroup: (e) => { ui.searchGroup = e.dataset.id || ''; ui.searchSel = 0; },
+    searchHit: (e) => { ui.searchSel = Number(e.dataset.i) || 0; },
+    exampleFile: (e) => { ui.exampleFile[e.dataset.id] = e.dataset.key; },
+    copyText: (e) => post({ type: 'copy', text: e.dataset.text || '' }),
     prepareCheck: (e) => {
       const v = list(S.check, 'violations')[Number(e.dataset.i)];
       const item = checkWorkItem(v);
@@ -2437,7 +2670,11 @@
   const DOUBLE = {
     checkSel: (e) => { const v = list(S.check, 'violations')[Number(e.dataset.i)]; if (v) post({ type: 'openRule', code: str(v, 'code') }); },
     otherSel: () => quickPrimary(),
-    sel: (e) => { if (e.dataset.kind === 'data') actions.dataAction(); else focusEditor(); },
+    sel: (e) => { if (e.dataset.kind === 'data') actions.dataAction(); else if (e.dataset.kind !== 'example') focusEditor(); },
+    searchHit: () => {
+      const hit = searchHits(ui.search, ui.searchGroup)[ui.searchSel];
+      if (hit && str(hit, 'file') && !str(hit, 'file').startsWith('template ')) post({ type: 'openFile', file: str(hit, 'file').replace(/\/$/, ''), line: Number(hit.line) || 0 });
+    },
   };
   let last = { signature: '', time: 0 };
 
@@ -2469,9 +2706,20 @@
     render();
   });
 
+  document.body.addEventListener('keydown', (event) => {
+    const e = event.target;
+    if (e && e.dataset && e.dataset.input === 'find' && event.key === 'Enter') {
+      ui.findText = e.value;
+      actions.find(e);
+    }
+  });
+
   document.body.addEventListener('input', (event) => {
     const e = event.target;
     switch (e.dataset.input) {
+      case 'find':
+        ui.findText = e.value;
+        return;
       case 'draft': {
         ui.drafts[e.dataset.key] = e.value;
         // Undo changes: pressable as soon as the text differs from the recorded one (no redraw while typing)

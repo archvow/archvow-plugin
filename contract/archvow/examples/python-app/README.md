@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `python-app@1.20.0`).
+(template `python-app@1.21.0`).
 
 ## For developers
 
@@ -259,6 +259,8 @@ make run CLI=invoices ARGS="--help"                   # the command line of the 
 | add a rule for every component of a type | `archvow rule add --type model "Given an unknown field, when it is parsed, then it is refused"` |
 | dismiss a safety question that does not apply | `archvow hazard dismiss invoice_model S2 "invoices hold no personal data"` |
 | see everything about a component | `archvow show invoice_model` |
+| record a business example (files in `tests/examples/invoices_cli/<example>/`) | `archvow example add invoices_cli US-001-pay-a-sent-invoice -s US-001 --from briefs/<brief>.md#<section>`; `archvow show invoices_cli` gives its test's verdict and where `actual/` differs from `expected/` |
+| find a name everywhere (a function, a column, a ticket, an example) | `archvow show <name>`: the spec, the code, the tests, the briefs, the problems naming it |
 | answer what is open, one question at a time | `archvow specify invoice_model` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/archvow-analyze invoice_model` |
 | build a big component one task at a time | `archvow show send_invoice` lists its tasks T1, T2...; `archvow prompt send_invoice` gives the next one; mark each test: `@pytest.mark.decision(3)` |

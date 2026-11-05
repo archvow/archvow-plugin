@@ -13,6 +13,10 @@ nothing in the archvow tree is written. Recorded:
                                            whose catalog does not list them (1.17; tools/export_kinds.py)
   contract/cli/rules.md, rules.fr.md       archvow's docs/rules: what each check code means
   contract/cli/version.txt                 `archvow --version`
+  contract/cli/<name>/search/<name>.json   `archvow show <name> --json` (1.21): a name found, and one found nowhere
+  contract/cli/python-app/examples/        python-app's business example in each state (1.21: the test's verdict in a
+                                           test-results.xml written here, actual/ against expected/): passing.json,
+                                           failing.json, no-test.json (show invoices_cli --json)
   contract/cli/briefs/                     python-app with a Spec Kit `specs` folder declared as a briefs folder
                                            (-a briefs=briefs,specs), recorded like an example: refused.txt (the
                                            --from refusal before), mark_paid drawn from specs/ (show `source`),
@@ -32,9 +36,9 @@ CONTRACT = Path(__file__).resolve().parents[1]
 EXAMPLES = ("python-app", "fastapi-service", "pyspark-pipeline")
 
 
-def run(cmd, cwd):
+def run(cmd, cwd, codes=(0, 1)):
     out = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, encoding="utf-8")
-    if out.returncode not in (0, 1) or not out.stdout.strip():
+    if out.returncode not in codes or not out.stdout.strip():
         sys.exit(f"{' '.join(map(str, cmd))} failed ({out.returncode}): {out.stderr}")
     return json.loads(out.stdout)
 
@@ -97,8 +101,52 @@ def main():
                 for component in container["components"]:
                     cid = component["id"]
                     write(out / "show" / f"{cid}.json", run([*archvow, "show", cid, "--json"], project))
+            for wanted in SEARCHES[name]:  # a name found nowhere exits 2, its close names on stdout
+                write(out / "search" / f"{wanted}.json", run([*archvow, "show", wanted, "--json"], project, (0, 2)))
+    examples(source, archvow, cli / "python-app" / "examples")
     briefs(source, archvow, cli / "briefs")
     print(f"contract regenerated from {version}")
+
+
+SEARCHES = {"python-app": ("InvoiceNotFoundError", "US-001", "mark_payd"),
+            "fastapi-service": ("get_current_user", "amount"), "pyspark-pipeline": ("US-002-zero-amount-kept",)}
+EXAMPLE = "tests/examples/invoices_cli/US-001-pay-a-sent-invoice"
+TEST = ("tests.p4_entrypoints.test_invoices_cli", "test_example_pay_a_sent_invoice")
+
+
+def examples(source, archvow, out):
+    """python-app's business example in each state (archvow 1.21): the verdict comes from a test-results.xml
+    written here (no pytest needed), what the code gave from an actual/ written here."""
+    shutil.rmtree(out, ignore_errors=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "python-app"
+        shutil.copytree(source / "examples" / "python-app", project)
+        folder = project / EXAMPLE
+        report = project / "test-results.xml"
+
+        def verdict(failed):
+            body = '<failure message="assert"/>' if failed else ""
+            report.write_text(f'<testsuites><testsuite><testcase classname="{TEST[0]}" name="{TEST[1]}">{body}'
+                              '</testcase></testsuite></testsuites>\n', encoding="utf-8", newline="\n")
+
+        actual = folder / "actual"
+        (actual / "invoices").mkdir(parents=True)
+        (actual / "stdout.txt").write_text("F-7 Ada 9.90 paid\n", encoding="utf-8", newline="\n")
+        (actual / "invoices" / "F-7.json").write_text('{"number": "F-7", "customer": "Ada", "amount": "9.90", '
+                                                     '"status": "paid"}', encoding="utf-8")
+        verdict(False)
+        write(out / "passing.json", run([*archvow, "show", "invoices_cli", "--json"], project))
+        (actual / "stdout.txt").write_text("F-7 Ada 9.90 sent\n", encoding="utf-8", newline="\n")
+        (actual / "invoices" / "F-7.json").write_text('{"number": "F-7", "customer": "Ada", "amount": "9.90", '
+                                                     '"status": "sent"}', encoding="utf-8")
+        verdict(True)
+        write(out / "failing.json", run([*archvow, "show", "invoices_cli", "--json"], project))
+        shutil.rmtree(actual)
+        report.unlink()
+        test = project / "tests" / "p4_entrypoints" / "test_invoices_cli.py"
+        test.write_text(test.read_text(encoding="utf-8").replace('@pytest.mark.example("US-001-pay-a-sent-invoice")\n', ""),
+                        encoding="utf-8")
+        write(out / "no-test.json", run([*archvow, "show", "invoices_cli", "--json"], project))
 
 
 BRIEF = "# Orders plan\n\n## Data model\n\nAn invoice has a number and an amount.\n\n## Paying an invoice\n\nMark it paid once.\n"

@@ -1,0 +1,16 @@
+{
+  "name": "mark_payd",
+  "summary": "",
+  "total": 0,
+  "groups": [],
+  "close": [
+    {
+      "name": "mark_paid",
+      "what": "a component"
+    },
+    {
+      "name": "mark_paid.H1",
+      "what": "an item of the spec"
+    }
+  ]
+}

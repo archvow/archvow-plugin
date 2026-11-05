@@ -33,9 +33,53 @@
       "tests": [
         "tests/p4_entrypoints/test_invoices_cli.py::test_the_invoice_on_stdout_errors_on_stderr"
       ]
+    },
+    {
+      "item": "example US-001-pay-a-sent-invoice",
+      "kind": "example",
+      "key": "US-001-PAY-A-SENT-INVOICE",
+      "tests": [
+        "tests/p4_entrypoints/test_invoices_cli.py::test_example_pay_a_sent_invoice"
+      ]
     }
   ],
-  "examples": [],
+  "examples": [
+    {
+      "name": "US-001-pay-a-sent-invoice",
+      "ticket": "US-001",
+      "source": {
+        "file": "briefs/invoices.md",
+        "section": "paying-a-sent-invoice",
+        "hash": "9652dc816ffb"
+      },
+      "level": "unit",
+      "folder": "tests/examples/invoices_cli/US-001-pay-a-sent-invoice",
+      "tested": true,
+      "unchanged": true,
+      "result": "not_run",
+      "actual": false,
+      "files": [
+        {
+          "name": "invoices/F-7.json",
+          "kind": "document",
+          "state": "no_actual",
+          "differences": 0,
+          "rows": []
+        },
+        {
+          "name": "stdout.txt",
+          "kind": "text",
+          "state": "no_actual",
+          "differences": 0,
+          "rows": []
+        }
+      ],
+      "scenario": "Feature: pay an invoice\n  Scenario: a sent invoice is marked paid\n    Given the sent invoice F-7 of Ada for 9.90\n    When the finance team runs invoices pay F-7\n    Then it prints \"F-7 Ada 9.90 paid\" and F-7 is saved paid",
+      "by": "architect@example.com",
+      "on": "2026-11-05"
+    }
+  ],
+  "rule_texts": {},
   "status": "tested",
   "decisions": [
     {

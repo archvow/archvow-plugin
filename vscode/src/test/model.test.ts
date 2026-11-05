@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
 import {
-  buildTree, CheckResult, componentOfViolation, describe, knownVersion, Node, NextRow, parseVersion, problemsOf, Spec, statusIcon,
+  buildTree, CheckResult, componentOfViolation, componentView, describe, knownVersion, Node, NextRow, parseVersion, problemsOf, Spec, statusIcon,
   versionWarning,
 } from '../model';
 
@@ -78,11 +78,21 @@ test('a violation names its component by its vow file', () => {
 test('the CLI version: the contract\'s major.minor, older, newer, absent (EN and FR)', () => {
   const recorded = fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8');
   const known = knownVersion(recorded);
-  assert.equal(known, '1.20');
+  assert.equal(known, '1.21');
   assert.equal(versionWarning(parseVersion(recorded), known), null, recorded);
-  assert.equal(versionWarning([1, 20, 4], known), null);
+  assert.equal(versionWarning([1, 21, 4], known), null);
   assert.match(versionWarning([1, 11, 0], known) ?? '', /older.*update archvow/);
-  assert.match(versionWarning([1, 21, 0], known) ?? '', /newer.*update the plugin/);
+  assert.match(versionWarning([1, 22, 0], known) ?? '', /newer.*update the plugin/);
   assert.match(versionWarning([1, 13, 0], known, true) ?? '', /plus ancien/);
   assert.match(versionWarning(parseVersion('command not found'), known) ?? '', /installed/);
+});
+
+test('show <id> --json is a component\'s view only when it names that component (a search result never is)', () => {
+  type View = Record<string, unknown>;
+  const view = read<View>('python-app', 'show', 'mark_paid.json');
+  assert.equal(componentView(view, 'mark_paid'), view);
+  assert.equal(componentView(view, 'invoices_cli'), null);
+  assert.equal(componentView(read<View>('python-app', 'search', 'mark_payd.json'), 'mark_payd'), null);
+  assert.equal(componentView(read<View>('python-app', 'search', 'InvoiceNotFoundError.json'), 'InvoiceNotFoundError'), null);
+  assert.equal(componentView(null, 'mark_paid'), null);
 });

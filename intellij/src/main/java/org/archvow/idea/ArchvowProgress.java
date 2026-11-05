@@ -34,8 +34,8 @@ final class ArchvowProgress {
         add(out, "safety", french ? "Sûreté traitée" : "Safety answered", view, "safety",
             q -> "answered".equals(text(q, "status")));
         add(out, "tasks", french ? "Tâches faites" : "Tasks done", view, "tasks", t -> flag(t, "done", false));
-        add(out, "examples", french ? "Exemples testés" : "Examples tested", view, "examples",
-            e -> flag(e, "tested", false) && flag(e, "unchanged", true));
+        add(out, "examples", french ? "Exemples réussis" : "Examples passing", view, "examples",
+            e -> ArchvowExamples.state(e, false).result().equals("passing") && flag(e, "unchanged", true));
         return out;
     }
 

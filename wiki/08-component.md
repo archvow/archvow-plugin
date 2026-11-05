@@ -16,7 +16,7 @@ dans `show --json` pour le module et le ticket).
 │ Garder les lignes où montant > 0 ...                                       │
 │ Utilise : sales_schema · Utilisé par : revenue_writer    Exemples : ✓ ...  │
 │ [Clarifier] Ouvrir le code  Modifier la spec  ...                          │  actions
-│ (Décisions · 1) (Questions) (Sécurité ✓) (Hypothèses) (Règles) (Tâches) ...  │  vues
+│ (Décisions · 1) (Questions) (Sécurité ✓) (Hypothèses) (Règles) (Exemples) ... │  vues
 ├──────────────────────────────────┬────────────────────────────────────────┤
 │ 1 · Quelles lignes garde-t-elle… │ RÉPONDRE À LA DÉCISION 3               │
 │     montant > 0                  │ En-tête manquant : déduire ou échouer ? │
@@ -30,12 +30,12 @@ dans `show --json` pour le module et le ticket).
 
 **L'en-tête** : le nom et le nombre d'éléments ouverts (le même que la barre latérale), puis *type ·
 couche · module · ticket · état*, **une barre d'avancement** (décisions prises, sûreté traitée, tâches
-faites, exemples testés - chacune seulement s'il y a quelque chose à compter -, verte quand c'est
+faites, exemples réussis - chacune seulement s'il y a quelque chose à compter -, verte quand c'est
 complet, ambre sinon, les nombres dans l'infobulle : `ArchvowProgress`, `progress()` et
 `progressBar()`), la description, **Tiré de** la brief d'où il vient (`source` de show ; un lien qui
 ouvre la brief à son titre : `ArchvowBriefs.drawnFromHtml`, `drawnFrom()`), *Utilise · Utilisé par* (chaque nom ouvre ce
-composant : ce qu'un changement peut casser, `ArchvowLinks`, `links()`) et les exemples métier (✓ testé
-et inchangé, ✖ avec la raison, ARCH055/ARCH056). IntelliJ : `buildComponentHtml` dans le panneau
+composant : ce qu'un changement peut casser, `ArchvowLinks`, `links()`) et les exemples métier (✓ réussi,
+✖ en échec ou modifié, ○ sans test : ce que dit le dernier passage du test, ARCH055/ARCH056). IntelliJ : `buildComponentHtml` dans le panneau
 `componentDetails` ; VS Code : `componentDetail()`, `openBadge()`, `meta()`.
 
 **Les actions** : Clarifier (va au premier élément ouvert : décision, puis question, puis question de
@@ -45,7 +45,7 @@ Accepter… pour un composant créé par l'IA (archvow 1.19, modes guided et fre
 `created_by`), qui montre **IA : à relire** dans l'arbre et son en-tête jusqu'à ce qu'une personne lance
 `component accept` (`aiBadge()`, `createdByAi()`, `buildComponentHtml`, `aiAcceptButton`).
 
-**Les vues** : Décisions, Questions, Sécurité, Hypothèses, Règles, Tâches, Spec, Autres / Projet.
+**Les vues** : Décisions, Questions, Sécurité, Hypothèses, Règles, Exemples, Tâches, Spec, Autres / Projet.
 Chaque bouton dit `· n` éléments en attente, ou ✓ quand tout est traité (`refreshViewStatus`,
 `viewCounts()`). Sous les vues, une ligne explique pourquoi le total du composant peut dépasser la vue
 (« 9 en attente · 0 dans Données et tâches · 4 dans Autres / Projet »).
@@ -156,7 +156,27 @@ Retirer la question et Annuler sont des liens (`button.link`, `ArchvowSplitView.
 
 Les menus (✦ IA ▾, + Ajouter ▾, Enregistrer ▾) sont des lignes d'`ArchvowMenu` dans IntelliJ (0.17.1) : un titre, un trait entre les groupes, la ligne sous la souris éclairée, une étape pas encore possible grisée avec sa raison, la suggérée teintée. Le bouton de la bande garde sa taille et passe sous le texte quand la bande fait moins de 720 px (`STRIP_SIDE_BY_SIDE`).
 
-Depuis la 0.17.2, plus de bande « Suggéré ensuite » : les actions sont, dans cet ordre, **✦ IA ▾** (**✦ AI spec ▾** dans IntelliJ depuis la 0.17.3 ; le seul bouton plein ; son menu marque l'étape suggérée), **+ Ajouter ▾**, **Modifier la spec**, **Ouvrir le code** ; **Enregistrer comme proposition** est un vrai bouton à côté d'Enregistrer la réponse.
+Depuis la 0.17.2, plus de bande « Suggéré ensuite » : les actions sont, dans cet ordre, **✦ IA ▾** (**✦ Spec IA ▾** dans IntelliJ en français, **✦ AI spec ▾** en anglais ; le seul bouton plein ; son menu marque l'étape suggérée), **+ Ajouter ▾**, **Modifier la spec**, **Ouvrir le code** ; **Enregistrer comme proposition** est un vrai bouton à côté d'Enregistrer la réponse.
+
+## Les exemples (0.18.0)
+
+La vue **Exemples** (la vue 8, placée après Règles : `VIEW_ORDER` dans VS Code, `ArchvowCompactViews.addView(bouton, 5)`
+dans IntelliJ) montre les exemples métier d'archvow 1.21. Son bouton dit « Exemples 2 · 1 ✖ » (`exampleCounts()`,
+`ArchvowExamples.label`) ; un exemple en échec ajoute « 1 exemple en échec » à l'en-tête (`failingBadge()`).
+
+- **L'état vient du test, jamais du plugin** : `result` de `show --json` (passing, failing, not_run, no_test),
+  lu par `exampleState()` et `ArchvowExamples.state` ; les deux disent exactement la même chose
+  (`contract/forms/examples.expected.json`).
+- **Les cartes sont groupées par règle** (la ligne `Règle:` du scénario : `exampleGroups()`,
+  `ArchvowExamples.groups`) ; la première en échec est choisie.
+- **Le détail** (`exampleDetail()`, `ArchvowExamples.detailHtml`) : chaque fichier attendu à côté de ce que le test
+  a écrit dans `actual/`, les lignes manquantes (−) et en trop (+) marquées, et pour un tableau les cellules changées
+  (`exampleDiff()`, `ArchvowExamples.fileHtml`). Sous le détail : « Corrigez le code, pas l'exemple », la brief d'où
+  vient l'exemple, Ouvrir le test (tiré d'`evidence`) et Copier la commande pour réenregistrer l'exemple.
+- Sans test : seulement `expected/`, et ce qu'il faut demander à l'IA. Sans exemple : le formulaire `example add`.
+
+IntelliJ : `ArchvowExamples` (sans API d'IDE, testée sans IDE) et `ArchvowExamplesView` (la vue) ; VS Code :
+`examplesView()` dans `media/workspace.js`.
 
 ## Enregistrer une réponse, de bout en bout
 

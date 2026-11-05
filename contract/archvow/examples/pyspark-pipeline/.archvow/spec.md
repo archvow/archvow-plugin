@@ -10,7 +10,7 @@ PySpark pipeline for my_pipeline
 
 ```mermaid
 flowchart TB
-  subgraph my_pipeline["my_pipeline (pyspark-pipeline@1.20.0)"]
+  subgraph my_pipeline["my_pipeline (pyspark-pipeline@1.21.0)"]
     direction TB
     subgraph my_pipeline__p0_common["p0_common"]
       my_pipeline__config["config<br/><small>foundation</small>"]
@@ -102,6 +102,15 @@ Every column the spec classifies as personal or special (GDPR art. 9), and the c
 No personal column in the spec.
 
 4 column(s) classified as not personal.
+
+## Briefs - my_pipeline
+
+Where the spec comes from: each component, question and rule drawn from a brief (`--from`). `archvow check` warns when a section changes (ARCH039); after review, `archvow brief accept <brief>` records its new text.
+
+| Brief | Drawn from it | Text recorded |
+|---|---|---|
+| `briefs/orders.md#cleaning` | clean_orders example US-002-negative-amount, clean_orders example US-002-zero-amount-kept | `6b25cb7402c7` |
+| `briefs/orders.md#vat` | compute_vat example US-002-vat-20 | `7cd02699bae2` |
 
 ## Checks
 

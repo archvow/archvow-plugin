@@ -8,8 +8,8 @@ The order API
 
 This card is cut into 2 tasks: implement one at a time, in order; after each one, `archvow check` and `pytest` pass. A task is done when the code exists and each of its items has a marked test.
 
-- **T1** the file and its public API, decisions 1-5, orders_router.INV1
-- **T2** decisions P1, P2
+- **T1** the file and its public API, decisions 1-5, example US-001-another-customers-order
+- **T2** decisions P1, P2, orders_router.INV1
 
 ## Must never happen
 
@@ -67,6 +67,44 @@ Start the file with this docstring. Fill in the `<...>` values: the person respo
 - Test through FastAPI's TestClient with the app from the app component, one test per route and status code; for who may call it, a Hypothesis test that generates two users and checks one never sees the other's data.
 - Contract with golden files: the business examples of the card (archvow example add: tests/examples/<component>/<example>/input/request.json and expected/response.json, locked, with an optional scenario.feature in Given/When/Then words), and one test that sends each request through the TestClient and compares the response with its expected one (generated ids and dates replaced first). Never change them: no example yet means a person records one first.
 
+## Examples (reproduce exactly)
+
+Given by the business team. For each one, a test reads `input/`, runs the component and compares what it gives with `expected/`. Never change these files: archvow compares them with the ones a person recorded (ARCH055); an example that looks wrong is a question for a person.
+
+The test also writes what the component gave to `actual/`, with the same file names and format as `expected/` (not locked, not committed): people see where it differs. Open every file with `encoding="utf-8"` (and `newline=""` for CSV) and compare what you read (rows, JSON objects), not bytes. Write each example's test before the code it checks: it fails until the code exists, and is never changed to pass.
+
+- **US-001-another-customers-order** (US-001) - rule orders_router.INV1: `tests/examples/orders_router/US-001-another-customers-order/` - its test is marked `@pytest.mark.example("US-001-another-customers-order") @pytest.mark.integration`
+
+  ```gherkin
+  Feature: read an order
+    Rule: orders_router.INV1
+      Scenario: another customer's order is not found
+        Given ann has an order of 5.00
+        When bob reads it
+        Then the answer is 404 "Order not found"
+  ```
+
+  `input/request.json`
+
+  ```json
+  {
+    "amount": "5.00",
+    "owner": "ann",
+    "reader": "bob"
+  }
+  ```
+
+  `expected/response.json`
+
+  ```json
+  {
+    "body": {
+      "detail": "Order not found"
+    },
+    "status": 404
+  }
+  ```
+
 ## Decisions made (implement exactly, do not reinterpret)
 
 1. Who may call each route: anyone, an authenticated user, the owner of the resource, which role?
@@ -98,5 +136,6 @@ Anything this spec does not define is not yours to decide. Ask before coding. If
 - `ruff format .` run, then `ruff check .` and `pytest` pass.
 - Every invariant above is tested.
 - The tests of the components that use it still pass.
+- Every example above has its marked test, and its files are the ones recorded.
 - You did not edit `.archvow/`, `AGENTS.md`, `ruff.toml`, CI files or other components' tests, and added no `# noqa` / `# type: ignore` / suppressions.
 - Working code that breaks these rules is not done.

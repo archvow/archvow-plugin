@@ -10,7 +10,7 @@ Marks invoices paid, from the command line
 
 ```mermaid
 flowchart TB
-  subgraph invoicing["invoicing (python-app@1.20.0)"]
+  subgraph invoicing["invoicing (python-app@1.21.0)"]
     direction TB
     subgraph invoicing__p0_common["p0_common"]
       invoicing__config["config<br/><small>foundation</small>"]
@@ -119,6 +119,14 @@ Every column the spec classifies as personal or special (GDPR art. 9), and the c
 | invoices_repository | P2 Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? | The company's file server, in France |
 | mark_paid | P1 Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send invoices to customers, for the finance team? | To record which customers paid their invoices, for the finance team |
 | mark_paid | P2 Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing? | Contract: the customer's purchase |
+
+## Briefs - invoicing
+
+Where the spec comes from: each component, question and rule drawn from a brief (`--from`). `archvow check` warns when a section changes (ARCH039); after review, `archvow brief accept <brief>` records its new text.
+
+| Brief | Drawn from it | Text recorded |
+|---|---|---|
+| `briefs/invoices.md#paying-a-sent-invoice` | invoices_cli example US-001-pay-a-sent-invoice | `9652dc816ffb` |
 
 ## Checks
 

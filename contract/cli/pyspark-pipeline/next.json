@@ -23,14 +23,14 @@
   {
     "component": "clean_orders",
     "type": "transformation",
-    "readiness": "ready - task 1 of 2",
+    "readiness": "ready - task 1 of 3",
     "invariants": 1,
     "tasks": {
-      "total": 2,
+      "total": 3,
       "done": 0,
       "next": "T1"
     },
-    "tokens": 1215
+    "tokens": 1790
   },
   {
     "component": "compute_vat",
@@ -42,7 +42,7 @@
       "done": 0,
       "next": "T1"
     },
-    "tokens": 1216
+    "tokens": 1613
   },
   {
     "component": "orders_schema",

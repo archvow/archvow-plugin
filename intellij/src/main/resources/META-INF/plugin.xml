@@ -65,6 +65,10 @@
       <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
       <add-to-group group-id="EditorPopupMenu" anchor="last"/>
     </action>
+    <action id="Archvow.FindName" class="org.archvow.idea.FindNameArchvowAction" text="Find in Archvow Project"
+            description="Where this name is in the archvow project - spec, code, tests, examples, briefs - and the problems naming it (archvow show &lt;name&gt;)">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    </action>
     <action id="Archvow.Refresh" class="org.archvow.idea.RefreshArchvowAction" text="Refresh Archvow"
             description="Reload the archvow specs and checks"/>
   </actions>

@@ -103,6 +103,17 @@ export function activate(context: vscode.ExtensionContext): void {
       const same = editor !== undefined && editor.document.uri.toString() === target.toString();
       return p.showFile(target.fsPath, same ? editor.selection.active.line + 1 : 0);
     })),
+    // 0.18.0: the word under the caret (or the selection), searched where archvow keeps things
+    vscode.commands.registerCommand('archvow.findName', (name?: unknown) => withProject((p) => {
+      const editor = vscode.window.activeTextEditor;
+      let word = typeof name === 'string' ? name : '';
+      if (!word && editor !== undefined) {
+        const selected = editor.document.getText(editor.selection).trim();
+        const range = editor.document.getWordRangeAtPosition(editor.selection.active, /[A-Za-z0-9_][A-Za-z0-9_.\-]*/);
+        word = selected && !/\s/.test(selected) ? selected : range ? editor.document.getText(range) : '';
+      }
+      return word ? p.search(word) : p.show();
+    })),
     vscode.workspace.onDidGrantWorkspaceTrust(() => { if (findRoot() !== null && (hasVow(findRoot()) || pendingView)) start(); void openPendingInit(); }),
   );
   const openPendingInit = async (): Promise<void> => {

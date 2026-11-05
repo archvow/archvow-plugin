@@ -1,0 +1,38 @@
+{
+ "passing.en": {
+  "result": "passing",
+  "mark": "✔",
+  "tone": "good",
+  "text": "passing"
+ },
+ "failing.en": {
+  "result": "failing",
+  "mark": "✖",
+  "tone": "bad",
+  "text": "failing - invoices/F-7.json: 2 lines differ; stdout.txt: 2 lines differ"
+ },
+ "no-test.en": {
+  "result": "no_test",
+  "mark": "○",
+  "tone": "warn",
+  "text": "no marked test yet (ARCH056)"
+ },
+ "passing.fr": {
+  "result": "passing",
+  "mark": "✔",
+  "tone": "good",
+  "text": "réussi"
+ },
+ "failing.fr": {
+  "result": "failing",
+  "mark": "✖",
+  "tone": "bad",
+  "text": "en échec - invoices/F-7.json : 2 lignes diffèrent; stdout.txt : 2 lignes diffèrent"
+ },
+ "no-test.fr": {
+  "result": "no_test",
+  "mark": "○",
+  "tone": "warn",
+  "text": "pas encore de test marqué (ARCH056)"
+ }
+}

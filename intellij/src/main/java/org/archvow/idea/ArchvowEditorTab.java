@@ -67,6 +67,12 @@ final class ArchvowEditorTab extends LightVirtualFile {
         if (panel != null) panel.showCommand(name, initial);
     }
 
+    /** archvow show <name> --json in the editor tab (0.18.0): from the find field and "Find in Archvow Project". */
+    static void showSearch(Project project, String name) {
+        ArchvowPanel panel = panel(project);
+        if (panel != null) panel.showSearch(name);
+    }
+
     static void showChecks(Project project, int index) {
         ArchvowPanel panel = panel(project);
         if (panel != null) panel.openDiagnosticDetails(index);

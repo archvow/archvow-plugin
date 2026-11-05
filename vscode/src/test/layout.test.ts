@@ -73,9 +73,9 @@ test('a component shows what it uses and what uses it (show --json `uses`, `used
 test('"Show archvow for this file" on an editor tab and in the editor: archvow show <file>:<line>', () => {
   const commands = manifest.contributes.commands.map((c: { command: string }) => c.command);
   assert.ok(commands.includes('archvow.showFile'));
-  for (const where of ['editor/title/context', 'editor/context']) {
-    assert.deepEqual(manifest.contributes.menus[where].map((m: { command: string }) => m.command), ['archvow.showFile']);
-  }
+  assert.deepEqual(manifest.contributes.menus['editor/title/context'].map((m: { command: string }) => m.command), ['archvow.showFile']);
+  // 0.18.0: in the editor, "Find in archvow project" (archvow show <name>) under it
+  assert.deepEqual(manifest.contributes.menus['editor/context'].map((m: { command: string }) => m.command), ['archvow.showFile', 'archvow.findName']);
   const extension = fs.readFileSync(path.join(ROOT, 'src', 'extension.ts'), 'utf8');
   assert.match(extension, /registerCommand\('archvow\.showFile'/);
   assert.match(host, /\['show', line > 0 \? `\$\{relative\}:\$\{line\}` : relative, '--json'\]/);
@@ -84,18 +84,23 @@ test('"Show archvow for this file" on an editor tab and in the editor: archvow s
 test('a component shows its business examples (show --json `examples`): tested and unchanged, or what is missing', () => {
   const source = page.match(/function examples\(view\) \{[\s\S]*?\n  \}/);
   assert.ok(source, 'examples() is in the page');
+  const state = page.match(/function exampleState\(e\) \{[\s\S]*?\n  \}/);
+  assert.ok(state, 'exampleState() is in the page');
   const esc = (x: string) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   const list = (o: Record<string, unknown>, k: string) => (Array.isArray(o[k]) ? (o[k] as unknown[]) : []);
   const str = (o: Record<string, unknown>, k: string) => (o[k] === undefined || o[k] === null ? '' : String(o[k]));
-  const examples = new Function('t', 'esc', 'list', 'str', `${source[0]}; return examples;`)((en: string) => en, esc, list, str);
+  const examples = new Function('t', 'esc', 'list', 'str', `${state[0]}; ${source[0]}; return examples;`)((en: string) => en, esc, list, str);
   const folder = 'tests/examples/clean_orders/SALES-5-negative';
+  // archvow 1.21: each example's state is its test's own verdict (result)
   const html = examples({ examples: [
-    { name: 'SALES-5-negative', ticket: 'SALES-5', level: 'unit', folder, tested: true, unchanged: true },
-    { name: 'SALES-6-empty', level: 'unit', folder, tested: false, unchanged: true },
-    { name: 'SALES-7-late', level: 'integration', folder, tested: true, unchanged: false }] });
-  assert.match(html, /<span class="ok" title="[^"]*· unit · tested">✓ SALES-5-negative \(SALES-5\)<\/span>/);
-  assert.match(html, /<span class="tone-warn" title="[^"]*no marked test yet \(ARCH056\)">✖ SALES-6-empty<\/span>/);
+    { name: 'SALES-5-negative', ticket: 'SALES-5', level: 'unit', folder, tested: true, unchanged: true, result: 'passing' },
+    { name: 'SALES-6-empty', level: 'unit', folder, tested: false, unchanged: true, result: 'no_test' },
+    { name: 'SALES-7-late', level: 'integration', folder, tested: true, unchanged: false, result: 'passing' },
+    { name: 'SALES-8-wrong', level: 'unit', folder, tested: true, unchanged: true, result: 'failing', files: [] }] });
+  assert.match(html, /<span class="ok" title="[^"]*· unit · passing">✔ SALES-5-negative \(SALES-5\)<\/span>/);
+  assert.match(html, /<span class="tone-warn" title="[^"]*no marked test yet \(ARCH056\)">○ SALES-6-empty<\/span>/);
   assert.match(html, /files changed since recorded \(ARCH055\)">✖ SALES-7-late/);
+  assert.match(html, /<span class="tone-bad" title="[^"]*· failing">✖ SALES-8-wrong<\/span>/);
   assert.equal(examples({ examples: [] }), '');
   assert.match(page, /\$\{links\(view\)\}\$\{examples\(view\)\}/);
 });
@@ -180,27 +185,32 @@ test('the editor tab goes back to the component a command was opened from (0.11.
 test('a component shows its progress in one bar (show --json), as IntelliJ\'s ArchvowProgress does', () => {
   const source = page.match(/function progress\(view\) \{[\s\S]*?\n  \}/);
   const bar = page.match(/function progressBar\(view\) \{[\s\S]*?\n  \}/);
-  assert.ok(source && bar, 'progress() and progressBar() are in the page');
+  const state = page.match(/function exampleState\(e\) \{[\s\S]*?\n  \}/);
+  assert.ok(source && bar && state, 'progress(), progressBar() and exampleState() are in the page');
   const esc = (x: string) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   const list = (o: Record<string, unknown>, k: string) => (Array.isArray(o[k]) ? (o[k] as unknown[]) : []);
-  const [progress, progressBar] = new Function('t', 'esc', 'list', `${source[0]}; ${bar[0]}; return [progress, progressBar];`)(
-    (en: string) => en, esc, list);
+  const str = (o: Record<string, unknown>, k: string) => (o[k] === undefined || o[k] === null ? '' : String(o[k]));
+  const [progress, progressBar] = new Function('t', 'esc', 'list', 'str', `${state[0]}; ${source[0]}; ${bar[0]}; return [progress, progressBar];`)(
+    (en: string) => en, esc, list, str);
   const cli = path.resolve(ROOT, '..', 'contract', 'cli', 'pyspark-pipeline', 'show');
   const view = JSON.parse(fs.readFileSync(path.join(cli, 'clean_orders.json'), 'utf8'));
   const parts = progress(view).map((p: { key: string; done: number; total: number; complete: boolean }) => [p.key, p.done, p.total, p.complete]);
   assert.deepEqual(parts, [
     ['decisions', 9, 9, true],
     ['safety', 1, 5, false],
-    ['tasks', 0, 2, false],
+    ['tasks', 0, 3, false],
+    ['examples', 0, 2, false],  // archvow 1.21: the shipped project's two examples, no test yet
   ]);
   const html = progressBar(view);
-  assert.match(html, /title="Decisions made: 9\/9 · Safety answered: 1\/5 · Tasks done: 0\/2"/);
+  assert.match(html, /title="Decisions made: 9\/9 · Safety answered: 1\/5 · Tasks done: 0\/3 · Examples passing: 0\/2"/);
   assert.match(html, /progress-part complete" data-part="decisions"[\s\S]*progress-fill p100/);
   assert.match(html, /progress-part partial" data-part="safety"[\s\S]*?progress-fill p20"/);
   // examples count when the component has some; a part with nothing to count is left out
+  // archvow 1.21: an example counts once its test passes (the test's verdict, result), files unchanged
   const examples = progress({ decisions: [{ answer: null }, { answer: 'yes' }], safety: [], examples: [
-    { name: 'a', tested: true, unchanged: true }, { name: 'b', tested: true, unchanged: false }, { name: 'c', tested: false }] });
-  assert.deepEqual(examples.map((p: { key: string; done: number; total: number }) => [p.key, p.done, p.total]), [['decisions', 1, 2], ['examples', 1, 3]]);
+    { name: 'a', tested: true, unchanged: true, result: 'passing' }, { name: 'b', tested: true, unchanged: false, result: 'passing' },
+    { name: 'd', tested: true, unchanged: true, result: 'failing' }, { name: 'c', tested: false }] });
+  assert.deepEqual(examples.map((p: { key: string; done: number; total: number }) => [p.key, p.done, p.total]), [['decisions', 1, 2], ['examples', 1, 4]]);
   assert.match(progressBar({ decisions: [{ answer: null }, { answer: 'a' }] }), /p50/);
   assert.match(progressBar({ tasks: Array.from({ length: 20 }, (_, i) => ({ done: i > 0 })) }), /partial[\s\S]*p90/);
   assert.equal(progressBar({}), '');

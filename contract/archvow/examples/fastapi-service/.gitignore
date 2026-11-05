@@ -1,5 +1,5 @@
 # archvow: local status report, depends on the code (regenerate: archvow docs)
-.archvow/status/
+.archvow/status.md
 
 # Secrets: settings come from the environment, never from a committed file
 .env
@@ -14,6 +14,7 @@ build/
 dist/
 .coverage
 coverage.xml
+test-results.xml
 htmlcov/
 
 # Tool caches
@@ -27,10 +28,8 @@ htmlcov/
 .idea/
 .vscode/
 
-# --- added by archvow init ---
-# archvow: local status report, depends on the code (regenerate: archvow docs)
-.archvow/status.md
-
-# --- added by archvow init ---
 # archvow: how each AI agent last ran here, for the commit check (local)
 .archvow/*.local
+
+# archvow: what each business example's test really gave at its last run (local)
+tests/examples/*/*/actual/

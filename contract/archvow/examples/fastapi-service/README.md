@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `fastapi-service@1.20.0`).
+(template `fastapi-service@1.21.0`).
 
 ## For developers
 
@@ -259,6 +259,8 @@ make run                                             # http://127.0.0.1:8000/doc
 | add a rule for every component of a type | `archvow rule add --type model "Given an unknown field, when it is parsed, then it is refused"` |
 | dismiss a safety question that does not apply | `archvow hazard dismiss order_model S2 "orders hold no personal data"` |
 | see everything about a component | `archvow show order_model` |
+| record a business example (files in `tests/examples/orders_router/<example>/`) | `archvow example add orders_router US-001-another-customers-order -s US-001 --from briefs/<brief>.md#<section>`; `archvow show orders_router` gives its test's verdict and where `actual/` differs from `expected/` |
+| find a name everywhere (a function, a column, a ticket, an example) | `archvow show <name>`: the spec, the code, the tests, the briefs, the problems naming it |
 | answer what is open, one question at a time | `archvow specify order_model` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/archvow-analyze order_model` |
 | build a big component one task at a time | `archvow show orders_router` lists its tasks T1, T2...; `archvow prompt orders_router` gives the next one; mark each test: `@pytest.mark.decision(3)` |

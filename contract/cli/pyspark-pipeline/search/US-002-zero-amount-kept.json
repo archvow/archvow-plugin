@@ -1,0 +1,36 @@
+{
+  "name": "US-002-zero-amount-kept",
+  "summary": "a business example of clean_orders",
+  "total": 2,
+  "groups": [
+    {
+      "group": "spec",
+      "title": "Spec",
+      "hits": [
+        {
+          "group": "spec",
+          "file": ".archvow/components/clean_orders/spec.vow",
+          "line": 85,
+          "component": "clean_orders",
+          "part": "example US-002-zero-amount-kept",
+          "text": "example US-002-zero-amount-kept"
+        }
+      ]
+    },
+    {
+      "group": "examples",
+      "title": "Examples",
+      "hits": [
+        {
+          "group": "examples",
+          "file": "tests/examples/clean_orders/US-002-zero-amount-kept/",
+          "line": 0,
+          "component": "clean_orders",
+          "part": "example",
+          "text": "the folder of example US-002-zero-amount-kept"
+        }
+      ]
+    }
+  ],
+  "close": []
+}

@@ -1,0 +1,127 @@
+{
+  "name": "US-001",
+  "summary": "the ticket of invoice_model",
+  "total": 12,
+  "groups": [
+    {
+      "group": "spec",
+      "title": "Spec",
+      "hits": [
+        {
+          "group": "spec",
+          "file": ".archvow/components/invoice_model/spec.vow",
+          "line": 8,
+          "component": "invoice_model",
+          "part": "ticket",
+          "text": "ticket US-001"
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/components/invoice_not_found_error/spec.vow",
+          "line": 8,
+          "component": "invoice_not_found_error",
+          "part": "ticket",
+          "text": "ticket US-001"
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/components/invoices_cli/spec.vow",
+          "line": 8,
+          "component": "invoices_cli",
+          "part": "ticket",
+          "text": "ticket US-001"
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/components/invoices_cli/spec.vow",
+          "line": 40,
+          "component": "invoices_cli",
+          "part": "example US-001-pay-a-sent-invoice ticket",
+          "text": "ticket US-001"
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/components/invoices_repository/spec.vow",
+          "line": 8,
+          "component": "invoices_repository",
+          "part": "ticket",
+          "text": "ticket US-001"
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/components/mark_paid/spec.vow",
+          "line": 8,
+          "component": "mark_paid",
+          "part": "ticket",
+          "text": "ticket US-001"
+        }
+      ]
+    },
+    {
+      "group": "code",
+      "title": "Code",
+      "hits": [
+        {
+          "group": "code",
+          "file": "src/invoicing/p1_domain/invoice_model.py",
+          "line": 4,
+          "component": "invoice_model",
+          "part": "used",
+          "text": "@spec       US-001",
+          "what": "text"
+        },
+        {
+          "group": "code",
+          "file": "src/invoicing/p1_domain/invoice_not_found_error.py",
+          "line": 4,
+          "component": "invoice_not_found_error",
+          "part": "used",
+          "text": "@spec       US-001",
+          "what": "text"
+        },
+        {
+          "group": "code",
+          "file": "src/invoicing/p2_io/invoices_repository.py",
+          "line": 4,
+          "component": "invoices_repository",
+          "part": "used",
+          "text": "@spec       US-001",
+          "what": "text"
+        },
+        {
+          "group": "code",
+          "file": "src/invoicing/p3_services/mark_paid.py",
+          "line": 4,
+          "component": "mark_paid",
+          "part": "used",
+          "text": "@spec       US-001",
+          "what": "text"
+        },
+        {
+          "group": "code",
+          "file": "src/invoicing/p4_entrypoints/invoices_cli.py",
+          "line": 4,
+          "component": "invoices_cli",
+          "part": "used",
+          "text": "@spec       US-001",
+          "what": "text"
+        }
+      ]
+    },
+    {
+      "group": "briefs",
+      "title": "Briefs",
+      "hits": [
+        {
+          "group": "briefs",
+          "file": "briefs/invoices.md",
+          "line": 1,
+          "component": "",
+          "part": "#invoices-us-001",
+          "text": "# Invoices (US-001)"
+        }
+      ]
+    }
+  ],
+  "close": []
+}

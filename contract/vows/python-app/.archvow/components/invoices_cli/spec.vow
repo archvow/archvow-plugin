@@ -35,6 +35,17 @@ decision 3
 
 assumptions []
 
+# --- examples
+example US-001-pay-a-sent-invoice
+  ticket US-001
+  source
+    file briefs/invoices.md
+    section paying-a-sent-invoice
+    hash 9652dc816ffb
+  fingerprint d1fe7f61cfa6
+  by architect@example.com
+  on 2026-11-05T12:00:00+00:00
+
 # --- not applicable
 not_applicable wrong
   because "argparse refuses bad arguments with exit code 2 (decision 1)"

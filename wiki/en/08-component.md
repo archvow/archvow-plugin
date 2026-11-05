@@ -16,7 +16,7 @@ next to them. Everything it shows comes from `archvow show <component> --json` (
 │ Keep the rows where amount > 0 ...                                         │
 │ Uses: sales_schema · Used by: revenue_writer    Examples: ✓ ...            │
 │ [Clarify] Open code  Edit spec  ...                                        │  actions
-│ (Decisions · 1) (Questions) (Safety ✓) (Assumptions) (Rules) (Tasks) ...   │  views
+│ (Decisions · 1) (Questions) (Safety ✓) (Assumptions) (Rules) (Examples) ... │  views
 ├──────────────────────────────────┬────────────────────────────────────────┤
 │ 1 · Which rows does it keep…     │ ANSWER DECISION 3                      │
 │     amount > 0                   │ Missing header: infer or fail?         │
@@ -30,12 +30,12 @@ next to them. Everything it shows comes from `archvow show <component> --json` (
 
 **The header**: the name and the number of open items (the same as the sidebar), then *type · layer ·
 module · ticket · state*, **one progress bar** (decisions made, safety answered, tasks done, examples
-tested - each only when there is something to count -, green when complete, amber otherwise, the counts
+passing - each only when there is something to count -, green when complete, amber otherwise, the counts
 in the tooltip: `ArchvowProgress`, `progress()` and `progressBar()`), the description, **Drawn from**
 the brief it comes from (show `source`; a link that opens the brief at its heading: `ArchvowBriefs.drawnFromHtml`,
 `drawnFrom()`), *Uses · Used by* (each name opens that component: what a
-change may break, `ArchvowLinks`, `links()`) and the business examples (✓ tested and unchanged, ✖ with
-the reason, ARCH055/ARCH056). IntelliJ: `buildComponentHtml` in the `componentDetails` panel;
+change may break, `ArchvowLinks`, `links()`) and the business examples (✓ passing, ✖ failing or changed,
+○ no test: what the test's last run said, ARCH055/ARCH056). IntelliJ: `buildComponentHtml` in the `componentDetails` panel;
 VS Code: `componentDetail()`, `openBadge()`, `meta()`.
 
 **The actions**: Clarify (goes to the first open item: decision, then question, then safety question;
@@ -45,7 +45,7 @@ VS Code: `componentDetail()`, `openBadge()`, `meta()`.
 review** in the tree and its head until a person runs `component accept` (`aiBadge()`, `createdByAi()`,
 `buildComponentHtml`, `aiAcceptButton`).
 
-**The views**: Decisions, Questions, Safety, Assumptions, Rules, Tasks, Spec, Other / Project.
+**The views**: Decisions, Questions, Safety, Assumptions, Rules, Examples, Tasks, Spec, Other / Project.
 Each button says `· n` pending items, or ✓ when everything is resolved (`refreshViewStatus`,
 `viewCounts()`). Under the views, a line explains why the component's total may exceed the view
 ("9 pending · 0 in Data & tasks · 4 in Other / Project").
@@ -151,7 +151,27 @@ later, Remove question and Undo are links (`button.link`, `ArchvowSplitView.link
 
 The menus (✦ AI ▾, + Add ▾, Save ▾) are `ArchvowMenu` rows in IntelliJ (0.17.1): a heading, a line between the groups, the row under the mouse highlighted, a step that cannot run yet greyed with why, the suggested one tinted. The strip's button keeps its size and goes under the text when the strip is narrower than 720 px (`STRIP_SIDE_BY_SIDE`).
 
-Since 0.17.2, no "Suggested next" strip: the actions are, in this order, **✦ AI ▾** (**✦ AI spec ▾** in IntelliJ since 0.17.3; the one filled button; its menu marks the suggested step), **+ Add ▾**, **Edit spec**, **Open code**; **Save as a proposal** is a real button beside Save answer.
+Since 0.17.2, no "Suggested next" strip: the actions are, in this order, **✦ AI ▾** (**✦ AI spec ▾** in IntelliJ, **✦ Spec IA ▾** in French; the one filled button; its menu marks the suggested step), **+ Add ▾**, **Edit spec**, **Open code**; **Save as a proposal** is a real button beside Save answer.
+
+## The examples (0.18.0)
+
+The **Examples** view (view 8, placed after Rules: `VIEW_ORDER` in VS Code, `ArchvowCompactViews.addView(button, 5)`
+in IntelliJ) shows archvow 1.21's business examples. Its button says "Examples 2 · 1 ✖" (`exampleCounts()`,
+`ArchvowExamples.label`); a failing example adds "1 example failing" to the header (`failingBadge()`).
+
+- **The state comes from the test, never from the plugin**: `result` from `show --json` (passing, failing, not_run,
+  no_test), read by `exampleState()` and `ArchvowExamples.state`; both say exactly the same
+  (`contract/forms/examples.expected.json`).
+- **The cards are grouped by rule** (the scenario's `Rule:` line: `exampleGroups()`, `ArchvowExamples.groups`);
+  the first failing one is selected.
+- **The detail** (`exampleDetail()`, `ArchvowExamples.detailHtml`): each expected file beside what the test wrote
+  to `actual/`, missing (−) and extra (+) lines marked, and for a table the changed cells (`exampleDiff()`,
+  `ArchvowExamples.fileHtml`). Under the detail: "Fix the code, not the example", the brief the example comes
+  from, Open test (from `evidence`) and Copy command to record the example again.
+- No test yet: only `expected/`, and what to ask the AI. No example: the `example add` form.
+
+IntelliJ: `ArchvowExamples` (no IDE API, tested without an IDE) and `ArchvowExamplesView` (the view); VS Code:
+`examplesView()` in `media/workspace.js`.
 
 ## Saving an answer, end to end
 

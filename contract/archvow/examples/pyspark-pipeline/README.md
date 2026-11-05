@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `pyspark-pipeline@1.20.0`).
+[archvow](.archvow/README.md) (template `pyspark-pipeline@1.21.0`).
 
 ## For developers
 
@@ -271,6 +271,8 @@ SPARK_MASTER="local[*]" ./entrypoint.sh my_pipeline <its arguments>   # that lin
 | let the AI find what is unclear | `archvow prompt clean_sales --clarify` (in the chat: `/archvow-clarify clean_sales`) |
 | dismiss a safety question that does not apply | `archvow hazard dismiss sales_reader S4 "the job reads only the file it is given"` |
 | see everything about a component | `archvow show sales_reader` |
+| record a business example (files in `tests/examples/clean_sales/<example>/`) | `archvow example add clean_sales US-001-negative-amount -s US-001 --from briefs/<brief>.md#<section>`; `archvow show clean_sales` gives its test's verdict and where `actual/` differs from `expected/` |
+| find a name everywhere (a function, a column, a ticket, an example) | `archvow show <name>`: the spec, the code, the tests, the briefs, the problems naming it |
 | answer what is open, one question at a time | `archvow specify sales_reader` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/archvow-analyze sales_reader` |
 | build a big component one task at a time | `archvow show clean_sales` lists its tasks T1, T2...; `archvow prompt clean_sales` gives the next one; mark each test: `@pytest.mark.decision(3)` |

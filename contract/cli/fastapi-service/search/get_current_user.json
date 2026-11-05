@@ -1,0 +1,85 @@
+{
+  "component": "get_current_user",
+  "type": "dependency",
+  "layer": "p0_common",
+  "known_columns": [],
+  "description": "The authenticated customer's id, from the X-Customer header",
+  "uses": [],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p0_common/test_get_current_user.py::test_the_header_gives_the_customer"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p0_common/test_get_current_user.py::test_a_missing_header_is_401"
+      ]
+    }
+  ],
+  "examples": [],
+  "rule_texts": {},
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "What does it provide, and for how long (one request, the whole app)?",
+      "answer": "The customer id (str) from the X-Customer header, for one request",
+      "template": false,
+      "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end?",
+      "answer": "Header missing or empty: 401 Unauthorized",
+      "template": false,
+      "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-10-09",
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+      "status": "answered",
+      "dismissed": "Reads a request header only: it calls nothing that can be down"
+    },
+    {
+      "number": 2,
+      "guide_word": "exposed",
+      "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+        "invariant": "a user only reads and changes their own data, and secrets never appear in a response or a log"
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": [],
+  "to_review": []
+}

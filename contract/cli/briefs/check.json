@@ -13,7 +13,7 @@
       "title": "A brief changed after the spec was drawn from it",
       "guide": {
         "language": "en",
-        "meaning": "a brief section changed (or disappeared) after components, questions or rules were drawn from it with `--from`",
+        "meaning": "a brief section changed (or disappeared) after components, questions, rules or business examples were drawn from it with `--from`",
         "fix": "review what the message names, then `archvow brief accept <brief>#<section>`",
         "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
         "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",

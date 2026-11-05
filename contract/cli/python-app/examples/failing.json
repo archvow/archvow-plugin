@@ -1,0 +1,202 @@
+{
+  "component": "invoices_cli",
+  "type": "cli",
+  "layer": "p4_entrypoints",
+  "known_columns": [],
+  "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
+  "uses": [
+    "mark_paid",
+    "invoice_not_found_error"
+  ],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": [
+        "tests/p4_entrypoints/test_invoices_cli.py::test_bad_arguments_exit_with_2"
+      ]
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": [
+        "tests/p4_entrypoints/test_invoices_cli.py::test_exit_codes"
+      ]
+    },
+    {
+      "item": "decision 3",
+      "kind": "decision",
+      "key": "3",
+      "tests": [
+        "tests/p4_entrypoints/test_invoices_cli.py::test_the_invoice_on_stdout_errors_on_stderr"
+      ]
+    },
+    {
+      "item": "example US-001-pay-a-sent-invoice",
+      "kind": "example",
+      "key": "US-001-PAY-A-SENT-INVOICE",
+      "tests": [
+        "tests/p4_entrypoints/test_invoices_cli.py::test_example_pay_a_sent_invoice"
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "name": "US-001-pay-a-sent-invoice",
+      "ticket": "US-001",
+      "source": {
+        "file": "briefs/invoices.md",
+        "section": "paying-a-sent-invoice",
+        "hash": "9652dc816ffb"
+      },
+      "level": "unit",
+      "folder": "tests/examples/invoices_cli/US-001-pay-a-sent-invoice",
+      "tested": true,
+      "unchanged": true,
+      "result": "failing",
+      "run_on": "2026-11-05 18:34",
+      "actual": true,
+      "actual_on": "2026-11-05 18:34",
+      "files": [
+        {
+          "name": "invoices/F-7.json",
+          "kind": "document",
+          "state": "differs",
+          "differences": 2,
+          "rows": [
+            {
+              "op": "same",
+              "expected": "{",
+              "actual": "{"
+            },
+            {
+              "op": "same",
+              "expected": "  \"amount\": \"9.90\",",
+              "actual": "  \"amount\": \"9.90\","
+            },
+            {
+              "op": "same",
+              "expected": "  \"customer\": \"Ada\",",
+              "actual": "  \"customer\": \"Ada\","
+            },
+            {
+              "op": "same",
+              "expected": "  \"number\": \"F-7\",",
+              "actual": "  \"number\": \"F-7\","
+            },
+            {
+              "op": "missing",
+              "expected": "  \"status\": \"paid\"",
+              "actual": null
+            },
+            {
+              "op": "extra",
+              "expected": null,
+              "actual": "  \"status\": \"sent\""
+            },
+            {
+              "op": "same",
+              "expected": "}",
+              "actual": "}"
+            }
+          ]
+        },
+        {
+          "name": "stdout.txt",
+          "kind": "text",
+          "state": "differs",
+          "differences": 2,
+          "rows": [
+            {
+              "op": "missing",
+              "expected": "F-7 Ada 9.90 paid",
+              "actual": null
+            },
+            {
+              "op": "extra",
+              "expected": null,
+              "actual": "F-7 Ada 9.90 sent"
+            }
+          ]
+        }
+      ],
+      "scenario": "Feature: pay an invoice\n  Scenario: a sent invoice is marked paid\n    Given the sent invoice F-7 of Ada for 9.90\n    When the finance team runs invoices pay F-7\n    Then it prints \"F-7 Ada 9.90 paid\" and F-7 is saved paid",
+      "by": "architect@example.com",
+      "on": "2026-11-05"
+    }
+  ],
+  "rule_texts": {},
+  "status": "tested",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?",
+      "answer": "Exit code 2 with the usage message (argparse)",
+      "template": true,
+      "suggested": "Exit code 2 with the usage message (argparse)",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?",
+      "answer": "0 ok, 1 error, 2 bad arguments, 3 not found",
+      "template": true,
+      "suggested": "0 ok, 1 error, 2 bad arguments",
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?",
+      "answer": "The invoice on one line on stdout; errors on stderr",
+      "template": true,
+      "suggested": null,
+      "by": "noreply@anthropic.com",
+      "on": "2026-10-21",
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {
+      "customer": "personal"
+    },
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "wrong",
+      "question": "Wrong input (invalid values, out of range, a wrong format): what must never happen?",
+      "status": "answered",
+      "dismissed": "argparse refuses bad arguments with exit code 2 (decision 1)"
+    },
+    {
+      "number": 2,
+      "guide_word": "exposed",
+      "question": "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?",
+      "status": "answered",
+      "dismissed": "It prints only the invoice the user asked for, to that user"
+    }
+  ],
+  "assumptions": [],
+  "tasks": [],
+  "run": {
+    "component": "invoices_cli",
+    "ready": true,
+    "line": "Try it locally: python -m invoicing.p4_entrypoints.invoices_cli --data-dir <data_dir> --help"
+  },
+  "to_review": []
+}

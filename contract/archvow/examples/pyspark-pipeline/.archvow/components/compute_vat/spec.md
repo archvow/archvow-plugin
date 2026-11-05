@@ -10,7 +10,7 @@ This card is cut into 3 tasks: implement one at a time, in order; after each one
 
 - **T1** the file and its public API, decisions 1-4
 - **T2** decisions 5-9, rule R1
-- **T3** compute_vat.INV1
+- **T3** example US-002-vat-20, compute_vat.INV1
 
 ## Must never happen
 
@@ -61,6 +61,37 @@ Start the file with this docstring. Fill in the `<...>` values: the person respo
 
 - **R1** vat is rounded half-up to 2 decimals
 
+## Examples (reproduce exactly)
+
+Given by the business team. For each one, a test reads `input/`, runs the component and compares what it gives with `expected/`. Never change these files: archvow compares them with the ones a person recorded (ARCH055); an example that looks wrong is a question for a person.
+
+The test also writes what the component gave to `actual/`, with the same file names and format as `expected/` (not locked, not committed): people see where it differs. Open every file with `encoding="utf-8"` (and `newline=""` for CSV) and compare what you read (rows, JSON objects), not bytes. Write each example's test before the code it checks: it fails until the code exists, and is never changed to pass.
+
+- **US-002-vat-20** (US-002) - rule compute_vat.INV1: `tests/examples/compute_vat/US-002-vat-20/` - its test is marked `@pytest.mark.example("US-002-vat-20")`
+
+  ```gherkin
+  Feature: compute the VAT
+    Rule: compute_vat.INV1
+      Scenario: the VAT is 20 % of the amount
+        Given the orders A1 (12.50) and A3 (0.00)
+        When compute_vat runs
+        Then A1 has a vat of 2.50 and A3 a vat of 0.00
+  ```
+
+  `input/orders.csv`
+
+  | order_id | customer_id | amount | order_date |
+  |---|---|---|---|
+  | A1 | C1 | 12.50 | 2026-10-01 |
+  | A3 | C1 | 0.00 | 2026-10-01 |
+
+  `expected/orders.csv`
+
+  | order_id | customer_id | amount | order_date | vat |
+  |---|---|---|---|---|
+  | A1 | C1 | 12.50 | 2026-10-01 | 2.50 |
+  | A3 | C1 | 0.00 | 2026-10-01 | 0.00 |
+
 ## Decisions made (implement exactly, do not reinterpret)
 
 1. Which rows does it keep (filter conditions), or all of them?
@@ -93,5 +124,6 @@ Anything this spec does not define is not yours to decide. Ask before coding. If
 - `ruff format .` run, then `ruff check .` and `pytest` pass.
 - Every invariant above is tested.
 - The tests of the components that use it still pass.
+- Every example above has its marked test, and its files are the ones recorded.
 - You did not edit `.archvow/`, `AGENTS.md`, `ruff.toml`, CI files or other components' tests, and added no `# noqa` / `# type: ignore` / suppressions.
 - Working code that breaks these rules is not done.

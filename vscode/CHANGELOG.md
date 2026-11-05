@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.18.0 - 2026-11-05
+
+Built on archvow 1.21 (contract regenerated from the 1.21.0 wheel).
+
+- **The Examples view**, after Rules, when the component has business examples ("Examples 4 · 1 ✖"): the examples
+  as cards grouped by the rule they show (the scenario's `Rule:`), each with its test's own verdict - ✔ passing,
+  ✖ failing, ○ no test yet, · not run (`show --json` `result`; the test decides, archvow shows); the selected one
+  right: its rule, its brief (a link), its scenario, then each output file expected/ | actual/ side by side by
+  kind - a table (CSV, TSV, JSON Lines) row by row with the changed cells marked, a document (JSON, YAML) or a text
+  line by line: + only in actual, − only in expected, ~ changed. Open expected/, actual/ or the test; a failing
+  example says "Fix the code, not the example" and copies the `archvow example add` a person runs when the
+  business team changes its mind. A component with failing examples says so next to its name. The progress bar
+  counts the passing examples.
+- **Find in the project**: a field at the top of the sidebar (Enter) and "Find in archvow project" on the word
+  under the caret (editor menu) run `archvow show <name> --json`; the editor tab shows where the name is - groups
+  with counts (a click filters), the places, the selected one's lines - with Open at line N, Show <component>
+  and, for a problem, its rule. A name found nowhere gives its close names, a click searches them.
+- `example add` takes `--from` (the brief chooser, as the other commands that take a brief).
+- **Initialize Archvow in a folder…** (`archvow.initialize`): from the sidebar when no folder is open, it picks a new
+  or existing folder, opens it and starts the `init` form there; in an open folder it opens the form. The form says
+  which main files `init` writes (updated with `--force`) and that no source folder is created.
+- The base field and the `--base` / `changes` choices say what each Git ref is: local branch, remote branch
+  (fetched), tag (`refKinds()`, from Git's full ref names).
+- Fixed: a view's test file was never found from show --json `evidence` (list() kept objects only).
+- Fixed for archvow 1.21: `show <name> --json` on a name that is no longer a component (removed, renamed) gives a
+  search result; it is no longer stored as that component's view (`componentView()`). A failing example's head is red.
+
 ## 0.17.4 - 2026-11-05
 
 Built on archvow 1.20 (contract unchanged). IntelliJ only (VS Code unchanged but for the version): the Components

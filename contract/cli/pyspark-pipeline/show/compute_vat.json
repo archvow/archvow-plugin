@@ -74,9 +74,47 @@
       "kind": "invariant",
       "key": "COMPUTE_VAT.INV1",
       "tests": []
+    },
+    {
+      "item": "example US-002-vat-20",
+      "kind": "example",
+      "key": "US-002-VAT-20",
+      "tests": []
     }
   ],
-  "examples": [],
+  "examples": [
+    {
+      "name": "US-002-vat-20",
+      "ticket": "US-002",
+      "rule": "compute_vat.INV1",
+      "source": {
+        "file": "briefs/orders.md",
+        "section": "vat",
+        "hash": "7cd02699bae2"
+      },
+      "level": "unit",
+      "folder": "tests/examples/compute_vat/US-002-vat-20",
+      "tested": false,
+      "unchanged": true,
+      "result": "no_test",
+      "actual": false,
+      "files": [
+        {
+          "name": "orders.csv",
+          "kind": "table",
+          "state": "no_actual",
+          "differences": 0,
+          "rows": []
+        }
+      ],
+      "scenario": "Feature: compute the VAT\n  Rule: compute_vat.INV1\n    Scenario: the VAT is 20 % of the amount\n      Given the orders A1 (12.50) and A3 (0.00)\n      When compute_vat runs\n      Then A1 has a vat of 2.50 and A3 a vat of 0.00",
+      "by": "architect@example.com",
+      "on": "2026-11-05"
+    }
+  ],
+  "rule_texts": {
+    "compute_vat.INV1": "vat = amount * 0.2 for every row"
+  },
   "status": "planned",
   "decisions": [
     {
@@ -357,6 +395,13 @@
       "done": false,
       "items": [
         {
+          "kind": "example",
+          "key": "US-002-vat-20",
+          "text": "US-002",
+          "answer": null,
+          "done": false
+        },
+        {
           "kind": "invariant",
           "key": "compute_vat.INV1",
           "text": "vat = amount * 0.2 for every row",
@@ -364,7 +409,7 @@
           "done": false
         }
       ],
-      "summary": "compute_vat.INV1"
+      "summary": "example US-002-vat-20, compute_vat.INV1"
     }
   ],
   "to_review": []

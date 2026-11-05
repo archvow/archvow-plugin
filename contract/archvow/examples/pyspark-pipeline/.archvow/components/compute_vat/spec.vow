@@ -71,6 +71,18 @@ decision 9
 
 assumptions []
 
+# --- examples
+example US-002-vat-20
+  ticket US-002
+  rule compute_vat.INV1
+  source
+    file briefs/orders.md
+    section vat
+    hash 7cd02699bae2
+  fingerprint e46d7bdbc884
+  by architect@example.com
+  on 2026-11-05T12:00:00+00:00
+
 # --- hazards
 hazard H1
   guide_word wrong

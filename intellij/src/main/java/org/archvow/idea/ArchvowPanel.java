@@ -147,6 +147,12 @@ final class ArchvowPanel extends JPanel {
     private JPanel detailHomeCards;
     private final CardLayout detailHomeLayout = new CardLayout();
     private String detailHomeMode = "result";
+    /** 0.18.0: the search (archvow show <name> --json) in the editor tab, the name searched, the tool window's
+     *  find field, and the component's Examples view (view 8, shown right after Rules). */
+    private ArchvowSearchView searchView;
+    private String searchName = "";
+    private final JTextField findField = new JTextField();
+    private ArchvowExamplesView examplesView;
     private JPanel quickSelectionArea;
     private final CardLayout rootLayout = new CardLayout();
     private final JPanel rootCards = new JPanel(rootLayout);
@@ -404,7 +410,7 @@ final class ArchvowPanel extends JPanel {
         setPreferredSize(new Dimension(640, 600));
         setMinimumSize(new Dimension(240, 300));
         loadSettingsUiState();
-        add(buildHeader(), BorderLayout.NORTH);
+        add(role == Role.NAVIGATION ? withFindField(buildHeader()) : buildHeader(), BorderLayout.NORTH);
         buildTabs();
         rootCards.add(tabs, "workspace");
         rootCards.add(buildWelcomeView(), "welcome");
@@ -706,6 +712,13 @@ final class ArchvowPanel extends JPanel {
                 ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations")), BorderLayout.CENTER);
             detailHomeCards.add(resultPane, "result");
             detailHomeCards.add(checksPane, "checks");
+            searchView = new ArchvowSearchView(new ArchvowSearchView.Actions() {
+                @Override public void openFile(String relative, int line) { openViolationFile(relative, line); }
+                @Override public void showComponent(String id) { ArchvowPanel.this.showComponent(id); }
+                @Override public void openRule(String code) { openDiagnosticCode(code); }
+                @Override public void search(String name) { showSearch(name); }
+            });
+            detailHomeCards.add(searchView, "search");
             detailHomeLayout.show(detailHomeCards, detailHomeMode);
             tabs.addTab("Result", detailHomeCards);
         }
@@ -808,6 +821,51 @@ final class ArchvowPanel extends JPanel {
         });
     }
 
+    /** The editor tab (0.18.0): archvow show <name> --json - where a name is in the project, and the problems
+     *  naming it; a component's name opens the component, as archvow does. */
+    void showSearch(String name) {
+        String wanted = name == null ? "" : name.trim();
+        if (wanted.isEmpty()) return;
+        if (role == Role.NAVIGATION) { ArchvowEditorTab.showSearch(project, wanted); return; }
+        cli.execute("Find " + wanted, List.of("show", wanted, "--json"), null, result -> {
+            JsonObject data = ArchvowGrammar.parseObject(result.stdout);
+            if (data == null) {
+                message(result.output.isBlank() ? ArchvowI18n.text(project, "archvow found nothing to show.",
+                    "archvow n'a rien trouvé à montrer.") : result.output);
+                return;
+            }
+            String id = ArchvowGrammar.str(data, "component");
+            if (!id.isBlank() && !data.has("groups")) { showComponent(id); return; }
+            backComponent = null;
+            showWorkspace();
+            searchName = wanted;
+            searchView.show(data, wanted, project.getBasePath(), ArchvowI18n.isFrench(project));
+            showDetailHome("search");
+            tabs.setSelectedIndex(0);
+            afterSelectionChange();
+        });
+    }
+
+    /** The tool window's header with the find field under it: Enter (or Find) searches the name. */
+    private JComponent withFindField(JComponent header) {
+        JPanel find = new JPanel(new BorderLayout(6, 0));
+        find.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        JLabel label = translated(new JLabel(), "Find in the project", "Chercher dans le projet");
+        label.setForeground(new Color(125, 131, 140));
+        findField.setToolTipText(ArchvowI18n.text(project, "A name: a function, a column, a ticket, an example (archvow show <name>)",
+            "Un nom : une fonction, une colonne, un ticket, un exemple (archvow show <nom>)"));
+        findField.addActionListener(e -> showSearch(findField.getText()));
+        JButton go = button(ArchvowI18n.text(project, "Find", "Chercher"), () -> showSearch(findField.getText()));
+        languageRefreshers.add(() -> go.setText(ArchvowI18n.text(project, "Find", "Chercher")));
+        find.add(label, BorderLayout.NORTH);
+        find.add(findField, BorderLayout.CENTER);
+        find.add(go, BorderLayout.EAST);
+        JPanel both = new JPanel(new BorderLayout());
+        both.add(header, BorderLayout.NORTH);
+        both.add(find, BorderLayout.SOUTH);
+        return both;
+    }
+
     /** The editor tab: runs a command asked in the tool window's Overview, its result in the tab. */
     void runFromOverview(String label, List<String> args, String stdin, boolean refreshAfter) {
         backComponent = null;
@@ -901,8 +959,10 @@ final class ArchvowPanel extends JPanel {
             command = selected == null ? "" : selected.label;
             what = command.isBlank() ? ArchvowI18n.text(project, "Commands", "Commandes") : command;
         } else {
-            kind = ArchvowI18n.text(project, "Result", "Résultat");
-            what = "checks".equals(detailHomeMode)
+            kind = "search".equals(detailHomeMode) ? ArchvowI18n.text(project, "Find", "Recherche")
+                : ArchvowI18n.text(project, "Result", "Résultat");
+            what = "search".equals(detailHomeMode) ? ArchvowI18n.text(project, "find ", "chercher ") + searchName
+                : "checks".equals(detailHomeMode)
                 ? ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations")
                 : resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
         }
@@ -1643,7 +1703,9 @@ final class ArchvowPanel extends JPanel {
         aiAcceptButton.addActionListener(e -> withComponent(c -> openCommand("component accept", Map.of("component", c.id))));
         aiAcceptButton.setVisible(false);
         actions.addAction(aiAcceptButton);
-        JButton aiSkills = ArchvowSplitView.primary("✦ AI spec ▾");
+        // user decision (0.17.5): "✦ Spec IA ▾" in French
+        JButton aiSkills = ArchvowSplitView.primary(ArchvowI18n.text(project, "✦ AI spec ▾", "✦ Spec IA ▾"));
+        languageRefreshers.add(() -> aiSkills.setText(ArchvowI18n.text(project, "✦ AI spec ▾", "✦ Spec IA ▾")));
         aiSkills.setToolTipText(ArchvowI18n.text(project, "What you ask the AI for this component: it adds, you decide",
             "Ce que tu demandes à l'IA pour ce composant : elle ajoute, tu décides"));
         aiSkills.addActionListener(e -> showAiMenu(aiSkills));
@@ -1833,6 +1895,16 @@ final class ArchvowPanel extends JPanel {
         componentOtherCard = componentOtherPanel();
         addComponentView(viewBar, detailCards, 7,
             ArchvowI18n.text(project, "Other", "Autres"), componentOtherCard);
+        examplesView = new ArchvowExamplesView(new ArchvowExamplesView.Actions() {
+            @Override public void openFile(String relative, int line) { openViolationFile(relative, line); }
+            @Override public void openBrief(String ref) { ArchvowPanel.this.openBrief(ref); }
+            @Override public void copy(String text) {
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(text), null);
+                message(ArchvowI18n.text(project, "Copied.", "Copié."));
+            }
+            @Override public void record(String component) { openCommand("example add", Map.of("component", component)); }
+        });
+        addComponentView(viewBar, detailCards, 8, ArchvowI18n.text(project, "Examples", "Exemples"), examplesView, 5);
         JComponent actionStrip = actions;
         componentActions = actionStrip;
         actionStrip.setPreferredSize(new Dimension(0, 39));
@@ -2021,6 +2093,11 @@ final class ArchvowPanel extends JPanel {
 
     /** Navigation does not depend on a custom tab UI. Every view button always changes cards. */
     private void addComponentView(ArchvowCompactViews navigation, JPanel cards, int index, String label, JComponent view) {
+        addComponentView(navigation, cards, index, label, view, index);
+    }
+
+    /** A view of the component, its chip shown at {@code position} (Examples, view 8, after Rules). */
+    private void addComponentView(ArchvowCompactViews navigation, JPanel cards, int index, String label, JComponent view, int position) {
         JToggleButton button = new ArchvowMotion.EditorTabButton(label);
         button.setFocusable(true);
         button.setFocusPainted(false);
@@ -2029,7 +2106,7 @@ final class ArchvowPanel extends JPanel {
         button.addActionListener(e -> selectComponentView(index));
         ArchvowMotion.installViewButton(button);
         componentViewButtons.add(button);
-        navigation.addView(button);
+        navigation.addView(button, position);
         cards.add(view, Integer.toString(index));
     }
 
@@ -3589,7 +3666,7 @@ final class ArchvowPanel extends JPanel {
         if (ids == null || index >= ids.size()) { done.run(); return; }
         String id = ids.get(index);
         cli.execute("Component " + id, List.of("show", id, "--json"), null, result -> {
-            JsonObject data = ArchvowGrammar.parseObject(result.stdout);
+            JsonObject data = ArchvowGrammar.componentView(result.stdout, id);
             if (data != null) {
                 componentSnapshots.put(id, data);
                 // Incremental status updates, batched so large projects stay responsive.
@@ -3657,8 +3734,13 @@ final class ArchvowPanel extends JPanel {
         }
         cli.execute("Component " + component.id, List.of("show", component.id, "--json"), null, result -> {
             if (selectedComponent == null || !selectedComponent.id.equals(component.id)) return;
-            JsonObject data = ArchvowGrammar.parseObject(result.stdout);
-            if (data == null) { componentDetails.setText(htmlMessage(escape(result.output))); return; }
+            JsonObject data = ArchvowGrammar.componentView(result.stdout, component.id);
+            if (data == null) {
+                boolean french = ArchvowI18n.isFrench(project);
+                componentDetails.setText(htmlMessage(escape(ArchvowGrammar.parseObject(result.stdout) == null ? result.output
+                    : french ? "« " + component.id + " » n'est plus un composant du projet." : "'" + component.id + "' is no longer a component of the project.")));
+                return;
+            }
             componentSnapshots.put(component.id, data);
             selectedView = data;
             renderComponent(data);
@@ -3706,6 +3788,17 @@ final class ArchvowPanel extends JPanel {
             .map(a -> ArchvowItemCards.assumption(a, fr)).toList(), another);
         showAssumption();
         ArchvowDataView.renderRules(rulesOnlyDetails, data, aiView.rules, ArchvowI18n.isFrench(project));
+        if (examplesView != null) {
+            examplesView.show(data, fr);
+            if (componentViewButtons.size() > 8) {
+                JToggleButton chip = componentViewButtons.get(8);
+                int[] counts = ArchvowExamples.counts(data);
+                chip.setText(ArchvowExamples.label(data, fr));
+                chip.setVisible(counts[0] > 0);
+                chip.setForeground(counts[2] > 0 ? new Color(207, 34, 46) : null);
+                if (counts[0] == 0 && componentViewNav != null && componentViewNav.activeIndex() == 8) selectComponentView(0);
+            }
+        }
         refreshRulesAiActions();
         refreshSuggestion();
         ArchvowDataView.render(rulesDetails, data, ArchvowI18n.isFrench(project));
@@ -4510,7 +4603,7 @@ final class ArchvowPanel extends JPanel {
             if (result.ok()) {
                 // Update the selected component in place, no navigation to Commands.
                 cli.execute("Component " + componentId, List.of("show", componentId, "--json"), null, shown -> {
-                    JsonObject updated = ArchvowGrammar.parseObject(shown.stdout);
+                    JsonObject updated = ArchvowGrammar.componentView(shown.stdout, componentId);
                     if (updated == null) return;
                     componentSnapshots.put(componentId, updated);
                     updateOverview(); // Recompute pending/resolved labels from current component data.
@@ -4577,7 +4670,7 @@ final class ArchvowPanel extends JPanel {
         if (component.isBlank()) { updateCommandQuestion(); return; }
         commandQuestionPreview.setText(htmlMessage("<i>" + escape(ArchvowI18n.text(project, "Loading…", "Chargement…")) + "</i>"));
         cli.execute("Component " + component, List.of("show", component, "--json"), null, result -> {
-            JsonObject json = ArchvowGrammar.parseObject(result.stdout);
+            JsonObject json = ArchvowGrammar.componentView(result.stdout, component);
             if (json != null) {
                 componentSnapshots.put(component, json);
                 renderForm(currentValues());   // its questions are now in the lists

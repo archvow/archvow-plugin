@@ -77,9 +77,49 @@
       "tests": [
         "tests/p4_api/test_orders_router.py::test_a_customer_only_reads_their_own_orders"
       ]
+    },
+    {
+      "item": "example US-001-another-customers-order",
+      "kind": "example",
+      "key": "US-001-ANOTHER-CUSTOMERS-ORDER",
+      "tests": [
+        "tests/p4_api/test_orders_router.py::test_example_another_customers_order"
+      ]
     }
   ],
-  "examples": [],
+  "examples": [
+    {
+      "name": "US-001-another-customers-order",
+      "ticket": "US-001",
+      "rule": "orders_router.INV1",
+      "source": {
+        "file": "briefs/orders.md",
+        "section": "reading-an-order",
+        "hash": "a70f6aed477a"
+      },
+      "level": "integration",
+      "folder": "tests/examples/orders_router/US-001-another-customers-order",
+      "tested": true,
+      "unchanged": true,
+      "result": "not_run",
+      "actual": false,
+      "files": [
+        {
+          "name": "response.json",
+          "kind": "document",
+          "state": "no_actual",
+          "differences": 0,
+          "rows": []
+        }
+      ],
+      "scenario": "Feature: read an order\n  Rule: orders_router.INV1\n    Scenario: another customer's order is not found\n      Given ann has an order of 5.00\n      When bob reads it\n      Then the answer is 404 \"Order not found\"",
+      "by": "architect@example.com",
+      "on": "2026-11-05"
+    }
+  ],
+  "rule_texts": {
+    "orders_router.INV1": "a customer only ever reads their own orders"
+  },
   "status": "verified",
   "decisions": [
     {
@@ -271,20 +311,27 @@
           "done": true
         },
         {
-          "kind": "invariant",
-          "key": "orders_router.INV1",
-          "text": "a customer only ever reads their own orders",
+          "kind": "example",
+          "key": "US-001-another-customers-order",
+          "text": "US-001",
           "answer": null,
           "done": true
         }
       ],
-      "summary": "the file and its public API, decisions 1-5, orders_router.INV1"
+      "summary": "the file and its public API, decisions 1-5, example US-001-another-customers-order"
     },
     {
       "task": "T2",
       "core": false,
       "done": true,
       "items": [
+        {
+          "kind": "invariant",
+          "key": "orders_router.INV1",
+          "text": "a customer only ever reads their own orders",
+          "answer": null,
+          "done": true
+        },
         {
           "kind": "question",
           "key": "P1",
@@ -300,7 +347,7 @@
           "done": true
         }
       ],
-      "summary": "decisions P1, P2"
+      "summary": "decisions P1, P2, orders_router.INV1"
     }
   ],
   "to_review": []

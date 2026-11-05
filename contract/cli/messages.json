@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 1.20.0",
+ "archvow": "archvow 1.21.0",
  "messages": [
   {
    "code": "ACME001",
@@ -119,6 +119,13 @@
    "message": "'logger' is not declared in component 'orders_clean_writer' (make it private with a leading underscore or declare it)",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 14
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'normalize_amount' is not declared in component 'clean_orders' (make it private with a leading underscore or declare it)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 19
   },
   {
    "code": "ARCH002",
@@ -515,8 +522,15 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.20.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.21.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH013",
+   "severity": "error",
+   "message": "cannot be parsed: the file is not UTF-8 (byte 303) - save it as UTF-8",
+   "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
@@ -1328,6 +1342,13 @@
    "code": "ARCH031",
    "severity": "error",
    "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (found a mark that almost names it in tests/p1_domain/test_clean_orders.py:5: write invariant(\"clean_orders.INV1\"))",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH031",
+   "severity": "error",
+   "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - save it as UTF-8)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -2930,6 +2951,13 @@
   {
    "code": "ARCH039",
    "severity": "warning",
+   "message": "briefs/orders.md#zero-amounts changed after clean_orders example FATTRIB-014-zero-amount was drawn from it -> review them, then: archvow brief accept briefs/orders.md#zero-amounts",
+   "file": "briefs/orders.md",
+   "line": 0
+  },
+  {
+   "code": "ARCH039",
+   "severity": "warning",
    "message": "briefs/orders.md: no section #input-files (sections: #orders, #inputs, #cleaning, #cleaning-2) - orders_reader question 5 was drawn from it",
    "file": "briefs/orders.md",
    "line": 0
@@ -3315,14 +3343,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 4ca4bd00: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit 0b6a3144: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 7c793c56: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit f44c5bd8: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -3364,7 +3392,14 @@
   {
    "code": "ARCH056",
    "severity": "error",
-   "message": "example FATTRIB-012-negative-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-012-negative-amount\") -> write the test that reads tests/examples/clean_orders/FATTRIB-012-negative-amount/input/ and compares with tests/examples/clean_orders/FATTRIB-012-negative-amount/expected/",
+   "message": "example FATTRIB-012-negative-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-012-negative-amount\") -> write the test that reads tests/examples/clean_orders/FATTRIB-012-negative-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-012-negative-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-012-negative-amount/expected/",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH056",
+   "severity": "error",
+   "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - save it as UTF-8) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
    "file": ".archvow/components/clean_orders/spec.vow",
    "line": 0
   },

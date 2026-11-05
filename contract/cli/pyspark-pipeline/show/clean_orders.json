@@ -68,9 +68,80 @@
       "kind": "invariant",
       "key": "CLEAN_ORDERS.INV1",
       "tests": []
+    },
+    {
+      "item": "example US-002-negative-amount",
+      "kind": "example",
+      "key": "US-002-NEGATIVE-AMOUNT",
+      "tests": []
+    },
+    {
+      "item": "example US-002-zero-amount-kept",
+      "kind": "example",
+      "key": "US-002-ZERO-AMOUNT-KEPT",
+      "tests": []
     }
   ],
-  "examples": [],
+  "examples": [
+    {
+      "name": "US-002-negative-amount",
+      "ticket": "US-002",
+      "source": {
+        "file": "briefs/orders.md",
+        "section": "cleaning",
+        "hash": "6b25cb7402c7"
+      },
+      "level": "unit",
+      "folder": "tests/examples/clean_orders/US-002-negative-amount",
+      "tested": false,
+      "unchanged": true,
+      "result": "no_test",
+      "actual": false,
+      "files": [
+        {
+          "name": "orders.csv",
+          "kind": "table",
+          "state": "no_actual",
+          "differences": 0,
+          "rows": []
+        }
+      ],
+      "scenario": "Feature: clean the orders\n  Scenario: an order with a negative amount is dropped\n    Given the orders A1 (5.00) and A2 (-3.00)\n    When clean_orders runs\n    Then only A1 is kept",
+      "by": "architect@example.com",
+      "on": "2026-11-05"
+    },
+    {
+      "name": "US-002-zero-amount-kept",
+      "ticket": "US-002",
+      "rule": "clean_orders.INV1",
+      "source": {
+        "file": "briefs/orders.md",
+        "section": "cleaning",
+        "hash": "6b25cb7402c7"
+      },
+      "level": "unit",
+      "folder": "tests/examples/clean_orders/US-002-zero-amount-kept",
+      "tested": false,
+      "unchanged": true,
+      "result": "no_test",
+      "actual": false,
+      "files": [
+        {
+          "name": "orders.csv",
+          "kind": "table",
+          "state": "no_actual",
+          "differences": 0,
+          "rows": []
+        }
+      ],
+      "scenario": "Feature: clean the orders\n  Rule: clean_orders.INV1\n    Scenario: an order of 0.00 is kept\n      Given the orders A1 (5.00) and A3 (0.00, a free sample)\n      When clean_orders runs\n      Then A1 and A3 are both kept",
+      "by": "architect@example.com",
+      "on": "2026-11-05"
+    }
+  ],
+  "rule_texts": {
+    "clean_orders.INV1": "every input row with an order_id and amount >= 0 appears in the output"
+  },
   "status": "planned",
   "decisions": [
     {
@@ -328,6 +399,28 @@
           "text": "Extra input columns not in the schema: drop silently or fail?",
           "answer": "Drop them: output only the schema columns",
           "done": false
+        }
+      ],
+      "summary": "decisions 5-9"
+    },
+    {
+      "task": "T3",
+      "core": false,
+      "done": false,
+      "items": [
+        {
+          "kind": "example",
+          "key": "US-002-negative-amount",
+          "text": "US-002",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "example",
+          "key": "US-002-zero-amount-kept",
+          "text": "US-002",
+          "answer": null,
+          "done": false
         },
         {
           "kind": "invariant",
@@ -337,7 +430,7 @@
           "done": false
         }
       ],
-      "summary": "decisions 5-9, clean_orders.INV1"
+      "summary": "examples US-002-negative-amount, US-002-zero-amount-kept, clean_orders.INV1"
     }
   ],
   "to_review": []

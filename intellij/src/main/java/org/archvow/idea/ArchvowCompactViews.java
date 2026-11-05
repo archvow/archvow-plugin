@@ -15,6 +15,9 @@ import java.util.function.IntConsumer;
 final class ArchvowCompactViews extends JPanel {
     private static final int GAP = 4;
     private final List<JToggleButton> views = new ArrayList<>();
+    /** The view (card) index of each shown button: a view may be shown before others added earlier
+     *  (0.18.0: Examples, view 8, right after Rules). */
+    private final List<Integer> indexes = new ArrayList<>();
     private final IntConsumer selection;
     private final JToggleButton more = new ArchvowMotion.EditorTabButton("More ▾");
     private final JPopupMenu menu = new JPopupMenu();
@@ -43,8 +46,15 @@ final class ArchvowCompactViews extends JPanel {
     }
 
     void addView(JToggleButton button) {
+        addView(button, views.size());
+    }
+
+    /** The next view (its index: the number of views added before it), shown at {@code position}. */
+    void addView(JToggleButton button, int position) {
         ArchvowUiIcons.decorate(button);
-        views.add(button);
+        int at = Math.max(0, Math.min(position, views.size()));
+        indexes.add(at, views.size());
+        views.add(at, button);
         refresh();
     }
 
@@ -52,6 +62,12 @@ final class ArchvowCompactViews extends JPanel {
         if (index < 0 || index >= views.size()) return;
         activeIndex = index;
         refresh();
+    }
+
+    /** Where the view {@code index} is shown. */
+    private int position(int index) {
+        int at = indexes.indexOf(index);
+        return at < 0 ? index : at;
     }
 
     void setFrench(boolean value) { french = value; refresh(); }
@@ -90,14 +106,15 @@ final class ArchvowCompactViews extends JPanel {
             visibleLimit = count;
             removeAll();
             for (int i = 0; i < count; i++) add(views.get(i));
+            int active = position(activeIndex);
             for (int i = 0; i < views.size(); i++) {
                 JToggleButton button = views.get(i);
-                button.setSelected(i == activeIndex);
+                button.setSelected(i == active);
                 ArchvowMotion.updateViewButton(button);
             }
             if (count < views.size()) {
-                more.setSelected(activeIndex >= count && activeIndex < views.size());
-                more.setToolTipText(more.isSelected() ? views.get(activeIndex).getText() :
+                more.setSelected(active >= count && active < views.size());
+                more.setToolTipText(more.isSelected() ? views.get(active).getText() :
                     (french ? "Autres sections" : "Other sections"));
                 ArchvowMotion.updateViewButton(more);
                 add(more);
@@ -111,9 +128,10 @@ final class ArchvowCompactViews extends JPanel {
 
     private void populateMenu() {
         menu.removeAll();
+        int active = position(activeIndex);
         for (int i = visibleLimit; i < views.size(); i++) {
-            final int index = i;
-            JMenuItem item = new JMenuItem((i == activeIndex ? "✓  " : "   ") + views.get(i).getText());
+            final int index = indexes.get(i);
+            JMenuItem item = new JMenuItem((i == active ? "✓  " : "   ") + views.get(i).getText());
             item.addActionListener(e -> selection.accept(index));
             menu.add(item);
         }

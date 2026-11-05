@@ -1,0 +1,130 @@
+{
+  "name": "InvoiceNotFoundError",
+  "summary": "a class of invoice_not_found_error",
+  "total": 12,
+  "groups": [
+    {
+      "group": "spec",
+      "title": "Spec",
+      "hits": [
+        {
+          "group": "spec",
+          "file": ".archvow/components/invoice_not_found_error/spec.vow",
+          "line": 13,
+          "component": "invoice_not_found_error",
+          "part": "symbol InvoiceNotFoundError",
+          "text": "symbol InvoiceNotFoundError"
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/components/invoices_repository/spec.vow",
+          "line": 70,
+          "component": "invoices_repository",
+          "part": "not_applicable missing because",
+          "text": "because \"A missing file is reported as None, the service raises InvoiceNotFoundError (decision 2)\""
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/components/mark_paid/spec.vow",
+          "line": 26,
+          "component": "mark_paid",
+          "part": "decision 2 answer",
+          "text": "answer \"InvoiceNotFoundError\""
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/components/mark_paid/spec.vow",
+          "line": 71,
+          "component": "mark_paid",
+          "part": "not_applicable missing because",
+          "text": "because \"InvoiceNotFoundError (decision 2)\""
+        }
+      ]
+    },
+    {
+      "group": "code",
+      "title": "Code",
+      "hits": [
+        {
+          "group": "code",
+          "file": "src/invoicing/p1_domain/invoice_not_found_error.py",
+          "line": 14,
+          "component": "invoice_not_found_error",
+          "part": "defined",
+          "text": "class InvoiceNotFoundError(Exception):",
+          "what": "class InvoiceNotFoundError"
+        },
+        {
+          "group": "code",
+          "file": "src/invoicing/p3_services/mark_paid.py",
+          "line": 17,
+          "component": "mark_paid",
+          "part": "used",
+          "text": "from invoicing.p1_domain.invoice_not_found_error import InvoiceNotFoundError",
+          "what": "import"
+        },
+        {
+          "group": "code",
+          "file": "src/invoicing/p3_services/mark_paid.py",
+          "line": 26,
+          "component": "mark_paid",
+          "part": "used",
+          "text": "raise InvoiceNotFoundError(number)",
+          "what": "used in mark_paid()"
+        },
+        {
+          "group": "code",
+          "file": "src/invoicing/p4_entrypoints/invoices_cli.py",
+          "line": 20,
+          "component": "invoices_cli",
+          "part": "used",
+          "text": "from invoicing.p1_domain.invoice_not_found_error import InvoiceNotFoundError",
+          "what": "import"
+        },
+        {
+          "group": "code",
+          "file": "src/invoicing/p4_entrypoints/invoices_cli.py",
+          "line": 39,
+          "component": "invoices_cli",
+          "part": "used",
+          "text": "except InvoiceNotFoundError as error:",
+          "what": "used in main()"
+        }
+      ]
+    },
+    {
+      "group": "tests",
+      "title": "Tests",
+      "hits": [
+        {
+          "group": "tests",
+          "file": "tests/p1_domain/test_invoice_not_found_error.py",
+          "line": 10,
+          "component": "invoice_not_found_error",
+          "part": "test_it_carries_the_number_for_exit_code_3",
+          "text": "assert InvoiceNotFoundError(\"F-9\").number == \"F-9\"",
+          "marks": "decision 1"
+        },
+        {
+          "group": "tests",
+          "file": "tests/p1_domain/test_invoice_not_found_error.py",
+          "line": 15,
+          "component": "invoice_not_found_error",
+          "part": "test_its_message_names_only_the_number",
+          "text": "assert str(InvoiceNotFoundError(\"F-9\")) == \"Invoice not found: F-9\"",
+          "marks": "decision 2"
+        },
+        {
+          "group": "tests",
+          "file": "tests/p3_services/test_mark_paid.py",
+          "line": 32,
+          "component": "mark_paid",
+          "part": "test_an_unknown_invoice_is_not_found",
+          "text": "with pytest.raises(InvoiceNotFoundError):",
+          "marks": "decision 2"
+        }
+      ]
+    }
+  ],
+  "close": []
+}
