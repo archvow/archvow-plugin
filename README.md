@@ -10,7 +10,7 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.16.0.zip, dist/archvow-0.16.0.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.17.2.zip, dist/archvow-0.17.2.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -59,6 +59,6 @@ page [Tests](wiki/en/13-tests.md) says what each job checks.
 
 ## Versions
 
-Both plugins have the same version (0.16.0), their own, not archvow's. They read `.vow` format 1 and run
+Both plugins have the same version (0.17.2), their own, not archvow's. They read `.vow` format 1 and run
 the archvow CLI 1.20 (`contract/cli/version.txt`, the version the contract was recorded from); each says
 when the installed archvow is another major.minor (archvow keeps no backward compatibility).

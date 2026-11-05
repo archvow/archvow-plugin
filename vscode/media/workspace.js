@@ -38,7 +38,7 @@
     resultHeight: {},
     /** 0.16.0: the cards shown (all, open, or what the AI added that waits for a person), the "All AI skills"
      *  menu, and the AI skill whose launch form is open with its values. */
-    originFilter: 'all', aiMenu: false, skill: '', skillValues: {},
+    originFilter: 'all', aiMenu: false, addMenu: false, advance: '', skill: '', skillValues: {},
   };
 
   // ---------------------------------------------------------------- helpers
@@ -684,17 +684,13 @@
   const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Other', 'Autres')];
 
   function componentDetail() {
+    // 0.17.2 (the user's order): AI, Add, Edit spec, Open code - what you ask the AI first, the one filled button
+    // of the tab (no suggestion strip any more: AI ▾ marks the suggested step); then what you add, change, open.
     const actions = [
-      btn(t('Clarify', 'Clarifier'), 'clarify', `title="${esc(t('Answer what is still open for this component: its next question, decision or safety question.', 'Répondre à ce qui reste ouvert pour ce composant : sa prochaine question, décision ou question de sécurité.'))}"`),
-      btn(t('Open code', 'Ouvrir le code'), 'openCode', `title="${esc(t("Open this component's Python file (and its test). Change the code there; save, then Check.", 'Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier.'))}"`, false, 'secondary'),
+      `<span class="ai-anchor">${btn(t('✦ AI ▾', '✦ IA ▾'), 'aiMenu', `title="${esc(t('What you ask the AI for this component: it adds, you decide', "Ce que tu demandes à l'IA pour ce composant : elle ajoute, tu décides"))}" aria-haspopup="menu" aria-expanded="${ui.aiMenu ? 'true' : 'false'}"`, false, 'ai-skills')}${ui.aiMenu ? aiMenu() : ''}</span>`,
+      `<span class="ai-anchor">${btn(t('+ Add ▾', '+ Ajouter ▾'), 'addMenu', `title="${esc(t('What you add yourself to this component', 'Ce que tu ajoutes toi-même à ce composant'))}" aria-haspopup="menu" aria-expanded="${ui.addMenu ? 'true' : 'false'}"`, false, 'secondary')}${ui.addMenu ? addMenu() : ''}</span>`,
       btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }) + ` title="${esc(t('Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.', 'Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et hazards restent tels quels : revoir ceux que le changement touche.'))}"`, false, 'secondary'),
-      btn(t('AI prompt', 'Instruction IA'), 'aiPrompt', `title="${esc(t("Copy the instruction to give the AI for this component's next task (archvow prompt).", "Copier l'instruction à donner à l'IA pour la prochaine tâche de ce composant (archvow prompt)."))}"`, false, 'secondary'),
-      btn(t('+ Question', '+ Question'), 'openCommand', attrs({ command: 'question add', component: ui.component })
-        + ` title="${esc(t('Add a question to this component', 'Ajouter une question à ce composant'))}"`, false, 'secondary'),
-      btn(t('+ Rule', '+ Règle'), 'addRule', `title="${esc(t('Add a rule on this component', 'Ajouter une règle sur ce composant'))}"`, false, 'secondary'),
-      btn(t('+ Component', '+ Composant'), 'openCommand', attrs({ command: 'component add' })
-        + ` title="${esc(t('Add a component', 'Ajouter un composant'))}"`, false, 'secondary'),
-      `<span class="ai-anchor">${btn(t('AI skills ▾', 'Skills IA ▾'), 'aiMenu', `title="${esc(t('What the AI can do for this component: it adds, you decide', "Ce que l'IA peut faire pour ce composant : elle ajoute, tu décides"))}"`, false, 'secondary ai-skills')}${ui.aiMenu ? aiMenu() : ''}</span>`,
+      btn(t('Open code', 'Ouvrir le code'), 'openCode', `title="${esc(t("Open this component's Python file (and its test). Change the code there; save, then Check.", 'Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier.'))}"`, false, 'secondary'),
     ];
     const view = snapshot();
     const ai = aiOf();
@@ -712,9 +708,7 @@
         : i === 7 ? t('Only issues of this component; project checks are in Check & Gates.', 'Seulement les éléments de ce composant ; les contrôles globaux sont dans Check & Gates.') : '';
       return `<button class="tab ${ui.view === i ? 'current' : ''} ${(i < 6 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) ? 'has-pending' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}${aiDot(dot)}</button>`;
     }).join('');
-    // All / Open / To review: the views whose cards carry an origin (decisions, safety, rules)
-    const filterBar = [0, 2, 4].includes(ui.view) ? `<span class="origin-filter segmented compact" role="group" aria-label="${esc(t('Show', 'Afficher'))}">${[['all', t('All', 'Tout')],
-      ['open', t('Open', 'Ouverts')], ['review', t('To review', 'À relire')]].map(([id, l]) => `<button class="${ui.originFilter === id ? 'on' : 'secondary'}" data-a="originFilter" data-id="${id}">${esc(l)}</button>`).join('')}</span>` : '';
+    const listBar = listFilter(counts, aiCount, localOtherPending);
     let body;
     if (ui.view === 7) body = otherView();
     else if (!ui.component) body = `<p class="muted">${esc(t('Select a component in the Archvow sidebar.', 'Sélectionne un composant dans le panneau Archvow.'))}</p>`;
@@ -724,12 +718,12 @@
     const waiting = ai ? ai.toReview.total - ai.toReview.component : 0;
     const waitingBadge = waiting > 0 ? ` <button class="badge-ai" data-a="toReview" title="${esc(t('Show only what the AI added and no person kept yet', "N'afficher que ce que l'IA a ajouté et qu'aucune personne n'a encore gardé"))}">${esc(t(`${waiting} from AI to review`, `${waiting} de l'IA à relire`))}</button>` : '';
     const head = view ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}${waitingBadge}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
-  <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${suggestStrip(ai)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
+  <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
     // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
     return `${head}<div class="row wrap actions">${actions.join('')}</div>
-  <nav class="tabs views">${viewBar}${filterBar}</nav>${pendingExplanation()}
+  <nav class="tabs views">${viewBar}</nav>${listBar || pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
   }
 
@@ -744,16 +738,40 @@
   <div class="row end">${btn(t('Remove…', 'Retirer…'), 'openCommand', attrs({ command: 'component remove', component: ui.component }), false, 'secondary')}${btn(t('Accept…', 'Accepter…'), 'openCommand', attrs({ command: 'component accept', component: ui.component }))}</div></div>`;
   }
 
-  /** One suggestion at a time (aiSkills.ts): what the AI added waits first, then the next skill, with why. */
-  function suggestStrip(ai) {
-    const sg = ai && ai.suggest;
-    if (!sg) return '';
-    const review = sg.skill === 'to-review';
-    const title = review ? t('The AI added things for you to review', "L'IA a ajouté des éléments à relire") : t('Suggested next with AI: ', 'Suggéré ensuite avec l\'IA : ') + skillLabel(sg.skill);
-    const go = review ? btn(t('Show them', 'Les afficher'), 'toReview', '', false, 'primary-ai')
-      : btn(skillLabel(sg.skill) + '…', 'openSkill', attrs({ skill: sg.skill }), false, 'primary-ai');
-    return `<div class="suggest ${review ? 'review' : ''}"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg>
-  <div class="grow"><b>${esc(title)}</b><div class="small">${esc(pair(sg.reason))}</div></div>${go}</div>`;
+  /**
+   * 0.17.0: the list's own line, under the views - small text, never buttons like the views: "Show All · Open 2 ·
+   * To review 1" (To review only when the AI added something here), and when the view has nothing open left,
+   * where the work is ("Decisions: all done · Safety: 2 open ›"). Decisions, Safety and Rules carry origins.
+   */
+  function listFilter(counts, aiCount, otherPending) {
+    if (!ui.component || ![0, 2, 4].includes(ui.view)) return '';
+    const open = ui.view === 4 ? 0 : counts.pending[ui.view] || 0;
+    const review = aiCount(ui.view);
+    if (ui.originFilter === 'review' && !review) ui.originFilter = 'all';
+    if (ui.originFilter === 'open' && !open && ui.view !== 4) ui.originFilter = 'all';
+    const item = (id, label, n, tone) => `<button class="filter-word ${ui.originFilter === id ? 'on' : ''}" data-a="originFilter" data-id="${id}" aria-pressed="${ui.originFilter === id ? 'true' : 'false'}">${esc(label)}${n ? `<span class="n ${tone}">${n}</span>` : ''}</button>`;
+    const words = [item('all', t('All', 'Tout'), 0, ''), ui.view !== 4 ? item('open', t('Open', 'Ouverts'), open, 'n-open') : '',
+      review ? item('review', t('To review', 'À relire'), review, 'n-ai') : ''].join('');
+    return `<div class="list-filter" role="group" aria-label="${esc(t('Show', 'Afficher'))}"><span class="muted small">${esc(t('Show', 'Afficher'))}</span>${words}<span class="grow"></span>${ui.view !== 4 ? viewDone(counts, open, otherPending) : ''}</div>`;
+  }
+
+  /** "Decisions: all done · Safety: 2 open ›" - only when this view has nothing open left (Clarify's job, 0.17.0). */
+  function viewDone(counts, open, otherPending) {
+    const names = VIEWS();
+    if (open || !(counts.total[ui.view] > 0)) return '';
+    const next = [0, 1, 2, 3, 4, 5].find((i) => i !== ui.view && counts.pending[i] > 0);
+    const other = next === undefined && otherPending ? 7 : next;
+    const n = other === 7 ? otherPending : other === undefined ? 0 : counts.pending[other];
+    return `<span class="small view-done"><span class="tone-good">${esc(names[ui.view] + t(': all done', ' : tout est traité'))}</span>${other === undefined ? ''
+      : ` · <button class="link" data-a="view" data-i="${other}">${esc(names[other] + t(`: ${n} open ›`, ` : ${n} ouvert${n > 1 ? 's' : ''} ›`))}</button>`}</span>`;
+  }
+
+  /** "+ Add": what a person adds to this component (a new component is added from the Components tab). */
+  function addMenu() {
+    const item = (label, cmd, does) => `<button class="ai-item" role="menuitem" ${cmd}><span class="grow"><b>${esc(label)}</b></span><span class="mono small muted">${esc(does)}</span></button>`;
+    return `<div class="ai-menu add-menu" role="menu">${item(t('A question', 'Une question'), `data-a="openCommand" data-command="question add" data-component="${esc(ui.component)}"`, 'question add')}
+  ${item(t('A rule', 'Une règle'), 'data-a="addRule"', 'rule add')}
+  ${item(t('An assumption', 'Une hypothèse'), `data-a="openCommand" data-command="assumption add" data-component="${esc(ui.component)}"`, 'assumption add')}</div>`;
   }
 
   /** "All AI skills": the five, in the order of the work, plain names, the skill small, and why one cannot run yet. */
@@ -764,11 +782,12 @@
       const def = skillDef(id);
       if (!def) return '';
       const blocked = ai && ai.blocked && ai.blocked[id];
-      return `<button class="ai-item ${sg === id ? 'suggested' : ''}" data-a="openSkill" data-skill="${esc(id)}" ${blocked ? 'disabled' : ''}>
+      return `<button class="ai-item ${sg === id ? 'suggested' : ''}" role="menuitem" data-a="openSkill" data-skill="${esc(id)}" ${blocked ? 'disabled' : ''}>
   <span class="grow"><b>${esc(pair(def.label))}</b>${sg === id ? ` <span class="sugg">${esc(t('SUGGESTED', 'SUGGÉRÉ'))}</span>` : ''}<span class="small ${blocked ? 'tone-warn' : ''}">${esc(blocked ? pair(blocked) : pair(def.does))}</span></span>
   <span class="mono small muted">${esc(id)}</span></button>`;
     }).join('');
-    return `<div class="ai-menu" role="menu"><div class="ai-menu-head">${esc(t('AI SKILLS · in the order of the work', "SKILLS IA · dans l'ordre du travail"))}</div>${items}</div>`;
+    const copy = `<button class="ai-item" role="menuitem" data-a="aiPrompt"><span class="grow"><b>${esc(t('Copy the card for another AI', 'Copier la fiche pour une autre IA'))}</b><span class="small">${esc(t("for an assistant that cannot read the project's files", 'pour un assistant qui ne lit pas les fichiers du projet'))}</span></span><span class="mono small muted">prompt</span></button>`;
+    return `<div class="ai-menu" role="menu"><div class="ai-menu-head">${esc(t('WHAT THE AI CAN DO · in the order of the work', "CE QUE L'IA PEUT FAIRE · dans l'ordre du travail"))}</div>${items}<div class="menu-sep"></div>${copy}</div>`;
   }
 
   /**
@@ -983,6 +1002,12 @@
   function current(kind, rows, label, isOpen) {
     if (!rows.length) return null;
     let i = rows.findIndex((r, n) => label(r, n) === ui.sel[kind]);
+    // 0.17.0 (Clarify is no button any more): once the saved item is answered, the next open one shows
+    if (ui.advance === kind && i >= 0 && !isOpen(rows[i], i)) {
+      ui.advance = '';
+      const after = [...rows.keys()].slice(i + 1).concat([...rows.keys()].slice(0, i)).find((n) => isOpen(rows[n], n));
+      if (after !== undefined) { i = after; ui.sel[kind] = label(rows[i], i); }
+    }
     if (i < 0) {
       i = Math.max(0, rows.findIndex((r, n) => isOpen(r, n)));
       ui.sel[kind] = label(rows[i], i);
@@ -1003,7 +1028,7 @@
     const edited = key in ui.drafts && ui.drafts[key] !== initial;
     return `<textarea class="answer-field" rows="5" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" data-initial="${esc(initial)}" placeholder="${esc(placeholder)}" ${disabled ? 'disabled' : ''}>${esc(draft(key, initial))}</textarea>
   <div class="answer-actions"><span class="row wrap">${secondary}</span>
-  <span class="row">${btn(t('Undo changes', 'Annuler les modifications'), 'cancelDraft', attrs({ key, target }) + ` title="${esc(undoTip(edited))}"`, disabled || !edited, 'secondary')}${save}</span></div>`;
+  <span class="row">${btn(t('Undo', 'Annuler'), 'cancelDraft', attrs({ key, target }) + ` title="${esc(undoTip(edited))}"`, disabled || !edited, 'link undo')}${save}</span></div>`;
   }
 
   function undoTip(edited) {
@@ -1175,26 +1200,26 @@
       const key = `d:${ui.component}:${number}`;
       const origin = originOf(rows.indexOf(row));
       const asked = origin && origin.tag === 'ai' && origin.toReview && !origin.proposal;  // the AI's question, not kept yet
-      const secondary = [asked ? btn(t('Remove question', 'Retirer la question'), 'openCommand', attrs({ command: 'question remove', component: ui.component, number }), false, 'secondary') : '',
-      asked ? btn(t('Keep, answer later', 'Garder, répondre plus tard'), 'openCommand', attrs({ command: 'question accept', component: ui.component, number })
-        + ` title="${esc(t('The question stays open, as the team\'s own (archvow question accept)', "La question reste ouverte, comme celle de l'équipe (archvow question accept)"))}"`, false, 'secondary') : '',
-      pending ? btn(t('Propose', 'Proposer'), 'decide', attrs({ action: 'decision propose' })
-        + ` title="${esc(t('Record the text as a proposal, not yet the answer', 'Enregistrer le texte comme proposition, pas encore comme réponse'))}"`, false, 'secondary') : '',
-      pending && proposed ? btn(t('Accept proposal', 'Accepter la proposition'), 'decide', attrs({ action: 'decision accept' }), false, 'secondary') : '',
-      suggested ? btn(t('Use suggestion', 'Utiliser la suggestion'), 'useSuggestion', '', false, 'secondary') : ''].join('');
+      // 0.17.0: one button (Save answer); the rest are links where they belong - Use beside the suggestion,
+      // Accept beside the AI's proposal, Keep / Remove beside why the AI asked, Save as a proposal under ▾
+      const keepRemove = asked ? `<p class="small links">${btn(t('Keep, answer later', 'Garder, répondre plus tard'), 'openCommand', attrs({ command: 'question accept', component: ui.component, number })
+        + ` title="${esc(t('The question stays open, as the team\'s own (archvow question accept)', "La question reste ouverte, comme celle de l'équipe (archvow question accept)"))}"`, false, 'link')} · ${btn(t('Remove question', 'Retirer la question'), 'openCommand', attrs({ command: 'question remove', component: ui.component, number }), false, 'link')}</p>` : '';
+      const save = btn(t('Save answer', 'Enregistrer la réponse'), 'decide', attrs({ action: 'decision make' }));
+      // 0.17.2: Save as a proposal is a real button beside Save answer (the ▾ menu of 0.17.0 hid it)
+      const proposeBtn = pending ? btn(t('Save as a proposal', 'Enregistrer comme proposition'), 'decide', attrs({ action: 'decision propose' })
+        + ` title="${esc(t('Recorded, not yet the answer (archvow decision propose)', 'Enregistrée, pas encore la réponse (archvow decision propose)'))}"`, false, 'secondary') : '';
       right = answerHead(pending ? t(`Answer decision ${number}`, `Répondre à la décision ${number}`) : t(`Decision ${number}`, `Décision ${number}`),
         pending ? '' : t('ANSWERED', 'TRAITÉE'), true) + (origin && origin.tag ? `<p>${originTag(origin)}</p>` : '')
-        + `<p class="answer-q">${esc(str(row, 'question'))}</p>` + aiWhy(origin, t('Why the AI asked', "Pourquoi l'IA a demandé"))
+        + `<p class="answer-q">${esc(str(row, 'question'))}</p>` + aiWhy(origin, t('Why the AI asked', "Pourquoi l'IA a demandé")) + keepRemove
         + (asked ? `<p class="muted small">${esc(t('Save answer keeps the question and records your decision in one step.', 'Enregistrer la réponse garde la question et enregistre ta décision en une fois.'))}</p>` : '')
         + (answer && byOn(row) ? `<p class="muted small">${esc(t('Recorded by ', 'Enregistrée par ') + byOn(row))}</p>` : '')
-        + (proposed ? `<p class="hint"><b class="tone-blue">${esc(t('AI proposal', 'Proposition IA'))}</b> ${esc(proposed)}</p>` : '')
-        + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)}</p>` : '')
+        + (proposed ? `<p class="hint"><b class="tone-blue">${esc(t('AI proposal', 'Proposition IA'))}</b> ${esc(proposed)}${pending ? ' · ' + btn(t('Accept', 'Accepter'), 'decide', attrs({ action: 'decision accept' }) + ` title="${esc(t('Take the AI\'s proposal as the answer (decision accept)', "Prendre la proposition de l'IA comme réponse (decision accept)"))}"`, false, 'link') : ''}</p>` : '')
+        + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)} · ${btn(t('Use', 'Utiliser'), 'useSuggestion', ` title="${esc(t('Put the suggestion in the answer field', 'Mettre la suggestion dans le champ de réponse'))}"`, false, 'link')}</p>` : '')
         // archvow 1.19: a question with no safe default offers answers to start from, none chosen
         + (pending && Array.isArray(row.choices) && row.choices.length ? `<p class="hint"><b>${esc(t('No default (it depends on this project) - to start from:', 'Pas de défaut (cela dépend de ce projet) - pour partir de :'))}</b></p>
   <div class="row wrap choices">${row.choices.map((c) => btn(String(c), 'useChoice', attrs({ key, value: String(c) }), false, 'secondary small')).join('')}</div>` : '')
         + smartColumns(view, row, key) + smartParameters(row, key, draft(key, answer || proposed || suggested))
-        + answerEditor(key, answer || proposed || suggested, t('Your answer or proposal', 'Votre réponse ou proposition'), secondary,
-          btn(t('Save answer', 'Enregistrer la réponse'), 'decide', attrs({ action: 'decision make' })), 'decision')
+        + answerEditor(key, answer || proposed || suggested, t('Your answer or proposal', 'Votre réponse ou proposition'), proposeBtn, save, 'decision')
         + confirmation('decision') + resultCard('decision');
     }
     return split(left, rows.length ? right : '');
@@ -2225,17 +2250,17 @@
         ui.confirm = null;
       }
       ui.sel[kind] = e.dataset.key;
+      ui.advance = '';
       delete ui.results[kind];
     },
     otherList: (e) => { ui.otherList = Number(e.dataset.i); ui.sel.other = -1; },
     otherSel: (e) => { ui.sel.other = Number(e.dataset.i); delete ui.results.quick; },
     quickPrimary, quickSecondary,
-    clarify: () => { if (!ui.component) post({ type: 'message', text: t('Select a component.', 'Sélectionne un composant.') }); else chooseNext(); },
     openSpec: () => { if (ui.component) post({ type: 'openSpec', component: ui.component }); },
     openVowFile: () => { if (ui.component) post({ type: 'openVowFile', component: ui.component }); },
     specPart: (e) => { ui.specPart = e.dataset.id; },
     openCode: () => { if (ui.component) post({ type: 'openCode', component: ui.component }); },
-    aiPrompt: () => { if (ui.component) post({ type: 'run', label: 'prompt', args: ['prompt', ui.component], target: 'component' }); },
+    aiPrompt: () => { ui.aiMenu = false; if (ui.component) post({ type: 'run', label: 'prompt', args: ['prompt', ui.component], target: 'component' }); },
     addRule: () => post({ type: 'openCommand', command: 'rule add', values: ui.component ? { words: ui.component + '\n' } : {}, selected: ui.component }),
     openCommand: (e) => {
       const values = {};
@@ -2247,7 +2272,8 @@
       post({ type: 'openCommand', command: e.dataset.command, values, selected: ui.component });
     },
     // ---- AI skills (0.16.0)
-    aiMenu: () => { ui.aiMenu = !ui.aiMenu; },
+    aiMenu: () => { ui.aiMenu = !ui.aiMenu; ui.addMenu = false; },
+    addMenu: () => { ui.addMenu = !ui.addMenu; ui.aiMenu = false; },
     openSkill: (e) => {
       const values = { component: e.dataset.component || (ui.mode === 'component' ? ui.component : ''), brief: e.dataset.brief || '' };
       if (NAV) { post({ type: 'openSkill', skill: e.dataset.skill, values }); return; }
@@ -2284,6 +2310,7 @@
         post({ type: 'message', text: t('This decision is already answered.', 'Cette décision a déjà une réponse.') });
         return;
       }
+      if (action !== 'decision propose') ui.advance = 'decision';
       post({ type: 'inline', action, component: ui.component, number: str(row, 'number'), answer, question: str(row, 'question'), proposed: str(row, 'proposed') });
     },
     cancelDraft: (e) => {
@@ -2320,6 +2347,7 @@
       if (!row) return;
       const label = str(row, 'key') || str(row, 'number');
       const answer = draft(`q:${ui.component}:${label}`, str(row, 'answer') || str(row, 'suggested'));
+      ui.advance = 'question';
       post({ type: 'inline', action: 'question', component: ui.component, key: label, answer, question: str(row, 'question') });
     },
     safety: (e) => {
@@ -2416,6 +2444,13 @@
 
   document.body.addEventListener('click', (event) => {
     const target = event.target.closest('[data-a]');
+    // a click anywhere but on a menu's own button closes the open menus (AI, Add)
+    const menus = ['aiMenu', 'addMenu'];
+    if ((ui.aiMenu || ui.addMenu) && !(target && menus.includes(target.dataset.a))) {
+      const wasOpen = ui.aiMenu || ui.addMenu;
+      ui.aiMenu = false; ui.addMenu = false;
+      if (wasOpen && (!target || target.disabled)) { render(); return; }
+    }
     if (!target || target.disabled) return;
     const action = actions[target.dataset.a];
     if (!action) return;

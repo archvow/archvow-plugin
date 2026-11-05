@@ -312,4 +312,56 @@ final class ArchvowSplitView {
         button.updateUI();
         return button;
     }
+
+    /**
+     * 0.17.0: an action that is a word, not a button - "Use" beside the suggestion, "Undo", "Keep, answer later".
+     * Borderless, the link colour, underlined on hover; greyed when disabled. Only the main action of a panel
+     * stays a filled button.
+     */
+    static JButton link(String text) {
+        JButton button = new JButton(text) {
+            @Override public void updateUI() {
+                super.updateUI();
+                setContentAreaFilled(false);
+                setBorderPainted(false);
+                setFocusPainted(false);
+                setOpaque(false);
+                setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+
+            @Override protected void paintComponent(Graphics graphics) {
+                setForeground(isEnabled() ? linkColor() : UIManager.getColor("Label.disabledForeground"));
+                super.paintComponent(graphics);
+                if (isEnabled() && getModel().isRollover()) {
+                    FontMetrics m = graphics.getFontMetrics();
+                    int y = getHeight() / 2 + m.getAscent() / 2 + 1;
+                    int w = m.stringWidth(getText());
+                    int x = (getWidth() - w) / 2;
+                    graphics.setColor(getForeground());
+                    graphics.drawLine(x, y, x + w, y);
+                }
+            }
+        };
+        button.setRolloverEnabled(true);
+        button.updateUI();
+        return button;
+    }
+
+    /** The theme's link colour (Component.linkColor / Hyperlink.linkColor), else a blue readable on both themes. */
+    static Color linkColor() {
+        for (String key : new String[] {"Hyperlink.linkColor", "Component.linkColor", "link.foreground"}) {
+            Color c = UIManager.getColor(key);
+            if (c != null) return c;
+        }
+        return new Color(0x58, 0x8C, 0xF0);
+    }
+
+    /** A row of links, left-aligned, that wraps when narrow; hidden ones take no room. */
+    static JPanel linkRow(java.util.List<? extends JComponent> links) {
+        JPanel row = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 12, 0));
+        row.setOpaque(false);
+        for (JComponent c : links) row.add(c);
+        return row;
+    }
 }

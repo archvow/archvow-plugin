@@ -417,3 +417,24 @@ pre.request { white-space: pre-wrap; margin: 4px 0 0; padding: 8px 10px; border-
 .st.open, .st.warn { color: var(--vscode-editorWarning-foreground, #b07e24); }
 button.link { background: none; border: none; padding: 0; color: var(--vscode-textLink-foreground); cursor: pointer; }
 .count.brief-count { color: var(--vscode-editorWarning-foreground, #b07e24); }
+/* 0.17.0: a calmer component tab - small text filter in the list, links instead of buttons, one Save */
+.list-filter { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 2px 2px 6px; margin: 2px 0 8px;
+  border-bottom: 1px solid var(--vscode-panel-border, #8884); }
+button.filter-word { background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0; padding: 1px 2px;
+  color: var(--vscode-descriptionForeground); font: inherit; font-size: .9em; cursor: pointer; }
+button.filter-word:hover { color: var(--vscode-foreground); }
+button.filter-word.on { color: var(--vscode-foreground); font-weight: 600; border-bottom-color: currentColor; }
+.n { display: inline-block; min-width: 14px; text-align: center; font-size: .8em; font-weight: 700; border-radius: 8px; padding: 0 4px; margin-left: 4px; }
+.n.n-open { color: var(--vscode-editorWarning-foreground, #b07e24); background: color-mix(in srgb, var(--vscode-editorWarning-foreground, #b07e24) 16%, transparent); }
+.n.n-ai { color: var(--ai); background: color-mix(in srgb, var(--ai) 16%, transparent); }
+.list-filter .grow { flex: 1; } .view-done { white-space: nowrap; }
+button.link { font: inherit; } button.link[disabled] { color: var(--vscode-disabledForeground, #8888); cursor: default; text-decoration: none; }
+button.link:hover:not([disabled]) { text-decoration: underline; }
+button.link.undo { font-size: .9em; margin-right: 6px; }
+.links { margin: 4px 0 8px; }
+.split-button { display: inline-flex; } .split-button > button:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+button.split-more { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 1px; padding-left: 7px; padding-right: 7px; }
+.save-menu { width: min(300px, 80vw); top: auto; bottom: calc(100% + 4px); }
+.add-menu { width: min(300px, 80vw); left: 0; right: auto; }
+.menu-sep { border-top: 1px solid var(--vscode-menu-separatorBackground, var(--vscode-panel-border, #8884)); margin: 4px 0; }
+.actions .ai-menu { left: 0; right: auto; }  /* the action buttons sit on the left: their menus open to the right */

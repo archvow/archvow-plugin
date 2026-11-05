@@ -46,10 +46,11 @@ public final class NavigationTabsRegression {
                     tabs.setTitleAt(2, "Quick treatment (123)");
                     if (!tabs.getNavigationButton(2).getText().equals("Quick treatment (123)"))
                         throw new AssertionError("Title update missing");
-                    tabs.setSize(240, 420); // the noncompact strip still scrolls horizontally
+                    tabs.setSize(240, 420);
                     tabs.doLayout();
                     tabs.getNavigationButton(2).doClick();
                     if (tabs.getSelectedIndex() != 2) throw new AssertionError("Narrow window navigation failed");
+                    assertVisibleAndWrapped(tabs, 240);
                     // The sidebar instead wraps all three buttons (French included), without a
                     // horizontal scrollbar covering the tabs at 300px like in the screenshot.
                     ArchvowNavigationTabs sidebar = new ArchvowNavigationTabs();
@@ -60,23 +61,9 @@ public final class NavigationTabsRegression {
                     sidebar.setSize(275, 500);
                     sidebar.doLayout();
                     Container header = (Container) sidebar.getComponent(0);
-                    header.doLayout();
-                    Component[] contents = header.getComponents();
-                    if (contents.length != 1 || !(contents[0] instanceof JPanel tabStrip))
-                        throw new AssertionError("Compact tabs must not use a horizontal scroller");
-                    tabStrip.doLayout();
-                    int maxBottom = 0, minTop = Integer.MAX_VALUE;
-                    for (int i = 0; i < 3; i++) {
-                        AbstractButton button = sidebar.getNavigationButton(i);
-                        if (button.getWidth() == 0 || button.getHeight() == 0)
-                            throw new AssertionError("Compact tab was hidden: " + i);
-                        maxBottom = Math.max(maxBottom, button.getY() + button.getHeight());
-                        minTop = Math.min(minTop, button.getY());
-                    }
-                    if (maxBottom - minTop <= sidebar.getNavigationButton(0).getHeight())
-                        throw new AssertionError("Compact tabs failed to wrap in a narrow sidebar");
-                    if (header.getHeight() < maxBottom)
-                        throw new AssertionError("Responsive header clips its second line");
+                    if (!(header.getComponent(0) instanceof JPanel tabStrip))
+                        throw new AssertionError("Main tabs must wrap without a horizontal scroller");
+                    assertVisibleAndWrapped(sidebar, 275);
                     sidebar.getNavigationButton(2).doClick();
                     if (sidebar.getSelectedIndex() != 2)
                         throw new AssertionError("Wrapped Commands tab is not clickable");
@@ -87,14 +74,50 @@ public final class NavigationTabsRegression {
                     if (sidebar.getNavigationButton(0).getY() != sidebar.getNavigationButton(2).getY())
                         throw new AssertionError("Tabs did not return to one row after widening");
                     sidebar.setCompact(false);
-                    if (!(header.getComponent(0) instanceof JScrollPane))
-                        throw new AssertionError("Full-width tabs lost their scrollable strip");
+                    assertVisibleAndWrapped(sidebar, 275);
                     sidebar.setCompact(true);
-                    if (!(header.getComponent(0) instanceof JPanel))
-                        throw new AssertionError("Tool-window tabs failed to restore wrapping");
+                    assertVisibleAndWrapped(sidebar, 275);
+
+                    // The former Architecture / Check & Gates / Briefs strip had a
+                    // horizontal scrollbar: the last button was cut off in the sidebar.
+                    ArchvowNavigationTabs overview = new ArchvowNavigationTabs();
+                    overview.addTab("Architecture · 0", new JPanel());
+                    overview.addTab("Check & Gates · 1", new JPanel());
+                    overview.addTab("Briefs · 2", new JPanel());
+                    for (int width : new int[] {240, 275, 340, 420, 750}) {
+                        assertVisibleAndWrapped(overview, width);
+                        overview.getNavigationButton(2).doClick();
+                        if (overview.getSelectedIndex() != 2)
+                            throw new AssertionError("Wrapped Briefs button stopped responding");
+                    }
                 }
             }
         });
-        System.out.println("OK: three navigation levels are clickable, even in narrow/dark mode");
+        System.out.println("OK: all navigation rows wrap and remain clickable, even in narrow/dark mode");
+    }
+
+    private static void assertVisibleAndWrapped(ArchvowNavigationTabs tabs, int width) {
+        tabs.setSize(width, 500);
+        tabs.doLayout();
+        Container header = (Container) tabs.getComponent(0);
+        header.doLayout();
+        if (!(header.getComponent(0) instanceof JPanel strip))
+            throw new AssertionError("Unexpected scrolling tab header at " + width + " px");
+        strip.doLayout();
+        int maximumBottom = 0;
+        int minimumTop = Integer.MAX_VALUE;
+        for (int i = 0; i < 3; i++) {
+            AbstractButton button = tabs.getNavigationButton(i);
+            Rectangle r = SwingUtilities.convertRectangle(button.getParent(), button.getBounds(), tabs);
+            if (r.width < button.getPreferredSize().width || r.height <= 0 || r.x < 0 || r.y < 0
+                || r.x + r.width > tabs.getWidth())
+                throw new AssertionError("Tab hidden or clipped at " + width + " px: " + i + " " + r);
+            maximumBottom = Math.max(maximumBottom, button.getY() + button.getHeight());
+            minimumTop = Math.min(minimumTop, button.getY());
+        }
+        if (header.getHeight() < maximumBottom)
+            throw new AssertionError("Tab header cuts off wrapped row at " + width + " px");
+        if (width <= 275 && maximumBottom - minimumTop <= tabs.getNavigationButton(0).getHeight())
+            throw new AssertionError("Narrow tab strip failed to wrap at " + width + " px");
     }
 }

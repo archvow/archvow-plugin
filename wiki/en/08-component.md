@@ -134,6 +134,25 @@ workspace state / `PropertiesComponent`), the decisions (no suggestion: a person
 Review changes. **AI skills ▾** (`aiMenu()`, `showAiMenu`) lists the five, the suggested one marked, a skill that
 cannot run yet disabled with why (`blocked`).
 
+## A calmer tab (0.17.0)
+
+**Four quiet actions**: **Open code**, **Edit spec**, **+ Add ▾** (`addMenu()`, `showAddMenu`: a question, a
+rule, an assumption - what a person adds to this component; a new component is added from the Components tab)
+and **✦ AI ▾** (`aiMenu()`, `showAiMenu`: the five skills, then **Copy the card for another AI**, `archvow
+prompt`). The only filled button is the suggested step of the strip (and Accept on a component the AI created).
+Clarify is no button any more: the first open item is already selected, and after Save answer the next open one
+of the view shows (`ui.advance` / `current()`, `advance` / `fill(..., saved)` and `ArchvowItemCards.nextOpenAfter`).
+
+**The line under the views** (`listFilter()`, `refreshListFilter` and `ArchvowListFilter`): "Show **All** · Open
+2 · To review 1", words, not buttons; To review only when the AI added something, no Open in Rules; a view with
+nothing open left says where the work is ("Decisions: all done · Safety: 2 open ›"). In the answer panel, one
+button (Save answer, **▾ › Save as a proposal**); Use the suggestion, Accept the AI's proposal, Keep, answer
+later, Remove question and Undo are links (`button.link`, `ArchvowSplitView.link`).
+
+The menus (✦ AI ▾, + Add ▾, Save ▾) are `ArchvowMenu` rows in IntelliJ (0.17.1): a heading, a line between the groups, the row under the mouse highlighted, a step that cannot run yet greyed with why, the suggested one tinted. The strip's button keeps its size and goes under the text when the strip is narrower than 720 px (`STRIP_SIDE_BY_SIDE`).
+
+Since 0.17.2, no "Suggested next" strip: the actions are, in this order, **✦ AI ▾** (the one filled button; its menu marks the suggested step), **+ Add ▾**, **Edit spec**, **Open code**; **Save as a proposal** is a real button beside Save answer.
+
 ## Saving an answer, end to end
 
 ```mermaid

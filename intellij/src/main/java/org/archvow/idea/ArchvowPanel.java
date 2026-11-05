@@ -194,9 +194,9 @@ final class ArchvowPanel extends JPanel {
     private final JTextArea safetyInput = new JTextArea(3, 30);
     private final JComboBox<String> safetySeverity = new JComboBox<>(new String[] {"high", "critical", "medium", "low"});
     private final JButton decideInline = ArchvowSplitView.primary("");
-    private final JButton proposeInline = new JButton();
-    private final JButton acceptInline = new JButton();
-    private final JButton suggestedInline = new JButton();
+    private final JButton proposeInline = new JButton();  // Save as a proposal (decision propose), beside Save answer
+    private final JButton acceptInline = ArchvowSplitView.link("");
+    private final JButton suggestedInline = ArchvowSplitView.link("");
     private final JButton hazardInline = ArchvowSplitView.primary("");
     private final JButton dismissInline = new JButton();
     private final JLabel safetyInputLabel = new JLabel();
@@ -252,14 +252,21 @@ final class ArchvowPanel extends JPanel {
     private String originFilter = "all";
     private JsonObject briefStatus;
     private final JPanel suggestStrip = new JPanel(new BorderLayout(10, 0));
+    /** Under this width the strip's button goes under its text (the strip is hidden since 0.17.2). */
+    static final int STRIP_SIDE_BY_SIDE = 720;
     private final JLabel suggestText = new JLabel();
-    private final JButton suggestGo = new JButton();
-    private final JButton keepQuestionInline = new JButton();
-    private final JButton removeQuestionInline = new JButton();
+    private final JButton suggestGo = ArchvowSplitView.primary("");  // 0.17.0: the one filled button of the tab
+    private final JButton keepQuestionInline = ArchvowSplitView.link("");
+    private final JButton removeQuestionInline = ArchvowSplitView.link("");
     private final JButton keepAiHazardButton = new JButton();
     private final JPanel rulesAiActions = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 5, 2));
     private final JEditorPane briefsPane = htmlPane();
-    private final List<JToggleButton> originFilterButtons = new ArrayList<>();
+    /** 0.17.0: the line under the views (Show All · Open · To review, and where the work is when a view is done). */
+    private final JPanel listFilterLine = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 10, 0));
+    private int[] viewPending = new int[6];
+    private int[] viewTotal = new int[6];
+    /** "decision" / "question" after a save: once that item is answered, its view shows the next open one. */
+    private String advance = "";
     /** The safety answer field, its heading and buttons: shown for an open safety question only. */
     private List<JComponent> safetyEditorParts = List.of();
     private final DefaultMutableTreeNode componentsRoot = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node("Architecture", "architecture", ""));
@@ -1599,38 +1606,31 @@ final class ArchvowPanel extends JPanel {
         });
         ArchvowOverflowBar actions = new ArchvowOverflowBar(
             ArchvowI18n.text(project, "More actions ▾", "Autres actions ▾"));
-        JButton clarify = ArchvowSplitView.primary(ArchvowI18n.text(project, "Clarify", "Clarifier"));
-        clarify.setToolTipText(ArchvowI18n.text(project, "Answer what is still open for this component: its next question, decision or safety question.",
-            "Répondre à ce qui reste ouvert pour ce composant : sa prochaine question, décision ou question de sécurité."));
-        clarify.addActionListener(e -> guidedNext());
-        actions.addAction(clarify);
+        // 0.17.2 (the user's order): AI, Add, Edit spec, Open code - what you ask the AI first, the one filled
+        // button of the tab (the suggestion strip is gone: AI ▾ marks the suggested step); then what you add,
+        // change, open. Accept shows before them on a component the AI created.
         aiAcceptButton = ArchvowSplitView.primary(ArchvowI18n.text(project, "Accept…", "Accepter…"));
         aiAcceptButton.setToolTipText(ArchvowI18n.text(project, "The AI created this component: accept it as the team's (archvow component accept)",
             "L'IA a créé ce composant : l'accepter comme celui de l'équipe (archvow component accept)"));
         aiAcceptButton.addActionListener(e -> withComponent(c -> openCommand("component accept", Map.of("component", c.id))));
         aiAcceptButton.setVisible(false);
         actions.addAction(aiAcceptButton);
-        actions.addAction(tip(button(ArchvowI18n.text(project, "Open code", "Ouvrir le code"), this::openCode),
-            "Open this component's Python file (and its test). Change the code there; save, then Check.",
-            "Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier."));
+        JButton aiSkills = ArchvowSplitView.primary(ArchvowI18n.text(project, "✦ AI ▾", "✦ IA ▾"));
+        aiSkills.setToolTipText(ArchvowI18n.text(project, "What you ask the AI for this component: it adds, you decide",
+            "Ce que tu demandes à l'IA pour ce composant : elle ajoute, tu décides"));
+        aiSkills.addActionListener(e -> showAiMenu(aiSkills));
+        actions.addAction(aiSkills);
+        JButton add = new JButton(ArchvowI18n.text(project, "+ Add ▾", "+ Ajouter ▾"));
+        add.setToolTipText(ArchvowI18n.text(project, "What you add yourself to this component", "Ce que tu ajoutes toi-même à ce composant"));
+        add.addActionListener(e -> showAddMenu(add));
+        actions.addAction(add);
         actions.addAction(tip(button(ArchvowI18n.text(project, "Edit spec", "Modifier la spec"),
             () -> withComponent(c -> openCommand("component edit", Map.of("component", c.id)))),
             "Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.",
             "Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et hazards restent tels quels : revoir ceux que le changement touche."));
-        actions.addAction(tip(button(ArchvowI18n.text(project, "AI prompt", "Instruction IA"), () -> withComponent(c -> executeDirect("prompt", List.of("prompt", c.id), null, false))),
-            "Copy the instruction to give the AI for this component's next task (archvow prompt).",
-            "Copier l'instruction à donner à l'IA pour la prochaine tâche de ce composant (archvow prompt)."));
-        actions.addAction(button(ArchvowI18n.text(project, "+ Question", "+ Question"),
-            () -> withComponent(c -> openCommand("question add", Map.of("component", c.id)))));
-        actions.addAction(button(ArchvowI18n.text(project, "+ Rule", "+ Règle"),
-            () -> withComponent(c -> openCommand("rule add", Map.of("words", c.id + "\n")))));
-        actions.addAction(button(ArchvowI18n.text(project, "+ Component", "+ Composant"),
-            () -> openCommand("component add", Map.of())));
-        JButton aiSkills = new JButton(ArchvowI18n.text(project, "AI skills ▾", "Skills IA ▾"));
-        aiSkills.setToolTipText(ArchvowI18n.text(project, "What the AI can do for this component: it adds, you decide",
-            "Ce que l'IA peut faire pour ce composant : elle ajoute, tu décides"));
-        aiSkills.addActionListener(e -> showAiMenu(aiSkills));
-        actions.addAction(aiSkills);
+        actions.addAction(tip(button(ArchvowI18n.text(project, "Open code", "Ouvrir le code"), this::openCode),
+            "Open this component's Python file (and its test). Change the code there; save, then Check.",
+            "Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier."));
 
         JPanel detailCards = new JPanel(componentViewLayout);
         componentViewCards = detailCards;
@@ -1660,9 +1660,11 @@ final class ArchvowPanel extends JPanel {
         JScrollPane answerScroll = scroll(decisionAnswer);
         answerScroll.setPreferredSize(new Dimension(150, 96));
         decideInline.setText(ArchvowI18n.text(project, "Save answer", "Enregistrer la réponse"));
-        proposeInline.setText(ArchvowI18n.text(project, "Propose", "Proposer"));
-        acceptInline.setText(ArchvowI18n.text(project, "Accept proposal", "Accepter la proposition"));
-        suggestedInline.setText(ArchvowI18n.text(project, "Use suggestion", "Utiliser la suggestion"));
+        proposeInline.setText(ArchvowI18n.text(project, "Save as a proposal", "Enregistrer comme proposition"));
+        proposeInline.setToolTipText(ArchvowI18n.text(project, "Recorded, not yet the answer (archvow decision propose)",
+            "Enregistrée, pas encore la réponse (archvow decision propose)"));
+        acceptInline.setText(ArchvowI18n.text(project, "Accept the AI's proposal", "Accepter la proposition de l'IA"));
+        suggestedInline.setText(ArchvowI18n.text(project, "Use the suggestion", "Utiliser la suggestion"));
         decideInline.addActionListener(e -> submitInlineDecision("decision make"));
         proposeInline.addActionListener(e -> submitInlineDecision("decision propose"));
         acceptInline.addActionListener(e -> submitInlineDecision("decision accept"));
@@ -1673,8 +1675,11 @@ final class ArchvowPanel extends JPanel {
         keepQuestionInline.setToolTipText(ArchvowI18n.text(project, "The question stays open, as the team's own (archvow question accept)",
             "La question reste ouverte, comme celle de l'équipe (archvow question accept)"));
         keepQuestionInline.addActionListener(e -> withSelectedDecision("question accept"));
-        JPanel decisionButtons = answerButtons(List.of(removeQuestionInline, keepQuestionInline, proposeInline, acceptInline, suggestedInline),
-            cancelButton(decisionAnswer, this::showDecision), decideInline);
+        // 0.17.2: Save as a proposal is a real button beside Save answer (the ▾ menu of 0.17.0 hid it)
+        JPanel decisionButtons = answerButtons(List.of(proposeInline), cancelButton(decisionAnswer, this::showDecision), decideInline);
+        // the other ways are words where they belong: Use the suggestion, Accept the AI's proposal, Keep / Remove
+        // the AI's question - above the field, only those that apply
+        JPanel decisionLinks = ArchvowSplitView.linkRow(List.of(suggestedInline, acceptInline, keepQuestionInline, removeQuestionInline));
         decisionConfirmSlot = new JPanel(new BorderLayout());
         decisionConfirmSlot.setOpaque(false);
         JPanel decisionEditor = ArchvowAnswerEditor.create(decisionAnswerLabel, answerScroll,
@@ -1684,7 +1689,7 @@ final class ArchvowPanel extends JPanel {
         // The question, the field and its buttons stay together; the full text stays selectable above the field.
         // No fixed height on the editor: it grows when the inline confirmation appears.
         addComponentView(viewBar, detailCards, 0, ArchvowI18n.text(project, "Decisions", "Décisions"),
-            ArchvowSplitView.create(decisionsList, decisionsScroll, compactSections(answerHeading(decisionDetails), decisionChoices, columnAnswerPanel, decisionEditor,
+            ArchvowSplitView.create(decisionsList, decisionsScroll, compactSections(answerHeading(decisionDetails), decisionLinks, decisionChoices, columnAnswerPanel, decisionEditor,
                 decisionInlineResultCard)));
 
         // Personal, operational and compliance questions (P1/O2/C1) are also
@@ -1834,9 +1839,24 @@ final class ArchvowPanel extends JPanel {
         suggestStrip.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(ArchvowMotion.accent(), 1, true),
             BorderFactory.createEmptyBorder(7, 10, 7, 10)));
         suggestStrip.add(suggestText, BorderLayout.CENTER);
-        suggestStrip.add(suggestGo, BorderLayout.EAST);
-        suggestStrip.setVisible(false);
-        headAndSuggestion.add(suggestStrip, BorderLayout.SOUTH);
+        // 0.17.1: the button keeps its own size (BorderLayout.EAST stretched it to the strip's height and half its
+        // width in a narrow tool window); under the text when the strip is narrow, on its right otherwise
+        JPanel goHolder = new JPanel(new GridBagLayout());
+        goHolder.setOpaque(false);
+        goHolder.add(suggestGo);
+        suggestStrip.add(goHolder, BorderLayout.EAST);
+        suggestStrip.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) {
+                boolean narrow = suggestStrip.getWidth() < STRIP_SIDE_BY_SIDE;
+                Object where = ((BorderLayout) suggestStrip.getLayout()).getConstraints(goHolder);
+                if (narrow == BorderLayout.SOUTH.equals(where)) return;
+                suggestStrip.remove(goHolder);
+                goHolder.setLayout(narrow ? new FlowLayout(FlowLayout.LEFT, 0, 6) : new GridBagLayout());
+                suggestStrip.add(goHolder, narrow ? BorderLayout.SOUTH : BorderLayout.EAST);
+                suggestStrip.revalidate();
+            }
+        });
+        suggestStrip.setVisible(false);  // 0.17.2: not shown - AI ▾ marks the suggested step
         rightTop.add(headAndSuggestion, BorderLayout.NORTH);
         rightTop.add(actionStrip, BorderLayout.SOUTH);
         JPanel viewsHeader = new JPanel(new BorderLayout(0, 3));
@@ -1845,23 +1865,21 @@ final class ArchvowPanel extends JPanel {
         vowsLabel.setFont(vowsLabel.getFont().deriveFont(Font.BOLD, 13f));
         vowsLabel.setVisible(false);
         viewsHeader.add(viewBar, BorderLayout.CENTER);
-        // All / Open / To review: which cards Decisions, Safety and Rules show (0.16.0)
-        JPanel filters = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        ButtonGroup filterGroup = new ButtonGroup();
-        String[][] filterNames = {{"all", "All", "Tout"}, {"open", "Open", "Ouverts"}, {"review", "To review", "À relire"}};
-        for (String[] f : filterNames) {
-            JToggleButton b = new JToggleButton(ArchvowI18n.text(project, f[1], f[2]), "all".equals(f[0]));
-            b.addActionListener(e -> { originFilter = f[0]; if (selectedView != null) renderComponent(selectedView); });
-            filterGroup.add(b);
-            filters.add(b);
-            originFilterButtons.add(b);
-        }
-        viewsHeader.add(filters, BorderLayout.EAST);
+        // 0.17.0: All / Open / To review is a line of small words under the views (ArchvowListFilter), never
+        // buttons beside them: the views choose what to look at, the line which of its items
+        listFilterLine.setOpaque(false);
+        listFilterLine.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground") == null ? Color.GRAY : UIManager.getColor("Separator.foreground")),
+            BorderFactory.createEmptyBorder(1, 4, 4, 4)));
         componentPendingExplanation.setForeground(darkTheme() ? new Color(177, 187, 199) : new Color(94, 106, 120));
         componentPendingExplanation.setFont(componentPendingExplanation.getFont().deriveFont(11f));
         componentPendingExplanation.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
         componentPendingExplanation.setVisible(false);
-        viewsHeader.add(componentPendingExplanation, BorderLayout.SOUTH);
+        JPanel underViews = new JPanel(new BorderLayout());
+        underViews.setOpaque(false);
+        underViews.add(listFilterLine, BorderLayout.NORTH);
+        underViews.add(componentPendingExplanation, BorderLayout.SOUTH);
+        viewsHeader.add(underViews, BorderLayout.SOUTH);
         JPanel right = new JPanel(new BorderLayout(0, 8));
         JPanel navigation = new JPanel(new BorderLayout(0, 9));
         navigation.add(rightTop, BorderLayout.NORTH);
@@ -1993,6 +2011,7 @@ final class ArchvowPanel extends JPanel {
             ArchvowMotion.updateViewButton(button);
         }
         if (componentViewNav != null) componentViewNav.setActive(index);
+        refreshListFilter();
         // Other is a component-local catch-all: do not duplicate the component heading here
         componentDetails.setVisible(index != 7);
         if (componentActions != null) componentActions.setVisible(index != 7);
@@ -2529,9 +2548,10 @@ final class ArchvowPanel extends JPanel {
             }
         }
         decideInline.setText(ArchvowI18n.text(project, "Save answer", "Enregistrer la réponse"));
-        proposeInline.setText(ArchvowI18n.text(project, "Propose", "Proposer"));
-        acceptInline.setText(ArchvowI18n.text(project, "Accept proposal", "Accepter la proposition"));
-        suggestedInline.setText(ArchvowI18n.text(project, "Use suggestion", "Utiliser la suggestion"));
+        proposeInline.setText(ArchvowI18n.text(project, "Save as a proposal", "Enregistrer comme proposition"));
+        acceptInline.setText(ArchvowI18n.text(project, "Accept the AI's proposal", "Accepter la proposition de l'IA"));
+        suggestedInline.setText(ArchvowI18n.text(project, "Use the suggestion", "Utiliser la suggestion"));
+        refreshListFilter();
         dismissInline.setText(ArchvowI18n.text(project, "Not applicable", "Non applicable"));
         safetyInvariantButton.setText(ArchvowI18n.text(project, "Add required invariant", "Ajouter l'invariant requis"));
         changeHazardButton.setText(ArchvowI18n.text(project, "Change hazard", "Modifier le hazard"));
@@ -3460,12 +3480,6 @@ final class ArchvowPanel extends JPanel {
                 return;
             }
             manifest = data; rebuildTree();
-            // archvow 1.20: what each brief section gives (an older archvow has no `brief show`: the tab says so)
-            cli.execute("Briefs", List.of("brief", "show", "--json"), null, briefs -> {
-                briefStatus = briefs.ok() ? ArchvowGrammar.parseObject(briefs.stdout) : null;
-                updateOverview();
-                pushToDetail();
-            });
             cli.execute("Check", List.of("check", "--json"), null, checked -> {
                 check = ArchvowGrammar.parseObject(checked.stdout);
                 checkFailure = check == null ? checked.output : "";
@@ -3480,10 +3494,17 @@ final class ArchvowPanel extends JPanel {
                     if (ArchvowInitCatalog.hasTemplates(catalog)) projectCatalog = catalog;
                     followBestBase();
                     fetchComponentSnapshots(listComponentIds(), 0, () -> {
-                        updateOverview();
-                        refreshing = false;
-                        if (role == Role.DETAIL && selectedComponent != null) loadComponent(selectedComponent);
-                        pushToDetail();
+                        // archvow 1.20: what each brief section gives (an older archvow has no `brief show`: the tab
+                        // says so). Inside the chain, never beside it: ArchvowCli runs one command at a time and
+                        // refuses a second one - started in parallel (0.16.0), it made `check` fail, and then
+                        // next, the catalog and every component's `show` never ran (no counts, "resolved" everywhere).
+                        cli.execute("Briefs", List.of("brief", "show", "--json"), null, briefs -> {
+                            briefStatus = briefs.ok() ? ArchvowGrammar.parseObject(briefs.stdout) : null;
+                            updateOverview();
+                            refreshing = false;
+                            if (role == Role.DETAIL && selectedComponent != null) loadComponent(selectedComponent);
+                            pushToDetail();
+                        });
                     });
                     });
                 });
@@ -3604,9 +3625,10 @@ final class ArchvowPanel extends JPanel {
                 .withOrigin(i < aiView.decisions.size() ? aiView.decisions.get(i) : null);
             if (ArchvowItemCards.shown(card, originFilter)) decisionCards.add(card);
         }
-        fill(decisionsList, decisionsModel, decisionCards, another);
-        fill(questionList, questionModel, ArchvowGrammar.objects(data, "questions").stream()
-            .map(q -> ArchvowItemCards.question(q, fr)).toList(), another);
+        if (another) advance = "";
+        if (fill(decisionsList, decisionsModel, decisionCards, another, advance.startsWith("D") ? advance.substring(1) : null)) advance = "";
+        if (fill(questionList, questionModel, ArchvowGrammar.objects(data, "questions").stream()
+            .map(q -> ArchvowItemCards.question(q, fr)).toList(), another, advance.startsWith("Q") ? advance.substring(1) : null)) advance = "";
         List<JsonObject> safetyRows = ArchvowGrammar.objects(data, "safety");
         List<ArchvowItemCards.Card> safetyCards = new ArrayList<>();
         for (JsonObject q : safetyRows) {
@@ -3646,15 +3668,31 @@ final class ArchvowPanel extends JPanel {
     /** A view's cards, its selection kept (same component) or on its first open item (another one). */
     private static void fill(JList<ArchvowItemCards.Card> list, DefaultListModel<ArchvowItemCards.Card> model,
                              List<ArchvowItemCards.Card> cards, boolean another) {
+        fill(list, model, cards, another, null);
+    }
+
+    /**
+     * The same; {@code saved} (0.17.0, Clarify is no button any more): the number of the item just saved - once it
+     * is answered, the next open one is selected. True when it moved on (the save is done with).
+     */
+    private static boolean fill(JList<ArchvowItemCards.Card> list, DefaultListModel<ArchvowItemCards.Card> model,
+                                List<ArchvowItemCards.Card> cards, boolean another, String saved) {
         ArchvowItemCards.Card previous = list.getSelectedValue();
         model.clear();
         for (ArchvowItemCards.Card card : cards) model.addElement(card);
         int first = ArchvowItemCards.firstOpen(cards);
         int index = another || previous == null ? first : ArchvowItemCards.indexOf(cards, previous.number(), first);
+        boolean moved = false;
+        if (saved != null && !another && index >= 0 && cards.get(index).number().equals(saved) && !cards.get(index).open()) {
+            int next = ArchvowItemCards.nextOpenAfter(cards, index);
+            if (next >= 0) index = next;
+            moved = true;
+        }
         if (index >= 0) {
             list.setSelectedIndex(index);
             list.ensureIndexIsVisible(index);
         } else list.clearSelection();
+        return moved;
     }
 
     private void refreshViewStatus(JsonObject data) {
@@ -3714,6 +3752,61 @@ final class ArchvowPanel extends JPanel {
                     "Aucun élément local au composant dans cette vue."));
         }
         if (componentViewNav != null) componentViewNav.refresh();
+        viewPending = pending;
+        viewTotal = total;
+        refreshListFilter();
+    }
+
+    /** The line under the views for the active one (ArchvowListFilter): the words, then where the work is. */
+    private void refreshListFilter() {
+        listFilterLine.removeAll();
+        int view = componentViewNav == null ? 0 : componentViewNav.activeIndex();
+        boolean shown = selectedView != null && ArchvowListFilter.applies(view);
+        listFilterLine.setVisible(shown);
+        componentPendingExplanation.setVisible(!shown && componentPendingExplanation.getText() != null
+            && !componentPendingExplanation.getText().isBlank());
+        if (!shown) { listFilterLine.revalidate(); return; }
+        boolean fr = ArchvowI18n.isFrench(project);
+        int open = view < viewPending.length ? viewPending[view] : 0;
+        int review = view == 0 ? aiView.count("decisions") : view == 2 ? aiView.count("safety") : aiView.count("rules");
+        String now = ArchvowListFilter.normalized(originFilter, view, open, review);
+        if (!now.equals(originFilter)) { originFilter = now; if (selectedView != null) SwingUtilities.invokeLater(() -> renderComponent(selectedView)); }
+        JLabel show = new JLabel(ArchvowI18n.text(project, "Show", "Afficher"));
+        show.setForeground(UIManager.getColor("Label.disabledForeground"));
+        show.setFont(show.getFont().deriveFont(11f));
+        listFilterLine.add(show);
+        for (String[] w : ArchvowListFilter.words(view, open, review)) {
+            boolean on = w[0].equals(originFilter);
+            int n = Integer.parseInt(w[3]);
+            String tone = "review".equals(w[0]) ? "#5B8DEF" : "#C98A3C";
+            JButton word = ArchvowSplitView.link("");
+            word.setText("<html>" + (on ? "<u><b>" : "") + escape(fr ? w[2] : w[1]) + (on ? "</b></u>" : "")
+                + (n > 0 ? " <b style='color:" + tone + "'>" + n + "</b>" : "") + "</html>");
+            word.setFont(word.getFont().deriveFont(12f));
+            word.putClientProperty("archvow.filter", w[0]);
+            word.addActionListener(e -> { originFilter = w[0]; if (selectedView != null) renderComponent(selectedView); });
+            listFilterLine.add(word);
+        }
+        int next = ArchvowListFilter.doneThenGoTo(view, viewPending, viewTotal, componentOtherPendingModel.size());
+        if (next != -2) {
+            String[] names = {ArchvowI18n.text(project, "Decisions", "Décisions"), "Questions", ArchvowI18n.text(project, "Safety", "Sécurité"),
+                ArchvowI18n.text(project, "Assumptions", "Hypothèses"), ArchvowI18n.text(project, "Rules", "Règles"),
+                ArchvowI18n.text(project, "Tasks", "Tâches"), "Spec", ArchvowI18n.text(project, "Other", "Autres")};
+            JLabel done = new JLabel(names[view] + ArchvowI18n.text(project, ": all done", " : tout est traité"));
+            done.setForeground(darkTheme() ? new Color(116, 213, 167) : new Color(15, 132, 81));
+            done.setFont(done.getFont().deriveFont(12f));
+            listFilterLine.add(Box.createHorizontalStrut(18));
+            listFilterLine.add(done);
+            if (next >= 0) {
+                int n = next == 7 ? componentOtherPendingModel.size() : viewPending[next];
+                JButton go = ArchvowSplitView.link(names[next] + (fr ? " : " + n + " ouvert" + (n > 1 ? "s" : "") + " ›" : ": " + n + " open ›"));
+                go.setFont(go.getFont().deriveFont(12f));
+                go.addActionListener(e -> selectComponentView(next));
+                listFilterLine.add(go);
+            }
+        }
+        listFilterLine.revalidate();
+        listFilterLine.repaint();
     }
 
     private String firstMeaningfulLabel(JsonObject obj) {
@@ -3927,7 +4020,8 @@ final class ArchvowPanel extends JPanel {
         // only what applies to this decision is offered next to Cancel / Save answer
         for (JButton other : List.of(removeQuestionInline, keepQuestionInline, proposeInline, acceptInline, suggestedInline))
             other.setVisible(other.isEnabled());
-        proposeInline.getParent().revalidate();
+        if (suggestedInline.getParent() != null) suggestedInline.getParent().revalidate();
+        if (proposeInline.getParent() != null) proposeInline.getParent().revalidate();
         if (available) {
             String answer = ArchvowGrammar.str(row, "answer");
             String suggestion = ArchvowGrammar.str(row, "proposed");
@@ -3985,6 +4079,7 @@ final class ArchvowPanel extends JPanel {
         if (answer.isBlank()) {
             message(ArchvowI18n.text(project, "Enter an answer first.", "Saisis d'abord une réponse.")); return;
         }
+        advance = "Q" + key;  // once answered, the next open question shows
         List<String> args;
         try { args = ArchvowInlineCommands.decide(selectedComponent.id, key, answer); }
         catch (IllegalArgumentException ex) { message(ex.getMessage()); return; }
@@ -4280,6 +4375,7 @@ final class ArchvowPanel extends JPanel {
         if ("decision accept".equals(action) && ArchvowGrammar.str(row, "proposed").isBlank()) {
             message(ArchvowI18n.text(project, "No AI proposal to accept.", "Aucune proposition IA à accepter.")); return;
         }
+        if (!"decision propose".equals(action)) advance = "D" + number;  // once answered, the next open decision shows
         if ("decision propose".equals(action) && !ArchvowGrammar.str(row, "answer").isBlank()) {
             message(ArchvowI18n.text(project, "This decision is already answered.", "Cette décision a déjà une réponse.")); return;
         }
@@ -4945,7 +5041,7 @@ final class ArchvowPanel extends JPanel {
         componentPendingExplanation.setToolTipText(ArchvowI18n.text(project,
             "The component total includes all its pending categories and active diagnostics.",
             "Le total du composant inclut toutes ses catégories en attente et les diagnostics actifs."));
-        componentPendingExplanation.setVisible(total > 0);
+        componentPendingExplanation.setVisible(total > 0 && !listFilterLine.isVisible());
     }
 
     private void addQuickItem(Set<String> keys, QuickItem item) {
@@ -5431,24 +5527,37 @@ final class ArchvowPanel extends JPanel {
     private void showAiMenu(Component anchor) {
         boolean fr = ArchvowI18n.isFrench(project);
         JsonObject skills = ArchvowForms.section("ai_skills");
-        JPopupMenu menu = new JPopupMenu();
-        JMenuItem head = new JMenuItem(ArchvowI18n.text(project, "AI SKILLS · in the order of the work", "SKILLS IA · dans l'ordre du travail"));
-        head.setEnabled(false);
-        menu.add(head);
         String suggested = aiView.suggest == null ? "" : aiView.suggest.skill();
+        List<ArchvowMenu.Item> work = new ArrayList<>();
         for (String id : ArchvowAiSkills.SKILLS) {
             JsonObject def = ArchvowSkillForm.def(skills, id);
             if (def == null) continue;
             String[] blocked = aiView.blocked.get(id);
             String line = blocked != null ? blocked[fr ? 1 : 0] : ArchvowSkillForm.pair(def, "does", fr);
-            JMenuItem item = new JMenuItem("<html><b>" + escape(ArchvowSkillForm.pair(def, "label", fr)) + "</b>"
-                + (id.equals(suggested) ? " &nbsp;<span style='color:#1A876B'>" + (fr ? "SUGGÉRÉ" : "SUGGESTED") + "</span>" : "")
-                + "<br><span style='color:" + (blocked != null ? "#B0761A" : mutedHex()) + "'>" + escape(line) + "</span></html>");
-            item.setToolTipText("archvow-" + id);
-            item.setEnabled(blocked == null);
-            item.addActionListener(e -> openSkill(id, Map.of()));
-            menu.add(item);
+            work.add(new ArchvowMenu.Item(ArchvowSkillForm.pair(def, "label", fr), line, id, blocked == null, id.equals(suggested),
+                fr ? "SUGGÉRÉ" : "SUGGESTED", () -> openSkill(id, Map.of())));
         }
+        List<ArchvowMenu.Item> copy = List.of(new ArchvowMenu.Item(
+            ArchvowI18n.text(project, "Copy the card for another AI", "Copier la fiche pour une autre IA"),
+            ArchvowI18n.text(project, "for an assistant that cannot read the project's files", "pour un assistant qui ne lit pas les fichiers du projet"),
+            "prompt", () -> withComponent(c -> executeDirect("prompt", List.of("prompt", c.id), null, false))));
+        showMenu(ArchvowMenu.create(ArchvowI18n.text(project, "WHAT THE AI CAN DO · in the order of the work",
+            "CE QUE L'IA PEUT FAIRE · dans l'ordre du travail"), List.of(work, copy)), anchor);
+    }
+
+    /** "+ Add": what a person adds to this component (a new component is added from the tree, 0.17.0). */
+    private void showAddMenu(Component anchor) {
+        String[][] items = {{"A question", "Une question", "question add"}, {"A rule", "Une règle", "rule add"},
+            {"An assumption", "Une hypothèse", "assumption add"}};
+        List<ArchvowMenu.Item> rows = new ArrayList<>();
+        for (String[] it : items)
+            rows.add(new ArchvowMenu.Item(ArchvowI18n.text(project, it[0], it[1]), "", it[2], () -> withComponent(c -> openCommand(it[2],
+                "rule add".equals(it[2]) ? Map.of("words", c.id + "\n") : Map.of("component", c.id)))));
+        showMenu(ArchvowMenu.create(null, List.of(rows)), anchor);
+    }
+
+    /** A menu under its button (or under the actions when the button went into More actions). */
+    private void showMenu(JPopupMenu menu, Component anchor) {
         Component at = anchor != null && anchor.isShowing() ? anchor : componentActions;
         if (at != null && at.isShowing()) menu.show(at, 0, at.getHeight());
     }
@@ -5492,7 +5601,7 @@ final class ArchvowPanel extends JPanel {
     private void refreshSuggestion() {
         boolean fr = ArchvowI18n.isFrench(project);
         ArchvowAiSkills.Suggestion sg = aiView.suggest;
-        suggestStrip.setVisible(sg != null);
+        suggestStrip.setVisible(false);  // 0.17.2: no strip (AI ▾ marks the suggested step)
         for (var l : suggestGo.getActionListeners()) suggestGo.removeActionListener(l);
         if (sg == null) return;
         boolean review = "to-review".equals(sg.skill());
@@ -5505,7 +5614,6 @@ final class ArchvowPanel extends JPanel {
         suggestGo.addActionListener(e -> {
             if (!review) { openSkill(sg.skill(), Map.of()); return; }
             originFilter = "review";
-            for (JToggleButton b : originFilterButtons) b.setSelected(b == originFilterButtons.get(2));
             int view = aiView.count("decisions") > 0 ? 0 : aiView.count("safety") > 0 ? 2 : aiView.count("rules") > 0 ? 4
                 : aiView.count("assumptions") > 0 ? 3 : 0;
             if (selectedView != null) renderComponent(selectedView);
@@ -5601,7 +5709,7 @@ final class ArchvowPanel extends JPanel {
     }
 
     /** The buttons under an answer field: Cancel and the main one on the right, the others on the left. */
-    private static JPanel answerButtons(List<JButton> others, JButton cancel, JButton main) {
+    private static JPanel answerButtons(List<JButton> others, JButton cancel, JComponent main) {
         java.util.List<JComponent> right = new ArrayList<>();
         if (cancel != null) right.add(cancel);
         right.add(main);
@@ -5614,7 +5722,8 @@ final class ArchvowPanel extends JPanel {
      * saved or removed.
      */
     private JButton cancelButton(javax.swing.text.JTextComponent field, Runnable restore) {
-        JButton undo = button(ArchvowI18n.text(project, "Undo changes", "Annuler les modifications"), () -> {
+        JButton undo = ArchvowSplitView.link(ArchvowI18n.text(project, "Undo", "Annuler"));  // 0.17.0: a word, not a button
+        undo.addActionListener(e -> {
             if (componentConfirmation != null) componentConfirmation.hideConfirmation();
             restore.run();
         });

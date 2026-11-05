@@ -137,6 +137,27 @@ skills lancés sont gardés par composant, état de l'espace de travail / `Prope
 IA ▾** (`aiMenu()`, `showAiMenu`) liste les cinq, le suggéré marqué, un skill qui ne peut pas encore tourner grisé
 avec sa raison (`blocked`).
 
+## Un onglet plus calme (0.17.0)
+
+**Quatre actions calmes** : **Ouvrir le code**, **Modifier la spec**, **+ Ajouter ▾** (`addMenu()`,
+`showAddMenu` : une question, une règle, une hypothèse - ce qu'une personne ajoute à ce composant ; un nouveau
+composant s'ajoute depuis l'onglet Composants) et **✦ IA ▾** (`aiMenu()`, `showAiMenu` : les cinq skills, puis
+**Copier la fiche pour une autre IA**, `archvow prompt`). Le seul bouton plein est l'étape suggérée de la bande
+(et Accepter sur un composant créé par l'IA). Clarifier n'est plus un bouton : le premier élément ouvert est déjà
+choisi, et après Enregistrer la réponse, l'ouvert suivant de la vue s'affiche (`ui.advance` / `current()`, `advance`
+/ `fill(..., saved)` et `ArchvowItemCards.nextOpenAfter`).
+
+**La ligne sous les vues** (`listFilter()`, `refreshListFilter` et `ArchvowListFilter`) : « Afficher **Tout** ·
+Ouverts 2 · À relire 1 », des mots, pas des boutons ; À relire seulement quand l'IA a ajouté quelque chose, pas
+d'Ouverts dans Règles ; une vue sans rien d'ouvert dit où est le travail (« Décisions : tout est traité ·
+Sécurité : 2 ouverts › »). Dans le panneau de réponse, un seul bouton (Enregistrer la réponse, **▾ › Enregistrer
+comme proposition**) ; Utiliser la suggestion, Accepter la proposition de l'IA, Garder, répondre plus tard,
+Retirer la question et Annuler sont des liens (`button.link`, `ArchvowSplitView.link`).
+
+Les menus (✦ IA ▾, + Ajouter ▾, Enregistrer ▾) sont des lignes d'`ArchvowMenu` dans IntelliJ (0.17.1) : un titre, un trait entre les groupes, la ligne sous la souris éclairée, une étape pas encore possible grisée avec sa raison, la suggérée teintée. Le bouton de la bande garde sa taille et passe sous le texte quand la bande fait moins de 720 px (`STRIP_SIDE_BY_SIDE`).
+
+Depuis la 0.17.2, plus de bande « Suggéré ensuite » : les actions sont, dans cet ordre, **✦ IA ▾** (le seul bouton plein ; son menu marque l'étape suggérée), **+ Ajouter ▾**, **Modifier la spec**, **Ouvrir le code** ; **Enregistrer comme proposition** est un vrai bouton à côté d'Enregistrer la réponse.
+
 ## Enregistrer une réponse, de bout en bout
 
 ```mermaid

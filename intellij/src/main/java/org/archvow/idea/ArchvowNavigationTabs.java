@@ -10,15 +10,14 @@ import java.util.List;
 /**
  * Small, reliable editor-style navigation. Buttons explicitly select CardLayout views.
  * Unlike a custom BasicTabbedPaneUI, no paint or tab hit-testing logic handles clicks.
- * Compact tool-window tabs wrap to a second row at narrow widths, like VS Code.
- * Other tab strips keep horizontal scrolling for longer labels.
+ * All tab strips wrap to additional rows when the tool window narrows, like the
+ * Overview / Components / Commands navigation. No button is hidden in a scroller.
  */
 final class ArchvowNavigationTabs extends JPanel {
     private final CardLayout layout = new CardLayout();
     private final JPanel cards = new JPanel(layout);
     private final JPanel strip = new ResponsiveStrip();
     private final JPanel stripHost = new JPanel(new BorderLayout());
-    private final JScrollPane stripScroll;
     private final List<ArchvowMotion.EditorTabButton> buttons = new ArrayList<>();
     private final List<ChangeListener> listeners = new ArrayList<>();
     private int selected = -1;
@@ -29,14 +28,7 @@ final class ArchvowNavigationTabs extends JPanel {
         super(new BorderLayout(0, 2));
         strip.setOpaque(false);
         stripHost.setOpaque(false);
-        stripScroll = new JScrollPane(strip, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        stripScroll.setBorder(BorderFactory.createEmptyBorder());
-        stripScroll.setOpaque(false);
-        stripScroll.getViewport().setOpaque(false);
-        stripScroll.setPreferredSize(new Dimension(120, 49));
-        stripScroll.getHorizontalScrollBar().setUnitIncrement(32);
-        stripHost.add(stripScroll, BorderLayout.CENTER);
+        stripHost.add(strip, BorderLayout.CENTER);
         add(stripHost, BorderLayout.NORTH);
         add(cards, BorderLayout.CENTER);
     }
@@ -81,25 +73,16 @@ final class ArchvowNavigationTabs extends JPanel {
 
     int getSelectedIndex() { return selected; }
 
-    /** Tighter buttons without icons. In compact mode all tabs wrap, never hide behind a scrollbar. */
+    /** Compact controls have tighter padding and no icons; both modes wrap responsively. */
     void setCompact(boolean value) {
-        if (compact != value) {
-            // One strip, two layouts: directly in the host for responsive wrapping in the
-            // tool window, inside the horizontal scroller elsewhere. Nothing is rebuilt.
-            if (value) {
-                stripScroll.setViewportView(null);
-                stripHost.remove(stripScroll);
-                stripHost.add(strip, BorderLayout.CENTER);
-            } else {
-                stripHost.remove(strip);
-                stripScroll.setViewportView(strip);
-                stripHost.add(stripScroll, BorderLayout.CENTER);
-            }
-        }
         compact = value;
         ((FlowLayout) strip.getLayout()).setHgap(value ? 1 : 4);
         for (ArchvowMotion.EditorTabButton button : buttons) {
-            if (value) compact(button); else ArchvowUiIcons.decorate(button);
+            if (value) compact(button);
+            else {
+                button.setBorder(BorderFactory.createEmptyBorder(7, 14, 7, 14));
+                ArchvowUiIcons.decorate(button);
+            }
         }
         strip.revalidate();
         stripHost.revalidate();
@@ -132,19 +115,18 @@ final class ArchvowNavigationTabs extends JPanel {
 
     void addChangeListener(ChangeListener listener) { listeners.add(listener); }
 
-    // Source compatibility: the compact strip wraps; the full strip scrolls.
+    // Source compatibility with former JTabbedPane callers; all strips now wrap.
     void setTabLayoutPolicy(int ignored) { }
 
     // Exposed for regression tests and keyboard accessibility checks.
     AbstractButton getNavigationButton(int index) { return buttons.get(index); }
 
-    /** Preferred height follows the actual tool-window width, not an assumed one-line strip. */
+    /** Preferred height follows the real width in both compact and full-size tabs. */
     private final class ResponsiveStrip extends JPanel {
         ResponsiveStrip() { super(new FlowLayout(FlowLayout.LEFT, 4, 3)); }
 
         @Override public Dimension getPreferredSize() {
             Dimension singleLine = super.getPreferredSize();
-            if (!compact) return singleLine;
             Insets insets = getInsets();
             FlowLayout flow = (FlowLayout) getLayout();
             int hgap = flow.getHgap(), vgap = flow.getVgap();

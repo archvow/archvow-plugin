@@ -44,6 +44,11 @@ public final class EditorTabLookRegression {
                     Color idle = pixel(button, surface, 9, 19);
                     if (distance(surface, active) <= distance(surface, idle) + 5)
                         throw new AssertionError("Active view not visually distinct from idle");
+                    // Even an unselected button gets a rounded fine-line outline.
+                    // Its central background stays unchanged and its content is preserved.
+                    Color outline = pixel(button, surface, 2, 19);
+                    if (distance(surface, outline) < 25)
+                        throw new AssertionError("Unselected button has no visible rounded outline");
                 }
             }
         });

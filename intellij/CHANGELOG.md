@@ -2,6 +2,49 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.17.2 - 2026-11-05
+
+Built on archvow 1.20 (contract unchanged). Both IDEs.
+
+- **No suggestion strip.** The component's actions are, in this order: **✦ AI ▾** (the one filled button; its
+  menu marks the suggested step), **+ Add ▾**, **Edit spec**, **Open code**. What the AI added and no person kept
+  yet is still announced next to the name ("N from AI to review").
+- **Save as a proposal is a real button** beside Save answer, shown while the decision is open (the ▾ menu of
+  0.17.0 is gone).
+
+## 0.17.1 - 2026-11-05
+
+Built on archvow 1.20 (contract unchanged). IntelliJ only (VS Code unchanged but for the version).
+
+- **The suggested step's button keeps its own size**: in a narrow tool window it filled half the strip and its
+  height; it now goes under the text when the strip is narrower than 720 px, on its right otherwise.
+- **The menus are readable** (✦ AI ▾, + Add ▾, Save ▾ - `ArchvowMenu`): a heading, a line between the groups,
+  the row under the mouse highlighted, a step that cannot run yet greyed with why, the suggested one tinted. The
+  two-line HTML menu items of 0.17.0 had no hover, no line between groups and a clipped selection mark on the left.
+- The "N pending for <component>" line no longer shows under the Show line (twice the same information).
+
+## 0.17.0 - 2026-11-04
+
+Built on archvow 1.20 (contract unchanged). A calmer component tab, and IntelliJ's counts back. Both IDEs, the same
+functions.
+
+- **IntelliJ: the counts, the badges and "resolved" are right again.** 0.16.0 started `brief show` beside `check`;
+  the plugin runs one archvow command at a time, so `check` was refused and `next`, the catalog and every
+  component's `show` never ran: no counts in the tree, every component "resolved", Architecture "0". `brief show`
+  now runs inside the load chain, last; `LoadChainRegression` fails if a command is ever started beside another.
+- **Four quiet actions** on a component: **Open code**, **Edit spec**, **+ Add ▾** (a question, a rule, an
+  assumption - what you add to this component) and **✦ AI ▾** (the five skills in the order of the work, the
+  suggested one marked, one that cannot run yet greyed with why, then **Copy the card for another AI**, for an
+  assistant that cannot read the project's files). Gone from the row: Clarify, AI prompt, + Question, + Rule,
+  + Component (added from the Components tab) and AI skills ▾.
+- **One filled button**: the suggested next step, in the strip under the description (always shown, no ×).
+- **The filter is a line of small words** under the views, no longer buttons beside them: "Show **All** · Open 2
+  · To review 1" - To review only when the AI added something, no Open in Rules.
+- **No Clarify button**: the first open item is already selected; after **Save answer**, the next open one of the
+  view shows; a view with nothing open left says where the work is ("Decisions: all done · Safety: 2 open ›").
+- **One button in the answer panel**: **Save answer**, with **▾ › Save as a proposal**; **Use the suggestion**,
+  **Accept the AI's proposal**, **Keep, answer later**, **Remove question** and **Undo** are links.
+
 ## 0.16.0 - 2026-11-04
 
 Built on archvow 1.20 (the contract regenerated from it). The AI skills become easy to reach and their work easy to

@@ -14,7 +14,7 @@ Gradle les lance avec `JavaExec` (`intellij/build.gradle.kts`). La tâche `test`
 | Tâche | Classe | Ce qu'elle vérifie |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | le lecteur `.vow` sur chaque vow de `contract/vows` : le scanner couvre tout le texte, redémarre à n'importe quel jeton, une couleur par profondeur ; des vows cassés exprès donnent les bons problèmes |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 37 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 52 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
 | `contractDump` (pas dans `check`) | `DumpContract` | écrit `contract/vow-reader/expected.json`, la référence du lecteur TypeScript |
 
 Le panneau lui-même (`ArchvowPanel`) a besoin d'un IntelliJ qui tourne ; c'est pourquoi **la logique
@@ -34,6 +34,8 @@ nom de ce qu'elle protège :
 | `FilePlanRegression` | les fichiers qu'un formulaire annonce (`ArchvowFilePlan`) : exactement ceux de VS Code sur `contract/forms/file-plans.expected.json` ; les couches où ajouter, Enregistrer dans un fichier, le premier commit, les icônes (`ArchvowTreeIcons`), les tableaux de réponse (une corbeille par ligne, les paramètres) |
 | `AiSkillsRegression` | la vue IA d'un composant (`ArchvowAiSkills`) : exactement celle de VS Code sur `contract/forms/ai-skills.expected.json` (origines, nombres à relire, suggestion, skills bloqués) ; les demandes que reçoit chaque outil |
 | `SkillFormRegression` | le formulaire de lancement d'un skill (`ArchvowSkillForm`) : la demande, Copier grisé sans brief, « Pas encore » ; Vue d'ensemble › Briefs (`ArchvowBriefs.statusHtml`) ; les étiquettes d'origine des cartes et le filtre Tout / Ouverts / À relire |
+| `LoadChainRegression` | le chargement du projet est une seule chaîne (show, check, next, catalog, chaque composant, brief show) : ArchvowCli refuse une commande lancée à côté d'une autre (0.16.0 : plus de compteurs) |
+| `ListFilterRegression` | la ligne sous les vues (`ArchvowListFilter`), une vue finie dit où est le travail, l'ouvert suivant après un enregistrement, les liens, les quatre actions calmes |
 | `GuidanceRegression` | chaque diagnostic dit quoi faire (`ArchvowGuidance`) : chaque code documenté, et sur chaque message réel exactement le guidage de VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Installer archvow : le Python choisi, la ligne pip par source, WSL, pip seulement depuis une confirmation |
 | `ProgressRegression` | la barre d'avancement sur le `clean_orders` enregistré (9/9, 1/5, 0/2) |

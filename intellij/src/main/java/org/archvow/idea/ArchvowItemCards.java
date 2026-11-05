@@ -108,6 +108,18 @@ final class ArchvowItemCards {
         return cards.isEmpty() ? -1 : 0;
     }
 
+    /**
+     * 0.17.0 (Clarify is no button any more): after a save, the next open card after {@code index}, going round;
+     * -1 when none is open.
+     */
+    static int nextOpenAfter(List<Card> cards, int index) {
+        for (int k = 1; k <= cards.size(); k++) {
+            int i = (Math.max(index, 0) + k) % cards.size();
+            if (cards.get(i).open() && i != index) return i;
+        }
+        return -1;
+    }
+
     /** The index of the card numbered {@code number}, else {@code otherwise}. */
     static int indexOf(List<Card> cards, String number, int otherwise) {
         if (number == null || number.isBlank()) return otherwise;

@@ -223,18 +223,24 @@ final class ArchvowMotion {
     private static void paintEditorTab(Graphics2D g, int x, int y, int width, int height,
             boolean selected, float hover) {
         if (width < 4 || height < 4) return;
-        if (!selected && hover <= .01f) return;
-        Color base = dark() ? new Color(35, 37, 42) : new Color(250, 251, 253);
-        Color fill = selected
-            ? (dark() ? new Color(38, 54, 80) : new Color(227, 237, 253))
-            : blend(base, accent(), (dark() ? .12 : .07) * hover);
-        g.setColor(fill);
-        g.fill(new RoundRectangle2D.Float(x, y, width, height, 10, 10));
-        if (selected) {
-            g.setColor(dark() ? new Color(70, 113, 184) : new Color(124, 160, 221));
-            g.setStroke(new BasicStroke(1.3f));
-            g.draw(new RoundRectangle2D.Float(x+.65f, y+.65f, width-1.3f, height-1.3f, 10, 10));
+        if (selected || hover > .01f) {
+            Color base = dark() ? new Color(35, 37, 42) : new Color(250, 251, 253);
+            Color fill = selected
+                ? (dark() ? new Color(38, 54, 80) : new Color(227, 237, 253))
+                : blend(base, accent(), (dark() ? .12 : .07) * hover);
+            g.setColor(fill);
+            g.fill(new RoundRectangle2D.Float(x, y, width, height, 10, 10));
         }
+        // An unselected tab still has a light rounded outline: its label and icon
+        // remain untouched, and selection keeps the exact existing highlighted style.
+        Color outline = selected
+            ? (dark() ? new Color(70, 113, 184) : new Color(124, 160, 221))
+            : (dark() ? new Color(91, 97, 108) : new Color(197, 204, 215));
+        if (!selected && hover > 0f) outline = blend(outline, accent(), .30 * hover);
+        g.setColor(outline);
+        g.setStroke(new BasicStroke(selected ? 1.3f : 1.0f));
+        g.draw(new RoundRectangle2D.Float(x + .65f, y + .65f,
+            width - 1.3f, height - 1.3f, 10, 10));
     }
 
     /**

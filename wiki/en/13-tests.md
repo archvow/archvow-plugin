@@ -14,7 +14,7 @@ runs them with `JavaExec` (`intellij/build.gradle.kts`). Gradle's `test` task is
 | Task | Class | What it checks |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | the `.vow` reader on every vow of `contract/vows`: the scanner covers all the text, restarts at any token, one colour per depth; vows broken on purpose give the right problems |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 37 regression classes: everything that does not need a running IntelliJ |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 52 regression classes: everything that does not need a running IntelliJ |
 | `contractDump` (not in `check`) | `DumpContract` | writes `contract/vow-reader/expected.json`, the TypeScript reader's reference |
 
 The panel itself (`ArchvowPanel`) needs a running IntelliJ; that is why **the logic is taken out into
@@ -36,6 +36,8 @@ what it protects:
 | `FilePlanRegression` | the files a form announces (`ArchvowFilePlan`): exactly VS Code's on `contract/forms/file-plans.expected.json`; the layers to add to, Save to a file, the first commit, the icons (`ArchvowTreeIcons`), the answer tables (a bin per row, the parameters) |
 | `AiSkillsRegression` | the AI view of a component (`ArchvowAiSkills`): exactly VS Code's on `contract/forms/ai-skills.expected.json` (origins, To review counts, suggestion, blocked skills); the requests each tool gets |
 | `SkillFormRegression` | the launch form of a skill (`ArchvowSkillForm`): the request, Copy disabled without a brief, "Not yet"; Overview › Briefs (`ArchvowBriefs.statusHtml`); the cards' origin tags and the All / Open / To review filter |
+| `LoadChainRegression` | the project's load is one chain (show, check, next, catalog, each component, brief show): ArchvowCli refuses a command started beside another (0.16.0: no counts) |
+| `ListFilterRegression` | the line under the views (`ArchvowListFilter`), a done view says where the work is, the next open item after a save, the links, the four quiet actions |
 | `GuidanceRegression` | every diagnostic says what to do (`ArchvowGuidance`): each documented code, and on each real message exactly the guidance of VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Install archvow: the Python chosen, the pip line per source, WSL, pip only from a confirmation |
 | `ProgressRegression` | the progress bar on the recorded `clean_orders` (9/9, 1/5, 0/2) |
