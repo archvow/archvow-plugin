@@ -155,8 +155,8 @@ Since 0.17.2, no "Suggested next" strip: the actions are, in this order, **✦ A
 
 ## The examples (0.18.0)
 
-The **Examples** view (view 8, placed after Rules: `VIEW_ORDER` in VS Code, `ArchvowCompactViews.addView(button, 5)`
-in IntelliJ) shows archvow 1.21's business examples. Its button says "Examples 2 · 1 ✖" (`exampleCounts()`,
+The **Examples** view (view 8, always shown as Decisions and Questions, after Rules and before Tasks: `VIEW_ORDER` in VS Code, `ArchvowCompactViews.addView(button, 5)`
+in IntelliJ) shows archvow 1.21's business examples. Its button says "Examples 2 · 1 ✖", or "Examples" when there is none (`exampleCounts()`,
 `ArchvowExamples.label`); a failing example adds "1 example failing" to the header (`failingBadge()`).
 
 - **The state comes from the test, never from the plugin**: `result` from `show --json` (passing, failing, not_run,

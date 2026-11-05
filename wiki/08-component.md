@@ -160,8 +160,8 @@ Depuis la 0.17.2, plus de bande « Suggéré ensuite » : les actions sont, dans
 
 ## Les exemples (0.18.0)
 
-La vue **Exemples** (la vue 8, placée après Règles : `VIEW_ORDER` dans VS Code, `ArchvowCompactViews.addView(bouton, 5)`
-dans IntelliJ) montre les exemples métier d'archvow 1.21. Son bouton dit « Exemples 2 · 1 ✖ » (`exampleCounts()`,
+La vue **Exemples** (la vue 8, toujours affichée comme Décisions et Questions, après Règles et avant Tâches : `VIEW_ORDER` dans VS Code, `ArchvowCompactViews.addView(bouton, 5)`
+dans IntelliJ) montre les exemples métier d'archvow 1.21. Son bouton dit « Exemples 2 · 1 ✖ », ou « Exemples » sans exemple (`exampleCounts()`,
 `ArchvowExamples.label`) ; un exemple en échec ajoute « 1 exemple en échec » à l'en-tête (`failingBadge()`).
 
 - **L'état vient du test, jamais du plugin** : `result` de `show --json` (passing, failing, not_run, no_test),

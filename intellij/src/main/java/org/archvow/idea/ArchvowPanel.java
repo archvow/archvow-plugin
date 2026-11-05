@@ -3793,10 +3793,8 @@ final class ArchvowPanel extends JPanel {
             if (componentViewButtons.size() > 8) {
                 JToggleButton chip = componentViewButtons.get(8);
                 int[] counts = ArchvowExamples.counts(data);
-                chip.setText(ArchvowExamples.label(data, fr));
-                chip.setVisible(counts[0] > 0);
+                chip.setText(ArchvowExamples.label(data, fr));  // always shown, as Decisions and Questions
                 chip.setForeground(counts[2] > 0 ? new Color(207, 34, 46) : null);
-                if (counts[0] == 0 && componentViewNav != null && componentViewNav.activeIndex() == 8) selectComponentView(0);
             }
         }
         refreshRulesAiActions();

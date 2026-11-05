@@ -34,6 +34,10 @@ public final class ExamplesAndSearchRegression {
         JsonObject failing = view(contract, "failing");
         check(ArchvowExamples.label(failing, false).equals("Examples 1 · 1 ✖"), "label " + ArchvowExamples.label(failing, false));
         check(ArchvowExamples.label(view(contract, "passing"), true).equals("Exemples 1 ✓"), "French label");
+        JsonObject none = JsonParser.parseString("{\"component\":\"spark\",\"examples\":[]}").getAsJsonObject();
+        check(ArchvowExamples.label(none, true).equals("Exemples") && ArchvowExamples.label(none, false).equals("Examples"), "no example: just the name");
+        String panel = read(contract.getParent().resolve("intellij/src/main/java/org/archvow/idea/ArchvowPanel.java"));
+        check(!panel.contains("chip.setVisible("), "the Examples chip is always shown, as Decisions and Questions");
         JsonObject clean = JsonParser.parseString(read(contract.resolve("cli/pyspark-pipeline/show/clean_orders.json"))).getAsJsonObject();
         check(new ArrayList<>(ArchvowExamples.groups(clean).keySet()).equals(List.of("clean_orders.INV1", "")), "groups " + ArchvowExamples.groups(clean).keySet());
         ArchvowItemCards.Card card = ArchvowExamples.card(clean, ArchvowExamples.ordered(clean).get(0), false);

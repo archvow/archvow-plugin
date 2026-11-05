@@ -4,7 +4,7 @@
 
 Built on archvow 1.21 (contract regenerated from the 1.21.0 wheel).
 
-- **The Examples view**, after Rules, when the component has business examples ("Examples 4 · 1 ✖"): the examples
+- **The Examples view**, always shown, after Rules and before Tasks ("Examples 4 · 1 ✖"; "Examples" when there is none): the examples
   as cards grouped by the rule they show (the scenario's `Rule:`), each with its test's own verdict - ✔ passing,
   ✖ failing, ○ no test yet, · not run (`show --json` `result`; the test decides, archvow shows); the selected one
   right: its rule, its brief (a link), its scenario, then each output file expected/ | actual/ side by side by

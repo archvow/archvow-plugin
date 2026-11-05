@@ -6,7 +6,7 @@ The plugin joins two former plugins in 0.5.0; their own histories follow.
 
 Built on archvow 1.21 (contract regenerated from the 1.21.0 wheel). The same as VS Code 0.18.0.
 
-- **The Examples view** (`ArchvowExamplesView`, `ArchvowExamples`), shown right after Rules
+- **The Examples view** (`ArchvowExamplesView`, `ArchvowExamples`), always shown, after Rules and before Tasks
   (`ArchvowCompactViews.addView(button, position)`): the examples as cards with their test's verdict, the
   selected one's state, rule, brief, scenario and output files expected/ | actual/ side by side; Open test,
   Copy command; the head says how many fail; the progress bar counts the passing ones. The states are VS Code's

@@ -68,7 +68,8 @@ final class ArchvowExamples {
     static String label(JsonObject view, boolean french) {
         int[] c = counts(view);
         String name = french ? "Exemples" : "Examples";
-        return name + " " + c[0] + (c[2] > 0 ? " · " + c[2] + " ✖" : c[1] == c[0] && c[0] > 0 ? " ✓" : "");
+        if (c[0] == 0) return name;  // always shown, as Decisions and Questions
+        return name + " " + c[0] + (c[2] > 0 ? " · " + c[2] + " ✖" : c[1] == c[0] ? " ✓" : "");
     }
 
     /** The examples by the rule they show (the scenario's Rule:), in their order; no rule ("") last. */

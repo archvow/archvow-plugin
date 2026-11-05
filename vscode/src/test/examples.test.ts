@@ -51,7 +51,9 @@ test('the chip and the badge count passing and failing examples; the progress co
   assert.deepEqual(exampleCounts(view), { total: 1, passing: 0, failing: 1 });
   assert.match(failingBadge(view), /data-a="view" data-i="8"[^>]*>1 example failing<\/button>/);
   assert.equal(failingBadge(read('cli', 'python-app', 'examples', 'passing.json')), '');
-  assert.match(page, /const VIEW_ORDER = \[0, 1, 2, 3, 4, 8, 5, 6, 7\];/); // Examples right after Rules
+  assert.match(page, /const VIEW_ORDER = \[0, 1, 2, 3, 4, 8, 5, 6, 7\];/); // Examples after Rules, before Tasks
+  assert.match(page, /const viewBar = VIEW_ORDER\.map\(/); // always shown, as Decisions and Questions (no filter)
+  assert.match(page, /i === 8 \? name \+ \(!ex\.total \? '' :/); // no example: just "Examples"
   assert.match(page, /part\('examples', t\('Examples passing', 'Exemples réussis'\)/);
 });
 

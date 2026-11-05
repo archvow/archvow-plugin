@@ -778,11 +778,11 @@
     const localOtherResolved = S.work.otherResolved.filter((item) => isLocalOther(item)).length;
     const aiCount = (i) => (!ai ? 0 : i === 0 ? ai.toReview.decisions : i === 2 ? ai.toReview.safety : i === 3 ? ai.toReview.assumptions : i === 4 ? ai.toReview.rules : 0);
     const ex = exampleCounts(view);
-    const viewBar = VIEW_ORDER.filter((i) => i !== 8 || ex.total > 0).map((i) => {
+    const viewBar = VIEW_ORDER.map((i) => {  // every view always shows, Examples too (before Tasks)
       const name = names[i];
       const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] : counts.total[i] > 0 ? ' ✓' : '')
         : i === 7 ? name + (localOtherPending ? ' · ' + localOtherPending : localOtherResolved ? ' ✓' : '')
-        : i === 8 ? name + ' ' + ex.total + (ex.failing ? ' · ' + ex.failing + ' ✖' : ex.passing === ex.total ? ' ✓' : '') : name;
+        : i === 8 ? name + (!ex.total ? '' : ' ' + ex.total + (ex.failing ? ' · ' + ex.failing + ' ✖' : ex.passing === ex.total ? ' ✓' : '')) : name;
       const dot = aiCount(i);
       const tip = i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('pending items', 'éléments en attente')}` : t('No open items', 'Aucun élément ouvert'))
         : i === 7 ? t('Only issues of this component; project checks are in Check & Gates.', 'Seulement les éléments de ce composant ; les contrôles globaux sont dans Check & Gates.')
