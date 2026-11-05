@@ -17,7 +17,8 @@
   ],
   "activationEvents": [
     "workspaceContains:.archvow/spec.vow",
-    "onLanguage:vow"
+    "onLanguage:vow",
+    "onCommand:archvow.initialize"
   ],
   "main": "./out/extension.js",
   "capabilities": {
@@ -121,6 +122,12 @@
       ]
     },
     "commands": [
+      {
+        "command": "archvow.initialize",
+        "title": "Initialize Archvow in a folder…",
+        "category": "archvow",
+        "icon": "$(new-folder)"
+      },
       {
         "command": "archvow.open",
         "title": "Show the workspace",

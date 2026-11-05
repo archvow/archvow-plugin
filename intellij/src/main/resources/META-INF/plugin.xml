@@ -52,6 +52,10 @@
   </extensions>
 
   <actions>
+    <action id="Archvow.InitializeFromWelcome" class="org.archvow.idea.ArchvowInitFromWelcomeAction"
+            text="Initialize Archvow…" description="Open any folder and initialize Archvow (no existing Archvow project required)">
+      <add-to-group group-id="WelcomeScreen.QuickStart" anchor="last"/>
+    </action>
     <action id="Archvow.Show" class="org.archvow.idea.ShowArchvowAction"
             text="Show Archvow" description="Show the Archvow tool window: Overview, Components, Commands">
       <add-to-group group-id="ToolsMenu" anchor="last"/>

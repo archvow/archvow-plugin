@@ -1648,30 +1648,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "check": {
@@ -1680,30 +1680,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "review": {
@@ -1712,30 +1712,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "changes": {
@@ -1744,60 +1744,60 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      },
      "end": {
       "kind": "suggest",
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "diff": {
@@ -1806,30 +1806,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "template new": {
@@ -3491,30 +3491,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "check": {
@@ -3523,30 +3523,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "review": {
@@ -3555,30 +3555,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "changes": {
@@ -3587,60 +3587,60 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      },
      "end": {
       "kind": "suggest",
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "diff": {
@@ -3649,30 +3649,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "template new": {
@@ -6057,30 +6057,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "check": {
@@ -6089,30 +6089,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "review": {
@@ -6121,30 +6121,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "changes": {
@@ -6153,60 +6153,60 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      },
      "end": {
       "kind": "suggest",
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "diff": {
@@ -6215,30 +6215,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "template new": {
@@ -8623,30 +8623,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "check": {
@@ -8655,30 +8655,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "review": {
@@ -8687,30 +8687,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "changes": {
@@ -8719,60 +8719,60 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      },
      "end": {
       "kind": "suggest",
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "diff": {
@@ -8781,30 +8781,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "template new": {
@@ -11220,30 +11220,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "check": {
@@ -11252,30 +11252,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "review": {
@@ -11284,30 +11284,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "changes": {
@@ -11316,60 +11316,60 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      },
      "end": {
       "kind": "suggest",
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "diff": {
@@ -11378,30 +11378,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branch or tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branch or tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branch or tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branch or tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branch or tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branch or tag"
        }
       ],
-      "note": "The branches and tags of this repository; a merge request is compared with origin/develop."
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
     "template new": {
@@ -13817,30 +13817,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "check": {
@@ -13849,30 +13849,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "review": {
@@ -13881,30 +13881,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "changes": {
@@ -13913,60 +13913,60 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      },
      "end": {
       "kind": "suggest",
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "diff": {
@@ -13975,30 +13975,30 @@
       "choices": [
        {
         "value": "develop",
-        "label": "develop"
+        "label": "develop — branche ou tag"
        },
        {
         "value": "feature/vat",
-        "label": "feature/vat"
+        "label": "feature/vat — branche ou tag"
        },
        {
         "value": "main",
-        "label": "main"
+        "label": "main — branche ou tag"
        },
        {
         "value": "origin/develop",
-        "label": "origin/develop"
+        "label": "origin/develop — branche ou tag"
        },
        {
         "value": "origin/main",
-        "label": "origin/main"
+        "label": "origin/main — branche ou tag"
        },
        {
         "value": "v1.0.0",
-        "label": "v1.0.0"
+        "label": "v1.0.0 — branche ou tag"
        }
       ],
-      "note": "Les branches et tags de ce dépôt ; une merge request se compare à origin/develop."
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
     "template new": {

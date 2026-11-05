@@ -113,6 +113,7 @@ final class ArchvowPanel extends JPanel {
     private JsonObject bundledKinds;
     /** The repository's branches and tags, the current branch, what origin's HEAD names (the comparison base). */
     private List<String> gitRefs = List.of();
+    private Map<String, String> gitRefKinds = Map.of();
     /** The repository's first commit: changes --from it reports everything (0.15.0). */
     private String firstCommit = "";
     private String gitCurrent = "", remoteHead = "";
@@ -489,6 +490,7 @@ final class ArchvowPanel extends JPanel {
                 updateBranchWarning(read[0]);
                 gitCurrent = read[0];
                 gitRefs = ArchvowChoices.refNames(read[1]);
+                gitRefKinds = ArchvowChoices.refKinds(read[1]);
                 remoteHead = read[2];
                 firstCommit = read[3];
                 followBestBase();
@@ -527,7 +529,13 @@ final class ArchvowPanel extends JPanel {
     }
 
     private String baseLabel() {
-        return "Base: " + (branch.getText().isBlank() ? "—" : branch.getText());
+        String ref = branch.getText().trim();
+        if (ref.isEmpty()) return "Base: —";
+        String kind = gitRefKinds.get(ref);
+        String suffix = "local".equals(kind) ? ArchvowI18n.text(project, " (local)", " (locale)")
+            : "remote".equals(kind) ? ArchvowI18n.text(project, " (remote)", " (distante)")
+            : "tag".equals(kind) ? " (tag)" : "";
+        return "Base: " + ref + suffix;
     }
 
     /** Why a base cannot be compared with, and which exist ('' when it exists, or Git knows it as a commit). */
@@ -544,12 +552,26 @@ final class ArchvowPanel extends JPanel {
     private String askBase(String title) {
         JComboBox<String> choice = new JComboBox<>(gitRefs.stream().filter(r -> !r.endsWith("/HEAD")).toArray(String[]::new));
         choice.setEditable(true);
+        choice.setRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                                       boolean selected, boolean focused) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, selected, focused);
+                String ref = value == null ? "" : value.toString();
+                String kind = gitRefKinds.get(ref);
+                String suffix = "local".equals(kind) ? ArchvowI18n.text(project, "local branch", "branche locale")
+                    : "remote".equals(kind) ? ArchvowI18n.text(project, "remote branch (fetched)", "branche distante (récupérée)")
+                    : "tag".equals(kind) ? "tag" : "";
+                if (!suffix.isEmpty() && index >= 0) label.setText(ref + " — " + suffix);
+                return label;
+            }
+        });
         choice.setSelectedItem(branch.getText());
         JPanel content = new JPanel(new BorderLayout(0, 6));
         content.add(new JLabel(title), BorderLayout.NORTH);
         content.add(choice, BorderLayout.CENTER);
-        if (gitRefs.isEmpty()) content.add(new JLabel(ArchvowI18n.text(project,
-            "No other branch in this repository yet: nothing to compare with.", "Pas encore d'autre branche dans ce dépôt : rien à comparer.")), BorderLayout.SOUTH);
+        content.add(new JLabel(gitRefs.isEmpty() ? ArchvowI18n.text(project,
+            "No other ref in this repository yet: nothing to compare with.", "Aucune autre référence Git dans ce dépôt : rien à comparer.")
+            : ArchvowI18n.text(project, "Remote refs reflect the last git fetch.", "Les références distantes reflètent le dernier git fetch.")), BorderLayout.SOUTH);
         if (JOptionPane.showConfirmDialog(this, content, "archvow", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return null;
         String ref = comboText(choice);
         if (ref.isBlank()) return null;
@@ -725,6 +747,7 @@ final class ArchvowPanel extends JPanel {
         gitRefs = source.gitRefs;
         firstCommit = source.firstCommit;
         gitCurrent = source.gitCurrent;
+        gitRefKinds = source.gitRefKinds;
         remoteHead = source.remoteHead;
         if (!baseTouched && !source.baseTouched) followBestBase();
         else if (!baseTouched) { branch.setText(source.branch.getText()); if (comparisonBaseButton != null) comparisonBaseButton.setText(baseLabel()); }
@@ -2488,7 +2511,8 @@ final class ArchvowPanel extends JPanel {
         if (command == null || buildingForm) return;
         Map<String, String> values = currentValues();
         boolean fr = ArchvowI18n.isFrench(project);
-        formPreview.setText(ArchvowForms.commandLine(command, values, fr));
+        formPreview.setText(ArchvowForms.commandLine(command, values, fr,
+            "init".equals(command.label) && initQuestions != null ? initQuestions.answers() : List.of()));
         // the files it writes: what is new, updated, removed, and the code a new component plans
         String output = ArchvowForms.output(command, values);
         boolean exists = !output.isEmpty() && project.getBasePath() != null && new File(project.getBasePath(), output).exists();
@@ -2630,7 +2654,7 @@ final class ArchvowPanel extends JPanel {
         JsonObject catalog = projectCatalog != null ? projectCatalog : liveInitCatalog != null ? liveInitCatalog : ArchvowInitCatalog.bundled();
         if (bundledKinds == null) bundledKinds = ArchvowInitCatalog.kinds();
         return ArchvowChoices.book(ArchvowGrammar.COMMANDS, new ArchvowChoices.Input(manifest, componentSnapshots, catalog, bundledKinds,
-            gitRefs, branch.getText().trim(), ArchvowI18n.isFrench(project), firstCommit));
+            gitRefs, branch.getText().trim(), ArchvowI18n.isFrench(project), firstCommit, gitRefKinds));
     }
 
     private void buildForm(ArchvowGrammar.Command command, Map<String, String> defaults) {
@@ -2813,6 +2837,7 @@ final class ArchvowPanel extends JPanel {
                         JComponent template = fields.get("template");
                         if (template instanceof JTextField input) input.setText(chosen);
                     }, own.isEmpty() ? "" : own.get(0));
+                initQuestions.onChange(this::updatePreview);
                 form.add(initQuestions, wide(y++, 12));
             }
             if ("template new".equals(name) && "extends".equals(param.name)) {
@@ -3416,7 +3441,13 @@ final class ArchvowPanel extends JPanel {
                     if (manifest != null) updateOverview();
                 }
             }
-            if (initialization && result.ok()) reload(false);
+            if (initialization && result.ok()) {
+                com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Archvow")
+                    .createNotification(ArchvowI18n.text(project, "Archvow initialized successfully. The project architecture is ready.",
+                        "Archvow initialisé avec succès. L’architecture du projet est prête."), com.intellij.notification.NotificationType.INFORMATION)
+                    .notify(project);
+                reload(false);
+            }
             else if (refreshAfter && result.ok()) reload(false);
         });
     }

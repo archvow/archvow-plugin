@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 import { ArchvowCli, CliResult, CliSettings } from './cli';
 import { aiView, AiView, request } from './aiSkills';
 import { Briefs, locate, readBriefs } from './briefs';
-import { bestBase, Book, choiceBook, missingRef, refNames } from './choices';
+import { bestBase, Book, choiceBook, missingRef, refKinds, refNames } from './choices';
 import { renderResult } from './formatter';
 import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, previewWithOutput, promptCommand,
   withPluginParameters } from './grammar';
@@ -54,6 +54,7 @@ export interface State {
   derived: Record<string, Derived>;
   /** The repository's branches and tags, and the one a change is compared with (0.12.1). */
   refs: string[];
+  refKinds: Record<string, 'local' | 'remote' | 'tag'>;
   base: string;
   /** What each command form offers to choose from (choices.ts, 0.12.1). */
   choices: Book;
@@ -198,7 +199,7 @@ export class ArchvowProject {
       readiness: readiness(this.root), welcomeError: '', branch: '', loading: '', spec: null, check: null, checkFailure: '',
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
-      refs: [], base: '', choices: {}, addable: {}, ai: {},
+      refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
       launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, aiTools: [],
     };
   }
@@ -311,7 +312,7 @@ export class ArchvowProject {
     const s = this.state;
     const gitflow = str(s.spec ? s.spec.init_answers : null, 'branch_naming') === 'gitflow';
     s.base = bestBase(s.refs, s.branch, gitflow, this.remoteHead);
-    s.choices = choiceBook(this.commands, { spec: s.spec, snapshots: s.snapshots, catalog: this.projectCatalog ?? this.bundledCatalog,
+    s.choices = choiceBook(this.commands, { spec: s.spec, snapshots: s.snapshots, catalog: this.projectCatalog ?? this.bundledCatalog, refKinds: s.refKinds,
       kinds: this.bundledKinds, refs: s.refs, base: s.base, fr: s.fr, firstCommit: this.firstCommit });
     s.addable = addableByLayer(s.spec, this.projectCatalog ?? this.bundledCatalog);
   }
@@ -421,14 +422,17 @@ export class ArchvowProject {
       this.git(['rev-list', '--max-parents=0', 'HEAD'])]);
     const name = current === null ? '—' : current.trim() || '(detached)';
     const known = refNames(refs ?? '');
+    const kinds = refKinds(refs ?? '');
     this.remoteHead = (head ?? '').trim();
     // several roots (merged histories): the oldest is the last one listed
     const first = (roots ?? '').trim().split('\n').filter((l) => l.trim()).pop() ?? '';
     const firstChanged = first !== this.firstCommit;
     this.firstCommit = first;
-    if (firstChanged || name !== this.state.branch || known.join('\n') !== this.state.refs.join('\n')) {
+    if (firstChanged || name !== this.state.branch || known.join('\n') !== this.state.refs.join('\n')
+      || JSON.stringify(kinds) !== JSON.stringify(this.state.refKinds)) {
       this.state.branch = name;
       this.state.refs = known;
+      this.state.refKinds = kinds;
       this.recomputeChoices();
       this.publish();
     }
@@ -497,6 +501,9 @@ export class ArchvowProject {
     view.onDidDispose(() => { if (this.nav === view) { this.nav = undefined; this.navReady = false; } });
     if (this.state.spec === null && !this.refreshing) void this.refresh(false);
   }
+
+  /** The init form works in an ordinary folder that has never contained an Archvow spec. */
+  initialize(): void { this.openCommand('init', {}, ''); }
 
   /** Shows the sidebar; with a component, shows that component in the editor tab (one tab only). */
   show(component?: string, clarify = false): void {
@@ -850,6 +857,9 @@ export class ArchvowProject {
       }
     }
     const ok = result.exitCode === 0 && result.startError === undefined && !result.timedOut;
+    if (ok && args[0] === 'init') {
+      void vscode.window.showInformationMessage(tr(this.state.fr, 'Archvow initialized successfully.', 'Archvow initialisé avec succès.'));
+    }
     if (ok && then) then();
     else if (ok && change) await this.refresh(false);
   }
@@ -860,7 +870,7 @@ export class ArchvowProject {
     const command = findCommand(this.commands, name);
     if (command === undefined) return;
     const plan = planForm(command, values, this.state.fr, { initAnswers, components: Object.keys(this.state.snapshots), selected, baseline });
-    const text = plan.kind === 'run' ? previewWithOutput(plan.args, plan.output) : '';
+    const text = plan.kind === 'run' ? (name === 'init' ? preview(plan.args) : previewWithOutput(plan.args, plan.output)) : '';
     // the files it writes: what is new, updated, removed, and the code a new component plans (0.15.0)
     const output = (values.output ?? '').trim();
     const files = filePlan(name, values, { spec: this.state.spec, catalog: this.projectCatalog ?? this.bundledCatalog, forms: this.forms,

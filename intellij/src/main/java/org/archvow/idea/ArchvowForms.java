@@ -128,6 +128,11 @@ final class ArchvowForms {
      * instead, as VS Code's planForm says it.
      */
     static String commandLine(ArchvowGrammar.Command command, Map<String, String> values, boolean fr) {
+        return commandLine(command, values, fr, List.of());
+    }
+
+    /** For init, include exactly the wizard answers and --no-input that Run submits. */
+    static String commandLine(ArchvowGrammar.Command command, Map<String, String> values, boolean fr, List<String> wizardAnswers) {
         List<String> args = new ArrayList<>(command.path);
         String output = output(command, values);
         for (ArchvowGrammar.Param param : command.parameters) {
@@ -150,6 +155,17 @@ final class ArchvowForms {
                 if (!param.flags.isEmpty()) args.add(param.option());
                 args.add(text);
             }
+        }
+        if ("init".equals(command.label)) {
+            java.util.Set<String> advancedKeys = new java.util.HashSet<>();
+            for (String line : values.getOrDefault("answer", "").split("\\R")) {
+                String key = line.split("=", 2)[0].trim();
+                if (!key.isEmpty()) advancedKeys.add(key);
+            }
+            for (String answer : wizardAnswers) if (!advancedKeys.contains(answer.split("=", 2)[0])) {
+                args.add("--answer"); args.add(answer);
+            }
+            if (!args.contains("--no-input")) args.add("--no-input");
         }
         if (!output.isEmpty() && markdownOutput(command) && !args.contains("--markdown")) args.add("--markdown");
         StringBuilder line = new StringBuilder("archvow");

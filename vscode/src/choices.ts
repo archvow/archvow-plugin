@@ -37,6 +37,7 @@ export interface ChoiceInput {
   catalog: Json | null;
   kinds: Json | null;
   refs: string[];
+  refKinds?: Record<string, 'local' | 'remote' | 'tag'>;
   base: string;
   fr: boolean;
   /** The repository's first commit (git rev-list --max-parents=0 HEAD): changes --from it lists everything. */
@@ -119,6 +120,19 @@ export function refNames(output: string): string[] {
   return names;
 }
 
+/** Classify real refs from Git's fully qualified names, not from origin/ or a tag naming convention. */
+export function refKinds(output: string): Record<string, 'local' | 'remote' | 'tag'> {
+  const result: Record<string, 'local' | 'remote' | 'tag'> = {};
+  for (const line of output.split(/\r?\n/)) {
+    const ref = line.trim();
+    if (ref.endsWith('/HEAD')) continue;
+    const prefix = ref.startsWith('refs/heads/') ? 'refs/heads/' : ref.startsWith('refs/remotes/') ? 'refs/remotes/' :
+      ref.startsWith('refs/tags/') ? 'refs/tags/' : '';
+    if (prefix) result[ref.slice(prefix.length)] = prefix === 'refs/heads/' ? 'local' : prefix === 'refs/remotes/' ? 'remote' : 'tag';
+  }
+  return result;
+}
+
 /** Why a base cannot be compared with, and what exists instead ('' when it exists). */
 export function missingRef(ref: string, refs: string[], fr: boolean): string {
   const value = ref.trim();
@@ -149,9 +163,13 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
   const hazards = objects(input.spec, 'hazards');
   const refs = input.refs.filter((r) => !r.endsWith('/HEAD'));
   const baseNote = refs.length
-    ? tr(fr, `The branches and tags of this repository${input.base ? `; a merge request is compared with ${input.base}` : ''}.`,
-      `Les branches et tags de ce dépôt${input.base ? ` ; une merge request se compare à ${input.base}` : ''}.`)
+    ? tr(fr, 'Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch.',
+      'Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch.')
     : tr(fr, 'No other branch in this repository yet: nothing to compare with.', "Pas encore d'autre branche dans ce dépôt : rien à comparer.");
+  const gitRef = (r: string): Choice => item(r, input.refKinds?.[r] === 'remote'
+    ? tr(fr, 'remote branch (fetched)', 'branche distante (récupérée)')
+    : input.refKinds?.[r] === 'tag' ? 'tag' : input.refKinds?.[r] === 'local'
+      ? tr(fr, 'local branch', 'branche locale') : tr(fr, 'branch or tag', 'branche ou tag'));
 
   const componentField = (command: string): Field => ({
     kind: 'select',
@@ -269,9 +287,9 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
       } else if (name === 'changes' && p === 'start' && input.firstCommit) {
         // from the very beginning: the first commit, then the tags and branches
         field = { kind: 'suggest', choices: [item(input.firstCommit, tr(fr, 'the first commit: everything the project contains',
-          'le premier commit : tout ce que contient le projet')), ...refs.map((r) => item(r, ''))], note: baseNote };
+          'le premier commit : tout ce que contient le projet')), ...refs.map(gitRef)], note: baseNote };
       } else if (p === 'base' || (name === 'changes' && (p === 'start' || p === 'end'))) {
-        field = { kind: 'suggest', choices: refs.map((r) => item(r, '')), note: baseNote };
+        field = { kind: 'suggest', choices: refs.map(gitRef), note: baseNote };
       }
       if (field) fields[p] = field;
     }

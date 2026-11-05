@@ -6,7 +6,7 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { bestBase, Book, choiceBook, choicesNow, Field, missingRef, refNames } from '../choices';
+import { bestBase, Book, choiceBook, choicesNow, Field, missingRef, refKinds, refNames } from '../choices';
 import { Command, findCommand, planForm } from '../grammar';
 import { Json } from '../workItems';
 
@@ -136,10 +136,15 @@ test('template new: the templates to extend; the branches to compare with, and t
     assert.equal(b[command].base.kind, 'suggest', command);
     assert.deepEqual(values(b[command].base, {}), REFS);
   }
-  assert.match(b.diff.base.note!, /a merge request is compared with origin\/develop/);
+  assert.match(b.diff.base.note!, /Local branches, fetched remote branches and tags/);
   assert.deepEqual(values(b.changes.start, {}), REFS);
   const alone = choiceBook(COMMANDS, input('python-app', false, []));
   assert.match(alone.diff.base.note!, /No other branch in this repository yet/);
+});
+
+test('Git reference kinds are derived from full refs, not branch-name conventions', () => {
+  assert.deepEqual(refKinds('refs/heads/feature/payments\nrefs/remotes/company/develop\nrefs/tags/release\nrefs/remotes/company/HEAD\n'),
+    { 'feature/payments': 'local', 'company/develop': 'remote', release: 'tag' });
 });
 
 test('the base: develop on a Git flow feature branch, else what origin\'s HEAD names, main, master - only what exists', () => {

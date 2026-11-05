@@ -1071,6 +1071,288 @@
    "example": "pyspark-pipeline",
    "fr": true,
    "rows": []
+  },
+  {
+   "command": "init",
+   "values": {
+    "package": "sales_pipeline"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/spec.vow",
+     "note": "project specification, preserving committed changes with --force"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/spec.md",
+     "note": "generated architecture overview"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/README.md",
+     "note": "architecture guide"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/status.md",
+     "note": "project status"
+    },
+    {
+     "change": "new",
+     "path": "AGENTS.md",
+     "note": "rules for AI assistants"
+    },
+    {
+     "change": "new",
+     "path": "README.md",
+     "note": "project instructions"
+    },
+    {
+     "change": "new",
+     "path": "Makefile",
+     "note": "template-defined commands"
+    },
+    {
+     "change": "new",
+     "path": "pyproject.toml",
+     "note": "Python project configuration"
+    },
+    {
+     "change": "new",
+     "path": "requirements.txt",
+     "note": "project dependencies"
+    },
+    {
+     "change": "new",
+     "path": "ruff.toml",
+     "note": "linter configuration"
+    },
+    {
+     "change": "new",
+     "path": ".gitattributes",
+     "note": "Git text rules"
+    },
+    {
+     "change": "new",
+     "path": ".gitignore",
+     "note": "archvow entries are merged into an existing file"
+    }
+   ]
+  },
+  {
+   "command": "init",
+   "values": {
+    "package": "sales_pipeline"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/spec.vow",
+     "note": "spécification du projet, conservée si commitée avec --force"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/spec.md",
+     "note": "vue d'ensemble de l'architecture générée"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/README.md",
+     "note": "guide de l'architecture"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/status.md",
+     "note": "état du projet"
+    },
+    {
+     "change": "new",
+     "path": "AGENTS.md",
+     "note": "règles pour les assistants IA"
+    },
+    {
+     "change": "new",
+     "path": "README.md",
+     "note": "instructions du projet"
+    },
+    {
+     "change": "new",
+     "path": "Makefile",
+     "note": "commandes définies par le modèle"
+    },
+    {
+     "change": "new",
+     "path": "pyproject.toml",
+     "note": "configuration du projet Python"
+    },
+    {
+     "change": "new",
+     "path": "requirements.txt",
+     "note": "dépendances du projet"
+    },
+    {
+     "change": "new",
+     "path": "ruff.toml",
+     "note": "configuration du lint"
+    },
+    {
+     "change": "new",
+     "path": ".gitattributes",
+     "note": "règles Git pour les fichiers"
+    },
+    {
+     "change": "new",
+     "path": ".gitignore",
+     "note": "les entrées archvow sont fusionnées dans le fichier existant"
+    }
+   ]
+  },
+  {
+   "command": "init",
+   "values": {
+    "package": "sales_pipeline",
+    "force": "true"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "project specification, preserving committed changes with --force"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "generated architecture overview"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/README.md",
+     "note": "architecture guide"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/status.md",
+     "note": "project status"
+    },
+    {
+     "change": "updated",
+     "path": "AGENTS.md",
+     "note": "rules for AI assistants"
+    },
+    {
+     "change": "updated",
+     "path": "README.md",
+     "note": "project instructions"
+    },
+    {
+     "change": "updated",
+     "path": "Makefile",
+     "note": "template-defined commands"
+    },
+    {
+     "change": "updated",
+     "path": "pyproject.toml",
+     "note": "Python project configuration"
+    },
+    {
+     "change": "updated",
+     "path": "requirements.txt",
+     "note": "project dependencies"
+    },
+    {
+     "change": "updated",
+     "path": "ruff.toml",
+     "note": "linter configuration"
+    },
+    {
+     "change": "updated",
+     "path": ".gitattributes",
+     "note": "Git text rules"
+    },
+    {
+     "change": "updated",
+     "path": ".gitignore",
+     "note": "archvow entries are merged into an existing file"
+    }
+   ]
+  },
+  {
+   "command": "init",
+   "values": {
+    "package": "sales_pipeline",
+    "force": "true"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/spec.vow",
+     "note": "spécification du projet, conservée si commitée avec --force"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/spec.md",
+     "note": "vue d'ensemble de l'architecture générée"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/README.md",
+     "note": "guide de l'architecture"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/status.md",
+     "note": "état du projet"
+    },
+    {
+     "change": "updated",
+     "path": "AGENTS.md",
+     "note": "règles pour les assistants IA"
+    },
+    {
+     "change": "updated",
+     "path": "README.md",
+     "note": "instructions du projet"
+    },
+    {
+     "change": "updated",
+     "path": "Makefile",
+     "note": "commandes définies par le modèle"
+    },
+    {
+     "change": "updated",
+     "path": "pyproject.toml",
+     "note": "configuration du projet Python"
+    },
+    {
+     "change": "updated",
+     "path": "requirements.txt",
+     "note": "dépendances du projet"
+    },
+    {
+     "change": "updated",
+     "path": "ruff.toml",
+     "note": "configuration du lint"
+    },
+    {
+     "change": "updated",
+     "path": ".gitattributes",
+     "note": "règles Git pour les fichiers"
+    },
+    {
+     "change": "updated",
+     "path": ".gitignore",
+     "note": "les entrées archvow sont fusionnées dans le fichier existant"
+    }
+   ]
   }
  ],
  "addable": [

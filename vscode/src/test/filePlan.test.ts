@@ -6,7 +6,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
 import { addableByLayer, filePlan, nameValues, PlanContext } from '../filePlan';
-import { Command, findCommand, planForm, previewWithOutput, withPluginParameters } from '../grammar';
+import { Command, findCommand, planForm, preview, previewWithOutput, withPluginParameters } from '../grammar';
 import { Json } from '../workItems';
 
 const CONTRACT = path.resolve(__dirname, '..', '..', '..', 'contract');
@@ -41,7 +41,31 @@ const SCENARIOS: [string, Record<string, string>, string][] = [
   ['changes', { start: 'v1.0.0', output: 'CHANGES.md' }, 'pyspark-pipeline'],
   ['changes', { start: 'v1.0.0' }, 'pyspark-pipeline'],
   ['check', {}, 'pyspark-pipeline'],
+  ['init', { package: 'sales_pipeline' }, 'pyspark-pipeline'],
+  ['init', { package: 'sales_pipeline', force: 'true' }, 'pyspark-pipeline'],
 ];
+
+test('init: wizard preview is the actual non-interactive command, even with overridden answers', () => {
+  const command = findCommand(COMMANDS, 'init')!;
+  const plan = planForm(command, { package: 'demo_app', answer: 'language=en' }, false,
+    { initAnswers: ['language=fr', 'architects=@reviewer'] });
+  assert.equal(plan.kind, 'run');
+  if (plan.kind !== 'run') return;
+  assert.ok(preview(plan.args).includes('--answer language=en'));
+  assert.ok(preview(plan.args).includes('--answer architects=@reviewer'));
+  assert.ok(!preview(plan.args).includes('language=fr'));
+  assert.ok(preview(plan.args).includes('--no-input'));
+});
+
+test('init: preview the primary guard-file tree, including --force behavior', () => {
+  const rows = filePlan('init', { package: 'sales_pipeline' }, ctx('pyspark-pipeline'));
+  assert.ok(rows.some((r) => r.path === '.archvow/spec.vow'));
+  assert.ok(rows.some((r) => r.path === 'AGENTS.md'));
+  assert.ok(rows.some((r) => r.path === 'README.md'));
+  assert.ok(rows.every((r) => r.change === 'new'));
+  const revised = filePlan('init', { package: 'sales_pipeline', force: 'true' }, ctx('pyspark-pipeline'));
+  assert.ok(revised.every((r) => r.change === 'updated' || r.change === 'kept'));
+});
 
 test('component add: the vow and the card it writes, and the code and test it plans', () => {
   const rows = filePlan('component add', SCENARIOS[0][1], ctx('pyspark-pipeline'));

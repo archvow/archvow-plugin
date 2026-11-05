@@ -33,6 +33,14 @@ public final class FormsRegression {
         check(ArchvowForms.commandLine(invariant, Map.of("component", "c", "statement", "order_id is unique", "prevents", "c.H1"), false)
             .equals("archvow invariant add c \"order_id is unique\" --prevents c.H1"), "preview");
         check(ArchvowForms.commandLine(invariant, Map.of(), true).equals("Champ obligatoire : component"), "missing");
+        // init preview includes wizard answers, lets explicit advanced answers win, and matches Run's --no-input.
+        ArchvowGrammar.Command init = command("init");
+        String initPreview = ArchvowForms.commandLine(init, Map.of("package", "demo_app", "answer", "language=en"), false,
+            List.of("language=fr", "architects=@reviewer"));
+        check(initPreview.contains("--answer language=en"), "init preview advanced answer");
+        check(!initPreview.contains("--answer language=fr"), "init preview advanced override");
+        check(initPreview.contains("--answer architects=@reviewer"), "init preview wizard answer");
+        check(initPreview.endsWith("--no-input"), "init preview non-interactive like Run");
         // every name in forms.json is one of archvow's
         JsonObject data = ArchvowForms.DATA;
         for (String param : data.getAsJsonObject("labels").keySet())

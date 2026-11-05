@@ -39,13 +39,16 @@ export function activate(context: vscode.ExtensionContext): void {
   let pendingView: vscode.WebviewView | undefined;
   const provider: vscode.WebviewViewProvider = {
     resolveWebviewView(view: vscode.WebviewView): void {
-      const p = start();
+      const p = findRoot() === null ? undefined : start();
       if (p !== undefined) {
         p.attachView(view);
         return;
       }
       pendingView = view;
-      view.webview.options = { enableScripts: false };
+      view.webview.options = { enableScripts: true };
+      context.subscriptions.push(view.webview.onDidReceiveMessage((message: unknown) => {
+        if (message === 'initialize') void vscode.commands.executeCommand('archvow.initialize');
+      }));
       view.webview.html = placeholder(vscode.workspace.isTrusted
         ? 'Open a folder first: archvow works on the folder of the project.'
         : 'archvow runs its commands only in a trusted folder: trust this folder first.');
@@ -56,9 +59,29 @@ export function activate(context: vscode.ExtensionContext): void {
     if (p) void run(p);
   };
 
+  const initialize = async (): Promise<void> => {
+    if (!vscode.workspace.isTrusted && findRoot() !== null) {
+      void vscode.window.showInformationMessage('Trust this folder before running Archvow.');
+      return;
+    }
+    const root = findRoot();
+    if (root === null) {
+      const chosen = await vscode.window.showOpenDialog({
+        canSelectFiles: false, canSelectFolders: true, canSelectMany: false,
+        openLabel: 'Initialize Archvow here', title: 'Choose a new or existing folder for Archvow',
+      });
+      if (!chosen?.length) return;
+      await context.globalState.update('archvow.pendingInitFolder', chosen[0].fsPath);
+      await vscode.commands.executeCommand('vscode.openFolder', chosen[0], false);
+      return;
+    }
+    withProject((p) => p.initialize());
+  };
+
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(VIEW, provider, { webviewOptions: { retainContextWhenHidden: true } }),
     vscode.commands.registerCommand('archvow.open', () => withProject((p) => p.show())),
+    vscode.commands.registerCommand('archvow.initialize', initialize),
     vscode.commands.registerCommand('archvow.refresh', () => withProject((p) => p.refresh(true))),
     vscode.commands.registerCommand('archvow.check', () => withProject((p) => p.runCheck())),
     vscode.commands.registerCommand('archvow.openComponent', (arg?: unknown) => withProject(async (p) => {
@@ -80,12 +103,21 @@ export function activate(context: vscode.ExtensionContext): void {
       const same = editor !== undefined && editor.document.uri.toString() === target.toString();
       return p.showFile(target.fsPath, same ? editor.selection.active.line + 1 : 0);
     })),
-    vscode.workspace.onDidGrantWorkspaceTrust(() => { if (findRoot() !== null && (hasVow(findRoot()) || pendingView)) start(); }),
+    vscode.workspace.onDidGrantWorkspaceTrust(() => { if (findRoot() !== null && (hasVow(findRoot()) || pendingView)) start(); void openPendingInit(); }),
   );
+  const openPendingInit = async (): Promise<void> => {
+    const target = context.globalState.get<string>('archvow.pendingInitFolder');
+    const root = findRoot();
+    if (!target || !root || path.resolve(target) !== path.resolve(root) || !vscode.workspace.isTrusted) return;
+    await context.globalState.update('archvow.pendingInitFolder', undefined);
+    const p = start();
+    if (p) { await p.refresh(false); p.initialize(); }
+  };
   // a project with a vow: read it at once, so the sidebar and the Problems view fill without a click
   const root = findRoot();
   void vscode.commands.executeCommand('setContext', 'archvow.project', hasVow(root));
   if (root !== null && hasVow(root) && vscode.workspace.isTrusted) void start()?.refresh(false);
+  void openPendingInit();
   const created = vscode.workspace.createFileSystemWatcher('**/.archvow/spec.vow', false, true, true);
   context.subscriptions.push(created, created.onDidCreate(() => {
     void vscode.commands.executeCommand('setContext', 'archvow.project', true);
@@ -116,6 +148,8 @@ function componentId(arg: unknown): string | null {
 /** What the sidebar says while archvow cannot start. */
 function placeholder(text: string): string {
   const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none';"></head>
-<body style="font-family: var(--vscode-font-family); color: var(--vscode-foreground); padding: 8px 12px;"><p>${safe}</p></body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline';"></head>
+<body style="font-family: var(--vscode-font-family); color: var(--vscode-foreground); padding: 8px 12px;"><p>${safe}</p>
+<button id="init" style="padding:7px 12px; color:var(--vscode-button-foreground);background:var(--vscode-button-background);border:0;cursor:pointer">Initialize Archvow…</button>
+<script>document.getElementById('init').addEventListener('click', () => acquireVsCodeApi().postMessage('initialize'));</script></body></html>`;
 }

@@ -45,6 +45,7 @@ final class ArchvowInitQuestions extends JPanel {
     private JsonObject active;
     private Consumer<String> selectedTemplate;
     private boolean changing;
+    private Runnable onChange = () -> {};
     private final boolean french;
     private final JTextField folder = new JTextField(22);
     private String preferred = "";
@@ -72,6 +73,7 @@ final class ArchvowInitQuestions extends JPanel {
             folder.setText("");
             if (selectedTemplate != null) selectedTemplate.accept(name);
             showTemplate(name);
+            onChange.run();
         });
         toolbar.add(templatePicker);
         JButton reload = new JButton(french ? "Actualiser" : "Reload");
@@ -120,6 +122,8 @@ final class ArchvowInitQuestions extends JPanel {
         setLoading();
     }
 
+    void onChange(Runnable callback) { onChange = callback == null ? () -> {} : callback; }
+
     void setLoading() {
         status.setText(french ? "Chargement depuis archvow catalog --json…" : "Loading archvow catalog --json…");
     }
@@ -160,6 +164,7 @@ final class ArchvowInitQuestions extends JPanel {
         status.setText(catalog.size() + (french ? " modèles disponibles. Les valeurs sont modifiables avant init."
             : " templates found. Review their defaults before init."));
         showTemplate(chosen);
+        onChange.run();
         // Do not silently replace a custom absolute template path, or a deliberately
         // blank field, with the first catalog template. The picker is user-operated.
         if (manualPath)
@@ -241,6 +246,15 @@ final class ArchvowInitQuestions extends JPanel {
                 field = free;
             }
             inputs.put(id, field);
+            if (field instanceof JTextField free) {
+                free.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                    @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { onChange.run(); }
+                    @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { onChange.run(); }
+                    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { onChange.run(); }
+                });
+            } else if (field instanceof JComboBox<?> box) box.addActionListener(e -> onChange.run());
+            else if (field instanceof JPanel chips) for (java.awt.Component x : chips.getComponents())
+                if (x instanceof JCheckBox cb) cb.addItemListener(e -> onChange.run());
             block.add(field, BorderLayout.NORTH);
             ArchvowWrapLabel help = new ArchvowWrapLabel();   // wraps at the form's width, no caret in it
             help.setText(prompt);

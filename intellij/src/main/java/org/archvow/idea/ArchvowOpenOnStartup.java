@@ -12,11 +12,15 @@ public final class ArchvowOpenOnStartup implements StartupActivity.DumbAware {
     @Override public void runActivity(@NotNull Project project) {
         if (project.isDisposed()) return;
         String path = project.getBasePath();
-        if (path == null || !ArchvowProjectReadiness.inspect(path).ready()) return;
+        if (path == null) return;
+        boolean fromWelcome = ArchvowInitFromWelcomeAction.consumePending();
+        if (!fromWelcome && !ArchvowProjectReadiness.inspect(path).ready()) return;
         SwingUtilities.invokeLater(() -> {
             if (project.isDisposed()) return;
             ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Archvow");
             if (toolWindow != null) toolWindow.show(null);
+            if (fromWelcome && ArchvowProjectReadiness.inspect(path).canInitialize())
+                ArchvowEditorTab.showCommand(project, "init", java.util.Map.of());
         });
     }
 }

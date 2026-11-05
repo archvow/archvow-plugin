@@ -170,7 +170,9 @@ export function filePlan(name: string, values: Record<string, string>, ctx: Plan
       paths = [pattern.replace('{new}', id).replace('{component}', id).replace('{name}', (values.name ?? '').trim())];
     }
     for (const p of paths) {
-      rows.push({ change, path: p, note });
+      const initForce = name === 'init' && values.force === 'true';
+      const action = initForce ? 'updated' : change;
+      rows.push({ change: action, path: p, note });
       note = '';  // said once, on the first file of the entry
     }
   }

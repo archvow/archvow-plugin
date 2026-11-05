@@ -228,7 +228,9 @@ final class ArchvowFilePlan {
                     .replaceFirst(java.util.regex.Pattern.quote("{name}"), java.util.regex.Matcher.quoteReplacement(value(values, "name"))));
             }
             for (String p : paths) {
-                rows.add(new Row(change, p, note));
+                String action = "init".equals(name) && "true".equals(values.get("force"))
+                    ? "updated" : change;
+                rows.add(new Row(action, p, note));
                 note = "";  // said once, on the first file of the entry
             }
         }

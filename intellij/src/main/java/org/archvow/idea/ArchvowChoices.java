@@ -48,10 +48,14 @@ final class ArchvowChoices {
 
     /** What the book is made from. */
     record Input(JsonObject spec, Map<String, JsonObject> snapshots, JsonObject catalog, JsonObject kinds,
-                 List<String> refs, String base, boolean fr, String firstCommit) {
+                 List<String> refs, String base, boolean fr, String firstCommit, Map<String, String> refKinds) {
+        Input(JsonObject spec, Map<String, JsonObject> snapshots, JsonObject catalog, JsonObject kinds,
+              List<String> refs, String base, boolean fr, String firstCommit) {
+            this(spec, snapshots, catalog, kinds, refs, base, fr, firstCommit, Map.of());
+        }
         Input(JsonObject spec, Map<String, JsonObject> snapshots, JsonObject catalog, JsonObject kinds,
               List<String> refs, String base, boolean fr) {
-            this(spec, snapshots, catalog, kinds, refs, base, fr, "");
+            this(spec, snapshots, catalog, kinds, refs, base, fr, "", Map.of());
         }
     }
 
@@ -176,6 +180,20 @@ final class ArchvowChoices {
         return names;
     }
 
+    /** Type each reference from Git's fully qualified names; no guesswork from branch prefixes. */
+    static Map<String, String> refKinds(String output) {
+        Map<String, String> result = new LinkedHashMap<>();
+        for (String line : output.split("\\R")) {
+            String ref = line.trim();
+            if (ref.endsWith("/HEAD")) continue;
+            String prefix = ref.startsWith("refs/heads/") ? "refs/heads/" : ref.startsWith("refs/remotes/")
+                ? "refs/remotes/" : ref.startsWith("refs/tags/") ? "refs/tags/" : "";
+            if (!prefix.isEmpty()) result.put(ref.substring(prefix.length()), prefix.equals("refs/heads/") ? "local"
+                : prefix.equals("refs/remotes/") ? "remote" : "tag");
+        }
+        return result;
+    }
+
     /** Why a base cannot be compared with, and what exists instead ('' when it exists). */
     static String missingRef(String ref, List<String> refs, boolean fr) {
         String value = ref == null ? "" : ref.trim();
@@ -226,8 +244,8 @@ final class ArchvowChoices {
         List<String> refs = input.refs().stream().filter(r -> !r.endsWith("/HEAD")).toList();
         String base = input.base() == null ? "" : input.base();
         String baseNote = !refs.isEmpty()
-            ? tr(fr, "The branches and tags of this repository" + (base.isEmpty() ? "" : "; a merge request is compared with " + base) + ".",
-                "Les branches et tags de ce dépôt" + (base.isEmpty() ? "" : " ; une merge request se compare à " + base) + ".")
+            ? tr(fr, "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch.",
+                "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch.")
             : tr(fr, "No other branch in this repository yet: nothing to compare with.", "Pas encore d'autre branche dans ce dépôt : rien à comparer.");
         List<String> templates = projectTemplates(input.spec());
 
@@ -399,12 +417,18 @@ final class ArchvowChoices {
                     field.choices = new ArrayList<>();
                     field.choices.add(item(input.firstCommit(), tr(fr, "the first commit: everything the project contains",
                         "le premier commit : tout ce que contient le projet")));
-                    for (String r : refs) field.choices.add(item(r, ""));
+                    for (String r : refs) field.choices.add(item(r, "remote".equals(input.refKinds().get(r))
+                            ? tr(fr, "remote branch (fetched)", "branche distante (récupérée)")
+                            : "tag".equals(input.refKinds().get(r)) ? "tag" : "local".equals(input.refKinds().get(r))
+                                ? tr(fr, "local branch", "branche locale") : tr(fr, "branch or tag", "branche ou tag")));
                     field.note = baseNote;
                 } else if ("base".equals(p) || ("changes".equals(name) && ("start".equals(p) || "end".equals(p)))) {
                     field = new Field("suggest");
                     field.choices = new ArrayList<>();
-                    for (String r : refs) field.choices.add(item(r, ""));
+                    for (String r : refs) field.choices.add(item(r, "remote".equals(input.refKinds().get(r))
+                            ? tr(fr, "remote branch (fetched)", "branche distante (récupérée)")
+                            : "tag".equals(input.refKinds().get(r)) ? "tag" : "local".equals(input.refKinds().get(r))
+                                ? tr(fr, "local branch", "branche locale") : tr(fr, "branch or tag", "branche ou tag")));
                     field.note = baseNote;
                 }
                 if (field != null) fields.put(p, field);

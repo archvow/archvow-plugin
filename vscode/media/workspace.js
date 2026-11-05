@@ -495,7 +495,12 @@
       btn('Diff', 'openCommand', attrs({ command: 'diff', field: 'base' })),
       btn('Review', 'openCommand', attrs({ command: 'review', field: 'base' })),
       btn(t('Command reference', 'Docs des commandes'), 'commandDocs', '', false, 'secondary'),
-      `<label class="base" title="${esc(t('Git comparison base for Review / Diff / Budget: a branch of this repository', 'Base de comparaison Git pour Review / Diff / Budget : une branche de ce dépôt'))}">Base: <input list="refs" data-input="base" data-keep="base" value="${esc(baseNow())}" size="14" placeholder="${esc(t('no other branch', "pas d'autre branche"))}"><datalist id="refs">${(S.refs || []).map((r) => `<option value="${esc(r)}">`).join('')}</datalist></label>`,
+      `<label class="base" title="${esc(t('Git comparison base: local branches, fetched remote branches and tags are valid. Remote refs reflect the last fetch.', 'Base de comparaison Git : branches locales, distantes récupérées et tags sont possibles. Les références distantes reflètent le dernier fetch.'))}">Base: <input list="refs" data-input="base" data-keep="base" value="${esc(baseNow())}" size="14" placeholder="${esc(t('no other branch', "pas d'autre branche"))}"><datalist id="refs">${(S.refs || []).map((r) => {
+        const kind = S.refKinds && S.refKinds[r];
+        const label = kind === 'remote' ? t('remote branch (fetched)', 'branche distante (récupérée)')
+          : kind === 'local' ? t('local branch', 'branche locale') : kind === 'tag' ? 'tag' : t('Git ref', 'référence Git');
+        return `<option value="${esc(r)}" label="${esc(label)}">`;
+      }).join('')}</datalist></label>`,
     ].join('');
     const sub = ui.overSub === 'checks' ? checksView(false) : ui.overSub === 'briefs' ? briefsView() : architectureView();
     const issues = list(S.check, 'violations');
@@ -1770,6 +1775,7 @@
     const pane = `<aside class="form-pane"><h4>${esc(t('What archvow will do', 'Ce que va faire archvow'))}</h4>
   ${does ? `<p>${esc(does)}</p>` : ''}<div class="muted small">${esc(t('The command', 'La commande'))}</div>
   <pre id="form-preview" class="command-preview${ui.preview.text ? '' : ' missing'}">${esc(shown || 'archvow ' + name)}</pre>
+  ${name === 'init' ? `<p class="muted small">${esc(t('Main files preview; the chosen template and answers may generate additional guard files. No source code folders are created.', 'Aperçu des principaux fichiers ; le modèle et les réponses peuvent générer d’autres fichiers de garde. Aucun dossier de code source n’est créé.'))}</p>` : ''}
   <div id="form-files">${filesBlock(ui.preview.files)}</div>
   <p class="muted small">${esc(t('If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.',
     "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."))}</p></aside>`;
