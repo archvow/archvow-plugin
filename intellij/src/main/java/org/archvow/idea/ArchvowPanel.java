@@ -3566,7 +3566,7 @@ final class ArchvowPanel extends JPanel {
             }
             for (DefaultMutableTreeNode layerNode : layers.values())
                 if (layerNode.getChildCount() == 0) layerNode.add(new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(
-                    ArchvowI18n.text(project, "No component yet - right-click the layer to add one", "Pas encore de composant - clic droit sur la couche pour en ajouter un"),
+                    ArchvowI18n.text(project, "No component yet", "Pas encore de composant"),
                     "add", ((ArchvowTreeIcons.Node) layerNode.getUserObject()).layer())));
             if (containerNode.getChildCount() > 0) componentsRoot.add(containerNode);
         }
