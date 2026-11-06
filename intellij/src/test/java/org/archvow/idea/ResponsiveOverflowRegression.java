@@ -38,6 +38,37 @@ public final class ResponsiveOverflowRegression {
                 actions.refresh();
                 if (actions.hasOverflow()) throw new AssertionError("More menu must disappear when wide again");
 
+                // Overview uses a permanently available compact More control. It contains both
+                // actions displaced by the available width and the advanced project actions.
+                ArchvowOverflowBar overview = new ArchvowOverflowBar("More");
+                overview.setAlwaysShowMore(true);
+                List<String> commands = new ArrayList<>();
+                for (int i = 0; i < 6; i++) {
+                    final int index = i;
+                    JButton button = new JButton("");
+                    button.getAccessibleContext().setAccessibleName("Project " + i);
+                    button.setPreferredSize(new Dimension(37, 31));
+                    button.addActionListener(e -> commands.add("action-" + index));
+                    overview.addAction(button);
+                }
+                overview.addMenuAction("Budget / Next", () -> commands.add("budget"));
+                overview.setSize(900, 36);
+                overview.refresh();
+                if (overview.visibleActionCount() != 6 || overview.menuForTest().getComponentCount() != 1)
+                    throw new AssertionError("Wide Overview: all icons and only advanced More actions");
+                ((JMenuItem) overview.menuForTest().getComponent(0)).doClick();
+                if (!commands.contains("budget")) throw new AssertionError("Advanced action must execute");
+                overview.setSize(160, 36);
+                overview.refresh();
+                int kept = overview.visibleActionCount();
+                if (kept < 1 || kept >= 6) throw new AssertionError("Narrow Overview must overflow");
+                JPopupMenu projectMore = overview.menuForTest();
+                if (projectMore.getComponentCount() != 6 - kept + 2)
+                    throw new AssertionError("More must contain hidden actions, a separator and advanced commands");
+                ((JMenuItem) projectMore.getComponent(0)).doClick();
+                if (!commands.contains("action-" + kept))
+                    throw new AssertionError("Hidden Overview action must execute");
+
                 List<Integer> selected = new ArrayList<>();
                 ArchvowCompactViews views = new ArchvowCompactViews(selected::add);
                 for (int i = 0; i < 7; i++) {

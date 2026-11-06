@@ -132,6 +132,7 @@ final class ArchvowUiIcons {
                     case "expand" -> { line(g, 2, 5, 2, 2); line(g, 2, 2, 5, 2); line(g, 12, 9, 12, 12); line(g, 12, 12, 9, 12);
                         line(g, 2, 2, 6, 6); line(g, 12, 12, 8, 8); }
                     case "search" -> { circle(g, 2, 1.5, 8); line(g, 9, 9, 12, 12); }
+                    case "filter" -> { line(g, 1, 2, 13, 2); line(g, 13, 2, 8, 8); line(g, 8, 8, 8, 12); line(g, 8, 12, 6, 13); line(g, 6, 13, 6, 8); line(g, 6, 8, 1, 2); }
                     case "terminal" -> { g.drawRoundRect(1, 2, 12, 10, 2, 2); line(g, 3, 5, 5.5, 7); line(g, 5.5, 7, 3, 9); line(g, 7.5, 9.5, 11, 9.5); }
                     case "copy" -> { g.drawRect(4, 1, 9, 9); line(g, 10, 12, 1, 12); line(g, 1, 12, 1, 4); line(g, 1, 4, 3, 4); }
                     case "code" -> { line(g, 5, 3, 2, 7); line(g, 2, 7, 5, 11); line(g, 9, 3, 12, 7); line(g, 12, 7, 9, 11); }

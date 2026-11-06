@@ -26,10 +26,12 @@ the diff - a change here is a change of the contract the plugins rely on.
 """
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 CONTRACT = Path(__file__).resolve().parents[1]
@@ -130,16 +132,27 @@ def examples(source, archvow, out):
                               '</testcase></testsuite></testsuites>\n', encoding="utf-8", newline="\n")
 
         actual = folder / "actual"
+
+        def pinned():
+            # archvow shows when the report and actual/ were written (run_on, actual_on): a fixed time, so the
+            # contract is the same at every run (the CI job `contract` regenerates it and fails on any difference)
+            stamp = datetime(2026, 11, 5, 10, 12).timestamp()  # local time, as archvow reads it back
+            for path in [report, *actual.rglob("*")]:
+                if path.exists():
+                    os.utime(path, (stamp, stamp))
+
         (actual / "invoices").mkdir(parents=True)
         (actual / "stdout.txt").write_text("F-7 Ada 9.90 paid\n", encoding="utf-8", newline="\n")
         (actual / "invoices" / "F-7.json").write_text('{"number": "F-7", "customer": "Ada", "amount": "9.90", '
                                                      '"status": "paid"}', encoding="utf-8")
         verdict(False)
+        pinned()
         write(out / "passing.json", run([*archvow, "show", "invoices_cli", "--json"], project))
         (actual / "stdout.txt").write_text("F-7 Ada 9.90 sent\n", encoding="utf-8", newline="\n")
         (actual / "invoices" / "F-7.json").write_text('{"number": "F-7", "customer": "Ada", "amount": "9.90", '
                                                      '"status": "sent"}', encoding="utf-8")
         verdict(True)
+        pinned()
         write(out / "failing.json", run([*archvow, "show", "invoices_cli", "--json"], project))
         shutil.rmtree(actual)
         report.unlink()

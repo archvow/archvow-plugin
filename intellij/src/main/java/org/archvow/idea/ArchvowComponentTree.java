@@ -99,6 +99,20 @@ final class ArchvowComponentTree extends JTree {
                     }
                     if (pending > 0) paintPill(g2, String.valueOf(pending), right, bounds);
                     else if (resolved > 0) paintCheck(g2, right, bounds);
+                    // State is independent of issue count: planned may have resolved decisions,
+                    // and verified may still have an open question. Draw both independently.
+                    Object stateMap = getClientProperty("archvow.componentStatuses");
+                    if (stateMap instanceof Map<?, ?> states && states.get(id) instanceof String state && !state.isBlank()) {
+                        boolean good = state.equalsIgnoreCase("verified") || state.equalsIgnoreCase("implemented") || state.equalsIgnoreCase("tested");
+                        g2.setColor(good ? doneColor() : pendingColor());
+                        Font font = getFont().deriveFont(Math.max(10f, getFont().getSize2D() - 2f));
+                        g2.setFont(font);
+                        FontMetrics fm = g2.getFontMetrics(font);
+                        int reserved = pending > 0 || resolved > 0 ? 40 : 0;
+                        int x = right - reserved - fm.stringWidth(state) - 10;
+                        if (x > bounds.x + Math.max(125, bounds.width / 3))
+                            g2.drawString(state, x, bounds.y + (bounds.height - fm.getHeight()) / 2 + fm.getAscent());
+                    }
                 } else if (!layerOf(node).isEmpty()) paintAdd(g2, right, bounds);
             }
         } finally {

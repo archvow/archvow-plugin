@@ -14,7 +14,7 @@
   let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {}, icons: {} };
   /** What the person chose on the page. */
   const ui = {
-    tab: 'overview', overSub: 'architecture', forceWorkspace: false,
+    tab: 'overview', overSub: 'architecture', forceWorkspace: false, filterMenu: false, projectMore: false,
     /** The editor tab: 'empty', 'component', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
@@ -327,7 +327,7 @@
       return `<header class="top">
   <div class="brand"><img src="${esc(window.ARCHVOW_LOGO)}" alt="" class="logo">
     <div><div class="title">Archvow</div><div class="project" title="${esc(S.project.root)}">⌂ ${esc(S.project.name)}</div></div></div>
-  <div class="right">${reload}${log}</div></header>${progress}`;
+  <div class="right">${findBox()}${reload}${log}</div></header>${progress}`;
     }
     const what = ui.mode === 'component' ? ui.component
       : ui.mode === 'checks' ? t('Check & Gates', 'Contrôles et validations')
@@ -407,17 +407,21 @@
 
   /** The sidebar: Overview, Components (the tree), Commands (the list). */
   function tabs() {
-    const names = [['overview', t('Overview', "Vue d'ensemble")], ['components', t('Components', 'Composants')], ['commands', t('Commands', 'Commandes')]];
-    const body = ui.tab === 'components' ? `<section class="browser-only">${componentBrowser()}</section>` : ui.tab === 'commands' ? commandsTab() : overviewTab();
-    return `${findBox()}<nav class="tabs main">${names.map(([id, l]) => `<button class="tab ${ui.tab === id ? 'current' : ''}" data-a="tab" data-tab="${id}">${esc(l)}</button>`).join('')}</nav>
+    const names = [['overview', t('Overview', "Vue d'ensemble")], ['components', t('Components', 'Composants')], ['commands', t('Commands', 'Commandes')], ['ai', t('AI skills', 'Skills IA')]];
+    const body = ui.tab === 'components' ? `<section class="browser-only">${componentBrowser()}</section>` : ui.tab === 'commands' ? commandsTab() : ui.tab === 'ai' ? aiSkillsTab() : overviewTab();
+    return `<nav class="tabs main">${names.map(([id, l]) => `<button class="tab ${ui.tab === id ? 'current' : ''}" data-a="tab" data-tab="${id}">${esc(l)}</button>`).join('')}</nav>
 <main>${body}</main>`;
   }
 
   /** The sidebar's find field (0.18.0): a name - a function, a column, a ticket, an example - and Enter runs
    *  archvow show <name> --json; the result opens in the editor tab. */
   function findBox() {
-    return `<div class="find-box" role="search"><label class="muted small" for="find">${esc(t('Find in the project', 'Chercher dans le projet'))}</label>
-  <div class="row"><input id="find" class="grow mono" data-input="find" data-keep="find" value="${esc(ui.findText)}" placeholder="${esc(t('a name: function, column, ticket, example…', 'un nom : fonction, colonne, ticket, exemple…'))}">${btn(t('Find', 'Chercher'), 'find', '', false, 'secondary small')}</div></div>`;
+    const searchTitle = t('Find in the project (Enter to search)', 'Chercher dans le projet (Entrée pour chercher)');
+    const filterTitle = t('Filter components', 'Filtrer les composants');
+    const filters = [['all', t('All', 'Tous')], ['pending', t('Pending', 'En attente')], ['resolved', t('Resolved', 'Traités')]];
+    return `<div class="top-search" role="search"><div class="search-field">${icon('search') || '⌕'}<input id="find" aria-label="${esc(searchTitle)}" data-input="find" data-keep="find" value="${esc(ui.findText)}" placeholder="${esc(t('Search…', 'Rechercher…'))}" title="${esc(searchTitle)}"></div>
+      <button class="icon utility ${ui.filter !== 'all' ? 'filter-active' : ''}" data-a="filterMenu" title="${esc(filterTitle)}" aria-label="${esc(filterTitle)}" aria-expanded="${ui.filterMenu}"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-5 5v4l-2 1V8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+      ${ui.filterMenu ? `<div class="top-filter-menu" role="group" aria-label="${esc(filterTitle)}">${filters.map(([id,l]) => `<button class="${ui.filter === id ? 'on' : ''}" data-a="filter" data-filter="${id}">${esc(l)}</button>`).join('')}</div>` : ''}</div>`;
   }
 
   const SEARCH_GROUPS = () => ({ spec: t('Spec', 'Spec'), code: t('Code', 'Code'), tests: t('Tests', 'Tests'), examples: t('Examples', 'Exemples'),
@@ -553,29 +557,28 @@
     const branchWarning = needsFeatureBranch(S.branch) ? `<div class="warning" title="${esc(t('Advice only. Archvow does not automatically change Git branches.',
       'Conseil uniquement. Archvow ne change pas automatiquement de branche Git.'))}">${esc(t(`⚠ You are on ${S.branch}. For development, create a feature branch (e.g. feature/my-change) first.`,
       `⚠ Branche ${S.branch} : crée une branche de fonctionnalité (ex. feature/ma-modification) avant de développer.`))}</div>` : '';
-    const toolbar = [
-      iconBtn(REFRESH, 'refresh', t('Reload Archvow', 'Recharger Archvow')),
-      btn('Check', 'run', attrs({ label: 'check', args: 'check --json', target: 'overview' })),
-      btn('Next', 'run', attrs({ label: 'next', args: 'next --json', target: 'overview' })),
-      btn('Full check', 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' })),
-      btn('Doctor', 'run', attrs({ label: 'doctor', args: 'doctor --json', target: 'overview' })),
-      btn('Audit', 'run', attrs({ label: 'audit', args: 'audit --json', target: 'overview' })),
-      btn(t('Project vow', 'Vow du projet'), 'openProjectVow'),
-      btn('Budget / Next', 'budget'),
-      btn('Diff', 'openCommand', attrs({ command: 'diff', field: 'base' })),
-      btn('Review', 'openCommand', attrs({ command: 'review', field: 'base' })),
-      btn(t('Command reference', 'Docs des commandes'), 'commandDocs', '', false, 'secondary'),
-      `<label class="base" title="${esc(t('Git comparison base: local branches, fetched remote branches and tags are valid. Remote refs reflect the last fetch.', 'Base de comparaison Git : branches locales, distantes récupérées et tags sont possibles. Les références distantes reflètent le dernier fetch.'))}">Base: <input list="refs" data-input="base" data-keep="base" value="${esc(baseNow())}" size="14" placeholder="${esc(t('no other branch', "pas d'autre branche"))}"><datalist id="refs">${(S.refs || []).map((r) => {
-        const kind = S.refKinds && S.refKinds[r];
-        const label = kind === 'remote' ? t('remote branch (fetched)', 'branche distante (récupérée)')
-          : kind === 'local' ? t('local branch', 'branche locale') : kind === 'tag' ? 'tag' : t('Git ref', 'référence Git');
-        return `<option value="${esc(r)}" label="${esc(label)}">`;
-      }).join('')}</datalist></label>`,
-    ].join('');
-    const sub = ui.overSub === 'checks' ? checksView(false) : ui.overSub === 'briefs' ? briefsView() : architectureView();
+    // Keep actual command handlers in one place; a responsive toolbar moves actions into More.
+    // Native title and aria-label expose the command on mouse hover and keyboard focus.
+    const projectAction = (kind, label, action, extra = '', index = 0) =>
+      `<span class="project-action-slot action-slot-${index}"><button class="project-action" data-a="${action}" ${extra} title="${esc(label)}" aria-label="${esc(label)}">${icon(kind) || ({ next: '➜', check: '✓', health: '✚', search: '⌕', document: '▤', briefs: '▤' }[kind] || '◦')}</button></span>`;
+    const overflowItem = (kind, label, action, extra, index) =>
+      `<button class="overflow-action overflow-action-${index}" data-a="${action}" ${extra} title="${esc(label)}">${icon(kind)}<span>${esc(label)}</span></button>`;
+    const actions = [
+      ['next', 'Next', 'run', attrs({ label: 'next', args: 'next --json', target: 'overview' })],
+      ['check', 'Check', 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' })],
+      ['health', 'Doctor', 'run', attrs({ label: 'doctor', args: 'doctor --json', target: 'overview' })],
+      ['search', 'Audit', 'run', attrs({ label: 'audit', args: 'audit --json', target: 'overview' })],
+      ['document', t('Project vow', 'Vow du projet'), 'openProjectVow', ''],
+      ['briefs', t('Briefs', 'Briefs'), 'openBriefCommands', ''],
+    ];
+    const toolbar = actions.map(([kind, label, action, extra], index) => projectAction(kind, label, action, extra, index)).join('')
+      + `<span class="action-more"><button class="project-action more-control" data-a="projectMore" title="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-label="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-haspopup="menu" aria-expanded="${!!ui.projectMore}">${icon('other') || '⋯'}</button>${ui.projectMore ? `<div class="project-more-menu" role="menu">${actions.map(([kind, label, action, extra], index) => overflowItem(kind, label, action, extra, index)).join('')}${btn('Budget / Next', 'budget')}${btn('Diff', 'openCommand', attrs({ command: 'diff', field: 'base' }))}${btn('Review', 'openCommand', attrs({ command: 'review', field: 'base' }))}</div>` : ''}</span>`;
+    const sub = architectureView();
     const issues = list(S.check, 'violations');
-    const failedChecks = issues.filter((v) => str(v, 'severity').toLowerCase() === 'error').length;
-    const warnedChecks = issues.filter((v) => str(v, 'severity').toLowerCase() === 'warning').length;
+    const failedChecks = S.check && S.check.errors != null ? Number(S.check.errors) || 0
+      : issues.filter((v) => str(v, 'severity').toLowerCase() === 'error').length;
+    const warnedChecks = S.check && S.check.warnings != null ? Number(S.check.warnings) || 0
+      : issues.filter((v) => str(v, 'severity').toLowerCase() === 'warning').length;
     const projectPending = S.work.otherPending.filter(isProjectOther).length;
     // Partition the actual pending work, not the number of components or raw check violations.
     // Some checks (e.g. ARCH030) are already represented by a safety item.
@@ -586,14 +589,14 @@
     <button class="badge pending" data-a="quickList" data-i="0" title="${esc(t('See open items by component', 'Voir les éléments ouverts par composant'))}">${work.pending.length} ${esc(t('pending', 'en attente'))}</button>
     <button class="badge resolved" data-a="quickList" data-i="1" title="${esc(t('See completed items by component', 'Voir les éléments traités par composant'))}">${work.resolved.length} ${esc(t('resolved', 'traités'))}</button>
     ${projectPending ? `<button class="badge project" data-a="projectWork" title="${esc(t('Project-wide items, not attributed to components', 'Éléments du projet non attribués aux composants'))}">${projectPending} ${esc(t('project items', 'éléments projet'))}</button>` : ''}</span></div>
-  ${branchWarning}${briefFolders()}
+  ${branchWarning}
   ${S.install && S.install.reason === 'version' ? installCard() + confirmation('welcome') + resultCard('welcome') : ''}
-  <div class="toolbar"><div class="row wrap">${toolbar}</div><span class="muted" title="${esc(t('Current Git branch', 'Branche Git courante'))}">Git: ${esc(S.branch || '—')}</span></div>
-  <nav class="tabs sub">${[['architecture', 'Architecture'], ['checks', t('Check & Gates', 'Contrôles et validations')], ...(S.briefStatus ? [['briefs', 'Briefs']] : [])]
-    .map(([id, l]) => `<button class="tab ${ui.overSub === id ? 'current' : ''}" data-a="overSub" data-sub="${id}">${esc(l)}${id === 'briefs' ? (briefsDue() ? ` <span class="count brief-count">${briefsDue()}</span>` : '')
-      : ` <span class="count${id === 'checks' ? ' check-count' : ''}">${id === 'architecture' ? architecturePending : checksPending}</span>`}</button>`).join('')}</nav>
-  ${issues.length ? `<div class="checks-badges" aria-label="${esc(t('Project checks', 'Contrôles du projet'))}"><span class="chip ${failedChecks ? 'bad' : 'good'}">${failedChecks} ${esc(t('errors', 'erreurs'))}</span><span class="chip ${warnedChecks ? 'warn' : 'good'}">${warnedChecks} ${esc(t('warnings', 'avertissements'))}</span></div>` : ''}
+  <div class="project-action-container"><div class="project-action-bar" role="toolbar" aria-label="${esc(t('Project commands', 'Commandes du projet'))}">${toolbar}</div></div>
   ${sub}
+  <div class="card checks-summary" data-a="openChecks" title="${esc(t('Open project diagnostics', 'Afficher les diagnostics du projet'))}"><div class="checks-summary-info">${icon('shield') || '✓'}<div>
+    <h3>${esc(t('Checks', 'Contrôles'))}</h3>
+    <p class="muted small"><span class="${failedChecks ? 'tone-bad' : ''}">${failedChecks} ${esc(t('errors', 'erreurs'))}</span> · <span class="${warnedChecks ? 'tone-warn' : ''}">${warnedChecks} ${esc(t('warnings', 'avertissements'))}</span></p></div></div>
+    <button class="link" data-a="openChecks" title="${esc(t('Open project diagnostics', 'Afficher les diagnostics du projet'))}">${esc(t('Open Checks', 'Voir les contrôles'))} →</button></div>
   <footer class="hint"><label>${esc(t('Language', 'Langue'))} <select data-change="language">${[['auto', t('Follow VS Code', 'Suivre VS Code')], ['en', 'English'], ['fr', 'Français']]
     .map(([v, l]) => `<option value="${v}" ${S.languageMode === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
     <span class="row wrap">${btn(t('Open settings', 'Ouvrir les paramètres'), 'settings', '', false, 'secondary')}
@@ -602,31 +605,19 @@
   }
 
   function architectureView() {
-    if (!S.spec) {
-      return `<div class="card"><h3>${esc(t('Architecture unavailable', 'Architecture indisponible'))}</h3><p>${esc(S.welcomeError || t('Loading architecture…', "Chargement de l'architecture…"))}</p></div>`;
-    }
-    const name = str(S.spec.system, 'name') || t('Project architecture', 'Architecture du projet');
-    // the same table as IntelliJ's: Component, State and Pending always shown; Type, Layer and Container
-    // while the sidebar has room (workspace.css hides Container first, then Layer, then Type), the whole
-    // row in its tooltip; narrower than the three, the table scrolls sideways
-    const heads = [['c-id', t('Component', 'Composant')], ['c-type', 'Type'], ['c-layer', t('Layer', 'Couche')],
-      ['c-container', t('Container', 'Conteneur')], ['c-state', t('State', 'État')], ['c-pending', t('Pending', 'En attente')]];
-    const rows = S.rows.map((r) => `<tr data-a="openComponentRow" data-id="${esc(r.id)}" class="${r.pending ? 'pending' : 'done'} ${r.id === ui.component ? 'selected' : ''}"
-  title="${esc([r.id, r.type, r.layer, r.container, localizedState(r.state)].filter((x) => x).join(' · ') + (r.state === 'drift' ? ' — ' + t('The code differs from its vow', 'Le code diffère de sa vow') : ''))}">
-  <td class="c-id"><div class="cut"><b>${esc(r.id)}</b></div></td><td class="c-type">${esc(r.type)}</td><td class="c-layer">${esc(r.layer)}</td><td class="c-container">${esc(r.container)}</td>
-  <td class="c-state ${stateTone(r.state)}">${esc(localizedState(r.state))}</td><td class="c-pending">${r.pending ? `<span class="count">${r.pending}</span>` : '<span class="ok">✓</span>'}</td></tr>`).join('');
-    return `<div class="card"><h3>${esc(name)}</h3>
-  <p class="muted">${S.rows.length} ${esc(t('components', 'composants'))} · ${S.work.pending.length} ${esc(t('pending', 'en attente'))} · ${S.work.resolved.length} ${esc(t('resolved', 'traités'))}</p>
-  ${S.rows.length ? `<div class="arch-wrap" data-scroll="architecture"><table class="arch"><thead><tr>${heads.map(([c, l]) => `<th class="${c}">${esc(l)}</th>`).join('')}</tr></thead>
-  <tbody>${rows}</tbody></table></div>
-  <p class="muted">${esc(t('Click a component to open it in the editor.', "Clique sur un composant pour l'ouvrir dans l'éditeur."))}</p>`
-    : `<p>${esc(t('No components declared in the specification. Open Components or create one.', 'Aucun composant déclaré dans la spécification. Ouvre Composants ou crée-en un.'))}</p>`}</div>`;
+    if (!S.spec) return `<div class="card"><h3>${esc(t('Architecture unavailable', 'Architecture indisponible'))}</h3></div>`;
+    const count = S.rows.length;
+    return `<div class="card architecture-summary" data-a="openComponents" title="${esc(t('Open Components for details', 'Voir les composants en détail'))}"><div class="architecture-summary-info">${icon('system') || '▧'}<div>
+      <h3>${esc(t('Architecture', 'Architecture'))}</h3>
+      <p class="muted small">${count} ${esc(t('components', 'composants'))} · ${S.work.pending.length} ${esc(t('pending', 'en attente'))} · ${S.work.resolved.length} ${esc(t('resolved', 'traités'))}</p></div></div>
+      <button class="link" data-a="openComponents">${esc(t('Open Components for details', 'Voir les composants en détail'))} →</button></div>`;
   }
 
   /** The colour of a state, as in IntelliJ's table: done green, drift or missing amber. */
   function stateTone(raw) {
     const key = (raw || '').toLowerCase();
     if (['implemented', 'verified', 'tested'].includes(key)) return 'tone-good';
+    if (['planned', 'partial', 'pending'].includes(key)) return 'tone-warn';
     if (['drift', 'drifted', 'missing', 'blocked', 'failed', 'error'].includes(key)) return 'tone-warn';
     return 'muted';
   }
@@ -746,7 +737,8 @@
         const rows = comps.map((comp) => {
           const id = str(comp, 'id');
           const p = pending[id] || 0;
-          return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} ${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
+          const state = (S.rows.find((r) => r.id === id) || {}).state || str(comp, 'status') || 'planned';
+          return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
         }).join('') || `<li class="muted small empty-layer">${esc(t('No component yet', 'Pas encore de composant'))}</li>`;
         return `<li class="layer"><div class="node">${icon('layer')}<span>${esc(layer)}</span>${plus}</div>${chooser}<ul>${rows}</ul></li>`;
       }).join('')}</ul></li>`;
@@ -766,8 +758,8 @@
     const actions = [
       `<span class="ai-anchor">${btn(t('✦ AI ▾', '✦ IA ▾'), 'aiMenu', `title="${esc(t('What you ask the AI for this component: it adds, you decide', "Ce que tu demandes à l'IA pour ce composant : elle ajoute, tu décides"))}" aria-haspopup="menu" aria-expanded="${ui.aiMenu ? 'true' : 'false'}"`, false, 'ai-skills')}${ui.aiMenu ? aiMenu() : ''}</span>`,
       `<span class="ai-anchor">${btn(t('+ Add ▾', '+ Ajouter ▾'), 'addMenu', `title="${esc(t('What you add yourself to this component', 'Ce que tu ajoutes toi-même à ce composant'))}" aria-haspopup="menu" aria-expanded="${ui.addMenu ? 'true' : 'false'}"`, false, 'secondary')}${ui.addMenu ? addMenu() : ''}</span>`,
-      btn(t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }) + ` title="${esc(t('Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.', 'Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et hazards restent tels quels : revoir ceux que le changement touche.'))}"`, false, 'secondary'),
-      btn(t('Open code', 'Ouvrir le code'), 'openCode', `title="${esc(t("Open this component's Python file (and its test). Change the code there; save, then Check.", 'Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier.'))}"`, false, 'secondary'),
+      btn('✎ ' + t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }) + ` title="${esc(t('Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.', 'Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et hazards restent tels quels : revoir ceux que le changement touche.'))}"`, false, 'secondary'),
+      btn('⌘ ' + t('Open code', 'Ouvrir le code'), 'openCode', `title="${esc(t("Open this component's Python file (and its test). Change the code there; save, then Check.", 'Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier.'))}"`, false, 'secondary'),
     ];
     const view = snapshot();
     const ai = aiOf();
@@ -801,7 +793,8 @@
     // A component's 'Others' belongs to this component; global diagnostics are in Check & Gates.
     const waiting = ai ? ai.toReview.total - ai.toReview.component : 0;
     const waitingBadge = waiting > 0 ? ` <button class="badge-ai" data-a="toReview" title="${esc(t('Show only what the AI added and no person kept yet', "N'afficher que ce que l'IA a ajouté et qu'aucune personne n'a encore gardé"))}">${esc(t(`${waiting} from AI to review`, `${waiting} de l'IA à relire`))}</button>` : '';
-    const head = view ? `<div class="component-head"><h2>${esc(ui.component)}${openBadge(ui.component)}${aiBadge(view)}${waitingBadge}${failingBadge(view)}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
+    const componentState = (S.rows.find((r) => r.id === ui.component) || {}).state || str(view, 'status');
+    const head = view ? `<div class="component-head"><h2>${esc(ui.component)}<span class="component-state ${esc(stateTone(componentState))}">${esc(localizedState(componentState))}</span>${openBadge(ui.component)}${aiBadge(view)}${waitingBadge}${failingBadge(view)}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
   <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
@@ -1803,8 +1796,12 @@
     const groupIcon = ((I.icons || {}).groups || {})[g.id] || 'other';
     return `<div class="command-group"><button class="command-group-toggle" data-a="commandGroup" data-id="${esc(g.id)}" aria-expanded="${expanded ? 'true' : 'false'}"><span class="node">${expanded ? '▾' : '▸'} ${icon(groupIcon)}<span>${esc(g.label)}</span></span><span class="count">${g.items.length}</span></button>
     ${expanded ? `<ul class="list items command-children">${g.items.map((c) => `<li class="${c.path.join(' ') === selected ? 'selected' : ''}" data-a="command" data-name="${esc(c.path.join(' '))}" title="${esc(c.description)}"><b class="node">${icon(commandIcon(c.path))}<span>${esc(c.path.join(' '))}</span></b><div class="muted small">${esc(short(c.description || '', 90))}</div></li>`).join('')}</ul>` : ''}</div>`;
-  }).join('')}${aiSkillsGroup(filter)}</div>
+  }).join('')}</div>
   <p class="muted small">${esc(t('Select a command to open its form in the editor.', "Choisis une commande pour ouvrir son formulaire dans l'éditeur."))}</p></section>`;
+  }
+
+  function aiSkillsTab() {
+    return `<section class="browser-only ai-skills-tab">${aiSkillsGroup('')}</section>`;
   }
 
   /** Commands: the AI skills, one group after archvow's, plain names (0.16.0). They open the launch form. */
@@ -2399,7 +2396,11 @@
   }
 
   const actions = {
-    tab: (e) => { ui.tab = e.dataset.tab; },
+    tab: (e) => { ui.tab = e.dataset.tab; ui.filterMenu = false; ui.projectMore = false; },
+    openComponents: () => { ui.tab = 'components'; ui.filter = 'all'; },
+    openBriefCommands: () => { ui.tab = 'commands'; ui.commandFilter = 'brief'; ui.projectMore = false; },
+    projectMore: () => { ui.projectMore = !ui.projectMore; },
+    filterMenu: () => { ui.filterMenu = !ui.filterMenu; },
     back: () => {
       // the component the command was opened from, on its view: the extension shows it again (and reads it)
       const to = ui.back;
@@ -2470,7 +2471,7 @@
     // the sidebar marks its choice at once; the editor tab changes component when the extension says so
     openComponentRow: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
     pick: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
-    filter: (e) => { ui.filter = e.dataset.filter; },
+    filter: (e) => { ui.filterMenu = false; ui.filter = e.dataset.filter; ui.tab = 'components'; },
     addComponent: () => post({ type: 'openCommand', command: 'component add', values: {}, selected: '' }),
     addHere: (e) => { ui.addLayer = ui.addLayer === e.dataset.id ? '' : e.dataset.id; },
     addType: (e) => { ui.addLayer = ''; post({ type: 'openCommand', command: 'component add', values: { type: e.dataset.id }, selected: '' }); },
@@ -2687,6 +2688,12 @@
 
   document.body.addEventListener('click', (event) => {
     const target = event.target.closest('[data-a]');
+    // The responsive More menu closes after an action or on an outside click.
+    // The same action is used in either the toolbar or its overflow menu.
+    if (ui.projectMore && (!target || target.dataset.a !== 'projectMore')) {
+      ui.projectMore = false;
+      if (!target) { render(); return; }
+    }
     // a click anywhere but on a menu's own button closes the open menus (AI, Add)
     const menus = ['aiMenu', 'addMenu'];
     if ((ui.aiMenu || ui.addMenu) && !(target && menus.includes(target.dataset.a))) {

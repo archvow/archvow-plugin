@@ -31,6 +31,7 @@ const state = {
   check: { violations: [], errors: 0, warnings: 0 }, work: {
     pending: [{ component: 'schema', command: 'decision make', source: 'decision', preset: {}, title: 'D1', pending: true }], resolved: [],
     otherPending: [], otherResolved: [], pendingByComponent: { schema: 1 }, resolvedByComponent: {} },
+  addable: { domain: [{ type: 'schema', description: 'A data schema' }] },
   choices: {}, refs: [], branch: 'feature/example', base: '', briefs: { folders: [], files: [] }, install: {},
   vows: {}, loading: '', welcomeError: ''
 };
@@ -57,9 +58,24 @@ function make(role) {
   return { app, posted, message, click, change };
 }
 const nav = make('nav');
-assert.match(nav.app.innerHTML, /Command reference/);
+assert.equal(forms.command_groups[0].id, 'project', 'Project & checks is the first command group');
+assert.match(nav.app.innerHTML, /data-tab="ai"/, 'fourth AI skills tab is present');
+assert.match(nav.app.innerHTML, /data-a="openComponents"/, 'Overview links to the Components browser');
+assert.doesNotMatch(nav.app.innerHTML, /Command reference|Brief folders|Base: origin/, 'Overview contains no redundant reference, briefs or base');
+assert.equal((nav.app.innerHTML.match(/data-a="refresh"/g) || []).length, 1, 'one reload in the header');
+assert.equal((nav.app.innerHTML.match(/title="Check"/g) || []).length, 1, 'one complete Check action');
+nav.click('tab', { tab: 'components' });
+assert.match(nav.app.innerHTML, /data-a="addHere"/, 'the layer plus control remains visible');
+assert.match(nav.app.innerHTML, /class="count">1<\/span>/, 'per-component pending count remains visible');
+assert.match(nav.app.innerHTML, /class="component-state tone-warn">planned<\/span>/, 'component status appears alongside counts');
+nav.click('openComponents');
+assert.match(nav.app.innerHTML, /data-tab="components"/, 'Overview shortcut reaches Components');
+nav.click('tab', { tab: 'ai' });
+assert.match(nav.app.innerHTML, /data-a="openSkill"/, 'AI skills live under their own tab');
 nav.click('tab', { tab: 'commands' });
 assert.match(nav.app.innerHTML, /command-group-toggle/);
+assert.ok(nav.app.innerHTML.indexOf('data-id="project"') < nav.app.innerHTML.indexOf('data-id="components"'), 'project group precedes component group');
+assert.doesNotMatch(nav.app.innerHTML, /data-id="ai"|data-a="openSkill"/, 'Commands excludes AI skills');
 assert.match(nav.app.innerHTML, /component edit/);
 nav.click('commandGroup', { id: 'components' });
 assert.doesNotMatch(nav.app.innerHTML, /data-name="component edit"/, 'collapsed group hides its children');
@@ -68,6 +84,11 @@ assert.match(nav.app.innerHTML, /data-name="component edit"/);
 nav.click('commandDocs');
 assert.equal(nav.posted.at(-1).type, 'commandDocs', 'documentation never runs archvow docs');
 const editor = make('editor');
+editor.message({ type: 'select', component: 'schema' });
+for (const action of ['aiMenu', 'addMenu', 'openCode'])
+  assert.match(editor.app.innerHTML, new RegExp('data-a="' + action + '"'), action + ' remains available in component detail');
+assert.match(editor.app.innerHTML, /data-command="component edit"/, 'Edit spec remains available');
+assert.match(editor.app.innerHTML, /class="component-state tone-warn">planned<\/span>/, 'detail shows state separately from work count');
 editor.message({ type: 'commandDocs' });
 assert.match(editor.app.innerHTML, /no command is executed/);
 assert.match(editor.app.innerHTML, /archvow component edit/);

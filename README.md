@@ -5,7 +5,7 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | Folder | What | Built with |
 |---|---|---|
 | `intellij/` | the plugin for IntelliJ IDEA, PyCharm and the other JetBrains IDEs: the archvow workspace and the `.vow` language, in one plugin | Gradle, JDK 21 |
-| `vscode/` | the extension for VS Code: the same workspace: Overview, Components and Commands in the sidebar, what is chosen in one editor tab, `archvow check` in the Problems view, the `.vow` language | npm, Node 20+ |
+| `vscode/` | the extension for VS Code: the same workspace: Overview, Components, Commands and AI skills in the sidebar, what is chosen in one editor tab, `archvow check` in the Problems view, the `.vow` language | npm, Node 20+ |
 | `contract/` | what both plugins and the archvow CLI agree on: the sample vows, the CLI's JSON, the `.vow` reader's tokens and problems | `contract/tools/regenerate.py`, `./gradlew contractDump` |
 | `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
@@ -23,13 +23,12 @@ page [Tests](wiki/en/13-tests.md) says what each job checks.
 ## The rules both plugins follow
 
 - **The same layout in both editors.** The sidebar (IntelliJ: the Archvow tool window, left; VS Code: the
-  activity bar) chooses: Overview, Components (the tree), Commands (the list). ONE editor tab shows what
+  activity bar) chooses: Overview (a project summary), Components (the tree), Commands (the list), AI skills. ONE editor tab shows what
   was chosen (a component, a command's form, a result) and is reused for the next choice.
   A component shows its head over the whole width, then, for Decisions, Questions, Safety and
   Assumptions, the items as cards on the left and the selected one's answer panel on the right (under
   the cards in a narrow tab); it opens on its first open item.
-- **The same workspace in both editors.** Overview (architecture, Check & Gates, pending and resolved
-  work, Check / Next / Full check / Doctor / Audit / Budget / Diff / Review), Components (Decisions,
+- **The same workspace in both editors.** Overview (a compact architecture summary, pending and resolved pills, Next / Check / Doctor / Audit / Project vow, and a More menu for Budget / Diff / Review), Components (Decisions,
   Questions, Safety, Assumptions, Rules, Tasks, Spec, Other / Project, with their actions) and
   Commands (every archvow command as a form built from archvow's own parser, the init wizard built from
   `archvow catalog --json`). VS Code reproduces what the IntelliJ workspace does, rule by rule

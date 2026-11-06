@@ -72,13 +72,13 @@ test('"Drawn from", the refusal and ARCH039 as archvow 1.18 prints them (contrac
     label: 'Add this folder (architect) / Ajouter ce dossier (architecte)' });
 });
 
-test('the page: the --from picker, "Drawn from", Add this folder, Review; the folders in Overview', () => {
+test('the page: the --from picker, Drawn from, Add this folder, Review; no briefs folder duplication in Overview', () => {
   const page = fs.readFileSync(path.join(ROOT, 'media', 'workspace.js'), 'utf8');
   const host = fs.readFileSync(path.join(ROOT, 'src', 'workspace.ts'), 'utf8');
   assert.match(page, /p\.flags\.includes\('--from'\)\) \{\n\s+control = briefField\(/);
   assert.match(page, /\$\{drawnFrom\(view\)\}\$\{links\(view\)\}/);
   assert.match(page, /\$\{r\.running \? '' : addFolderButton\(r\.raw\)\}/);
-  assert.match(page, /\$\{branchWarning\}\$\{briefFolders\(\)\}/);
+  assert.doesNotMatch(page, /\$\{branchWarning\}\$\{briefFolders\(\)\}/, 'Overview should not duplicate brief folders');
   // Add this folder opens the init form, prefilled: it does not run init
   assert.match(page, /addFolder: \(e\) => post\(\{ type: 'openCommand', command: 'init', values: \{ package: e\.dataset\.package, force: 'true', answer: e\.dataset\.answer \}/);
   assert.match(page, /case 'brief accept':\n\s+post\(\{ type: 'openBrief', ref: item\.preset\.brief \|\| '' \}\);/);

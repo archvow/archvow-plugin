@@ -17,7 +17,7 @@ test('the sidebar is one webview view: Overview, Components, Commands; no tree v
   assert.equal(views[0].type, 'webview');
   assert.equal(views[0].id, 'archvow.workspace');
   assert.equal(JSON.stringify(manifest.contributes).includes('archvow.components'), false);
-  assert.deepEqual(manifest.contributes.menus['view/title'].map((m: { command: string }) => m.command), ['archvow.check', 'archvow.refresh']);
+  assert.deepEqual(manifest.contributes.menus['view/title'], [], 'no duplicate Check/Reload outside the Webview header');
   assert.equal(manifest.contributes.viewsContainers.activitybar[0].icon, 'media/activity.svg');
 });
 
@@ -156,16 +156,14 @@ test('the items as cards on the left, the selected one answered on the right (0.
   assert.match(css, /@media \(max-width: 760px\) \{ \.split \{ grid-template-columns: minmax\(0, 1fr\); \} \}/);
 });
 
-test('the sidebar architecture table: Component, State and Pending always shown, as in IntelliJ (0.11.1)', () => {
-  assert.match(page, /<table class="arch"><thead>/);
-  for (const c of ['c-id', 'c-type', 'c-layer', 'c-container', 'c-state', 'c-pending']) assert.match(page, new RegExp(`<td class="${c}[ "]`));
-  const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
-  assert.match(css, /\.arch-wrap \{ overflow-x: auto;/);
-  assert.match(css, /table\.arch \.c-id, table\.arch \.c-state, table\.arch \.c-pending \{ width: 1%; \}/);
-  // the optional columns go first, Container before Layer before Type; never the three others
-  const hidden = [...css.matchAll(/@media \(max-width: (\d+)px\) \{ table\.arch \.(c-[a-z]+) \{ display: none; \} \}/g)].map((m) => [m[2], Number(m[1])]);
-  assert.deepEqual(hidden.map(([c]) => c), ['c-container', 'c-layer', 'c-type']);
-  assert.ok(hidden[0][1] > hidden[1][1] && hidden[1][1] > hidden[2][1]);
+test('Overview is a summary only; the Components browser owns the full status + pending inventory', () => {
+  assert.match(page, /function architectureView\(\)/);
+  assert.match(page, /class="card architecture-summary"/);
+  assert.match(page, /data-a="openComponents"/);
+  assert.doesNotMatch(page, /<table class="arch"><thead>/, 'Overview no longer contains the component table');
+  assert.match(page, /class="component-state \$\{esc\(stateTone\(state\)\)\}"/, 'component rows show their own status');
+  assert.match(page, /<span class="count">\$\{p\}<\/span>/, 'pending count is preserved');
+  assert.match(page, /data-a="addHere"/, 'per-layer add component control remains available');
 });
 
 test('the editor tab goes back to the component a command was opened from (0.11.3)', () => {
@@ -179,7 +177,7 @@ test('the editor tab goes back to the component a command was opened from (0.11.
   const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
   assert.match(css, /\.item-card \.card-q, \.item-card \.card-a, \.item-card \.card-open, \.item-card \.card-note \{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; \}/);
   assert.equal(page.includes("btn('↻'"), false);
-  assert.equal(page.match(/iconBtn\(REFRESH, 'refresh'/g)?.length, 2);
+  assert.equal(page.match(/iconBtn\(REFRESH, 'refresh'/g)?.length, 1, 'one shared header refresh; none in Overview');
 });
 
 test('a component shows its progress in one bar (show --json), as IntelliJ\'s ArchvowProgress does', () => {
@@ -215,4 +213,21 @@ test('a component shows its progress in one bar (show --json), as IntelliJ\'s Ar
   assert.match(progressBar({ tasks: Array.from({ length: 20 }, (_, i) => ({ done: i > 0 })) }), /partial[\s\S]*p90/);
   assert.equal(progressBar({}), '');
   assert.match(page, /\$\{progressBar\(view\)\}/);
+});
+
+
+test('UX v4: VS Code hover, responsive toolbar, and Checks overview row', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
+  assert.match(css, /\.project-action:hover:not\(\[disabled\]\)/);
+  assert.match(css, /\.project-action:focus-visible/);
+  assert.match(css, /\.project-action-container \{ container: project-actions \/ inline-size/);
+  assert.match(css, /@container project-actions \(max-width: 240px\)/);
+  assert.match(css, /\.project-more-menu \.overflow-action-3 \{ display: flex; \}/);
+  assert.match(page, /class="project-action-container"/);
+  assert.match(page, /class="project-action-slot action-slot-\$\{index\}"/);
+  assert.match(page, /data-a="openBriefCommands"|\['briefs', t\('Briefs'/);
+  assert.match(page, /openBriefCommands: \(\) =>/);
+  assert.match(page, /class="card checks-summary"/);
+  assert.match(page, /data-a="openChecks"/);
+  assert.doesNotMatch(page, /class="checks-badges"/, 'diagnostic counters live in the Checks card');
 });

@@ -48,20 +48,29 @@ final class ArchvowArchitectureView extends JPanel {
     private static final int[] OPTIONAL = {1, 2, 3};
     private boolean french;
     private Consumer<String> openComponent = id -> {};
+    private Runnable openBrowser = () -> {};
+    private final javax.swing.JButton componentsLink = new javax.swing.JButton("Open Components for details →");
 
     ArchvowArchitectureView() {
         super(new BorderLayout(0, 10));
         setBorder(BorderFactory.createEmptyBorder(8, 10, 10, 10));
-        JPanel heading = new JPanel(new BorderLayout(0, 4));
+        JPanel heading = new JPanel(new BorderLayout(12, 0));
         projectName.setFont(projectName.getFont().deriveFont(Font.BOLD, 18f));
         summary.setFont(summary.getFont().deriveFont(12f));
         notice.setFont(notice.getFont().deriveFont(12f));
-        heading.add(projectName, BorderLayout.NORTH);
         JPanel details = new JPanel();
+        details.setOpaque(false);
         details.setLayout(new javax.swing.BoxLayout(details, javax.swing.BoxLayout.Y_AXIS));
+        details.add(projectName);
         details.add(summary);
         details.add(notice);
-        heading.add(details, BorderLayout.SOUTH);
+        heading.add(details, BorderLayout.CENTER);
+        componentsLink.setToolTipText("Show the full component list and status");
+        componentsLink.addActionListener(e -> openBrowser.run());
+        JPanel linkHost = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        linkHost.setOpaque(false);
+        linkHost.add(componentsLink);
+        heading.add(linkHost, BorderLayout.EAST);
         add(heading, BorderLayout.NORTH);
 
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -84,8 +93,17 @@ final class ArchvowArchitectureView extends JPanel {
             @Override public void componentResized(java.awt.event.ComponentEvent e) { fitColumns(); }
         });
         add(scroll, BorderLayout.CENTER);
+        componentsLink.setVisible(false);
         showLoading("Loading architecture…");
     }
+
+    void setSummaryOnly(boolean value) {
+        scroll.setVisible(!value);
+        componentsLink.setVisible(value);
+        revalidate();
+    }
+
+    void onOpenBrowser(Runnable action) { openBrowser = action == null ? () -> {} : action; }
 
     void onOpenComponent(Consumer<String> listener) {
         openComponent = listener == null ? id -> {} : listener;
@@ -145,9 +163,12 @@ final class ArchvowArchitectureView extends JPanel {
                 ? "Aucun composant déclaré dans la spécification. Ouvre Composants ou crée-en un."
                 : "No components declared in the specification. Open Components or create one.");
         } else {
-            notice.setText(fr ? "Double-clique sur un composant pour l'ouvrir."
-                : "Double-click a component to open it.");
+            notice.setText(scroll.isVisible()
+                ? (fr ? "Double-clique sur un composant pour l'ouvrir."
+                    : "Double-click a component to open it.") : "");
         }
+        componentsLink.setText(fr ? "Voir les composants en détail →" : "Open Components for details →");
+        componentsLink.setToolTipText(fr ? "Afficher les composants et leurs statuts" : "Show components and their statuses");
         fitColumns();
         revalidate();
         repaint();

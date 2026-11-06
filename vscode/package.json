@@ -1,7 +1,7 @@
 {
   "name": "archvow",
   "displayName": "archvow",
-  "description": "archvow in VS Code, the same workspace as in IntelliJ: the sidebar holds Overview (architecture, checks, pending work), Components (the tree) and Commands (every archvow command); a component or a command opens in one editor tab, reused for the next one. archvow check in the Problems view, and the .vow language.",
+  "description": "archvow in VS Code, the same workspace as in IntelliJ: the sidebar holds Overview (compact project status), Components (the tree and statuses), Commands (project checks first) and AI skills (their own tab); a component or a command opens in one editor tab, reused for the next one. archvow check in the Problems view, and the .vow language.",
   "version": "0.18.0",
   "publisher": "archvow",
   "license": "UNLICENSED",
@@ -188,18 +188,7 @@
       }
     ],
     "menus": {
-      "view/title": [
-        {
-          "command": "archvow.check",
-          "when": "view == archvow.workspace",
-          "group": "navigation@1"
-        },
-        {
-          "command": "archvow.refresh",
-          "when": "view == archvow.workspace",
-          "group": "navigation@2"
-        }
-      ],
+      "view/title": [],
       "commandPalette": [
         {
           "command": "archvow.openSpec",

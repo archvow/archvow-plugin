@@ -44,22 +44,21 @@ function webview(role) {
   return { app, posted, message, click };
 }
 const nav = webview('nav');
-const pendingBadges = (html) => {
-  const tabs = html.match(/<nav class="tabs sub">([\s\S]*?)<\/nav>/);
-  assert.ok(tabs, 'overview tabs exist');
-  const numbers = [...tabs[1].matchAll(/<span class="count(?: check-count)?">(\d+)<\/span>/g)].map((row) => Number(row[1]));
-  assert.equal(numbers.length, 2, 'one Architecture and one Check & Gates count');
-  return numbers;
+// Overview now has a concise project status and a Components shortcut, rather than
+// duplicating the component and diagnostic lists that have their own destinations.
+const pendingCount = (html) => {
+  assert.doesNotMatch(html, /<nav class="tabs sub">/, 'no duplicate Overview sub-tabs');
+  assert.match(html, /data-a="openComponents"/, 'one shortcut to Components');
+  const total = html.match(/<button class="badge pending"[^>]*>(\d+) pending<\/button>/);
+  assert.ok(total, 'Overview shows the deduplicated pending work total');
+  return Number(total[1]);
 };
-assert.deepEqual(pendingBadges(nav.app.innerHTML), [0, 1], 'a check issue is not an architecture action');
-nav.click('overSub', { sub: 'checks' });
-assert.match(nav.app.innerHTML, /ARCH036/);
+assert.equal(pendingCount(nav.app.innerHTML), 1, 'a check violation contributes once to project status');
 assert.doesNotMatch(nav.app.innerHTML, /class="check-detail"/, 'sidebar must not render diagnostic details');
-nav.click('checkSel', { i: '1' });
-const toEditor = nav.posted.findLast((m) => m.type === 'showCheckDetails');
-assert.equal(toEditor.index, 1);
 const editor = webview('editor');
-editor.message(toEditor);
+// Checks still open in the editor when invoked through a quick list / diagnostic;
+// the redundant check list no longer occupies Overview.
+editor.message({ type: 'showCheckDetails', index: 1 });
 assert.match(editor.app.innerHTML, /class="check-editor-detail"/, 'editor shows one full-width detail panel');
 assert.doesNotMatch(editor.app.innerHTML, /class="check-list"/, 'editor must not duplicate sidebar checks list');
 assert.match(editor.app.innerHTML, /Unapproved assistant configured/);
@@ -74,7 +73,7 @@ projectState.work.pending.push({ kind: 'QUESTION', component: '', command: 'open
   title: 'Project-wide decision', detail: 'Approve project settings', pending: true });
 projectState.work.otherPending.push(projectState.work.pending.at(-1));
 nav.message({ type: 'state', state: projectState });
-assert.deepEqual(pendingBadges(nav.app.innerHTML), [1, 1], 'project work belongs to non-check pending work');
+assert.equal(pendingCount(nav.app.innerHTML), 2, 'project work contributes to the single Overview pending count');
 assert.match(nav.app.innerHTML, /project items/);
 nav.click('projectWork');
 const projectMessage = nav.posted.findLast((m) => m.type === 'showProjectWork');
@@ -103,9 +102,9 @@ mixed.work.pending = [
   { kind: 'WARNING', component: '', source: 'check', command: 'open-file', preset: {}, title: 'ARCH053', pending: true },
 ];
 nav.message({ type: 'state', state: mixed });
-assert.deepEqual(pendingBadges(nav.app.innerHTML), [2, 3], 'Architecture (2) + Checks (3) = total pending (5)');
+assert.equal(pendingCount(nav.app.innerHTML), 5, 'deduplicated project work includes architecture and checks');
 assert.match(nav.app.innerHTML, /5 pending/);
-console.log('VS Code checks layout: one full-width editor detail; Architecture + Checks = pending: OK');
+console.log('VS Code checks layout: summary-only Overview and editor diagnostic detail: OK');
 
 // A file is named by its actual type, never the ambiguous "Open file".
 const actions = structuredClone(mockState);

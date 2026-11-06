@@ -121,7 +121,7 @@ test('the search: groups, places, the selected one\'s lines; a name found nowher
 
 test('the find field, the host and the editor action', () => {
   assert.match(page, /function findBox\(\)/);
-  assert.match(page, /\$\{findBox\(\)\}<nav class="tabs main">/);
+  assert.match(page, /<div class="right">\$\{findBox\(\)\}\$\{reload\}/, 'search is in the shared header');
   assert.match(page, /e\.dataset\.input === 'find' && event\.key === 'Enter'/);
   assert.match(host, /case 'search':\n\s+return this\.search\(String\(m\.name \?\? ''\)\);/);
   assert.match(host, /this\.cli\.run\(\['show', wanted, '--json'\]\)/);
