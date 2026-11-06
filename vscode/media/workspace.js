@@ -2026,7 +2026,9 @@
         const leaf = cut >= 0 ? path.slice(cut + 1) : path;
         if (dir !== folder) {
           if (folder !== null) html += '</ul>';
-          html += `<div class="file-dir">${icon('folder')}<span>${esc(dir || './')}</span></div><ul class="file-list">`;
+          // Root files are siblings of the folder groups; do not render a "./" group.
+          if (dir) html += `<div class="file-dir">${icon('folder')}<span>${esc(dir)}</span></div>`;
+          html += `<ul class="file-list${dir ? '' : ' root-files'}">`;
           folder = dir;
         }
         const locationOnly = r.change === 'location';

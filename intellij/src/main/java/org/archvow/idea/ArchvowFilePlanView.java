@@ -53,14 +53,15 @@ final class ArchvowFilePlanView extends JPanel {
                 String dir = cut >= 0 ? path.substring(0, cut + 1) : "";
                 String leaf = cut >= 0 ? path.substring(cut + 1) : path;
                 if (!dir.equals(folder)) {
-                    add(folderLine(dir.isEmpty() ? "./" : dir));
+                    // Root files live beside folders, not inside a synthetic "./" directory.
+                    if (!dir.isEmpty()) add(folderLine(dir));
                     folder = dir;
                 }
                 JPanel file = new JPanel();
                 file.setLayout(new BoxLayout(file, BoxLayout.X_AXIS));
                 file.setOpaque(false);
                 file.setAlignmentX(LEFT_ALIGNMENT);
-                file.setBorder(BorderFactory.createEmptyBorder(1, 14, 0, 0));
+                file.setBorder(BorderFactory.createEmptyBorder(1, dir.isEmpty() ? 0 : 14, 0, 0));
                 // VS Code renders file names as code chips, distinct from the muted description below.
                 // Keep the icon OUTSIDE the chip, as in its filesBlock tree.
                 JLabel icon = iconLabel(isDir ? "folder" : "document", "", false);
@@ -81,7 +82,7 @@ final class ArchvowFilePlanView extends JPanel {
                 add(file);
                 if (!"location".equals(row.change()) && !row.note().isBlank()) {
                     ArchvowWrapLabel note = wrapped(row.note(), muted(), true);
-                    note.setBorder(BorderFactory.createEmptyBorder(1, 38, 2, 0));
+                    note.setBorder(BorderFactory.createEmptyBorder(1, dir.isEmpty() ? 24 : 38, 2, 0));
                     add(note);
                 }
             }

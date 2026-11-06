@@ -125,7 +125,7 @@ public final class FilePlanRegression {
         collectLabels(view, labels);
         long folders = labels.stream().filter(l -> iconKind(l).equals("folder")).count();
         long documents = labels.stream().filter(l -> iconKind(l).equals("document")).count();
-        check(folders == 4, "one folder per group, and a folder icon for a directory row: " + folders);
+        check(folders == 3, "only real folder groups and directory rows, no synthetic ./ group: " + folders);
         check(documents == 3, "a document icon for each file row: " + documents);
         check(labels.stream().filter(l -> l.getText().equals(".archvow/components/orders_reader/")).count() == 1,
             "shared folder is shown once");
@@ -152,6 +152,31 @@ public final class FilePlanRegression {
             .findFirst().orElseThrow(() -> new AssertionError("Description note missing"));
         check(note.getFont().getSize2D() == 10.5f,
             "Description note uses hint-sized text: " + note.getFont().getSize2D());
+        // init: .archvow/ has indented children, while AGENTS.md and other root files
+        // have no synthetic "./" group and align with the .archvow/ folder itself.
+        view.showRows(List.of(
+            new ArchvowFilePlan.Row("new", ".archvow/spec.vow", "specification"),
+            new ArchvowFilePlan.Row("new", ".archvow/spec.md", "overview"),
+            new ArchvowFilePlan.Row("new", "AGENTS.md", "AI rules"),
+            new ArchvowFilePlan.Row("new", "README.md", "project guide")
+        ), false);
+        labels.clear();
+        collectLabels(view, labels);
+        check(labels.stream().noneMatch(l -> "./".equals(l.getText())), "root folder ./ must be hidden");
+        check(labels.stream().filter(l -> ".archvow/".equals(l.getText())).count() == 1,
+            "the real .archvow/ folder must appear exactly once");
+        java.util.Map<String, Integer> leftInsets = new java.util.HashMap<>();
+        for (java.awt.Component child : view.getComponents()) {
+            if (!(child instanceof JPanel row)) continue;
+            for (java.awt.Component part : row.getComponents()) {
+                if (part instanceof JLabel label && List.of("spec.vow", "AGENTS.md", "README.md").contains(label.getText()))
+                    leftInsets.put(label.getText(), row.getBorder().getBorderInsets(row).left);
+            }
+        }
+        check(Integer.valueOf(14).equals(leftInsets.get("spec.vow")), "nested files are indented");
+        check(Integer.valueOf(0).equals(leftInsets.get("AGENTS.md"))
+            && Integer.valueOf(0).equals(leftInsets.get("README.md")),
+            "root files must align with .archvow/ (no nested indentation): " + leftInsets);
         view.showRows(List.of(), false);
         check(!view.isVisible() && view.getComponentCount() == 0, "Files preview clears when the form has no files");
     }
