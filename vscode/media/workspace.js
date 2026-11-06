@@ -15,7 +15,7 @@
   /** What the person chose on the page. */
   const ui = {
     tab: 'overview', overSub: 'architecture', forceWorkspace: false, filterMenu: false, projectMore: false,
-    /** The editor tab: 'empty', 'component', 'checks', 'project', 'command', 'result' or 'search'. */
+    /** The editor tab: 'empty', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
     sel: { decision: '', question: '', safety: '', assumption: '', data: '', example: '', other: -1 },
@@ -57,6 +57,8 @@
     // a command opened from a component (Edit spec, + Question, Accept...): the editor tab can go back to it
     if (!NAV && ui.mode === 'component' && ui.component && ui.view !== 7 && (m.type === 'openCommand' || m.type === 'choose')) {
       ui.backArmed = { component: ui.component, view: ui.view };
+    } else if (!NAV && ui.mode === 'briefs' && m.type === 'openCommand') {
+      ui.backArmed = { briefs: true };
     }
     vscode.postMessage(m);
   };
@@ -198,6 +200,10 @@
       case 'commandDocs':
         ui.forceWorkspace = true; ui.mode = 'commandDocs'; ui.back = null;
         break;
+      case 'briefs':
+        if (NAV) return;
+        ui.forceWorkspace = true; ui.mode = 'briefs'; ui.back = null; ui.backArmed = null;
+        break;
       case 'search':
         // archvow show <name> --json (0.18.0): where a name is, and the problems naming it
         if (NAV) return;
@@ -310,6 +316,7 @@
   function editorTitle() {
     if (ui.mode === 'component') return 'archvow: ' + (ui.component || t('Components', 'Composants'));
     if (ui.mode === 'checks') return 'archvow: ' + t('Check & Gates', 'Contrôles et validations');
+    if (ui.mode === 'briefs') return 'archvow: Briefs';
     if (ui.mode === 'commandDocs') return 'archvow: ' + t('Command reference', 'Docs des commandes');
     if (ui.mode === 'project') return 'archvow: ' + t('Project items', 'Éléments du projet');
     if (ui.mode === 'command') return 'archvow: ' + ui.command;
@@ -331,18 +338,24 @@
     }
     const what = ui.mode === 'component' ? ui.component
       : ui.mode === 'checks' ? t('Check & Gates', 'Contrôles et validations')
+        : ui.mode === 'briefs' ? 'Briefs'
         : ui.mode === 'commandDocs' ? t('Command reference', 'Docs des commandes')
         : ui.mode === 'project' ? t('Project items', 'Éléments du projet')
         : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'skill' ? skillLabel(ui.skill) : ui.mode === 'result' ? ui.resultLabel
           : ui.mode === 'search' ? ui.searchName : '';
     const kind = ui.mode === 'component' ? t('Component', 'Composant') : ui.mode === 'command' ? t('Command', 'Commande')
       : ui.mode === 'skill' ? t('AI skill', 'Skill IA')
+      : ui.mode === 'briefs' ? 'Briefs'
       : ui.mode === 'commandDocs' ? t('Reference', 'Référence')
       : ui.mode === 'checks' ? t('Checks', 'Contrôles') : ui.mode === 'project' ? t('Project', 'Projet') : ui.mode === 'result' ? t('Result', 'Résultat')
         : ui.mode === 'search' ? t('Find', 'Recherche') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
     const named = ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot();
-    const back = ui.back && ui.mode !== 'component' ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.component)}">← ${esc(ui.back.component)}</button>` : '';
+    const back = ui.back && ui.mode !== 'component'
+      ? ui.back.briefs
+        ? `<button class="secondary back" data-a="back" title="${esc(t('Back to Briefs', 'Retour aux briefs'))}">← Briefs</button>`
+        : `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.component)}">← ${esc(ui.back.component)}</button>`
+      : '';
     return `<header class="top ${named ? 'slim' : ''}">
   <div class="brand">${back}<img src="${esc(window.ARCHVOW_LOGO)}" alt="" class="logo">
     <div><div class="kind">${esc(kind ? 'Archvow · ' + kind : 'Archvow')}</div>${named ? '' : `<div class="title">${esc(what || t('Specifications → understandable components', 'Des specs aux composants compréhensibles'))}</div>`}
@@ -353,6 +366,7 @@
   /** The editor tab: the component, the command or the result chosen in the sidebar. */
   function editorBody() {
     if (ui.mode === 'component') return `<section class="detail-only">${componentDetail()}</section>`;
+    if (ui.mode === 'briefs') return `<section class="detail-only briefs-editor">${briefsView()}</section>`;
     if (ui.mode === 'checks') return `<section class="detail-only checks-editor">${checksView(true)}</section>`;
     if (ui.mode === 'commandDocs') return `<section class="detail-only">${commandReference()}</section>`;
     if (ui.mode === 'project') return `<section class="detail-only"><div class="card"><h3>${esc(t('Project items', 'Éléments du projet'))}</h3>${otherView()}</div></section>`;
@@ -516,7 +530,7 @@
     if (!b || !S.spec) return '';
     const names = b.folders.length ? b.folders.map((f) => f + '/').join(', ') : t('none declared', 'aucun déclaré');
     const due = briefsDue();
-    const link = S.briefStatus && due ? ` · <button class="link" data-a="overSub" data-sub="briefs">${esc(t(`${due} section${due === 1 ? '' : 's'} to look at →`, `${due} section${due === 1 ? '' : 's'} à regarder →`))}</button>` : '';
+    const link = S.briefStatus && due ? ` · <button class="link" data-a="openBriefCommands">${esc(t(`${due} section${due === 1 ? '' : 's'} to look at →`, `${due} section${due === 1 ? '' : 's'} à regarder →`))}</button>` : '';
     return `<p class="brief-folders muted small" title="${esc(t('An architect changes them: archvow init <package> --force -a briefs=...', 'Un architecte les change : archvow init <package> --force -a briefs=...'))}">${esc(t('Brief folders (--from)', 'Dossiers de briefs (--from)'))}: ${esc(names)} · ${b.files.length} ${esc(b.files.length === 1 ? t('file', 'fichier') : t('files', 'fichiers'))}${link}</p>`;
   }
 
@@ -553,9 +567,6 @@
   }
 
   function overviewTab() {
-    if (ui.overSub === 'briefs') return `<section class="overview briefs-overview">
-      <div class="brief-back">${btn('← ' + t('Overview', 'Vue d’ensemble'), 'overSub', attrs({ sub: 'architecture' }), false, 'secondary small')}</div>
-      ${briefsView()}</section>`;
     const work = S.work;
     const branchWarning = needsFeatureBranch(S.branch) ? `<div class="warning" title="${esc(t('Advice only. Archvow does not automatically change Git branches.',
       'Conseil uniquement. Archvow ne change pas automatiquement de branche Git.'))}">${esc(t(`⚠ You are on ${S.branch}. For development, create a feature branch (e.g. feature/my-change) first.`,
@@ -572,7 +583,7 @@
       ['health', 'Doctor', 'run', attrs({ label: 'doctor', args: 'doctor --json', target: 'overview' })],
       ['search', 'Audit', 'run', attrs({ label: 'audit', args: 'audit --json', target: 'overview' })],
       ['document', t('Project vow', 'Vow du projet'), 'openProjectVow', ''],
-      ['briefs', t('Briefs', 'Briefs'), 'openBriefCommands', ''],
+      ['folder', t('Briefs', 'Briefs'), 'openBriefCommands', ''],
       ['list', 'Budget / Next', 'budget', ''],
       ['compare', 'Diff', 'openCommand', attrs({ command: 'diff', field: 'base' })],
       ['propose', 'AI review', 'openCommand', attrs({ command: 'review', field: 'base' })],
@@ -2419,7 +2430,11 @@
   const actions = {
     tab: (e) => { ui.tab = e.dataset.tab; ui.filterMenu = false; ui.projectMore = false; },
     openComponents: () => { ui.tab = 'components'; ui.filter = 'all'; },
-    openBriefCommands: () => { ui.tab = 'overview'; ui.overSub = 'briefs'; ui.projectMore = false; },
+    openBriefCommands: () => {
+      ui.projectMore = false;
+      if (NAV) post({ type: 'openBriefs' });
+      else { ui.forceWorkspace = true; ui.mode = 'briefs'; ui.back = null; }
+    },
     projectMore: () => { ui.projectMore = !ui.projectMore; },
     filterMenu: () => { ui.filterMenu = !ui.filterMenu; },
     back: () => {
@@ -2427,10 +2442,18 @@
       const to = ui.back;
       ui.back = null;
       if (!to) return;
+      if (to.briefs) {
+        ui.forceWorkspace = true;
+        ui.mode = 'briefs';
+        return;
+      }
       ui.view = to.view;
       post({ type: 'show', component: to.component });
     },
-    overSub: (e) => { ui.overSub = e.dataset.sub; },
+    overSub: (e) => {
+      if (e.dataset.sub === 'briefs') { actions.openBriefCommands(); return; }
+      ui.overSub = e.dataset.sub;
+    },
     refresh: () => post({ type: 'refresh' }),
     install: () => post({ type: 'install' }),
     openBrief: (e) => post({ type: 'openBrief', ref: e.dataset.ref }),
@@ -2540,6 +2563,8 @@
       const values = { component: e.dataset.component || (ui.mode === 'component' ? ui.component : ''), brief: e.dataset.brief || '' };
       if (NAV) { post({ type: 'openSkill', skill: e.dataset.skill, values }); return; }
       if (ui.mode === 'component' && ui.component) ui.back = { component: ui.component, view: ui.view };
+      else if (ui.mode === 'briefs') ui.back = { briefs: true };
+      else ui.back = null;
       ui.aiMenu = false;
       ui.mode = 'skill';
       ui.skill = e.dataset.skill;

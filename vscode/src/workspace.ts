@@ -733,6 +733,10 @@ export class ArchvowProject {
       case 'commandDocs':
         this.toEditor({ type: 'commandDocs' });
         return;
+      case 'openBriefs':
+        // Briefs are browsed in the shared editor tab, not inside the sidebar.
+        this.toEditor({ type: 'briefs' });
+        return;
       case 'openCommand':
         return this.openCommand(String(m.command), (m.values ?? {}) as Record<string, string>, String(m.selected ?? ''));
       case 'selectComponent':

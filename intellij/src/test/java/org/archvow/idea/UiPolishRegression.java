@@ -3,6 +3,9 @@ package org.archvow.idea;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 
 public final class UiPolishRegression {
     private static void require(boolean value, String message) {
@@ -28,8 +31,29 @@ public final class UiPolishRegression {
         require(button.getIcon() != null, "icons survive label changes");
         require(ArchvowUiIcons.kindForLabel("Vérifications") == null || true, "no exception with accents");
     }
+    private static int[] overviewPixels(String kind) {
+        JButton button = new JButton("");
+        button.setForeground(Color.BLACK);
+        ArchvowUiIcons.explicit(button, kind);
+        BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        button.getIcon().paintIcon(button, g, 1, 1);
+        g.dispose();
+        return image.getRGB(0, 0, 16, 16, null, 0, 16);
+    }
+
     public static void main(String[] args) throws Exception {
+        String panel = Files.readString(Path.of("src/main/java/org/archvow/idea/ArchvowPanel.java"));
+        require(panel.contains("overviewIconAction(\"folder\", ArchvowI18n.text(project, \"Briefs\""),
+            "Briefs must use the supported folder icon, not the fallback circle");
+        require(panel.contains("overviewIconAction(\"spark\", \"AI review\""),
+            "AI review must use the supported spark icon, not the fallback circle");
+        require(panel.contains("backButton.setText(\"← Briefs\")"),
+            "AI skill editor needs a Back to Briefs button");
         SwingUtilities.invokeAndWait(() -> {
+            require(!Arrays.equals(overviewPixels("folder"), overviewPixels("check")), "Briefs icon must differ from Check");
+            require(!Arrays.equals(overviewPixels("spark"), overviewPixels("check")), "AI review icon must differ from Check");
+            require(!Arrays.equals(overviewPixels("spark"), overviewPixels("folder")), "AI review icon must differ from Briefs");
             checkIconPaint(false);
             checkIconPaint(true);
             JButton check = new JButton("Check");

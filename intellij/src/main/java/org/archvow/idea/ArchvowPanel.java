@@ -149,6 +149,8 @@ final class ArchvowPanel extends JPanel {
     private String detailSkillLabel = "";
     private final CardLayout detailHomeLayout = new CardLayout();
     private String detailHomeMode = "result";
+    /** A Draft from Briefs returns to the same editor's Briefs browser. */
+    private boolean skillBackToBriefs;
     /** 0.18.0: the search (archvow show <name> --json) in the editor tab, the name searched, the tool window's
      *  find field, and the component's Examples view (view 8, shown right after Rules). */
     private ArchvowSearchView searchView;
@@ -1081,8 +1083,12 @@ final class ArchvowPanel extends JPanel {
                 : resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
         }
         detailKind.setText("ARCHVOW · " + kind.toUpperCase(java.util.Locale.ROOT));
-        backButton.setVisible(backComponent != null && index != 1);
-        if (backComponent != null) {
+        boolean returnToBriefs = index == 0 && "skill".equals(detailHomeMode) && skillBackToBriefs;
+        backButton.setVisible((backComponent != null && index != 1) || returnToBriefs);
+        if (returnToBriefs) {
+            backButton.setText("← Briefs");
+            backButton.setToolTipText(ArchvowI18n.text(project, "Back to Briefs", "Retour aux briefs"));
+        } else if (backComponent != null) {
             backButton.setText("← " + backComponent);
             backButton.setToolTipText(ArchvowI18n.text(project, "Back to " + backComponent, "Retour à " + backComponent));
         }
@@ -1488,7 +1494,7 @@ final class ArchvowPanel extends JPanel {
         commands.addAction(overviewIconAction("search", "Audit", () ->
             executeDirect("audit", List.of("audit", "--json"), null, false)));
         commands.addAction(overviewIconAction("document", ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
-        commands.addAction(overviewIconAction("briefs", ArchvowI18n.text(project, "Briefs", "Briefs"),
+        commands.addAction(overviewIconAction("folder", ArchvowI18n.text(project, "Briefs", "Briefs"),
             this::openBriefsDetails));
         // Advanced commands are real actions too: only send them to More when space runs out.
         commands.addAction(overviewIconAction("list", "Budget / Next", () -> {
@@ -1497,7 +1503,7 @@ final class ArchvowPanel extends JPanel {
         }));
         commands.addAction(overviewIconAction("compare", "Diff", () ->
             openCommand("diff", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
-        commands.addAction(overviewIconAction("propose", "AI review", () ->
+        commands.addAction(overviewIconAction("spark", "AI review", () ->
             openCommand("review", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
         gitBranchLabel.setToolTipText(ArchvowI18n.text(project, "Current Git branch", "Branche Git courante"));
         bar.add(commands, BorderLayout.CENTER);
@@ -3780,6 +3786,11 @@ final class ArchvowPanel extends JPanel {
 
     /** Back: the component a command was opened from, on the view it was on. */
     private void goBack() {
+        if (skillBackToBriefs && "skill".equals(detailHomeMode)) {
+            skillBackToBriefs = false;
+            openBriefsDetails();
+            return;
+        }
         String id = backComponent;
         int view = backView;
         backComponent = null;
@@ -6074,6 +6085,7 @@ final class ArchvowPanel extends JPanel {
             ArchvowEditorTab.showSkill(project, skill, initial);
             return;
         }
+        skillBackToBriefs = "briefs".equals(detailHomeMode);
         ArchvowPanel nav = navigation();
         if (nav != null && nav.manifest != null) adoptFrom(nav);
         boolean fr = ArchvowI18n.isFrench(project);

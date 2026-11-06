@@ -232,11 +232,15 @@ test('UX v4: VS Code hover, responsive toolbar, and Checks overview row', () => 
   }
   assert.match(page, /class="project-action-container"/);
   assert.match(page, /class="project-action-slot action-slot-\$\{index\}"/);
-  assert.match(page, /\['briefs', t\('Briefs', 'Briefs'\), 'openBriefCommands'/,
-    'Briefs uses its own document-shaped icon and still opens the brief browser');
+  assert.match(page, /\['folder', t\('Briefs', 'Briefs'\), 'openBriefCommands'/,
+    'Briefs uses a real folder icon and opens the editor browser');
   assert.match(page, /\['propose', 'AI review', 'openCommand', attrs\(\{ command: 'review'/,
     'AI review has a distinct icon and retains the review command');
   assert.match(page, /openBriefCommands: \(\) =>/);
+  assert.match(page, /post\(\{ type: 'openBriefs' \}\)/);
+  assert.match(host, /case 'openBriefs':\s*\/\/ Briefs are browsed in the shared editor tab,[\s\S]*?this\.toEditor\(\{ type: 'briefs' \}\)/);
+  assert.match(page, /if \(ui\.mode === 'briefs'\) return `<section class="detail-only briefs-editor">\$\{briefsView\(\)\}/);
+  assert.match(page, /ui\.back = \{ briefs: true \}/);
   assert.match(page, /function withCheckFiles\(html\)/);
   assert.match(page, /return filesBlock\(\[\{ path: file, change: 'location'/,
     'check diagnostics reuse the command form Files tree rather than hand-drawn icons');
