@@ -238,3 +238,12 @@ test('UX v4: VS Code hover, responsive toolbar, and Checks overview row', () => 
   assert.match(page, /data-a="openChecks"/);
   assert.doesNotMatch(page, /class="checks-badges"/, 'diagnostic counters live in the Checks card');
 });
+
+
+test('Overview Checks opens the complete diagnostics in the editor, not the generated spec', () => {
+  assert.match(host, /case 'openChecks':[\s\S]*?this\.toEditor\(\{ type: 'showCheckDetails', index: 0 \}\)/);
+  assert.match(host, /case 'openChecksReference':[\s\S]*?this\.openChecksReference\(\)/);
+  assert.match(page, /openChecksReference: \(\) => post\(\{ type: 'openChecksReference' \}\)/);
+  assert.match(page, /const listPart = `<ul class="list check-list"/);
+  assert.match(page, /checks-full">\$\{title\}\$\{totals\}\$\{listPart\}/);
+});

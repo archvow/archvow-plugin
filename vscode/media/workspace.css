@@ -287,7 +287,9 @@ pre.card-md { max-height: 70vh; overflow: auto; }
 .tabs.sub .check-count { color: var(--vscode-errorForeground); border: 1px solid var(--vscode-errorForeground); background: transparent; }
 .checks-summary .check-list { max-height: none; }
 .checks-editor .checks-full { min-height: 60vh; }
-.checks-editor .check-editor-detail { min-width: 0; min-height: 42vh; overflow: auto; padding: 6px 8px; }
+.checks-editor .check-list { max-height: min(34vh, 280px); overflow-y: auto; }
+.checks-editor .check-list li { white-space: normal; overflow-wrap: anywhere; }
+.checks-editor .check-editor-detail { min-width: 0; min-height: 25vh; overflow: auto; padding: 10px 8px; border-top: 1px solid var(--vscode-panel-border); }
 .checks-editor .check-detail { min-width: 0; overflow-wrap: anywhere; }
 .checks-editor .check-detail h4 { font-size: 1.15em; margin: 0 0 12px; }
 .checks-editor .check-message { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }

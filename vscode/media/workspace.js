@@ -658,8 +658,8 @@
       'prompt', 'brief accept'].includes(item.command);
   }
 
-  /** The sidebar owns the diagnostics list; the editor shows only the selected detail.
-   *  Do not repeat the list in the editor where it would waste half the width. */
+  /** The editor shows every diagnostic as a selectable row and the full selected
+   *  explanation below it. The sidebar may show the same project checks. */
   function checksView(inEditor = false) {
     const check = S.check;
     const items = list(check, 'violations');
@@ -673,7 +673,7 @@
     const rows = items.map((v, i) => `<li class="${i === ui.checkSel ? 'selected' : ''} sev-${esc(str(v, 'severity'))}" data-a="checkSel" data-i="${i}" title="${esc(str(v, 'message'))}">
       <b>${esc(str(v, 'code'))}</b> <span class="chip ${str(v, 'severity') === 'error' ? 'bad' : 'warn'}">${esc(str(v, 'severity'))}</span> ${esc(short(str(v, 'message'), inEditor ? 180 : 120))}</li>`).join('');
     const listPart = `<ul class="list check-list" data-scroll="checks">${rows || `<li class="muted empty">${esc(t('No detailed diagnostics.', 'Aucun diagnostic détaillé.'))}</li>`}</ul>`;
-    const title = `<div class="card-head"><h3>${esc(t('Check & Gates', 'Contrôles et validations'))}</h3>${btn(t('Check reference', 'Référence des contrôles'), 'openChecks', '', false, 'secondary')}</div>`;
+    const title = `<div class="card-head"><h3>${esc(t('Check & Gates', 'Contrôles et validations'))}</h3>${btn(t('Check reference', 'Référence des contrôles'), 'openChecksReference', '', false, 'secondary')}</div>`;
     if (!inEditor) return `<div class="card checks-summary">${title}${totals}
       <p class="muted small">${esc(t('Select a diagnostic to open its details in the editor; double-click to open the rule.',
         'Sélectionne un diagnostic pour ouvrir ses détails dans l’éditeur ; double-clique pour ouvrir la règle.'))}</p>${listPart}</div>`;
@@ -694,7 +694,7 @@
         ${work && work.guide && work.guide.todo ? `<p><b>${esc(t('Suggested action', 'Action recommandée'))}:</b> ${esc(work.guide.todo)}</p>` : ''}
         <div class="row wrap">${fixable ? btn(t('Prepare fix: ', 'Préparer la correction : ') + work.command, 'prepareCheck', attrs({ i: ui.checkSel })) : ''}${file ? btn(checkFileLabel(file), 'openFile', attrs({ file, line }) + ` title="${esc(file + (line ? ':' + line : ''))}"`) : ''}${btn(t('View rule', 'Voir la règle'), 'openRule', attrs({ code }), false, 'secondary')}</div></div>`;
     }
-    return `<div class="card checks-full">${title}${totals}<div class="check-editor-detail">${detail}</div></div>`;
+    return `<div class="card checks-full">${title}${totals}${listPart}<div class="check-editor-detail">${detail}</div></div>`;
   }
 
   /** "By rule: ARCH001 146 · SPK008 415" from check's `counts` (archvow sorts them, most first); empty
@@ -2437,6 +2437,7 @@
     },
     openProjectVow: () => post({ type: 'openProjectVow' }),
     openChecks: () => post({ type: 'openChecks' }),
+    openChecksReference: () => post({ type: 'openChecksReference' }),
     projectWork: () => post({ type: 'showProjectWork', index: 0 }),
     openRule: (e) => post({ type: 'openRule', code: e.dataset.code }),
     find: (e) => {

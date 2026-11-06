@@ -758,7 +758,12 @@ export class ArchvowProject {
         return this.openFile(path.join(this.root, '.archvow', 'spec.vow'), 0,
           tr(fr, 'Project vow not available: .archvow/spec.vow', 'Vow du projet indisponible : .archvow/spec.vow'));
       case 'openChecks':
-        return this.openChecks();
+        // Overview opens the current diagnostic results in Archvow's editor,
+        // not the generated Markdown reference document.
+        this.toEditor({ type: 'showCheckDetails', index: 0 });
+        return;
+      case 'openChecksReference':
+        return this.openChecksReference();
       case 'openRule':
         return this.openRule(String(m.code));
       case 'openFile':
@@ -1282,7 +1287,7 @@ export class ArchvowProject {
     await this.openFile(file, Math.max(0, line - 1), '');
   }
 
-  private async openChecks(): Promise<void> {
+  private async openChecksReference(): Promise<void> {
     const fr = this.state.fr;
     const file = path.join(this.root, '.archvow', 'spec.md');
     if (!fs.existsSync(file)) {

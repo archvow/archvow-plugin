@@ -3,6 +3,14 @@ import com.google.gson.*;
 import javax.swing.*;
 
 public final class NativeChecksAndRulesRegression {
+    private static boolean containsList(java.awt.Container parent) {
+        for (java.awt.Component child : parent.getComponents()) {
+            if (child instanceof JList<?>) return true;
+            if (child instanceof java.awt.Container nested && containsList(nested)) return true;
+        }
+        return false;
+    }
+
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
         JsonObject check = new JsonObject();
@@ -23,10 +31,12 @@ public final class NativeChecksAndRulesRegression {
         check.add("violations", violations);
         ArchvowChecksView view = new ArchvowChecksView();
         ArchvowChecksView navigation = new ArchvowChecksView(false);
-        if (view.showsInlineList() || !navigation.showsInlineList())
-            throw new AssertionError("Only navigation may show the diagnostic list");
+        if (!view.showsInlineList() || !navigation.showsInlineList())
+            throw new AssertionError("Every check view must expose all diagnostic rows");
         if (view.getComponentCount() != 2 || navigation.getComponentCount() != 3)
-            throw new AssertionError("Editor must have only its summary and one detail panel");
+            throw new AssertionError("Editor must have its summary and the list-plus-detail panel");
+        if (!containsList(view) || !containsList(navigation))
+            throw new AssertionError("Editor and navigation must contain a visible diagnostics list");
         view.showData(check, "", true);
         if (view.diagnosticCount() != 2) throw new AssertionError("Diagnostics missing");
         if (!view.statusText().contains("3 erreurs") || !view.statusText().contains("1 avertissements"))
@@ -51,6 +61,16 @@ public final class NativeChecksAndRulesRegression {
             throw new AssertionError("By rule missing: " + view.byRuleText());
         view.showData(check, "", true);
         if (!view.byRuleText().startsWith("Par règle : ARCH019 2")) throw new AssertionError("French by rule");
-        System.out.println("OK native diagnostics 9");
+        JsonObject third = new JsonObject();
+        third.addProperty("code", "ARCH019"); // two errors with the same code must stay separate rows
+        third.addProperty("severity", "error");
+        third.addProperty("message", "Second component schema missing");
+        violations.add(third);
+        view.showData(check, "", false);
+        if (view.diagnosticCount() != 3) throw new AssertionError("All three violations must appear in the editor");
+        view.selectDiagnostic(2);
+        if (!"Second component schema missing".equals(view.selectedDiagnosticMessage()))
+            throw new AssertionError("Third check must be selectable by its own row");
+        System.out.println("OK native diagnostics 10");
     }
 }

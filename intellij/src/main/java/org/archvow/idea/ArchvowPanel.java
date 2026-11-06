@@ -145,6 +145,8 @@ final class ArchvowPanel extends JPanel {
     private JPanel commandResultCard;
     private JPanel quickResultCard;
     private JPanel detailHomeCards;
+    private JPanel skillDetails;
+    private String detailSkillLabel = "";
     private final CardLayout detailHomeLayout = new CardLayout();
     private String detailHomeMode = "result";
     /** 0.18.0: the search (archvow show <name> --json) in the editor tab, the name searched, the tool window's
@@ -795,6 +797,9 @@ final class ArchvowPanel extends JPanel {
             briefsDetail.add(briefActions, BorderLayout.NORTH);
             briefsDetail.add(createCard(scroll(briefsPane), "Briefs"), BorderLayout.CENTER);
             detailHomeCards.add(briefsDetail, "briefs");
+            skillDetails = new JPanel(new BorderLayout());
+            skillDetails.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+            detailHomeCards.add(skillDetails, "skill");
             searchView = new ArchvowSearchView(new ArchvowSearchView.Actions() {
                 @Override public void openFile(String relative, int line) { openViolationFile(relative, line); }
                 @Override public void showComponent(String id) { ArchvowPanel.this.showComponent(id); }
@@ -971,6 +976,8 @@ final class ArchvowPanel extends JPanel {
             ArchvowEditorTab.showChecks(project, index);
             return;
         }
+        ArchvowPanel nav = navigation();
+        if (nav != null && nav.manifest != null) adoptFrom(nav);
         showWorkspace();
         detailDiagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
         detailDiagnostics.selectDiagnostic(index);
@@ -1057,11 +1064,14 @@ final class ArchvowPanel extends JPanel {
         } else {
             kind = "search".equals(detailHomeMode) ? ArchvowI18n.text(project, "Find", "Recherche")
                 : "briefs".equals(detailHomeMode) ? "Briefs"
+                : "checks".equals(detailHomeMode) ? ArchvowI18n.text(project, "Checks", "Contrôles")
+                : "skill".equals(detailHomeMode) ? ArchvowI18n.text(project, "AI skill", "Skill IA")
                 : ArchvowI18n.text(project, "Result", "Résultat");
             what = "search".equals(detailHomeMode) ? ArchvowI18n.text(project, "find ", "chercher ") + searchName
                 : "checks".equals(detailHomeMode)
                 ? ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations")
                 : "briefs".equals(detailHomeMode) ? "Briefs"
+                : "skill".equals(detailHomeMode) ? detailSkillLabel
                 : resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
         }
         detailKind.setText("ARCHVOW · " + kind.toUpperCase(java.util.Locale.ROOT));
@@ -2663,12 +2673,22 @@ final class ArchvowPanel extends JPanel {
         return browser;
     }
 
+    /** Always use the viewport's actual width, rather than the very long skill descriptions' preferred width. */
+    private static final class ResponsiveSkillsPage extends JPanel implements Scrollable {
+        ResponsiveSkillsPage() { super(new BorderLayout(0, 5)); }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 16; }
+        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) { return 64; }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() { return false; }
+    }
+
     /**
      * Match the VS Code AI skills browser: expandable group, count, a short description
-     * and the skill id to the right. Every item opens the existing skill launch form.
+     * and the skill id to the right. Every item opens its form in the shared editor.
      */
     private JComponent aiSkillsPanel() {
-        JPanel page = new JPanel(new BorderLayout(0, 5));
+        JPanel page = new ResponsiveSkillsPage();
         page.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         JPanel group = new JPanel(new BorderLayout(0, 5));
         group.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, borderColor()));
@@ -2704,21 +2724,28 @@ final class ArchvowPanel extends JPanel {
                 BorderFactory.createMatteBorder(0, 0, 1, 0, borderColor()),
                 BorderFactory.createEmptyBorder(8, 10, 8, 8)));
             item.setAlignmentX(Component.LEFT_ALIGNMENT);
-            item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
+            item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 96));
+            item.setMinimumSize(new Dimension(0, 96));
             item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             Color usual = item.getBackground();
             Color over = darkTheme() ? new Color(66, 64, 68) : new Color(227, 233, 241);
-            JPanel lines = new JPanel();
+            JPanel lines = new JPanel(new BorderLayout(0, 3));
             lines.setOpaque(false);
-            lines.setLayout(new BoxLayout(lines, BoxLayout.Y_AXIS));
+            lines.setMinimumSize(new Dimension(0, 0));
             JLabel name = new JLabel();
             name.setFont(name.getFont().deriveFont(Font.BOLD, 14f));
-            JLabel description = new JLabel();
+            JTextArea description = new JTextArea();
+            description.setEditable(false);
+            description.setOpaque(false);
+            description.setLineWrap(true);
+            description.setWrapStyleWord(true);
+            description.setRows(3);
+            description.setMinimumSize(new Dimension(0, 0));
+            description.setPreferredSize(new Dimension(0, 52));
             description.setForeground(mutedTextColor());
             description.setFont(description.getFont().deriveFont(12f));
-            lines.add(name);
-            lines.add(Box.createVerticalStrut(2));
-            lines.add(description);
+            lines.add(name, BorderLayout.NORTH);
+            lines.add(description, BorderLayout.CENTER);
             JLabel slug = new JLabel(id);
             slug.setForeground(mutedTextColor());
             slug.setFont(slug.getFont().deriveFont(Font.BOLD, 11f));
@@ -2729,7 +2756,8 @@ final class ArchvowPanel extends JPanel {
                 boolean fr = ArchvowI18n.isFrench(project);
                 name.setText(ArchvowSkillForm.pair(def, "label", fr));
                 String descriptionText = ArchvowSkillForm.pair(def, "does", fr);
-                description.setText(descriptionText.length() > 95 ? descriptionText.substring(0, 94) + "…" : descriptionText);
+                description.setText(descriptionText);
+                description.setToolTipText(descriptionText);
                 item.setToolTipText(descriptionText);
             };
             translate.run();
@@ -6035,39 +6063,65 @@ final class ArchvowPanel extends JPanel {
         if (at != null && at.isShowing()) menu.show(at, 0, at.getHeight());
     }
 
-    /** The launch form of an AI skill, in a dialog: the request goes to the clipboard (IntelliJ cannot type into an AI chat). */
-    private void openSkill(String skill, Map<String, String> initial) {
+    /** The AI skill form lives in the shared editor tab, like command forms and checks. */
+    void openSkill(String skill, Map<String, String> initial) {
+        if (role == Role.NAVIGATION) {
+            ArchvowEditorTab.showSkill(project, skill, initial);
+            return;
+        }
+        ArchvowPanel nav = navigation();
+        if (nav != null && nav.manifest != null) adoptFrom(nav);
         boolean fr = ArchvowI18n.isFrench(project);
         Map<String, String> values = new LinkedHashMap<>(initial);
-        if (!values.containsKey("component") && selectedComponent != null) values.put("component", selectedComponent.id);
+        if (!values.containsKey("component") && selectedComponent != null)
+            values.put("component", selectedComponent.id);
         List<String> components = new ArrayList<>();
         for (JsonObject c : ArchvowGrammar.objects(manifest, "containers"))
-            for (JsonObject comp : ArchvowGrammar.objects(c, "components")) components.add(ArchvowGrammar.str(comp, "id"));
+            for (JsonObject comp : ArchvowGrammar.objects(c, "components"))
+                components.add(ArchvowGrammar.str(comp, "id"));
         List<String> briefs = new ArrayList<>();
         if (briefStatus != null) for (JsonObject f : ArchvowGrammar.objects(briefStatus, "files")) {
             briefs.add(ArchvowGrammar.str(f, "file"));
             for (JsonObject r : ArchvowGrammar.objects(f, "sections"))
-                if (!ArchvowGrammar.str(r, "section").isBlank()) briefs.add(ArchvowGrammar.str(f, "file") + "#" + ArchvowGrammar.str(r, "section"));
+                if (!ArchvowGrammar.str(r, "section").isBlank())
+                    briefs.add(ArchvowGrammar.str(f, "file") + "#" + ArchvowGrammar.str(r, "section"));
         }
         List<String> tools = ArchvowGrammar.strings(manifest, "ai_tools");
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Archvow", Dialog.ModalityType.APPLICATION_MODAL);
-        ArchvowSkillForm form = new ArchvowSkillForm(ArchvowForms.section("ai_skills"), skill, values, components, briefs, tools,
+        JsonObject skills = ArchvowForms.section("ai_skills");
+        JsonObject def = ArchvowSkillForm.def(skills, skill);
+        detailSkillLabel = def == null ? skill : ArchvowSkillForm.pair(def, "label", fr);
+        ArchvowSkillForm form = new ArchvowSkillForm(skills, skill, values, components, briefs, tools,
             c -> {
                 JsonObject view = componentSnapshots.get(c);
                 return view == null ? null : ArchvowAiSkills.view(view, launched(c)).blocked.get(skill);
             }, fr, (text, chosen) -> {
-                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(text), null);
+                Toolkit.getDefaultToolkit().getSystemClipboard()
+                    .setContents(new java.awt.datatransfer.StringSelection(text), null);
                 recordLaunched(chosen.get("component"), skill);
-                dialog.dispose();
                 if (selectedView != null) renderComponent(selectedView);
-                message(ArchvowI18n.text(project, "Request copied: paste it in " + chosen.getOrDefault("tool", "your AI assistant")
-                    + ". What it adds comes back marked AI and To review.", "Demande copiée : colle-la dans " + chosen.getOrDefault("tool", "ton assistant IA")
-                    + ". Ce qu'elle ajoute revient marqué IA et À relire."));
-            }, dialog::dispose);
-        dialog.setContentPane(form);
-        dialog.setSize(new Dimension(820, 520));
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
+                message(ArchvowI18n.text(project,
+                    "Request copied: paste it in " + chosen.getOrDefault("tool", "your AI assistant") + ". What it adds comes back marked AI and To review.",
+                    "Demande copiée : colle-la dans " + chosen.getOrDefault("tool", "ton assistant IA") + ". Ce qu'elle ajoute revient marqué IA et À relire."));
+            }, () -> {
+                showDetailHome("result");
+                afterSelectionChange();
+            });
+        // Embedded dialog card: the editor has room for the full form and stays reusable.
+        JPanel sheet = new JPanel(new BorderLayout());
+        sheet.setBorder(BorderFactory.createLineBorder(borderColor(), 1, true));
+        sheet.add(form, BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(sheet);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        skillDetails.removeAll();
+        skillDetails.add(scroll, BorderLayout.CENTER);
+        skillDetails.revalidate();
+        skillDetails.repaint();
+        backComponent = null;
+        showWorkspace();
+        showDetailHome("skill");
+        tabs.setSelectedIndex(0);
+        afterSelectionChange();
     }
 
     /** The suggestion strip of the component's head: what the AI added first, then the next skill, with why. */

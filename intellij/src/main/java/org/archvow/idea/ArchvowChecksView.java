@@ -86,9 +86,12 @@ final class ArchvowChecksView extends JPanel {
         prepareFix.addActionListener(e -> prepareSelectedFix());
         allReferences.addActionListener(e -> onAll.run());
         if (inlineDetails) {
-            // Navigation already owns the list of diagnostics. The editor is reserved
-            // for the selected issue, at full width, with its rule/file actions.
-            JPanel answer = new JPanel(new BorderLayout(0, 5));
+            // The Overview link must reveal *every* failed check, not only the
+            // first selected issue. Keep a scrollable list above the full detail;
+            // selecting a row updates its explanation and the fix/file actions.
+            JPanel answer = new JPanel(new BorderLayout(0, 8));
+            listScroll.setPreferredSize(new Dimension(0, 216));
+            answer.add(listScroll, BorderLayout.NORTH);
             JScrollPane info = new JScrollPane(details);
             info.setBorder(BorderFactory.createEmptyBorder());
             answer.add(info, BorderLayout.CENTER);
@@ -178,7 +181,7 @@ final class ArchvowChecksView extends JPanel {
     int diagnosticCount() { return model.size(); }
     String diagnosticCode(int i) { return model.get(i).code(); }
     String statusText() { return totals.getText(); }
-    boolean showsInlineList() { return !inlineDetails; }
+    boolean showsInlineList() { return true; }
     String selectedDiagnosticMessage() {
         Diagnostic selected = list.getSelectedValue();
         return selected == null ? "" : selected.message();

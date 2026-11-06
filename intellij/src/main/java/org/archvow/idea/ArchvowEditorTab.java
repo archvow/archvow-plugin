@@ -83,6 +83,12 @@ final class ArchvowEditorTab extends LightVirtualFile {
         if (panel != null) panel.openDiagnosticDetails(index);
     }
 
+    /** Open an AI skill in the shared editor, rather than a separate blocking OS dialog. */
+    static void showSkill(Project project, String skill, Map<String, String> initial) {
+        ArchvowPanel panel = panel(project);
+        if (panel != null) panel.openSkill(skill, initial);
+    }
+
     /** The tab's title (shown by {@link ArchvowEditorTabPresentation}). */
     static void setTitle(Project project, String title) {
         if (project == null || project.isDisposed()) return;
