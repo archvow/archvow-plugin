@@ -73,6 +73,11 @@ final class ArchvowEditorTab extends LightVirtualFile {
         if (panel != null) panel.showSearch(name);
     }
 
+    static void showBriefs(Project project) {
+        ArchvowPanel panel = panel(project);
+        if (panel != null) panel.openBriefsDetails();
+    }
+
     static void showChecks(Project project, int index) {
         ArchvowPanel panel = panel(project);
         if (panel != null) panel.openDiagnosticDetails(index);

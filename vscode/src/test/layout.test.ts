@@ -221,8 +221,15 @@ test('UX v4: VS Code hover, responsive toolbar, and Checks overview row', () => 
   assert.match(css, /\.project-action:hover:not\(\[disabled\]\)/);
   assert.match(css, /\.project-action:focus-visible/);
   assert.match(css, /\.project-action-container \{ container: project-actions \/ inline-size/);
-  assert.match(css, /@container project-actions \(max-width: 240px\)/);
-  assert.match(css, /\.project-more-menu \.overflow-action-3 \{ display: flex; \}/);
+  // Nine 42px actions plus separators and the bar chrome take 397px.
+  // The More menu appears only when that width is no longer available;
+  // subsequent breakpoints remove one action at a time, without leaving gaps.
+  assert.match(css, /\.project-action-bar \.action-more \{ display: none; \}/);
+  for (const [width, index] of [[396, 8], [353, 7], [310, 6], [267, 5], [224, 4], [181, 3], [138, 2], [95, 1], [52, 0]]) {
+    assert.match(css, new RegExp(`@container project-actions \\(max-width: ${width}px\\)`));
+    assert.match(css, new RegExp(`\\.project-action-slot\\.action-slot-${index} \\{ display: none; \\}`));
+    assert.match(css, new RegExp(`\\.project-more-menu \\.overflow-action-${index} \\{ display: flex; \\}`));
+  }
   assert.match(page, /class="project-action-container"/);
   assert.match(page, /class="project-action-slot action-slot-\$\{index\}"/);
   assert.match(page, /data-a="openBriefCommands"|\['briefs', t\('Briefs'/);

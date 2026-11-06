@@ -79,6 +79,16 @@ public final class BriefsRegression {
         check(back != null && back.equals(add), "the link opens the same form");
         check(ArchvowBriefs.withAddFolder("<html><body>ok</body></html>", "all good", false).equals("<html><body>ok</body></html>"), "no link without");
 
+        // The browsable Briefs view exposes real links, not just `brief show`.
+        JsonObject briefState = json("{\"folders\":[\"briefs\"],\"files\":[{\"file\":\"briefs/specs.md\","
+            + "\"sections\":[{\"section\":\"run\",\"items\":[]},"
+            + "{\"section\":\"run-2\",\"changed\":true,\"items\":[\"reader\"]}]}]}");
+        String browsable = ArchvowBriefs.statusHtml(briefState, "sales", false);
+        check(browsable.contains("Draft with AI") && browsable.contains("Accept change"), "browse and review brief sections");
+        String acceptUrl = ArchvowBriefs.ACCEPT_LINK + "briefs%2Fspecs.md%23run-2";
+        check(browsable.contains(acceptUrl) && ArchvowBriefs.linkRef(acceptUrl, ArchvowBriefs.ACCEPT_LINK)
+            .equals("briefs/specs.md#run-2"), "accept action preselects the changed section");
+
         // ARCH039: accept once reviewed, or the architect adds the folder
         ArchvowIssueAction.Fix accept = ArchvowIssueAction.fix("ARCH039", "specs/001-orders/plan.md#paying-an-invoice changed after mark_paid"
             + " was drawn from it -> review them, then: archvow brief accept specs/001-orders/plan.md#paying-an-invoice", "");

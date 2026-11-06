@@ -779,6 +779,22 @@ final class ArchvowPanel extends JPanel {
                 ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations")), BorderLayout.CENTER);
             detailHomeCards.add(resultPane, "result");
             detailHomeCards.add(checksPane, "checks");
+            // A real briefs browser, not the `brief show` command form. Reuse the
+            // same section-by-section HTML and links already fed by brief show --json.
+            JPanel briefsDetail = new JPanel(new BorderLayout(0, 8));
+            briefsDetail.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+            JPanel briefActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 2));
+            JButton acceptBrief = button(ArchvowI18n.text(project, "Accept brief…", "Accepter un brief…"),
+                () -> openCommand("brief accept", Map.of()));
+            acceptBrief.setToolTipText(ArchvowI18n.text(project,
+                "Review a changed brief and open the confirmation form; nothing is accepted automatically.",
+                "Relire un brief modifié et ouvrir le formulaire de confirmation ; rien n'est accepté automatiquement."));
+            briefActions.add(acceptBrief);
+            JButton reloadBriefs = button(ArchvowI18n.text(project, "Refresh", "Actualiser"), this::reload);
+            briefActions.add(reloadBriefs);
+            briefsDetail.add(briefActions, BorderLayout.NORTH);
+            briefsDetail.add(createCard(scroll(briefsPane), "Briefs"), BorderLayout.CENTER);
+            detailHomeCards.add(briefsDetail, "briefs");
             searchView = new ArchvowSearchView(new ArchvowSearchView.Actions() {
                 @Override public void openFile(String relative, int line) { openViolationFile(relative, line); }
                 @Override public void showComponent(String id) { ArchvowPanel.this.showComponent(id); }
@@ -982,6 +998,22 @@ final class ArchvowPanel extends JPanel {
         if (manifest != null) updateOverview();
     }
 
+    /** The Overview folder icon opens the browsable briefs in the shared editor tab. */
+    void openBriefsDetails() {
+        if (role == Role.NAVIGATION) {
+            ArchvowEditorTab.showBriefs(project);
+            return;
+        }
+        ArchvowPanel nav = navigation();
+        if (nav != null) adoptFrom(nav);
+        backComponent = null;
+        showWorkspace();
+        resultLabel = "Briefs";
+        showDetailHome("briefs");
+        tabs.setSelectedIndex(0);
+        afterSelectionChange();
+    }
+
     /** Check & Gates, in the tool window's Overview. */
     private void showDiagnostics() {
         // Checks are in the editor detail, not in an invisible overview sub-tab.
@@ -1024,10 +1056,12 @@ final class ArchvowPanel extends JPanel {
             what = command.isBlank() ? ArchvowI18n.text(project, "Commands", "Commandes") : command;
         } else {
             kind = "search".equals(detailHomeMode) ? ArchvowI18n.text(project, "Find", "Recherche")
+                : "briefs".equals(detailHomeMode) ? "Briefs"
                 : ArchvowI18n.text(project, "Result", "Résultat");
             what = "search".equals(detailHomeMode) ? ArchvowI18n.text(project, "find ", "chercher ") + searchName
                 : "checks".equals(detailHomeMode)
                 ? ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations")
+                : "briefs".equals(detailHomeMode) ? "Briefs"
                 : resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
         }
         detailKind.setText("ARCHVOW · " + kind.toUpperCase(java.util.Locale.ROOT));
@@ -1425,7 +1459,7 @@ final class ArchvowPanel extends JPanel {
         JPanel bar = new JPanel(new BorderLayout(8, 4));
         ArchvowOverflowBar commands = new ArchvowOverflowBar(ArchvowI18n.text(project, "More ▾", "Plus ▾"));
         commands.setSeparated(true);
-        commands.setAlwaysShowMore(true);
+        commands.setAlwaysShowMore(false);
         commands.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(borderColor(), 1, true),
             BorderFactory.createEmptyBorder(3, 3, 3, 3)));
@@ -1440,13 +1474,16 @@ final class ArchvowPanel extends JPanel {
             executeDirect("audit", List.of("audit", "--json"), null, false)));
         commands.addAction(overviewIconAction("document", ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
         commands.addAction(overviewIconAction("folder", ArchvowI18n.text(project, "Briefs", "Briefs"),
-            () -> openCommand("brief show", Map.of())));
-        commands.addMenuAction("Budget / Next", () -> {
+            this::openBriefsDetails));
+        // Advanced commands are real actions too: only send them to More when space runs out.
+        commands.addAction(overviewIconAction("list", "Budget / Next", () -> {
             String ref = askBase(ArchvowI18n.text(project, "Compare this branch's change with:", "Comparer le changement de cette branche avec :"));
             if (ref != null) executeDirect("next --base", List.of("next", "--base", ref, "--json"), null, false);
-        });
-        commands.addMenuAction("Diff", () -> openCommand("diff", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim())));
-        commands.addMenuAction("Review", () -> openCommand("review", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim())));
+        }));
+        commands.addAction(overviewIconAction("compare", "Diff", () ->
+            openCommand("diff", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
+        commands.addAction(overviewIconAction("check", "Review", () ->
+            openCommand("review", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
         gitBranchLabel.setToolTipText(ArchvowI18n.text(project, "Current Git branch", "Branche Git courante"));
         bar.add(commands, BorderLayout.CENTER);
         // Always show the current branch below the actions, including in a narrow
@@ -2626,24 +2663,115 @@ final class ArchvowPanel extends JPanel {
         return browser;
     }
 
-    /** AI skills are navigation, not CLI commands: their own fourth tab in both IDEs. */
+    /**
+     * Match the VS Code AI skills browser: expandable group, count, a short description
+     * and the skill id to the right. Every item opens the existing skill launch form.
+     */
     private JComponent aiSkillsPanel() {
-        JPanel list = new JPanel();
-        list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-        list.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        JPanel page = new JPanel(new BorderLayout(0, 5));
+        page.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        JPanel group = new JPanel(new BorderLayout(0, 5));
+        group.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, borderColor()));
+        JPanel groupHeading = new JPanel(new BorderLayout());
+        JButton toggle = new JButton();
+        toggle.setHorizontalAlignment(SwingConstants.LEFT);
+        toggle.setContentAreaFilled(false);
+        toggle.setBorder(BorderFactory.createEmptyBorder(6, 4, 6, 4));
+        toggle.setFont(toggle.getFont().deriveFont(Font.BOLD, 15f));
+        toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        groupHeading.add(toggle, BorderLayout.CENTER);
+        JLabel count = new JLabel(Integer.toString(ArchvowAiSkills.SKILLS.size()), SwingConstants.CENTER);
+        count.setOpaque(true);
+        count.setForeground(mutedTextColor());
+        count.setBackground(darkTheme() ? new Color(75, 76, 79) : new Color(228, 231, 236));
+        count.setBorder(BorderFactory.createEmptyBorder(2, 9, 2, 9));
+        groupHeading.add(count, BorderLayout.EAST);
+        group.add(groupHeading, BorderLayout.NORTH);
+
+        JPanel contents = new JPanel();
+        contents.setLayout(new BoxLayout(contents, BoxLayout.Y_AXIS));
+        JLabel note = new JLabel();
+        note.setForeground(mutedTextColor());
+        note.setBorder(BorderFactory.createEmptyBorder(0, 14, 8, 0));
+        note.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contents.add(note);
         JsonObject skills = ArchvowForms.section("ai_skills");
-        boolean fr = ArchvowI18n.isFrench(project);
         for (String id : ArchvowAiSkills.SKILLS) {
             JsonObject def = ArchvowSkillForm.def(skills, id);
             if (def == null) continue;
-            String label = ArchvowSkillForm.pair(def, "label", fr);
-            JButton skill = button("✦  " + label, () -> openSkill(id, Map.of()));
-            skill.setToolTipText(ArchvowSkillForm.pair(def, "does", fr));
-            skill.setAlignmentX(Component.LEFT_ALIGNMENT);
-            list.add(skill);
-            list.add(Box.createVerticalStrut(5));
+            JPanel item = new JPanel(new BorderLayout(10, 0));
+            item.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, borderColor()),
+                BorderFactory.createEmptyBorder(8, 10, 8, 8)));
+            item.setAlignmentX(Component.LEFT_ALIGNMENT);
+            item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
+            item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            Color usual = item.getBackground();
+            Color over = darkTheme() ? new Color(66, 64, 68) : new Color(227, 233, 241);
+            JPanel lines = new JPanel();
+            lines.setOpaque(false);
+            lines.setLayout(new BoxLayout(lines, BoxLayout.Y_AXIS));
+            JLabel name = new JLabel();
+            name.setFont(name.getFont().deriveFont(Font.BOLD, 14f));
+            JLabel description = new JLabel();
+            description.setForeground(mutedTextColor());
+            description.setFont(description.getFont().deriveFont(12f));
+            lines.add(name);
+            lines.add(Box.createVerticalStrut(2));
+            lines.add(description);
+            JLabel slug = new JLabel(id);
+            slug.setForeground(mutedTextColor());
+            slug.setFont(slug.getFont().deriveFont(Font.BOLD, 11f));
+            slug.setVerticalAlignment(SwingConstants.TOP);
+            item.add(lines, BorderLayout.CENTER);
+            item.add(slug, BorderLayout.EAST);
+            Runnable translate = () -> {
+                boolean fr = ArchvowI18n.isFrench(project);
+                name.setText(ArchvowSkillForm.pair(def, "label", fr));
+                String descriptionText = ArchvowSkillForm.pair(def, "does", fr);
+                description.setText(descriptionText.length() > 95 ? descriptionText.substring(0, 94) + "…" : descriptionText);
+                item.setToolTipText(descriptionText);
+            };
+            translate.run();
+            languageRefreshers.add(translate);
+            java.awt.event.MouseAdapter activate = new java.awt.event.MouseAdapter() {
+                @Override public void mouseEntered(java.awt.event.MouseEvent e) { item.setBackground(over); }
+                @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                    Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), item);
+                    if (!item.contains(p)) item.setBackground(usual);
+                }
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (SwingUtilities.isLeftMouseButton(e)) openSkill(id, Map.of());
+                }
+            };
+            for (JComponent part : List.of(item, lines, name, description, slug)) part.addMouseListener(activate);
+            item.setFocusable(true);
+            item.getAccessibleContext().setAccessibleName(id);
+            item.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ENTER"), "open-skill");
+            item.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("SPACE"), "open-skill");
+            item.getActionMap().put("open-skill", new AbstractAction() {
+                @Override public void actionPerformed(java.awt.event.ActionEvent e) { openSkill(id, Map.of()); }
+            });
+            contents.add(item);
         }
-        return scroll(list);
+        JPanel body = new JPanel(new BorderLayout());
+        body.add(contents, BorderLayout.NORTH);
+        group.add(body, BorderLayout.CENTER);
+        Runnable heading = () -> {
+            toggle.setText((body.isVisible() ? "▾" : "▸") + "  ✧  "
+                + ArchvowI18n.text(project, "AI skills", "Skills IA"));
+            note.setText(ArchvowI18n.text(project,
+                "The AI proposes or adds, you decide.", "L'IA propose ou ajoute, tu décides."));
+        };
+        heading.run();
+        languageRefreshers.add(heading);
+        toggle.addActionListener(e -> {
+            body.setVisible(!body.isVisible());
+            toggle.setText((body.isVisible() ? "▾" : "▸") + "  ✧  "
+                + ArchvowI18n.text(project, "AI skills", "Skills IA"));
+        });
+        page.add(group, BorderLayout.NORTH);
+        return scroll(page);
     }
 
     /** Read-only documentation: this is not `archvow docs` (which writes generated files). */

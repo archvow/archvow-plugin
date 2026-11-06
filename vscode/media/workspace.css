@@ -556,35 +556,71 @@ body.nav .search-field input { width: clamp(45px, 13vw, 160px); min-width: 0; }
   outline-offset: -1px;
 }
 button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--vscode-focusBorder, #7da6e8); outline-offset: 1px; }
-.project-action-container { container: project-actions / inline-size; width: 100%; min-width: 0; }
+/* Measured 42 px buttons, 1 px separators, 4 px padding and the bar border.
+   The first icon moves only once all 9 cannot fit; More is absent at full width. */
+.project-action-container { container: project-actions / inline-size; width: 100%; min-width: 0; position: relative; z-index: 2; }
 .project-action-bar { width: max-content; max-width: 100%; flex-wrap: nowrap; box-sizing: border-box; }
 .project-action-slot { display: inline-flex; border-right: 1px solid var(--vscode-panel-border); }
-.project-action-slot .project-action { border-right: 0; min-width: 42px; }
-.project-action-bar .action-more .project-action { min-width: 42px; }
+.project-action-slot .project-action { border-right: 0; min-width: 42px; box-sizing: border-box; }
+.project-action-bar .action-more { display: none; }
+.project-action-bar .action-more .project-action { min-width: 42px; box-sizing: border-box; }
 .project-more-menu { min-width: 175px; }
 .project-more-menu .overflow-action { display: none; align-items: center; gap: 8px; }
 .project-more-menu .overflow-action .ico { width: 15px; height: 15px; }
 .project-more-menu button:hover:not([disabled]) { color: var(--vscode-foreground); background: var(--vscode-list-hoverBackground, rgba(127,127,127,.25)); }
-@container project-actions (max-width: 340px) {
+@container project-actions (max-width: 396px) {
+ .project-action-bar .action-more { display: inline-flex; }
+ .project-action-slot.action-slot-8 { display: none; }
+ .project-more-menu .overflow-action-8 { display: flex; }
+}
+@container project-actions (max-width: 353px) {
+ .project-action-slot.action-slot-7 { display: none; }
+ .project-more-menu .overflow-action-7 { display: flex; }
+}
+@container project-actions (max-width: 310px) {
+ .project-action-slot.action-slot-6 { display: none; }
+ .project-more-menu .overflow-action-6 { display: flex; }
+}
+@container project-actions (max-width: 267px) {
  .project-action-slot.action-slot-5 { display: none; }
  .project-more-menu .overflow-action-5 { display: flex; }
 }
-@container project-actions (max-width: 290px) {
+@container project-actions (max-width: 224px) {
  .project-action-slot.action-slot-4 { display: none; }
  .project-more-menu .overflow-action-4 { display: flex; }
 }
-@container project-actions (max-width: 240px) {
+@container project-actions (max-width: 181px) {
  .project-action-slot.action-slot-3 { display: none; }
  .project-more-menu .overflow-action-3 { display: flex; }
 }
-@container project-actions (max-width: 190px) {
+@container project-actions (max-width: 138px) {
  .project-action-slot.action-slot-2 { display: none; }
  .project-more-menu .overflow-action-2 { display: flex; }
 }
-@container project-actions (max-width: 140px) {
+@container project-actions (max-width: 95px) {
  .project-action-slot.action-slot-1 { display: none; }
  .project-more-menu .overflow-action-1 { display: flex; }
 }
+@container project-actions (max-width: 52px) {
+ .project-action-slot.action-slot-0 { display: none; }
+ .project-more-menu .overflow-action-0 { display: flex; }
+}
+/* VS Code webviews do not always show a native title tooltip. The visible
+   tooltip also appears on keyboard focus and never captures pointer events. */
+.project-action[data-tooltip], .top button.icon[data-tooltip] { position: relative; }
+.project-action[data-tooltip]:is(:hover, :focus-visible)::after,
+.top button.icon[data-tooltip]:is(:hover, :focus-visible)::after {
+  content: attr(data-tooltip); position: absolute; z-index: 100;
+  left: 50%; transform: translateX(-50%); bottom: calc(100% + 7px);
+  white-space: nowrap; max-width: min(280px, 90vw);
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 4px; padding: 5px 8px; pointer-events: none;
+  color: var(--vscode-editorHoverWidget-foreground, var(--vscode-foreground));
+  background: var(--vscode-editorHoverWidget-background, var(--vscode-editorWidget-background));
+  box-shadow: 0 2px 8px #0003; font-size: .88em; font-weight: 400;
+}
+.top button.icon[data-tooltip]:is(:hover, :focus-visible)::after { bottom: auto; top: calc(100% + 6px); }
+.brief-back { margin: 10px 0 4px; }
 .architecture-summary, .checks-summary { min-height: 52px; }
 .checks-summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 14px; }
 .checks-summary-info { display: flex; align-items: center; gap: 10px; }

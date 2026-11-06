@@ -66,20 +66,15 @@ final class ArchvowOverflowBar extends JPanel {
         if (updating) return;
         updating = true;
         try {
-            int width = getWidth();
+            Insets border = getInsets();
+            int width = Math.max(0, getWidth() - border.left - border.right);
             int n = buttons.size();
+            boolean permanentMore = alwaysShowMore || !extraLabels.isEmpty();
             int count = n;
-            // While the component is unlaid out, retain all buttons; recalculate when sized.
-            if (width > 0 && requiredWidth(n) + (alwaysShowMore ? more.getPreferredSize().width + GAP : 0) > width) {
-                count = 0;
-                int budget = width - more.getPreferredSize().width - (GAP * 3);
-                int used = 0;
-                for (AbstractButton button : buttons) {
-                    int add = button.getPreferredSize().width + (count == 0 ? 0 : GAP + (separated ? 8 : 0));
-                    if (used + add > budget) break;
-                    used += add;
-                    count++;
-                }
+            // FlowLayout has one GAP at either edge and one between every child;
+            // each divider is a 1 px child, not an arbitrary 8 px spacer.
+            if (width > 0 && requiredWidth(n, permanentMore) > width) {
+                while (count > 0 && requiredWidth(count, true) > width) count--;
             }
             visibleCount = count;
             removeAll();
@@ -91,7 +86,7 @@ final class ArchvowOverflowBar extends JPanel {
                 }
                 add(buttons.get(i));
             }
-            if (count < n || alwaysShowMore || !extraLabels.isEmpty()) add(more);
+            if (count < n || permanentMore) add(more);
             revalidate();
             repaint();
         } finally {
@@ -99,10 +94,14 @@ final class ArchvowOverflowBar extends JPanel {
         }
     }
 
-    private int requiredWidth(int n) {
-        int width = GAP * 2;
-        for (int i = 0; i < n; i++) width += buttons.get(i).getPreferredSize().width + (i > 0 ? GAP : 0);
-        return width + (separated ? Math.max(0, n - 1) * (8 + GAP) : 0);
+    private int requiredWidth(int count, boolean withMore) {
+        int width = 0;
+        for (int i = 0; i < count; i++) width += buttons.get(i).getPreferredSize().width;
+        int dividers = separated ? Math.max(0, count - 1) : 0;
+        int children = count + dividers + (withMore ? 1 : 0);
+        if (children == 0) return 0;
+        return width + dividers + (withMore ? more.getPreferredSize().width : 0)
+            + GAP * (children + 1);
     }
 
     private void populateMenu() {

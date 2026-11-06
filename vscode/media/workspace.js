@@ -128,7 +128,7 @@
     const name = path.join(' ');
     return (ic.commands || {})[name] || (ic.commands || {})[path[0]] || (ic.verbs || {})[path[path.length - 1]] || 'other';
   }
-  const iconBtn = (svg, action, title) => `<button class="icon" data-a="${action}" title="${esc(title)}" aria-label="${esc(title)}">${svg}</button>`;
+  const iconBtn = (svg, action, title) => `<button class="icon" data-a="${action}" title="${esc(title)}" data-tooltip="${esc(title)}" aria-label="${esc(title)}">${svg}</button>`;
   const attrs = (o) => Object.entries(o).map(([k, v]) => `data-${k}="${esc(v)}"`).join(' ');
   const snapshot = () => (S && ui.component ? S.snapshots[ui.component] : null);
   const derived = () => (S && ui.component ? S.derived[ui.component] : null);
@@ -321,7 +321,7 @@
 
   function header() {
     const reload = iconBtn(REFRESH, 'refresh', t('Reload Archvow', 'Recharger Archvow'));
-    const log = btn('☷', 'log', `title="${esc(t('Open Archvow session log', 'Ouvrir le journal Archvow'))}"`, false, 'icon');
+    const log = btn('☷', 'log', `title="${esc(t('Open Archvow session log', 'Ouvrir le journal Archvow'))}" data-tooltip="${esc(t('Open Archvow session log', 'Ouvrir le journal Archvow'))}" aria-label="${esc(t('Open Archvow session log', 'Ouvrir le journal Archvow'))}"`, false, 'icon');
     const progress = S.loading ? `<div class="progress">⏳ ${esc(S.loading)}</div>` : '';
     if (NAV) {
       return `<header class="top">
@@ -420,7 +420,7 @@
     const filterTitle = t('Filter components', 'Filtrer les composants');
     const filters = [['all', t('All', 'Tous')], ['pending', t('Pending', 'En attente')], ['resolved', t('Resolved', 'Traités')]];
     return `<div class="top-search" role="search"><div class="search-field">${icon('search') || '⌕'}<input id="find" aria-label="${esc(searchTitle)}" data-input="find" data-keep="find" value="${esc(ui.findText)}" placeholder="${esc(t('Search…', 'Rechercher…'))}" title="${esc(searchTitle)}"></div>
-      <button class="icon utility ${ui.filter !== 'all' ? 'filter-active' : ''}" data-a="filterMenu" title="${esc(filterTitle)}" aria-label="${esc(filterTitle)}" aria-expanded="${ui.filterMenu}"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-5 5v4l-2 1V8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+      <button class="icon utility ${ui.filter !== 'all' ? 'filter-active' : ''}" data-a="filterMenu" title="${esc(filterTitle)}" data-tooltip="${esc(filterTitle)}" aria-label="${esc(filterTitle)}" aria-expanded="${ui.filterMenu}"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-5 5v4l-2 1V8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
       ${ui.filterMenu ? `<div class="top-filter-menu" role="group" aria-label="${esc(filterTitle)}">${filters.map(([id,l]) => `<button class="${ui.filter === id ? 'on' : ''}" data-a="filter" data-filter="${id}">${esc(l)}</button>`).join('')}</div>` : ''}</div>`;
   }
 
@@ -549,18 +549,21 @@
     return `<div class="card briefs-card"><div class="card-head"><h3>Briefs</h3><span class="muted small">${esc(t('folders: ', 'dossiers : ') + folders.map((x) => x + '/').join(', '))}</span></div>
   ${rows || `<p class="muted">${esc(t('No .md or .txt file in the briefs folders yet.', 'Aucun fichier .md ou .txt dans les dossiers de briefs pour le moment.'))}</p>`}
   <p class="muted small">${esc(t('✓ used by the spec · ○ not used yet · ! changed since accepted (ARCH039)', '✓ utilisée par la spec · ○ pas encore utilisée · ! changée depuis son acceptation (ARCH039)'))}</p>
-  <div class="row">${btn(t('Add a briefs folder (architect)…', 'Ajouter un dossier de briefs (architecte)…'), 'addFolder', attrs({ package: pkg, answer: 'briefs=' + folders.join(',') + ',' }), false, 'secondary small')}</div></div>`;
+  <div class="row wrap">${btn(t('✓ Accept brief…', '✓ Accepter un brief…'), 'openCommand', attrs({ command: 'brief accept' }), false, 'secondary small')}${btn(t('Add a briefs folder (architect)…', 'Ajouter un dossier de briefs (architecte)…'), 'addFolder', attrs({ package: pkg, answer: 'briefs=' + folders.join(',') + ',' }), false, 'secondary small')}</div></div>`;
   }
 
   function overviewTab() {
+    if (ui.overSub === 'briefs') return `<section class="overview briefs-overview">
+      <div class="brief-back">${btn('← ' + t('Overview', 'Vue d’ensemble'), 'overSub', attrs({ sub: 'architecture' }), false, 'secondary small')}</div>
+      ${briefsView()}</section>`;
     const work = S.work;
     const branchWarning = needsFeatureBranch(S.branch) ? `<div class="warning" title="${esc(t('Advice only. Archvow does not automatically change Git branches.',
       'Conseil uniquement. Archvow ne change pas automatiquement de branche Git.'))}">${esc(t(`⚠ You are on ${S.branch}. For development, create a feature branch (e.g. feature/my-change) first.`,
       `⚠ Branche ${S.branch} : crée une branche de fonctionnalité (ex. feature/ma-modification) avant de développer.`))}</div>` : '';
     // Keep actual command handlers in one place; a responsive toolbar moves actions into More.
-    // Native title and aria-label expose the command on mouse hover and keyboard focus.
+    // The visible data-tooltip and accessible name work on hover and keyboard focus.
     const projectAction = (kind, label, action, extra = '', index = 0) =>
-      `<span class="project-action-slot action-slot-${index}"><button class="project-action" data-a="${action}" ${extra} title="${esc(label)}" aria-label="${esc(label)}">${icon(kind) || ({ next: '➜', check: '✓', health: '✚', search: '⌕', document: '▤', briefs: '▤' }[kind] || '◦')}</button></span>`;
+      `<span class="project-action-slot action-slot-${index}"><button class="project-action" data-a="${action}" ${extra} title="${esc(label)}" data-tooltip="${esc(label)}" aria-label="${esc(label)}">${icon(kind) || ({ next: '➜', check: '✓', health: '✚', search: '⌕', document: '▤', briefs: '▤' }[kind] || '◦')}</button></span>`;
     const overflowItem = (kind, label, action, extra, index) =>
       `<button class="overflow-action overflow-action-${index}" data-a="${action}" ${extra} title="${esc(label)}">${icon(kind)}<span>${esc(label)}</span></button>`;
     const actions = [
@@ -570,9 +573,12 @@
       ['search', 'Audit', 'run', attrs({ label: 'audit', args: 'audit --json', target: 'overview' })],
       ['document', t('Project vow', 'Vow du projet'), 'openProjectVow', ''],
       ['briefs', t('Briefs', 'Briefs'), 'openBriefCommands', ''],
+      ['list', 'Budget / Next', 'budget', ''],
+      ['compare', 'Diff', 'openCommand', attrs({ command: 'diff', field: 'base' })],
+      ['check', 'Review', 'openCommand', attrs({ command: 'review', field: 'base' })],
     ];
     const toolbar = actions.map(([kind, label, action, extra], index) => projectAction(kind, label, action, extra, index)).join('')
-      + `<span class="action-more"><button class="project-action more-control" data-a="projectMore" title="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-label="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-haspopup="menu" aria-expanded="${!!ui.projectMore}">${icon('other') || '⋯'}</button>${ui.projectMore ? `<div class="project-more-menu" role="menu">${actions.map(([kind, label, action, extra], index) => overflowItem(kind, label, action, extra, index)).join('')}${btn('Budget / Next', 'budget')}${btn('Diff', 'openCommand', attrs({ command: 'diff', field: 'base' }))}${btn('Review', 'openCommand', attrs({ command: 'review', field: 'base' }))}</div>` : ''}</span>`;
+      + `<span class="action-more"><button class="project-action more-control" data-a="projectMore" title="${esc(t('More project commands', 'Autres commandes du projet'))}" data-tooltip="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-label="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-haspopup="menu" aria-expanded="${!!ui.projectMore}">${icon('other') || '⋯'}</button>${ui.projectMore ? `<div class="project-more-menu" role="menu">${actions.map(([kind, label, action, extra], index) => overflowItem(kind, label, action, extra, index)).join('')}</div>` : ''}</span>`;
     const sub = architectureView();
     const issues = list(S.check, 'violations');
     const failedChecks = S.check && S.check.errors != null ? Number(S.check.errors) || 0
@@ -2398,7 +2404,7 @@
   const actions = {
     tab: (e) => { ui.tab = e.dataset.tab; ui.filterMenu = false; ui.projectMore = false; },
     openComponents: () => { ui.tab = 'components'; ui.filter = 'all'; },
-    openBriefCommands: () => { ui.tab = 'commands'; ui.commandFilter = 'brief'; ui.projectMore = false; },
+    openBriefCommands: () => { ui.tab = 'overview'; ui.overSub = 'briefs'; ui.projectMore = false; },
     projectMore: () => { ui.projectMore = !ui.projectMore; },
     filterMenu: () => { ui.filterMenu = !ui.filterMenu; },
     back: () => {

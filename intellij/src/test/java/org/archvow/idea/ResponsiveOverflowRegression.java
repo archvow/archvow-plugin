@@ -38,6 +38,29 @@ public final class ResponsiveOverflowRegression {
                 actions.refresh();
                 if (actions.hasOverflow()) throw new AssertionError("More menu must disappear when wide again");
 
+                // The real Overview contains nine equal-size icon commands: the More
+                // control must appear at exactly the first pixel where the icons stop fitting.
+                ArchvowOverflowBar project = new ArchvowOverflowBar("More");
+                project.setSeparated(true);
+                project.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+                for (int i = 0; i < 9; i++) {
+                    JButton icon = new JButton("");
+                    icon.setPreferredSize(new Dimension(37, 31));
+                    project.addAction(icon);
+                }
+                project.setSize(439, 38); // 8 px inset + 431 px actual FlowLayout content
+                project.refresh();
+                if (project.hasOverflow() || project.visibleActionCount() != 9)
+                    throw new AssertionError("All nine icons fit exactly: no redundant More");
+                project.setSize(438, 38);
+                project.refresh();
+                if (!project.hasOverflow() || project.visibleActionCount() != 8)
+                    throw new AssertionError("More must appear only after the last icon stops fitting");
+                project.setSize(600, 38);
+                project.refresh();
+                if (project.hasOverflow() || project.getComponentCount() != 17)
+                    throw new AssertionError("Width restored: nine icon buttons and eight dividers, no More");
+
                 // Overview uses a permanently available compact More control. It contains both
                 // actions displaced by the available width and the advanced project actions.
                 ArchvowOverflowBar overview = new ArchvowOverflowBar("More");
