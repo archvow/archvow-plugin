@@ -139,6 +139,8 @@ test('the formatter reads check, next and prompt as people read them; text from 
   const check = read('pyspark-pipeline', 'check.json');
   const html = renderResult('check', 0, JSON.stringify(check), '', false, false);
   assert.ok(html.includes(String(objects(check, 'violations')[0].code)));
+  assert.match(html, /class="check-files-marker" data-check-path="/,
+    'check locations defer to the exact Files renderer from the webview');
   const next = renderResult('next', 0, JSON.stringify(read('pyspark-pipeline', 'next.json')), '', false, true);
   assert.ok(next.includes('clean_orders'));
   const prompt = renderResult('prompt', 0, '# Task <script>alert(1)</script>', '', false, false);

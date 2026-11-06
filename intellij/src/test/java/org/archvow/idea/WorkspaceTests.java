@@ -44,6 +44,7 @@ public final class WorkspaceTests {
         run("ResponsiveActionLayoutsRegression", () -> ResponsiveActionLayoutsRegression.main(NONE));
         run("ArchvowResultExpansionRegression", () -> ArchvowResultExpansionRegression.main(NONE));
         run("ResultFormatterRegression", () -> ResultFormatterRegression.main(NONE));
+        run("HtmlFileIconsRegression", () -> HtmlFileIconsRegression.main(NONE));
         run("RuleDocsRegression", () -> RuleDocsRegression.main(NONE));
         run("SafetyAndActionsRegression", () -> SafetyAndActionsRegression.main(NONE));
         run("SafetyDetailsRegression", () -> SafetyDetailsRegression.main(NONE));

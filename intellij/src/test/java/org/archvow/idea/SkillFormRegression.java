@@ -3,6 +3,8 @@ package org.archvow.idea;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import javax.swing.SwingUtilities;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -17,6 +19,41 @@ import java.util.Map;
 public final class SkillFormRegression {
     private static void check(boolean ok, String message) {
         if (!ok) throw new AssertionError(message);
+    }
+
+    private static void layoutTree(java.awt.Container parent) {
+        parent.doLayout();
+        for (java.awt.Component child : parent.getComponents())
+            if (child instanceof java.awt.Container nested) layoutTree(nested);
+    }
+
+    private static java.awt.Container named(java.awt.Container parent, String name) {
+        if (name.equals(parent.getName())) return parent;
+        for (java.awt.Component child : parent.getComponents()) {
+            if (child instanceof java.awt.Container nested) {
+                java.awt.Container match = named(nested, name);
+                if (match != null) return match;
+            }
+        }
+        return null;
+    }
+
+    private static void compactSkillExplanation(ArchvowSkillForm form) {
+        for (int width : new int[] {1200, 760, 550}) {
+            form.setSize(width, 820);
+            layoutTree(form);
+            java.awt.Container explanation = named(form, "archvow.skill.explanation");
+            check(explanation != null, "the compact instructions are visible");
+            int previousBottom = -1;
+            for (java.awt.Component step : explanation.getComponents()) {
+                if (previousBottom >= 0) check(step.getY() - previousBottom <= 12,
+                    "instruction gaps must stay compact at " + width);
+                check(step.getHeight() > 0, "instructions have nonzero height at " + width);
+                previousBottom = step.getY() + step.getHeight();
+            }
+            if (width >= 1000) check(previousBottom < explanation.getHeight() / 2,
+                "instructions remain grouped at the top even in a tall editor");
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -44,6 +81,9 @@ public final class SkillFormRegression {
         ArchvowSkillForm drafted = new ArchvowSkillForm(skills, "draft-spec", Map.of("brief", "briefs/orders.md#pricing"), List.of(),
             List.of(), List.of("cursor"), c -> null, false, (text, values) -> { }, () -> { });
         check(drafted.copy.isEnabled() && drafted.request.getText().endsWith("draft the spec from briefs/orders.md#pricing"), drafted.request.getText());
+        // The editor can be tall or narrow: the numbered instructions must not
+        // spread across its whole height or clip when their text wraps.
+        SwingUtilities.invokeAndWait(() -> compactSkillExplanation(drafted));
 
         // Overview › Briefs: used, not used yet (Draft with AI…), changed since (Review…, Accept change…)
         JsonObject status = JsonParser.parseString("""

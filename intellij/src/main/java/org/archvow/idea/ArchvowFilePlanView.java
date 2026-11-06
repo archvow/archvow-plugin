@@ -25,6 +25,12 @@ final class ArchvowFilePlanView extends JPanel {
         setVisible(false);
     }
 
+    /** A diagnostic's file, using the very same Files tree as a command form. */
+    void showLocation(String path, int line, boolean fr) {
+        String atLine = line > 0 ? (fr ? "ligne " : "line ") + line : "";
+        showRows(List.of(new ArchvowFilePlan.Row("location", path, atLine)), fr);
+    }
+
     void showRows(List<ArchvowFilePlan.Row> rows, boolean fr) {
         removeAll();
         for (boolean planned : new boolean[]{false, true}) {
@@ -63,13 +69,17 @@ final class ArchvowFilePlanView extends JPanel {
                 JLabel name = fileName(leaf);
                 file.add(name);
                 file.add(Box.createHorizontalStrut(5));
-                JLabel status = new JLabel((fr ? FR : EN).getOrDefault(row.change(), row.change()));
-                status.putClientProperty("html.disable", Boolean.TRUE);
-                status.setForeground(changeColor(row.change()));
-                file.add(status);
+                String statusText = "location".equals(row.change()) ? row.note()
+                    : (fr ? FR : EN).getOrDefault(row.change(), row.change());
+                if (!statusText.isBlank()) {
+                    JLabel status = new JLabel(statusText);
+                    status.putClientProperty("html.disable", Boolean.TRUE);
+                    status.setForeground(changeColor(row.change()));
+                    file.add(status);
+                }
                 file.add(Box.createHorizontalGlue());
                 add(file);
-                if (!row.note().isBlank()) {
+                if (!"location".equals(row.change()) && !row.note().isBlank()) {
                     ArchvowWrapLabel note = wrapped(row.note(), muted(), true);
                     note.setBorder(BorderFactory.createEmptyBorder(1, 38, 2, 0));
                     add(note);

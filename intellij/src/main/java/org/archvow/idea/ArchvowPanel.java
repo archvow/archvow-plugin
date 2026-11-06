@@ -185,6 +185,7 @@ final class ArchvowPanel extends JPanel {
         });
         // under a result where archvow names the init --force that adds a briefs folder: open that form, prefilled
         for (JEditorPane result : List.of(overviewResult, commandResult, componentResult, quickResult)) {
+            ArchvowHtmlFileIcons.install(result);
             result.addHyperlinkListener(event -> {
                 if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
                 ArchvowBriefs.AddFolder add = ArchvowBriefs.initOf(event.getDescription());
@@ -1021,6 +1022,11 @@ final class ArchvowPanel extends JPanel {
         afterSelectionChange();
     }
 
+    /** Open Checks and the toolbar Check action share the same full CLI result. */
+    private void runFullCheck() {
+        executeDirect("full check", List.of("check", "--complete", "--json"), null, false);
+    }
+
     /** Check & Gates, in the tool window's Overview. */
     private void showDiagnostics() {
         // Checks are in the editor detail, not in an invisible overview sub-tab.
@@ -1331,7 +1337,7 @@ final class ArchvowPanel extends JPanel {
         overviewRows.add(Box.createVerticalStrut(6));
         overviewRows.add(overviewSummaryRow(ArchvowI18n.text(project, "Checks", "Contrôles"), "shield",
             overviewChecksCounts, ArchvowI18n.text(project, "Open Checks →", "Voir les contrôles →"),
-            this::showDiagnostics));
+            this::runFullCheck));
         overviewCenter.add(overviewRows, BorderLayout.NORTH);
 
         page.add(overviewCenter, BorderLayout.CENTER);
@@ -1476,14 +1482,13 @@ final class ArchvowPanel extends JPanel {
         commands.addAction(overviewIconAction("arrow", "Next", () ->
             executeDirect("next", List.of("next", "--json"), null, false)));
         // There is only one Check in Overview: the complete project validation.
-        commands.addAction(overviewIconAction("check", "Check", () ->
-            executeDirect("full check", List.of("check", "--complete", "--json"), null, false)));
+        commands.addAction(overviewIconAction("check", "Check", this::runFullCheck));
         commands.addAction(overviewIconAction("health", "Doctor", () ->
             executeDirect("doctor", List.of("doctor", "--json"), null, false)));
         commands.addAction(overviewIconAction("search", "Audit", () ->
             executeDirect("audit", List.of("audit", "--json"), null, false)));
         commands.addAction(overviewIconAction("document", ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
-        commands.addAction(overviewIconAction("folder", ArchvowI18n.text(project, "Briefs", "Briefs"),
+        commands.addAction(overviewIconAction("briefs", ArchvowI18n.text(project, "Briefs", "Briefs"),
             this::openBriefsDetails));
         // Advanced commands are real actions too: only send them to More when space runs out.
         commands.addAction(overviewIconAction("list", "Budget / Next", () -> {
@@ -1492,7 +1497,7 @@ final class ArchvowPanel extends JPanel {
         }));
         commands.addAction(overviewIconAction("compare", "Diff", () ->
             openCommand("diff", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
-        commands.addAction(overviewIconAction("check", "Review", () ->
+        commands.addAction(overviewIconAction("propose", "AI review", () ->
             openCommand("review", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
         gitBranchLabel.setToolTipText(ArchvowI18n.text(project, "Current Git branch", "Branche Git courante"));
         bar.add(commands, BorderLayout.CENTER);

@@ -232,16 +232,24 @@ test('UX v4: VS Code hover, responsive toolbar, and Checks overview row', () => 
   }
   assert.match(page, /class="project-action-container"/);
   assert.match(page, /class="project-action-slot action-slot-\$\{index\}"/);
-  assert.match(page, /data-a="openBriefCommands"|\['briefs', t\('Briefs'/);
+  assert.match(page, /\['briefs', t\('Briefs', 'Briefs'\), 'openBriefCommands'/,
+    'Briefs uses its own document-shaped icon and still opens the brief browser');
+  assert.match(page, /\['propose', 'AI review', 'openCommand', attrs\(\{ command: 'review'/,
+    'AI review has a distinct icon and retains the review command');
   assert.match(page, /openBriefCommands: \(\) =>/);
+  assert.match(page, /function withCheckFiles\(html\)/);
+  assert.match(page, /return filesBlock\(\[\{ path: file, change: 'location'/,
+    'check diagnostics reuse the command form Files tree rather than hand-drawn icons');
+  assert.match(page, /icon\('folder'\)/);
+  assert.match(page, /icon\(isDir \? 'folder' : 'document'\)/);
   assert.match(page, /class="card checks-summary"/);
   assert.match(page, /data-a="openChecks"/);
   assert.doesNotMatch(page, /class="checks-badges"/, 'diagnostic counters live in the Checks card');
 });
 
 
-test('Overview Checks opens the complete diagnostics in the editor, not the generated spec', () => {
-  assert.match(host, /case 'openChecks':[\s\S]*?this\.toEditor\(\{ type: 'showCheckDetails', index: 0 \}\)/);
+test('Overview Open Checks runs the same full check as the toolbar, not the generated spec', () => {
+  assert.match(host, /case 'openChecks':[\s\S]*?this\.runDirect\('full check', \[\'check\', \'--complete\', \'--json\'\], \'overview\'\)/);
   assert.match(host, /case 'openChecksReference':[\s\S]*?this\.openChecksReference\(\)/);
   assert.match(page, /openChecksReference: \(\) => post\(\{ type: 'openChecksReference' \}\)/);
   assert.match(page, /const listPart = `<ul class="list check-list"/);

@@ -24,10 +24,11 @@ class Out {
     this.html += '<div class="chips">' + chips.map(([t, tone]) => `<span class="chip tone-${tone}">${esc(t)}</span>`).join('') + '</div>';
   }
   paragraph(text: string, tone?: Tone | 'muted'): void { this.html += `<p class="${tone ? 'tone-' + tone : ''}">${esc(text)}</p>`; }
-  card(title: string, body: string, tone: Tone, fields: [string, string][] = []): void {
+  card(title: string, body: string, tone: Tone, fields: [string, string][] = [], extraHtml = ''): void {
     this.html += `<div class="card tone-border-${tone}"><div class="card-title">${esc(title)}</div>`
       + (body ? `<div class="card-body">${esc(body)}</div>` : '')
-      + fields.map(([k, v]) => `<div class="field"><span class="key">${esc(k)}</span> ${esc(v)}</div>`).join('') + '</div>';
+      + fields.map(([k, v]) => `<div class="field"><span class="key">${esc(k)}</span> ${esc(v)}</div>`).join('')
+      + extraHtml + '</div>';
   }
   more(count: number, fr: boolean): void {
     this.paragraph(tr(fr, `${count} more in Raw output`, `${count} de plus dans Sortie brute`), 'muted');
@@ -153,9 +154,8 @@ function check(out: Out, report: Json, fr: boolean, label: string): void {
     const error = str(v, 'severity').toLowerCase() === 'error';
     const status = error ? tr(fr, 'ERROR', 'ERREUR') : tr(fr, 'WARNING', 'AVERTISSEMENT');
     const file = str(v, 'file');
-    const place = file ? file + (num(v, 'line') > 0 ? ':' + num(v, 'line') : '') : '';
-    out.card(str(v, 'code') ? str(v, 'code') + ' · ' + status : status, str(v, 'message'), error ? 'bad' : 'warn',
-      place ? [[tr(fr, 'Location', 'Emplacement'), place]] : []);
+    out.card(str(v, 'code') ? str(v, 'code') + ' · ' + status : status, str(v, 'message'), error ? 'bad' : 'warn', [],
+      file ? locationHtml(file, num(v, 'line')) : '');
   });
   if (violations.length > 35) out.more(violations.length - 35, fr);
   if (isObject(report.safety) && 'total' in report.safety) {
@@ -163,6 +163,12 @@ function check(out: Out, report: Json, fr: boolean, label: string): void {
     out.paragraph(`${num(report.safety, 'answered')} / ${num(report.safety, 'total')}` + tr(fr, ' questions answered', ' questions traitées'));
   }
   if (isObject(report.budget)) budget(out, report.budget, fr);
+}
+
+function locationHtml(path: string, line: number): string {
+  // The webview expands this marker using its *actual* filesBlock() renderer.
+  // That guarantees the same folder/file SVGs and spacing as a command form's Files preview.
+  return `<div class="check-files-marker" data-check-path="${encodeURIComponent(path)}" data-check-line="${line}"></div>`;
 }
 
 function audit(out: Out, entries: Json[], fr: boolean): void {

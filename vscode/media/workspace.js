@@ -481,7 +481,7 @@
     if (!r) return '';
     const raw = !!ui.raw[target];
     const body = r.running ? `<p><b>⏳ ${esc(t('Running', 'Exécution'))}</b> · ${esc(r.args)}</p>`
-      : raw ? `<pre class="raw">${esc(r.raw)}</pre>` : r.html;
+      : raw ? `<pre class="raw">${esc(r.raw)}</pre>` : withCheckFiles(r.html);
     // readable at any length: drag the bar under it, or Expand to the height of the tab
     const height = ui.resultHeight[target];
     const expanded = !!height && height >= expandedHeight() - 2;
@@ -575,7 +575,7 @@
       ['briefs', t('Briefs', 'Briefs'), 'openBriefCommands', ''],
       ['list', 'Budget / Next', 'budget', ''],
       ['compare', 'Diff', 'openCommand', attrs({ command: 'diff', field: 'base' })],
-      ['check', 'Review', 'openCommand', attrs({ command: 'review', field: 'base' })],
+      ['propose', 'AI review', 'openCommand', attrs({ command: 'review', field: 'base' })],
     ];
     const toolbar = actions.map(([kind, label, action, extra], index) => projectAction(kind, label, action, extra, index)).join('')
       + `<span class="action-more"><button class="project-action more-control" data-a="projectMore" title="${esc(t('More project commands', 'Autres commandes du projet'))}" data-tooltip="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-label="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-haspopup="menu" aria-expanded="${!!ui.projectMore}">${icon('other') || '⋯'}</button>${ui.projectMore ? `<div class="project-more-menu" role="menu">${actions.map(([kind, label, action, extra], index) => overflowItem(kind, label, action, extra, index)).join('')}</div>` : ''}</span>`;
@@ -2029,7 +2029,10 @@
           html += `<div class="file-dir">${icon('folder')}<span>${esc(dir || './')}</span></div><ul class="file-list">`;
           folder = dir;
         }
-        html += `<li class="file-row change-${esc(r.change)}">${icon(isDir ? 'folder' : 'document')}<code>${esc(leaf)}</code><span class="badge ${esc(r.change)}">${esc(word[r.change] || r.change)}</span>${r.note ? `<div class="muted small file-note">${esc(r.note)}</div>` : ''}</li>`;
+        const locationOnly = r.change === 'location';
+        const status = locationOnly ? '' : `<span class="badge ${esc(r.change)}">${esc(word[r.change] || r.change)}</span>`;
+        const line = locationOnly && Number(r.line) > 0 ? `<span class="muted small">${esc(t('line', 'ligne'))} ${Number(r.line)}</span>` : '';
+        html += `<li class="file-row change-${esc(r.change)}">${icon(isDir ? 'folder' : 'document')}<code>${esc(leaf)}</code>${status}${line}${r.note ? `<div class="muted small file-note">${esc(r.note)}</div>` : ''}</li>`;
       }
       return html + (folder !== null ? '</ul>' : '');
     };
@@ -2037,6 +2040,16 @@
     const later = rows.filter((r) => r.change === 'planned');
     return (now.length ? `<div class="muted small files-head">${esc(t('Files', 'Fichiers'))}</div>${part(now)}` : '')
       + (later.length ? `<div class="muted small files-head">${esc(t('Planned - written later by the AI or a developer (archvow never writes code)', "Prévus - écrits plus tard par l'IA ou un développeur (archvow n'écrit jamais de code)"))}</div>${part(later)}` : '');
+  }
+
+  /** Check diagnostics use the identical Files renderer as the command form (not a copied icon). */
+  function withCheckFiles(html) {
+    return String(html || '').replace(/<div class="check-files-marker" data-check-path="([^"]*)" data-check-line="(\d+)"><\/div>/g,
+      (_marker, encodedPath, line) => {
+        let file;
+        try { file = decodeURIComponent(encodedPath); } catch (_e) { return ''; }
+        return filesBlock([{ path: file, change: 'location', line: Number(line) || 0 }]);
+      });
   }
 
   function questionPreview(name) {

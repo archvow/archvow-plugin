@@ -111,6 +111,13 @@ pre.help { background: var(--vscode-textBlockQuote-background); padding: 8px 10p
 .tone-border-good { border-left: 3px solid var(--vscode-testing-iconPassed, #2ea043); } .tone-border-bad { border-left: 3px solid var(--vscode-errorForeground); }
 .tone-border-warn { border-left: 3px solid var(--vscode-charts-orange, #d18616); } .tone-border-blue { border-left: 3px solid var(--vscode-textLink-foreground); }
 .key { font-weight: 600; }
+.file-row.change-location code {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--vscode-textBlockQuote-background, #0002) 78%, transparent);
+  color: var(--vscode-charts-red, #b82646);
+  font-size: .95em;
+}
 
 /* the full vow: one keyword colour per depth, as in the editor */
 pre.vow { background: var(--vscode-textBlockQuote-background); padding: 10px; max-height: 70vh; overflow: auto; }

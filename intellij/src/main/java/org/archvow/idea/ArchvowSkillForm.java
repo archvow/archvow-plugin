@@ -87,30 +87,40 @@ final class ArchvowSkillForm extends JPanel {
         tool.onChange(() -> { values.put("tool", tool.value()); update(); });
         field(left, french ? "Envoyer à" : "Send to", tool);
 
-        JPanel right = new JPanel(new BorderLayout(0, 6));
+        JPanel right = new JPanel(new BorderLayout());
         right.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(128, 128, 128, 90)),
             BorderFactory.createEmptyBorder(10, 12, 10, 12)));
         JLabel what = new JLabel(french ? "CE QUI VA SE PASSER" : "WHAT WILL HAPPEN");
         what.setFont(what.getFont().deriveFont(Font.BOLD, 11f));
-        right.add(what, BorderLayout.NORTH);
-        JPanel steps = new JPanel();
-        steps.setLayout(new BoxLayout(steps, BoxLayout.Y_AXIS));
-        steps.add(wrap((french ? "1. La demande est copiée : colle-la dans ton assistant IA (" : "1. The request is copied: paste it in your AI assistant (")
+        what.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // A BoxLayout in BorderLayout.CENTER stretches every wrapped JTextArea
+        // vertically, creating huge gaps between steps at normal editor heights.
+        // Keep the explanation as one preferred-height stack anchored to the top.
+        JPanel explanation = new CompactExplanation();
+        explanation.setName("archvow.skill.explanation");
+        explanation.add(what);
+        explanation.add(Box.createVerticalStrut(8));
+        explanation.add(wrap((french ? "1. La demande est copiée : colle-la dans ton assistant IA (" : "1. The request is copied: paste it in your AI assistant (")
             + values.get("tool") + ")."));
-        steps.add(wrap("2. " + pair(def, "reads")));
-        steps.add(wrap("3. " + (french ? "L'IA peut : " : "The AI can: ") + pair(def, "may_add")));
-        steps.add(wrap("4. " + (french ? "Toi, tu : " : "You still: ") + pair(def, "you")));
-        steps.add(wrap(french ? "Ce qu'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire."
+        explanation.add(wrap("2. " + pair(def, "reads")));
+        explanation.add(wrap("3. " + (french ? "L'IA peut : " : "The AI can: ") + pair(def, "may_add")));
+        explanation.add(wrap("4. " + (french ? "Toi, tu : " : "You still: ") + pair(def, "you")));
+        explanation.add(wrap(french ? "Ce qu'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire."
             : "What it adds appears in the component's tabs, marked AI and To review."));
+        explanation.add(Box.createVerticalStrut(10));
+
         JPanel bottom = new JPanel(new BorderLayout(0, 3));
+        bottom.setOpaque(false);
+        bottom.setAlignmentX(Component.LEFT_ALIGNMENT);
         bottom.add(new JLabel(french ? "Envoyé à l'IA" : "Sent to the AI"), BorderLayout.NORTH);
         request.setEditable(false);
         request.setLineWrap(true);
         request.setWrapStyleWord(true);
         request.setFont(new Font(Font.MONOSPACED, Font.PLAIN, request.getFont().getSize()));
         bottom.add(request, BorderLayout.CENTER);
-        right.add(steps, BorderLayout.CENTER);
-        right.add(bottom, BorderLayout.SOUTH);
+        explanation.add(bottom);
+        right.add(explanation, BorderLayout.CENTER);
 
         JPanel body = new JPanel(new GridLayout(1, 2, 16, 0));
         body.add(left);
@@ -126,6 +136,44 @@ final class ArchvowSkillForm extends JPanel {
         buttons.add(copy);
         add(buttons, BorderLayout.SOUTH);
         update();
+    }
+
+    /**
+     * Layout that measures wrapped instructions at the actual editor width. Unlike
+     * BoxLayout, extra height is left below the instructions rather than divided
+     * between them. A shorter editor wraps lines without clipping their bottoms.
+     */
+    private static final class CompactExplanation extends JPanel {
+        CompactExplanation() {
+            super(null);
+            setOpaque(false);
+        }
+
+        @Override public Dimension getPreferredSize() {
+            int width = getWidth() > 0 ? getWidth() : 440;
+            return new Dimension(width, place(width, false));
+        }
+
+        @Override public void doLayout() { place(getWidth(), true); }
+
+        private int place(int width, boolean layOut) {
+            int y = 0;
+            int available = Math.max(40, width);
+            for (Component child : getComponents()) {
+                int h;
+                if (child instanceof JTextArea area) {
+                    // JTextArea calculates its wrapped preferred height from width.
+                    // Use a tall measurement bound, then set the exact measured height.
+                    area.setSize(available, Short.MAX_VALUE);
+                    h = area.getPreferredSize().height;
+                } else {
+                    h = child.getPreferredSize().height;
+                }
+                if (layOut) child.setBounds(0, y, available, h);
+                y += h;
+            }
+            return y;
+        }
     }
 
     /** The request, the button and the "not yet" line, after each change. */

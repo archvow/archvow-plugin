@@ -146,12 +146,11 @@ final class ArchvowResultFormatter {
             String severity = str(v, "severity");
             String code = str(v, "code");
             String file = str(v, "file");
-            String place = file.isEmpty() ? "" : file + (intValue(v, "line") > 0 ? ":" + intValue(v, "line") : "");
             String status = "error".equalsIgnoreCase(severity) ? tr(fr, "ERROR", "ERREUR") : tr(fr, "WARNING", "AVERTISSEMENT");
             String title = (code.isBlank() ? status : code + " · " + status);
             String content = str(v, "message");
             StringBuilder details = new StringBuilder();
-            if (!place.isBlank()) field(details, p, tr(fr, "Location", "Emplacement"), place);
+            if (!file.isBlank()) locationField(details, file, intValue(v, "line"), fr);
             card(out, p, title, content, "error".equalsIgnoreCase(severity) ? p.bad : p.warn, details.toString());
             if (++count >= 35) break;
         }
@@ -466,6 +465,15 @@ final class ArchvowResultFormatter {
         if (value == null || value.isBlank()) return;
         out.append("<div style='margin-top:4px;'><font color='").append(p.muted).append("'><b>")
             .append(esc(key)).append(":</b></font> ").append(esc(cut(value, 2500))).append("</div>");
+    }
+
+    private static void locationField(StringBuilder out, String path, int line, boolean fr) {
+        if (path == null || path.isBlank()) return;
+        String normalized = path.replace('\\', '/');
+        // ComponentView paints ArchvowFilePlanView itself: pixel-identical to the form's Files tree.
+        out.append("<div style='margin-top:6px;'><img src='")
+            .append(ArchvowHtmlFileIcons.imageSource(normalized, line, fr))
+            .append("'></div>");
     }
     private static void paragraph(StringBuilder out, String text, String color) {
         out.append("<p style='color:").append(color).append(";'>").append(esc(text)).append("</p>");

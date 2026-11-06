@@ -11,6 +11,12 @@ public final class ResultFormatterRegression {
         String escaped = ArchvowResultFormatter.render("check",2,"<bad> & unsafe",false,"python -m archvow check",false,false);
         if (!escaped.contains("&lt;bad&gt; &amp; unsafe"))
             throw new AssertionError("Unsanitized output");
-        System.out.println("OK: 3 result scenarios");
+        String report = "{\"errors\":1,\"warnings\":0,\"ok\":false,"
+            + "\"violations\":[{\"code\":\"ARCH008\",\"severity\":\"error\","
+            + "\"message\":\"missing\",\"file\":\".archvow/spec.vow\"}]}";
+        String location = ArchvowResultFormatter.render("full check",1,report,false,"check --complete --json",false,false);
+        if (!location.contains(ArchvowHtmlFileIcons.imageSource(".archvow/spec.vow", 0, false)))
+            throw new AssertionError("Check location does not embed the original Files component");
+        System.out.println("OK: 4 result scenarios");
     }
 }

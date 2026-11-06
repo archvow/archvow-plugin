@@ -758,10 +758,10 @@ export class ArchvowProject {
         return this.openFile(path.join(this.root, '.archvow', 'spec.vow'), 0,
           tr(fr, 'Project vow not available: .archvow/spec.vow', 'Vow du projet indisponible : .archvow/spec.vow'));
       case 'openChecks':
-        // Overview opens the current diagnostic results in Archvow's editor,
-        // not the generated Markdown reference document.
-        this.toEditor({ type: 'showCheckDetails', index: 0 });
-        return;
+        // The overview link is equivalent to the Check toolbar button: run the
+        // complete, read-only check and display its formatted command result.
+        // The optional Check reference action alone opens the spec document.
+        return this.runDirect('full check', ['check', '--complete', '--json'], 'overview');
       case 'openChecksReference':
         return this.openChecksReference();
       case 'openRule':
