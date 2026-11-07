@@ -36,6 +36,8 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
     private final boolean french;
     private final JLabel blocked = new JLabel();
     private final Function<String, String[]> blockedFor;
+    private final java.util.List<JToggleButton> stepButtons = new java.util.ArrayList<>();
+    private int currentStep;
 
     /**
      * @param components the components of the project (the first one or {@code values.component} chosen)
@@ -108,14 +110,12 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         navigator.setName("archvow.skill.steps");
         navigator.setOpaque(false);
         navigator.setAlignmentX(LEFT_ALIGNMENT);
-        int[] currentStep = {0};
-        java.util.List<JToggleButton> stepButtons = new java.util.ArrayList<>();
         Runnable[] showStep = new Runnable[1];
         showStep[0] = () -> {
-            for (Component component : targetParts) component.setVisible(currentStep[0] == 0);
-            for (Component component : handoffParts) component.setVisible(currentStep[0] == 1);
-            reviewPage.setVisible(currentStep[0] == 2);
-            for (int i = 0; i < stepButtons.size(); i++) stepButtons.get(i).setSelected(i == currentStep[0]);
+            for (Component component : targetParts) component.setVisible(currentStep == 0);
+            for (Component component : handoffParts) component.setVisible(currentStep == 1);
+            reviewPage.setVisible(currentStep == 2);
+            refreshStepButtons();
             left.revalidate();
             left.repaint();
         };
@@ -123,8 +123,9 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
             : new String[] {"Target", "AI handoff", "Review"};
         for (int i = 0; i < stepNames.length; i++) {
             final int target = i;
-            JToggleButton step = new JToggleButton((i + 1) + "  " + stepNames[i]);
-            step.addActionListener(e -> { currentStep[0] = target; showStep[0].run(); });
+            JToggleButton step = new JToggleButton(stepNames[i]);
+            step.setName("archvow.skill.step." + i);
+            step.addActionListener(e -> { currentStep = target; showStep[0].run(); });
             stepButtons.add(step);
             navigator.add(step);
         }
@@ -333,6 +334,69 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         String shorthand = ArchvowAiSkills.skillCommand(skills, skill, values.getOrDefault("tool", ""), values);
         copySkill.setVisible(!shorthand.isBlank());
         copySkill.setEnabled(ready && !shorthand.isBlank());
+        refreshStepButtons();
+    }
+
+    /** Match the command forms' circled numbers, completion checks and orange/green step states. */
+    private void refreshStepButtons() {
+        boolean brief = "brief".equals(str(def(skills, skill), "target"));
+        boolean targetReady = !values.getOrDefault(brief ? "brief" : "component", "").isBlank();
+        // The AI assistant is optional, but the selected default is a valid handoff.
+        boolean handoffReady = !values.getOrDefault("tool", "").isBlank();
+        boolean[] complete = {targetReady, handoffReady, targetReady && handoffReady};
+        Color panel = UIManager.getColor("Panel.background");
+        boolean dark = panel != null && (panel.getRed() + panel.getGreen() + panel.getBlue()) / 3 < 128;
+        Color green = new Color(dark ? 0x44C79A : 0x13814F);
+        Color orange = new Color(dark ? 0xF2B95D : 0xB97812);
+        Color muted = UIManager.getColor("Label.disabledForeground");
+        Color neutralBorder = UIManager.getColor("Component.borderColor");
+        if (muted == null) muted = Color.GRAY;
+        if (neutralBorder == null) neutralBorder = muted;
+        for (int i = 0; i < stepButtons.size(); i++) {
+            JToggleButton button = stepButtons.get(i);
+            boolean done = complete[i];
+            boolean selected = i == currentStep;
+            Color tone = done ? green : orange;
+            button.setSelected(selected);
+            button.setIcon(stepNumberIcon(i + 1, tone, done));
+            button.setForeground(done || selected ? tone : muted);
+            button.setOpaque(true);
+            button.setContentAreaFilled(true);
+            button.setBackground(done ? new Color(dark ? 0x183D30 : 0xE4F4EB)
+                : selected ? new Color(dark ? 0x383229 : 0xFFF3DE) : panel);
+            button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(done || selected ? tone : neutralBorder, 1, true),
+                BorderFactory.createEmptyBorder(4, 9, 4, 9)));
+            button.setToolTipText(done ? (french ? "Étape complète" : "Step complete")
+                : (french ? "Informations obligatoires manquantes" : "Required information missing"));
+        }
+    }
+
+    private static Icon stepNumberIcon(int number, Color color, boolean complete) {
+        return new Icon() {
+            @Override public int getIconWidth() { return 22; }
+            @Override public int getIconHeight() { return 22; }
+            @Override public void paintIcon(Component component, Graphics graphics, int x, int y) {
+                Graphics2D g = (Graphics2D) graphics.create();
+                try {
+                    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g.setColor(color);
+                    g.setStroke(new BasicStroke(1.5f));
+                    g.drawOval(x + 1, y + 1, 19, 19);
+                    if (complete) {
+                        g.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                        g.drawLine(x + 6, y + 11, x + 9, y + 14);
+                        g.drawLine(x + 9, y + 14, x + 16, y + 7);
+                    } else {
+                        g.setFont(component.getFont().deriveFont(Font.BOLD, 11f));
+                        String text = Integer.toString(number);
+                        FontMetrics metrics = g.getFontMetrics();
+                        g.drawString(text, x + 11 - metrics.stringWidth(text) / 2,
+                            y + 11 + (metrics.getAscent() - metrics.getDescent()) / 2);
+                    }
+                } finally { g.dispose(); }
+            }
+        };
     }
 
     static JsonObject def(JsonObject skills, String skill) {

@@ -83,11 +83,12 @@ final class ArchvowResultFormatter {
                 } else paragraph(out, cut(raw, 16000), p.foreground);
             }
         }
-        out.append("<p><small><font color='").append(p.muted).append("'>")
+        out.append("<table width='100%' cellpadding='5' cellspacing='0' style='margin-top:12px;'><tr><td bgcolor='")
+            .append(p.raised).append("'><small><font color='").append(p.muted).append("'>")
             .append(tr(french, "Exit code: ", "Code retour : ")).append(exitCode)
             .append(" &nbsp;·&nbsp; ")
             .append(tr(french, "Original output available via 'Raw output'", "Sortie originale accessible via « Sortie brute »"))
-            .append("</font></small></p>");
+            .append("</font></small></td></tr></table>");
         return out.append("</body></html>").toString();
     }
 
@@ -439,27 +440,51 @@ final class ArchvowResultFormatter {
         // sizes from the IDE's font, in pt (ArchvowHtml): "12px" and h3/h4 drew text far larger than the IDE's
         return new StringBuilder(ArchvowHtml.body(p.foreground, p.bg));
     }
+    /** Shared visual hierarchy with the VS Code result cards, using Swing-safe HTML tables. */
     private static void heading(StringBuilder out, Palette p, String title, String accent) {
-        out.append(ArchvowHtml.heading(esc(title), 1.1, "color:" + accent + "; margin:4px 0 8px 0;"));
+        out.append("<table width='100%' cellspacing='0' cellpadding='0' border='0' style='margin-bottom:10px;'><tr>")
+            .append("<td width='5' bgcolor='").append(accent).append("'>&nbsp;</td>")
+            .append("<td width='46' bgcolor='").append(p.raised).append("' align='center'><font color='")
+            .append(accent).append("' size='+2'><b>&#9670;</b></font></td>")
+            .append("<td bgcolor='").append(p.raised).append("' style='padding:8px;'>")
+            .append("<font color='").append(p.muted).append("'><small><b>ARCHVOW &#183; RESULT</b></small></font>")
+            .append("<div style='margin-top:3px;'>")
+            .append(ArchvowHtml.heading(esc(title), 1.1, "color:" + accent + "; margin:3px 0;"))
+            .append("</div></td></tr></table>");
     }
     private static void section(StringBuilder out, Palette p, String label) {
-        out.append(ArchvowHtml.heading(esc(label), 1.0, "margin:12px 0 5px 0; color:" + p.foreground + ";"));
+        out.append("<div style='margin-top:12px; border-bottom:1px solid:").append(p.line).append(";'>")
+            .append(ArchvowHtml.heading(esc(label), 1.0, "color:" + p.foreground + "; margin:4px 0 6px 0;"))
+            .append("</div>");
     }
     private static void summary(StringBuilder out, Palette p, List<String> chips) {
-        out.append("<table cellspacing='5' cellpadding='6'><tr>");
-        for (String item : chips) out.append("<td bgcolor='").append(p.raised).append("'>").append(item).append("</td>");
+        out.append("<table cellspacing='7' cellpadding='0' style='margin:8px 0 12px;'><tr>");
+        for (String item : chips) {
+            out.append("<td bgcolor='").append(p.raised)
+                .append("' style='padding:9px 11px;'><font color='").append(p.muted)
+                .append("'><b>&#9679;</b></font>&nbsp;&nbsp;").append(item).append("</td>");
+        }
         out.append("</tr></table>");
     }
     private static String chip(String text, String color) {
         return "<b><font color='" + color + "'>" + esc(text) + "</font></b>";
     }
     private static void card(StringBuilder out, Palette p, String title, String body, String accent, String extraHtml) {
-        out.append("<table width='100%' cellspacing='0' cellpadding='8' border='0'><tr>")
-            .append("<td width='4' bgcolor='").append(accent).append("'>&nbsp;</td>")
+        // Swing JEditorPane supports HTML 3.2 tables but not modern CSS grid/flex.
+        // Keep the status strip, raised background and distinct heading/detail rows
+        // consistent with the VS Code cards; don't alter or synthesize result data.
+        out.append("<table width='100%' cellspacing='0' cellpadding='0' border='0' style='margin-top:9px;'>")
+            .append("<tr><td width='5' bgcolor='").append(accent).append("'>&nbsp;</td>")
             .append("<td bgcolor='").append(p.raised).append("'>")
-            .append("<b><font color='").append(accent).append("'>").append(esc(title)).append("</font></b>");
-        if (body != null && !body.isBlank()) out.append("<p style='margin:5px 0;'>").append(esc(cut(body, 4500))).append("</p>");
-        out.append(extraHtml).append("</td></tr></table><p style='margin:3px;'>&nbsp;</p>");
+            .append("<table width='100%' cellspacing='0' cellpadding='9' border='0'><tr><td>")
+            .append("<font color='").append(accent).append("'><b>&#9679;</b></font>&nbsp;&nbsp;")
+            .append("<b><font color='").append(p.foreground).append("'>")
+            .append(esc(title)).append("</font></b>");
+        if (body != null && !body.isBlank()) out.append("<div style='margin-top:6px;'>")
+            .append(esc(cut(body, 4500))).append("</div>");
+        if (extraHtml != null && !extraHtml.isEmpty()) out.append("<div style='margin-top:7px;'>")
+            .append(extraHtml).append("</div>");
+        out.append("</td></tr></table></td></tr></table><p style='margin:2px;'>&nbsp;</p>");
     }
     private static void field(StringBuilder out, Palette p, String key, String value) {
         if (value == null || value.isBlank()) return;

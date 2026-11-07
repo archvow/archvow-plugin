@@ -105,6 +105,80 @@ pre.error { color: var(--vscode-errorForeground); }
 label.check { display: inline-flex; gap: 4px; align-items: center; }
 pre.help { background: var(--vscode-textBlockQuote-background); padding: 8px 10px; border-left: 3px solid var(--archvow); }
 
+/* Command result v2: distinguish results from the surrounding IDE panel while
+   respecting the current light/dark theme. Only formatted command results. */
+.card.result .card-body .archvow-result {
+  --result-divider: var(--vscode-panel-border, rgba(127, 127, 127, .28));
+  --result-raised: color-mix(in srgb, var(--vscode-editorWidget-background, var(--vscode-editor-background)) 88%, var(--vscode-foreground) 12%);
+  --result-surface: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  padding: 10px 9px 14px; min-width: 0;
+}
+.archvow-result .result-heading {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 14px;
+  padding: 12px 14px; border: 1px solid var(--result-divider);
+  border-left-width: 4px; border-radius: 8px;
+  background: var(--result-raised); min-width: 0;
+}
+.archvow-result .result-heading-icon {
+  flex: 0 0 auto; display: grid; place-items: center; width: 38px; height: 38px;
+  border: 1px solid currentColor; border-radius: 8px;
+  background: var(--result-surface); font-size: 1.25em;
+}
+.archvow-result .result-heading-copy { min-width: 0; }
+.archvow-result .result-heading-eyebrow {
+  display: block; color: var(--vscode-descriptionForeground);
+  font-size: .69em; letter-spacing: .10em; font-weight: 650; margin-bottom: 3px;
+}
+.archvow-result .result-heading h3 { font-size: 1.12em; line-height: 1.35; margin: 0; overflow-wrap: anywhere; }
+.archvow-result .result-chips { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 0 0 16px; }
+.archvow-result .result-chip {
+  display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px;
+  border-radius: 7px; font-size: .94em; font-weight: 700;
+  border: 1px solid var(--result-divider); background: var(--result-raised); margin: 0;
+}
+.archvow-result .result-chip-marker { font-size: .8em; }
+.archvow-result .result-section {
+  font-size: 1em; font-weight: 700; padding: 8px 0; margin: 12px 0 7px;
+  border-bottom: 1px solid var(--result-divider);
+}
+.archvow-result .card.result-entry {
+  margin: 9px 0; padding: 13px 15px; min-width: 0;
+  border: 1px solid var(--result-divider); border-left-width: 5px;
+  border-radius: 8px; background: var(--result-raised);
+  box-shadow: 0 2px 5px rgba(0,0,0,.08);
+}
+.archvow-result .result-entry-head { display: flex; align-items: center; gap: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+.archvow-result .result-entry-indicator { flex: none; font-size: 1em; }
+.archvow-result .result-entry-head .card-title { font-weight: 700; min-width: 0; color: var(--vscode-foreground); font-size: 1em; }
+.archvow-result .result-entry-description { margin: 6px 0 0 22px; line-height: 1.5; overflow-wrap: anywhere; }
+.archvow-result .result-entry-details { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 9px 0 0 22px; }
+.archvow-result .result-detail {
+  display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap;
+  padding: 3px 0; margin: 0; min-width: 0; line-height: 1.4; font-size: .93em;
+  overflow-wrap: anywhere; border: 0;
+}
+.archvow-result .result-detail .key { color: var(--vscode-descriptionForeground); font-size: .93em; }
+.archvow-result .result-detail-value { font-weight: 600; }
+.archvow-result .result-entry .check-files-marker, .archvow-result .result-entry .file-row { margin: 8px 0 0 22px; }
+.archvow-result .result-paragraph { line-height: 1.55; margin: 9px 0; overflow-wrap: anywhere; }
+.archvow-result .result-console { overflow: hidden; border: 1px solid var(--result-divider); border-radius: 7px; margin: 10px 0;
+  background: var(--vscode-terminal-background, var(--result-surface)); }
+.archvow-result .result-console-heading { padding: 7px 12px; border-bottom: 1px solid var(--result-divider);
+  color: var(--vscode-descriptionForeground); font-weight: 700; font-size: .87em; }
+.archvow-result .result-console pre { margin: 0; padding: 12px; max-width: 100%; overflow: auto;
+  white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--vscode-editor-font-family, monospace); }
+.archvow-result .result-footnote {
+  margin-top: 16px; padding: 10px 12px; background: var(--result-raised);
+  border: 1px solid var(--result-divider); border-radius: 6px;
+  font-size: .86em; color: var(--vscode-descriptionForeground);
+}
+.archvow-result pre { max-width: 100%; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .archvow-result .card.result-entry { padding: 10px; }
+  .archvow-result .result-entry-details, .archvow-result .result-entry-description { margin-left: 0; }
+  .archvow-result .result-chip { padding: 6px 8px; }
+}
+
 /* result fragments (formatter) */
 .chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
 .card .card-title { font-weight: 600; } .card-body .field { display: block; }

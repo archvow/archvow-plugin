@@ -18,16 +18,26 @@ type Tone = 'good' | 'bad' | 'warn' | 'blue';
 
 class Out {
   html = '';
-  heading(title: string, tone: Tone): void { this.html += `<h3 class="tone-${tone}">${esc(title)}</h3>`; }
-  section(label: string): void { this.html += `<h4>${esc(label)}</h4>`; }
-  chips(chips: [string, Tone][]): void {
-    this.html += '<div class="chips">' + chips.map(([t, tone]) => `<span class="chip tone-${tone}">${esc(t)}</span>`).join('') + '</div>';
+  heading(title: string, tone: Tone): void {
+    this.html += `<div class="result-heading tone-border-${tone}"><span class="result-heading-icon tone-${tone}" aria-hidden="true">◆</span>`
+      + `<div class="result-heading-copy"><span class="result-heading-eyebrow">ARCHVOW · RESULT</span>`
+      + `<h3 class="tone-${tone}">${esc(title)}</h3></div></div>`;
   }
-  paragraph(text: string, tone?: Tone | 'muted'): void { this.html += `<p class="${tone ? 'tone-' + tone : ''}">${esc(text)}</p>`; }
+  section(label: string): void { this.html += `<h4 class="result-section">${esc(label)}</h4>`; }
+  chips(chips: [string, Tone][]): void {
+    this.html += '<div class="chips result-chips">' + chips.map(([t, tone]) =>
+      `<span class="result-chip tone-${tone}"><span class="result-chip-marker" aria-hidden="true">●</span>${esc(t)}</span>`).join('') + '</div>';
+  }
+  paragraph(text: string, tone?: Tone | 'muted'): void {
+    this.html += `<p class="result-paragraph ${tone ? 'tone-' + tone : ''}">${esc(text)}</p>`;
+  }
   card(title: string, body: string, tone: Tone, fields: [string, string][] = [], extraHtml = ''): void {
-    this.html += `<div class="card tone-border-${tone}"><div class="card-title">${esc(title)}</div>`
-      + (body ? `<div class="card-body">${esc(body)}</div>` : '')
-      + fields.map(([k, v]) => `<div class="field"><span class="key">${esc(k)}</span> ${esc(v)}</div>`).join('')
+    this.html += `<div class="card result-entry tone-border-${tone}">`
+      + `<div class="result-entry-head"><span class="result-entry-indicator tone-${tone}" aria-hidden="true">●</span>`
+      + `<div class="card-title">${esc(title)}</div></div>`
+      + (body ? `<div class="result-entry-description">${esc(body)}</div>` : '')
+      + (fields.length ? '<div class="result-entry-details">' + fields.map(([k, v]) =>
+        `<div class="field result-detail"><span class="key">${esc(k)}</span><span class="result-detail-value">${esc(v)}</span></div>`).join('') + '</div>' : '')
       + extraHtml + '</div>';
   }
   more(count: number, fr: boolean): void {
@@ -125,13 +135,13 @@ export function renderResult(label: string, exitCode: number, stdout: string, st
       const tip = advice(all, fr);
       if (tip) out.paragraph(tip, 'bad');
       if (parsed !== null && typeof parsed === 'object') generic(out, parsed, fr);
-      else if (raw) out.html += `<pre>${esc(cut(raw, 16000))}</pre>`;
+      else if (raw) out.html += `<div class="result-console"><div class="result-console-heading">${esc(tr(fr, 'Output', 'Sortie'))}</div><pre>${esc(cut(raw, 16000))}</pre></div>`;
     }
   }
-  if (stderr.trim()) out.html += `<pre class="stderr">${esc(cut(stderr.trim(), 16000))}</pre>`;
-  out.paragraph(tr(fr, 'Exit code: ', 'Code retour : ') + exitCode + ' · '
-    + tr(fr, "Original output available via 'Raw output'", 'Sortie originale accessible via « Sortie brute »'), 'muted');
-  return out.html;
+  if (stderr.trim()) out.html += `<div class="result-console"><div class="result-console-heading tone-bad">stderr</div><pre class="stderr">${esc(cut(stderr.trim(), 16000))}</pre></div>`;
+  out.html += `<footer class="result-footnote">${esc(tr(fr, 'Exit code: ', 'Code retour : ') + exitCode + ' · '
+    + tr(fr, "Original output available via 'Raw output'", 'Sortie originale accessible via « Sortie brute »'))}</footer>`;
+  return `<div class="archvow-result">${out.html}</div>`;
 }
 
 function isObject(v: unknown): v is Json {
