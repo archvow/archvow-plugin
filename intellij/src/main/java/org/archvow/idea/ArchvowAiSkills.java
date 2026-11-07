@@ -166,23 +166,73 @@ final class ArchvowAiSkills {
 
     private static final Pattern HOLE = Pattern.compile("\\{(\\w+)}");
 
-    /** The request sent to the assistant: the tool's own form (a slash command) or the sentence. */
+    /** A self-contained handoff for any assistant, including one without Archvow slash commands. */
     static String request(JsonObject skills, String skill, String tool, Map<String, String> values, boolean french) {
-        JsonObject all = skills == null ? null : skills.getAsJsonObject("skills");
-        JsonObject def = all == null || !all.has(skill) ? null : all.getAsJsonObject(skill);
-        JsonObject req = def == null || !def.has("request") ? new JsonObject() : def.getAsJsonObject("request");
-        String own = s(req, tool);
-        String fallback = "";
-        JsonElement d = req.get("default");
-        if (d != null && d.isJsonArray() && d.getAsJsonArray().size() > 0) {
-            JsonArray pair = d.getAsJsonArray();
-            fallback = pair.get(french && pair.size() > 1 ? 1 : 0).getAsString();
-        } else if (d != null && d.isJsonPrimitive()) fallback = d.getAsString();
-        Matcher m = HOLE.matcher(own.isEmpty() ? fallback : own);
+        JsonObject def = skillDefinition(skills, skill);
+        String targetName = "brief".equals(s(def, "target")) ? "brief" : "component";
+        String target = values.getOrDefault(targetName, "").trim();
+        StringBuilder text = new StringBuilder();
+        if (french) {
+            text.append("Tâche Archvow : ").append(pair(def, "label", true))
+                .append("\nSkill, s'il est installé : archvow-").append(skill)
+                .append("\nRépertoire de travail : le projet actuellement ouvert dans l'IDE")
+                .append("\n").append("brief".equals(targetName) ? "Brief / section : " : "Composant : ")
+                .append(target);
+            if ("clarify".equals(skill)) text.append("\nNombre maximum de questions : ").append(values.getOrDefault("max", "5"));
+            text.append("\n\nObjectif : ").append(pair(def, "does", true))
+                .append("\nÀ lire : ").append(pair(def, "reads", true))
+                .append("\nModifications ou propositions possibles : ").append(pair(def, "may_add", true))
+                .append("\nValidation humaine : ").append(pair(def, "you", true))
+                .append("\n\nConsignes :\n")
+                .append("1. Lis le brief ou composant ciblé dans le dépôt, ainsi que les spécifications Archvow et les instructions locales pertinentes. Si le chemin contient #, utilise cette section précise.\n")
+                .append("2. Si le skill archvow-").append(skill).append(" est disponible, utilise-le. Sinon, réalise l'objectif décrit, sans inventer de commande Archvow.\n")
+                .append("3. Respecte le mode Archvow du projet et les validations humaines ; ne présente jamais une proposition comme acceptée.\n")
+                .append("4. Si tu ne peux pas lire les fichiers du projet, demande leur contenu avant de travailler ; un chemin seul n'est pas leur contenu.\n")
+                .append("5. Résume les changements, propositions et points restant à valider.");
+        } else {
+            text.append("Archvow task: ").append(pair(def, "label", false))
+                .append("\nSkill, if installed: archvow-").append(skill)
+                .append("\nWorkspace: the project currently open in the IDE")
+                .append("\n").append("brief".equals(targetName) ? "Brief / section: " : "Component: ")
+                .append(target);
+            if ("clarify".equals(skill)) text.append("\nMaximum questions: ").append(values.getOrDefault("max", "5"));
+            text.append("\n\nGoal: ").append(pair(def, "does", false))
+                .append("\nRead first: ").append(pair(def, "reads", false))
+                .append("\nYou may add or propose: ").append(pair(def, "may_add", false))
+                .append("\nHuman approval: ").append(pair(def, "you", false))
+                .append("\n\nInstructions:\n")
+                .append("1. Read the targeted brief or component in this repository, the Archvow specs and relevant local instructions. If the path includes #, use that specific section.\n")
+                .append("2. If the archvow-").append(skill).append(" skill is installed, use it. Otherwise perform the described goal without inventing Archvow commands.\n")
+                .append("3. Respect the project's Archvow mode and human approval gates; do not treat a proposal as accepted.\n")
+                .append("4. If you cannot access the project files, ask me for their contents before acting; the path alone is not the document.\n")
+                .append("5. Summarize changes, proposals and items requiring human review.");
+        }
+        return text.toString();
+    }
+
+    /** Optional shorthand only for agents with this project's installed slash-command skill. */
+    static String skillCommand(JsonObject skills, String skill, String tool, Map<String, String> values) {
+        JsonObject def = skillDefinition(skills, skill);
+        JsonObject req = def == null || !def.has("request") ? null : def.getAsJsonObject("request");
+        String raw = s(req, tool);
+        if (raw.isEmpty()) return "";
+        Matcher m = HOLE.matcher(raw);
         StringBuilder out = new StringBuilder();
         while (m.find()) m.appendReplacement(out, Matcher.quoteReplacement(values.getOrDefault(m.group(1), "")));
         m.appendTail(out);
         return out.toString();
+    }
+
+    private static JsonObject skillDefinition(JsonObject skills, String skill) {
+        JsonObject all = skills == null ? null : skills.getAsJsonObject("skills");
+        return all == null || !all.has(skill) ? null : all.getAsJsonObject(skill);
+    }
+
+    private static String pair(JsonObject def, String key, boolean french) {
+        JsonElement value = def == null ? null : def.get(key);
+        if (value == null || !value.isJsonArray() || value.getAsJsonArray().size() == 0) return "";
+        JsonArray words = value.getAsJsonArray();
+        return words.get(french && words.size() > 1 ? 1 : 0).getAsString();
     }
 
     // ------------------------------------------------------------------ the shape both plugins compare

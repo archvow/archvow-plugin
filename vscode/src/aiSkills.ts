@@ -142,11 +142,51 @@ function suggest(view: Json, ai: AiView, launched: string[], decisions: number):
     reason: ['Nothing is open: the AI can write the code and the tests.', "Rien n'est ouvert : l'IA peut écrire le code et les tests."] };
 }
 
-/** The request sent to the assistant: the tool's own form (a slash command) or the sentence. */
-export function request(skills: Json, skill: string, tool: string, values: Record<string, string>, fr: boolean): string {
+/** Clear, actionable handoff for any AI, not merely an agent-specific slash command plus a path. */
+export function request(skills: Json, skill: string, _tool: string, values: Record<string, string>, fr: boolean): string {
+  const def = ((skills.skills ?? {}) as Json)[skill] as Json | undefined;
+  const wording = (key: string): string => {
+    const value = def?.[key];
+    return Array.isArray(value) ? String(value[fr && value.length > 1 ? 1 : 0] ?? '') : '';
+  };
+  const isBrief = def?.target === 'brief';
+  const target = String(values[isBrief ? 'brief' : 'component'] ?? '').trim();
+  if (fr) return [
+    `Tâche Archvow : ${wording('label')}`,
+    `Skill, s'il est installé : archvow-${skill}`,
+    `Répertoire de travail : le projet actuellement ouvert dans l'IDE`,
+    `${isBrief ? 'Brief / section' : 'Composant'} : ${target}`,
+    ...(skill === 'clarify' ? [`Nombre maximum de questions : ${values.max ?? '5'}`] : []),
+    '', `Objectif : ${wording('does')}`, `À lire : ${wording('reads')}`,
+    `Modifications ou propositions possibles : ${wording('may_add')}`,
+    `Validation humaine : ${wording('you')}`,
+    '', 'Consignes :',
+    '1. Lis le brief ou composant ciblé dans le dépôt, ainsi que les spécifications Archvow et les instructions locales pertinentes. Si le chemin contient #, utilise cette section précise.',
+    `2. Si le skill archvow-${skill} est disponible, utilise-le. Sinon, réalise l'objectif décrit, sans inventer de commande Archvow.`,
+    '3. Respecte le mode Archvow du projet et les validations humaines ; ne présente jamais une proposition comme acceptée.',
+    "4. Si tu ne peux pas lire les fichiers du projet, demande leur contenu avant de travailler ; un chemin seul n'est pas leur contenu.",
+    '5. Résume les changements, propositions et points restant à valider.',
+  ].join('\n');
+  return [
+    `Archvow task: ${wording('label')}`, `Skill, if installed: archvow-${skill}`,
+    'Workspace: the project currently open in the IDE',
+    `${isBrief ? 'Brief / section' : 'Component'}: ${target}`,
+    ...(skill === 'clarify' ? [`Maximum questions: ${values.max ?? '5'}`] : []),
+    '', `Goal: ${wording('does')}`, `Read first: ${wording('reads')}`,
+    `You may add or propose: ${wording('may_add')}`, `Human approval: ${wording('you')}`,
+    '', 'Instructions:',
+    '1. Read the targeted brief or component in this repository, the Archvow specs and relevant local instructions. If the path includes #, use that specific section.',
+    `2. If the archvow-${skill} skill is installed, use it. Otherwise perform the described goal without inventing Archvow commands.`,
+    "3. Respect the project's Archvow mode and human approval gates; do not treat a proposal as accepted.",
+    '4. If you cannot access the project files, ask me for their contents before acting; the path alone is not the document.',
+    '5. Summarize changes, proposals and items requiring human review.',
+  ].join('\n');
+}
+
+/** An optional shorthand for agents that actually have the named skill installed. */
+export function skillCommand(skills: Json, skill: string, tool: string, values: Record<string, string>): string {
   const def = ((skills.skills ?? {}) as Json)[skill] as Json | undefined;
   const req = (def?.request ?? {}) as Json;
   const own = s(req[tool]);
-  const fallback = Array.isArray(req.default) ? String(req.default[fr ? 1 : 0] ?? req.default[0] ?? '') : s(req.default);
-  return (own || fallback).replace(/\{(\w+)\}/g, (_, k: string) => values[k] ?? '');
+  return own.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? '');
 }

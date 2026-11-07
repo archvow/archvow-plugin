@@ -12,7 +12,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ArchvowCli, CliResult, CliSettings } from './cli';
-import { aiView, AiView, request } from './aiSkills';
+import { aiView, AiView, request, skillCommand } from './aiSkills';
 import { Briefs, locate, readBriefs } from './briefs';
 import { bestBase, Book, choiceBook, missingRef, refKinds, refNames } from './choices';
 import { renderResult } from './formatter';
@@ -782,7 +782,7 @@ export class ArchvowProject {
         this.toEditor({ type: 'skill', skill: String(m.skill), values: (m.values ?? {}) as Record<string, string> });
         return;
       case 'askAi':
-        return this.askAi(String(m.skill), String(m.tool ?? ''), (m.values ?? {}) as Record<string, string>, m.send === true);
+        return this.askAi(String(m.skill), String(m.tool ?? ''), (m.values ?? {}) as Record<string, string>, m.send === true, String(m.format ?? 'instructions'));
       case 'copy':
         await vscode.env.clipboard.writeText(String(m.text ?? ''));
         void vscode.window.showInformationMessage(tr(fr, 'Copied.', 'Copié.'));
@@ -811,9 +811,10 @@ export class ArchvowProject {
    * the suggestion moves on. archvow is never run here: the assistant runs it, and what it adds comes back
    * marked as the AI's (archvow 1.20) at the next refresh.
    */
-  private async askAi(skill: string, tool: string, values: Record<string, string>, send: boolean): Promise<void> {
+  private async askAi(skill: string, tool: string, values: Record<string, string>, send: boolean, format: string): Promise<void> {
     const fr = this.state.fr;
-    const text = request((this.forms.ai_skills ?? {}) as Json, skill, tool, values, fr);
+    const definitions = (this.forms.ai_skills ?? {}) as Json;
+    const text = format === 'skill' ? skillCommand(definitions, skill, tool, values) : request(definitions, skill, tool, values, fr);
     if (!text) return;
     const component = values.component ?? '';
     if (component) {
@@ -833,8 +834,9 @@ export class ArchvowProject {
       }
     }
     await vscode.env.clipboard.writeText(text);
-    void vscode.window.showInformationMessage(tr(fr, `Request copied: paste it in ${tool || 'your AI assistant'}.`,
-      `Demande copiée : colle-la dans ${tool || 'ton assistant IA'}.`));
+    void vscode.window.showInformationMessage(format === 'skill'
+      ? tr(fr, 'Skill command copied (requires the installed Archvow skill).', 'Commande du skill copiée (nécessite le skill Archvow installé).')
+      : tr(fr, 'Instructions copied: paste them into your AI assistant.', 'Consignes copiées : colle-les dans ton assistant IA.'));
   }
 
   /** Check from the sidebar's title bar or the command palette: the result in the editor tab, the checks in Overview. */

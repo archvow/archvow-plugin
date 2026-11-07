@@ -259,3 +259,17 @@ test('Overview Open Checks runs the same full check as the toolbar, not the gene
   assert.match(page, /const listPart = `<ul class="list check-list"/);
   assert.match(page, /checks-full">\$\{title\}\$\{totals\}\$\{listPart\}/);
 });
+
+test('AI skill handoff: readable instructions, generic copy action and optional agent shortcut', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
+  assert.match(page, /function skillRequest\(id, v\)/);
+  assert.match(page, /If you cannot access the project files/);
+  assert.match(page, /Brief \/ section/);
+  assert.match(page, /t\('Copy instructions', 'Copier les consignes'\)/);
+  assert.match(page, /t\('Copy skill command', 'Copier la commande skill'\)/);
+  assert.match(page, /t\('Open in Copilot Chat', 'Ouvrir dans Copilot Chat'\)/);
+  assert.doesNotMatch(page, /'Copy for '/);
+  assert.match(host, /format === 'skill' \? skillCommand\(/);
+  assert.match(css, /\.skill-form \.form-actions \{ flex-wrap: wrap; \}/);
+  assert.match(css, /max-height: 220px; overflow: auto/);
+});

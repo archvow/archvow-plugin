@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,13 +21,14 @@ import java.util.function.Function;
  * type into an AI chat), which runs archvow; what it adds comes back marked as the AI's. Plain Swing and JSON,
  * tested headless ({@code SkillFormRegression}).
  */
-final class ArchvowSkillForm extends JPanel {
+final class ArchvowSkillForm extends JPanel implements Scrollable {
     /** What the person chose: the request's text and the values it was made of. */
     interface Send { void send(String request, Map<String, String> values); }
 
     final Map<String, String> values = new LinkedHashMap<>();
     final JTextArea request = new JTextArea(3, 30);
     final JButton copy;
+    final JButton copySkill;
     final JButton cancel;
     private final JsonObject skills;
     private final String skill;
@@ -85,7 +88,7 @@ final class ArchvowSkillForm extends JPanel {
         }
         ArchvowSegmented tool = new ArchvowSegmented(toolList, values.get("tool"), true);
         tool.onChange(() -> { values.put("tool", tool.value()); update(); });
-        field(left, french ? "Envoyer à" : "Send to", tool);
+        field(left, french ? "Assistant IA (optionnel)" : "AI assistant (optional)", tool);
 
         JPanel right = new JPanel(new BorderLayout());
         right.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(128, 128, 128, 90)),
@@ -101,8 +104,8 @@ final class ArchvowSkillForm extends JPanel {
         explanation.setName("archvow.skill.explanation");
         explanation.add(what);
         explanation.add(Box.createVerticalStrut(8));
-        explanation.add(wrap((french ? "1. La demande est copiée : colle-la dans ton assistant IA (" : "1. The request is copied: paste it in your AI assistant (")
-            + values.get("tool") + ")."));
+        explanation.add(wrap(french ? "1. Copie les consignes complètes et colle-les dans ton assistant IA (ou utilise un skill installé)."
+            : "1. Copy the complete instructions and paste them into your AI assistant (or use an installed skill)."));
         explanation.add(wrap("2. " + pair(def, "reads")));
         explanation.add(wrap("3. " + (french ? "L'IA peut : " : "The AI can: ") + pair(def, "may_add")));
         explanation.add(wrap("4. " + (french ? "Toi, tu : " : "You still: ") + pair(def, "you")));
@@ -113,30 +116,100 @@ final class ArchvowSkillForm extends JPanel {
         JPanel bottom = new JPanel(new BorderLayout(0, 3));
         bottom.setOpaque(false);
         bottom.setAlignmentX(Component.LEFT_ALIGNMENT);
-        bottom.add(new JLabel(french ? "Envoyé à l'IA" : "Sent to the AI"), BorderLayout.NORTH);
+        bottom.add(new JLabel(french ? "Consignes à copier (pour toute IA)" : "Instructions to copy (for any AI)"), BorderLayout.NORTH);
         request.setEditable(false);
         request.setLineWrap(true);
         request.setWrapStyleWord(true);
         request.setFont(new Font(Font.MONOSPACED, Font.PLAIN, request.getFont().getSize()));
-        bottom.add(request, BorderLayout.CENTER);
+        request.setRows(7);
+        request.setColumns(22);
+        JScrollPane requestScroll = new JScrollPane(request);
+        requestScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        requestScroll.setPreferredSize(new Dimension(220, 132));
+        bottom.add(requestScroll, BorderLayout.CENTER);
         explanation.add(bottom);
         right.add(explanation, BorderLayout.CENTER);
 
-        JPanel body = new JPanel(new GridLayout(1, 2, 16, 0));
+        JPanel body = new JPanel(new GridLayout(1, 2, 12, 0));
+        body.setName("archvow.skill.body");
         body.add(left);
         body.add(right);
+        left.setAlignmentX(Component.LEFT_ALIGNMENT);
+        right.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // A narrow editor stacks the controls above the explanation rather than
+        // shrinking both columns until labels and controls are cut off.
+        body.addComponentListener(new ComponentAdapter() {
+            private boolean stacked;
+            @Override public void componentResized(ComponentEvent e) {
+                boolean narrow = body.getWidth() < 680;
+                if (narrow == stacked) return;
+                stacked = narrow;
+                if (narrow) {
+                    // BoxLayout uses each row's natural height. GridLayout(2,1)
+                    // would force the short controls to be as tall as the explanation.
+                    left.setMaximumSize(new Dimension(Integer.MAX_VALUE, left.getPreferredSize().height));
+                    right.setMaximumSize(new Dimension(Integer.MAX_VALUE, right.getPreferredSize().height));
+                    body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+                } else body.setLayout(new GridLayout(1, 2, 12, 0));
+                body.revalidate();
+            }
+        });
         add(body, BorderLayout.CENTER);
 
         cancel = new JButton(french ? "Annuler" : "Cancel");
         cancel.addActionListener(e -> onCancel.run());
-        copy = ArchvowSplitView.primary(french ? "Copier la demande" : "Copy request");
+        copy = ArchvowSplitView.primary(french ? "Copier les consignes" : "Copy instructions");
         copy.addActionListener(e -> onSend.send(request.getText(), Map.copyOf(values)));
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        copySkill = new JButton(french ? "Copier la commande skill" : "Copy skill command");
+        copySkill.setToolTipText(french ? "Seulement si l'assistant possède le skill Archvow installé"
+            : "Only for an assistant with the Archvow skill installed");
+        copySkill.addActionListener(e -> onSend.send(ArchvowAiSkills.skillCommand(skills, skill,
+            values.getOrDefault("tool", ""), values), Map.copyOf(values)));
+        JPanel buttons = new JPanel(new WrapActionLayout());
+        buttons.setName("archvow.skill.actions");
+        buttons.addComponentListener(new ComponentAdapter() {
+            @Override public void componentResized(ComponentEvent e) { buttons.revalidate(); }
+        });
         buttons.add(cancel);
+        buttons.add(copySkill);
         buttons.add(copy);
         add(buttons, BorderLayout.SOUTH);
         update();
     }
+
+    /** FlowLayout normally reports one row even when it has wrapped. Reserve the true height. */
+    private static final class WrapActionLayout extends FlowLayout {
+        WrapActionLayout() { super(FlowLayout.RIGHT, 8, 4); }
+        @Override public Dimension preferredLayoutSize(Container target) {
+            Dimension single = super.preferredLayoutSize(target);
+            int available = target.getWidth() - target.getInsets().left - target.getInsets().right;
+            if (available <= 0) return single;
+            int x = 0, rows = 1, rowHeight = 0, height = 0;
+            for (Component component : target.getComponents()) {
+                if (!component.isVisible()) continue;
+                Dimension d = component.getPreferredSize();
+                int extra = x == 0 ? 0 : getHgap();
+                if (x > 0 && x + extra + d.width > available) {
+                    height += rowHeight + getVgap();
+                    rows++;
+                    x = 0;
+                    rowHeight = 0;
+                    extra = 0;
+                }
+                x += extra + d.width;
+                rowHeight = Math.max(rowHeight, d.height);
+            }
+            height += rowHeight + 2 * getVgap();
+            return new Dimension(single.width, Math.max(single.height, height + target.getInsets().top + target.getInsets().bottom));
+        }
+    }
+
+    /** The viewport controls width, so the editor never needs horizontal scrolling. */
+    @Override public Dimension getPreferredScrollableViewportSize() { return new Dimension(740, 520); }
+    @Override public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) { return 16; }
+    @Override public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) { return 100; }
+    @Override public boolean getScrollableTracksViewportWidth() { return true; }
+    @Override public boolean getScrollableTracksViewportHeight() { return false; }
 
     /**
      * Layout that measures wrapped instructions at the actual editor width. Unlike
@@ -186,6 +259,9 @@ final class ArchvowSkillForm extends JPanel {
         blocked.setText(reason == null ? "" : reason[french ? 1 : 0]);
         blocked.setVisible(reason != null);
         copy.setEnabled(ready);
+        String shorthand = ArchvowAiSkills.skillCommand(skills, skill, values.getOrDefault("tool", ""), values);
+        copySkill.setVisible(!shorthand.isBlank());
+        copySkill.setEnabled(ready && !shorthand.isBlank());
     }
 
     static JsonObject def(JsonObject skills, String skill) {

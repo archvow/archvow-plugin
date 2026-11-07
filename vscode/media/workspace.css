@@ -417,7 +417,7 @@ ol.steps { padding-left: 18px; margin: 8px 0; } ol.steps li { margin: 4px 0; }
 .what .box { border: 1px solid var(--vscode-panel-border, #8884); border-radius: 6px; padding: 7px 9px; }
 .tone-blue { color: var(--ai); }
 pre.request { white-space: pre-wrap; margin: 4px 0 0; padding: 8px 10px; border-radius: 5px;
-  background: var(--vscode-textCodeBlock-background, #0002); font-family: var(--vscode-editor-font-family); }
+  background: var(--vscode-textCodeBlock-background, #0002); font-family: var(--vscode-editor-font-family); max-height: 220px; overflow: auto; overflow-wrap: anywhere; }
 .form-actions { gap: 8px; margin-top: 12px; border-top: 1px solid var(--vscode-panel-border, #8884); padding-top: 10px; }
 .ai-group .ai-note { margin: 2px 0 4px 22px; }
 .ai-group li .node { display: flex; justify-content: space-between; gap: 8px; }
@@ -649,3 +649,7 @@ button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--v
   border-color: var(--vscode-focusBorder, #7da6e8);
   background: var(--vscode-list-hoverBackground, rgba(127,127,127,.08));
 }
+
+/* AI handoff: actions can wrap without clipping at narrow editor widths. */
+.skill-form .form-actions { flex-wrap: wrap; }
+.skill-form .form-actions button { white-space: nowrap; }

@@ -6117,18 +6117,17 @@ final class ArchvowPanel extends JPanel {
                 recordLaunched(chosen.get("component"), skill);
                 if (selectedView != null) renderComponent(selectedView);
                 message(ArchvowI18n.text(project,
-                    "Request copied: paste it in " + chosen.getOrDefault("tool", "your AI assistant") + ". What it adds comes back marked AI and To review.",
-                    "Demande copiée : colle-la dans " + chosen.getOrDefault("tool", "ton assistant IA") + ". Ce qu'elle ajoute revient marqué IA et À relire."));
+                    "Copied: paste it into your AI assistant. The AI's proposals still require your review.",
+                    "Copié : colle le texte dans ton assistant IA. Ses propositions restent soumises à ta validation."));
             }, () -> {
                 showDetailHome("result");
                 afterSelectionChange();
             });
-        // Embedded dialog card: the editor has room for the full form and stays reusable.
-        JPanel sheet = new JPanel(new BorderLayout());
-        sheet.setBorder(BorderFactory.createLineBorder(borderColor(), 1, true));
-        sheet.add(form, BorderLayout.CENTER);
-        JScrollPane scroll = new JScrollPane(sheet);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
+        // A scrollable form tracks the editor width instead of keeping a large
+        // preferred width that cuts off the right-hand actions and prompt text.
+        JScrollPane scroll = new JScrollPane(form);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setBorder(BorderFactory.createLineBorder(borderColor(), 1, true));
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         skillDetails.removeAll();
         skillDetails.add(scroll, BorderLayout.CENTER);

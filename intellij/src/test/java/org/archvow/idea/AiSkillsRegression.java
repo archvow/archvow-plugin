@@ -50,12 +50,20 @@ public final class AiSkillsRegression {
         List<String> order = new ArrayList<>();
         skills.getAsJsonArray("order").forEach(e -> order.add(e.getAsString()));
         check(order.equals(ArchvowAiSkills.SKILLS), "the five skills, in the order of the work");
-        check(ArchvowAiSkills.request(skills, "clarify", "claude-code", Map.of("component", "clean_orders", "max", "3"), false)
-            .equals("/archvow-clarify clean_orders (at most 3 questions)"), "Claude Code: the slash command");
+        String instructions = ArchvowAiSkills.request(skills, "clarify", "claude-code",
+            Map.of("component", "clean_orders", "max", "3"), false);
+        check(instructions.contains("Component: clean_orders") && instructions.contains("Maximum questions: 3")
+            && instructions.contains("Human approval:") && instructions.contains("If you cannot access the project files"),
+            "complete AI instructions: " + instructions);
+        check(ArchvowAiSkills.skillCommand(skills, "clarify", "claude-code",
+            Map.of("component", "clean_orders", "max", "3")).equals("/archvow-clarify clean_orders (at most 3 questions)"),
+            "native shorthand retained");
+        check(ArchvowAiSkills.skillCommand(skills, "analyze", "copilot", Map.of("component", "clean_orders")).isBlank(),
+            "other AI tools must not receive a Claude slash command");
         check(ArchvowAiSkills.request(skills, "analyze", "copilot", Map.of("component", "clean_orders"), true)
-            .equals("Utilise le skill archvow-analyze : analyse les risques de clean_orders"), "the sentence, in French");
+            .contains("Validation humaine"), "full instructions in French");
         check(ArchvowAiSkills.request(skills, "draft-spec", "cursor", Map.of("brief", "briefs/orders.md#pricing"), false)
-            .equals("Use the archvow-draft-spec skill: draft the spec from briefs/orders.md#pricing"), "a brief section");
+            .contains("Brief / section: briefs/orders.md#pricing"), "a brief section must be explicit");
         System.out.println("AiSkillsRegression: OK");
     }
 }

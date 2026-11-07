@@ -907,15 +907,16 @@
       if (!v.component && ids.length) v.component = ids[0];
     }
     if (def.max) controls.push(field('max', t('At most', 'Au plus'), `<span class="segmented">${['3', '5', '10'].map((n) => `<button class="${v.max === n ? 'on' : 'secondary'}" data-a="skillValue" data-name="max" data-value="${n}">${n}</button>`).join('')}</span><div class="muted small">${esc(t('The riskiest first. Fewer questions get read.', 'Les plus risquées d\'abord. Moins de questions, mieux lues.'))}</div>`));
-    controls.push(field('tool', t('Send to', 'Envoyer à'), `<span class="segmented">${tools.map((x) => `<button class="${v.tool === x ? 'on' : 'secondary'}" data-a="skillValue" data-name="tool" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</span><div class="muted small">${esc(t("Your project's AI tools (init answer ai_tools).", "Les outils IA du projet (réponse d'init ai_tools)."))}</div>`));
+    controls.push(field('tool', t('AI assistant (optional)', 'Assistant IA (optionnel)'), `<span class="segmented">${tools.map((x) => `<button class="${v.tool === x ? 'on' : 'secondary'}" data-a="skillValue" data-name="tool" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</span><div class="muted small">${esc(t("Choose an integration; Copy instructions works with any AI that can read the project.", "Choisis une intégration ; Copier les consignes fonctionne avec toute IA ayant accès au projet."))}</div>`));
     const ai = aiOf(v.component);
     const blocked = def.target !== 'brief' && ai && ai.blocked && ai.blocked[id];
     const ready = def.target === 'brief' ? !!(v.brief || '').trim() : !!v.component;
     const text = skillRequest(id, v);
     const chat = v.tool === 'copilot';
+    const shortcut = skillCommand(id, v);
     const steps = [
-      chat ? t('Copilot Chat opens with the request below already typed. You press Enter.', 'Copilot Chat s\'ouvre avec la demande ci-dessous déjà tapée. Tu appuies sur Entrée.')
-        : t(`The request is copied: paste it in ${v.tool}.`, `La demande est copiée : colle-la dans ${v.tool}.`),
+      chat ? t('You can copy the full instructions or open Copilot Chat with them already typed.', 'Tu peux copier les consignes complètes ou ouvrir Copilot Chat avec celles-ci préremplies.')
+        : t('Copy the full instructions and paste them into an AI assistant with access to the project.', 'Copie les consignes complètes et colle-les dans un assistant IA ayant accès au projet.'),
       pair(def.reads), pair(def.may_add),
       t('What it adds appears in the component\'s tabs, marked AI and To review, for you to keep, change or remove.',
         'Ce qu\'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire, pour que tu le gardes, le changes ou le retires.')];
@@ -923,21 +924,60 @@
   <ol class="steps">${steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
   <div class="two"><div class="box"><b class="tone-blue">${esc(t('The AI can', "L'IA peut"))}</b><div class="small">${esc(pair(def.may_add))}</div></div>
   <div class="box"><b class="tone-good">${esc(t('You still', 'Toi, tu'))}</b><div class="small">${esc(pair(def.you))}</div></div></div>
-  <div class="muted small">${esc(t('Sent to the AI', "Envoyé à l'IA"))}</div><pre class="request">${esc(text)}</pre></aside>`;
+  <div class="muted small">${esc(t('Instructions to copy (for any AI)', "Consignes à copier (pour toute IA)"))}</div><pre class="request">${esc(text)}</pre></aside>`;
     return `<div class="skill-form"><h2>${esc(pair(def.label))} <span class="mono small muted">skill: archvow-${esc(id)}</span></h2>
   <p>${esc(pair(def.does))}</p>${blocked ? `<div class="alert warn">${esc(pair(blocked))}</div>` : ''}
   <div class="split"><div class="split-list">${controls.join('')}</div>${right}</div>
-  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'secondary')}${btn(t('Copy request', 'Copier la demande'), 'askAi', attrs({ send: '' }), !ready, 'secondary')}
-  ${btn(chat ? t('Ask Copilot Chat', 'Demander à Copilot Chat') : t('Copy for ', 'Copier pour ') + v.tool, 'askAi', attrs({ send: '1' }), !ready)}</div></div>`;
+  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'secondary')}
+  ${shortcut ? btn(t('Copy skill command', 'Copier la commande skill'), 'askAi', attrs({ send: '0', format: 'skill' }), !ready, 'secondary') : ''}
+  ${chat ? btn(t('Open in Copilot Chat', 'Ouvrir dans Copilot Chat'), 'askAi', attrs({ send: '1', format: 'instructions' }), !ready, 'secondary') : ''}
+  ${btn(t('Copy instructions', 'Copier les consignes'), 'askAi', attrs({ send: '0', format: 'instructions' }), !ready)}</div></div>`;
   }
 
-  /** The request the skill sends (forms.json: the tool's own form, or the sentence) - the extension sends the same. */
+  /** A complete instruction for any agent, including one without an installed slash command. */
   function skillRequest(id, v) {
+    const def = skillDef(id) || {};
+    const wording = (key) => pair(def[key]) || '';
+    const isBrief = def.target === 'brief';
+    const target = String(v[isBrief ? 'brief' : 'component'] || '').trim();
+    if (fr()) return [
+      `Tâche Archvow : ${wording('label')}`,
+      `Skill, s'il est installé : archvow-${id}`,
+      `Répertoire de travail : le projet actuellement ouvert dans l'IDE`,
+      `${isBrief ? 'Brief / section' : 'Composant'} : ${target}`,
+      ...(id === 'clarify' ? [`Nombre maximum de questions : ${v.max || '5'}`] : []),
+      '', `Objectif : ${wording('does')}`, `À lire : ${wording('reads')}`,
+      `Modifications ou propositions possibles : ${wording('may_add')}`,
+      `Validation humaine : ${wording('you')}`,
+      '', 'Consignes :',
+      '1. Lis le brief ou composant ciblé dans le dépôt, ainsi que les spécifications Archvow et les instructions locales pertinentes. Si le chemin contient #, utilise cette section précise.',
+      `2. Si le skill archvow-${id} est disponible, utilise-le. Sinon, réalise l'objectif décrit, sans inventer de commande Archvow.`,
+      '3. Respecte le mode Archvow du projet et les validations humaines ; ne présente jamais une proposition comme acceptée.',
+      "4. Si tu ne peux pas lire les fichiers du projet, demande leur contenu avant de travailler ; un chemin seul n'est pas leur contenu.",
+      '5. Résume les changements, propositions et points restant à valider.',
+    ].join('\n');
+    return [
+      `Archvow task: ${wording('label')}`,
+      `Skill, if installed: archvow-${id}`,
+      'Workspace: the project currently open in the IDE',
+      `${isBrief ? 'Brief / section' : 'Component'}: ${target}`,
+      ...(id === 'clarify' ? [`Maximum questions: ${v.max || '5'}`] : []),
+      '', `Goal: ${wording('does')}`, `Read first: ${wording('reads')}`,
+      `You may add or propose: ${wording('may_add')}`,
+      `Human approval: ${wording('you')}`,
+      '', 'Instructions:',
+      '1. Read the targeted brief or component in this repository, the Archvow specs and relevant local instructions. If the path includes #, use that specific section.',
+      `2. If the archvow-${id} skill is installed, use it. Otherwise perform the described goal without inventing Archvow commands.`,
+      "3. Respect the project's Archvow mode and human approval gates; do not treat a proposal as accepted.",
+      '4. If you cannot access the project files, ask me for their contents before acting; the path alone is not the document.',
+      '5. Summarize changes, proposals and items requiring human review.',
+    ].join('\n');
+  }
+
+  function skillCommand(id, v) {
     const def = skillDef(id);
     const req = (def && def.request) || {};
-    const own = req[v.tool];
-    const text = own || (Array.isArray(req.default) ? (fr() ? req.default[1] : req.default[0]) : String(req.default || ''));
-    return String(text || '').replace(/\{(\w+)\}/g, (_, k) => v[k] || '');
+    return String(req[v.tool] || '').replace(/\{(\w+)\}/g, (_, k) => v[k] || '');
   }
 
   /** "1 open item" next to the component's name (the count the sidebar shows), "✓ resolved" without. */
@@ -2571,7 +2611,7 @@
       ui.skillValues = Object.assign({ max: '5' }, values);
     },
     skillValue: (e) => { ui.skillValues[e.dataset.name] = e.dataset.value; },
-    askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1' }),
+    askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1', format: e.dataset.format || 'instructions' }),
     originFilter: (e) => { ui.originFilter = e.dataset.id; },
     toReview: () => {
       // what the AI added and no person kept yet: the first view that has some, filtered to them
