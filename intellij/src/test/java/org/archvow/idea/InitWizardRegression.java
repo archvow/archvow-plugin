@@ -29,11 +29,25 @@ public final class InitWizardRegression {
             JsonArray families = new JsonArray();
             for (String name : List.of("ARCH", "GDPR", "none")) families.add(new JsonPrimitive(name));
             rules.add("choices", families); questions.add(rules);
+            JsonObject platform = new JsonObject();
+            platform.addProperty("id", "platform");
+            platform.addProperty("ask", true);
+            platform.addProperty("prompt", "CI platform");
+            platform.addProperty("default", "");
+            questions.add(platform);
             pack.add("questions", questions); templates.add(pack); catalog.add("templates", templates);
             StringBuilder templateSelection = new StringBuilder();
             ArchvowInitQuestions wizard = new ArchvowInitQuestions(false,
                 () -> {}, name -> templateSelection.append(name));
+            final int[] changes = {0};
+            wizard.useParentSteps(() -> changes[0]++);
             wizard.setCatalog(catalog, "");
+            if (!wizard.pageNames().equals(List.of("Governance", "CI & quality")))
+                throw new AssertionError("One parent row should own every question group: " + wizard.pageNames());
+            if (!wizard.pageReady(0) || wizard.pageReady(1))
+                throw new AssertionError("Required field completion must distinguish filled vs missing values");
+            wizard.selectParentStep(1);
+            if (changes[0] < 1) throw new AssertionError("Template changes must refresh parent steps");
             if (!templateSelection.toString().equals("python-app")) throw new AssertionError(templateSelection);
             if (!wizard.answers().contains("language=fr")) throw new AssertionError(wizard.answers());
             if (!wizard.answers().contains("rules=ARCH,GDPR")) throw new AssertionError(wizard.answers());

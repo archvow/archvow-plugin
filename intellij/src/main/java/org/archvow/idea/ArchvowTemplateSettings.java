@@ -28,6 +28,10 @@ final class ArchvowTemplateSettings extends JPanel {
     private final boolean french;
     private final JCheckBox advanced = new JCheckBox();
     private final JPanel questions = new JPanel(new GridBagLayout());
+    private final JPanel questionNavigation = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+    private final List<List<JComponent>> questionPages = new ArrayList<>();
+    private int questionPage;
+
     private final Map<String, JComponent> inputs = new LinkedHashMap<>();
     private final Map<String, String> kept = new LinkedHashMap<>();
     private final Map<String, JTextField> layers = new LinkedHashMap<>();
@@ -49,7 +53,10 @@ final class ArchvowTemplateSettings extends JPanel {
         advanced.addActionListener(e -> rebuild());
         head.add(advanced);
         add(head, BorderLayout.NORTH);
-        add(questions, BorderLayout.CENTER);
+        JPanel questionBody = new JPanel(new BorderLayout(0, 5));
+        questionBody.add(questionNavigation, BorderLayout.NORTH);
+        questionBody.add(questions, BorderLayout.CENTER);
+        add(questionBody, BorderLayout.CENTER);
         JPanel folders = new JPanel(new GridBagLayout());
         folders.setBorder(BorderFactory.createTitledBorder(french
             ? "Le dossier de chaque couche (src/<package>/<dossier>/, tests/<dossier>/)"
@@ -90,6 +97,7 @@ final class ArchvowTemplateSettings extends JPanel {
         kept.putAll(read());
         inputs.clear();
         questions.removeAll();
+        questionPages.clear();
         int y = 0;
         for (JsonObject q : objects(base, "questions")) {
             String id = str(q, "id");
@@ -133,7 +141,32 @@ final class ArchvowTemplateSettings extends JPanel {
                 + (str(q, "pattern_hint").isBlank() ? "" : (french ? " · Format : " : " · Format: ") + str(q, "pattern_hint"));
             block.add(line(hint, true), BorderLayout.CENTER);
             questions.add(block, cell(1, y++, 1));
+            if ((y - 1) % 5 == 0) questionPages.add(new ArrayList<>());
+            questionPages.get(questionPages.size() - 1).add(label);
+            questionPages.get(questionPages.size() - 1).add(block);
         }
+        questionPage = Math.max(0, Math.min(questionPage, questionPages.size() - 1));
+        updateQuestionPage();
+        questions.revalidate();
+        questions.repaint();
+    }
+
+    private void updateQuestionPage() {
+        questionNavigation.removeAll();
+        questionNavigation.setVisible(questionPages.size() > 1);
+        if (questionPages.isEmpty()) return;
+        JButton back = new JButton("←");
+        back.setEnabled(questionPage > 0);
+        back.addActionListener(e -> { questionPage--; updateQuestionPage(); });
+        questionNavigation.add(back);
+        questionNavigation.add(new JLabel((questionPage + 1) + " / " + questionPages.size()));
+        JButton next = new JButton("→");
+        next.setEnabled(questionPage + 1 < questionPages.size());
+        next.addActionListener(e -> { questionPage++; updateQuestionPage(); });
+        questionNavigation.add(next);
+        for (int i = 0; i < questionPages.size(); i++)
+            for (JComponent row : questionPages.get(i)) row.setVisible(i == questionPage);
+        questionNavigation.revalidate();
         questions.revalidate();
         questions.repaint();
     }

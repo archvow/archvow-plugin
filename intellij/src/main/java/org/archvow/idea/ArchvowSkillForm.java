@@ -27,6 +27,7 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
 
     final Map<String, String> values = new LinkedHashMap<>();
     final JTextArea request = new JTextArea(3, 30);
+    private final JTextArea skillReview = new JTextArea(4, 24);
     final JButton copy;
     final JButton copySkill;
     final JButton cancel;
@@ -86,9 +87,52 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
             max.onChange(() -> { values.put("max", max.value()); update(); });
             field(left, french ? "Au plus" : "At most", max);
         }
+        int handoffStart = left.getComponentCount();
         ArchvowSegmented tool = new ArchvowSegmented(toolList, values.get("tool"), true);
         tool.onChange(() -> { values.put("tool", tool.value()); update(); });
         field(left, french ? "Assistant IA (optionnel)" : "AI assistant (optional)", tool);
+        List<Component> targetParts = new java.util.ArrayList<>();
+        List<Component> handoffParts = new java.util.ArrayList<>();
+        for (int i = 0; i < left.getComponentCount(); i++) {
+            (i < handoffStart ? targetParts : handoffParts).add(left.getComponent(i));
+        }
+        skillReview.setName("archvow.skill.review");
+        skillReview.setEditable(false);
+        skillReview.setFocusable(false);
+        skillReview.setOpaque(false);
+        skillReview.setLineWrap(true);
+        skillReview.setWrapStyleWord(true);
+        skillReview.setAlignmentX(LEFT_ALIGNMENT);
+        JPanel reviewPage = new JPanel(new BorderLayout());
+        reviewPage.add(skillReview, BorderLayout.NORTH);
+        reviewPage.setAlignmentX(LEFT_ALIGNMENT);
+        left.add(reviewPage);
+        JPanel navigator = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 5, 2));
+        navigator.setName("archvow.skill.steps");
+        navigator.setOpaque(false);
+        navigator.setAlignmentX(LEFT_ALIGNMENT);
+        int[] currentStep = {0};
+        java.util.List<JToggleButton> stepButtons = new java.util.ArrayList<>();
+        Runnable[] showStep = new Runnable[1];
+        showStep[0] = () -> {
+            for (Component component : targetParts) component.setVisible(currentStep[0] == 0);
+            for (Component component : handoffParts) component.setVisible(currentStep[0] == 1);
+            reviewPage.setVisible(currentStep[0] == 2);
+            for (int i = 0; i < stepButtons.size(); i++) stepButtons.get(i).setSelected(i == currentStep[0]);
+            left.revalidate();
+            left.repaint();
+        };
+        String[] stepNames = french ? new String[] {"Cible", "Transmission IA", "Récapitulatif"}
+            : new String[] {"Target", "AI handoff", "Review"};
+        for (int i = 0; i < stepNames.length; i++) {
+            final int target = i;
+            JToggleButton step = new JToggleButton((i + 1) + "  " + stepNames[i]);
+            step.addActionListener(e -> { currentStep[0] = target; showStep[0].run(); });
+            stepButtons.add(step);
+            navigator.add(step);
+        }
+        left.add(navigator, 0);
+        showStep[0].run();
 
         JPanel right = new JPanel(new BorderLayout());
         right.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(128, 128, 128, 90)),
@@ -252,6 +296,10 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
     /** The request, the button and the "not yet" line, after each change. */
     private void update() {
         request.setText(ArchvowAiSkills.request(skills, skill, values.getOrDefault("tool", ""), values, french));
+        skillReview.setText((french ? "Cible : " : "Target: ")
+            + values.getOrDefault(values.containsKey("brief") ? "brief" : "component", "—") + "\n"
+            + (french ? "Au plus : " : "At most: ") + values.getOrDefault("max", "5") + "\n"
+            + (french ? "Assistant IA : " : "AI assistant: ") + values.getOrDefault("tool", "—"));
         JsonObject def = def(skills, skill);
         boolean brief = "brief".equals(str(def, "target"));
         boolean ready = brief ? !values.getOrDefault("brief", "").isBlank() : !values.getOrDefault("component", "").isBlank();

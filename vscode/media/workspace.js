@@ -27,7 +27,7 @@
     specPart: 'card', cards: {},
     /** The editor tab: the component (and its view) a command was opened from, for Back; null without. */
     back: null, backArmed: null,
-    command: NAV ? '' : 'check', commandFilter: '', commandGroupsOpen: {}, formSections: {}, form: {}, formHelp: '',
+    command: NAV ? '' : 'check', commandFilter: '', commandGroupsOpen: {}, formSections: {}, form: {}, formHelp: '', formStep: 0, skillStep: 0,
     /** The form's live preview (design A): the command line, or what is still missing. */
     preview: { text: '', missing: '', files: [] },
     catalog: null, catalogSource: '', initTemplate: '', initAnswers: {}, initTouched: {}, advanced: false,
@@ -240,6 +240,7 @@
         ui.mode = 'skill';
         ui.aiMenu = false;
         ui.skill = m.skill;
+        ui.skillStep = 0;
         ui.skillValues = Object.assign({ max: '5' }, m.values || {});
         break;
       case 'vow':
@@ -307,12 +308,26 @@
 
   // ---------------------------------------------------------------- rendering (focus and scroll kept)
 
+  function keepActiveGuidedStepVisible(steps) {
+    if (!steps) return;
+    const current = steps.querySelector('.guided-step.current');
+    if (!current || typeof current.getBoundingClientRect !== 'function') return;
+    // Adjust only the horizontal strip: scrollIntoView() also scrolls the page.
+    const frame = steps.getBoundingClientRect();
+    const item = current.getBoundingClientRect();
+    if (item.right > frame.right - 8) steps.scrollLeft += item.right - frame.right + 8;
+    else if (item.left < frame.left + 8) steps.scrollLeft -= frame.left + 8 - item.left;
+  }
+
   function render() {
     const app = document.getElementById('app');
     const active = document.activeElement;
     const focus = active && active.dataset && active.dataset.keep ? { key: active.dataset.keep, start: active.selectionStart, end: active.selectionEnd } : null;
     const scrolls = {};
     document.querySelectorAll('[data-scroll]').forEach((e) => { scrolls[e.dataset.scroll] = e.scrollTop; });
+    // The step strip is horizontal and survives field/preview rerenders.
+    const previousSteps = document.querySelector('.guided-command-column .guided-steps');
+    const previousStepScroll = previousSteps ? previousSteps.scrollLeft : 0;
     app.innerHTML = page();
     if (!NAV) {
       const title = editorTitle();
@@ -322,6 +337,11 @@
       }
     }
     document.querySelectorAll('[data-scroll]').forEach((e) => { if (scrolls[e.dataset.scroll]) e.scrollTop = scrolls[e.dataset.scroll]; });
+    const steps = document.querySelector('.guided-command-column .guided-steps');
+    if (steps) {
+      steps.scrollLeft = previousStepScroll;
+      keepActiveGuidedStepVisible(steps);
+    }
     if (focus) {
       const again = document.querySelector(`[data-keep="${CSS.escape(focus.key)}"]`);
       if (again) {
@@ -544,8 +564,10 @@
   function confirmation(target) {
     const c = ui.confirm;
     if (!c || c.target !== target) return '';
+    // A command confirmation shows the shell text only once, in the terminal.
+    // Other confirmations keep their original human-readable summary.
     return `<div class="confirm"><div class="confirm-title">⚠ ${esc(t('Confirm', 'Confirmer'))}: ${esc(c.title)}</div>
-  <pre>${esc(c.summary)}</pre>${terminalCommand(c.command)}
+  ${target === 'command' ? '' : `<pre>${esc(c.summary)}</pre>`}${terminalCommand(c.command)}
   <div class="row end">${btn(t('Cancel', 'Annuler'), 'cancelConfirm', '', false, 'secondary')}${btn(t('Confirm and run', 'Confirmer et exécuter'), 'confirm')}</div></div>`;
   }
 
@@ -947,6 +969,16 @@
       pair(def.reads), pair(def.may_add),
       t('What it adds appears in the component\'s tabs, marked AI and To review, for you to keep, change or remove.',
         'Ce qu\'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire, pour que tu le gardes, le changes ou le retires.')];
+    const skillStages = [t('Target', 'Cible'), t('AI handoff', 'Transmission IA'), t('Review', 'Récapitulatif')];
+    ui.skillStep = Math.max(0, Math.min(ui.skillStep, skillStages.length - 1));
+    const skillNav = `<nav class="guided-steps" aria-label="${esc(t('Skill steps', 'Étapes du skill'))}">${skillStages.map((label, index) =>
+      `<button type="button" class="guided-step ${index === ui.skillStep ? 'current' : ''}" data-a="skillStage" data-index="${index}"><span>${index + 1}</span>${esc(label)}</button>`).join('')}</nav>`;
+    const shownControls = ui.skillStep === 0 ? controls.slice(0, -1).join('')
+      : ui.skillStep === 1 ? controls.slice(-1).join('')
+      : `<div class="guided-review"><div class="guided-review-item"><b>${esc(def.target === 'brief' ? t('Brief', 'Brief') : t('Component', 'Composant'))}</b><span>${esc(def.target === 'brief' ? (v.brief || '—') : (v.component || '—'))}</span></div>
+      ${def.max ? `<div class="guided-review-item"><b>${esc(t('At most', 'Au plus'))}</b><span>${esc(v.max || '5')}</span></div>` : ''}
+      <div class="guided-review-item"><b>${esc(t('AI assistant', 'Assistant IA'))}</b><span>${esc(v.tool)}</span></div></div>`;
+    const skillPager = `<div class="guided-skill-actions row wrap">${ui.skillStep > 0 ? btn(t('← Previous', '← Précédent'), 'skillPrevious', '', false, 'secondary') : ''}${ui.skillStep < 2 ? btn(t('Next →', 'Suivant →'), 'skillNext', '', false, 'secondary') : ''}</div>`;
     const right = `<aside class="what"><div class="what-head">${esc(t('WHAT WILL HAPPEN', 'CE QUI VA SE PASSER'))}</div>
   <ol class="steps">${steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
   <div class="two"><div class="box"><b class="tone-blue">${esc(t('The AI can', "L'IA peut"))}</b><div class="small">${esc(pair(def.may_add))}</div></div>
@@ -954,7 +986,7 @@
   <div class="muted small">${esc(t('Instructions to copy (for any AI)', "Consignes à copier (pour toute IA)"))}</div><pre class="request">${esc(text)}</pre></aside>`;
     return `<div class="skill-form"><h2>${esc(pair(def.label))} <span class="mono small muted">skill: archvow-${esc(id)}</span></h2>
   <p>${esc(pair(def.does))}</p>${blocked ? `<div class="alert warn">${esc(pair(blocked))}</div>` : ''}
-  <div class="split"><div class="split-list">${controls.join('')}</div>${right}</div>
+  <div class="split"><div class="split-list">${skillNav}<section class="guided-panel">${shownControls}</section>${skillPager}</div>${right}</div>
   <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'secondary')}
   ${shortcut ? btn(t('Copy skill command', 'Copier la commande skill'), 'askAi', attrs({ send: '0', format: 'skill' }), !ready, 'secondary') : ''}
   ${chat ? btn(t('Open in Copilot Chat', 'Ouvrir dans Copilot Chat'), 'askAi', attrs({ send: '1', format: 'instructions' }), !ready, 'secondary') : ''}
@@ -1830,6 +1862,7 @@
     ui.command = name;
     ui.form = Object.assign({}, values);
     ui.formSections = {};
+    ui.formStep = 0;
     ui.formHelp = help || '';
     // Edit spec: what the component has now (not what a diagnostic asks to change); only differences are sent
     ui.formBaseline = name === 'component edit' ? whatTheComponentHas((values.component || '').trim()) : {};
@@ -1876,7 +1909,7 @@
     const selected = ui.command;
     return `<section class="browser-only commands-list"><input data-input="commandFilter" data-keep="commandFilter" placeholder="${esc(t('Filter commands', 'Filtrer les commandes'))}" value="${esc(ui.commandFilter)}">
   <div class="command-tree" data-scroll="commands">${groups.map((g) => {
-    const expanded = filter || ui.commandGroupsOpen[g.id] !== false;
+    const expanded = !!filter || ui.commandGroupsOpen[g.id] === true;
     const groupIcon = ((I.icons || {}).groups || {})[g.id] || 'other';
     return `<div class="command-group"><button class="command-group-toggle" data-a="commandGroup" data-id="${esc(g.id)}" aria-expanded="${expanded ? 'true' : 'false'}"><span class="node">${expanded ? '▾' : '▸'} ${icon(groupIcon)}<span>${esc(g.label)}</span></span><span class="count">${g.items.length}</span></button>
     ${expanded ? `<ul class="list items command-children">${g.items.map((c) => `<li class="${c.path.join(' ') === selected ? 'selected' : ''}" data-a="command" data-name="${esc(c.path.join(' '))}" title="${esc(c.description)}"><b class="node">${icon(commandIcon(c.path))}<span>${esc(c.path.join(' '))}</span></b><div class="muted small">${esc(short(c.description || '', 90))}</div></li>`).join('')}</ul>` : ''}</div>`;
@@ -2029,50 +2062,167 @@
     return refusal + warnings;
   }
 
+  // Guided forms change presentation only. Command values, preview, validation and
+  // confirmation still use exactly the same grammar and state as the previous form.
+  // Every CLI parameter, including hidden parameters, belongs to one stage.
+  function commandStages(command, params) {
+    const name = command.path.join(' ');
+    const seen = new Set();
+    const possible = params.filter((p) => !((name === 'init' && ['template', 'answer'].includes(p.name))
+      || (name === 'template new' && ['answer', 'layer'].includes(p.name))));
+    const stage = (en, fr, names, extra = '') => {
+      const own = names.filter((key) => possible.some((p) => p.name === key) && !seen.has(key));
+      own.forEach((key) => seen.add(key));
+      return { title: t(en, fr), names: own, extra };
+    };
+    const stages = [];
+    if (name === 'init') {
+      stages.push(stage('Project', 'Projet', ['package', 'description', 'dir', 'src'], 'init-template'));
+      const template = templates().find((x) => str(x, 'name') === ui.initTemplate);
+      const questions = template ? list(template, 'questions').filter((q) => !!str(q, 'id')) : [];
+      const used = new Set();
+      const qStage = (en, fr, keys) => {
+        const matching = keys.filter((key) => questions.some((q) => str(q, 'id') === key));
+        matching.forEach((key) => used.add(key));
+        if (matching.length) stages.push({ title: t(en, fr), names: [], questions: matching });
+      };
+      qStage('Governance', 'Gouvernance', ['language', 'architects', 'mode', 'sandbox', 'rules', 'auto_approve']);
+      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'reviewers', 'briefs', 'ticket_pattern']);
+      qStage('CI & quality', 'CI et qualité', ['platform', 'ci', 'sonar', 'git_hooks', 'branch_naming', 'line_length']);
+      qStage('Runtime', 'Exécution', ['python_version', 'spark_version', 'fastapi_version', 'scheduler', 'dependencies']);
+      qStage('Limits & integration', 'Limites et intégration', ['max_components', 'max_code_lines', 'pip_index_url', 'ci_image']);
+      const rest = questions.map((q) => str(q, 'id')).filter((id) => !used.has(id));
+      for (let i = 0; i < rest.length; i += 5) stages.push({ title: t('Other template answers', 'Autres réponses du modèle'), names: [], questions: rest.slice(i, i + 5) });
+      stages.push(stage('Advanced CLI', 'Options CLI avancées', ['force', 'no_git', 'no_input', 'adopt'], 'init-other'));
+    } else if (name === 'component add') {
+      stages.push(stage('Basics', 'Essentiel', ['type', 'name', 'description']));
+      stages.push(stage('Architecture', 'Architecture', ['kind', 'spec', 'uses', 'container', 'group']));
+      stages.push(stage('Source & advanced', 'Source et options', ['signature', 'route', 'source', 'file']));
+    } else if (name === 'component edit') {
+      stages.push(stage('Identity & changes', 'Identité et modifications', ['component', 'description', 'spec', 'uses']));
+      stages.push(stage('Advanced changes', 'Modifications avancées', ['signature', 'group', 'route', 'owners', 'source']));
+    } else if (name === 'template new') {
+      stages.push(stage('Template basics', 'Création du modèle', ['name', 'extends', 'dir', 'description'], 'template-basics'));
+      stages.push(stage('Other options', 'Autres options', ['allowed_paths', 'verbatim_folders', 'no_input'], 'template-layers'));
+      const base = baseTemplate();
+      const qs = base ? list(base, 'questions').map((q) => str(q, 'id')).filter(Boolean) : [];
+      for (let i = 0; i < qs.length; i += 5) stages.push({ title: t('Template answers', 'Réponses du modèle'), names: [], questions: qs.slice(i, i + 5), extra: 'template-answers' });
+    } else if (name === 'check') {
+      stages.push(stage('Scope', 'Périmètre', ['base', 'complete', 'file', 'stdin']));
+      stages.push(stage('Validation options', 'Options de validation', ['accept_weakening', 'all', 'test_report']));
+    } else {
+      const essential = possible.filter((p) => !p.hidden && isEssential(name, p)).map((p) => p.name);
+      if (essential.length) for (let i = 0; i < essential.length; i += 5)
+        stages.push(stage(i ? 'Main settings (continued)' : 'Main settings', i ? 'Paramètres principaux (suite)' : 'Paramètres principaux', essential.slice(i, i + 5)));
+      const other = possible.filter((p) => !p.hidden && !isEssential(name, p)).map((p) => p.name);
+      for (let i = 0; i < other.length; i += 5) stages.push(stage('Other options', 'Autres options', other.slice(i, i + 5)));
+    }
+    const remaining = possible.filter((p) => !seen.has(p.name) && !p.hidden).map((p) => p.name);
+    for (let i = 0; i < remaining.length; i += 5)
+      stages.push(stage('Additional settings', 'Paramètres complémentaires', remaining.slice(i, i + 5)));
+    const expert = possible.filter((p) => p.hidden).map((p) => p.name);
+    for (let i = 0; i < expert.length; i += 5) stages.push(stage('Expert checks', 'Contrôles experts', expert.slice(i, i + 5)));
+    const result = stages.filter((s) => s.names.length || (s.questions && s.questions.length) || s.extra);
+    // A parameterless/read-only command stays a single direct form.
+    if (result.length <= 1 && name !== 'init' && name !== 'template new') return result;
+    result.push({ title: t('Review', 'Récapitulatif'), names: [], review: true });
+    return result;
+  }
+
+  function guidedFormStage(command, stage, params) {
+    const name = command.path.join(' ');
+    if (stage.review) {
+      const chosen = params.filter((p) => !p.plugin).map((p) => {
+        let value = ui.form[p.name] || '';
+        if (p.boolean) value = value === 'true' ? t('Yes', 'Oui') : t('No', 'Non');
+        return `<div class="guided-review-item"><b>${esc(fieldLabel(name, p.name))}</b><span>${esc(value || '—')}</span></div>`;
+      }).join('');
+      const template = name === 'init' ? templates().find((x) => str(x, 'name') === ui.initTemplate) : name === 'template new' ? baseTemplate() : null;
+      const answers = template ? list(template, 'questions').map((q) => {
+        const id = str(q, 'id');
+        const value = name === 'init' ? (id in ui.initAnswers ? ui.initAnswers[id] : str(q, 'default'))
+          : (id in ui.tplAnswers ? ui.tplAnswers[id] : str(q, 'default'));
+        return `<div class="guided-review-item"><b>${esc(id)}</b><span>${esc(value || '—')}</span></div>`;
+      }).join('') : '';
+      return `<div class="guided-review">${chosen}${name === 'init' ? `<div class="guided-review-item"><b>${esc(t('Template', 'Modèle'))}</b><span>${esc(ui.form.template || ui.initTemplate)}</span></div>` : ''}${answers}</div>`;
+    }
+    const fieldMap = new Map(params.map((p) => [p.name, p]));
+    let html = stage.names.map((key) => fieldMap.get(key)).filter(Boolean).map((p) => fieldRow(name, p)).join('');
+    if (stage.extra === 'init-template') html += initWizard([], true);
+    if (stage.questions && name === 'init') html += initWizard(stage.questions, false);
+    if (stage.extra === 'init-other') html += initOtherAnswers();
+    if (stage.extra === 'template-basics') html += templateWizard([], true, false);
+    if (stage.extra === 'template-layers') html += templateWizard([], false, true);
+    if (stage.extra === 'template-answers') html += templateWizard(stage.questions || [], false, false);
+    if (['decision make', 'decision propose', 'decision accept', 'question remove'].includes(name)
+      && stage.names.some((n) => ['component', 'number', 'question'].includes(n))) html += questionPreview(name);
+    return html || `<p class="muted small">${esc(t('No parameters for this step.', 'Aucun paramètre pour cette étape.'))}</p>`;
+  }
+
+  /** A step is green only when its required values are present; orange means a required
+   *  choice/answer is still missing. Optional settings never block a step. */
+  function commandStageReady(stage, command, params) {
+    if (stage.review) return false;
+    const fieldsReady = (stage.names || []).every((name) => {
+      const param = params.find((p) => p.name === name);
+      if (!param || !param.required) return true;
+      return String(ui.form[name] ?? '').trim().length > 0;
+    });
+    if (!fieldsReady) return false;
+    if (stage.extra === 'init-template' && !String(ui.form.template || ui.initTemplate || '').trim()) return false;
+    const source = command.path.join(' ') === 'init' ? templates().find((x) => str(x, 'name') === ui.initTemplate)
+      : command.path.join(' ') === 'template new' ? baseTemplate() : null;
+    const questions = source ? list(source, 'questions') : [];
+    return (stage.questions || []).every((id) => {
+      const question = questions.find((q) => str(q, 'id') === id);
+      if (!question || question.ask !== true) return true;
+      const input = command.path.join(' ') === 'init' ? ui.initAnswers : ui.tplAnswers;
+      const value = id in input ? input[id] : str(question, 'default');
+      return String(value ?? '').trim().length > 0;
+    });
+  }
+
+  /** Update step indicators in-place while typing; no form rerender or focus loss. */
+  function refreshCommandStepIndicators() {
+    const nav = document.querySelector('.guided-command-column .guided-steps');
+    if (!nav) return;
+    const command = I.commands.find((candidate) => candidate.path.join(' ') === ui.command);
+    if (!command) return;
+    const stages = commandStages(command, command.parameters);
+    const allReady = stages.filter((s) => !s.review).every((s) => commandStageReady(s, command, command.parameters));
+    nav.querySelectorAll('.guided-step').forEach((button, index) => {
+      const stage = stages[index];
+      if (!stage) return;
+      const ready = stage.review ? allReady : commandStageReady(stage, command, command.parameters);
+      button.classList.toggle('complete', ready);
+      button.classList.toggle('incomplete', !ready);
+      button.title = ready ? t('Step complete', 'Étape complète') : t('Needs attention', 'À compléter');
+    });
+  }
+
   function commandForm(command) {
     const name = command.path.join(' ');
     const entry = formEntry(name);
     const extra = name === 'specify' ? t('IDE mode: clarification without interactive terminal.', 'Mode IDE : clarification sans terminal interactif.')
       : name === 'rule add' ? t('One argument per line in words.', 'Un argument par ligne dans le champ words.') : '';
-    let fields = '';
-    let more = '';
-    const moreNames = [];
-    let expert = '';
-    // the essential fields in the order forms.json gives them (invariant add: the hazard before the words)
     const order = Array.isArray(entry.essential) ? entry.essential : [];
     const rank = (p) => (order.includes(p.name) ? order.indexOf(p.name) : order.length);
     const params = command.parameters.map((p, i) => [p, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(([p]) => p);
-    for (const p of params) {
-      // init: the template is chosen once, in Template questions (under the package); template new: its
-      // answers and layer folders are in Settings of the base, under --extends
-      if (name === 'init' && (p.name === 'answer' || p.name === 'template')) continue;
-      if (name === 'template new' && (p.name === 'answer' || p.name === 'layer')) continue;
-      const row = fieldRow(name, p);
-      // options archvow hides from --help (the expert checks of invariant add): apart, closed
-      if (p.hidden || p.help === '==SUPPRESS==') { expert += row; continue; }
-      if (isEssential(name, p)) {
-        fields += row;
-        if (name === 'init' && p.name === 'package') fields += initWizard();
-        if (name === 'template new' && p.name === 'extends') fields += templateWizard();
-      } else {
-        more += row;
-        moreNames.push(fieldLabel(name, p.name).toLowerCase());
-      }
-    }
-    if (expert) {
-      more += `<details class="expert" data-form-section="expert"${(ui.formSections.expert ?? ['verify', 'evidence', 'rule'].some((k) => ui.form[k])) ? ' open' : ''}><summary>${esc(t('Expert checks', 'Contrôles experts'))}</summary>`
-        + `<p class="muted small">${esc(t('How the invariant is proven when a test is not enough: a model checked or a proof (--verify model_check|proof --evidence <file>), or a rule that enforces it (--verify static --rule <code>). Empty: the weakest test its severity accepts.',
-          "Comment l'invariant est prouvé quand un test ne suffit pas : un modèle vérifié ou une preuve (--verify model_check|proof --evidence <fichier>), ou une règle qui l'impose (--verify static --rule <code>). Vide : le test le plus faible que sa gravité accepte."))}</p>${expert}</details>`;
-      moreNames.push(t('expert checks', 'contrôles experts'));
-    }
-    if (more) {
-      const open = ui.formSections.more ?? command.parameters.some((p) => !isEssential(name, p) && (ui.form[p.name] || '').trim());
-      fields += `<details class="more" data-form-section="more"${open ? ' open' : ''}><summary>${esc(t('More options', "Plus d'options"))} <span class="muted small">- ${esc(moreNames.join(', '))}</span></summary>${more}</details>`;
-    }
-    if (name === 'init') fields += initOtherAnswers();
-    if (['decision make', 'decision propose', 'decision accept', 'question remove'].includes(name)) fields += questionPreview(name);
+    const stages = commandStages(command, params);
+    ui.formStep = Math.min(ui.formStep, Math.max(0, stages.length - 1));
+    const current = stages[ui.formStep];
+    const wizard = stages.length > 1;
+    const allReady = stages.filter((stage) => !stage.review).every((stage) => commandStageReady(stage, command, params));
+    const nav = wizard ? `<nav class="guided-steps" aria-label="${esc(t('Form steps', 'Étapes du formulaire'))}">${stages.map((s, i) => {
+      const ready = s.review ? allReady : commandStageReady(s, command, params);
+      const status = ready ? 'complete' : 'incomplete';
+      return `<button type="button" class="guided-step ${status} ${i === ui.formStep ? 'current' : ''}" data-a="formStage" data-index="${i}" aria-current="${i === ui.formStep ? 'step' : 'false'}" title="${esc(ready ? t('Step complete', 'Étape complète') : t('Needs attention', 'À compléter'))}"><span>${i + 1}</span>${esc(s.title)}</button>`;
+    }).join('')}</nav>` : '';
+    const fields = current ? guidedFormStage(command, current, params) : '';
+    const counter = wizard ? `<div class="guided-counter">${esc(current.title)} · ${ui.formStep + 1} / ${stages.length}</div>` : '';
+    const previous = wizard && ui.formStep > 0 ? btn(t('← Previous', '← Précédent'), 'formPrevious', '', false, 'secondary') : '';
+    const next = wizard && ui.formStep < stages.length - 1 ? btn(t('Next →', 'Suivant →'), 'formNext', '', false, 'secondary') : '';
     const title = pair(entry.title) || command.description;
-    // changes / diff with Save to a file: the button says what it does
     const verb = (ui.form.output || '').trim() && command.parameters.some((p) => p.plugin && p.name === 'output')
       ? t('Save the report', 'Enregistrer le rapport') : pair(entry.verb) || t('Run command', 'Exécuter la commande');
     const does = pair(entry.does);
@@ -2084,9 +2234,11 @@
   <div id="form-files">${filesBlock(ui.preview.files)}</div>
   <p class="muted small">${esc(t('If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.',
     "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."))}</p></aside>`;
+    // Keep Cancel, Run and the result in their original location. Next/Previous
+    // affect only the visible form fields, never the command submitted.
     return `<div class="form-head"><h3>${esc(title)}</h3><div class="muted small"><code>archvow ${esc(name)}</code> - ${esc(command.description)}${extra ? ' ' + esc(extra) : ''}</div>${ui.formHelp ? `<pre class="help">${esc(ui.formHelp)}</pre>` : ''}</div>
-  <div class="form-grid"><div class="form">${fields}${formAlerts()}
-  <div class="row end">${btn(t('Cancel', 'Annuler'), 'cancelForm', '', false, 'secondary')}${btn(verb, 'runForm')}</div></div>${pane}</div>${confirmation('command')}${resultCard('command')}`;
+  <div class="form-grid guided-command-layout${ui.confirm && ui.confirm.target === 'command' ? ' has-confirm' : ''}"><div class="form guided-command-column">${nav}<div class="guided-command-fields" data-scroll="command-fields"><section class="guided-panel">${counter}${fields}</section></div>${formAlerts()}
+  <div class="row end guided-actions">${previous}${next}${btn(t('Cancel', 'Annuler'), 'cancelForm', '', false, 'secondary')}${btn(verb, 'runForm')}</div></div>${pane}${confirmation('command')}</div>${resultCard('command')}`;
   }
 
   /** The files the command writes (filePlan.ts): a small tree per folder, then the code it plans. */
@@ -2197,7 +2349,7 @@
   }
 
   /** init: the template, chosen once here, and its questions (under the package's name). */
-  function initWizard() {
+  function initWizard(questionIds = null, showSelector = true) {
     const template = templates().find((x) => str(x, 'name') === ui.initTemplate);
     const custom = (ui.form.template || '').trim() && !template;
     let questions = '';
@@ -2206,7 +2358,7 @@
         const id = str(q, 'id');
         if (!id) continue;
         const essential = q.ask === true;
-        if (!essential && !ui.advanced) continue;
+        if (questionIds ? !questionIds.includes(id) : !essential && !ui.advanced) continue;
         const value = id in ui.initAnswers ? ui.initAnswers[id] : str(q, 'default');
         questions += `<div class="field"><label title="${esc(str(q, 'prompt'))}">${esc(id)}${essential ? '  •' : ''}</label><div>${questionControl(q, value, 'init')}<div class="muted small">${esc(str(q, 'prompt'))}</div></div></div>`;
       }
@@ -2217,14 +2369,14 @@
     const here = own ? `<p class="note small">${esc(t(`This folder is already an archvow project (template ${own}): init needs --force, which rewrites the generated files (AGENTS.md, CI, hooks...) and keeps the committed spec.`,
       `Ce dossier est déjà un projet archvow (modèle ${own}) : init demande --force, qui réécrit les fichiers générés (AGENTS.md, CI, hooks...) et garde la spec commitée.`))}</p>` : '';
     const description = template ? str(template, 'description') : '';
-    return `<fieldset class="card"><legend>${esc(t('Template and its questions', 'Modèle et ses questions'))}</legend>
+    return `<fieldset class="card"><legend>${esc(showSelector ? t('Template and its questions', 'Modèle et ses questions') : t('Template answers', 'Réponses du modèle'))}</legend>${showSelector ? `
   <div class="field"><label>* ${esc(t('template', 'modèle'))}</label><div><div class="row wrap"><select data-change="initTemplate">${templates().map((x) => `<option ${str(x, 'name') === ui.initTemplate ? 'selected' : ''}>${esc(str(x, 'name'))}</option>`).join('')}${custom ? `<option selected value="">${esc(t('(a folder, below)', '(un dossier, ci-dessous)'))}</option>` : ''}</select>
   ${btn(t('Reload', 'Actualiser'), 'reloadCatalog', '', false, 'secondary')}</div>
   ${description ? `<div class="muted small">${esc(description)}</div>` : ''}
   <div class="muted small">${esc(t('or the folder of a company template:', "ou le dossier d'un modèle d'entreprise :"))} <input data-input="form" data-name="template" data-keep="f-template-folder" value="${esc(custom ? ui.form.template : '')}" placeholder="/path/to/templates/acme-pipeline"></div></div></div>
   ${here}<p class="muted small">${esc(status)}</p>
   <label class="check"><input type="checkbox" data-change="advanced" ${ui.advanced ? 'checked' : ''}> ${esc(t('Show advanced settings', 'Afficher les réglages avancés'))}</label>
-  <div class="form">${questions}</div></fieldset>`;
+  ` : ''}<div class="form">${questions}</div></fieldset>`;
   }
 
   function initOtherAnswers() {
@@ -2244,7 +2396,7 @@
    * (its choices, its formats); what the base imposes - its layers, its version, what it extends - is shown,
    * not editable. Only what differs from the base is written into the new template.
    */
-  function templateWizard() {
+  function templateWizard(questionIds = null, showHeader = true, showLayers = true) {
     const name = (ui.form.extends || '').trim();
     if (!name) return '';
     const base = baseTemplate();
@@ -2259,7 +2411,7 @@
     let questions = '';
     for (const q of list(base, 'questions')) {
       const id = str(q, 'id');
-      if (!id || (q.ask !== true && !ui.advanced)) continue;
+      if (!id || (questionIds ? !questionIds.includes(id) : q.ask !== true && !ui.advanced)) continue;
       const value = id in ui.tplAnswers ? ui.tplAnswers[id] : str(q, 'default');
       const changed = id in ui.tplAnswers && ui.tplAnswers[id] !== str(q, 'default');
       questions += `<div class="field"><label title="${esc(str(q, 'prompt'))}">${esc(id)}${changed ? ' ✎' : ''}</label><div>${questionControl(q, value, 'tpl')}<div class="muted small">${esc(str(q, 'prompt'))}${str(q, 'default') ? esc(t(` (base: ${str(q, 'default')})`, ` (base : ${str(q, 'default')})`)) : ''}</div></div></div>`;
@@ -2269,12 +2421,12 @@
       const folder = layer in ui.tplLayers ? ui.tplLayers[layer] : layer;
       return `<div class="field"><label><code>${esc(layer)}</code></label><div><input data-input="tplLayer" data-id="${esc(layer)}" data-keep="tpl-layer-${esc(layer)}" value="${esc(folder)}"><div class="muted small">${esc(str(l, 'description'))}</div></div></div>`;
     }).join('');
-    return `<fieldset class="card"><legend>${esc(t(`Settings of ${name}`, `Réglages de ${name}`))}</legend>${fixed}
-  <p class="muted small">${esc(t('The company defaults of the init answers: a project can still change them (-a). Only those that differ from the base are written.',
+    return `<fieldset class="card"><legend>${esc(t(`Settings of ${name}`, `Réglages de ${name}`))}</legend>${showHeader ? fixed : ''}
+  ${showHeader ? `<p class="muted small">${esc(t('The company defaults of the init answers: a project can still change them (-a). Only those that differ from the base are written.',
     "Les valeurs par défaut de l'entreprise pour les réponses d'init : un projet peut encore les changer (-a). Seules celles qui diffèrent de la base sont écrites."))}</p>
   <label class="check"><input type="checkbox" data-change="advanced" ${ui.advanced ? 'checked' : ''}> ${esc(t('Show advanced settings', 'Afficher les réglages avancés'))}</label>
-  <div class="form">${questions}</div>
-  <p class="muted small">${esc(t('The folder of each layer (src/<package>/<folder>/, tests/<folder>/):', 'Le dossier de chaque couche (src/<package>/<dossier>/, tests/<dossier>/) :'))}</p><div class="form">${layers}</div></fieldset>`;
+  ` : ''}<div class="form">${questions}</div>
+  ${showLayers ? `<p class="muted small">${esc(t('The folder of each layer (src/<package>/<folder>/, tests/<folder>/):', 'Le dossier de chaque couche (src/<package>/<dossier>/, tests/<dossier>/) :'))}</p><div class="form">${layers}</div>` : ''}</fieldset>`;
   }
 
   /** template new: the -a and --layer lines of what differs from the base; a format the base refuses, as a message. */
@@ -2635,9 +2787,13 @@
       ui.aiMenu = false;
       ui.mode = 'skill';
       ui.skill = e.dataset.skill;
+      ui.skillStep = 0;
       ui.skillValues = Object.assign({ max: '5' }, values);
     },
     skillValue: (e) => { ui.skillValues[e.dataset.name] = e.dataset.value; },
+    skillStage: (e) => { ui.skillStep = Math.max(0, Math.min(2, Number(e.dataset.index) || 0)); },
+    skillNext: () => { ui.skillStep = Math.min(2, ui.skillStep + 1); },
+    skillPrevious: () => { ui.skillStep = Math.max(0, ui.skillStep - 1); },
     askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1', format: e.dataset.format || 'instructions' }),
     originFilter: (e) => { ui.originFilter = e.dataset.id; },
     toReview: () => {
@@ -2750,11 +2906,14 @@
       if (item.kind === 'COLUMN') post({ type: 'openCommand', command: 'column set', values: { component: ui.component, names: item.id }, selected: ui.component });
       else post({ type: 'taskPrompt', component: ui.component, task: item.id });
     },
-    commandGroup: (e) => { ui.commandGroupsOpen[e.dataset.id] = ui.commandGroupsOpen[e.dataset.id] === false; },
+    commandGroup: (e) => { ui.commandGroupsOpen[e.dataset.id] = ui.commandGroupsOpen[e.dataset.id] !== true; },
     commandDocs: () => post({ type: 'commandDocs' }),
     removeUse: (e) => { ui.form.uses = (ui.form.uses || '').split(',').map((x) => x.trim()).filter((x) => x && x !== e.dataset.id).join(','); askPreview(0); },
     command: (e) => { ui.command = e.dataset.name; post({ type: 'openCommand', command: e.dataset.name, values: {}, selected: '' }); },
     segment: (e) => { ui.form[e.dataset.name] = e.dataset.value; askPreview(0); },
+    formStage: (e) => { ui.formStep = Math.max(0, Number(e.dataset.index) || 0); },
+    formNext: () => { ui.formStep++; },
+    formPrevious: () => { ui.formStep = Math.max(0, ui.formStep - 1); },
     cancelForm: () => { setCommand(ui.command, {}, ''); },
     runForm: () => {
       const values = Object.assign({}, ui.form);
@@ -2882,11 +3041,12 @@
       case 'form':
         ui.form[e.dataset.name] = e.value;
         askPreview();
+        refreshCommandStepIndicators();
         if (['component', 'question', 'number', 'type', 'extends'].includes(e.dataset.name)
           || (e.dataset.name === 'output' && !!e.value.trim() !== !!(ui.outputShown || ''))) { ui.outputShown = e.value.trim() ? '1' : ''; render(); }
         return;
-      case 'initAnswer': ui.initAnswers[e.dataset.id] = e.value; ui.initTouched[e.dataset.id] = true; return;
-      case 'tplAnswer': ui.tplAnswers[e.dataset.id] = e.value; return;
+      case 'initAnswer': ui.initAnswers[e.dataset.id] = e.value; ui.initTouched[e.dataset.id] = true; refreshCommandStepIndicators(); return;
+      case 'tplAnswer': ui.tplAnswers[e.dataset.id] = e.value; refreshCommandStepIndicators(); return;
       case 'tplLayer': ui.tplLayers[e.dataset.id] = e.value; return;
       default:
     }
@@ -2966,7 +3126,7 @@
         if (row && ['name','type','nullable','personal','note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
         ui.smartExpanded = e.dataset.key; render(); return;
       }
-      case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; askPreview(0); return;
+      case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; askPreview(0); refreshCommandStepIndicators(); return;
       case 'choice': choose(e.dataset.name, e.value); askPreview(0); render(); return;
       case 'tplAnswer': ui.tplAnswers[e.dataset.id] = e.value; render(); return;
       case 'tplMulti': {
@@ -2985,7 +3145,7 @@
         ui.initTouched = {};
         render();
         return;
-      case 'initAnswer': ui.initAnswers[e.dataset.id] = e.value; ui.initTouched[e.dataset.id] = true; return;
+      case 'initAnswer': ui.initAnswers[e.dataset.id] = e.value; ui.initTouched[e.dataset.id] = true; refreshCommandStepIndicators(); return;
       case 'initMulti': {
         const template = templates().find((x) => str(x, 'name') === ui.initTemplate);
         const q = template && list(template, 'questions').find((x) => str(x, 'id') === e.dataset.id);

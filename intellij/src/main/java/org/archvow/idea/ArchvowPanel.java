@@ -292,6 +292,20 @@ final class ArchvowPanel extends JPanel {
     /** The command form: as wide as the view, so the lines under the fields wrap instead of running past its edge. */
     private final JPanel form = new ArchvowCommandFormLayout.WidthTrackingPanel(new GridBagLayout());
     private JScrollPane formScroller;
+    // Guided form navigation is a view over the original fields.  It never
+    // rebuilds or rewrites their values when the person changes stages.
+    private final JPanel formNavigation = new JPanel(new BorderLayout(4, 4));
+    private final JPanel formStepButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+    private JScrollPane formStepStrip;
+    private final JLabel formStageStatus = new JLabel();
+    private final JButton formBack = new JButton();
+    private final JButton formNext = new JButton();
+    private final Map<String, List<Component>> formStageComponents = new LinkedHashMap<>();
+    private final JEditorPane formReview = htmlPane();
+    private List<Map.Entry<String, String>> formReviewItems = List.of();
+    private int formReviewColumns = -1;
+    private String guidedCommand = "";
+    private int formStageIndex;
     /** Design A (0.14.0): the form's title, what archvow will do, the command as it is typed, its refusal in place. */
     private final JLabel formTitle = new JLabel();
     private final ArchvowWrapLabel formDoes = new ArchvowWrapLabel();
@@ -2590,29 +2604,59 @@ final class ArchvowPanel extends JPanel {
         JPanel head = new JPanel(new BorderLayout(0, 2));
         head.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
         head.add(formTitle, BorderLayout.NORTH); head.add(commandLine, BorderLayout.CENTER); head.add(commandNote, BorderLayout.SOUTH);
-        center.add(head, BorderLayout.NORTH);
+        JPanel formTop = new JPanel(new BorderLayout(0, 5));
+        formTop.add(head, BorderLayout.NORTH);
+        JPanel stepFooter = new JPanel(new BorderLayout(5, 0));
+        formBack.addActionListener(e -> changeFormStage(formStageIndex - 1));
+        formNext.addActionListener(e -> changeFormStage(formStageIndex + 1));
+        formBack.setText(ArchvowI18n.text(project, "← Previous", "← Précédent"));
+        formNext.setText(ArchvowI18n.text(project, "Next →", "Suivant →"));
+        // Step navigation and submit actions share a single footer under the form.
+        // The strip is strictly one horizontal row (scrolls if narrower than its items).
+        stepFooter.add(formStageStatus, BorderLayout.CENTER);
+        formStepStrip = new JScrollPane(formStepButtons,
+            ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        formStepStrip.setBorder(BorderFactory.createEmptyBorder());
+        // Leave room for the buttons *and* the horizontal scrollbar: otherwise
+        // Swing clips the top of the steps when the last ones are scrolled into view.
+        formStepButtons.setBorder(BorderFactory.createEmptyBorder(7, 0, 1, 0));
+        formStepStrip.setPreferredSize(new Dimension(200, 60));
+        formNavigation.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+        formStepStrip.getHorizontalScrollBar().setUnitIncrement(22);
+        formNavigation.add(formStepStrip, BorderLayout.CENTER);
+        formNavigation.add(stepFooter, BorderLayout.SOUTH);
+        formNavigation.setVisible(false);
+        formTop.add(formNavigation, BorderLayout.CENTER);
+        center.add(formTop, BorderLayout.NORTH);
         formScroller = scroll(form);
         formScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         formScroller.getVerticalScrollBar().setUnitIncrement(18);
+        formScroller.getViewport().addComponentListener(new ComponentAdapter() {
+            @Override public void componentResized(ComponentEvent event) {
+                if (formReview.isVisible()) refreshFormReviewLayout();
+            }
+        });
         center.add(formScroller, BorderLayout.CENTER);
         right.add(center, BorderLayout.CENTER);
         right.add(formPane(), BorderLayout.EAST);
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 4));
+        // The form scrollbar must not run through the bottom action buttons.
+        actions.setBorder(BorderFactory.createEmptyBorder(4, 8, 12, 18));
+        actions.add(formBack);
+        actions.add(formNext);
         actions.add(button(ArchvowI18n.text(project, "Cancel", "Annuler"), () -> { formAlerts.removeAll(); formAlerts.setVisible(false); renderForm(Map.of()); }));
         formRunButton = button(ArchvowI18n.text(project, "Run command", "Exécuter la commande"), this::submitForm);
         actions.add(formRunButton);
+        JPanel fieldFooter = new JPanel(new BorderLayout(0, 3));
+        fieldFooter.add(formAlerts, BorderLayout.NORTH);
+        fieldFooter.add(actions, BorderLayout.SOUTH);
+        center.add(fieldFooter, BorderLayout.SOUTH);
         commandResultCard = inlineResultCard(commandResult, () -> commandResultCard.setVisible(false));
         JPanel bottom = new JPanel(new BorderLayout(0, 5));
-        JPanel submitControls = new JPanel(new BorderLayout(0, 4));
         formAlerts.setLayout(new BoxLayout(formAlerts, BoxLayout.Y_AXIS));
         formAlerts.setVisible(false);
-        JPanel alertsAndActions = new JPanel(new BorderLayout(0, 4));
-        alertsAndActions.add(formAlerts, BorderLayout.NORTH);
-        alertsAndActions.add(actions, BorderLayout.SOUTH);
-        submitControls.add(alertsAndActions, BorderLayout.NORTH);
         commandConfirmation = new ArchvowConfirmPanel();
-        submitControls.add(commandConfirmation, BorderLayout.SOUTH);
-        bottom.add(submitControls, BorderLayout.NORTH);
+        bottom.add(commandConfirmation, BorderLayout.NORTH);
         bottom.add(commandResultCard, BorderLayout.CENTER);
         right.add(bottom, BorderLayout.SOUTH);
         // the tool window shows the list, the editor tab the form
@@ -2922,6 +2966,7 @@ final class ArchvowPanel extends JPanel {
             formRunButton.setText(!output.isEmpty() ? ArchvowI18n.text(project, "Save the report", "Enregistrer le rapport")
                 : verb.isEmpty() ? ArchvowI18n.text(project, "Run command", "Exécuter la commande") : verb);
         }
+        refreshFormStepIndicators();
     }
 
     /** Every field of the form updates the preview when it changes. */
@@ -3057,8 +3102,12 @@ final class ArchvowPanel extends JPanel {
 
     private void buildForm(ArchvowGrammar.Command command, Map<String, String> defaults) {
         fields.clear(); form.removeAll();
+        formStageComponents.clear();
         templateSettings = null;
         String name = command.label;
+        if (!name.equals(guidedCommand)) formStageIndex = 0;
+        guidedCommand = name;
+        boolean guided = command.parameters.size() > 4 || "init".equals(name) || "template new".equals(name);
         String extra = switch (name) {
             case "specify" -> ArchvowI18n.text(project, "IDE mode: clarification without interactive terminal.", "Mode IDE : clarification sans terminal interactif.");
             case "rule add" -> ArchvowI18n.text(project, "One argument per line in words.", "Un argument par ligne dans le champ words.");
@@ -3135,7 +3184,7 @@ final class ArchvowPanel extends JPanel {
                 control = input;
             } else control = new JTextField(text, 25);
             fields.put(param.name, control);
-            if (param.hidden && expertToggle == null) {
+            if (!guided && param.hidden && expertToggle == null) {
                 boolean filled = command.parameters.stream().anyMatch(p -> p.hidden && !values.getOrDefault(p.name, "").isBlank());
                 expertToggle = new JToggleButton(ArchvowI18n.text(project, "Expert checks", "Contrôles experts"), filled);
                 expertToggle.setHorizontalAlignment(SwingConstants.LEFT);
@@ -3147,7 +3196,7 @@ final class ArchvowPanel extends JPanel {
                 form.add(toggle, wide(y++, 8));
             }
             boolean more = !param.hidden && !ArchvowForms.essential(name, param);
-            if (more && moreToggle == null) {
+            if (!guided && more && moreToggle == null) {
                 boolean filled = command.parameters.stream().anyMatch(p -> !p.hidden && !ArchvowForms.essential(name, p)
                     && !values.getOrDefault(p.name, "").isBlank());
                 java.util.List<String> names = new ArrayList<>();
@@ -3216,6 +3265,13 @@ final class ArchvowPanel extends JPanel {
             GridBagConstraints entry = new GridBagConstraints();
             entry.gridx = 1; entry.gridy = y++; entry.weightx = 1; entry.fill = GridBagConstraints.HORIZONTAL;
             entry.insets = new Insets(3, 2, 3, 4); form.add(cell, entry);
+            if (guided) {
+                String stage = formStageFor(name, param.name, param.hidden,
+                    ArchvowForms.essential(name, param));
+                List<Component> parts = formStageComponents.computeIfAbsent(stage, unused -> new ArrayList<>());
+                parts.add(labelText);
+                parts.add(cell);
+            }
             if (param.hidden && expertToggle != null) {
                 expertParts.add(labelText);
                 expertParts.add(cell);
@@ -3236,13 +3292,21 @@ final class ArchvowPanel extends JPanel {
                         if (template instanceof JTextField input) input.setText(chosen);
                     }, own.isEmpty() ? "" : own.get(0));
                 initQuestions.onChange(this::updatePreview);
+                initQuestions.useParentSteps(() -> {
+                    if (!buildingForm && initQuestions != null && "init".equals(guidedCommand)) {
+                        updateFormStages(true, form.getComponentCount());
+                        updatePreview();
+                    }
+                });
                 form.add(initQuestions, wide(y++, 12));
+                if (guided) formStageComponents.computeIfAbsent("Template questions", unused -> new ArrayList<>()).add(initQuestions);
             }
             if ("template new".equals(name) && "extends".equals(param.name)) {
                 JsonObject base = baseTemplate(text);
                 if (base != null) {
                     templateSettings = new ArchvowTemplateSettings(base, ArchvowI18n.isFrench(project));
                     form.add(templateSettings, wide(y++, 10));
+                    if (guided) formStageComponents.computeIfAbsent("Template questions", unused -> new ArrayList<>()).add(templateSettings);
                 } else if (!text.isBlank()) {
                     form.add(formWarning(ArchvowI18n.text(project,
                         "The catalog does not list '" + text + "': its settings cannot be shown here; archvow checks them when the command runs.",
@@ -3263,6 +3327,7 @@ final class ArchvowPanel extends JPanel {
                 "Other answers (optional)", "Autres réponses (facultatif)")));
             advanced.add(scroll(extras), BorderLayout.CENTER);
             form.add(advanced, wide(y++, 4));
+            if (guided) formStageComponents.computeIfAbsent("Advanced CLI", unused -> new ArrayList<>()).add(advanced);
             loadInitCatalog();
         } else initQuestions = null;
         if ("decision make".equals(name) || "decision propose".equals(name)
@@ -3275,6 +3340,7 @@ final class ArchvowPanel extends JPanel {
             previewBox.add(refresh, BorderLayout.SOUTH);
             previewBox.setPreferredSize(new Dimension(220, 165));
             form.add(previewBox, wide(y++, 12));
+            if (guided) formStageComponents.computeIfAbsent("Main settings", unused -> new ArrayList<>()).add(previewBox);
             for (String field : List.of("component", "question", "number")) {
                 JComponent input = fields.get(field);
                 if (input instanceof JTextField textField) {
@@ -3288,10 +3354,269 @@ final class ArchvowPanel extends JPanel {
             updateCommandQuestion();
         }
         for (JComponent control : fields.values()) watchForPreview(control);
-        GridBagConstraints spacer = new GridBagConstraints(); spacer.gridx = 1; spacer.gridy = y; spacer.weighty = 1;
+        // Put Review before the trailing flexible spacer, otherwise Swing pushes
+        // the review content to the very bottom of a tall editor.
+        updateFormStages(guided, y);
+        GridBagConstraints spacer = new GridBagConstraints(); spacer.gridx = 1; spacer.gridy = y + 1; spacer.weighty = 1;
         spacer.fill = GridBagConstraints.VERTICAL; form.add(new JPanel(), spacer);
         ArchvowUiIcons.decorateTree(form);
         form.revalidate(); form.repaint();
+    }
+
+    /** Semantic steps derived solely from the real command parameters. */
+    private static String formStageFor(String command, String parameter, boolean hidden, boolean essential) {
+        if (hidden) return "Expert checks";
+        if ("init".equals(command)) return Set.of("package", "description", "dir", "src").contains(parameter)
+            ? "Project" : "Advanced CLI";
+        if ("component add".equals(command)) {
+            if (Set.of("type", "name", "description").contains(parameter)) return "Basics";
+            if (Set.of("kind", "spec", "uses", "container", "group").contains(parameter)) return "Architecture";
+            return "Source & advanced";
+        }
+        if ("component edit".equals(command)) return Set.of("component", "description", "spec", "uses").contains(parameter)
+            ? "Identity & changes" : "Advanced changes";
+        if ("template new".equals(command)) return Set.of("name", "extends", "dir", "description").contains(parameter)
+            ? "Template basics" : "Other options";
+        if ("check".equals(command)) return Set.of("base", "complete", "file", "stdin").contains(parameter)
+            ? "Scope" : "Validation options";
+        return essential ? "Main settings" : "Other options";
+    }
+
+    /** One top-level row for init's dynamically supplied template questions.
+     *  The same Swing input widgets remain alive when the page changes. */
+    private void synchronizeInitStages() {
+        if (!"init".equals(guidedCommand) || initQuestions == null) return;
+        List<Component> template = formStageComponents.get("Template questions");
+        // Rebuild the mapping on every catalog/template refresh as well as initial load.
+        if (template == null && initQuestions.getParent() == form) template = List.of(initQuestions);
+        if (template == null) return;
+        LinkedHashMap<String, List<Component>> ordered = new LinkedHashMap<>();
+        List<Component> projectParts = formStageComponents.get("Project");
+        if (projectParts != null) ordered.put("Project", projectParts);
+        for (String group : initQuestions.pageNames()) ordered.put(group, template);
+        // Custom company templates without a known catalog still need a way to
+        // choose or reload the template, even when they have no known questions.
+        if (initQuestions.pageNames().isEmpty()) ordered.put("Template questions", template);
+        for (Map.Entry<String, List<Component>> entry : formStageComponents.entrySet())
+            if (!"Project".equals(entry.getKey()) && !entry.getValue().contains(initQuestions))
+                ordered.put(entry.getKey(), entry.getValue());
+        formStageComponents.clear();
+        formStageComponents.putAll(ordered);
+    }
+
+    /** Use the same green/orange status in the stage label and its numbered ring.
+     *  Only real required fields can cause an incomplete state. */
+    private boolean formStageReady(String stage, Map<String, String> values) {
+        if (initQuestions != null) {
+            int page = initQuestions.pageNames().indexOf(stage);
+            if (page >= 0) return initQuestions.pageReady(page);
+        }
+        ArchvowGrammar.Command command = commandList.getSelectedValue();
+        if (command == null) return false;
+        for (ArchvowGrammar.Param param : command.parameters) {
+            if (!param.required || param.plugin || ("init".equals(command.label) && "answer".equals(param.name))) continue;
+            String matchingStage = formStageFor(command.label, param.name, param.hidden,
+                ArchvowForms.essential(command.label, param));
+            if (!stage.equals(matchingStage)) continue;
+            if (values.getOrDefault(param.name, "").trim().isEmpty()) return false;
+        }
+        if ("Template questions".equals(stage) && "init".equals(command.label))
+            return !values.getOrDefault("template", "").isBlank();
+        return true;
+    }
+
+    private static Icon formStepNumber(int value, Color status, boolean complete) {
+        return new Icon() {
+            @Override public int getIconWidth() { return 22; }
+            @Override public int getIconHeight() { return 22; }
+            @Override public void paintIcon(Component component, Graphics graphics, int x, int y) {
+                Graphics2D g = (Graphics2D) graphics.create();
+                try {
+                    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g.setColor(status);
+                    g.setStroke(new BasicStroke(1.5f));
+                    g.drawOval(x + 1, y + 1, 19, 19);
+                    g.setFont(component.getFont().deriveFont(Font.BOLD, 11f));
+                    if (complete) {
+                        g.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                        g.drawLine(x + 6, y + 11, x + 9, y + 14);
+                        g.drawLine(x + 9, y + 14, x + 16, y + 7);
+                    } else {
+                        String text = Integer.toString(value);
+                        FontMetrics metrics = g.getFontMetrics();
+                        g.drawString(text, x + 11 - metrics.stringWidth(text) / 2,
+                            y + 11 + (metrics.getAscent() - metrics.getDescent()) / 2);
+                    }
+                } finally { g.dispose(); }
+            }
+        };
+    }
+
+    private void refreshFormStepIndicators() {
+        if (formStepButtons.getComponentCount() == 0 || !formNavigation.isVisible()) return;
+        Map<String, String> values = currentValues();
+        List<String> steps = new ArrayList<>(formStageComponents.keySet());
+        boolean allReady = steps.stream().allMatch(step -> formStageReady(step, values));
+        for (int i = 0; i < formStepButtons.getComponentCount(); i++) {
+            if (!(formStepButtons.getComponent(i) instanceof JToggleButton button)) continue;
+            boolean complete = i == steps.size() ? allReady : formStageReady(steps.get(i), values);
+            Color tone = complete
+                ? (darkTheme() ? new Color(0x44C79A) : new Color(0x13814F))
+                : (darkTheme() ? new Color(0xF2B95D) : new Color(0xB97812));
+            boolean selected = i == formStageIndex;
+            button.setIcon(formStepNumber(i + 1, tone, complete));
+            button.setForeground(complete || selected ? tone : mutedTextColor());
+            button.setOpaque(true);
+            button.setContentAreaFilled(true);
+            button.setBackground(complete
+                ? (darkTheme() ? new Color(0x183D30) : new Color(0xE4F4EB))
+                : selected ? (darkTheme() ? new Color(0x383229) : new Color(0xFFF3DE))
+                : UIManager.getColor("Panel.background"));
+            Color border = complete || selected ? tone : UIManager.getColor("Component.borderColor");
+            if (border == null) border = mutedTextColor();
+            button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(border, 1, true),
+                BorderFactory.createEmptyBorder(4, 9, 4, 9)));
+            button.setToolTipText(complete
+                ? ArchvowI18n.text(project, "Step complete", "Étape complète")
+                : ArchvowI18n.text(project, "Required information missing", "Informations obligatoires manquantes"));
+        }
+    }
+
+    private void updateFormStages(boolean guided, int reviewRow) {
+        formNavigation.setVisible(guided && !formStageComponents.isEmpty());
+        formBack.setVisible(guided && !formStageComponents.isEmpty());
+        formNext.setVisible(guided && !formStageComponents.isEmpty());
+        String previousStep = null;
+        List<String> before = new ArrayList<>(formStageComponents.keySet());
+        if (formStageIndex >= 0 && formStageIndex < before.size()) previousStep = before.get(formStageIndex);
+        formStepButtons.removeAll();
+        if (!guided || formStageComponents.isEmpty()) return;
+        // The template's question groups use these same outer steps. The question
+        // control owns the fields (and their values), not a second nested wizard.
+        synchronizeInitStages();
+        // The review page is a read-only view of the same controls. The original
+        // Submit button and all confirmation/validation logic remain untouched.
+        List<String> titles = new ArrayList<>(formStageComponents.keySet());
+        titles.add("Review");
+        if (previousStep != null && titles.contains(previousStep)) formStageIndex = titles.indexOf(previousStep);
+        formStageIndex = Math.max(0, Math.min(formStageIndex, titles.size() - 1));
+        for (int index = 0; index < titles.size(); index++) {
+            final int step = index;
+            JToggleButton button = new JToggleButton(formStageTitle(titles.get(index)), index == formStageIndex);
+            button.setHorizontalAlignment(SwingConstants.LEFT);
+            button.setIconTextGap(7);
+            button.setFocusPainted(false);
+            button.addActionListener(e -> changeFormStage(step));
+            formStepButtons.add(button);
+        }
+        if (formReview.getParent() != form) {
+            formReview.setEditable(false);
+            formReview.setOpaque(false);
+            form.add(formReview, wide(reviewRow, 8));
+        }
+        changeFormStage(formStageIndex);
+    }
+
+    private String formStageTitle(String title) {
+        if (!ArchvowI18n.isFrench(project)) return title;
+        return switch (title) {
+            case "Project" -> "Projet";
+            case "Basics" -> "Essentiel";
+            case "Architecture" -> "Architecture";
+            case "Source & advanced" -> "Source et options";
+            case "Identity & changes" -> "Identité et modifications";
+            case "Advanced changes" -> "Modifications avancées";
+            case "Template basics" -> "Création du modèle";
+            case "Template questions" -> "Questions du modèle";
+            case "Advanced CLI" -> "Options CLI avancées";
+            case "Scope" -> "Périmètre";
+            case "Validation options" -> "Options de validation";
+            case "Main settings" -> "Paramètres principaux";
+            case "Other options" -> "Autres options";
+            case "Expert checks" -> "Contrôles experts";
+            case "Review" -> "Récapitulatif";
+            default -> title;
+        };
+    }
+
+    private void changeFormStage(int index) {
+        if (formStageComponents.isEmpty()) return;
+        List<String> titles = new ArrayList<>(formStageComponents.keySet());
+        formStageIndex = Math.max(0, Math.min(index, titles.size()));
+        boolean review = formStageIndex == titles.size();
+        String currentStage = review ? "Review" : titles.get(formStageIndex);
+        // The same question component participates in several parent steps.
+        // Set each component's visibility once, not once per step (which used to
+        // let the last group hide it regardless of the selected step).
+        Set<Component> stageParts = new LinkedHashSet<>();
+        for (List<Component> group : formStageComponents.values()) stageParts.addAll(group);
+        for (Component component : stageParts)
+            component.setVisible(!review && formStageComponents.get(currentStage).contains(component));
+        if (!review && initQuestions != null) {
+            int page = initQuestions.pageNames().indexOf(currentStage);
+            if (page >= 0) initQuestions.selectParentStep(page);
+        }
+        if (review) {
+            List<Map.Entry<String, String>> items = new ArrayList<>();
+            Map<String, String> reviewValues = currentValues();
+            ArchvowGrammar.Command command = commandList.getSelectedValue();
+            String commandName = command == null ? "" : command.label;
+            boolean french = ArchvowI18n.isFrench(project);
+            for (Map.Entry<String, JComponent> field : fields.entrySet()) {
+                String value = reviewValues.getOrDefault(field.getKey(), "");
+                items.add(Map.entry(ArchvowForms.label(commandName, field.getKey(), french), value));
+            }
+            if (initQuestions != null) for (String answer : initQuestions.answers()) {
+                int separator = answer.indexOf('=');
+                items.add(Map.entry(separator < 0 ? "Answer" : answer.substring(0, separator),
+                    separator < 0 ? answer : answer.substring(separator + 1)));
+            }
+            if (templateSettings != null) {
+                for (String answer : templateSettings.answers()) {
+                    int separator = answer.indexOf('=');
+                    items.add(Map.entry(separator < 0 ? "-a" : answer.substring(0, separator),
+                        separator < 0 ? answer : answer.substring(separator + 1)));
+                }
+                for (String layer : templateSettings.layerFolders()) items.add(Map.entry("--layer", layer));
+            }
+            formReviewItems = items;
+            formReviewColumns = -1;
+            refreshFormReviewLayout();
+        }
+        formReview.setVisible(review);
+        for (int i = 0; i < formStepButtons.getComponentCount(); i++)
+            if (formStepButtons.getComponent(i) instanceof JToggleButton b)
+                b.setSelected(i == formStageIndex);
+        formStageStatus.setText(formStageTitle(review ? "Review" : titles.get(formStageIndex))
+            + "  ·  " + (formStageIndex + 1) + " / " + (titles.size() + 1));
+        formBack.setVisible(true);
+        formNext.setVisible(true);
+        formBack.setEnabled(formStageIndex > 0);
+        formNext.setEnabled(!review);
+        refreshFormStepIndicators();
+        // Reveal the active step horizontally after layout without scrolling the form.
+        if (formStepStrip != null) SwingUtilities.invokeLater(() -> {
+            if (formStageIndex < formStepButtons.getComponentCount()
+                && formStepButtons.getComponent(formStageIndex) instanceof JToggleButton active) {
+                Rectangle bounds = new Rectangle(active.getBounds());
+                bounds.grow(8, 0);
+                formStepStrip.getViewport().scrollRectToVisible(bounds);
+            }
+        });
+        formNavigation.revalidate();
+        form.revalidate();
+        form.repaint();
+        if (formScroller != null) SwingUtilities.invokeLater(() -> formScroller.getVerticalScrollBar().setValue(0));
+    }
+
+    private void refreshFormReviewLayout() {
+        int width = formScroller == null ? 0 : formScroller.getViewport().getWidth();
+        int columns = ArchvowFormReviewGrid.columnsForWidth(width);
+        if (formReviewColumns == columns) return;
+        formReviewColumns = columns;
+        formReview.setText(ArchvowFormReviewGrid.html(formReviewItems, darkTheme(), columns));
+        formReview.setCaretPosition(0);
     }
 
     private static GridBagConstraints wide(int y, int top) {

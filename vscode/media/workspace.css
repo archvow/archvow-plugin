@@ -309,6 +309,13 @@ pre.card-md { max-height: 70vh; overflow: auto; }
 .command-group-toggle:hover:not([disabled]) { background:var(--vscode-list-hoverBackground); }
 .command-children { max-height:none; border:0; margin:0 0 5px 8px; }
 .command-children li { padding:5px 9px; }
+/* Match IntelliJ's command tree: indentation and subtle branch guides.
+   Only the Commands tab is affected; AI skills keep their existing layout. */
+.commands-list .command-children { position:relative; padding-left:14px; margin:4px 0 8px 22px;
+  border-left:1px solid var(--vscode-panel-border); border-radius:0; overflow:visible; }
+.commands-list .command-children li { position:relative; border-left:0; padding:6px 8px; }
+.commands-list .command-children li::before { content:""; position:absolute; top:17px; left:-14px;
+  width:13px; border-top:1px solid var(--vscode-panel-border); pointer-events:none; }
 .reference-command { border-bottom:1px solid var(--vscode-panel-border); padding:8px 2px; }
 .reference-command p { margin:5px 0; }
 .uses-picker { display:flex; flex-direction:column; gap:6px; min-width:0; }
@@ -686,3 +693,84 @@ button.terminal-copy:hover:not(:disabled), button.terminal-copy:focus-visible { 
 .terminal-text.missing { color: var(--vscode-descriptionForeground); font-style: normal; }
 /* A terminal inside a horizontal action row must be the item that shrinks. */
 .row > .terminal-command { flex: 1 1 220px; }
+
+/* Guided command forms: only the form column changes; preview and execution keep
+   their established DOM, contract and handlers. Steps remain reachable at any width. */
+.guided-steps { display: flex; gap: 6px; overflow-x: auto; padding: 3px 2px 9px;
+  max-width: 100%; scrollbar-width: thin; }
+.guided-step { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 9px; border-radius: 6px; font-size: .91em; color: var(--vscode-descriptionForeground);
+  background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); }
+.guided-step span { border: 1px solid currentColor; border-radius: 50%; width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center; font-size: .8em; }
+.guided-step.current { border-color: var(--archvow); color: var(--vscode-foreground);
+  background: color-mix(in srgb, var(--archvow) 9%, var(--vscode-editor-background)); }
+.guided-panel { border: 1px solid var(--vscode-panel-border); border-radius: 7px;
+  padding: 13px 15px; min-width: 0; background: var(--vscode-editor-background); }
+.guided-panel > .field { margin: 0 0 13px; }
+.guided-panel > .field:last-child { margin-bottom: 0; }
+.guided-panel .field label { font-weight: 600; }
+.guided-panel .card { max-width: 100%; min-width: 0; }
+.guided-panel textarea, .guided-panel input:not([type=checkbox]), .guided-panel select { max-width: 100%; }
+.guided-counter { color: var(--vscode-descriptionForeground); font-size: .87em; margin: 0 0 11px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--vscode-panel-border); }
+.guided-actions { flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.guided-review { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 7px; max-height: 48vh; overflow-y: auto; }
+.guided-review-item { min-width: 0; border: 1px solid var(--vscode-panel-border); padding: 7px 9px;
+  border-radius: 5px; overflow-wrap: anywhere; display: flex; flex-direction: column; gap: 3px; }
+.guided-review-item b { font-size: .9em; }
+.guided-review-item span { color: var(--vscode-descriptionForeground); font-family: var(--vscode-editor-font-family); }
+
+/* Guided forms: the step strip and actions are fixed; only the fields and the
+   right-hand preview scroll. A confirmation takes a full-width grid row and
+   reduces the height of BOTH upper columns, never the entire editor viewport. */
+body.editor .guided-command-layout {
+  height: max(310px, calc(100vh - 195px));
+  min-width: 0; min-height: 0; align-items: stretch;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+body.editor .guided-command-column { grid-row: 1; min-width: 0; min-height: 0; overflow: hidden; }
+body.editor .guided-command-column > .guided-steps { flex: 0 0 auto; }
+body.editor .guided-command-fields { flex: 1 1 auto; min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+/* The form has one vertical scroller, including on the Review step. */
+body.editor .guided-command-fields .guided-review { max-height: none; overflow: visible; }
+body.editor .guided-command-layout .form-pane {
+  grid-column: 2; grid-row: 1; position: static; min-width: 0; min-height: 0; height: auto;
+  box-sizing: border-box; overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: thin;
+}
+body.editor .guided-command-layout .guided-actions { flex: 0 0 auto; }
+body.editor .guided-command-layout > .confirm {
+  grid-column: 1 / -1; grid-row: 2; min-width: 0;
+  max-height: 32vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 7px;
+}
+body.editor .guided-command-layout > .confirm .row.end { margin-top: auto; flex: 0 0 auto; }
+/* A completed step is visibly green, not just its number ring. */
+.guided-step.complete { --step-tone: var(--vscode-testing-iconPassed, #238a51);
+  border-color: var(--step-tone); color: var(--step-tone);
+  background: color-mix(in srgb, var(--step-tone) 17%, var(--vscode-editor-background)); }
+.guided-step.incomplete { --step-tone: var(--vscode-editorWarning-foreground, #d18b35); }
+.guided-step.complete span, .guided-step.incomplete span { color: var(--step-tone); border-color: var(--step-tone); }
+.guided-step.current { border-color: var(--step-tone, var(--archvow));
+  box-shadow: inset 0 0 0 1px var(--step-tone, var(--archvow)); }
+@media (max-width: 760px) {
+  /* The preview stacks ABOVE the spanning confirmation. Both upper sections
+     shrink while the confirmation is present, including in narrow editor tabs. */
+  body.editor .guided-command-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(145px, 1.1fr) minmax(100px, .8fr) auto;
+  }
+  body.editor .guided-command-column { grid-column: 1; grid-row: 1; }
+  body.editor .guided-command-layout .form-pane { grid-column: 1; grid-row: 2; }
+  body.editor .guided-command-layout > .confirm { grid-column: 1; grid-row: 3; }
+}
+/* Nested template controls must never expand the editor's horizontal extent. */
+body.editor .guided-command-layout { width: 100%; max-width: 100%; box-sizing: border-box; }
+body.editor .guided-command-column, body.editor .guided-command-fields,
+body.editor .guided-command-layout .guided-panel { min-width: 0; max-width: 100%; box-sizing: border-box; }
+body.editor .guided-command-layout .guided-panel .field { grid-template-columns: minmax(90px, 22%) minmax(0, 1fr); }
+body.editor .guided-command-layout .guided-panel .field > div,
+body.editor .guided-command-layout fieldset { min-width: 0; max-width: 100%; box-sizing: border-box; }
+body.editor > main:has(.guided-command-layout) { min-width: 0; }

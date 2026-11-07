@@ -37,6 +37,13 @@ import javax.swing.UIManager;
 final class ArchvowInitQuestions extends JPanel {
     private final JComboBox<String> templatePicker = new JComboBox<>();
     private final JPanel questions = new JPanel(new GridBagLayout());
+    private final JPanel questionNavigation = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+    private final List<List<JComponent>> questionPages = new ArrayList<>();
+    private final List<String> questionPageNames = new ArrayList<>();
+    private int questionPage;
+    private boolean externalNavigation;
+    private Runnable onPagesChanged = () -> {};
+
     private final JLabel status = new JLabel();
     private final JCheckBox expanded = new JCheckBox();
     private final Map<String, JComponent> inputs = new LinkedHashMap<>();
@@ -118,11 +125,45 @@ final class ArchvowInitQuestions extends JPanel {
         }
         head.add(status);
         add(head, BorderLayout.NORTH);
-        add(questions, BorderLayout.CENTER);
+        JPanel questionBody = new JPanel(new BorderLayout(0, 6));
+        questionBody.add(questionNavigation, BorderLayout.NORTH);
+        questionBody.add(questions, BorderLayout.CENTER);
+        add(questionBody, BorderLayout.CENTER);
         setLoading();
     }
 
     void onChange(Runnable callback) { onChange = callback == null ? () -> {} : callback; }
+
+    /** The parent command form owns the only step bar. No nested question navigator. */
+    void useParentSteps(Runnable callback) {
+        externalNavigation = true;
+        onPagesChanged = callback == null ? () -> {} : callback;
+        updateQuestionPage();
+    }
+
+    List<String> pageNames() { return List.copyOf(questionPageNames); }
+
+    void selectParentStep(int page) {
+        if (page < 0 || page >= questionPages.size()) return;
+        questionPage = page;
+        updateQuestionPage();
+    }
+
+    boolean pageReady(int page) {
+        if (page < 0 || page >= questionPageNames.size() || active == null) return false;
+        Map<String, String> values = readInputs();
+        JsonArray source = active.has("questions") && active.get("questions").isJsonArray()
+            ? active.getAsJsonArray("questions") : new JsonArray();
+        for (JsonElement item : source) {
+            if (!item.isJsonObject()) continue;
+            JsonObject question = item.getAsJsonObject();
+            String id = string(question, "id");
+            if (!questionPageNames.get(page).equals(questionGroup(id))) continue;
+            if (question.has("ask") && question.get("ask").getAsBoolean()
+                && values.getOrDefault(id, "").isBlank()) return false;
+        }
+        return true;
+    }
 
     void setLoading() {
         status.setText(french ? "Chargement depuis archvow catalog --json…" : "Loading archvow catalog --json…");
@@ -200,7 +241,14 @@ final class ArchvowInitQuestions extends JPanel {
         retained.putAll(readInputs());
         inputs.clear();
         questions.removeAll();
-        if (active == null) { questions.revalidate(); questions.repaint(); return; }
+        questionPages.clear();
+        questionPageNames.clear();
+        if (active == null) {
+            updateQuestionPage();
+            onPagesChanged.run();
+            questions.revalidate(); questions.repaint();
+            return;
+        }
         JsonArray list = active.has("questions") && active.get("questions").isJsonArray()
             ? active.getAsJsonArray("questions") : new JsonArray();
         int y = 0;
@@ -268,11 +316,75 @@ final class ArchvowInitQuestions extends JPanel {
             right.fill = GridBagConstraints.HORIZONTAL;
             right.insets = new Insets(5, 0, 3, 5);
             questions.add(block, right);
+            String group = questionGroup(id);
+            int page = questionPageNames.indexOf(group);
+            if (page < 0) {
+                page = questionPageNames.size();
+                questionPageNames.add(group);
+                questionPages.add(new ArrayList<>());
+            }
+            questionPages.get(page).add(label);
+            questionPages.get(page).add(block);
         }
         GridBagConstraints filler = new GridBagConstraints();
         filler.gridx = 1; filler.gridy = y; filler.weighty = 1; filler.fill = GridBagConstraints.VERTICAL;
         questions.add(new JPanel(), filler);
+        questionPage = Math.max(0, Math.min(questionPage, questionPages.size() - 1));
+        updateQuestionPage();
+        onPagesChanged.run();
         questions.revalidate(); questions.repaint();
+    }
+
+    private String questionGroup(String id) {
+        if (List.of("language", "architects", "mode", "sandbox", "rules", "auto_approve").contains(id))
+            return french ? "Gouvernance" : "Governance";
+        if (List.of("ai_tools", "reviewers", "briefs", "ticket_pattern").contains(id))
+            return french ? "IA et briefs" : "AI & briefs";
+        if (List.of("platform", "ci", "sonar", "git_hooks", "branch_naming", "line_length").contains(id))
+            return french ? "CI et qualité" : "CI & quality";
+        if (List.of("python_version", "spark_version", "fastapi_version", "scheduler", "dependencies").contains(id))
+            return french ? "Exécution" : "Runtime";
+        if (List.of("max_components", "max_code_lines", "pip_index_url", "ci_image").contains(id))
+            return french ? "Limites et intégration" : "Limits & integration";
+        return french ? "Autres réponses" : "Other answers";
+    }
+
+    private void updateQuestionPage() {
+        questionNavigation.removeAll();
+        questionNavigation.setVisible(!externalNavigation && questionPages.size() > 1);
+        if (questionPages.isEmpty()) return;
+        if (externalNavigation) {
+            for (int i = 0; i < questionPages.size(); i++)
+                for (JComponent row : questionPages.get(i)) row.setVisible(i == questionPage);
+            questions.revalidate(); questions.repaint();
+            return;
+        }
+        JButton back = new JButton("←");
+        back.setToolTipText(french ? "Questions précédentes" : "Previous questions");
+        back.setEnabled(questionPage > 0);
+        back.addActionListener(e -> { questionPage--; updateQuestionPage(); });
+        questionNavigation.add(back);
+        JComboBox<String> pages = new JComboBox<>();
+        for (int i = 0; i < questionPageNames.size(); i++)
+            pages.addItem((i + 1) + " / " + questionPageNames.size() + "  " + questionPageNames.get(i));
+        pages.setSelectedIndex(questionPage);
+        pages.addActionListener(e -> {
+            if (pages.getSelectedIndex() >= 0 && questionPage != pages.getSelectedIndex()) {
+                questionPage = pages.getSelectedIndex();
+                updateQuestionPage();
+            }
+        });
+        questionNavigation.add(pages);
+        JButton next = new JButton("→");
+        next.setToolTipText(french ? "Questions suivantes" : "Next questions");
+        next.setEnabled(questionPage + 1 < questionPages.size());
+        next.addActionListener(e -> { questionPage++; updateQuestionPage(); });
+        questionNavigation.add(next);
+        for (int i = 0; i < questionPages.size(); i++)
+            for (JComponent row : questionPages.get(i)) row.setVisible(i == questionPage);
+        questionNavigation.revalidate();
+        questions.revalidate();
+        questions.repaint();
     }
 
     /** Return actual Archvow -a KEY=VALUE arguments, not YAML or fabricated commands. */
