@@ -254,7 +254,7 @@ final class ArchvowExamples {
             .append(french ? "Corrige le code, pas l'exemple." : "Fix the code, not the example.").append("</b></div><div>")
             .append(esc(french ? "L'IA a la même consigne. Si le métier dit que le résultat attendu est faux, une personne remplace les fichiers et les enregistre à nouveau :"
                 : "The AI is told the same. If the business team says the expected result is wrong, a person replaces the files and records them again:"))
-            .append("</div><pre>").append(esc(command(view, e))).append("</pre>");
+            .append("</div>").append(ArchvowTerminal.html(command(view, e)));
         if (s.result().equals("no_test")) out.append("<div style='margin-top:8px; color:#b07e24'><b>")
             .append(french ? "Pas encore de test, donc pas d'actual/." : "No test yet, so no actual/.").append("</b></div><div>")
             .append(esc(french ? "Demande à l'IA : implémente le test de l'exemple " + ArchvowGrammar.str(e, "name") + "."

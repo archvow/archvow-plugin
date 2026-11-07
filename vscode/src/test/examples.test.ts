@@ -17,7 +17,7 @@ const read = (...parts: string[]): Json => JSON.parse(fs.readFileSync(path.join(
 
 /** The page's functions (and consts) of these names, with its helpers, in one scope; `ui` and the language given. */
 function load(names: string[], ui: Json, french = false): Json {
-  const helpers = ['t', 'esc', 'str', 'list', 'btn', 'attrs', 'byOn', 'split', 'answerHead', 'SEARCH_GROUPS'];
+  const helpers = ['t', 'esc', 'str', 'list', 'btn', 'attrs', 'byOn', 'split', 'answerHead', 'SEARCH_GROUPS', 'terminalCommand'];
   const sources = [...helpers, ...names].map((name) => {
     const fn = page.match(new RegExp(`\\n  function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n  \\}\\n`));
     const constant = page.match(new RegExp(`\\n  const ${name} = [\\s\\S]*?;\\n`));

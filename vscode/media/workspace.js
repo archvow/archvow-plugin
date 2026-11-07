@@ -64,6 +64,22 @@
   };
   const btn = (label, action, extra = '', disabled = false, cls = '') =>
     `<button class="${cls}" data-a="${action}" ${extra} ${disabled ? 'disabled' : ''}>${esc(label)}</button>`;
+  /** The same terminal treatment for visible shell commands throughout the workspace.
+   *  It only changes presentation; the real command string is never reformatted. */
+  function terminalCommand(command, options = {}) {
+    const raw = String(command ?? '');
+    const shown = raw || 'archvow';
+    const pending = !!options.missing;
+    const copy = options.copy !== false;
+    const id = options.id ? ` id="${esc(options.id)}"` : '';
+    const copyTitle = pending ? t('Copy preview text (not a runnable command)', 'Copier le texte de prévisualisation (commande non exécutable)')
+      : t('Copy command', 'Copier la commande');
+    const copyControl = copy ? `<button type="button" class="terminal-copy" data-a="copyText" data-text="${esc(shown)}" title="${esc(copyTitle)}" aria-label="${esc(copyTitle)}"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="2" width="9" height="10" rx="1"/><path d="M11 14H3a1 1 0 0 1-1-1V5"/></svg></button>` : '';
+    return `<div class="terminal-command" role="group" aria-label="${esc(t('Command', 'Commande'))}">
+      <div class="terminal-bar"><span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="terminal-label">${esc(t('Terminal — archvow', 'Terminal — archvow'))}</span>${copyControl}</div>
+      <pre class="terminal-content"><span class="terminal-prompt" aria-hidden="true">$</span> <span${id} class="terminal-text${pending ? ' missing' : ''}">${esc(shown)}</span></pre>
+    </div>`;
+  }
   // ---------------------------------------------------------------- AI skills and origins (0.16.0)
 
   /** forms.json ai_skills: the five skills in plain words, the request each sends, the origin tags. */
@@ -263,7 +279,18 @@
         if (m.command !== ui.command) return;
         ui.preview = { text: m.text || '', missing: m.missing || '', files: Array.isArray(m.files) ? m.files : [] };
         const pre = document.getElementById('form-preview');
-        if (pre) { pre.textContent = ui.preview.text || ui.preview.missing; pre.classList.toggle('missing', !ui.preview.text); }
+        if (pre) {
+          pre.textContent = ui.preview.text || ui.preview.missing;
+          pre.classList.toggle('missing', !ui.preview.text);
+          const copy = pre.closest('.terminal-command')?.querySelector('.terminal-copy');
+          if (copy) {
+            copy.dataset.text = ui.preview.text || ui.preview.missing || '';
+            const title = ui.preview.text ? t('Copy command', 'Copier la commande')
+              : t('Copy preview text (not a runnable command)', 'Copier le texte de prévisualisation (commande non exécutable)');
+            copy.title = title;
+            copy.setAttribute('aria-label', title);
+          }
+        }
         const files = document.getElementById('form-files');
         if (files) files.innerHTML = filesBlock(ui.preview.files);
         return;
@@ -412,7 +439,7 @@
       ? t(`archvow is not installed where the plugin looks. Install archvow ${i.version}:`, `archvow n'est pas installé là où le plugin le cherche. Installer archvow ${i.version} :`)
       : t(`The installed archvow is not ${i.version}, the version this plugin knows:`, `L'archvow installé n'est pas ${i.version}, la version que ce plugin connaît :`);
     const where = i.python
-      ? `<div class="command">${esc(i.command)}</div><p class="muted small">${esc(t('From', 'Depuis'))}: ${esc(i.source === "pip's configuration" ? t("pip's configuration", 'la configuration de pip') : i.source)} · ${esc(t('setting archvow.installFrom', 'réglage archvow.installFrom'))}</p>`
+      ? `${terminalCommand(i.command)}<p class="muted small">${esc(t('From', 'Depuis'))}: ${esc(i.source === "pip's configuration" ? t("pip's configuration", 'la configuration de pip') : i.source)} · ${esc(t('setting archvow.installFrom', 'réglage archvow.installFrom'))}</p>`
       : `<p class="tone-warn">${esc(t('No Python found for this project (.venv, venv, the Python extension\'s interpreter, archvow.python): choose one with Configure Python.',
         "Aucun Python trouvé pour ce projet (.venv, venv, l'interpréteur de l'extension Python, archvow.python) : choisis-en un avec Configurer Python."))}</p>`;
     return `<div class="card install"><p><b>${esc(why)}</b></p>${where}
@@ -518,7 +545,7 @@
     const c = ui.confirm;
     if (!c || c.target !== target) return '';
     return `<div class="confirm"><div class="confirm-title">⚠ ${esc(t('Confirm', 'Confirmer'))}: ${esc(c.title)}</div>
-  <pre>${esc(c.summary)}</pre><div class="command">${esc(c.command)}</div>
+  <pre>${esc(c.summary)}</pre>${terminalCommand(c.command)}
   <div class="row end">${btn(t('Cancel', 'Annuler'), 'cancelConfirm', '', false, 'secondary')}${btn(t('Confirm and run', 'Confirmer et exécuter'), 'confirm')}</div></div>`;
   }
 
@@ -1148,7 +1175,7 @@
     ].join('');
     const fix = state.result === 'failing' ? `<div class="alert bad"><b>${esc(t('Fix the code, not the example.', "Corrige le code, pas l'exemple."))}</b>
   <div>${esc(t('The AI is told the same. If the business team says the expected result is wrong, a person replaces the files and records them again:', "L'IA a la même consigne. Si le métier dit que le résultat attendu est faux, une personne remplace les fichiers et les enregistre à nouveau :"))}</div>
-  <div class="row"><code class="command grow">${esc(command)}</code>${btn(t('Copy command', 'Copier la commande'), 'copyText', attrs({ text: command }), false, 'small')}</div></div>`
+  <div class="row">${terminalCommand(command, { copy: false })}${btn(t('Copy command', 'Copier la commande'), 'copyText', attrs({ text: command }), false, 'small')}</div></div>`
       : state.result === 'no_test' ? `<div class="alert warn"><b>${esc(t('No test yet, so no actual/.', "Pas encore de test, donc pas d'actual/."))}</b>
   <div>${esc(t(`Ask the AI: implement the test of example ${name}. Its card lists the files and the mark @pytest.mark.example("${name}").`,
     `Demande à l'IA : implémente le test de l'exemple ${name}. Sa fiche donne les fichiers et la marque @pytest.mark.example("${name}").`))}</div></div>` : '';
@@ -1775,7 +1802,7 @@
   /** A diagnostic's guidance (guidance.ts): what it means, what to do, who, whether it blocks, the command, then. */
   function guideHtml(g) {
     const md = (text) => esc(text || '').replace(/`([^`]+)`/g, '<code>$1</code>');
-    const command = g.command ? `<dt>${esc(t('The command', 'La commande'))}</dt><dd><code>${esc(g.command.text)}</code>`
+    const command = g.command ? `<dt>${esc(t('The command', 'La commande'))}</dt><dd>${terminalCommand(g.command.text)}`
       + (g.command.missing.length ? ` <span class="muted">— ${esc(t('the form leaves for you to fill in: ', 'le formulaire vous laisse remplir : '))}${esc(g.command.missing.join(', '))}</span>` : '')
       + ` <span class="muted">— ${esc(g.command.readOnly ? t('it changes nothing.', 'elle ne change rien.') : t('prepared in a form; nothing runs before you confirm.', 'préparée dans un formulaire ; rien ne tourne avant votre confirmation.'))}</span></dd>` : '';
     return `<dl class="guide"><dt>${esc(t('What it means', 'Ce que cela veut dire'))}</dt><dd>${md(g.meaning)}</dd>
@@ -2052,7 +2079,7 @@
     const shown = ui.preview.text || ui.preview.missing;
     const pane = `<aside class="form-pane"><h4>${esc(t('What archvow will do', 'Ce que va faire archvow'))}</h4>
   ${does ? `<p>${esc(does)}</p>` : ''}<div class="muted small">${esc(t('The command', 'La commande'))}</div>
-  <pre id="form-preview" class="command-preview${ui.preview.text ? '' : ' missing'}">${esc(shown || 'archvow ' + name)}</pre>
+  ${terminalCommand(shown || 'archvow ' + name, { id: 'form-preview', missing: !ui.preview.text })}
   ${name === 'init' ? `<p class="muted small">${esc(t('Main files preview; the chosen template and answers may generate additional guard files. No source code folders are created.', 'Aperçu des principaux fichiers ; le modèle et les réponses peuvent générer d’autres fichiers de garde. Aucun dossier de code source n’est créé.'))}</p>` : ''}
   <div id="form-files">${filesBlock(ui.preview.files)}</div>
   <p class="muted small">${esc(t('If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.',

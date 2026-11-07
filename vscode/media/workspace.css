@@ -653,3 +653,36 @@ button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--v
 /* AI handoff: actions can wrap without clipping at narrow editor widths. */
 .skill-form .form-actions { flex-wrap: wrap; }
 .skill-form .form-actions button { white-space: nowrap; }
+
+/* Shell command display only (forms, confirmation, install, examples, guidance).
+   Uses the IDE theme tokens: never changes the surrounding controls or layout. */
+.terminal-command {
+  min-width: 0; width: 100%; box-sizing: border-box; overflow: hidden;
+  border: 1px solid var(--vscode-panel-border, var(--vscode-input-border, #8885));
+  border-radius: 6px; margin: 5px 0 8px;
+  background: color-mix(in srgb, var(--vscode-editor-background) 96%, var(--vscode-foreground) 4%);
+  color: var(--vscode-editor-foreground, var(--vscode-foreground));
+}
+.terminal-bar {
+  display: flex; gap: 9px; align-items: center; min-height: 25px;
+  padding: 2px 7px 2px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border, #8885);
+  background: color-mix(in srgb, var(--vscode-editor-background) 87%, var(--vscode-foreground) 13%);
+}
+.terminal-lights { display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto; }
+.terminal-lights i { display: block; width: 8px; height: 8px; border-radius: 50%; background: #ed6a5f; }
+.terminal-lights i:nth-child(2) { background: #f4bf50; }
+.terminal-lights i:nth-child(3) { background: #61c454; }
+.terminal-label { font-size: .85em; color: var(--vscode-descriptionForeground); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+button.terminal-copy { margin-left: auto; display: inline-flex; padding: 3px 5px; min-width: 23px; min-height: 22px;
+  align-items: center; justify-content: center; color: var(--vscode-foreground); background: transparent; border: 0; }
+button.terminal-copy:hover:not(:disabled), button.terminal-copy:focus-visible { background: var(--vscode-toolbar-hoverBackground); }
+.terminal-copy svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+.terminal-content { margin: 0; padding: 10px 11px; min-width: 0; font-family: var(--vscode-editor-font-family, 'JetBrains Mono', monospace);
+  font-size: var(--vscode-editor-font-size, 13px); font-weight: 400; font-style: normal; line-height: 1.5;
+  white-space: pre-wrap; overflow-wrap: anywhere; }
+.terminal-prompt { color: #1a9b65; font-weight: 700; font-style: normal; user-select: none; }
+.terminal-text { font: inherit; white-space: inherit; overflow-wrap: inherit; }
+.terminal-text.missing { color: var(--vscode-descriptionForeground); font-style: normal; }
+/* A terminal inside a horizontal action row must be the item that shrinks. */
+.row > .terminal-command { flex: 1 1 220px; }

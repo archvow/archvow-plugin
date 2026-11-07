@@ -1199,7 +1199,7 @@ final class ArchvowPanel extends JPanel {
         welcomeInstallCommand.setVisible(offered);
         if (offer != null) {
             String text = ArchvowInstall.explain(offer, ArchvowI18n.isFrench(project));
-            welcomeInstallCommand.setText("<html>" + escape(text) + (offer.display().isEmpty() ? "" : "<br><code>" + escape(offer.display()) + "</code>") + "</html>");
+            welcomeInstallCommand.setText("<html>" + escape(text) + (offer.display().isEmpty() ? "" : "<br>" + ArchvowTerminal.html(offer.display())) + "</html>");
             welcomeInstall.setToolTipText(offer.display().isEmpty() ? null : offer.display());
         }
         if (!offered) welcomeConfirmation.hideConfirmation();
@@ -2858,10 +2858,8 @@ final class ArchvowPanel extends JPanel {
 
     /** Design A: what archvow will do, and the command line as it is typed (the live preview). */
     private JComponent formPane() {
-        JPanel pane = new JPanel();
-        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-        pane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(6, 8, 6, 4),
-            BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(mutedTextColor()), BorderFactory.createEmptyBorder(6, 10, 8, 10))));
+        ArchvowCommandFormLayout.PreviewContent pane = new ArchvowCommandFormLayout.PreviewContent();
+        pane.setBorder(BorderFactory.createEmptyBorder(6, 10, 8, 10));
         JLabel heading = new JLabel(ArchvowI18n.text(project, "What archvow will do", "Ce que va faire archvow"));
         heading.setFont(heading.getFont().deriveFont(Font.BOLD));
         languageRefreshers.add(() -> heading.setText(ArchvowI18n.text(project, "What archvow will do", "Ce que va faire archvow")));
@@ -2870,35 +2868,33 @@ final class ArchvowPanel extends JPanel {
         JLabel commandLabel = new JLabel(ArchvowI18n.text(project, "The command", "La commande"));
         languageRefreshers.add(() -> commandLabel.setText(ArchvowI18n.text(project, "The command", "La commande")));
         commandLabel.setForeground(mutedTextColor()); commandLabel.setAlignmentX(LEFT_ALIGNMENT);
-        formPreview.setEditable(false); formPreview.setLineWrap(true); formPreview.setWrapStyleWord(false);
-        formPreview.setFont(new Font(Font.MONOSPACED, Font.PLAIN, formPreview.getFont().getSize()));
-        JScrollPane preview = new JScrollPane(formPreview);
+        JComponent preview = ArchvowTerminal.wrap(formPreview);
         preview.setAlignmentX(LEFT_ALIGNMENT);
         ArchvowWrapLabel note = formHint(ArchvowI18n.text(project,
             "If archvow refuses (a name already taken, words that protect nothing...), its message shows in red under the form, before anything is written.",
             "Si archvow refuse (un nom déjà pris, des mots qui ne protègent rien...), son message s'affiche en rouge sous le formulaire, avant que rien ne soit écrit."), true);
-        pane.add(heading); pane.add(Box.createVerticalStrut(6)); pane.add(formDoes); pane.add(Box.createVerticalStrut(8));
-        pane.add(commandLabel); pane.add(preview); pane.add(formFiles); pane.add(Box.createVerticalStrut(6)); pane.add(note);
-        // BorderLayout.EAST stretches its child to the height of the whole form.
-        // Anchor the actual help card at the top and measure its text rather than
-        // stretching the bordered card through the empty bottom of the editor.
+        pane.addPart(heading); pane.addPart(Box.createVerticalStrut(6)); pane.addPart(formDoes); pane.addPart(Box.createVerticalStrut(8));
+        pane.addPart(commandLabel); pane.addPart(preview); pane.addPart(formFiles); pane.addPart(Box.createVerticalStrut(6)); pane.addPart(note);
+        // The preview fills the available height beside the form. When init or
+        // another command lists more files than fit, scroll the *whole* preview;
+        // never put a separate scrollbar inside the terminal command.
         final int preferredSideWidth = ArchvowCommandFormLayout.helpWidth(0);
-        JPanel topAligned = new JPanel(new BorderLayout()) {
+        JScrollPane scroller = new JScrollPane(pane,
+            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroller.setBorder(BorderFactory.createEmptyBorder());
+        scroller.getVerticalScrollBar().setUnitIncrement(18);
+        JPanel fullHeight = new JPanel(new BorderLayout()) {
             @Override public Dimension getPreferredSize() {
-                // A new command changes formDoes and the live preview. Size to the
-                // CURRENT wrapped text, not to whichever command opened the tab.
                 Container parent = getParent();
                 int sideWidth = parent == null ? preferredSideWidth : ArchvowCommandFormLayout.helpWidth(parent.getWidth());
-                Insets insets = pane.getInsets();
-                int textWidth = Math.max(190, sideWidth - insets.left - insets.right);
-                formDoes.setSize(textWidth, formDoes.getHeight());
-                note.setSize(textWidth, note.getHeight());
-                return new Dimension(sideWidth, pane.getPreferredSize().height);
+                return new Dimension(sideWidth, Math.max(200, super.getPreferredSize().height));
             }
         };
-        topAligned.setOpaque(false);
-        topAligned.add(pane, BorderLayout.NORTH);
-        return topAligned;
+        fullHeight.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(6, 8, 6, 4),
+            BorderFactory.createLineBorder(mutedTextColor())));
+        fullHeight.add(scroller, BorderLayout.CENTER);
+        return fullHeight;
     }
 
 
@@ -5885,7 +5881,10 @@ final class ArchvowPanel extends JPanel {
                 " - le formulaire vous laisse remplir : ") + String.join(", ", g.command().missing()))
                 + (g.command().readOnly() ? ArchvowI18n.text(project, " - it changes nothing.", " - elle ne change rien.")
                 : ArchvowI18n.text(project, " - prepared in a form; nothing runs before you confirm.", " - préparée dans un formulaire ; rien ne tourne avant votre confirmation."));
-            row.accept(ArchvowI18n.text(project, "The command", "La commande"), "`" + g.command().text() + "`" + note);
+            html.append("<tr><td valign='top' nowrap><b>")
+                .append(escape(ArchvowI18n.text(project, "The command", "La commande")))
+                .append("</b></td><td>").append(ArchvowTerminal.html(g.command().text()))
+                .append("<small>").append(escape(note)).append("</small></td></tr>");
         }
         row.accept(ArchvowI18n.text(project, "Who", "Qui"), g.who());
         row.accept(ArchvowI18n.text(project, "Blocks?", "Bloquant ?"), g.blocking());

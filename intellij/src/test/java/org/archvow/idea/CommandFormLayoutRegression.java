@@ -136,6 +136,27 @@ public final class CommandFormLayoutRegression {
             check(ArchvowCommandFormLayout.helpWidth(1750) >= 550, "help panel stays too narrow on wide editor");
             check(ArchvowCommandFormLayout.helpWidth(850) <= 300, "help panel consumes narrow editor");
             check(ArchvowCommandFormLayout.helpWidth(1920) == 600, "help width cap");
+            ArchvowCommandFormLayout.PreviewContent side = new ArchvowCommandFormLayout.PreviewContent();
+            JPanel tallFiles = new JPanel();
+            tallFiles.setPreferredSize(new Dimension(200, 950));
+            side.addPart(tallFiles);
+            JScrollPane sideScroll = new JScrollPane(side, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            sideScroll.setSize(330, 240);
+            sideScroll.doLayout();
+            check(side.getScrollableTracksViewportWidth() && !side.getScrollableTracksViewportHeight(),
+                "right preview must follow available width, not available height");
+            check(sideScroll.getVerticalScrollBar().getMaximum() > sideScroll.getVerticalScrollBar().getVisibleAmount(),
+                "right preview needs a vertical scrollbar when files exceed the editor height");
+            check(sideScroll.getHorizontalScrollBarPolicy() == JScrollPane.HORIZONTAL_SCROLLBAR_NEVER,
+                "right preview should never require horizontal scrolling");
+            sideScroll.setSize(330, 1200);
+            sideScroll.doLayout();
+            sideScroll.getViewport().doLayout();
+            side.doLayout();
+            for (Component child : side.getComponents()) if (child instanceof Container inner) inner.doLayout();
+            check(tallFiles.getHeight() == tallFiles.getPreferredSize().height,
+                "extra editor height should stay below the content, not stretch the files or terminal");
         });
         // drain toggle callbacks, as EDT does when the user clicks a toggle
         SwingUtilities.invokeAndWait(() -> { });

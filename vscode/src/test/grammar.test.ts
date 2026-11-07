@@ -131,7 +131,7 @@ test('design A (0.14.0): forms.json names what exists, refusals and doubts show 
     ['c.INV1 is proven by an example_test (ARCH037)']);
   // the page asks the extension for the preview: one grammar (planForm) for the preview and for Run
   const page = fs.readFileSync(path.join(__dirname, '..', '..', 'media', 'workspace.js'), 'utf8');
-  for (const piece of ["type: 'formPreview'", 'function fieldLabel(', 'function isEssential(', "t('More options', \"Plus d'options\")", 'function formAlerts(', "'cancelForm'", 'id="form-preview"']) {
+  for (const piece of ["type: 'formPreview'", 'function fieldLabel(', 'function isEssential(', "t('More options', \"Plus d'options\")", 'function formAlerts(', "'cancelForm'", "id: 'form-preview'"]) {
     assert.ok(page.includes(piece), piece);
   }
   const host = fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'workspace.ts'), 'utf8');

@@ -63,6 +63,25 @@ final class ArchvowCommandFormLayout {
         return Math.min(600, Math.max(240, Math.round(editorWidth * 0.34f)));
     }
 
+    /** Side preview grows vertically with its contents and scrolls only as a whole. */
+    static final class PreviewContent extends JPanel implements Scrollable {
+        private final JPanel stack = new JPanel();
+        PreviewContent() {
+            super(new BorderLayout());
+            stack.setOpaque(false);
+            stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+            add(stack, BorderLayout.NORTH); // no extra height allocated to the terminal or Files tree
+        }
+        void addPart(Component part) { stack.add(part); }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 18; }
+        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) {
+            return Math.max(18, visible.height - 28);
+        }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() { return false; }
+    }
+
     /**
      * Update the viewport as well as the grid; revalidating only the grid leaves
      * lower panels clipped after a collapsed form is expanded again.
