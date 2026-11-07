@@ -38,9 +38,40 @@ public final class SkillFormRegression {
         return null;
     }
 
+    private static <T extends java.awt.Component> T firstVisible(java.awt.Container parent, Class<T> type) {
+        for (java.awt.Component child : parent.getComponents()) {
+            if (type.isInstance(child) && child.isVisible()) return type.cast(child);
+            if (child instanceof java.awt.Container nested) {
+                T match = firstVisible(nested, type);
+                if (match != null) return match;
+            }
+        }
+        return null;
+    }
+
+    private static void skillFormStaysTopAligned(ArchvowSkillForm form) {
+        form.setSize(1240, 760);
+        layoutTree(form);
+        java.awt.Container steps = named(form, "archvow.skill.steps");
+        check(steps != null, "skill steps are present");
+        javax.swing.JComboBox<?> combo = firstVisible(form, javax.swing.JComboBox.class);
+        check(combo != null, "the visible target field is present");
+        int stepsBottom = SwingUtilities.convertPoint(steps, 0, steps.getHeight(), form).y;
+        int fieldTop = SwingUtilities.convertPoint(combo, 0, 0, form).y;
+        check(fieldTop >= stepsBottom && fieldTop - stepsBottom < 120,
+            "the left column stays just below the steps, like VS Code");
+        java.awt.Container review = named(form, "archvow.skill.review");
+        check(review != null && review.getComponentCount() >= 2,
+            "the review step renders cards rather than a plain text block");
+    }
+
     private static void compactSkillExplanation(ArchvowSkillForm form) {
-        for (int width : new int[] {1200, 760, 550}) {
+        for (int width : new int[] {1200, 760, 550, 410}) {
             form.setSize(width, 820);
+            layoutTree(form);
+            java.awt.Container body = named(form, "archvow.skill.body");
+            check(body != null, "skill columns are present");
+            body.dispatchEvent(new java.awt.event.ComponentEvent(body, java.awt.event.ComponentEvent.COMPONENT_RESIZED));
             layoutTree(form);
             java.awt.Container explanation = named(form, "archvow.skill.explanation");
             check(explanation != null, "the compact instructions are visible");
@@ -51,8 +82,11 @@ public final class SkillFormRegression {
                 check(step.getHeight() > 0, "instructions have nonzero height at " + width);
                 previousBottom = step.getY() + step.getHeight();
             }
-            if (width >= 1000) check(previousBottom < explanation.getHeight() - 40,
-                "the scrollable request remains grouped with the instructions at the top");
+            // The explanation is now hosted at its natural height (BorderLayout.NORTH),
+            // rather than stretched to fill the editor. Its final request block should
+            // end at the bottom of that natural-height panel, without being clipped.
+            check(previousBottom <= explanation.getHeight() + 2,
+                "instructions or the request are clipped at " + width);
         }
     }
 
@@ -91,7 +125,7 @@ public final class SkillFormRegression {
             && drafted.request.getText().contains("If you cannot access the project files"), drafted.request.getText());
         // The editor can be tall or narrow: the numbered instructions must not
         // spread across its whole height or clip when their text wraps.
-        SwingUtilities.invokeAndWait(() -> compactSkillExplanation(drafted));
+        SwingUtilities.invokeAndWait(() -> { compactSkillExplanation(drafted); skillFormStaysTopAligned(draft); });
 
         // Responsive action footer: two or three buttons fit without being cut
         // off, even after a narrow resize wraps them into an additional row.

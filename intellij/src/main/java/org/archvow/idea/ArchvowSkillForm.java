@@ -27,7 +27,7 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
 
     final Map<String, String> values = new LinkedHashMap<>();
     final JTextArea request = new JTextArea(3, 30);
-    private final JTextArea skillReview = new JTextArea(4, 24);
+    private final JPanel skillReview = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 12, 12));
     final JButton copy;
     final JButton copySkill;
     final JButton cancel;
@@ -97,13 +97,10 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
             (i < handoffStart ? targetParts : handoffParts).add(left.getComponent(i));
         }
         skillReview.setName("archvow.skill.review");
-        skillReview.setEditable(false);
-        skillReview.setFocusable(false);
         skillReview.setOpaque(false);
-        skillReview.setLineWrap(true);
-        skillReview.setWrapStyleWord(true);
         skillReview.setAlignmentX(LEFT_ALIGNMENT);
         JPanel reviewPage = new JPanel(new BorderLayout());
+        reviewPage.setOpaque(false);
         reviewPage.add(skillReview, BorderLayout.NORTH);
         reviewPage.setAlignmentX(LEFT_ALIGNMENT);
         left.add(reviewPage);
@@ -134,7 +131,7 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         left.add(navigator, 0);
         showStep[0].run();
 
-        JPanel right = new JPanel(new BorderLayout());
+        JPanel right = new JPanel(new BorderLayout(0, 10));
         right.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(128, 128, 128, 90)),
             BorderFactory.createEmptyBorder(10, 12, 10, 12)));
         JLabel what = new JLabel(french ? "CE QUI VA SE PASSER" : "WHAT WILL HAPPEN");
@@ -156,6 +153,13 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         explanation.add(wrap(french ? "Ce qu'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire."
             : "What it adds appears in the component's tabs, marked AI and To review."));
         explanation.add(Box.createVerticalStrut(10));
+        JPanel highlights = new JPanel(new GridLayout(1, 2, 10, 0));
+        highlights.setOpaque(false);
+        highlights.setAlignmentX(Component.LEFT_ALIGNMENT);
+        highlights.add(infoBox(french ? "L'IA peut" : "The AI can", pair(def, "may_add"), new Color(68, 115, 217)));
+        highlights.add(infoBox(french ? "Toi, tu" : "You still", pair(def, "you"), new Color(40, 138, 84)));
+        explanation.add(highlights);
+        explanation.add(Box.createVerticalStrut(10));
 
         JPanel bottom = new JPanel(new BorderLayout(0, 3));
         bottom.setOpaque(false);
@@ -174,10 +178,25 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         explanation.add(bottom);
         right.add(explanation, BorderLayout.CENTER);
 
+        JPanel leftHost = new JPanel(new BorderLayout());
+        leftHost.setOpaque(false);
+        leftHost.add(left, BorderLayout.NORTH);
+        JPanel rightHost = new JPanel(new BorderLayout()) {
+            @Override public void doLayout() {
+                // The explanation's natural height depends on the actual editor width.
+                // Measure it at the new width before BorderLayout asks for its height,
+                // otherwise narrowing the editor can clip the instructions.
+                Insets in = right.getInsets();
+                explanation.setSize(Math.max(1, getWidth() - in.left - in.right), explanation.getHeight());
+                super.doLayout();
+            }
+        };
+        rightHost.setOpaque(false);
+        rightHost.add(right, BorderLayout.NORTH);
         JPanel body = new JPanel(new GridLayout(1, 2, 12, 0));
         body.setName("archvow.skill.body");
-        body.add(left);
-        body.add(right);
+        body.add(leftHost);
+        body.add(rightHost);
         left.setAlignmentX(Component.LEFT_ALIGNMENT);
         right.setAlignmentX(Component.LEFT_ALIGNMENT);
         // A narrow editor stacks the controls above the explanation rather than
@@ -296,12 +315,16 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
     /** The request, the button and the "not yet" line, after each change. */
     private void update() {
         request.setText(ArchvowAiSkills.request(skills, skill, values.getOrDefault("tool", ""), values, french));
-        skillReview.setText((french ? "Cible : " : "Target: ")
-            + values.getOrDefault(values.containsKey("brief") ? "brief" : "component", "—") + "\n"
-            + (french ? "Au plus : " : "At most: ") + values.getOrDefault("max", "5") + "\n"
-            + (french ? "Assistant IA : " : "AI assistant: ") + values.getOrDefault("tool", "—"));
         JsonObject def = def(skills, skill);
         boolean brief = "brief".equals(str(def, "target"));
+        skillReview.removeAll();
+        skillReview.add(reviewItem(brief ? (french ? "Brief" : "Brief") : (french ? "Composant" : "Component"),
+            values.getOrDefault(brief ? "brief" : "component", "—")));
+        if (def != null && def.has("max") && def.get("max").getAsBoolean())
+            skillReview.add(reviewItem(french ? "Au plus" : "At most", values.getOrDefault("max", "5")));
+        skillReview.add(reviewItem(french ? "Assistant IA" : "AI assistant", values.getOrDefault("tool", "—")));
+        skillReview.revalidate();
+        skillReview.repaint();
         boolean ready = brief ? !values.getOrDefault("brief", "").isBlank() : !values.getOrDefault("component", "").isBlank();
         String[] reason = brief ? null : blockedFor.apply(values.getOrDefault("component", ""));
         blocked.setText(reason == null ? "" : reason[french ? 1 : 0]);
@@ -331,6 +354,50 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
 
     private static String str(JsonObject o, String key) {
         return o != null && o.has(key) && o.get(key).isJsonPrimitive() ? o.get(key).getAsString() : "";
+    }
+
+    private static JPanel reviewItem(String title, String value) {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setOpaque(false);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ArchvowMotion.blend(UIManager.getColor("Panel.background"),
+                UIManager.getColor("Label.foreground"), .18), 1, true),
+            BorderFactory.createEmptyBorder(10, 12, 10, 12)));
+        JLabel head = new JLabel(title);
+        head.setFont(head.getFont().deriveFont(Font.BOLD));
+        JLabel body = new JLabel("<html>" + escape(value == null || value.isBlank() ? "—" : value) + "</html>");
+        Color muted = UIManager.getColor("Label.disabledForeground");
+        if (muted != null) body.setForeground(muted);
+        head.setAlignmentX(LEFT_ALIGNMENT);
+        body.setAlignmentX(LEFT_ALIGNMENT);
+        card.add(head);
+        card.add(Box.createVerticalStrut(6));
+        card.add(body);
+        return card;
+    }
+
+    private static JPanel infoBox(String title, String text, Color accent) {
+        JPanel box = new JPanel();
+        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+        box.setOpaque(false);
+        box.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ArchvowMotion.blend(UIManager.getColor("Panel.background"), accent, .45), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)));
+        JLabel head = new JLabel(title);
+        head.setFont(head.getFont().deriveFont(Font.BOLD));
+        head.setForeground(accent);
+        head.setAlignmentX(LEFT_ALIGNMENT);
+        JComponent body = wrap(text);
+        body.setAlignmentX(LEFT_ALIGNMENT);
+        box.add(head);
+        box.add(Box.createVerticalStrut(4));
+        box.add(body);
+        return box;
+    }
+
+    private static String escape(String text) {
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private static void field(JPanel panel, String label, JComponent control) {
