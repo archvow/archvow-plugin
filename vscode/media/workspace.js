@@ -37,8 +37,8 @@
     addLayer: '',
     /** The comparison base: the extension's best one (an existing branch) until the person types another. */
     base: '', baseTouched: false, checkSel: 0, explained: {},
-    /** A result's height, once dragged or expanded. */
-    resultHeight: {},
+    /** The manually resized result height remains intact when full-editor mode closes. */
+    resultHeight: {}, resultExpanded: {},
     /** 0.16.0: the cards shown (all, open, or what the AI added that waits for a person), the "All AI skills"
      *  menu, and the AI skill whose launch form is open with its values. */
     originFilter: 'all', aiMenu: false, addMenu: false, advance: '', skill: '', skillValues: {},
@@ -329,6 +329,7 @@
     const previousSteps = document.querySelector('.guided-command-column .guided-steps');
     const previousStepScroll = previousSteps ? previousSteps.scrollLeft : 0;
     app.innerHTML = page();
+    layoutExpandedResult();
     if (!NAV) {
       const title = editorTitle();
       if (title !== ui.title) {
@@ -349,6 +350,19 @@
         try { again.setSelectionRange(focus.start, focus.end); } catch (e) { /* not a text field */ }
       }
     }
+  }
+
+  /** Full results cover the editor webview, not their narrow component/form column.
+   *  Keep the IDE's Archvow header visible; nothing changes in the navigation webview. */
+  function layoutExpandedResult() {
+    if (NAV) return;
+    const header = document.querySelector('.top');
+    const rect = header && typeof header.getBoundingClientRect === 'function' ? header.getBoundingClientRect() : null;
+    const top = rect && rect.bottom > 0 && rect.top < window.innerHeight
+      ? Math.max(8, Math.ceil(rect.bottom) + 8) : 8;
+    document.querySelectorAll('.card.result.result-expanded').forEach((card) => {
+      card.style.top = top + 'px';
+    });
   }
 
   function page() {
@@ -543,22 +557,17 @@
     const raw = !!ui.raw[target];
     const body = r.running ? `<p><b>⏳ ${esc(t('Running', 'Exécution'))}</b> · ${esc(r.args)}</p>`
       : raw ? `<pre class="raw">${esc(r.raw)}</pre>` : withCheckFiles(r.html);
-    // readable at any length: drag the bar under it, or Expand to the height of the tab
+    // Full editor mode is separate from the user's manually dragged result height.
     const height = ui.resultHeight[target];
-    const expanded = !!height && height >= expandedHeight() - 2;
-    return `<div class="card result"><div class="card-head"><b>▸ ${esc(t('Command result', 'Résultat de la commande'))}</b>
+    const expanded = !!ui.resultExpanded[target];
+    return `<div class="card result${expanded ? ' result-expanded' : ''}"><div class="card-head"><b>▸ ${esc(t('Command result', 'Résultat de la commande'))}</b>
   <span class="row">${btn(expanded ? t('Reduce', 'Réduire') : t('Expand', 'Agrandir'), 'expandResult', attrs({ target })
-    + ` title="${esc(t('Show the whole result at the height of the tab (or drag the bar under it)', "Afficher tout le résultat sur la hauteur de l'onglet (ou tirer la barre en dessous)"))}"`, r.running, expanded ? 'on' : 'secondary')}
+    + ` aria-expanded="${expanded}" title="${esc(t('Show the result across the whole editor (or drag the bar under it)', "Afficher le résultat sur tout l'éditeur (ou tirer la barre en dessous)"))}"`, r.running, expanded ? 'on' : 'secondary')}
   ${btn(t('Raw output', 'Sortie brute'), 'raw', attrs({ target }), r.running || !r.raw, raw ? 'on' : 'secondary')}
   ${btn(t('Copy', 'Copier'), 'copyResult', attrs({ target }), r.running || !r.raw, 'secondary')}
   ${btn('×', 'closeResult', attrs({ target }) + ` title="${esc(t('Close result', 'Fermer le résultat'))}"`, false, 'icon')}</span></div>
   <div class="card-body" data-scroll="result-${target}" data-body="${esc(target)}" title="${esc(r.args || '')}"${height ? ` style="height:${height}px;max-height:none"` : ''}>${body}${r.running ? '' : addFolderButton(r.raw)}</div>
   <div class="grip" data-grip="${esc(target)}" title="${esc(t('Drag to make the result taller or shorter', 'Tirer pour agrandir ou réduire le résultat'))}"></div></div>`;
-  }
-
-  /** Expand: the result as tall as the tab, its head and the form's buttons still in view. */
-  function expandedHeight() {
-    return Math.max(260, window.innerHeight - 150);
   }
 
   function confirmation(target) {
@@ -2927,8 +2936,7 @@
     },
     expandResult: (e) => {
       const target = e.dataset.target;
-      if (ui.resultHeight[target] && ui.resultHeight[target] >= expandedHeight() - 2) delete ui.resultHeight[target];
-      else ui.resultHeight[target] = expandedHeight();
+      ui.resultExpanded[target] = !ui.resultExpanded[target];
     },
     loadQuestion: () => post({ type: 'loadQuestion', component: (ui.form.component || '').trim() }),
     browse: (e) => post({ type: 'browse', field: e.dataset.field }),
@@ -2937,7 +2945,10 @@
     cancelConfirm: () => { if (ui.confirm) post({ type: 'cancelled', token: ui.confirm.token }); ui.confirm = null; },
     raw: (e) => { ui.raw[e.dataset.target] = !ui.raw[e.dataset.target]; },
     copyResult: (e) => { const r = ui.results[e.dataset.target]; if (r && r.raw) post({ type: 'copy', text: r.raw }); },
-    closeResult: (e) => { delete ui.results[e.dataset.target]; },
+    closeResult: (e) => {
+      delete ui.results[e.dataset.target];
+      delete ui.resultExpanded[e.dataset.target];
+    },
   };
 
   /** Two clicks on the same row: what a double-click does (the page is drawn again between them). */
@@ -3073,6 +3084,9 @@
       if (f.by === name && f.kind === 'select' && ui.form[other] && !choicesNow(f).some((c) => c.value === ui.form[other])) delete ui.form[other];
     }
   }
+
+  // Keep full-editor results beneath the native Archvow header when the tab resizes.
+  window.addEventListener('resize', layoutExpandedResult);
 
   // the bar under a result: drag it to make the result taller or shorter (kept when the page is drawn again)
   document.body.addEventListener('mousedown', (event) => {

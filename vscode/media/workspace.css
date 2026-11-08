@@ -315,6 +315,37 @@ button.back { white-space: nowrap; flex-shrink: 0; }
 .progress-part.partial .progress-fill { background: var(--vscode-charts-orange, #d18616); }
 .progress-fill.p0 { width: 0%; } .progress-fill.p10 { width: 10%; } .progress-fill.p20 { width: 20%; } .progress-fill.p30 { width: 30%; } .progress-fill.p40 { width: 40%; } .progress-fill.p50 { width: 50%; } .progress-fill.p60 { width: 60%; } .progress-fill.p70 { width: 70%; } .progress-fill.p80 { width: 80%; } .progress-fill.p90 { width: 90%; } .progress-fill.p100 { width: 100%; }
 
+/* Expanded results use the *entire editor webview*, not the narrow column
+   that contains an inline decision, question, command form or component.
+   The result header stays below Archvow's own header, and only its body scrolls. */
+body.editor .card.result.result-expanded {
+  position: fixed;
+  inset: 8px 12px 12px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  overflow: hidden;
+  background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  box-shadow: 0 4px 24px rgba(0, 0, 0, .20);
+}
+body.editor .card.result.result-expanded .card-head {
+  flex: none;
+  min-height: 30px;
+}
+body.editor .card.result.result-expanded .card-head .row { flex-wrap: wrap; justify-content: flex-end; }
+body.editor .card.result.result-expanded .card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto !important;
+  max-height: none !important;
+  overflow: auto;
+}
+body.editor .card.result.result-expanded .grip { display: none; }
+
 /* a diagnostic's guidance: what it means, what to do, who, whether it blocks (guidance.ts) */
 dl.guide { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0; }
 dl.guide dt { font-weight: 600; color: var(--vscode-descriptionForeground); }
