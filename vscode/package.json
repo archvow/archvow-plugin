@@ -1,7 +1,7 @@
 {
   "name": "archvow",
   "displayName": "archvow",
-  "description": "archvow in VS Code, the same workspace as in IntelliJ: the sidebar holds Overview (compact project status), Components (the tree and statuses), Commands (project checks first) and AI skills (their own tab); a component or a command opens in one editor tab, reused for the next one. archvow check in the Problems view, and the .vow language.",
+  "description": "Explore architecture, decisions, checks and AI skills in VS Code. Run guided ArchVow commands and edit .vow files.",
   "version": "0.18.0",
   "publisher": "archvow",
   "license": "UNLICENSED",

@@ -7,17 +7,33 @@
   <name>archvow</name>
   <vendor>archvow</vendor>
   <description><![CDATA[
-    archvow in the IDE.
+    <p><b>Understand, review and maintain your software architecture without leaving your IDE.</b></p>
+    <p>ArchVow connects your IDE to the ArchVow CLI and provides a visual workspace for the project's
+       components, decisions, questions and checks.</p>
+
+    <h3>Explore your architecture</h3>
     <ul>
-      <li><b>Workspace</b>: the Archvow tool window (left) holds Overview, Components and Commands; a
-          component or a command opens in one editor tab, reused for the next one. The components of the
-          project, their decisions, questions, safety and checks, read from the archvow CLI (<code>show</code>,
-          <code>next</code>, <code>check --json</code>); every change runs an archvow command, after a confirmation.</li>
-      <li><b>.vow files</b> (<code>spec.vow</code>, <code>proposals.vow</code>): highlighting with one colour per
-          depth, errors and warnings with their line, folding, Structure, Ctrl+/ comments, Ctrl+click on a
-          component in <code>uses</code>, a hazard in <code>prevents</code>, the Python file of <code>module</code>,
-          a banner naming the command that changes the file, <code>```vow</code> blocks in Markdown.</li>
+      <li><b>Overview:</b> View architecture status, pending and resolved items, and quick actions
+          such as Check, Next, Doctor and Audit.</li>
+      <li><b>Components:</b> Explore components, decisions, questions, safety, assumptions, rules,
+          tasks and specifications. Navigate to related components, briefs and code.</li>
+      <li><b>Commands:</b> Run ArchVow commands through guided forms, review the exact command and
+          read the results inside your IDE.</li>
+      <li><b>AI skills:</b> Prepare prompts to draft from briefs, find missing questions or risks,
+          implement components and review changes. Review suggestions before keeping them.</li>
     </ul>
+    <p>Components, commands and results open in one reusable editor tab.</p>
+
+    <h3>Edit .vow files</h3>
+    <p>Syntax highlighting, inline errors and warnings, folding, Structure view, comments and
+       navigation to referenced components, hazards and Python modules. Vow code blocks in Markdown
+       are supported too.</p>
+
+    <h3>Stay in control</h3>
+    <p>The ArchVow CLI is the source of truth. Changes run through CLI commands only after you review
+       the command and select <b>Confirm and run</b>. AI-suggested items remain available for review.</p>
+    <p><b>Get started:</b> Install the ArchVow CLI, open a project, then open the ArchVow tool window.
+       You can also initialize a new ArchVow project from the IDE.</p>
   ]]></description>
 
   <depends>com.intellij.modules.platform</depends>
