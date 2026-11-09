@@ -1,6 +1,8 @@
 package org.archvow.idea;
 import com.google.gson.*;
 import javax.swing.*;
+import java.awt.Component;
+import java.awt.Container;
 import java.util.List;
 
 /** Headless regression of real catalog questions and -a KEY=VALUE generation. */
@@ -51,7 +53,48 @@ public final class InitWizardRegression {
             if (!templateSelection.toString().equals("python-app")) throw new AssertionError(templateSelection);
             if (!wizard.answers().contains("language=fr")) throw new AssertionError(wizard.answers());
             if (!wizard.answers().contains("rules=ARCH,GDPR")) throw new AssertionError(wizard.answers());
-            System.out.println("OK: template questions and defaults shown in native form");
+
+            // The shipped PySpark template has optional settings in all five groups.
+            // As in VS Code they must appear in guided navigation AND in Review,
+            // including empty answers (but without silently adding CLI overrides).
+            JsonObject shipped = ArchvowInitCatalog.bundled();
+            if (shipped == null) throw new AssertionError("Missing bundled init catalog");
+            wizard.setCatalog(shipped, "pyspark-pipeline");
+            List<String> pages = wizard.pageNames();
+            if (!pages.equals(List.of("Governance", "AI & briefs", "CI & quality",
+                    "Runtime", "Limits & integration")))
+                throw new AssertionError("Missing optional-question steps: " + pages);
+            var review = wizard.reviewAnswers();
+            JsonObject spark = null;
+            for (JsonElement item : shipped.getAsJsonArray("templates"))
+                if ("pyspark-pipeline".equals(item.getAsJsonObject().get("name").getAsString()))
+                    spark = item.getAsJsonObject();
+            if (spark == null || review.size() != spark.getAsJsonArray("questions").size())
+                throw new AssertionError("Review must contain all catalog questions: " + review);
+            if (!review.contains(java.util.Map.entry("python_version", "3.10"))
+                    || !review.contains(java.util.Map.entry("max_components", ""))
+                    || !review.contains(java.util.Map.entry("pip_index_url", "")))
+                throw new AssertionError("Optional defaults and empty fields must be visible: " + review);
+            if (wizard.answers().stream().anyMatch(a -> a.startsWith("python_version=") || a.startsWith("git_hooks=")))
+                throw new AssertionError("Untouched optional defaults must not change init command: " + wizard.answers());
+            JComboBox<?> python = comboWith(wizard, "3.10");
+            if (python == null) throw new AssertionError("Missing editable optional python_version field");
+            python.setSelectedItem("3.11");
+            if (!wizard.answers().contains("python_version=3.11")
+                    || !wizard.reviewAnswers().contains(java.util.Map.entry("python_version", "3.11")))
+                throw new AssertionError("Editing an optional answer must update the CLI and review");
+            System.out.println("OK: all init catalog questions appear in steps and review; CLI defaults are preserved");
         });
+    }
+
+    private static JComboBox<?> comboWith(Container root, String value) {
+        for (Component component : root.getComponents()) {
+            if (component instanceof JComboBox<?> combo && value.equals(combo.getSelectedItem())) return combo;
+            if (component instanceof Container nested) {
+                JComboBox<?> found = comboWith(nested, value);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 }

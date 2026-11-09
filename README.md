@@ -10,7 +10,7 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.19.0.zip, dist/archvow-0.19.0.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.19.2.zip, dist/archvow-0.19.2.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -19,6 +19,11 @@ GitHub Actions (`.github/workflows/ci.yml`) runs both plugins' tests, regenerate
 archvow kept in `contract/archvow/` (the 1.19.0 wheel, its examples and rules) and requires it unchanged,
 runs the VS Code tests against that archvow, then opens the built `.vsix` and `.zip` as the IDEs do. The
 page [Tests](wiki/en/13-tests.md) says what each job checks.
+
+After a successful `main` build, CI publishes stable plugins to both Marketplaces. Pushes to
+an optional `beta` branch publish VS Code pre-releases and JetBrains `beta` channel builds.
+Publisher setup, GitHub secrets, channel-specific versioning, and retry behavior are documented in
+[Marketplace CI/CD](docs/marketplace-publishing.md).
 
 ## The rules both plugins follow
 
@@ -58,6 +63,6 @@ page [Tests](wiki/en/13-tests.md) says what each job checks.
 
 ## Versions
 
-Both plugins have the same version (0.19.0), their own, not archvow's. They read `.vow` format 1 and run
+Both plugins have the same version (0.19.2), their own, not archvow's. They read `.vow` format 1 and run
 the archvow CLI 1.22 (`contract/cli/version.txt`, the version the contract was recorded from); each says
 when the installed archvow is another major.minor (archvow keeps no backward compatibility).

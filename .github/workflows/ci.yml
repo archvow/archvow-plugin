@@ -13,13 +13,16 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    # Run manually on the beta branch to retry or republish the same beta commit.
+    # A manual run on main keeps the previous behavior: tests only, no publication.
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Never cancel a stable or beta Marketplace upload in progress.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/beta' }}
 
 jobs:
   # VS Code: the extension's tests (the .vow reader against the Java one's contract, the CLI runner, the
@@ -66,6 +69,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
+      - name: Verify stable/beta release version logic
+        run: python -m unittest discover -s .github/scripts -p 'test_release_version.py'
       - run: pip install -q contract/archvow/archvow-*-py3-none-any.whl && python -m archvow --version
       - run: python contract/tools/regenerate.py contract/archvow --python python
       - name: contract/ is unchanged
@@ -113,3 +118,121 @@ jobs:
         run: npm ci --no-audit --no-fund && npm run compile && node --test out/test/package.test.js
       - uses: actions/upload-artifact@v4
         with: { name: archvow-plugins, path: dist/, if-no-files-found: error }
+
+  # Stable: push to main. Beta: push to beta or manual dispatch from beta.
+  # All five existing CI jobs must pass first; no publication from pull requests.
+  publish:
+    name: Publish both Marketplaces (stable/beta)
+    if: >-
+      (github.event_name == 'push' &&
+        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta')) ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/beta')
+    needs: [vscode, intellij, contract, live, packages]
+    runs-on: ubuntu-latest
+    # Serialize cross-branch uploads to the two Marketplace identities.
+    concurrency:
+      group: marketplace-publishing
+      cancel-in-progress: false
+    env:
+      ARCHVOW_MARKETPLACE_CHANNEL: ${{ github.ref == 'refs/heads/beta' && 'beta' || 'stable' }}
+    permissions:
+      contents: read
+      id-token: write  # VS Code Marketplace Trusted Publishing (OIDC)
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # release number depends on full ancestry from 0.19.0
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: vscode/package-lock.json }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Compute next ArchVow plugin version
+        shell: bash
+        run: |
+          version=$(python .github/scripts/release-version.py --compute --channel "$ARCHVOW_MARKETPLACE_CHANNEL")
+          echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
+      - name: Synchronize release manifests and changelogs
+        run: python .github/scripts/release-version.py --apply "$RELEASE_VERSION" --channel "$ARCHVOW_MARKETPLACE_CHANNEL"
+      - name: Check JetBrains publishing credentials before publishing anything
+        env:
+          PUBLISH_TOKEN: ${{ secrets.JETBRAINS_PUBLISH_TOKEN }}
+          PRIVATE_KEY: ${{ secrets.JETBRAINS_PRIVATE_KEY }}
+          PRIVATE_KEY_PASSWORD: ${{ secrets.JETBRAINS_PRIVATE_KEY_PASSWORD }}
+          CERTIFICATE_CHAIN: ${{ secrets.JETBRAINS_CERTIFICATE_CHAIN }}
+        shell: bash
+        run: |
+          for name in PUBLISH_TOKEN PRIVATE_KEY PRIVATE_KEY_PASSWORD CERTIFICATE_CHAIN; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing JetBrains secret for $name; see docs/marketplace-publishing.md"
+              exit 1
+            fi
+          done
+      - name: Rebuild and retest both plugins with the release version
+        run: ./build.sh
+      # A pre-release MUST be flagged in the VSIX manifest as well as in the
+      # publish command. Keep the stable build script and normal CI unchanged.
+      - name: Package beta VSIX with pre-release metadata
+        if: env.ARCHVOW_MARKETPLACE_CHANNEL == 'beta'
+        working-directory: vscode
+        shell: bash
+        run: |
+          rm -f "../dist/archvow-${RELEASE_VERSION}.vsix"
+          npx --no-install vsce package --pre-release --no-dependencies \
+            --skip-license --allow-missing-repository \
+            --out "../dist/archvow-${RELEASE_VERSION}.vsix"
+      - name: Verify stable or beta VSIX metadata
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import os
+          import zipfile
+          version = os.environ['RELEASE_VERSION']
+          channel = os.environ['ARCHVOW_MARKETPLACE_CHANNEL']
+          with zipfile.ZipFile(f'dist/archvow-{version}.vsix') as package:
+              manifest = package.read('extension.vsixmanifest').decode('utf-8')
+          marked_beta = 'Microsoft.VisualStudio.Code.PreRelease' in manifest
+          assert marked_beta == (channel == 'beta'), (
+              f'VSIX pre-release metadata mismatch: channel={channel}, flag={marked_beta}'
+          )
+          print(f'VSIX metadata verified: {version} ({channel})')
+          PYCODE
+      - name: Check packages of the exact release version
+        working-directory: vscode
+        env:
+          PACKAGES_REQUIRED: "1"
+        run: node --test out/test/package.test.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marketplace-release
+          path: dist/
+          if-no-files-found: error
+
+      # Publish the already-tested VSIX; do not invoke vsce's git version/tag automation.
+      # --skip-duplicate allows a rerun when VS Code succeeded but JetBrains did not.
+      - name: Publish VS Code Marketplace
+        working-directory: vscode
+        shell: bash
+        run: |
+          args=()
+          if [[ "$ARCHVOW_MARKETPLACE_CHANNEL" == beta ]]; then
+            args+=(--pre-release)
+          fi
+          npx --yes @vscode/vsce@4.0.2 publish --oidc --skip-duplicate \
+            --skip-license --allow-missing-repository "${args[@]}" \
+            --packagePath "../dist/archvow-${RELEASE_VERSION}.vsix"
+
+      # Gradle uses ARCHVOW_MARKETPLACE_CHANNEL to select the JetBrains beta
+      # repository; stable publishes to the default Marketplace channel.
+      # Signing still runs before publication.
+      - name: Publish signed plugin to JetBrains Marketplace
+        working-directory: intellij
+        env:
+          PUBLISH_TOKEN: ${{ secrets.JETBRAINS_PUBLISH_TOKEN }}
+          PRIVATE_KEY: ${{ secrets.JETBRAINS_PRIVATE_KEY }}
+          PRIVATE_KEY_PASSWORD: ${{ secrets.JETBRAINS_PRIVATE_KEY_PASSWORD }}
+          CERTIFICATE_CHAIN: ${{ secrets.JETBRAINS_CERTIFICATE_CHAIN }}
+        run: ./gradlew --no-daemon --console=plain publishPlugin

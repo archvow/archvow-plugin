@@ -3571,13 +3571,11 @@ final class ArchvowPanel extends JPanel {
             boolean french = ArchvowI18n.isFrench(project);
             for (Map.Entry<String, JComponent> field : fields.entrySet()) {
                 String value = reviewValues.getOrDefault(field.getKey(), "");
+                if ("init".equals(commandName) && field.getValue() instanceof JCheckBox)
+                    value = "true".equals(value) ? (french ? "Oui" : "Yes") : (french ? "Non" : "No");
                 items.add(Map.entry(ArchvowForms.label(commandName, field.getKey(), french), value));
             }
-            if (initQuestions != null) for (String answer : initQuestions.answers()) {
-                int separator = answer.indexOf('=');
-                items.add(Map.entry(separator < 0 ? "Answer" : answer.substring(0, separator),
-                    separator < 0 ? answer : answer.substring(separator + 1)));
-            }
+            if (initQuestions != null) items.addAll(initQuestions.reviewAnswers());
             if (templateSettings != null) {
                 for (String answer : templateSettings.answers()) {
                     int separator = answer.indexOf('=');

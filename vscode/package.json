@@ -2,7 +2,7 @@
   "name": "archvow",
   "displayName": "archvow",
   "description": "Explore architecture, decisions, checks and AI skills in VS Code. Run guided ArchVow commands and edit .vow files.",
-  "version": "0.19.0",
+  "version": "0.19.2",
   "publisher": "archvow",
   "license": "UNLICENSED",
   "private": true,

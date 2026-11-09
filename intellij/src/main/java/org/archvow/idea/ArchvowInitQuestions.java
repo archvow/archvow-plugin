@@ -48,6 +48,7 @@ final class ArchvowInitQuestions extends JPanel {
     private final JCheckBox expanded = new JCheckBox();
     private final Map<String, JComponent> inputs = new LinkedHashMap<>();
     private final Map<String, String> retained = new LinkedHashMap<>();
+    private final LinkedHashSet<String> touched = new LinkedHashSet<>();
     private final List<JsonObject> catalog = new ArrayList<>();
     private JsonObject active;
     private Consumer<String> selectedTemplate;
@@ -137,6 +138,8 @@ final class ArchvowInitQuestions extends JPanel {
     /** The parent command form owns the only step bar. No nested question navigator. */
     void useParentSteps(Runnable callback) {
         externalNavigation = true;
+        // Guided forms already have a step for every catalog question, including optional ones.
+        expanded.setVisible(false);
         onPagesChanged = callback == null ? () -> {} : callback;
         updateQuestionPage();
     }
@@ -230,6 +233,7 @@ final class ArchvowInitQuestions extends JPanel {
     private void showTemplate(String name) {
         if (active != null && !string(active, "name").equals(name)) {
             retained.clear();
+            touched.clear();
             inputs.clear();
         }
         active = null;
@@ -258,7 +262,8 @@ final class ArchvowInitQuestions extends JPanel {
             String id = string(question, "id");
             if (id.isBlank()) continue;
             boolean essential = question.has("ask") && question.get("ask").getAsBoolean();
-            if (!essential && !expanded.isSelected()) continue;
+            // VS Code exposes every catalog question in its guided steps, not only ask=true.
+            if (!essential && !externalNavigation && !expanded.isSelected()) continue;
             String prompt = string(question, "prompt");
             String def = retained.getOrDefault(id, string(question, "default"));
             List<String> choices = new ArrayList<>();
@@ -296,13 +301,13 @@ final class ArchvowInitQuestions extends JPanel {
             inputs.put(id, field);
             if (field instanceof JTextField free) {
                 free.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-                    @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { onChange.run(); }
-                    @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { onChange.run(); }
-                    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { onChange.run(); }
+                    @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { answerChanged(id); }
+                    @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { answerChanged(id); }
+                    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { answerChanged(id); }
                 });
-            } else if (field instanceof JComboBox<?> box) box.addActionListener(e -> onChange.run());
+            } else if (field instanceof JComboBox<?> box) box.addActionListener(e -> answerChanged(id));
             else if (field instanceof JPanel chips) for (java.awt.Component x : chips.getComponents())
-                if (x instanceof JCheckBox cb) cb.addItemListener(e -> onChange.run());
+                if (x instanceof JCheckBox cb) cb.addItemListener(e -> answerChanged(id));
             block.add(field, BorderLayout.NORTH);
             ArchvowWrapLabel help = new ArchvowWrapLabel();   // wraps at the form's width, no caret in it
             help.setText(prompt);
@@ -325,6 +330,23 @@ final class ArchvowInitQuestions extends JPanel {
             }
             questionPages.get(page).add(label);
             questionPages.get(page).add(block);
+        }
+        // Match the fixed question-stage order used by the VS Code init wizard,
+        // regardless of the order in which the catalog lists individual questions.
+        Map<String, List<JComponent>> byGroup = new LinkedHashMap<>();
+        for (int i = 0; i < questionPageNames.size(); i++)
+            byGroup.put(questionPageNames.get(i), questionPages.get(i));
+        questionPageNames.clear();
+        questionPages.clear();
+        for (String name : french
+                ? List.of("Gouvernance", "IA et briefs", "CI et qualité", "Exécution", "Limites et intégration")
+                : List.of("Governance", "AI & briefs", "CI & quality", "Runtime", "Limits & integration")) {
+            List<JComponent> page = byGroup.remove(name);
+            if (page != null) { questionPageNames.add(name); questionPages.add(page); }
+        }
+        for (Map.Entry<String, List<JComponent>> rest : byGroup.entrySet()) {
+            questionPageNames.add(rest.getKey());
+            questionPages.add(rest.getValue());
         }
         GridBagConstraints filler = new GridBagConstraints();
         filler.gridx = 1; filler.gridy = y; filler.weighty = 1; filler.fill = GridBagConstraints.VERTICAL;
@@ -387,13 +409,49 @@ final class ArchvowInitQuestions extends JPanel {
         questions.repaint();
     }
 
+    private void answerChanged(String id) {
+        touched.add(id);
+        onChange.run();
+    }
+
+    /** Every catalog answer belongs in Review, including unset optional values. */
+    List<Map.Entry<String, String>> reviewAnswers() {
+        Map<String, String> values = new LinkedHashMap<>(retained);
+        values.putAll(readInputs());
+        List<Map.Entry<String, String>> review = new ArrayList<>();
+        if (active == null) return review;
+        JsonArray questions = active.has("questions") && active.get("questions").isJsonArray()
+            ? active.getAsJsonArray("questions") : new JsonArray();
+        for (JsonElement item : questions) {
+            if (!item.isJsonObject()) continue;
+            JsonObject question = item.getAsJsonObject();
+            String id = string(question, "id");
+            if (!id.isBlank()) review.add(Map.entry(id, values.getOrDefault(id, string(question, "default"))));
+        }
+        return review;
+    }
+
     /** Return actual Archvow -a KEY=VALUE arguments, not YAML or fabricated commands. */
     List<String> answers() {
         Map<String, String> values = new LinkedHashMap<>(retained);
         values.putAll(readInputs());
         List<String> answers = new ArrayList<>();
         for (Map.Entry<String, String> entry : values.entrySet()) {
-            if (!entry.getValue().isBlank()) answers.add(entry.getKey() + "=" + entry.getValue());
+            if (entry.getValue().isBlank()) continue;
+            // Merely displaying optional defaults must not add new CLI overrides.
+            // As in VS Code, send them only after the user edits them or opts in.
+            boolean required = false;
+            if (active != null && active.has("questions") && active.get("questions").isJsonArray())
+                for (JsonElement item : active.getAsJsonArray("questions")) {
+                    if (!item.isJsonObject()) continue;
+                    JsonObject question = item.getAsJsonObject();
+                    if (entry.getKey().equals(string(question, "id"))) {
+                        required = question.has("ask") && question.get("ask").getAsBoolean();
+                        break;
+                    }
+                }
+            if (required || expanded.isSelected() || touched.contains(entry.getKey()))
+                answers.add(entry.getKey() + "=" + entry.getValue());
         }
         return answers;
     }

@@ -35,6 +35,12 @@ tasks.withType<JavaCompile>().configureEach {
 
 intellijPlatform {
     buildSearchableOptions = false
+    // Stable uploads use the default channel; opt-in betas go to the
+    // JetBrains Marketplace `beta` repository.
+    publishing {
+        channels = if (providers.environmentVariable("ARCHVOW_MARKETPLACE_CHANNEL").orNull == "beta")
+            listOf("beta") else emptyList()
+    }
     pluginConfiguration {
         ideaVersion {
             sinceBuild = providers.gradleProperty("sinceBuild")

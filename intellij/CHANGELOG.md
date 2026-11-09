@@ -2,6 +2,18 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.19.2 - 2026-11-09
+
+Built on archvow 1.22 (unchanged CLI contract).
+
+- Automated Marketplace beta release from the validated beta branch.
+
+## 0.19.1 - 2026-11-09
+
+Built on archvow 1.22 (unchanged CLI contract).
+
+- Automated Marketplace release from the validated main branch.
+
 ## 0.19.0 - 2026-11-09
 
 Built on archvow 1.22 (contract regenerated from the 1.22.0 wheel). The same as VS Code 0.19.0.
