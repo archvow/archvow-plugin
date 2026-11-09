@@ -7,22 +7,30 @@
   <name>archvow</name>
   <vendor>archvow</vendor>
   <description><![CDATA[
-    <p><b>Understand, review and maintain your software architecture without leaving your IDE.</b></p>
-    <p>ArchVow connects your IDE to the ArchVow CLI and provides a visual workspace for the project's
-       components, decisions, questions and checks.</p>
+    <p><b>Spec-driven development (SDD) with AI: architecture specifications, decisions and checks in your IDE.</b></p>
+    <p>ArchVow connects IntelliJ IDEA and other JetBrains IDEs to the <b>ArchVow CLI</b>.
+       Keep component specifications, architecture decisions, open questions and safety rules
+       visible while developing with AI. Prepare structured prompts for your AI coding assistant,
+       review suggested items and check changes against the architecture.</p>
 
     <h3>Explore your architecture</h3>
     <ul>
       <li><b>Overview:</b> View architecture status, pending and resolved items, and quick actions
           such as Check, Next, Doctor and Audit.</li>
-      <li><b>Components:</b> Explore components, decisions, questions, safety, assumptions, rules,
-          tasks and specifications. Navigate to related components, briefs and code.</li>
-      <li><b>Commands:</b> Run ArchVow commands through guided forms, review the exact command and
-          read the results inside your IDE.</li>
+      <li><b>Components:</b> Explore component specs, decisions, questions, safety, assumptions,
+          rules and tasks. Navigate to related components, briefs and code.</li>
+      <li><b>Commands:</b> Run ArchVow CLI commands through guided forms. Review the exact command
+          and its result inside your IDE.</li>
       <li><b>AI skills:</b> Prepare prompts to draft from briefs, find missing questions or risks,
-          implement components and review changes. Review suggestions before keeping them.</li>
+          implement components and review changes. Copy them to your preferred AI assistant,
+          then review proposed items before keeping them.</li>
     </ul>
     <p>Components, commands and results open in one reusable editor tab.</p>
+
+    <h3>AI-assisted development guided by specifications</h3>
+    <p>Keep architectural decisions, unanswered questions and safety rules alongside the code
+       an AI assistant helps you write. ArchVow prepares AI instructions; it does not run an
+       AI model itself.</p>
 
     <h3>Edit .vow files</h3>
     <p>Syntax highlighting, inline errors and warnings, folding, Structure view, comments and

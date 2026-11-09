@@ -1,8 +1,8 @@
-# ArchVow for VS Code
+# ArchVow for VS Code — Spec-Driven Development with AI
 
-**Understand, review and maintain your software architecture without leaving your editor.**
+**Spec-driven development (SDD) for AI-assisted coding, with architecture specifications, decisions and checks in your editor.**
 
-ArchVow connects VS Code to the **ArchVow CLI** and gives you a visual workspace for your project's components, decisions, questions and checks. The CLI remains the source of truth; the extension makes it easier to explore the architecture and act on it.
+ArchVow connects VS Code to the **ArchVow CLI** and provides a visual workspace for your project's components, decisions, open questions and checks. Keep the specification and architecture context visible while you develop with AI: prepare structured prompts for your AI coding assistant, inspect suggested changes and review them against your project's rules. The CLI remains the source of truth.
 
 ## Explore your architecture
 
@@ -11,9 +11,13 @@ Open **ArchVow** from the Activity Bar to access:
 - **Overview** — See the project's architecture status, pending and resolved items, and quick actions such as Check, Next, Doctor and Audit.
 - **Components** — Browse components by layer and inspect their decisions, questions, safety, assumptions, rules, tasks and specifications. Follow links to related components, briefs and code.
 - **Commands** — Run ArchVow commands through guided forms. Review the options, see the exact command and read its result without switching to a terminal.
-- **AI skills** — Prepare prompts to draft from a brief, find missing questions or risks, implement a component or review changes. Copy them to your AI assistant, and review proposed items before keeping them.
+- **AI skills** — Prepare structured prompts to draft from a brief, find missing questions or risks, implement a component or review changes. Copy them to your preferred AI assistant, then review proposed items before keeping them.
 
 Selecting a component, command or result opens it in **one reusable editor tab**, so your workspace stays uncluttered.
+
+## AI-assisted development guided by specifications
+
+Use ArchVow to keep architectural decisions, unanswered questions and safety rules alongside the code an AI assistant helps you write. The extension **prepares AI instructions; it does not run an AI model itself**. You remain responsible for accepting suggested changes and for running project checks.
 
 ## Work alongside your code
 

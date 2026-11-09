@@ -1,7 +1,7 @@
 {
   "name": "archvow",
   "displayName": "archvow",
-  "description": "Explore architecture, decisions, checks and AI skills in VS Code. Run guided ArchVow commands and edit .vow files.",
+  "description": "Spec-driven development with AI: manage architecture specs, decisions and checks, prepare AI coding prompts, and review changes with ArchVow.",
   "version": "0.19.2",
   "publisher": "archvow",
   "license": "UNLICENSED",
@@ -11,9 +11,31 @@
     "vscode": "^1.90.0"
   },
   "categories": [
+    "AI",
     "Programming Languages",
     "Linters",
     "Other"
+  ],
+  "keywords": [
+    "spec-driven development",
+    "spec driven development",
+    "SDD",
+    "AI development",
+    "AI-assisted development",
+    "development with AI",
+    "AI coding",
+    "AI skills",
+    "AI workflows",
+    "software architecture",
+    "architecture governance",
+    "architecture decisions",
+    "architecture specifications",
+    "architecture as code",
+    "architecture checks",
+    "specifications",
+    "requirements",
+    "design decisions",
+    "vow"
   ],
   "activationEvents": [
     "workspaceContains:.archvow/spec.vow",
