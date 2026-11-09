@@ -17,6 +17,9 @@ commande archvow. Cette page explique comment une commande est lancée. Fichiers
 | **Un délai maximal** | une commande bloquée ne doit pas bloquer l'IDE | `timeoutSeconds` (180 s par défaut), annulable depuis la barre de progression | `archvow.timeoutSeconds` |
 | **Sortie bornée** | un projet énorme ne doit pas remplir la mémoire | 20 millions de caractères par flux (`MAX_OUTPUT`) | - |
 | **`NO_COLOR=1`, `PYTHONIOENCODING=utf-8`** | ni couleurs ANSI dans le JSON, ni texte mal décodé | `ArchvowCli.prepare` | `env` de `spawn` |
+| **`ARCHVOW_LOG=info`** (0.20.0) | ce qu'archvow a fait, pour le journal de session ; un niveau choisi par la personne est gardé | `ArchvowCli.prepare` | `env` de `spawn` |
+| **Le journal et l'enveloppe d'erreur d'archvow à part** (0.20.0) | les lignes de journal d'archvow 1.23 sont sur stderr et, avec `--json`, son erreur est un objet sur stdout : ni l'une ni l'autre ne doit être lue comme sa réponse | `ArchvowOutput.split`, `ArchvowOutput.error` : `Result.log`, `Result.error` (stdout vaut alors `''`) | `splitLog()`, `errorOf()` : `CliResult.log`, `CliResult.error` |
+| **Un seul message d'échec** (0.20.0) | la carte d'accueil, une notification, le refus d'un formulaire et le journal disent la même chose : le message d'archvow et son conseil (celui d'une erreur interne est le chemin de son rapport de plantage), sinon les dernières lignes de stderr | `ArchvowOutput.failure`, `ArchvowForms.refusal` | `failure()`, `alerts()` |
 
 ### Le journal de session (0.19.0)
 
@@ -28,10 +31,12 @@ Code le canal de sortie *archvow* (`runlog.ts`, `archvow.showOutput`), les même
   dernière ligne de texte d'archvow (`✔ Decision 1 of logging_setup made`) ;
 - **un rafraîchissement** : une ligne pour toutes ses lectures (`Refresh  ·  9 reads  ·  2.4 s`), chacune au
   niveau debug (idea.log, ou *Developer: Set Log Level* dans VS Code) ;
-- **un échec** : `✖` la commande et ce qu'archvow a dit (les dernières lignes de stderr) ; `check` qui sort
-  avec 1 parce qu'il trouve des erreurs est une réponse, pas un échec ;
+- **un échec** : `✖` la commande et ce qu'archvow a dit (son erreur et son conseil, sinon les dernières
+  lignes de stderr), puis les lignes de journal d'archvow pour cet appel (0.20.0 : archvow y masque déjà les
+  valeurs, donc *Copier pour le support* les garde) ; `check` qui sort avec 1 parce qu'il trouve des erreurs
+  est une réponse, pas un échec ; les lignes de journal d'archvow des autres appels vont au niveau debug ;
 - un appel de plus d'une seconde est marqué `slow` ; une ligne d'en-tête par session : version du plugin,
-  d'archvow, le Python utilisé, le projet, l'IDE.
+  d'archvow et son contrat (0.20.0), le Python utilisé, le projet, l'IDE.
 
 « Copier pour le support » (le bouton de la fenêtre *Archvow Output*, avec « masquer mes réponses » ; *archvow: Copy the archvow log for support* dans VS Code)
 donne l'en-tête et les lignes avec leur heure, les mots d'une personne (réponses, justifications,
@@ -101,14 +106,14 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 
 ## Installer archvow (0.12.0)
 
-Quand archvow ne démarre pas, ou répond une autre version majeure.mineure que celle du contrat, les
-plugins proposent **Installer archvow 1.17** ; rien n'est installé au démarrage ni sans un clic.
+Quand archvow ne démarre pas, ou ne parle pas le contrat du plugin (0.20.0, page [Le contrat](/04-contract)), les
+plugins proposent **Installer archvow 1.23.0** ; rien n'est installé au démarrage ni sans un clic.
 `ArchvowInstall` (IntelliJ) et `vscode/src/install.ts` (VS Code) portent les mêmes règles :
 
 | Question | Réponse |
 |---|---|
 | Dans quel Python ? | le `.venv` du projet, puis `venv` (`venvPythons()`), puis l'interpréteur de l'IDE, puis le Python des réglages ; jamais un `python` nu choisi à la place de la personne (`installPython()`, `ArchvowInstall.python`) : pas de Python trouvé, la carte dit **Configurer Python** |
-| Quelle version ? | `archvow==1.17.*` (`requirement()`) : archvow ne garde pas de compatibilité ascendante |
+| Quelle version ? | `archvow==1.23.0` (`requirement()`) : exactement l'archvow avec lequel les plugins sont testés (0.20.0) ; une fois installé, tout archvow du contrat est accepté |
 | D'où ? | le réglage *Installer archvow depuis* / `archvow.installFrom` (`installSource()`) : vide = la configuration de pip (pip.conf, `PIP_INDEX_URL`), une URL http(s) = `--index-url`, un fichier `.whl`, ou un dossier de wheels = `--no-index --find-links` (`pipArgs()`) |
 | Comment ? | la commande est affichée (`displayCommand()`), puis lancée seulement après **Confirmer et exécuter** : sans shell, dans le dossier du projet, 10 minutes au plus, `PIP_DISABLE_PIP_VERSION_CHECK=1` ; un Python dans WSL passe par `wsl.exe`, comme archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Ensuite ? | réussite : les réglages gardent ce Python, la version est sondée à nouveau, l'espace de travail se recharge ; échec : la sortie de pip, rien n'est enregistré |

@@ -199,6 +199,12 @@ final class ArchvowForms {
     static String text(JsonElement pair, boolean fr) { return pair(pair, fr); }
 
     /** archvow said no (exit code 2): its words, without "✖ archvow: error:"; '' otherwise. As VS Code's alerts(). */
+    /** With --json (archvow 1.23) the error envelope says it, hint included, without the red text. */
+    static String refusal(int exitCode, String stderr, ArchvowOutput.Error error) {
+        if (exitCode == 2 && error != null) return error.text();
+        return refusal(exitCode, stderr);
+    }
+
     static String refusal(int exitCode, String stderr) {
         if (exitCode != 2 || stderr == null) return "";
         List<String> lines = new ArrayList<>();

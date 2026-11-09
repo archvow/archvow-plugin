@@ -307,10 +307,11 @@ export function needsFullCard(exitCode: number, output: string): boolean {
  * What a form shows in place (design A): archvow's refusal in red (exit code 2: nothing was written) and
  * its doubts in amber (the "!" lines of what it wrote anyway: a rule it would contradict, a weak test).
  */
-export function alerts(result: { exitCode: number; stdout: string; stderr: string }): { refusal: string; warnings: string[] } {
-  const refusal = result.exitCode === 2
-    ? result.stderr.split(/\r?\n/).map((l) => l.replace(/^\s*✖\s*/, '').replace(/^archvow: error:\s*/, '').trim()).filter((l) => l).join('\n')
-    : '';
+export function alerts(result: { exitCode: number; stdout: string; stderr: string; error?: { message: string; hint: string } }): { refusal: string; warnings: string[] } {
+  // with --json (archvow 1.23) the error envelope says it, hint included, without the red text
+  const envelope = result.error ? [result.error.message, result.error.hint].filter((l) => l).join('\n') : '';
+  const refusal = result.exitCode !== 2 ? ''
+    : envelope || result.stderr.split(/\r?\n/).map((l) => l.replace(/^\s*✖\s*/, '').replace(/^archvow: error:\s*/, '').trim()).filter((l) => l).join('\n');
   let warnings: string[] = [];
   try {  // --json: the entry carries them
     const parsed = JSON.parse(result.stdout) as unknown;

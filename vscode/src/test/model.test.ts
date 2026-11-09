@@ -4,12 +4,13 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
 import {
-  buildTree, CheckResult, componentOfViolation, componentView, describe, knownVersion, Node, NextRow, parseVersion, problemsOf, Spec, statusIcon,
-  versionWarning,
+  buildTree, CheckResult, componentOfViolation, componentView, describe, knownVersion, Node, NextRow, problemsOf, Spec, statusIcon,
+  contractWarning, parseContract,
 } from '../model';
 
 const CLI = path.resolve(__dirname, '..', '..', '..', 'contract', 'cli');
-const EXAMPLES = fs.readdirSync(CLI).filter((d) => fs.statSync(path.join(CLI, d)).isDirectory());
+// an example is a folder with its show.json (contract/cli/errors holds failures, not a project)
+const EXAMPLES = fs.readdirSync(CLI).filter((d) => fs.existsSync(path.join(CLI, d, 'show.json')));
 const read = <T>(...parts: string[]): T => JSON.parse(fs.readFileSync(path.join(CLI, ...parts), 'utf8')) as T;
 
 function components(nodes: Node[]): (Node & { kind: 'component' })[] {
@@ -75,16 +76,21 @@ test('a violation names its component by its vow file', () => {
   assert.equal(componentOfViolation({ code: 'ARCH002', severity: 'error', message: '', file: 'src/a/b.py', line: 3, col: 0 }), null);
 });
 
-test('the CLI version: the contract\'s major.minor, older, newer, absent (EN and FR)', () => {
-  const recorded = fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8');
-  const known = knownVersion(recorded);
-  assert.equal(known, '1.22');
-  assert.equal(versionWarning(parseVersion(recorded), known), null, recorded);
-  assert.equal(versionWarning([1, 22, 4], known), null);
-  assert.match(versionWarning([1, 11, 0], known) ?? '', /older.*update archvow/);
-  assert.match(versionWarning([1, 23, 0], known) ?? '', /newer.*update the plugin/);
-  assert.match(versionWarning([1, 13, 0], known, true) ?? '', /plus ancien/);
-  assert.match(versionWarning(parseVersion('command not found'), known) ?? '', /installed/);
+test('the CLI contract: the same MAJOR and a MINOR at least the plugin\'s; older, newer, none, absent (EN and FR)', () => {
+  const tested = knownVersion(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'));
+  const wanted = fs.readFileSync(path.join(CLI, 'contract.txt'), 'utf8').trim();
+  assert.match(tested, /^\d+\.\d+\.\d+$/);
+  assert.deepEqual(parseContract(wanted), [1, 0]);
+  assert.equal(parseContract('1.0.0'), null);
+  assert.equal(contractWarning({ version: tested, contract: wanted }, wanted, tested), null);
+  assert.equal(contractWarning({ version: '1.24.3', contract: '1.4' }, '1.0', tested), null, 'a later minor contract');
+  assert.match(contractWarning({ version: '1.24.0', contract: '1.0' }, '1.2', tested) ?? '', /older.*update archvow/);
+  assert.match(contractWarning({ version: '1.22.0', contract: '' }, '1.0', tested) ?? '', new RegExp(`1\\.22\\.0 is older .*archvow ${tested.replace(/\./g, '\\.')}.*update archvow`));
+  assert.match(contractWarning({ version: '2.0.0', contract: '2.0' }, '1.0', tested) ?? '', /newer.*contract 2\.0.*update the plugin/);
+  assert.match(contractWarning({ version: '1.22.0', contract: '' }, '1.0', tested, true) ?? '', /plus ancien.*mets archvow à jour/);
+  assert.match(contractWarning({ version: '2.1.0', contract: '2.1' }, '1.0', tested, true) ?? '', /plus récent.*mets le plugin à jour/);
+  assert.match(contractWarning({ version: '', contract: '' }, wanted, tested) ?? '', /installed/);
+  assert.match(contractWarning(null, wanted, tested, true) ?? '', /installé/);
 });
 
 test('show <id> --json is a component\'s view only when it names that component (a search result never is)', () => {

@@ -48,9 +48,11 @@ For a team, the `.zip` and the `.vsix` go to an internal plugin repository (a Je
 
 ## A new archvow version
 
-archvow keeps no backward compatibility: each minor version may change its commands or its JSON. The
-plugins follow **one** version, that of `contract/cli/version.txt` (`ArchvowVersion.KNOWN`), and say when
-the installed one is another (page [Running archvow](/en/05-running-archvow)).
+archvow keeps no backward compatibility, but says what changed for the plugins with its contract number
+(0.20.0, `contract/cli/contract.txt`, `ArchvowVersion.CONTRACT`): an archvow release that keeps the contract
+needs only the contract regenerated (the tested version, `contract/cli/version.txt`, moves); a MINOR up
+may bring something to use; a MAJOR up needs both readers changed. The plugins say when the installed
+archvow does not speak their contract (page [The contract](/en/04-contract)).
 
 1. Put the new archvow in `contract/archvow/` (`contract/tools/take_archvow.sh`: its wheel, its examples and
    rules), then regenerate the contract from it (page [The contract](/en/04-contract)):

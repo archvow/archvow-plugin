@@ -18,7 +18,7 @@ not tell them: they read what the CLI prints and run the CLI for every change.
 | **Same functions, not same code** | Swing and a web page have nothing in common | VS Code follows the IntelliJ workspace rule by rule; `vscode/src/workItems.ts`, `vscode/src/grammar.ts`, `vscode/src/formatter.ts` name the Java class they follow |
 | **One `.vow` reader, written twice** | both editors must show the same errors in the same place | the Java reader (`org.archvow.vow.core`) is the reference; the TypeScript one (`vscode/src/vow`) must give the same tokens on `contract/vow-reader/expected.json` |
 | **No shell, one command at a time** | no injection, no two writes at once | `ArchvowCli` and `vscode/src/cli.ts`: an argument list, the project folder, a time-out |
-| **The plugin says when it does not know the installed archvow** | archvow keeps no backward compatibility | `ArchvowVersion`, `versionWarning()` compare with `contract/cli/version.txt` |
+| **The plugin says when the installed archvow does not speak its contract** | archvow keeps no backward compatibility | `ArchvowVersion`, `contractWarning()` compare `archvow version --json` with `contract/cli/contract.txt` |
 | **No outside source at run time** | critical projects, supply chain | no plugin downloads anything; the `.zip` and the `.vsix` go through an internal repository |
 
 ## The map of the files
@@ -59,4 +59,4 @@ are. On the IntelliJ side, the same idea: everything that can be a plain Java cl
 | A component chosen | `show <c> --json` | `loadComponent`, `reloadComponent` |
 | A Python file saved (VS Code) | `check --file <f> --json`, the text on stdin | `checkFile` |
 | An action | the action's archvow command, after a confirmation for a change | page [Commands](/en/09-commands) |
-| The first command | `--version`, once per candidate until one answers | page [Running archvow](/en/05-running-archvow) |
+| The first command | `--version`, once per candidate until one answers; then `version --json` (the contract, 0.20.0) | page [Running archvow](/en/05-running-archvow) |

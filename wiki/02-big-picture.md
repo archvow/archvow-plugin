@@ -18,7 +18,7 @@ qu'archvow ne leur dise : ils lisent ce que la CLI affiche et lancent la CLI pou
 | **Les mêmes fonctions, pas le même code** | Swing et une page web n'ont rien en commun | VS Code reprend l'espace de travail IntelliJ règle par règle ; `vscode/src/workItems.ts`, `vscode/src/grammar.ts`, `vscode/src/formatter.ts` nomment la classe Java qu'ils suivent |
 | **Un seul lecteur `.vow`, écrit deux fois** | les deux éditeurs doivent voir les mêmes erreurs au même endroit | le lecteur Java (`org.archvow.vow.core`) est la référence ; le TypeScript (`vscode/src/vow`) doit donner les mêmes jetons sur `contract/vow-reader/expected.json` |
 | **Pas de shell, une commande à la fois** | pas d'injection, pas deux écritures en même temps | `ArchvowCli` et `vscode/src/cli.ts` : liste d'arguments, dossier du projet, délai maximal |
-| **Le plugin dit quand il ne connaît pas l'archvow installé** | archvow ne garde pas de compatibilité ascendante | `ArchvowVersion`, `versionWarning()` comparent avec `contract/cli/version.txt` |
+| **Le plugin dit quand l'archvow installé ne parle pas son contrat** | archvow ne garde pas de compatibilité ascendante | `ArchvowVersion`, `contractWarning()` comparent `archvow version --json` avec `contract/cli/contract.txt` |
 | **Aucune source extérieure à l'exécution** | projets critiques, chaîne d'approvisionnement | aucun plugin ne télécharge ; le `.zip` et le `.vsix` passent par un dépôt interne |
 
 ## La carte des fichiers
@@ -59,4 +59,4 @@ tels quels. Côté IntelliJ, la même idée : tout ce qui peut être une classe 
 | Un composant choisi | `show <c> --json` | `loadComponent`, `reloadComponent` |
 | Un fichier Python enregistré (VS Code) | `check --file <f> --json`, le texte sur stdin | `checkFile` |
 | Une action | la commande archvow de l'action, après confirmation pour un changement | page [Les commandes](/09-commands) |
-| La première commande | `--version`, une fois par candidat jusqu'à une réponse | page [Lancer archvow](/05-running-archvow) |
+| La première commande | `--version`, une fois par candidat jusqu'à une réponse ; puis `version --json` (le contrat, 0.20.0) | page [Lancer archvow](/05-running-archvow) |

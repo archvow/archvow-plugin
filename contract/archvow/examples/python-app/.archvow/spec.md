@@ -10,7 +10,7 @@ Marks invoices paid, from the command line
 
 ```mermaid
 flowchart TB
-  subgraph invoicing["invoicing (python-app@1.22.0)"]
+  subgraph invoicing["invoicing (python-app@1.23.0)"]
     direction TB
     subgraph invoicing__p0_common["p0_common"]
       invoicing__config["config<br/><small>foundation</small>"]

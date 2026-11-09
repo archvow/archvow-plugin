@@ -39,12 +39,18 @@ final class ArchvowRunLog {
     private static volatile Consumer<Object> changed = project -> { };
     static void onChange(Consumer<Object> listener) { changed = listener; }
 
-    /** One archvow call, as ArchvowCli ran it. */
-    record Call(List<String> arguments, int exitCode, String stdout, String stderr, boolean interrupted) {
+    /** One archvow call, as ArchvowCli ran it: archvow's own log lines and its error envelope's text (1.23) too. */
+    record Call(List<String> arguments, int exitCode, String stdout, String stderr, boolean interrupted,
+                List<String> log, String error) {
         Call {
             arguments = List.copyOf(arguments);
             stdout = stdout == null ? "" : stdout;
             stderr = stderr == null ? "" : stderr;
+            log = log == null ? List.of() : List.copyOf(log);
+            error = error == null ? "" : error;
+        }
+        Call(List<String> arguments, int exitCode, String stdout, String stderr, boolean interrupted) {
+            this(arguments, exitCode, stdout, stderr, interrupted, List.of(), "");
         }
     }
     private static final Map<Object, Session> SESSIONS = Collections.synchronizedMap(new WeakHashMap<>());
@@ -122,6 +128,11 @@ final class ArchvowRunLog {
                 keep(s, "✖ " + call + "  -  " + said, "✖ " + hiddenCall + "  -  " + said);
                 if (!action && s.refreshName != null) { s.reads++; s.failed++; }
                 LOG.warn("✖ " + hiddenCall + "  -  " + said);
+                // what archvow did before it failed (its own log: values already hidden by archvow)
+                for (String line : r.log()) {
+                    keep(s, "  " + line, "  " + line);
+                    LOG.debug(line);
+                }
             } else if (action) {
                 String said = resultLine(r);
                 String tail = said.isEmpty() ? "" : "  -  " + said;
@@ -131,6 +142,7 @@ final class ArchvowRunLog {
                 if (s.refreshName != null) s.reads++;
                 else if (millis > SLOW_MS) keep(s, call, hiddenCall);
                 LOG.debug(hiddenCall);  // a read: told by the refresh's line
+                for (String line : r.log()) LOG.debug(line);
             }
         }
         changed.accept(project);
@@ -160,12 +172,14 @@ final class ArchvowRunLog {
         return last.length() > 160 ? last.substring(0, 157) + "…" : last;
     }
 
-    /** What archvow said when it failed: the last lines of stderr (else stdout). */
+    /** What archvow said when it failed, on one line: its error and hint (a crash report's path), else the last
+     *  lines of stderr (else stdout). The same rule as every failure message (ArchvowOutput.failure). */
     static String failureText(Call r) {
         if (r.interrupted()) return "cancelled, or stopped after the time-out";
-        String text = (r.stderr().isBlank() ? r.stdout() : r.stderr()).strip();
-        String[] lines = text.split("\n");
-        return String.join(" | ", java.util.Arrays.asList(lines).subList(Math.max(0, lines.length - 3), lines.length));
+        String text = r.error().isEmpty() ? ArchvowOutput.failure(r.stdout(), r.stderr(), null, 3) : r.error();
+        List<String> lines = new ArrayList<>();
+        for (String l : text.split("\n")) if (!l.isBlank()) lines.add(l.strip());
+        return String.join(" | ", lines);
     }
 
     /** {@code check} exits 1 when it finds errors: an answer, not a failure. */

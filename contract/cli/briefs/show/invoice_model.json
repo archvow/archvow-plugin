@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "invoice_model",
   "type": "model",
   "layer": "p1_domain",

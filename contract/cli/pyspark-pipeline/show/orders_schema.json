@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "orders_schema",
   "type": "schema",
   "layer": "p1_domain",

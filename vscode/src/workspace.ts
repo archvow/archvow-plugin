@@ -11,7 +11,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { ArchvowCli, CliResult, CliSettings } from './cli';
+import { ArchvowCli, CliResult, CliSettings, failure } from './cli';
 import { aiView, AiView, request, skillCommand } from './aiSkills';
 import { Briefs, locate, readBriefs } from './briefs';
 import { bestBase, Book, choiceBook, missingRef, refKinds, refNames } from './choices';
@@ -21,7 +21,7 @@ import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard
 import { addableByLayer, filePlan } from './filePlan';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
-import { componentView, knownVersion, parseVersion, problemsOf, versionWarning } from './model';
+import { componentView, contractWarning, knownVersion, parseVersion, problemsOf } from './model';
 import { RunLog, touchedComponent } from './runlog';
 import { moduleFiles } from './vow/links';
 import { architectureRows, buildWork, Json, objects, str, Work } from './workItems';
@@ -47,7 +47,7 @@ export interface State {
   rows: ReturnType<typeof architectureRows>;
   vows: Record<string, string>;
   knownVersion: string;
-  /** Install archvow (0.12.0): shown when it cannot start or is another major.minor. */
+  /** Install archvow (0.12.0): shown when it cannot start or does not speak the plugin's contract. */
   install: InstallOffer;
   /** The briefs folders (init answer `briefs`) and their files' headings, for --from and "Drawn from" (0.12.0). */
   briefs: Briefs;
@@ -88,7 +88,10 @@ export class ArchvowProject {
   private remoteHead = '';
   /** The repository's first commit: changes --from it reports everything (0.15.0). */
   private firstCommit = '';
+  /** The archvow the plugin is tested with and installs ("1.23.0", contract/cli/version.txt). */
   readonly known: string;
+  /** The contract the plugin speaks ("1.0", contract/cli/contract.txt). */
+  readonly contract: string;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
   /** The trees' icons (contract/forms/icons.json, 0.15.0). */
@@ -127,6 +130,7 @@ export class ArchvowProject {
       this.bundledKinds = null;
     }
     this.known = knownVersion(fs.readFileSync(path.join(this.resources, 'version.txt'), 'utf8'));
+    this.contract = fs.readFileSync(path.join(this.resources, 'contract.txt'), 'utf8').trim();
     this.forms = JSON.parse(fs.readFileSync(path.join(this.resources, 'forms.json'), 'utf8')) as Json;
     this.commands = withPluginParameters(this.commands, this.forms);
     this.icons = JSON.parse(fs.readFileSync(path.join(this.resources, 'icons.json'), 'utf8')) as Json;
@@ -246,7 +250,7 @@ export class ArchvowProject {
       const shown = await this.cli.run(['show', '--json']);
       const spec = parse(shown.stdout);
       if (shown.exitCode !== 0 || spec === null) {
-        this.state.welcomeError = (shown.startError ?? (shown.stderr || shown.stdout)).trim()
+        this.state.welcomeError = failure(shown)
           || tr(fr, 'archvow could not read the specification.', "archvow n'a pas pu lire la spécification.");
         this.state.spec = null;
         this.state.loading = '';
@@ -265,7 +269,7 @@ export class ArchvowProject {
       const catalog = parse((await this.cli.run(['catalog', '--json'])).stdout);
       if (catalog !== null && objects(catalog, 'templates').length > 0) this.projectCatalog = catalog;
       const checked = await this.cli.run(['check', '--json']);
-      this.setCheck(parse(checked.stdout), (checked.startError ?? (checked.stderr || checked.stdout)).trim());
+      this.setCheck(parse(checked.stdout), failure(checked));
       const next = await this.cli.run(['next', '--json']);
       const rows = parse(next.stdout);
       this.state.next = Array.isArray(rows) ? (rows as Json[]) : null;
@@ -328,17 +332,24 @@ export class ArchvowProject {
 
   private async checkVersion(): Promise<void> {
     if (this.versionChecked) return;
-    const result = await this.cli.run(['--version']);
+    // archvow 1.23 says its contract; an older one has no `version` command: its --version gives the number
+    const result = await this.cli.run(['version', '--json']);
     if (result.startError !== undefined) {
       this.state.welcomeError = result.startError;
       this.offerInstall('missing');
       return;
     }
     this.versionChecked = true;
+    const said = result.exitCode === 0 ? parse(result.stdout) : null;
+    let version = said === null ? '' : str(said, 'archvow');
+    if (version === '') {
+      const old = await this.cli.run(['--version']);
+      version = (parseVersion(old.stdout + old.stderr) ?? []).join('.');
+    }
     this.runLog.header({ plugin: String(this.context.extension.packageJSON.version ?? ''),
-      archvow: (parseVersion(result.stdout + result.stderr) ?? []).join('.'), python: this.cli.program, project: this.root,
+      archvow: version, contract: said === null ? '' : str(said, 'contract'), python: this.cli.program, project: this.root,
       ide: `VS Code ${vscode.version}` });
-    const warning = versionWarning(parseVersion(result.stdout + result.stderr), this.known, this.french());
+    const warning = contractWarning({ version, contract: said === null ? '' : str(said, 'contract') }, this.contract, this.known, this.french());
     this.offerInstall(warning === null ? '' : 'version');
     if (warning !== null) {
       const install = tr(this.french(), `Install archvow ${this.known}`, `Installer archvow ${this.known}`);
@@ -489,7 +500,7 @@ export class ArchvowProject {
     const result = await this.cli.run(['check', '--file', relative, '--json']);
     const data = parse(result.stdout);
     if (data === null || !Array.isArray(data.violations)) {
-      this.log.error(`check --file ${relative}: ${(result.startError ?? result.stderr).trim()}`);
+      this.log.error(`check --file ${relative}: ${failure(result)}`);
       return;
     }
     this.problems.set(document.uri, problemsOf(data as never).filter((p) => p.file === relative).map((p) => {
@@ -543,7 +554,7 @@ export class ArchvowProject {
       this.show(component);
       return;
     }
-    const hint = view === null ? (result.startError ?? result.stderr).trim() : str(view, 'hint');
+    const hint = view === null ? failure(result) : str(view, 'hint');
     void vscode.window.showInformationMessage(hint || tr(this.state.fr, 'No component owns this file.', "Aucun composant ne possède ce fichier."));
   }
 
@@ -556,7 +567,7 @@ export class ArchvowProject {
     const result = await this.cli.run(['show', wanted, '--json']);
     const view = parse(result.stdout);
     if (view === null) {
-      void vscode.window.showWarningMessage((result.startError ?? result.stderr).trim() || tr(this.state.fr, 'archvow found nothing to show.', "archvow n'a rien trouvé à montrer."));
+      void vscode.window.showWarningMessage(failure(result) || tr(this.state.fr, 'archvow found nothing to show.', "archvow n'a rien trouvé à montrer."));
       return;
     }
     if (str(view, 'component') && !Array.isArray(view.groups)) {
@@ -863,7 +874,7 @@ export class ArchvowProject {
     const fr = this.state.fr;
     const result = await this.cli.run(['prompt', component], undefined, true);
     if (result.exitCode !== 0 || result.startError !== undefined) {
-      void vscode.window.showErrorMessage(result.startError ?? (result.stderr || result.stdout).trim());
+      void vscode.window.showErrorMessage(failure(result));
       return;
     }
     await vscode.env.clipboard.writeText(result.stdout);
@@ -945,7 +956,7 @@ export class ArchvowProject {
       const view = componentView(parse((await this.cli.run(['show', id, '--json'])).stdout), id);
       if (view !== null) this.state.snapshots = { ...this.state.snapshots, [id]: view };
       const checked = await this.cli.run(['check', '--json']);
-      this.setCheck(parse(checked.stdout), (checked.startError ?? (checked.stderr || checked.stdout)).trim());
+      this.setCheck(parse(checked.stdout), failure(checked));
       const rows = parse((await this.cli.run(['next', '--json'])).stdout);
       this.state.next = Array.isArray(rows) ? (rows as Json[]) : null;
       const vows = { ...this.state.vows };

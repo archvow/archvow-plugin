@@ -23,7 +23,9 @@ archvow's wiki; here are the plugins' own, with where to find them in the code.
 | **prefill** | a form's fields filled with what is known, never guessed | `ArchvowCommandPrefill`, `prefill()` |
 | **Back** | in the tab, going back to the component a command was opened from, on its view | `goBack`, `backComponent`; `back` in the page |
 | **contract** | what the plugins and the CLI share: sample vows, recorded JSON, grammar, catalog, meaning of the codes, version | `contract/`, page [The contract](/en/04-contract) |
-| **known version** | the contract's archvow version; another minor version is reported | `ArchvowVersion`, `knownVersion()` |
+| **known version** | the archvow the plugins are tested with and install (`contract/cli/version.txt`) | `ArchvowVersion.KNOWN`, `knownVersion()` |
+| **contract** (0.20.0) | archvow's number for what it prints for tools (MAJOR.MINOR, `archvow version --json`); the plugins accept the same MAJOR and a MINOR at least theirs | `ArchvowVersion.CONTRACT`, `contractWarning()` |
+| **error envelope** (0.20.0) | archvow's error as an object on stdout with `--json`: `{"error": {type, message, hint, exit}}` | `ArchvowOutput.error`, `errorOf()` |
 | **candidate** | a way to run archvow: the IDE's interpreter, the settings' Python, the executable; the first that answers `--version` is kept | `ArchvowProcessCommand.Candidate`, `candidates()` |
 | **WSL** | archvow installed in Linux under Windows, run through `wsl.exe` with Linux paths | `ArchvowWsl` |
 | **snapshot** | the last `show <component> --json` read, shown at once while it is read again | `componentSnapshots`; `snapshots` in the extension |

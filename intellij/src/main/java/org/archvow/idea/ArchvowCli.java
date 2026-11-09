@@ -24,17 +24,25 @@ final class ArchvowCli {
     static final class Result {
         final List<String> arguments;
         final int exitCode;
-        /** What the CLI printed on stdout: the JSON of a --json command, nothing else. */
+        /** What the CLI printed on stdout: the JSON of a --json command, nothing else ('' when it was the error envelope). */
         final String stdout;
-        /** What it printed on stderr: warnings, errors, Python tracebacks. */
+        /** What it printed on stderr: warnings, errors, Python tracebacks; without its log lines. */
         final String stderr;
         /** Both, for people: stdout then stderr. */
         final String output;
         final boolean interrupted;
+        /** archvow's own log lines (ARCHVOW_LOG=info, archvow 1.23): for the session log. */
+        final List<String> log;
+        /** With --json, the error archvow printed as an object on stdout (archvow 1.23), else null. */
+        final ArchvowOutput.Error error;
         Result(List<String> arguments, int exitCode, String stdout, String stderr, boolean interrupted) {
             this.arguments = List.copyOf(arguments); this.exitCode = exitCode;
-            this.stdout = stdout == null ? "" : stdout;
-            this.stderr = stderr == null ? "" : stderr;
+            // archvow's log lines go to `log`, its error envelope to `error`: stdout and stderr say what they said before
+            ArchvowOutput.Split split = ArchvowOutput.split(stderr == null ? "" : stderr);
+            this.log = split.log();
+            this.error = exitCode != 0 ? ArchvowOutput.error(stdout) : null;
+            this.stdout = stdout == null || this.error != null ? "" : stdout;
+            this.stderr = split.log().isEmpty() ? (stderr == null ? "" : stderr) : split.said();
             this.output = this.stderr.isBlank() ? this.stdout
                 : this.stdout.isBlank() ? this.stderr : this.stdout.stripTrailing() + "\n" + this.stderr;
             this.interrupted = interrupted;
@@ -90,7 +98,7 @@ final class ArchvowCli {
                     result = new Result(arguments, -1, describeFailure(ex));
                 } finally { running.set(false); }
                 ArchvowRunLog.record(project, new ArchvowRunLog.Call(result.arguments, result.exitCode, result.stdout,
-                    result.stderr, result.interrupted), action, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
+                    result.stderr, result.interrupted, result.log, result.error == null ? "" : result.error.text()), action, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
                 Result returned = result;
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (!project.isDisposed()) finished.accept(returned);
@@ -193,6 +201,8 @@ final class ArchvowCli {
     static void prepare(ProcessBuilder builder, List<String> argv, String root) {
         builder.environment().put("NO_COLOR", "1");
         builder.environment().put("PYTHONIOENCODING", "utf-8");
+        // what archvow did, for the session log (a level the person set is kept)
+        if (builder.environment().getOrDefault("ARCHVOW_LOG", "").isBlank()) builder.environment().put("ARCHVOW_LOG", "info");
         if (ArchvowWsl.isWsl(argv)) {
             // the Linux folder is given by --cd; wsl.exe itself starts from the user's home (never a \\wsl$ folder)
             builder.directory(new File(System.getProperty("user.home", ".")));

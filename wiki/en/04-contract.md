@@ -10,7 +10,9 @@ from a real archvow CLI, never written by hand.
 
 | Folder or file | What | Written by | Read by |
 |---|---|---|---|
-| `contract/cli/version.txt` | `archvow --version` (today `archvow 1.17.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the version the plugin knows |
+| `contract/cli/version.txt` | `archvow --version` (today `archvow 1.23.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the archvow the plugin is tested with and installs |
+| `contract/cli/contract.txt` (0.20.0) | the contract number of `archvow version --json` (MAJOR.MINOR, today `1.0`) | `regenerate.py` | `ArchvowVersion.CONTRACT`, `contractWarning()`: the contract the plugin speaks |
+| `contract/cli/errors/` (0.20.0) | three commands that fail, as the plugins get them (`ARCHVOW_LOG=info`): `no-spec`, `refused` (the error envelope on stdout, the message and archvow's log lines on stderr), `usage` (an argparse refusal: no envelope) | `regenerate.py` (`errors()`) | `cli.test.ts`, `OutputRegression` |
 | `contract/cli/commands.json` | every command and its parameters, drawn from archvow's argparse parser | `contract/tools/export_grammar.py` | `ArchvowGrammar`, `vscode/src/grammar.ts`: the Commands forms |
 | `contract/forms/forms.json` | how each form reads (0.14.0, design A): labels in plain words, essential fields and their order, the button's verb, what archvow will do - the plugins' own file, not archvow's | by hand | `ArchvowForms`, the page's `commandForm()`; `FormsRegression`, `grammar.test.ts` check its names against `commands.json` |
 | `contract/forms/forms.json` (0.15.0) | also: `files` (what each command writes, the form's Files block), `extra_parameters` (the plugins' own fields: `output`, Save to a file, on `changes` and `diff`), `smart_answers.parameters` (the `name: type = default` table) | by hand | `filePlan()`, `ArchvowFilePlan`, `withPluginParameters()`, `ArchvowGrammar`, `ArchvowColumnAnswerPanel` |
@@ -26,7 +28,7 @@ from a real archvow CLI, never written by hand.
 | `contract/cli/briefs/` (`show.json`, `next.json`, `check.json`, `show/<component>.json`, `refused.txt`) | python-app with Spec Kit's `specs/` declared as a brief folder (`-a briefs=briefs,specs`): `mark_paid` drawn from `specs/001-orders/plan.md#paying-an-invoice` (`source`), ARCH039 once that section changed, and archvow's refusal of `--from` before the folder was declared | `regenerate.py` (`briefs()`) | `vscode/src/test/briefs.test.ts`, `BriefsRegression` |
 | `contract/vows/<example>/.archvow/**/*.vow` | the vows archvow wrote on its examples | `regenerate.py` | both `.vow` readers (`CoreTests`, `vscode/src/test/vowReader.test.ts`) |
 | `contract/archvow/` | the archvow the plugins are tested with: the wheel of `contract/cli/version.txt`, archvow's three examples with their code, `docs/rules*.md` | `contract/tools/take_archvow.sh` | `regenerate.py` (CI job `contract`), `vscode/src/test/live.test.ts` |
-| `contract/cli/messages.json` | every check message archvow's own test suite makes archvow 1.22 print: 587 messages, 72 codes | `contract/tools/harvest_messages.py` (runs archvow's tests with a hook) | `vscode/src/test/guidance.test.ts`, `GuidanceRegression` |
+| `contract/cli/messages.json` | every check message archvow's own test suite makes archvow 1.23 print | `contract/tools/harvest_messages.py` (runs archvow's tests with a hook) | `vscode/src/test/guidance.test.ts`, `GuidanceRegression` |
 | `contract/guidance/expected.json` | what `guidance.ts` says on each of those messages, in English and French | `UPDATE_GUIDANCE=1 npm test` | `GuidanceRegression`: `ArchvowGuidance` must say exactly the same |
 | `contract/cli/kinds.json` | the kinds of each component type (`component add -k`), for an archvow whose catalog does not list them (1.17; archvow 1.18 gives them in `catalog --json`) | `contract/tools/export_kinds.py` (by `regenerate.py`) | `choices.ts`, `ArchvowChoices`: the `--kind` list |
 | `contract/choices/expected.json` | what each command form offers (`choiceBook()`) on the three examples, in English and French, and the comparison base on a few repositories | `UPDATE_CHOICES=1 npm test` | `ChoicesRegression`: `ArchvowChoices` must offer exactly the same |
@@ -64,12 +66,16 @@ What to look for in the diff:
 | a new command or option in `commands.json` | nothing: the forms are built from the grammar |
 | a new field in `show --json` | show it where it makes sense (component header, card, panel) in both plugins |
 | a renamed or removed field | fix both readers (`ArchvowPanel`, `workspace.js`); the tests point to it |
-| `version.txt` | both plugins will say "another version" for the old CLI: change the READMEs' text (the CLI version run) |
+| `version.txt` | the archvow the plugins are tested with and install: change the READMEs' text (`release.test.ts` says where) |
+| `contract.txt` | MINOR up: archvow added something the plugin may use; MAJOR up: something it reads was removed or changed meaning - both readers must follow, and the plugins then refuse the old archvow |
 | `expected.json` | regenerated by `contractDump`: if `npm test` fails, the TypeScript reader no longer follows the Java one |
 
-## The archvow version
+## The archvow version and the contract (0.20.0)
 
-`ArchvowVersion.warning` and `versionWarning()` compare the installed CLI's `--version` with
-`version.txt`: same major.minor, nothing; another one, a warning that gives both versions. archvow keeps
-no backward compatibility: another minor may print what the plugin misreads, and saying so is better
-than showing it wrong.
+archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "1.0", "archvow": "1.23.0",
+...}`, and every `--json` object starts with `"contract"`. `ArchvowVersion.warning` and `contractWarning()`
+compare it with `contract.txt`: the same MAJOR and a MINOR at least the plugin's, nothing; an older one, or
+an archvow that says no contract (before 1.23: it has no `version` command, its `--version` gives the
+number), "older: update archvow"; a later MAJOR, "newer: update the plugin". So an archvow release that
+keeps the contract needs no plugin release, while archvow still keeps no backward compatibility: the
+contract number is what tells. Install puts the tested archvow exactly (`archvow==1.23.0`).

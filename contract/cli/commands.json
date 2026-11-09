@@ -2411,6 +2411,14 @@
     },
     {
       "path": [
+        "version"
+      ],
+      "description": "Archvow's version, and the version of its --json output (contract).",
+      "json": true,
+      "parameters": []
+    },
+    {
+      "path": [
         "freeze"
       ],
       "description": "Accept today's violations; only new ones fail from now on.",

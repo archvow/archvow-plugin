@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { ArchvowCli, candidates, commandLine, display, linuxPath, wslArgument, wslParse, wslenv } from '../cli';
+import { ArchvowCli, candidates, commandLine, display, errorOf, failure, linuxPath, splitLog, wslArgument, wslParse, wslenv } from '../cli';
 
 function fakeArchvow(): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-fake-'));
@@ -89,7 +89,7 @@ test('archvow in WSL, VS Code on Windows: wsl.exe with Linux paths, no shell (0.
   assert.deepEqual(commandLine(settings, ['catalog', '--json'], null, true).args.slice(0, 4), ['-d', 'Ubuntu', '--cd', '~']);
   assert.deepEqual(commandLine({ ...settings, python: '/venv/bin/python3' }, ['next'], '/work/p', false),
     { program: '/venv/bin/python3', args: ['-m', 'archvow', 'next'] }, 'Linux / macOS: unchanged');
-  assert.equal(wslenv('PATH/l'), 'PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_TEMPLATES/l');
+  assert.equal(wslenv('PATH/l'), 'PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG:ARCHVOW_TEMPLATES/l');
 });
 
 test("the search order: VS Code's interpreter, archvow.python, archvow.executable; the first that answers runs", async () => {
@@ -108,4 +108,66 @@ test("the search order: VS Code's interpreter, archvow.python, archvow.executabl
   const none = new ArchvowCli(os.tmpdir(), () => ({ executable: '/nonexistent/archvow', python: '', timeoutSeconds: 10, interpreter: without }));
   const result = await none.run(['next']);
   assert.match(result.startError ?? '', /archvow not found\. Tried, in order:\n- VS Code's Python interpreter \(.*python-without\): exit 1: No module named archvow\n- archvow\.executable \(\/nonexistent\/archvow\)/);
+});
+
+// archvow 1.23's failures as recorded from the real CLI (contract/cli/errors): the log lines leave stderr, the
+// envelope leaves stdout, and the message a person reads is archvow's own
+const ERRORS = path.join(__dirname, '..', '..', '..', 'contract', 'cli', 'errors');
+
+test('a failure as archvow 1.23 prints it: its log lines apart, its error envelope read, one message', () => {
+  const cases = Object.fromEntries(fs.readdirSync(ERRORS).filter((f) => f.endsWith('.json'))
+    .map((f) => [f.replace(/\.json$/, ''), JSON.parse(fs.readFileSync(path.join(ERRORS, f), 'utf8')) as { exit: number; stdout: string; stderr: string }]));
+  assert.deepEqual(Object.keys(cases).sort(), ['no-spec', 'refused', 'usage']);
+  for (const [name, c] of Object.entries(cases)) {
+    const { log, said } = splitLog(c.stderr);
+    assert.ok(!/^archvow \d\d:/m.test(said), `${name}: a log line left in what archvow said`);
+    const error = errorOf(c.stdout) ?? undefined;
+    const message = failure({ exitCode: c.exit, stdout: error ? '' : c.stdout, stderr: said, timedOut: false, error });
+    assert.ok(message.trim() !== '' && !message.includes('archvow 00:00'), `${name}: ${message}`);
+    if (name === 'usage') {
+      assert.equal(error, undefined, 'an argparse refusal has no envelope');
+      assert.deepEqual(log, []);
+      assert.match(message, /required: name/);
+    } else {
+      assert.equal(error?.exit, 2);
+      assert.ok(log.some((l) => / info +start /.test(l)) && log.some((l) => / info +done exit 2/.test(l)), `${name}: ${log.join('|')}`);
+    }
+  }
+  assert.match(errorOf(cases['no-spec'].stdout)?.message ?? '', /no \.archvow\/spec\.vow found in <project>/);
+  assert.equal(errorOf(cases.refused.stdout)?.type, 'SpecError');
+});
+
+test('the log split, the envelope reader and the failure message', () => {
+  const split = splitLog('archvow 10:00:00.001 debug   swallowed: OSError\nTraceback (most recent call last):\n  File "x.py", line 1\nOSError: gone\n'
+    + '✖ archvow: error: bad\narchvow 10:00:00.002 info    done exit 2 (1 ms)\n');
+  assert.equal(split.log.length, 5);
+  assert.equal(split.said.trim(), '✖ archvow: error: bad');
+  assert.deepEqual(splitLog('Traceback (most recent call last):\n  File x\nValueError\n').log, [], 'a crash without a log line stays what archvow said');
+  assert.deepEqual(errorOf('{"error": {"type": "X", "message": "m", "hint": "h", "exit": 2}}'), { type: 'X', message: 'm', hint: 'h', exit: 2 });
+  assert.equal(errorOf('{"error": {"type": "X", "message": "m", "hint": null, "exit": 2}}')?.hint, '');
+  for (const other of ['{"violations": []}', '[1]', '{broken', '', '{"error": "text"}']) assert.equal(errorOf(other), null, other);
+  const base = { exitCode: 2, stdout: '', stderr: 'a\nb\nc\nd\ne\nf\ng\n', timedOut: false };
+  assert.equal(failure(base), 'b\nc\nd\ne\nf\ng');
+  assert.equal(failure({ ...base, error: { type: 'InternalError', message: 'KeyError: x', hint: 'report: /c/crash.txt', exit: 70 } }), 'KeyError: x\nreport: /c/crash.txt');
+  assert.equal(failure({ ...base, startError: 'not found' }), 'not found');
+  assert.match(failure({ ...base, timedOut: true }), /time-out/);
+});
+
+test('the runner hands archvow ARCHVOW_LOG=info and keeps its log and error envelope apart', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-fake-'));
+  const script = path.join(dir, 'archvow');
+  fs.writeFileSync(script, `#!${process.execPath}
+if (process.argv[2] === '--version') { process.stdout.write('archvow 1.23.0\\n'); return; }
+process.stderr.write('archvow 10:00:00.001 info    start show <value> --json (' + process.env.ARCHVOW_LOG + ')\\n✖ archvow: error: no spec\\n');
+process.stdout.write(JSON.stringify({ contract: '1.0', error: { type: 'ManifestError', message: 'no spec', hint: null, exit: 2 } }));
+process.exitCode = 2;
+`);
+  fs.chmodSync(script, 0o755);
+  const cli = new ArchvowCli(fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-root-')), settings(script));
+  const result = await cli.run(['show', 'x', '--json']);
+  assert.equal(result.stdout, '');
+  assert.equal(result.stderr.trim(), '✖ archvow: error: no spec');
+  assert.deepEqual(result.log, ['archvow 10:00:00.001 info    start show <value> --json (info)']);
+  assert.equal(result.error?.message, 'no spec');
+  await assert.rejects(cli.json(['show', 'x', '--json']), /show x --json failed \(exit 2\): no spec/);
 });

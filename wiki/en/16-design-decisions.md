@@ -26,7 +26,7 @@ Why the code is the way it is. Read before "simplifying" anything.
 | **Plain Swing, sizes relative to the IDE** | a plugin must look like the IDE, in every theme and font size | no UI library; `ArchvowHtml` in points; a single coloured button per panel |
 | **The logic moves out of the panel** | the panel needs a running IntelliJ; a small class is tested in one line | `ArchvowSplitView`, `ArchvowItemCards`, `ArchvowCommandPrefill`, `ArchvowWsl`... and a regression each |
 | **Tests without a framework** | they run anywhere, even without the JetBrains repositories or JUnit | one `main()` per regression, `WorkspaceTests`; `node:test` on the VS Code side |
-| **A version number of their own, a single archvow version** | archvow keeps no compatibility; reading two JSON formats would double the code | `contract/cli/version.txt`, `ArchvowVersion`; the plugin warns when the installed archvow is another |
+| **A version number of their own, one archvow contract** (0.20.0) | archvow keeps no compatibility; reading two JSON formats would double the code; but one plugin release per archvow release is waste when the JSON did not change | `contract/cli/contract.txt`, `contract/cli/version.txt`, `ArchvowVersion`, `contractWarning()`; the plugin accepts the same MAJOR and a MINOR at least its own, and installs the tested archvow |
 | **The wiki lives with the code** | internal documentation that is not kept up to date misleads | `wiki/` in the repository, same commit as the code, `wiki.test.ts` |
 
 ## What the plugins do not do, on purpose

@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "invoice_not_found_error",
   "type": "error",
   "layer": "p1_domain",

@@ -43,7 +43,9 @@ nom de ce qu'elle protège :
 | `ExamplesAndSearchRegression` | la vue Exemples (les états comme VS Code, les groupes par règle, le détail et ses différences, Copier la commande) et la recherche (les groupes, les lignes autour, les noms proches), Exemples après Règles |
 | `BriefsRegression` | les dossiers de briefs, les ancres d'archvow, les choix de `--from`, Tiré de, Ajouter ce dossier, ARCH039 |
 | `ToolWindowLayoutRegression`, `ResponsiveOverflowRegression`, `CompactViewsRegression` | les écrans étroits |
-| `VersionRegression` | « archvow 1.17 n'est pas la version connue » |
+| `VersionRegression` | le contrat (0.20.0) : même MAJEURE et MINEURE plus récente acceptées, une MINEURE plus ancienne, un archvow sans contrat, une MAJEURE plus récente et un archvow absent signalés, en anglais et en français, comme `model.test.ts` |
+| `OutputRegression` | la sortie d'archvow 1.23 lue à part (0.20.0) : ses lignes de journal (et une trace debug) quittent stderr, l'enveloppe d'erreur est lue, le refus du formulaire et l'échec du journal en viennent |
+| `CliResultRegression` | `ArchvowCli.Result` garde le journal et l'enveloppe à part ; un code 0 n'est jamais une erreur (lié à l'IDE) |
 
 Une nouvelle régression s'ajoute dans `WorkspaceTests.main` (une ligne `run(...)`) : une classe non
 inscrite ne tourne pas.
@@ -70,7 +72,7 @@ modules testés, la page est lue comme du texte.
 
 | Fichier | Ce qu'il vérifie |
 |---|---|
-| `cli.test.ts` | la ligne de commande, stdout et stderr séparés, stdin pour un fichier non enregistré, une commande à la fois, le délai, archvow absent, WSL ; avec un faux `archvow` écrit pour le test |
+| `cli.test.ts` | la ligne de commande, stdout et stderr séparés, stdin pour un fichier non enregistré, une commande à la fois, le délai, archvow absent, WSL ; avec un faux `archvow` écrit pour le test ; 0.20.0 : `ARCHVOW_LOG=info`, la séparation du journal, l'enveloppe d'erreur et le message d'échec, sur les trois échecs réels de `contract/cli/errors/` |
 | `runlog.test.ts` | le journal de session (0.19.0) : les mêmes cas que `RunLogRegression` |
 | `vowReader.test.ts` | le lecteur TypeScript donne **exactement** `contract/vow-reader/expected.json` |
 | `grammar.test.ts` | une couleur par profondeur dans la grammaire TextMate ; le pré-remplissage de Modifier la spec |

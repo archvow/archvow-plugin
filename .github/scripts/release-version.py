@@ -75,7 +75,6 @@ def apply_version(version: str, root: Path = ROOT, channel: str = "stable") -> N
     # The existing release checks require the newest entry of each changelog
     # to match package.json AND to identify the supported ArchVow CLI.
     cli = (root / 'contract/cli/version.txt').read_text(encoding='utf-8').strip().split()[-1]
-    cli_major_minor = '.'.join(cli.split('.')[:2])
     date = dt.date.today().isoformat()
     for ide in ('vscode', 'intellij'):
         path = root / ide / 'CHANGELOG.md'
@@ -86,7 +85,7 @@ def apply_version(version: str, root: Path = ROOT, channel: str = "stable") -> N
         if first.group(1) == version:
             continue
         entry = (f'## {version} - {date}\n\n'
-                 f'Built on archvow {cli_major_minor} (unchanged CLI contract).\n\n'
+                 f'Built on archvow {cli} (unchanged CLI contract).\n\n'
                  f'- Automated Marketplace {channel} release from the validated {channel} branch.\n\n')
         updated = original[:first.start()] + entry + original[first.start():]
         path.write_text(updated, encoding='utf-8')

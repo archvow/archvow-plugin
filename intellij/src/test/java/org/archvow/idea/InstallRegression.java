@@ -20,14 +20,14 @@ public final class InstallRegression {
         check(ArchvowInstall.source(null).kind() == ArchvowInstall.Kind.PIP, "null is not pip's configuration");
         check(ArchvowInstall.source(" https://nexus/simple ").equals(new ArchvowInstall.Source(ArchvowInstall.Kind.INDEX, "https://nexus/simple")), "index");
         check(ArchvowInstall.source("/lab/pypi").kind() == ArchvowInstall.Kind.WHEEL, "folder of wheels");
-        check(ArchvowInstall.requirement("1.17").equals("archvow==1.17.*"), "requirement");
-        check(ArchvowInstall.pipArgs("1.17", ArchvowInstall.source("")).equals(List.of("-m", "pip", "install", "archvow==1.17.*")), "pip args");
-        check(ArchvowInstall.pipArgs("1.17", ArchvowInstall.source("https://nexus/simple"))
-            .equals(List.of("-m", "pip", "install", "--index-url", "https://nexus/simple", "archvow==1.17.*")), "index args");
-        check(ArchvowInstall.pipArgs("1.17", ArchvowInstall.source("/w/archvow-1.17.0-py3-none-any.whl"))
+        check(ArchvowInstall.requirement("1.17.0").equals("archvow==1.17.0"), "requirement");
+        check(ArchvowInstall.pipArgs("1.17.0", ArchvowInstall.source("")).equals(List.of("-m", "pip", "install", "archvow==1.17.0")), "pip args");
+        check(ArchvowInstall.pipArgs("1.17.0", ArchvowInstall.source("https://nexus/simple"))
+            .equals(List.of("-m", "pip", "install", "--index-url", "https://nexus/simple", "archvow==1.17.0")), "index args");
+        check(ArchvowInstall.pipArgs("1.17.0", ArchvowInstall.source("/w/archvow-1.17.0-py3-none-any.whl"))
             .equals(List.of("-m", "pip", "install", "/w/archvow-1.17.0-py3-none-any.whl")), "wheel args");
-        check(ArchvowInstall.pipArgs("1.17", ArchvowInstall.source("/lab/pypi"))
-            .equals(List.of("-m", "pip", "install", "--no-index", "--find-links", "/lab/pypi", "archvow==1.17.*")), "folder args");
+        check(ArchvowInstall.pipArgs("1.17.0", ArchvowInstall.source("/lab/pypi"))
+            .equals(List.of("-m", "pip", "install", "--no-index", "--find-links", "/lab/pypi", "archvow==1.17.0")), "folder args");
 
         // the Python: venv, IDE interpreter, setting; never a bare name
         check(ArchvowInstall.venvPythons("/p", false).equals(List.of("/p/.venv/bin/python", "/p/venv/bin/python")), "venv order");
@@ -47,10 +47,10 @@ public final class InstallRegression {
             ArchvowInstall.python(root.toString(), "", "", f -> Files.isRegularFile(Path.of(f)), false)), "the project's .venv not found");
 
         // the command: no shell; WSL through wsl.exe with Linux paths
-        List<String> plain = ArchvowInstall.command("/p/.venv/bin/python", "/p", "1.17", ArchvowInstall.source(""), false);
-        check(plain.equals(List.of("/p/.venv/bin/python", "-m", "pip", "install", "archvow==1.17.*")), "plain command " + plain);
-        check(ArchvowInstall.display(plain).equals("/p/.venv/bin/python -m pip install archvow==1.17.*"), "display");
-        List<String> wsl = ArchvowInstall.command("\\\\wsl.localhost\\Ubuntu\\home\\m\\.venv\\bin\\python3", "C:\\work\\shop", "1.17",
+        List<String> plain = ArchvowInstall.command("/p/.venv/bin/python", "/p", "1.17.0", ArchvowInstall.source(""), false);
+        check(plain.equals(List.of("/p/.venv/bin/python", "-m", "pip", "install", "archvow==1.17.0")), "plain command " + plain);
+        check(ArchvowInstall.display(plain).equals("/p/.venv/bin/python -m pip install archvow==1.17.0"), "display");
+        List<String> wsl = ArchvowInstall.command("\\\\wsl.localhost\\Ubuntu\\home\\m\\.venv\\bin\\python3", "C:\\work\\shop", "1.17.0",
             ArchvowInstall.source("C:\\wheels\\archvow-1.17.0-py3-none-any.whl"), true);
         check(wsl.equals(List.of("wsl.exe", "-d", "Ubuntu", "--cd", "/mnt/c/work/shop", "--exec", "/home/m/.venv/bin/python3",
             "-m", "pip", "install", "/mnt/c/wheels/archvow-1.17.0-py3-none-any.whl")), "wsl command " + wsl);
@@ -58,19 +58,19 @@ public final class InstallRegression {
         check(ArchvowInstall.workingFolder(plain, "/p").equals("/p"), "pip runs in the project");
 
         // why the card shows
-        check(ArchvowInstall.reason("archvow 1.17.3", "1.17").isEmpty(), "same major.minor offered");
-        check(ArchvowInstall.reason("archvow 1.16.0", "1.17").equals("version"), "other version not offered");
-        check(ArchvowInstall.reason("No module named archvow", "1.17").equals("missing"), "missing not offered");
+        check(ArchvowInstall.reason(new ArchvowVersion.Said("1.99.0", ArchvowVersion.CONTRACT)).isEmpty(), "same contract offered");
+        check(ArchvowInstall.reason(new ArchvowVersion.Said("1.22.0", "")).equals("version"), "an older archvow not offered");
+        check(ArchvowInstall.reason(new ArchvowVersion.Said("", "")).equals("missing"), "missing not offered");
 
         // the offer, the card's words
-        ArchvowInstall.Offer shown = ArchvowInstall.offer("missing", "1.17", "/p/.venv/bin/python", "/p", ArchvowInstall.source(""), false, false);
-        check(shown.display().equals("/p/.venv/bin/python -m pip install archvow==1.17.*"), "offer command");
+        ArchvowInstall.Offer shown = ArchvowInstall.offer("missing", "1.17.0", "/p/.venv/bin/python", "/p", ArchvowInstall.source(""), false, false);
+        check(shown.display().equals("/p/.venv/bin/python -m pip install archvow==1.17.0"), "offer command");
         check(shown.source().equals("pip's configuration"), "offer source");
-        check(ArchvowInstall.explain(shown, false).contains("Install archvow 1.17 into /p/.venv/bin/python from pip's configuration"), "explain EN");
-        ArchvowInstall.Offer none = ArchvowInstall.offer("version", "1.17", null, "/p", ArchvowInstall.source(""), true, false);
+        check(ArchvowInstall.explain(shown, false).contains("Install archvow 1.17.0 into /p/.venv/bin/python from pip's configuration"), "explain EN");
+        ArchvowInstall.Offer none = ArchvowInstall.offer("version", "1.17.0", null, "/p", ArchvowInstall.source(""), true, false);
         check(none.python().isEmpty() && none.command().isEmpty(), "an offer without Python has a command");
         check(ArchvowInstall.explain(none, true).contains("Configurer Python"), "explain FR without Python");
-        ArchvowInstall.Offer far = ArchvowInstall.offer("missing", "1.17", "\\\\wsl.localhost\\Ubuntu\\usr\\bin\\python3", "\\\\server\\share\\p",
+        ArchvowInstall.Offer far = ArchvowInstall.offer("missing", "1.17.0", "\\\\wsl.localhost\\Ubuntu\\usr\\bin\\python3", "\\\\server\\share\\p",
             ArchvowInstall.source(""), false, true);
         check(far.python().isEmpty(), "a WSL Python for a folder WSL cannot reach");
 

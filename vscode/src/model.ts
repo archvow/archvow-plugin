@@ -245,30 +245,39 @@ export function componentView(view: Record<string, unknown> | null, id: string):
   return view !== null && id !== '' && view.component === id ? view : null;
 }
 
-/** "1.14" from the contract's version.txt ("archvow 1.14.0"). */
+/** "1.23.0" from the contract's version.txt ("archvow 1.23.0"): the archvow the plugin is tested with and installs. */
 export function knownVersion(versionTxt: string): string {
   const v = parseVersion(versionTxt);
-  return v === null ? '?' : `${v[0]}.${v[1]}`;
+  return v === null ? '?' : v.join('.');
+}
+
+/** "1.0" -> [1, 0]: a contract number (MAJOR.MINOR, archvow version --json), or null. */
+export function parseContract(text: string): number[] | null {
+  const m = /^\s*(\d+)\.(\d+)\s*$/.exec(text);
+  return m === null ? null : [Number(m[1]), Number(m[2])];
 }
 
 /**
- * A sentence when the installed archvow is another major.minor than the one the extension was built
- * for (its contract), else null: archvow keeps no backward compatibility. The IntelliJ plugin says the same.
+ * A sentence when the installed archvow does not speak this plugin's contract, else null. archvow says its
+ * contract (`archvow version --json`, 1.23): the same MAJOR and a MINOR at least the plugin's is accepted, any
+ * patch or later minor release included. An archvow that says no contract is older than the plugin needs.
+ * `tested` is the archvow the plugin is tested with (what Install installs). The IntelliJ plugin says the same.
  */
-export function versionWarning(installed: number[] | null, known: string, fr = false): string | null {
-  if (installed === null) {
+export function contractWarning(installed: { version: string; contract: string } | null, wanted: string, tested: string,
+  fr = false): string | null {
+  if (installed === null || installed.version === '') {
     return fr ? "archvow n'a pas donné sa version (archvow --version) : est-il installé ?"
       : 'archvow did not say its version (archvow --version): is it installed?';
   }
-  const [major, minor] = installed;
-  if (`${major}.${minor}` === known) return null;
-  const [kMajor, kMinor] = known.split('.').map(Number);
-  const older = major < kMajor || (major === kMajor && minor < kMinor);
-  const shown = installed.join('.');
-  if (fr) {
-    return `archvow ${shown} est ${older ? 'plus ancien' : 'plus récent'} que la version que ce plugin connaît (${known}) : `
-      + (older ? 'mets archvow à jour.' : 'mets le plugin à jour.');
+  const have = parseContract(installed.contract);
+  const need = parseContract(wanted) ?? [0, 0];
+  const older = have === null || have[0] < need[0] || (have[0] === need[0] && have[1] < need[1]);
+  if (!older && have !== null && have[0] === need[0]) return null;
+  const v = installed.version;
+  if (older) {
+    return fr ? `archvow ${v} est plus ancien que ce qu'il faut à ce plugin (archvow ${tested}) : mets archvow à jour.`
+      : `archvow ${v} is older than this plugin needs (archvow ${tested}): update archvow.`;
   }
-  return `archvow ${shown} is ${older ? 'older' : 'newer'} than the version this plugin knows (${known}): `
-    + (older ? 'update archvow.' : 'update the plugin.');
+  return fr ? `archvow ${v} est plus récent que ce que ce plugin connaît (contrat ${installed.contract}, plugin fait pour le contrat ${wanted}) : mets le plugin à jour.`
+    : `archvow ${v} is newer than this plugin knows (contract ${installed.contract}, the plugin speaks ${wanted}): update the plugin.`;
 }

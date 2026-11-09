@@ -2,7 +2,7 @@
   "name": "archvow",
   "displayName": "archvow",
   "description": "Spec-driven development with AI: manage architecture specs, decisions and checks, prepare AI coding prompts, and review changes with ArchVow.",
-  "version": "0.19.2",
+  "version": "0.20.0",
   "publisher": "archvow",
   "license": "UNLICENSED",
   "private": true,
@@ -343,7 +343,7 @@
   "devDependencies": {
     "@types/node": "22.20.5",
     "@types/vscode": "1.90.0",
-    "@vscode/vsce": "3.9.2",
+    "@vscode/vsce": "4.1.0",
     "typescript": "5.9.3",
     "vscode-oniguruma": "2.0.1",
     "vscode-textmate": "9.3.2"

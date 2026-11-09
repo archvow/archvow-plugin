@@ -27,9 +27,9 @@ with version 0.4.x) before installing this one: both declare the `.vow` file typ
 | Settings > Tools > Archvow | where archvow is looked for, in this order, the first that answers `--version` running the commands: the project's Python interpreter in the IDE (Settings > Project > Python Interpreter; on by default), the Python that has archvow installed (`python3 -m archvow`), the archvow executable. On Windows a Python in WSL (`\\wsl.localhost\Ubuntu\home\you\.venv\bin\python3`, PyCharm's WSL interpreter, `wsl://<distro>/...`) runs through `wsl.exe --exec` with Linux paths. Test shows which one answered, or what each said. The time-out, the language (English / French / the IDE's). *Install archvow from*: where **Install archvow** takes it from (empty = pip's own configuration, your company's index URL, a `.whl` file or a folder of wheels) |
 
 The archvow CLI must be installed (`archvow --version` in a terminal). The plugin runs it in the project
-folder, never through a shell, one command at a time. When archvow does not start, or is another
-major.minor, the welcome card (or the version notification) offers **Install archvow 1.17**: it shows
-`<python> -m pip install archvow==1.17.*` - the project's `.venv` (or `venv`) first, then the IDE's
+folder, never through a shell, one command at a time. When archvow does not start, or does not
+speak the plugin's contract, the welcome card (or the version notification) offers **Install archvow 1.23.0**: it shows
+`<python> -m pip install archvow==1.23.0` - the project's `.venv` (or `venv`) first, then the IDE's
 interpreter, then the Python of the settings, never a bare `python` - and runs it only after **Confirm
 and run**, no shell; on success the settings keep that Python. Nothing is installed at startup.
 
@@ -114,5 +114,6 @@ time-out, cancel), `ArchvowGrammar` reads the command grammar (`src/main/resourc
 exported from archvow's own parser by `tools/export_cli.py`), `ArchvowPanel` is the workspace, the
 `Archvow*View` classes are its views. `src/main/resources/META-INF/plugin.xml` registers both parts.
 
-The plugin has its own version (0.12.0); it reads `.vow` format 1 and runs the archvow CLI 1.17 (the version of
-`../contract/cli/version.txt`; the workspace says when the installed archvow is another one).
+The plugin has its own version (0.20.0); it reads `.vow` format 1, speaks archvow's contract 1.0
+(`../contract/cli/contract.txt`) and is tested with the archvow CLI 1.23.0 (`../contract/cli/version.txt`); the
+workspace says when the installed archvow does not speak that contract.

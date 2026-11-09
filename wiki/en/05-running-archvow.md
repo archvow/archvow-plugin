@@ -17,6 +17,9 @@ archvow command. This page explains how a command is run. Files: `ArchvowCli`, `
 | **A time-out** | a stuck command must not block the IDE | `timeoutSeconds` (180 s by default), cancellable from the progress bar | `archvow.timeoutSeconds` |
 | **Bounded output** | a huge project must not fill the memory | 20 million characters per stream (`MAX_OUTPUT`) | - |
 | **`NO_COLOR=1`, `PYTHONIOENCODING=utf-8`** | no ANSI colours in the JSON, no wrongly decoded text | `ArchvowCli.prepare` | `env` of `spawn` |
+| **`ARCHVOW_LOG=info`** (0.20.0) | what archvow did, for the session log; a level the person set is kept | `ArchvowCli.prepare` | `env` of `spawn` |
+| **archvow's log and error envelope apart** (0.20.0) | archvow 1.23's log lines are on stderr and, with `--json`, its error is an object on stdout: neither may be read as its answer | `ArchvowOutput.split`, `ArchvowOutput.error`: `Result.log`, `Result.error` (stdout then `''`) | `splitLog()`, `errorOf()`: `CliResult.log`, `CliResult.error` |
+| **One failure message** (0.20.0) | the welcome card, a notification, a form's refusal and the log say the same: archvow's message and its hint (an internal error's hint is its crash report's path), else the last lines of stderr | `ArchvowOutput.failure`, `ArchvowForms.refusal` | `failure()`, `alerts()` |
 
 ### The session log (0.19.0)
 
@@ -28,10 +31,12 @@ What the plugin asked archvow: in IntelliJ the bottom *Archvow Output* tool wind
   (`✔ Decision 1 of logging_setup made`);
 - **a refresh**: one line for all its reads (`Refresh  ·  9 reads  ·  2.4 s`), each at debug level
   (idea.log, or *Developer: Set Log Level* in VS Code);
-- **a failure**: `✖` the command and what archvow said (the last lines of stderr); `check` exiting 1
-  because it finds errors is an answer, not a failure;
-- a call over a second is marked `slow`; one header line per session: the plugin's version, archvow's, the
-  Python used, the project, the IDE.
+- **a failure**: `✖` the command and what archvow said (its error and hint, else the last lines of
+  stderr), then archvow's own log lines of that call (0.20.0: archvow already hides the values in them, so
+  *Copy for support* keeps them); `check` exiting 1 because it finds errors is an answer, not a failure;
+  archvow's log lines of the other calls go to debug level;
+- a call over a second is marked `slow`; one header line per session: the plugin's version, archvow's and
+  its contract (0.20.0), the Python used, the project, the IDE.
 
 "Copy for support" (the *Archvow Output* window's button, with "hide my answers"; *archvow: Copy the archvow log for support* in VS Code) gives the
 header and the lines with their time, a person's own words (answers, rationales, statements: `masked`)
@@ -102,14 +107,14 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 
 ## Installing archvow (0.12.0)
 
-When archvow does not start, or answers another major.minor than the contract's, the plugins offer
-**Install archvow 1.17**; nothing is installed at startup or without a click. `ArchvowInstall`
+When archvow does not start, or does not speak the plugin's contract (0.20.0, page [The contract](/en/04-contract)), the plugins offer
+**Install archvow 1.23.0**; nothing is installed at startup or without a click. `ArchvowInstall`
 (IntelliJ) and `vscode/src/install.ts` (VS Code) hold the same rules:
 
 | Question | Answer |
 |---|---|
 | Into which Python? | the project's `.venv`, then `venv` (`venvPythons()`), then the IDE's interpreter, then the Python of the settings; a bare `python` is never chosen for the person (`installPython()`, `ArchvowInstall.python`): no Python found, the card says **Configure Python** |
-| Which version? | `archvow==1.17.*` (`requirement()`): archvow keeps no backward compatibility |
+| Which version? | `archvow==1.23.0` (`requirement()`): exactly the archvow the plugins are tested with (0.20.0); once installed, any archvow of the contract is accepted |
 | From where? | the setting *Install archvow from* / `archvow.installFrom` (`installSource()`): empty = pip's own configuration (pip.conf, `PIP_INDEX_URL`), an http(s) URL = `--index-url`, a `.whl` file, or a folder of wheels = `--no-index --find-links` (`pipArgs()`) |
 | How? | the command is shown (`displayCommand()`), then run only after **Confirm and run**: no shell, in the project folder, 10 minutes at most, `PIP_DISABLE_PIP_VERSION_CHECK=1`; a Python in WSL through `wsl.exe`, as archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Afterwards? | success: the settings keep that Python, the version is probed again, the workspace reloads; failure: pip's output, nothing saved |

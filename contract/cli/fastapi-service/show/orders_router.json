@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "orders_router",
   "type": "router",
   "layer": "p4_api",

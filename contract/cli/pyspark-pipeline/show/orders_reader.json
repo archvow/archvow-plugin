@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "orders_reader",
   "type": "reader",
   "layer": "p2_io",

@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 name = "my_pipeline"
 version = "0.1.0"
 description = "PySpark pipeline for my_pipeline"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 # PySpark comes with the cluster. Packages approved with `-a dependencies=` that are not on the
 # cluster are listed here, and shipped too (see README, "Running the pipeline").
 dependencies = []

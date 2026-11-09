@@ -27,7 +27,7 @@
       "Bash(archvow * --help)",
       "Bash(pytest)",
       "Bash(python3 -m pytest:*)",
-      "Bash(python3.10 -m pytest:*)",
+      "Bash(python3.11 -m pytest:*)",
       "Bash(make test)",
       "Bash(make check)",
       "Bash(git log:*)",

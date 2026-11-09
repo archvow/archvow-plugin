@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "config",
   "type": "foundation",
   "layer": "p0_common",

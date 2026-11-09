@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm, cache-dependency-path: vscode/package-lock.json }
+        with: { node-version: 22, cache: npm, cache-dependency-path: vscode/package-lock.json }
       - run: npm ci --no-audit --no-fund
       - run: npm test
       - run: npm run package
@@ -95,7 +95,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm, cache-dependency-path: vscode/package-lock.json }
+        with: { node-version: 22, cache: npm, cache-dependency-path: vscode/package-lock.json }
       - run: python -m venv /tmp/venv && /tmp/venv/bin/pip install -q contract/archvow/archvow-*-py3-none-any.whl
       - working-directory: vscode
         run: npm ci --no-audit --no-fund && npm run compile && node --test out/test/live.test.js
@@ -113,7 +113,7 @@ jobs:
         with: { path: dist, merge-multiple: true }
       - run: ls -l dist/
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm, cache-dependency-path: vscode/package-lock.json }
+        with: { node-version: 22, cache: npm, cache-dependency-path: vscode/package-lock.json }
       - working-directory: vscode
         run: npm ci --no-audit --no-fund && npm run compile && node --test out/test/package.test.js
       - uses: actions/upload-artifact@v4
@@ -211,7 +211,8 @@ jobs:
           path: dist/
           if-no-files-found: error
 
-      # Publish the already-tested VSIX; do not invoke vsce's git version/tag automation.
+      # Publish the already-tested VSIX; do not invoke vsce's git version/tag automation. vsce is the copy locked
+      # in vscode/package-lock.json (4.1.0, the first with --oidc): nothing is downloaded at publish time.
       # --skip-duplicate allows a rerun when VS Code succeeded but JetBrains did not.
       - name: Publish VS Code Marketplace
         working-directory: vscode
@@ -221,7 +222,7 @@ jobs:
           if [[ "$ARCHVOW_MARKETPLACE_CHANNEL" == beta ]]; then
             args+=(--pre-release)
           fi
-          npx --yes @vscode/vsce@4.0.2 publish --oidc --skip-duplicate \
+          npx --no-install vsce publish --oidc --skip-duplicate \
             --skip-license --allow-missing-repository "${args[@]}" \
             --packagePath "../dist/archvow-${RELEASE_VERSION}.vsix"
 

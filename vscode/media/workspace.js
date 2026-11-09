@@ -464,7 +464,7 @@
   ${confirmation('welcome')}${resultCard('welcome')}</section>`;
   }
 
-  /** Install archvow (0.12.0): when it cannot start, or is another major.minor than the plugin knows. Nothing runs
+  /** Install archvow (0.12.0): when it cannot start, or does not speak the plugin's contract. Nothing runs
    *  before "Confirm and run". */
   function installCard() {
     const i = S.install || {};

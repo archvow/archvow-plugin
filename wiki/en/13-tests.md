@@ -31,7 +31,9 @@ what it protects:
 | `TextDialogRegression` | a dialog's size, Copy command |
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |
 | `ToolWindowLayoutRegression`, `ResponsiveOverflowRegression`, `CompactViewsRegression` | narrow screens |
-| `VersionRegression` | "archvow 1.17 is not the known version" |
+| `VersionRegression` | the contract (0.20.0): the same MAJOR and a later MINOR accepted, an older MINOR, an archvow with no contract, a later MAJOR and a missing archvow said, in English and French, like `model.test.ts` |
+| `OutputRegression` | archvow 1.23's output read apart (0.20.0): its log lines (and a debug traceback) leave stderr, the error envelope is read, the form's refusal and the log's failure come from it |
+| `CliResultRegression` | `ArchvowCli.Result` keeps the log and the envelope apart; an exit 0 is never an error (IDE-bound) |
 | `ChoicesRegression` | the command forms offer what exists (`ArchvowChoices`): on the three examples, in English and French, exactly what VS Code offers (`contract/choices/expected.json`), and the same comparison base |
 | `FilePlanRegression` | the files a form announces (`ArchvowFilePlan`): exactly VS Code's on `contract/forms/file-plans.expected.json`; the layers to add to, Save to a file, the first commit, the icons (`ArchvowTreeIcons`), the answer tables (a bin per row, the parameters) |
 | `AiSkillsRegression` | the AI view of a component (`ArchvowAiSkills`): exactly VS Code's on `contract/forms/ai-skills.expected.json` (origins, To review counts, suggestion, blocked skills); the requests each tool gets |
@@ -69,7 +71,7 @@ tested, the page is read as text.
 
 | File | What it checks |
 |---|---|
-| `cli.test.ts` | the command line, stdout and stderr apart, stdin for an unsaved file, one command at a time, the time-out, archvow missing, WSL; with a fake `archvow` written for the test |
+| `cli.test.ts` | the command line, stdout and stderr apart, stdin for an unsaved file, one command at a time, the time-out, archvow missing, WSL; with a fake `archvow` written for the test; 0.20.0: `ARCHVOW_LOG=info`, the log split, the error envelope and the failure message, on the three real failures of `contract/cli/errors/` |
 | `runlog.test.ts` | the session log (0.19.0): the same cases as `RunLogRegression` |
 | `vowReader.test.ts` | the TypeScript reader gives **exactly** `contract/vow-reader/expected.json` |
 | `grammar.test.ts` | one colour per depth in the TextMate grammar; the prefill of Edit spec |

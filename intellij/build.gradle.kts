@@ -35,11 +35,11 @@ tasks.withType<JavaCompile>().configureEach {
 
 intellijPlatform {
     buildSearchableOptions = false
-    // Stable uploads use the default channel; opt-in betas go to the
-    // JetBrains Marketplace `beta` repository.
+    // Stable uploads go to the `default` channel (an empty list uploads to no channel: nothing would be
+    // published); opt-in betas go to the JetBrains Marketplace `beta` repository. release.test.ts checks both.
     publishing {
         channels = if (providers.environmentVariable("ARCHVOW_MARKETPLACE_CHANNEL").orNull == "beta")
-            listOf("beta") else emptyList()
+            listOf("beta") else listOf("default")
     }
     pluginConfiguration {
         ideaVersion {
@@ -53,7 +53,7 @@ intellijPlatform {
 // grammar (the Commands forms), the template catalog (init, offline), the meaning of each check code.
 tasks.named<ProcessResources>("processResources") {
     from(layout.projectDirectory.dir("../contract/cli")) {
-        include("commands.json", "catalog.json", "kinds.json", "rules.md", "rules.fr.md", "version.txt")
+        include("commands.json", "catalog.json", "kinds.json", "rules.md", "rules.fr.md", "version.txt", "contract.txt")
         into("archvow")
     }
     from(layout.projectDirectory.dir("../contract/forms")) {   // how each command's form is laid out, the trees' icons

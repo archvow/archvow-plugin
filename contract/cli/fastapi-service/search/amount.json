@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "name": "amount",
   "summary": "a column of new_order_model",
   "total": 24,

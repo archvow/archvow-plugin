@@ -3010,6 +3010,78 @@
  {
   "fr": false,
   "code": "ARCH009",
+  "message": "component 'daily_sales_job': uses unknown component 'clean_orders'",
+  "guide": {
+   "code": "ARCH009",
+   "meaning": "an invalid entry in a vow (`spec.vow`), or an unknown template",
+   "todo": "the message names the entry; for a company template, set `ARCHVOW_TEMPLATES`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": ".archvow/spec.vow",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH009",
+  "message": "component 'daily_sales_job': uses unknown component 'clean_orders'",
+  "guide": {
+   "code": "ARCH009",
+   "meaning": "une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu",
+   "todo": "le message nomme l'entrée ; pour un template d'entreprise, définir `ARCHVOW_TEMPLATES`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": ".archvow/spec.vow",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH009",
+  "message": "component 'enrich_orders': uses unknown component 'clean_orders'",
+  "guide": {
+   "code": "ARCH009",
+   "meaning": "an invalid entry in a vow (`spec.vow`), or an unknown template",
+   "todo": "the message names the entry; for a company template, set `ARCHVOW_TEMPLATES`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": ".archvow/spec.vow",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH009",
+  "message": "component 'enrich_orders': uses unknown component 'clean_orders'",
+  "guide": {
+   "code": "ARCH009",
+   "meaning": "une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu",
+   "todo": "le message nomme l'entrée ; pour un template d'entreprise, définir `ARCHVOW_TEMPLATES`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": ".archvow/spec.vow",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH009",
   "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
   "guide": {
    "code": "ARCH009",
@@ -3102,11 +3174,11 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.22.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.23.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.22.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
-   "todo": "Upgrade the project to 1.22.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
+   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.23.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
+   "todo": "Upgrade the project to 1.23.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
    "who": "An architect: it changes the guards of the whole project.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then commit: the warning disappears.",
@@ -3126,11 +3198,11 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.22.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.23.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.22.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
-   "todo": "Mettez le projet en 1.22.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
+   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.23.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
+   "todo": "Mettez le projet en 1.23.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
    "who": "Un architecte : cela change les garde-fous de tout le projet.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite commitez : l'avertissement disparaît.",
@@ -3186,7 +3258,7 @@
  {
   "fr": false,
   "code": "ARCH013",
-  "message": "syntax error: invalid syntax - archvow runs on Python 3.12 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
+  "message": "syntax error: invalid syntax - archvow runs on Python 3.13 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
   "guide": {
    "code": "ARCH013",
    "meaning": "a file cannot be parsed",
@@ -3210,7 +3282,7 @@
  {
   "fr": true,
   "code": "ARCH013",
-  "message": "syntax error: invalid syntax - archvow runs on Python 3.12 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
+  "message": "syntax error: invalid syntax - archvow runs on Python 3.13 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
   "guide": {
    "code": "ARCH013",
    "meaning": "un fichier est illisible",
@@ -7806,7 +7878,7 @@
  {
   "fr": false,
   "code": "ARCH031",
-  "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - save it as UTF-8)",
+  "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py has a syntax error (line 1): its marks cannot be read - fix it first)",
   "guide": {
    "code": "ARCH031",
    "meaning": "an invariant of an implemented component is not tested yet",
@@ -7821,7 +7893,37 @@
  {
   "fr": true,
   "code": "ARCH031",
-  "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - save it as UTF-8)",
+  "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py has a syntax error (line 1): its marks cannot be read - fix it first)",
+  "guide": {
+   "code": "ARCH031",
+   "meaning": "un invariant d'un composant implémenté n'est pas encore testé",
+   "todo": "écrire le test marqué `@pytest.mark.invariant(\"<composant>.INV<n>\")` - pour un invariant qui est une décision (`from_decision N`, enregistré quand la décision couvre la question de sûreté), le test marqué `@pytest.mark.decision(N)` le prouve (le message dit de quel type et dans quel fichier, et nomme une marque presque juste - `INV1` pour `clean_orders.INV1` -, et un fichier de test qui n'est pas en UTF-8, dont les marques ne peuvent pas être lues)",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH031",
+  "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - fix it first)",
+  "guide": {
+   "code": "ARCH031",
+   "meaning": "an invariant of an implemented component is not tested yet",
+   "todo": "write the test marked `@pytest.mark.invariant(\"<component>.INV<n>\")` - for an invariant that is a decision (`from_decision N`, recorded when the decision covers the safety question), the test marked `@pytest.mark.decision(N)` proves it (the message says which kind and in which file, and names a mark that almost matches - `INV1` for `clean_orders.INV1`, and a test file that is not UTF-8, whose marks cannot be read)",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH031",
+  "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - fix it first)",
   "guide": {
    "code": "ARCH031",
    "meaning": "un invariant d'un composant implémenté n'est pas encore testé",
@@ -21972,11 +22074,47 @@
  {
   "fr": false,
   "code": "ARCH050",
+  "message": ".archvow/components/clean_orders/ has no spec.vow: the component 'clean_orders' is left out of the spec. Restore it (git checkout -- .archvow/components/clean_orders/spec.vow), or delete the folder if the component was removed",
+  "guide": {
+   "code": "ARCH050",
+   "meaning": "a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it; or a component folder that lost its `spec.vow` (always on)",
+   "todo": "move it out of `.archvow/`; a lost `spec.vow`: restore it (`git checkout -- .archvow/components/<id>/spec.vow`)",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": ".archvow/components/clean_orders",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH050",
+  "message": ".archvow/components/clean_orders/ has no spec.vow: the component 'clean_orders' is left out of the spec. Restore it (git checkout -- .archvow/components/clean_orders/spec.vow), or delete the folder if the component was removed",
+  "guide": {
+   "code": "ARCH050",
+   "meaning": "un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire ; ou le dossier d'un composant qui a perdu son `spec.vow` (toujours actif)",
+   "todo": "le sortir de `.archvow/` ; un `spec.vow` perdu : le restaurer (`git checkout -- .archvow/components/<id>/spec.vow`)",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": ".archvow/components/clean_orders",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH050",
   "message": ".archvow/components/clean_orders/notes.md: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
   "guide": {
    "code": "ARCH050",
-   "meaning": "a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it (always on)",
-   "todo": "move it out of `.archvow/`",
+   "meaning": "a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it; or a component folder that lost its `spec.vow` (always on)",
+   "todo": "move it out of `.archvow/`; a lost `spec.vow`: restore it (`git checkout -- .archvow/components/<id>/spec.vow`)",
    "who": "Whoever writes the code: you, or the AI with your review.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -21993,8 +22131,8 @@
   "message": ".archvow/components/clean_orders/notes.md: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
   "guide": {
    "code": "ARCH050",
-   "meaning": "un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire (toujours actif)",
-   "todo": "le sortir de `.archvow/`",
+   "meaning": "un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire ; ou le dossier d'un composant qui a perdu son `spec.vow` (toujours actif)",
+   "todo": "le sortir de `.archvow/` ; un `spec.vow` perdu : le restaurer (`git checkout -- .archvow/components/<id>/spec.vow`)",
    "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -22008,11 +22146,11 @@
  {
   "fr": false,
   "code": "ARCH050",
-  "message": ".archvow/components/orphan: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
+  "message": ".archvow/components/orphan/ has no spec.vow: the component 'orphan' is left out of the spec. Restore it (git checkout -- .archvow/components/orphan/spec.vow), or delete the folder if the component was removed",
   "guide": {
    "code": "ARCH050",
-   "meaning": "a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it (always on)",
-   "todo": "move it out of `.archvow/`",
+   "meaning": "a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it; or a component folder that lost its `spec.vow` (always on)",
+   "todo": "move it out of `.archvow/`; a lost `spec.vow`: restore it (`git checkout -- .archvow/components/<id>/spec.vow`)",
    "who": "Whoever writes the code: you, or the AI with your review.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -22026,11 +22164,11 @@
  {
   "fr": true,
   "code": "ARCH050",
-  "message": ".archvow/components/orphan: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
+  "message": ".archvow/components/orphan/ has no spec.vow: the component 'orphan' is left out of the spec. Restore it (git checkout -- .archvow/components/orphan/spec.vow), or delete the folder if the component was removed",
   "guide": {
    "code": "ARCH050",
-   "meaning": "un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire (toujours actif)",
-   "todo": "le sortir de `.archvow/`",
+   "meaning": "un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire ; ou le dossier d'un composant qui a perdu son `spec.vow` (toujours actif)",
+   "todo": "le sortir de `.archvow/` ; un `spec.vow` perdu : le restaurer (`git checkout -- .archvow/components/<id>/spec.vow`)",
    "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -22047,8 +22185,8 @@
   "message": ".archvow/notes.md: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
   "guide": {
    "code": "ARCH050",
-   "meaning": "a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it (always on)",
-   "todo": "move it out of `.archvow/`",
+   "meaning": "a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it; or a component folder that lost its `spec.vow` (always on)",
+   "todo": "move it out of `.archvow/`; a lost `spec.vow`: restore it (`git checkout -- .archvow/components/<id>/spec.vow`)",
    "who": "Whoever writes the code: you, or the AI with your review.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -22065,8 +22203,8 @@
   "message": ".archvow/notes.md: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
   "guide": {
    "code": "ARCH050",
-   "meaning": "un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire (toujours actif)",
-   "todo": "le sortir de `.archvow/`",
+   "meaning": "un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire ; ou le dossier d'un composant qui a perdu son `spec.vow` (toujours actif)",
+   "todo": "le sortir de `.archvow/` ; un `spec.vow` perdu : le restaurer (`git checkout -- .archvow/components/<id>/spec.vow`)",
    "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -22080,43 +22218,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 14fb3937: code written by jetbrains-ai-chat while it ran in YOLO mode",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
-   "todo": "Have that code reviewed closely, or redo it with jetbrains-ai-chat protected; the architects decide whether the branch can be merged.",
-   "who": "You, then the architects.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "ARCH053",
-  "message": "commit 14fb3937: code written by jetbrains-ai-chat while it ran in YOLO mode",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
-   "todo": "Faites relire ce code de près, ou refaites-le avec jetbrains-ai-chat protégé ; les architectes décident si la branche peut être fusionnée.",
-   "who": "Vous, puis les architectes.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "ARCH053",
-  "message": "commit 418ea734: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 1bf0d7d0: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
@@ -22134,7 +22236,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit 418ea734: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 1bf0d7d0: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
@@ -22142,6 +22244,42 @@
    "who": "Vous, qui avez fait le commit.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH053",
+  "message": "commit 3b8382fa: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
+   "todo": "Have that code reviewed closely, or redo it with jetbrains-ai-chat protected; the architects decide whether the branch can be merged.",
+   "who": "You, then the architects.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH053",
+  "message": "commit 3b8382fa: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
+   "todo": "Faites relire ce code de près, ou refaites-le avec jetbrains-ai-chat protégé ; les architectes décident si la branche peut être fusionnée.",
+   "who": "Vous, puis les architectes.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
@@ -22410,7 +22548,7 @@
  {
   "fr": false,
   "code": "ARCH056",
-  "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - save it as UTF-8) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
+  "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py has a syntax error (line 1): its marks cannot be read - fix it first) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
   "guide": {
    "code": "ARCH056",
    "meaning": "a business example of a coded component has no test marked `@pytest.mark.example(\"<example>\")`",
@@ -22425,7 +22563,37 @@
  {
   "fr": true,
   "code": "ARCH056",
-  "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - save it as UTF-8) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
+  "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py has a syntax error (line 1): its marks cannot be read - fix it first) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
+  "guide": {
+   "code": "ARCH056",
+   "meaning": "un exemple métier d'un composant codé n'a pas de test marqué `@pytest.mark.example(\"<exemple>\")`",
+   "todo": "écrire le test qui lit son `input/`, lance le composant, écrit ce qu'il a donné dans `actual/` et compare avec son `expected/` ; quand le message nomme un fichier de test qui n'est pas en UTF-8, l'enregistrer en UTF-8 (ses marques ne peuvent pas être lues)",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH056",
+  "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - fix it first) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
+  "guide": {
+   "code": "ARCH056",
+   "meaning": "a business example of a coded component has no test marked `@pytest.mark.example(\"<example>\")`",
+   "todo": "write the test that reads its `input/`, runs the component, writes what it gave to `actual/` and compares with its `expected/`; when the message names a test file that is not UTF-8, save it as UTF-8 (its marks cannot be read)",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH056",
+  "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - fix it first) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
   "guide": {
    "code": "ARCH056",
    "meaning": "un exemple métier d'un composant codé n'a pas de test marqué `@pytest.mark.example(\"<exemple>\")`",

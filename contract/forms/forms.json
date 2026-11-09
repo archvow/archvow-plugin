@@ -74,7 +74,7 @@
     "output": ["Save to a file", "Enregistrer dans un fichier"]
   },
   "command_groups": [
-    {"id": "project", "label": ["Project & checks", "Projet et contrôles"], "prefixes": ["init", "catalog", "show", "specify", "prompt", "next", "check", "review", "freeze", "audit", "changes", "diff", "doctor", "completion", "docs", "template"]},
+    {"id": "project", "label": ["Project & checks", "Projet et contrôles"], "prefixes": ["init", "catalog", "show", "specify", "prompt", "next", "check", "review", "version", "freeze", "audit", "changes", "diff", "doctor", "completion", "docs", "template"]},
     {"id": "components", "label": ["Components", "Composants"], "prefixes": ["component"]},
     {"id": "decisions", "label": ["Decisions", "Décisions"], "prefixes": ["decision"]},
     {"id": "questions", "label": ["Questions", "Questions"], "prefixes": ["question"]},

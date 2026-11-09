@@ -62,10 +62,10 @@ export function wslArgument(arg: string): string {
   return arg;
 }
 
-/** WSLENV handing NO_COLOR, PYTHONIOENCODING and ARCHVOW_TEMPLATES (a folder list, as Linux paths) to WSL. */
+/** WSLENV handing NO_COLOR, PYTHONIOENCODING, ARCHVOW_LOG and ARCHVOW_TEMPLATES (a folder list, as Linux paths) to WSL. */
 export function wslenv(previous: string | undefined): string {
   const names = (previous || '').split(':').filter((x) => x);
-  for (const wanted of ['NO_COLOR', 'PYTHONIOENCODING', 'ARCHVOW_TEMPLATES/l']) {
+  for (const wanted of ['NO_COLOR', 'PYTHONIOENCODING', 'ARCHVOW_LOG', 'ARCHVOW_TEMPLATES/l']) {
     if (!names.some((n) => n.split('/')[0] === wanted.split('/')[0])) names.push(wanted);
   }
   return names.join(':');
@@ -88,11 +88,80 @@ export interface CliResult {
   args: string[];
   exitCode: number;
   stdout: string;
+  /** What archvow said on stderr, without its log lines (they are in `log`). */
   stderr: string;
   timedOut: boolean;
   /** The program could not start (not installed, wrong path). */
   startError?: string;
   millis: number;
+  /** archvow's own log lines (ARCHVOW_LOG=info, archvow 1.23): for the session log, never shown as its answer. */
+  log?: string[];
+  /** With --json, the error archvow printed as an object on stdout (archvow 1.23); stdout is then ''. */
+  error?: CliError;
+}
+
+/** archvow's error envelope: `{"error": {"type", "message", "hint", "exit"}}` on stdout with --json. */
+export interface CliError {
+  type: string;
+  message: string;
+  hint: string;
+  exit: number;
+}
+
+/** A line of archvow's text log on stderr: `archvow 20:12:37.383 info    start show ...`. */
+const LOG_LINE = /^archvow \d\d:\d\d:\d\d\.\d{3} (debug|info|warning|error|critical)\b/;
+
+/**
+ * archvow's log lines apart from what it said: a log line, and the traceback right after one (debug
+ * only: its indented lines and the exception's line that ends it).
+ */
+export function splitLog(stderr: string): { log: string[]; said: string } {
+  const log: string[] = [];
+  const said: string[] = [];
+  let traceback = false;
+  for (const line of stderr.split(/\r?\n/)) {
+    if (LOG_LINE.test(line)) {
+      log.push(line);
+      traceback = false;
+    } else if (log.length && (line === 'Traceback (most recent call last):' || (traceback && /^\s/.test(line)))) {
+      log.push(line);
+      traceback = true;
+    } else if (traceback && line.trim() !== '') {
+      log.push(line);  // "ValueError: ...": the end of the traceback
+      traceback = false;
+    } else {
+      said.push(line);
+      traceback = false;
+    }
+  }
+  return { log, said: said.join('\n') };
+}
+
+/** The error envelope on stdout, or null (any other output, a list, a broken JSON). */
+export function errorOf(stdout: string): CliError | null {
+  const text = stdout.trim();
+  if (!text.startsWith('{')) return null;
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    const e = parsed.error;
+    if (e === null || typeof e !== 'object' || Array.isArray(e)) return null;
+    const o = e as Record<string, unknown>;
+    if (typeof o.message !== 'string') return null;
+    return { type: String(o.type ?? ''), message: o.message, hint: typeof o.hint === 'string' ? o.hint : '', exit: Number(o.exit ?? 2) };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * What a person reads when a command failed: why it did not start or stopped, archvow's error and its hint
+ * (the envelope), else its last `lines` lines on stderr (else stdout). One rule for every failure message.
+ */
+export function failure(r: Pick<CliResult, 'exitCode' | 'stdout' | 'stderr' | 'timedOut' | 'startError' | 'error'>, lines = 6): string {
+  if (r.startError !== undefined) return r.startError.trim();
+  if (r.timedOut) return 'stopped: archvow did not answer within the time-out (archvow.timeoutSeconds)';
+  if (r.error) return r.error.hint ? `${r.error.message}\n${r.error.hint}` : r.error.message;
+  return (r.stderr.trim() || r.stdout.trim()).split('\n').slice(-lines).join('\n');
 }
 
 /**
@@ -216,12 +285,15 @@ export class ArchvowCli {
     const result = await this.run(args, stdin, first);
     if (result.startError !== undefined) throw new Error(result.startError);
     if (result.timedOut) throw new Error(`${display(args)}: stopped after ${this.settings().timeoutSeconds} s`);
-    try {
-      return { data: JSON.parse(result.stdout) as T, result };
-    } catch {
-      const said = (result.stderr || result.stdout).trim().split('\n').slice(-6).join('\n');
-      throw new Error(`${display(args)} failed (exit ${result.exitCode})${said ? ': ' + said : ''}`);
+    if (result.error === undefined) {
+      try {
+        return { data: JSON.parse(result.stdout) as T, result };
+      } catch {
+        // not JSON: the message below
+      }
     }
+    const said = failure(result);
+    throw new Error(`${display(args)} failed (exit ${result.exitCode})${said ? ': ' + said : ''}`);
   }
 
   private async runNow(args: string[], stdin?: string): Promise<CliResult> {
@@ -253,9 +325,22 @@ export class ArchvowCli {
         settled = true;
         clearTimeout(timer);
         const done: CliResult = { ...result, args, millis: Date.now() - started };
+        // archvow's log lines go to `log`, its error envelope to `error`: stdout and stderr say what they said before
+        const { log, said } = splitLog(done.stderr);
+        if (log.length) {
+          done.log = log;
+          done.stderr = said;
+        }
+        const error = done.exitCode !== 0 ? errorOf(done.stdout) : null;
+        if (error !== null) {
+          done.error = error;
+          done.stdout = '';
+        }
         resolve(done);
       };
-      const env: NodeJS.ProcessEnv = { ...process.env, ...this.extraEnv, NO_COLOR: '1', PYTHONIOENCODING: 'utf-8' };
+      // ARCHVOW_LOG: what archvow did, for the session log (a level the person set is kept)
+      const env: NodeJS.ProcessEnv = { ...process.env, ...this.extraEnv, NO_COLOR: '1', PYTHONIOENCODING: 'utf-8',
+        ARCHVOW_LOG: process.env.ARCHVOW_LOG || 'info' };
       if (wsl) env.WSLENV = wslenv(process.env.WSLENV);
       const child = spawn(program, argv, {
         // through wsl.exe the Linux folder is --cd; wsl.exe itself starts from the home folder

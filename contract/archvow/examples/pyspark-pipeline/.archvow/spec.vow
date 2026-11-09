@@ -10,7 +10,7 @@ system
 
 # --- containers
 container my_pipeline
-  template pyspark-pipeline@1.22.0
+  template pyspark-pipeline@1.23.0
   package my_pipeline
   path src/my_pipeline
 
@@ -20,7 +20,7 @@ ai_tools [claude-code]
 dependencies []
 init_answers
   language en
-  python_version "3.10"
+  python_version "3.11"
   line_length "88"
   platform gitlab
   ci auto

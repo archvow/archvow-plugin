@@ -57,9 +57,11 @@ test('one version: package.json, gradle.properties, the README and both changelo
 });
 
 test('one archvow: the contract\'s version is the one both plugins install, name and build on', () => {
-  assert.match(ARCHVOW, /^\d+\.\d+$/);
-  assert.equal(requirement(ARCHVOW), `archvow==${ARCHVOW}.*`);
-  assert.ok(prose('README.md').includes(`run the archvow CLI ${ARCHVOW}`), 'README');
+  assert.match(ARCHVOW, /^\d+\.\d+\.\d+$/);
+  assert.equal(requirement(ARCHVOW), `archvow==${ARCHVOW}`);
+  assert.match(read('contract', 'cli', 'contract.txt').trim(), /^\d+\.\d+$/, 'contract/cli/contract.txt');
+  assert.ok(prose('README.md').includes(`install, the archvow CLI ${ARCHVOW}`), 'README');
+  assert.ok(prose('README.md').includes(`archvow's contract ${read('contract', 'cli', 'contract.txt').trim()}`), 'README: the contract');
   assert.ok(prose('contract', 'README.md').includes(`Recorded from ${read('contract', 'cli', 'version.txt').trim()}.`),
     'contract/README.md');
   assert.ok(read('intellij', 'gradle.properties').includes(`(${ARCHVOW})`), 'gradle.properties comment');
@@ -156,4 +158,20 @@ test('contract/archvow: the archvow CI installs is the contract\'s, with the exa
   for (const name of ['rules.md', 'rules.fr.md']) {
     assert.equal(read('contract', 'archvow', 'docs', name), read('contract', 'cli', name), `docs/${name} is the recorded one`);
   }
+});
+
+test('publishing: the locked vsce (4.1.0, --oidc) with no download, and a JetBrains channel for each release', () => {
+  const pkg = JSON.parse(read('vscode', 'package.json')) as { devDependencies: Record<string, string> };
+  const lock = JSON.parse(read('vscode', 'package-lock.json')) as { packages: Record<string, { version?: string }> };
+  assert.equal(pkg.devDependencies['@vscode/vsce'], '4.1.0', 'an exact vsce: the first with --oidc');
+  assert.equal(lock.packages['node_modules/@vscode/vsce']?.version, '4.1.0', 'package-lock.json');
+  const ci = read('.github', 'workflows', 'ci.yml');
+  assert.match(ci, /npx --no-install vsce publish --oidc/);
+  assert.doesNotMatch(ci, /npx --yes @vscode\/vsce/, 'vsce downloaded at publish time');
+  assert.doesNotMatch(ci, /node-version: (1\d|20)\b/, 'vsce 4.1 needs Node 22');
+  // an empty channel list uploads to no channel: a stable release would publish nothing
+  const gradle = read('intellij', 'build.gradle.kts');
+  const channels = /channels = ([^\n]*\n[^\n]*)/.exec(gradle)?.[1] ?? '';
+  assert.match(channels, /listOf\("beta"\) else listOf\("default"\)/, channels);
+  assert.doesNotMatch(gradle, /emptyList\(\)|listOf\(\)/);
 });

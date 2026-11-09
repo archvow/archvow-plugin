@@ -49,9 +49,12 @@ JetBrains, un Open VSX hébergé) ou un partage : les plugins ne téléchargent 
 
 ## Une nouvelle version d'archvow
 
-archvow ne garde pas de compatibilité ascendante : chaque version mineure peut changer ses commandes ou
-son JSON. Les plugins suivent **une** version, celle de `contract/cli/version.txt` (`ArchvowVersion.KNOWN`),
-et disent quand celle qui est installée en est une autre (page [Lancer archvow](/05-running-archvow)).
+archvow ne garde pas de compatibilité ascendante, mais dit ce qui a changé pour les plugins par son numéro
+de contrat (0.20.0, `contract/cli/contract.txt`, `ArchvowVersion.CONTRACT`) : une version d'archvow qui
+garde le contrat ne demande que de régénérer le contrat (la version testée, `contract/cli/version.txt`,
+avance) ; une MINEURE qui monte peut apporter de quoi utiliser ; une MAJEURE qui monte demande de changer
+les deux lecteurs. Les plugins disent quand l'archvow installé ne parle pas leur contrat (page
+[Le contrat](/04-contract)).
 
 1. Mettre le nouvel archvow dans `contract/archvow/` (`contract/tools/take_archvow.sh` : son wheel, ses
    exemples et règles), puis régénérer le contrat depuis lui (page [Le contrat](/04-contract)) :

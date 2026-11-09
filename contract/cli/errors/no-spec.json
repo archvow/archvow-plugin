@@ -1,0 +1,9 @@
+{
+  "args": [
+    "show",
+    "--json"
+  ],
+  "exit": 2,
+  "stdout": "{\n  \"contract\": \"1.0\",\n  \"error\": {\n    \"type\": \"ManifestError\",\n    \"message\": \"no .archvow/spec.vow found in <project> or its parents\",\n    \"hint\": null,\n    \"exit\": 2\n  }\n}\n",
+  "stderr": "archvow 00:00:00.000 info    start show --json (archvow 1.23.0, Python <python>, <project>)\narchvow 00:00:00.000 info    agent gate: allowed\n✖ archvow: error: no .archvow/spec.vow found in <project> or its parents\narchvow 00:00:00.000 info    done exit 2 (<ms>)\n"
+}

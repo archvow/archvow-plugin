@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 1.22.0",
+ "archvow": "archvow 1.23.0",
  "messages": [
   {
    "code": "ACME001",
@@ -599,6 +599,20 @@
   {
    "code": "ARCH009",
    "severity": "error",
+   "message": "component 'daily_sales_job': uses unknown component 'clean_orders'",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "component 'enrich_orders': uses unknown component 'clean_orders'",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
    "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -613,7 +627,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.22.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.23.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -627,7 +641,7 @@
   {
    "code": "ARCH013",
    "severity": "error",
-   "message": "syntax error: invalid syntax - archvow runs on Python 3.12 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
+   "message": "syntax error: invalid syntax - archvow runs on Python 3.13 and this project needs >=3.99: run archvow with that Python (archvow doctor shows it)",
    "file": "src/api/core/config.py",
    "line": 1
   },
@@ -1439,7 +1453,14 @@
   {
    "code": "ARCH031",
    "severity": "error",
-   "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - save it as UTF-8)",
+   "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py has a syntax error (line 1): its marks cannot be read - fix it first)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH031",
+   "severity": "error",
+   "message": "'clean_orders' is implemented but clean_orders.INV1 'order_id is unique' is not tested yet (property_test) -> mark a Hypothesis @given test @pytest.mark.invariant(\"clean_orders.INV1\") in tests/p1_domain/test_clean_orders.py (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - fix it first)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -3637,6 +3658,13 @@
   {
    "code": "ARCH050",
    "severity": "error",
+   "message": ".archvow/components/clean_orders/ has no spec.vow: the component 'clean_orders' is left out of the spec. Restore it (git checkout -- .archvow/components/clean_orders/spec.vow), or delete the folder if the component was removed",
+   "file": ".archvow/components/clean_orders",
+   "line": 0
+  },
+  {
+   "code": "ARCH050",
+   "severity": "error",
    "message": ".archvow/components/clean_orders/notes.md: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
    "file": ".archvow/components/clean_orders/notes.md",
    "line": 0
@@ -3644,7 +3672,7 @@
   {
    "code": "ARCH050",
    "severity": "error",
-   "message": ".archvow/components/orphan: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
+   "message": ".archvow/components/orphan/ has no spec.vow: the component 'orphan' is left out of the spec. Restore it (git checkout -- .archvow/components/orphan/spec.vow), or delete the folder if the component was removed",
    "file": ".archvow/components/orphan",
    "line": 0
   },
@@ -3658,14 +3686,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 14fb3937: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit 1bf0d7d0: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 418ea734: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 3b8382fa: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -3714,7 +3742,14 @@
   {
    "code": "ARCH056",
    "severity": "error",
-   "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - save it as UTF-8) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
+   "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py has a syntax error (line 1): its marks cannot be read - fix it first) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
+   "file": ".archvow/components/clean_orders/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH056",
+   "severity": "error",
+   "message": "example FATTRIB-014-zero-amount of clean_orders has no test marked @pytest.mark.example(\"FATTRIB-014-zero-amount\") (tests/p1_domain/test_clean_orders.py is not UTF-8: its marks cannot be read - fix it first) -> write the test that reads tests/examples/clean_orders/FATTRIB-014-zero-amount/input/, writes what the component gives to tests/examples/clean_orders/FATTRIB-014-zero-amount/actual/ and compares it with tests/examples/clean_orders/FATTRIB-014-zero-amount/expected/",
    "file": ".archvow/components/clean_orders/spec.vow",
    "line": 0
   },

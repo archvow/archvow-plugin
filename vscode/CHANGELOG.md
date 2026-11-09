@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.20.0 - 2026-11-09
+
+Built on archvow 1.23.0 (contract regenerated from the 1.23.0 wheel; contract 1.0).
+
+- **A contract number instead of one archvow version**: archvow 1.23 says its contract (`archvow version
+  --json`, `contract/cli/contract.txt`, today 1.0). The plugin accepts any archvow of the same MAJOR and a
+  MINOR at least its own, so an archvow release that keeps the contract needs no plugin release; an older
+  archvow (no contract) is said to be older, with **Install archvow 1.23.0**. Install pins the tested
+  archvow exactly (`archvow==1.23.0`).
+- **archvow's own words when a command fails**: with `--json`, archvow 1.23 prints its error as an object on
+  stdout (message, hint, exit). One reader takes it (and leaves stdout as before), one rule builds every
+  failure message (the welcome card, notifications, the form's refusal, the session log) - the hint of an
+  internal error is the path of archvow's crash report.
+- **The session log shows what archvow did**: archvow runs with `ARCHVOW_LOG=info` (a level you set is
+  kept); its log lines leave stderr and go to the log at debug level, and under a failed call, so *Copy the
+  log for support* has them (archvow already hides the values in them).
+- **Publishing fixed**: vsce 4.1.0 (the first with `--oidc`) locked as a devDependency and run with
+  `npx --no-install`, CI on Node 22; a stable JetBrains release goes to the `default` channel (an empty list
+  published nothing). `release.test.ts` checks both.
+- The trees have an icon for the new `version` command; `contract/cli/errors/` holds three real failures
+  both plugins test against.
+
 ## 0.19.2 - 2026-11-09
 
 Built on archvow 1.22 (unchanged CLI contract).

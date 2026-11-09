@@ -33,7 +33,9 @@ For VS Code, `vsce package --pre-release` sets pre-release metadata inside the V
 **Switch to Pre-Release Version** from the extension's Manage menu.
 For JetBrains, Gradle publishes into the Marketplace `beta` release channel. Users must add
 `https://plugins.jetbrains.com/plugins/beta/list` under **Settings → Plugins → Manage Plugin
-Repositories** to receive beta updates. Stable JetBrains users need not add a repository.
+Repositories** to receive beta updates. Stable JetBrains users need not add a repository: a stable
+release goes to the `default` channel (`intellij/build.gradle.kts`; an empty channel list would upload to
+no channel and publish nothing, which `vscode/src/test/release.test.ts` refuses).
 
 Both beta and stable publications use the same plugin identities, tests, source files and
 CI signing/publishing secrets. No extra publisher account is required.
@@ -43,7 +45,9 @@ CI signing/publishing secrets. No extra publisher account is required.
 1. In the [Visual Studio Marketplace publisher portal](https://marketplace.visualstudio.com/manage),
    create (or select) publisher `archvow` matching `vscode/package.json`. Create a **Trusted
    Publishing** policy for your GitHub repository and `.github/workflows/ci.yml`. This enables
-   `@vscode/vsce@4.0.2 publish --oidc` without a Microsoft publishing token.
+   `vsce publish --oidc` without a Microsoft publishing token. CI runs the vsce locked in
+   `vscode/package-lock.json` (`@vscode/vsce` 4.1.0, the first release with `--oidc`; it needs Node 22) with
+   `npx --no-install vsce ...`: nothing is downloaded at publish time.
 2. [Upload the first IntelliJ plugin version manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html)
    to the JetBrains Marketplace under the existing plugin ID `org.archvow.intellij`. Automatic
    `publishPlugin` updates only work **after** that first manual upload. If 0.19.0 was never

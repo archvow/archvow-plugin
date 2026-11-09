@@ -55,8 +55,8 @@ public final class WslRegression {
             "an archvow executable in WSL");
         equal(List.of("/venv/bin/python3", "-m", "archvow", "--root", "/work/p", "next"),
             ArchvowProcessCommand.build("archvow", "/venv/bin/python3", "/work/p", List.of("next"), false), "Linux / macOS: unchanged");
-        equal("PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_TEMPLATES/l", ArchvowWsl.wslenv("PATH/l"), "WSLENV keeps what was shared");
-        equal("NO_COLOR:PYTHONIOENCODING:ARCHVOW_TEMPLATES/l", ArchvowWsl.wslenv("NO_COLOR"), "WSLENV once each");
+        equal("PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG:ARCHVOW_TEMPLATES/l", ArchvowWsl.wslenv("PATH/l"), "WSLENV keeps what was shared");
+        equal("NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG:ARCHVOW_TEMPLATES/l", ArchvowWsl.wslenv("NO_COLOR"), "WSLENV once each");
 
         // the search order: the IDE's interpreter, then the settings' Python, then the executable
         var order = ArchvowProcessCommand.candidates(true, python, "archvow", "/usr/bin/python3");

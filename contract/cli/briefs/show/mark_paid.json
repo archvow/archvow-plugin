@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "mark_paid",
   "type": "service",
   "layer": "p3_services",

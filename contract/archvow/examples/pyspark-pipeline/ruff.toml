@@ -1,7 +1,7 @@
 # PEP 8 + Zen of Python, enforced by ruff. Architecture, safety and PySpark rules are
 # enforced by `archvow check` (see .archvow/spec.md, Checks). Guard file: changes need review.
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 src = ["src", "tests"]
 extend-exclude = [".archvow"]      # the spec: documentation, not code
 

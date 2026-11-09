@@ -67,6 +67,8 @@ public final class WorkspaceTests {
         run("UiPolishRegression", () -> UiPolishRegression.main(NONE));
         run("ViewNavigationRegression", () -> ViewNavigationRegression.main(NONE));
         run("VersionRegression", () -> VersionRegression.main(NONE));
+        run("OutputRegression", () -> OutputRegression.main(NONE));
+        run("CliResultRegression", () -> CliResultRegression.main(NONE));
         run("VowViewerRegression", () -> VowViewerRegression.main(NONE));
         run("VowWatcherRegression", () -> VowWatcherRegression.main(NONE));
         run("WslRegression", () -> WslRegression.main(NONE));

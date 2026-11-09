@@ -6,14 +6,14 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `pyspark-pipeline@1.22.0`).
+[archvow](.archvow/README.md) (template `pyspark-pipeline@1.23.0`).
 
 ## For developers
 
 Everything you need every day, on one page. The spec of each component is written and
 approved by the architects (@my-team); you write the code from it.
 
-**Once, after cloning** - Python 3.10 to 3.12, Java 17,
+**Once, after cloning** - Python 3.11 to 3.12, Java 17,
 PySpark 3.5:
 
 ```bash
@@ -130,7 +130,7 @@ complete pipeline, from the empty project to a run: archvow's documentation, *Ge
 
 ```bash
 archvow init my_pipeline -t pyspark-pipeline -d 'PySpark pipeline for my_pipeline' \
-    -a language=en -a python_version=3.10 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a spark_version=3.5 -a scheduler=none -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,SPARK,GDPR,TST
+    -a language=en -a python_version=3.11 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a spark_version=3.5 -a scheduler=none -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,SPARK,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
 git switch -c develop                            # once, from main

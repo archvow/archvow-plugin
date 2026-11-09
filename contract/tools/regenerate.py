@@ -12,11 +12,17 @@ nothing in the archvow tree is written. Recorded:
   contract/cli/kinds.json                  the kinds of each component type (component add -k), for an archvow
                                            whose catalog does not list them (1.17; tools/export_kinds.py)
   contract/cli/rules.md, rules.fr.md       archvow's docs/rules: what each check code means
-  contract/cli/version.txt                 `archvow --version`
+  contract/cli/version.txt                 `archvow --version`: the archvow the plugins are tested with and install
+  contract/cli/contract.txt                `archvow version --json`'s "contract" (MAJOR.MINOR, 1.23): an installed
+                                           archvow of the same MAJOR and a MINOR at least this one is accepted
   contract/cli/<name>/search/<name>.json   `archvow show <name> --json` (1.21): a name found, and one found nowhere
   contract/cli/python-app/examples/        python-app's business example in each state (1.21: the test's verdict in a
                                            test-results.xml written here, actual/ against expected/): passing.json,
                                            failing.json, no-test.json (show invoices_cli --json)
+  contract/cli/errors/<case>.json          a command that fails, as the plugins get it (ARCHVOW_LOG=info, 1.23): exit,
+                                           stdout (the error envelope with --json) and stderr (its message and the log
+                                           lines), times and paths normalised: no-spec, refused, usage (an argparse
+                                           refusal: no envelope)
   contract/cli/briefs/                     python-app with a Spec Kit `specs` folder declared as a briefs folder
                                            (-a briefs=briefs,specs), recorded like an example: refused.txt (the
                                            --from refusal before), mark_paid drawn from specs/ (show `source`),
@@ -27,6 +33,7 @@ the diff - a change here is a change of the contract the plugins rely on.
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -73,6 +80,8 @@ def main():
     cli.mkdir(parents=True, exist_ok=True)
     version = subprocess.run([*archvow, "--version"], capture_output=True, text=True).stdout.strip()
     (cli / "version.txt").write_text(version + "\n", encoding="utf-8")
+    said = json.loads(subprocess.run([*archvow, "version", "--json"], capture_output=True, text=True, check=True).stdout)
+    (cli / "contract.txt").write_text(said["contract"] + "\n", encoding="utf-8")
     grammar = subprocess.run([args.python, "-I", str(CONTRACT / "tools" / "export_grammar.py")],
                              capture_output=True, text=True, encoding="utf-8", check=True).stdout
     write(cli / "commands.json", json.loads(grammar))
@@ -105,9 +114,39 @@ def main():
                     write(out / "show" / f"{cid}.json", run([*archvow, "show", cid, "--json"], project))
             for wanted in SEARCHES[name]:  # a name found nowhere exits 2, its close names on stdout
                 write(out / "search" / f"{wanted}.json", run([*archvow, "show", wanted, "--json"], project, (0, 2)))
+    errors(source, archvow, cli / "errors")
     examples(source, archvow, cli / "python-app" / "examples")
     briefs(source, archvow, cli / "briefs")
     print(f"contract regenerated from {version}")
+
+
+ERRORS = {"no-spec": (None, ["show", "--json"]),
+          "refused": ("python-app", ["decision", "make", "invoices_cli", "99", "x", "--json"]),
+          "usage": ("python-app", ["component", "add", "bad-id", "--json"])}
+
+
+def errors(source, archvow, out):
+    """What the plugins get from a command that fails (archvow 1.23): the error envelope on stdout with --json,
+    the message and archvow's log lines on stderr. Read by both plugins' output tests (cli.test.ts, OutputRegression)."""
+    shutil.rmtree(out, ignore_errors=True)
+    env = {**os.environ, "ARCHVOW_LOG": "info", "NO_COLOR": "1"}
+    for case, (example, args) in ERRORS.items():
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / (example or "empty")
+            if example:
+                shutil.copytree(source / "examples" / example, project)
+            else:
+                project.mkdir()
+            done = subprocess.run([*archvow, *args], cwd=project, capture_output=True, text=True, encoding="utf-8", env=env)
+            if done.returncode == 0:
+                sys.exit(f"{case}: {' '.join(args)} did not fail")
+            said = {"args": args, "exit": done.returncode, "stdout": done.stdout, "stderr": done.stderr}
+            for key in ("stdout", "stderr"):
+                text = said[key].replace(str(project.resolve()), "<project>").replace(str(project), "<project>")
+                text = re.sub(r"(?m)^(archvow )\d\d:\d\d:\d\d\.\d{3}", r"\g<1>00:00:00.000", text)
+                text = re.sub(r"Python \d+\.\d+\.\d+", "Python <python>", text)
+                said[key] = re.sub(r"\(\d+ ms\)", "(<ms>)", text)
+            write(out / f"{case}.json", said)
 
 
 SEARCHES = {"python-app": ("InvoiceNotFoundError", "US-001", "mark_payd"),

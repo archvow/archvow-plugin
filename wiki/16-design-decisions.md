@@ -26,7 +26,7 @@ Pourquoi le code est tel qu'il est. À lire avant de « simplifier » quoi que c
 | **Swing simple, tailles relatives à l'IDE** | un plugin doit ressembler à l'IDE, dans chaque thème et chaque taille de police | pas de bibliothèque d'interface ; `ArchvowHtml` en points ; un seul bouton coloré par panneau |
 | **La logique sort du panneau** | le panneau demande un IntelliJ qui tourne ; une petite classe se teste en une ligne | `ArchvowSplitView`, `ArchvowItemCards`, `ArchvowCommandPrefill`, `ArchvowWsl`... et une régression chacune |
 | **Des tests sans framework** | ils tournent partout, même sans les dépôts JetBrains ni JUnit | un `main()` par régression, `WorkspaceTests` ; `node:test` côté VS Code |
-| **Un numéro de version à eux, une seule version d'archvow** | archvow ne garde pas de compatibilité ; lire deux formats de JSON doublerait le code | `contract/cli/version.txt`, `ArchvowVersion` ; le plugin prévient quand l'archvow installé est un autre |
+| **Un numéro de version à eux, un seul contrat d'archvow** (0.20.0) | archvow ne garde pas de compatibilité ; lire deux formats de JSON doublerait le code ; mais une version du plugin par version d'archvow est du gaspillage quand le JSON n'a pas changé | `contract/cli/contract.txt`, `contract/cli/version.txt`, `ArchvowVersion`, `contractWarning()` ; le plugin accepte la même MAJEURE et une MINEURE au moins la sienne, et installe l'archvow testé |
 | **Le wiki vit avec le code** | une documentation interne qui n'est pas tenue à jour trompe | `wiki/` dans le dépôt, même commit que le code, `wiki.test.ts` |
 
 ## Ce que les plugins ne font pas, exprès

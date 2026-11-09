@@ -2,7 +2,7 @@
 // action is one line with its whole command, its result and archvow's answer; a refresh's reads
 // are one summary line (each read at debug level); a failure is an error with archvow's message.
 // Pure: the channel is given, so the tests read the lines without VS Code.
-import { CliResult, display } from './cli';
+import { CliResult, display, failure } from './cli';
 import { Command } from './grammar';
 
 /** Where the lines go: VS Code's LogOutputChannel (it adds the time, keeps the levels, rotates). */
@@ -30,11 +30,11 @@ export function resultLine(r: CliResult): string {
   return last.length > 160 ? `${last.slice(0, 157)}…` : last;
 }
 
-/** What archvow said when it failed: the last lines of stderr (else stdout), or why it did not start. */
+/** What archvow said when it failed, on one line: why it did not start, its error and hint (a crash report's
+ *  path), else the last lines of stderr (else stdout). The same rule as every failure message (cli.failure). */
 export function failureText(r: CliResult): string {
   if (r.startError !== undefined) return r.startError.trim().split('\n')[0];
-  if (r.timedOut) return 'stopped: archvow did not answer within the time-out (archvow.timeoutSeconds)';
-  return (r.stderr.trim() || r.stdout.trim()).split('\n').slice(-3).join(' | ');
+  return failure(r, 3).split('\n').map((l) => l.trim()).filter((l) => l !== '').join(' | ');
 }
 
 /** Where each command keeps a person's own words (an answer, a rationale...): hidden for support. */
@@ -100,6 +100,11 @@ export class RunLog {
       const line = `✖ ${call}  -  ${failureText(r)}`;
       this.keep(line, line.replace(display(r.args), display(masked(r.args))));
       this.sink.error(line);
+      // what archvow did before it failed (its own log: values already hidden by archvow)
+      for (const said of r.log ?? []) {
+        this.keep(`  ${said}`);
+        this.sink.debug(said);
+      }
       if (!action && this.refresh) {
         this.refresh.reads += 1;
         this.refresh.failed += 1;
@@ -115,6 +120,7 @@ export class RunLog {
     }
     if (this.refresh) this.refresh.reads += 1;
     this.sink.debug(call);
+    for (const said of r.log ?? []) this.sink.debug(said);
     if (slow) this.keep(call);
   }
 

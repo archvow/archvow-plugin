@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "invoices_cli",
   "type": "cli",
   "layer": "p4_entrypoints",

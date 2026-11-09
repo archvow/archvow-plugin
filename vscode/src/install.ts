@@ -1,5 +1,5 @@
 // Installing archvow, guided (0.12.0): never on its own, never at startup. When archvow cannot start, or
-// is another major.minor than the contract's, the page offers "Install archvow <version>"; the pip command
+// does not speak the plugin's contract, the page offers "Install archvow <version>"; the pip command
 // is shown and runs only after "Confirm and run", with no shell, in the project folder. The same rules as
 // the IntelliJ plugin (ArchvowInstall).
 import * as path from 'node:path';
@@ -50,9 +50,10 @@ export function installPython(root: string, interpreter: string, pythonSetting: 
   return null;
 }
 
-/** "1.17" -> archvow==1.17.* : archvow keeps no backward compatibility, the plugin needs its major.minor. */
+/** "1.23.0" -> archvow==1.23.0: the archvow the plugin is tested with, exactly (any archvow of its contract is
+ *  accepted once installed, but Install puts the tested one). */
 export function requirement(version: string): string {
-  return `archvow==${version}.*`;
+  return `archvow==${version}`;
 }
 
 /** pip's arguments for one source. */
@@ -85,12 +86,12 @@ export function displayCommand(command: { program: string; args: string[] }): st
   return [command.program, ...command.args].map((a) => (/^[A-Za-z0-9_@%+=:,./\\*-]+$/.test(a) ? a : JSON.stringify(a))).join(' ');
 }
 
-/** Why the install card shows: archvow missing, or another major.minor than the plugin knows. */
+/** Why the install card shows: archvow missing, or an archvow that does not speak the plugin's contract. */
 export type InstallReason = 'missing' | 'version' | '';
 
 export interface InstallOffer {
   reason: InstallReason;
-  /** The contract's major.minor ("1.17"). */
+  /** The archvow the plugin is tested with ("1.23.0"): what Install puts. */
   version: string;
   /** The Python it goes into ('' = none found: the person chooses one). */
   python: string;

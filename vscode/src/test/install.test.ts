@@ -13,11 +13,11 @@ test('the source: pip\'s own configuration by default, an index URL, a wheel fil
   assert.deepEqual(installSource(undefined), { kind: 'pip', value: '' });
   assert.deepEqual(installSource(' https://nexus.acme.local/repository/pypi/simple '), { kind: 'index', value: 'https://nexus.acme.local/repository/pypi/simple' });
   assert.deepEqual(installSource('/lab/pypi'), { kind: 'wheel', value: '/lab/pypi' });
-  assert.equal(requirement('1.17'), 'archvow==1.17.*');
-  assert.deepEqual(pipArgs('1.17', installSource('')), ['-m', 'pip', 'install', 'archvow==1.17.*']);
-  assert.deepEqual(pipArgs('1.17', installSource('https://nexus/simple')), ['-m', 'pip', 'install', '--index-url', 'https://nexus/simple', 'archvow==1.17.*']);
-  assert.deepEqual(pipArgs('1.17', installSource('/w/archvow-1.17.0-py3-none-any.whl')), ['-m', 'pip', 'install', '/w/archvow-1.17.0-py3-none-any.whl']);
-  assert.deepEqual(pipArgs('1.17', installSource('/lab/pypi')), ['-m', 'pip', 'install', '--no-index', '--find-links', '/lab/pypi', 'archvow==1.17.*']);
+  assert.equal(requirement('1.17.0'), 'archvow==1.17.0');
+  assert.deepEqual(pipArgs('1.17.0', installSource('')), ['-m', 'pip', 'install', 'archvow==1.17.0']);
+  assert.deepEqual(pipArgs('1.17.0', installSource('https://nexus/simple')), ['-m', 'pip', 'install', '--index-url', 'https://nexus/simple', 'archvow==1.17.0']);
+  assert.deepEqual(pipArgs('1.17.0', installSource('/w/archvow-1.17.0-py3-none-any.whl')), ['-m', 'pip', 'install', '/w/archvow-1.17.0-py3-none-any.whl']);
+  assert.deepEqual(pipArgs('1.17.0', installSource('/lab/pypi')), ['-m', 'pip', 'install', '--no-index', '--find-links', '/lab/pypi', 'archvow==1.17.0']);
 });
 
 test('the Python: the project\'s venv first, then the IDE\'s interpreter, then archvow.python; never a bare "python"', () => {
@@ -32,17 +32,17 @@ test('the Python: the project\'s venv first, then the IDE\'s interpreter, then a
 });
 
 test('the command: no shell, the Python itself; a Python in WSL through wsl.exe with Linux paths', () => {
-  const plain = installCommand('/p/.venv/bin/python', '/p', '1.17', installSource(''), false);
-  assert.deepEqual(plain, { program: '/p/.venv/bin/python', args: ['-m', 'pip', 'install', 'archvow==1.17.*'] });
-  assert.equal(displayCommand(plain), '/p/.venv/bin/python -m pip install archvow==1.17.*');
-  const wsl = installCommand('\\\\wsl.localhost\\Ubuntu\\home\\m\\.venv\\bin\\python3', 'C:\\work\\shop', '1.17',
+  const plain = installCommand('/p/.venv/bin/python', '/p', '1.17.0', installSource(''), false);
+  assert.deepEqual(plain, { program: '/p/.venv/bin/python', args: ['-m', 'pip', 'install', 'archvow==1.17.0'] });
+  assert.equal(displayCommand(plain), '/p/.venv/bin/python -m pip install archvow==1.17.0');
+  const wsl = installCommand('\\\\wsl.localhost\\Ubuntu\\home\\m\\.venv\\bin\\python3', 'C:\\work\\shop', '1.17.0',
     installSource('C:\\wheels\\archvow-1.17.0-py3-none-any.whl'), true);
   assert.deepEqual(wsl, { program: 'wsl.exe', args: ['-d', 'Ubuntu', '--cd', '/mnt/c/work/shop', '--exec', '/home/m/.venv/bin/python3',
     '-m', 'pip', 'install', '/mnt/c/wheels/archvow-1.17.0-py3-none-any.whl'] });
-  const shown = offer('missing', '1.17', '/p/.venv/bin/python', '/p', installSource(''), false);
-  assert.deepEqual(shown, { reason: 'missing', version: '1.17', python: '/p/.venv/bin/python',
-    command: '/p/.venv/bin/python -m pip install archvow==1.17.*', source: "pip's configuration" });
-  assert.deepEqual(offer('version', '1.17', null, '/p', installSource(''), false).python, '');
+  const shown = offer('missing', '1.17.0', '/p/.venv/bin/python', '/p', installSource(''), false);
+  assert.deepEqual(shown, { reason: 'missing', version: '1.17.0', python: '/p/.venv/bin/python',
+    command: '/p/.venv/bin/python -m pip install archvow==1.17.0', source: "pip's configuration" });
+  assert.deepEqual(offer('version', '1.17.0', null, '/p', installSource(''), false).python, '');
 });
 
 test('nothing runs without "Confirm and run": the page asks, the host shows the command, pip runs on the token', () => {

@@ -18,7 +18,7 @@ import * as path from 'node:path';
 import { test } from 'node:test';
 import { ArchvowCli, CliSettings } from '../cli';
 import { Command, DESTRUCTIVE, findCommand, isMutating, READ_ONLY } from '../grammar';
-import { buildTree, CheckResult, componentView, knownVersion, NextRow, parseVersion, problemsOf, Spec, versionWarning } from '../model';
+import { buildTree, CheckResult, componentView, contractWarning, knownVersion, NextRow, problemsOf, Spec } from '../model';
 import { derive } from '../projectState';
 
 const CONTRACT = path.resolve(__dirname, '..', '..', '..', 'contract');
@@ -69,13 +69,14 @@ test('an archvow and its source are given when the job requires them', () => {
   assert.ok(SOURCE && fs.existsSync(path.join(SOURCE, 'examples')), `ARCHVOW_LIVE=required: ARCHVOW_SOURCE (${SOURCE}) has no examples/`);
 });
 
-test('live: the installed archvow is the major.minor the plugin was built for (no version warning)', { skip }, async () => {
+test('live: the installed archvow speaks the plugin\'s contract and is the one it is tested with (no warning)', { skip }, async () => {
   const cli = new ArchvowCli(os.tmpdir(), settings, () => undefined, {}, false);
-  const result = await cli.run(['--version']);
-  assert.equal(result.startError, undefined, result.startError);
-  const installed = parseVersion(result.stdout + result.stderr);
-  const known = knownVersion(fs.readFileSync(path.join(CONTRACT, 'cli', 'version.txt'), 'utf8'));
-  assert.equal(versionWarning(installed, known), null, `installed ${installed?.join('.')}, contract ${known}`);
+  const { data } = await cli.json<{ archvow: string; contract: string }>(['version', '--json']);
+  const tested = knownVersion(fs.readFileSync(path.join(CONTRACT, 'cli', 'version.txt'), 'utf8'));
+  const wanted = fs.readFileSync(path.join(CONTRACT, 'cli', 'contract.txt'), 'utf8').trim();
+  assert.equal(data.archvow, tested);
+  assert.equal(data.contract, wanted);
+  assert.equal(contractWarning({ version: data.archvow, contract: data.contract }, wanted, tested), null);
 });
 
 test('live: catalog --json outside a project is the recorded catalog (the init wizard\'s questions)', { skip }, async () => {

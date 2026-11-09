@@ -10,7 +10,7 @@ Orders
 
 ```mermaid
 flowchart TB
-  subgraph orders_api["orders_api (fastapi-service@1.22.0)"]
+  subgraph orders_api["orders_api (fastapi-service@1.23.0)"]
     direction TB
     subgraph orders_api__p0_common["p0_common"]
       orders_api__get_current_user["get_current_user<br/><small>dependency - US-001</small>"]

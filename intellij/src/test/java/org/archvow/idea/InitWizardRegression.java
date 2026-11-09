@@ -71,17 +71,17 @@ public final class InitWizardRegression {
                     spark = item.getAsJsonObject();
             if (spark == null || review.size() != spark.getAsJsonArray("questions").size())
                 throw new AssertionError("Review must contain all catalog questions: " + review);
-            if (!review.contains(java.util.Map.entry("python_version", "3.10"))
+            if (!review.contains(java.util.Map.entry("python_version", "3.11"))
                     || !review.contains(java.util.Map.entry("max_components", ""))
                     || !review.contains(java.util.Map.entry("pip_index_url", "")))
                 throw new AssertionError("Optional defaults and empty fields must be visible: " + review);
             if (wizard.answers().stream().anyMatch(a -> a.startsWith("python_version=") || a.startsWith("git_hooks=")))
                 throw new AssertionError("Untouched optional defaults must not change init command: " + wizard.answers());
-            JComboBox<?> python = comboWith(wizard, "3.10");
+            JComboBox<?> python = comboWith(wizard, "3.11");
             if (python == null) throw new AssertionError("Missing editable optional python_version field");
-            python.setSelectedItem("3.11");
-            if (!wizard.answers().contains("python_version=3.11")
-                    || !wizard.reviewAnswers().contains(java.util.Map.entry("python_version", "3.11")))
+            python.setSelectedItem("3.12");
+            if (!wizard.answers().contains("python_version=3.12")
+                    || !wizard.reviewAnswers().contains(java.util.Map.entry("python_version", "3.12")))
                 throw new AssertionError("Editing an optional answer must update the CLI and review");
             System.out.println("OK: all init catalog questions appear in steps and review; CLI defaults are preserved");
         });

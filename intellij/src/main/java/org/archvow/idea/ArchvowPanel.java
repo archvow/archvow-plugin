@@ -165,11 +165,11 @@ final class ArchvowPanel extends JPanel {
     private JToggleButton expandedResultButton;
     private final JEditorPane welcomeText = htmlPane();
     private JButton welcomeInit;
-    /** Install archvow, guided (0.12.0): shown when archvow does not start or is another major.minor. */
+    /** Install archvow, guided (0.12.0): shown when archvow does not start or does not speak the plugin's contract. */
     private JButton welcomeInstall;
     private final JLabel welcomeInstallCommand = new JLabel();
     private final ArchvowConfirmPanel welcomeConfirmation = new ArchvowConfirmPanel();
-    /** "missing", "version" or "" (archvow --version said the contract's major.minor). */
+    /** "missing", "version" or "" (archvow speaks the plugin's contract). */
     private String installReason = "";
     private boolean installing;
     private ArchvowProjectReadiness.Status projectStatus;
@@ -1190,10 +1190,10 @@ final class ArchvowPanel extends JPanel {
         }
         if ("version".equals(installReason) && status.ready()) {
             title = ArchvowI18n.text(project, "Another archvow version", "Une autre version d'archvow");
-            detail = ArchvowI18n.text(project, "This plugin is made for archvow " + ArchvowVersion.KNOWN
-                + ": archvow keeps no backward compatibility, another version may print what the plugin misreads.",
-                "Ce plugin est fait pour archvow " + ArchvowVersion.KNOWN
-                + " : archvow ne garde pas de compatibilité ascendante, une autre version peut afficher ce que le plugin lit mal.");
+            detail = ArchvowI18n.text(project, "This plugin speaks archvow's contract " + ArchvowVersion.CONTRACT
+                + " (tested with archvow " + ArchvowVersion.KNOWN + "): the installed archvow does not, so the plugin may misread what it prints.",
+                "Ce plugin parle le contrat " + ArchvowVersion.CONTRACT + " d'archvow (testé avec archvow " + ArchvowVersion.KNOWN
+                + ") : l'archvow installé ne le parle pas, le plugin peut mal lire ce qu'il affiche.");
         }
         String extra = customError == null || customError.isBlank() ? "" :
             "<p style='color:" + (darkTheme() ? "#FF9CAB" : "#A52440") + ";'>" + escape(customError) + "</p>";
@@ -1206,7 +1206,7 @@ final class ArchvowPanel extends JPanel {
         rootLayout.show(rootCards, "welcome");
     }
 
-    /** The Install button and its command, when archvow does not start or is another major.minor. */
+    /** The Install button and its command, when archvow does not start or does not speak the plugin's contract. */
     private void showInstallCard(ArchvowProjectReadiness.Status status) {
         boolean offered = !installReason.isBlank() && !status.root().isBlank() && new File(status.root()).isDirectory();
         ArchvowInstall.Offer offer = offered ? installOffer(status.root()) : null;
@@ -2996,7 +2996,7 @@ final class ArchvowPanel extends JPanel {
     /** archvow said no (nothing written) in red, or wrote it with a doubt in amber: above the buttons. */
     private void showFormAlerts(ArchvowCli.Result result) {
         formAlerts.removeAll();
-        String refusal = ArchvowForms.refusal(result.exitCode, result.stderr);
+        String refusal = ArchvowForms.refusal(result.exitCode, result.stderr, result.error);
         if (!refusal.isEmpty()) formAlerts.add(formAlert(ArchvowI18n.text(project, "archvow refuses:", "archvow refuse :"), refusal, true));
         for (String warning : ArchvowForms.warnings(result.stdout))
             formAlerts.add(formAlert(ArchvowI18n.text(project, "Written, but:", "Écrit, mais :"), warning, false));
@@ -4228,22 +4228,37 @@ final class ArchvowPanel extends JPanel {
         @Override public void warn(String line) { log.warn(line); }
     };
 
-    /** The session log's header, once archvow answered --version (0.19.0). */
-    private void logSession(String versionOutput) {
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+\\.\\d+\\.\\d+)").matcher(versionOutput == null ? "" : versionOutput);
+    /**
+     * archvow's version and contract: {@code archvow version --json} (1.23); an older archvow has no {@code version}
+     * command, its --version gives the number (and no contract: it is older than the plugin needs).
+     */
+    private void askVersion(java.util.function.Consumer<ArchvowVersion.Said> then) {
+        cli.execute("Version", List.of("version", "--json"), null, result -> {
+            ArchvowVersion.Said said = ArchvowVersion.said(result.ok() ? result.stdout : "");
+            if (!said.version().isBlank()) {
+                then.accept(said);
+                return;
+            }
+            cli.execute("Version", List.of("--version"), null, old -> then.accept(new ArchvowVersion.Said(ArchvowVersion.number(old.output), "")));
+        });
+    }
+
+    /** The session log's header, once archvow said its version (0.19.0) and contract (0.20.0). */
+    private void logSession(ArchvowVersion.Said said) {
         Map<String, String> fields = new LinkedHashMap<>();
         fields.put("plugin", ArchvowVersion.plugin());
-        fields.put("archvow", m.find() ? m.group(1) : "");
+        fields.put("archvow", said.version());
+        if (!said.contract().isBlank()) fields.put("contract", said.contract());
         fields.put("python", cli.program());
         fields.put("project", String.valueOf(project.getBasePath()));
         fields.put("ide", com.intellij.openapi.application.ApplicationInfo.getInstance().getFullApplicationName());
         ArchvowRunLog.header(project, fields);
     }
 
-    /** After archvow --version: why the install would be offered, and the notification with "Install archvow". */
-    private void versionChecked(String output) {
-        installReason = ArchvowInstall.reason(output, ArchvowVersion.KNOWN);
-        String warning = ArchvowVersion.warning(output, ArchvowVersion.KNOWN, ArchvowI18n.isFrench(project));
+    /** After archvow said its version: why the install would be offered, and the notification with "Install archvow". */
+    private void versionChecked(ArchvowVersion.Said said) {
+        installReason = ArchvowInstall.reason(said);
+        String warning = ArchvowVersion.warning(said, ArchvowVersion.CONTRACT, ArchvowVersion.KNOWN, ArchvowI18n.isFrench(project));
         if (warning.isBlank()) return;
         var note = com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Archvow")
             .createNotification(warning, com.intellij.notification.NotificationType.WARNING);
@@ -4284,8 +4299,8 @@ final class ArchvowPanel extends JPanel {
             if (!versionChecked && status.canInitialize() && !cli.isRunning()) {
                 // not initialized yet: is archvow there to initialize it? (0.12.0: the welcome card offers to install it)
                 versionChecked = true;
-                cli.execute("Version", List.of("--version"), null, version -> {
-                    installReason = ArchvowInstall.reason(version.output, ArchvowVersion.KNOWN);
+                askVersion(said -> {
+                    installReason = ArchvowInstall.reason(said);
                     showWelcome(ArchvowProjectReadiness.inspect(project.getBasePath()), "");
                 });
             }
@@ -4296,9 +4311,9 @@ final class ArchvowPanel extends JPanel {
         showWorkspace();
         if (!versionChecked) {
             versionChecked = true;
-            cli.execute("Version", List.of("--version"), null, version -> {
-                versionChecked(version.output);
-                logSession(version.output);
+            askVersion(said -> {
+                versionChecked(said);
+                logSession(said);
                 reload(switchToOverview);
             });
             return;

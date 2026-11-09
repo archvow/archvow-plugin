@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "name": "US-001",
   "summary": "the ticket of invoice_model",
   "total": 12,

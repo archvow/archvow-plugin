@@ -7,7 +7,7 @@ import java.util.function.Predicate;
 
 /**
  * Installing archvow, guided (0.12.0): never on its own, never at startup. When archvow cannot start, or is
- * another major.minor than the contract's, the welcome card offers "Install archvow &lt;version&gt;"; the pip
+ * does not speak the plugin's contract, the welcome card offers "Install archvow &lt;version&gt;"; the pip
  * command is shown and runs only after "Confirm and run", with no shell, in the project folder. Where from:
  * the setting "Install archvow from" - empty = pip's own configuration (pip.conf, PIP_INDEX_URL), an
  * http(s) URL = an index, anything else = a wheel file or a folder of wheels. Into which Python: the
@@ -71,9 +71,10 @@ final class ArchvowInstall {
         return null;
     }
 
-    /** "1.17" -> archvow==1.17.* : archvow keeps no backward compatibility, the plugin needs its major.minor. */
+    /** "1.23.0" -> archvow==1.23.0: the archvow the plugin is tested with, exactly (any archvow of its contract is
+     *  accepted once installed, but Install puts the tested one). */
     static String requirement(String version) {
-        return "archvow==" + version + ".*";
+        return "archvow==" + version;
     }
 
     /** pip's arguments for one source. */
@@ -115,11 +116,10 @@ final class ArchvowInstall {
         return out.toString();
     }
 
-    /** Why the card shows: "missing" (archvow did not start or say its version), "version" (another major.minor), "" (none). */
-    static String reason(String versionOutput, String known) {
-        int[] v = ArchvowVersion.parse(versionOutput);
-        if (v == null) return "missing";
-        return (v[0] + "." + v[1]).equals(known) ? "" : "version";
+    /** Why the card shows: "missing" (archvow did not start or say its version), "version" (it does not speak the plugin's contract), "" (none). */
+    static String reason(ArchvowVersion.Said installed) {
+        if (installed == null || installed.version().isBlank()) return "missing";
+        return ArchvowVersion.warning(installed, ArchvowVersion.CONTRACT, ArchvowVersion.KNOWN, false).isEmpty() ? "" : "version";
     }
 
     static Offer offer(String reason, String version, String python, String root, Source source, boolean french, boolean windows) {

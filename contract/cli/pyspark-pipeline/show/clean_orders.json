@@ -1,4 +1,5 @@
 {
+  "contract": "1.0",
   "component": "clean_orders",
   "type": "transformation",
   "layer": "p1_domain",
