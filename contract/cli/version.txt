@@ -1,1 +1,1 @@
-archvow 1.21.0
+archvow 1.22.0

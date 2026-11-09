@@ -2,6 +2,21 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.19.0 - 2026-11-09
+
+Built on archvow 1.22 (contract regenerated from the 1.22.0 wheel). The same as VS Code 0.19.0.
+
+- **The session log tells what happened**, in the bottom *Archvow Output* tool window (☷; the lines in
+  `ArchvowRunLog`, IDE-free and tested, the window in `ArchvowRunLogView`, refreshed as calls end): your actions (`ArchvowCli.executeAction`) `▶`
+  with the whole command, exit, time and archvow's answer; a refresh in one line, each read in idea.log at
+  debug level; failures `✖` with what archvow said; calls over a second marked slow; a header per session.
+  The same lines go to idea.log (`ArchvowRunLog.Sink`).
+- **Copy for support** in the *Archvow Output* window, your answers and rationales hidden by default ("hide my
+  answers").
+- **After an action, only what it touched is read again** (`refreshTouched`, `ArchvowGrammar.touchedComponent`);
+  the vow watcher ignores the change the action just made.
+- Icons for the `langgraph-agent` template's component types.
+
 ## 0.18.0 - 2026-11-05
 
 Built on archvow 1.21 (contract regenerated from the 1.21.0 wheel). The same as VS Code 0.18.0.

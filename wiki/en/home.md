@@ -14,7 +14,7 @@ every flow, and why. The user documentation is in the READMEs (`README.md`, `int
 (`wiki/` of the archvow repository) explains the CLI itself: read it to learn what a decision, a hazard
 or `archvow check` is.
 
-Version described: **archvow-plugin 0.18.0**, for **archvow 1.21** (`contract/cli/version.txt`).
+Version described: **archvow-plugin 0.19.0**, for **archvow 1.22** (`contract/cli/version.txt`).
 About 11,700 lines of Java (`intellij/src/main/java`), 5,300 lines of TypeScript, JavaScript and CSS
 (`vscode/src`, `vscode/media`), 34 IntelliJ test classes and 55 VS Code tests.
 

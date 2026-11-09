@@ -70,13 +70,13 @@
     "type": "job",
     "readiness": "waiting for orders_reader, clean_orders, compute_vat, vat_writer",
     "invariants": 0,
-    "tokens": 936
+    "tokens": 999
   },
   {
     "component": "my_pipeline_main",
     "type": "entrypoint",
     "readiness": "waiting for my_pipeline_job",
     "invariants": 0,
-    "tokens": 801
+    "tokens": 825
   }
 ]

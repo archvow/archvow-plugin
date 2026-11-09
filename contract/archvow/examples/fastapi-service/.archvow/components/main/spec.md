@@ -27,6 +27,7 @@ Personal columns it handles: `customer` (personal).
   - `orders_api.p1_domain.order_not_found_error` (error)
 - Only this component creates FastAPI() (FAPI003); startup and shutdown go in its lifespan, never on_event (FAPI004).
 - Map domain errors to HTTP statuses here, with app.add_exception_handler: services and the domain never raise HTTPException (FAPI002).
+- Call setup_logging once, in the lifespan; log one line per request (method, route, status, duration and a request id), never a header, a token or a body with personal data.
 
 ## File header
 

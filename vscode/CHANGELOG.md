@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.19.0 - 2026-11-09
+
+Built on archvow 1.22 (contract regenerated from the 1.22.0 wheel).
+
+- **The session log tells what happened** (the *archvow* output channel, `runlog.ts`): your actions on a line
+  of their own, `▶` with the whole command, its exit code, its time and archvow's answer ("✔ Decision 1 of
+  logging_setup made"); a refresh in one line ("Refresh · 9 reads · 2.4 s"), each read at debug level;
+  failures `✖` with what archvow said; calls over a second marked slow; a header per session (the plugin,
+  archvow, the Python used, the project, VS Code).
+- **archvow: Copy the archvow log for support**: the header and the lines with their time, your answers and
+  rationales hidden if you choose.
+- **After an action, only what it touched is read again**: `decision make settings ...` reads the spec,
+  `settings`, check and next (4 reads instead of every component); the vow change that follows no longer
+  starts a second refresh.
+- Icons for the `langgraph-agent` template's component types (state, prompt, chunker, tool, retriever,
+  mcp_client, node, agent, graph, api, mcp_server, index_job).
+
 ## 0.18.0 - 2026-11-05
 
 Built on archvow 1.21 (contract regenerated from the 1.21.0 wheel).

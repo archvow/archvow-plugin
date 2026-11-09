@@ -79,6 +79,31 @@ final class ArchvowGrammar {
 
     static final List<Command> COMMANDS = load();
 
+    /**
+     * The one component an action changes, when its command names it (decision make &lt;component&gt;, rule add
+     * &lt;component&gt;...) and it is among {@code known}: then only that one is read again (0.19.0). null for the
+     * component commands themselves (add, remove, rename change the architecture) and for anything else.
+     */
+    static String touchedComponent(List<String> args, java.util.Collection<String> known) {
+        Command command = null;
+        for (Command c : COMMANDS) {
+            if (c.path.size() <= args.size() && args.subList(0, c.path.size()).equals(c.path)
+                    && (command == null || c.path.size() > command.path.size())) command = c;
+        }
+        if (command == null || "component".equals(command.path.get(0)) || "init".equals(command.path.get(0))) return null;
+        int at = 0;
+        for (Param p : command.parameters) {
+            if (!p.flags.isEmpty() || p.plugin) continue;
+            if ("component".equals(p.name)) {
+                int index = command.path.size() + at;
+                String id = index < args.size() ? args.get(index) : null;
+                return id != null && known.contains(id) ? id : null;
+            }
+            at++;
+        }
+        return null;
+    }
+
     private static List<Command> load() {
         try (InputStream source = Objects.requireNonNull(ArchvowGrammar.class.getResourceAsStream("/archvow/commands.json"), "Missing commands.json")) {
             JsonObject root = JsonParser.parseReader(new InputStreamReader(source, StandardCharsets.UTF_8)).getAsJsonObject();

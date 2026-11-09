@@ -1846,6 +1846,10 @@
         "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+       },
+       {
         "value": "pyspark-pipeline",
         "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
@@ -3694,6 +3698,10 @@
         "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+       },
+       {
         "value": "pyspark-pipeline",
         "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
@@ -3789,6 +3797,13 @@
         }
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation",
+        "fill": {
+         "description": "Configures logging once, at the app's startup - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the settings, one line per event with the request id, never a secret, a token or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs must not write to a test's closed stream)."
+        }
+       },
+       {
         "value": "settings",
         "label": "settings — foundation",
         "fill": {
@@ -3877,6 +3892,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -3923,6 +3942,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -3973,6 +3996,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -4019,6 +4046,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -4069,6 +4100,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -4112,6 +4147,7 @@
       "by": "component",
       "notes": {
        "get_current_user": "No number to give: archvow numbers it - it becomes question 3 of get_current_user.",
+       "logging_setup": "No number to give: archvow numbers it - it becomes question 2 of logging_setup.",
        "settings": "No number to give: archvow numbers it - it becomes question 3 of settings.",
        "new_order_model": "No number to give: archvow numbers it - it becomes question 4 of new_order_model.",
        "order_model": "No number to give: archvow numbers it - it becomes question 4 of order_model.",
@@ -4131,6 +4167,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -4179,6 +4219,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -4233,6 +4277,7 @@
          "label": "2 — What happens when it cannot (no token, the database is down): which error, which HTTP status in the end? …"
         }
        ],
+       "logging_setup": [],
        "settings": [
         {
          "value": "1",
@@ -4393,6 +4438,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -4448,6 +4497,15 @@
          "label": "2 — What happens when it cannot (no token, the database is down): which error, which HTTP status in the end? …",
          "fill": {
           "answer": "Header missing or empty: 401 Unauthorized"
+         }
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id a…",
+         "fill": {
+          "answer": "stderr, one line per event: time, level, request id, message"
          }
         }
        ],
@@ -4741,6 +4799,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -4784,6 +4846,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -4804,6 +4867,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -4849,6 +4916,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -4869,6 +4937,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -4914,6 +4986,7 @@
       "by": "component",
       "notes": {
        "get_current_user": "No number to give: archvow numbers it - it becomes question 3 of get_current_user.",
+       "logging_setup": "No number to give: archvow numbers it - it becomes question 2 of logging_setup.",
        "settings": "No number to give: archvow numbers it - it becomes question 3 of settings.",
        "new_order_model": "No number to give: archvow numbers it - it becomes question 4 of new_order_model.",
        "order_model": "No number to give: archvow numbers it - it becomes question 4 of order_model.",
@@ -4947,6 +5020,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -4997,6 +5074,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -5040,6 +5121,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -5062,6 +5144,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -5105,6 +5191,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -5125,6 +5212,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -5179,6 +5270,7 @@
          "label": "missing — S1 A dependency down or slow, or the resource does not exist: what must never happen? (answered)"
         }
        ],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [
         {
@@ -5317,6 +5409,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -5369,6 +5465,7 @@
          "label": "missing — S1 A dependency down or slow, or the resource does not exist: what must never happen? (answered)"
         }
        ],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [
         {
@@ -5547,6 +5644,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -5597,6 +5698,12 @@
         {
          "value": "2",
          "label": "2 — What happens when it cannot (no token, the database is down): which error, which HTTP status in the end? …"
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id a…"
         }
        ],
        "settings": [
@@ -5758,6 +5865,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -5828,6 +5936,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -5883,6 +5995,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -5931,6 +6047,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -5974,6 +6094,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -5999,6 +6120,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -6044,6 +6169,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -6265,6 +6391,10 @@
         "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+       },
+       {
         "value": "pyspark-pipeline",
         "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
@@ -6360,6 +6490,13 @@
         }
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation",
+        "fill": {
+         "description": "Configures logging once, at the app's startup - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the settings, one line per event with the request id, never a secret, a token or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs must not write to a test's closed stream)."
+        }
+       },
+       {
         "value": "settings",
         "label": "settings — foundation",
         "fill": {
@@ -6448,6 +6585,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -6494,6 +6635,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -6544,6 +6689,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -6590,6 +6739,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -6640,6 +6793,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -6683,6 +6840,7 @@
       "by": "component",
       "notes": {
        "get_current_user": "Pas de numéro à donner : archvow la numérote - elle devient la question 3 de get_current_user.",
+       "logging_setup": "Pas de numéro à donner : archvow la numérote - elle devient la question 2 de logging_setup.",
        "settings": "Pas de numéro à donner : archvow la numérote - elle devient la question 3 de settings.",
        "new_order_model": "Pas de numéro à donner : archvow la numérote - elle devient la question 4 de new_order_model.",
        "order_model": "Pas de numéro à donner : archvow la numérote - elle devient la question 4 de order_model.",
@@ -6702,6 +6860,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -6750,6 +6912,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -6804,6 +6970,7 @@
          "label": "2 — What happens when it cannot (no token, the database is down): which error, which HTTP status in the end? …"
         }
        ],
+       "logging_setup": [],
        "settings": [
         {
          "value": "1",
@@ -6964,6 +7131,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -7019,6 +7190,15 @@
          "label": "2 — What happens when it cannot (no token, the database is down): which error, which HTTP status in the end? …",
          "fill": {
           "answer": "Header missing or empty: 401 Unauthorized"
+         }
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id a…",
+         "fill": {
+          "answer": "stderr, one line per event: time, level, request id, message"
          }
         }
        ],
@@ -7312,6 +7492,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -7355,6 +7539,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -7375,6 +7560,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -7420,6 +7609,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -7440,6 +7630,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -7485,6 +7679,7 @@
       "by": "component",
       "notes": {
        "get_current_user": "Pas de numéro à donner : archvow la numérote - elle devient la question 3 de get_current_user.",
+       "logging_setup": "Pas de numéro à donner : archvow la numérote - elle devient la question 2 de logging_setup.",
        "settings": "Pas de numéro à donner : archvow la numérote - elle devient la question 3 de settings.",
        "new_order_model": "Pas de numéro à donner : archvow la numérote - elle devient la question 4 de new_order_model.",
        "order_model": "Pas de numéro à donner : archvow la numérote - elle devient la question 4 de order_model.",
@@ -7518,6 +7713,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -7568,6 +7767,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -7611,6 +7814,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -7633,6 +7837,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -7676,6 +7884,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -7696,6 +7905,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -7750,6 +7963,7 @@
          "label": "missing — S1 A dependency down or slow, or the resource does not exist: what must never happen? (answered)"
         }
        ],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [
         {
@@ -7888,6 +8102,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -7940,6 +8158,7 @@
          "label": "missing — S1 A dependency down or slow, or the resource does not exist: what must never happen? (answered)"
         }
        ],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [
         {
@@ -8118,6 +8337,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -8168,6 +8391,12 @@
         {
          "value": "2",
          "label": "2 — What happens when it cannot (no token, the database is down): which error, which HTTP status in the end? …"
+        }
+       ],
+       "logging_setup": [
+        {
+         "value": "1",
+         "label": "1 — Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id a…"
         }
        ],
        "settings": [
@@ -8329,6 +8558,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -8399,6 +8629,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -8454,6 +8688,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -8502,6 +8740,10 @@
         "label": "get_current_user — dependency"
        },
        {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
         "value": "settings",
         "label": "settings — foundation"
        },
@@ -8545,6 +8787,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -8570,6 +8813,10 @@
        {
         "value": "get_current_user",
         "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
        },
        {
         "value": "settings",
@@ -8615,6 +8862,7 @@
       "by": "component",
       "lists": {
        "get_current_user": [],
+       "logging_setup": [],
        "settings": [],
        "new_order_model": [],
        "order_model": [],
@@ -8834,6 +9082,10 @@
        {
         "value": "fastapi-service",
         "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
+       },
+       {
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
        },
        {
         "value": "pyspark-pipeline",
@@ -11451,6 +11703,10 @@
         "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+       },
+       {
         "value": "pyspark-pipeline",
         "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
@@ -14064,6 +14320,10 @@
        {
         "value": "fastapi-service",
         "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
+       },
+       {
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
        },
        {
         "value": "pyspark-pipeline",

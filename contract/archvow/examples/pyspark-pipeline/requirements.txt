@@ -2,7 +2,7 @@
 # The edge node / cluster already provides Spark at run time: nothing here is deployed.
 #   pip install -r requirements.txt
 pyspark==3.5.*   # local runs and tests only - keep it equal to the cluster's Spark
-archvow==1.21.0
+archvow==1.22.0
 ruff>=0.6
 pytest>=8
 pytest-cov>=5

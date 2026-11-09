@@ -18,8 +18,29 @@ archvow command. This page explains how a command is run. Files: `ArchvowCli`, `
 | **Bounded output** | a huge project must not fill the memory | 20 million characters per stream (`MAX_OUTPUT`) | - |
 | **`NO_COLOR=1`, `PYTHONIOENCODING=utf-8`** | no ANSI colours in the JSON, no wrongly decoded text | `ArchvowCli.prepare` | `env` of `spawn` |
 
-The session log (button ☷) keeps, per project, each command, its exit code and its duration, never its
-content: `ArchvowRunLog`; in VS Code, the *archvow* output channel (`archvow.showOutput`).
+### The session log (0.19.0)
+
+What the plugin asked archvow: in IntelliJ the bottom *Archvow Output* tool window, opened by the ☷ button (`ArchvowRunLog`, shown by `ArchvowRunLogView`, and idea.log), in VS Code the
+*archvow* output channel (`runlog.ts`, `archvow.showOutput`), the same lines:
+
+- **a person's action** (what goes first in the queue: `executeAction` in IntelliJ, `run(args, stdin,
+  first)` in VS Code): `▶` its whole command, its exit code, its duration and archvow's last text line
+  (`✔ Decision 1 of logging_setup made`);
+- **a refresh**: one line for all its reads (`Refresh  ·  9 reads  ·  2.4 s`), each at debug level
+  (idea.log, or *Developer: Set Log Level* in VS Code);
+- **a failure**: `✖` the command and what archvow said (the last lines of stderr); `check` exiting 1
+  because it finds errors is an answer, not a failure;
+- a call over a second is marked `slow`; one header line per session: the plugin's version, archvow's, the
+  Python used, the project, the IDE.
+
+"Copy for support" (the *Archvow Output* window's button, with "hide my answers"; *archvow: Copy the archvow log for support* in VS Code) gives the
+header and the lines with their time, a person's own words (answers, rationales, statements: `masked`)
+hidden on request.
+
+After an action that names an existing component (`decision make <component>`, `rule add`, `hazard
+add`..., `touchedComponent`), the plugin reads again the spec, that component, `check` and `next` - 4 reads
+instead of everything (`refreshAfter` / `refreshTouched`); the vow change that follows is its own: the vow
+watcher ignores it (`ownChangeUntil`).
 
 ## Where archvow is looked for
 

@@ -419,6 +419,13 @@
     },
     {
       "container": "orders_api",
+      "component": "logging_setup",
+      "symbol": "setup_logging",
+      "status": "implemented",
+      "reason": ""
+    },
+    {
+      "container": "orders_api",
       "component": "settings",
       "symbol": "Settings",
       "status": "implemented",
@@ -512,6 +519,19 @@
       "layer": "p0_common",
       "status": "tested",
       "tested": true,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 0
+    },
+    {
+      "container": "orders_api",
+      "component": "logging_setup",
+      "type": "foundation",
+      "layer": "p0_common",
+      "status": "implemented",
+      "tested": false,
       "invariants_total": 0,
       "invariants_verified": 0,
       "open_questions": 0,

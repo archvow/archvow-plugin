@@ -88,7 +88,7 @@
         {
           "group": "code",
           "file": "src/orders_api/p3_services/create_order.py",
-          "line": 20,
+          "line": 24,
           "component": "create_order",
           "part": "used",
           "text": "id=repository.next_id(), customer=customer, amount=new.amount, status=\"pending\"",

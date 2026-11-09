@@ -35,6 +35,7 @@ nom de ce qu'elle protège :
 | `AiSkillsRegression` | la vue IA d'un composant (`ArchvowAiSkills`) : exactement celle de VS Code sur `contract/forms/ai-skills.expected.json` (origines, nombres à relire, suggestion, skills bloqués) ; les demandes que reçoit chaque outil |
 | `SkillFormRegression` | le formulaire de lancement d'un skill (`ArchvowSkillForm`) : la demande, Copier grisé sans brief, « Pas encore » ; Vue d'ensemble › Briefs (`ArchvowBriefs.statusHtml`) ; les étiquettes d'origine des cartes et le filtre Tout / Ouverts / À relire |
 | `LoadChainRegression` | le chargement du projet est une seule chaîne (show, check, next, catalog, chaque composant, brief show) : ArchvowCli refuse une commande lancée à côté d'une autre (0.16.0 : plus de compteurs) |
+| `RunLogRegression` | le journal de session (0.19.0), comme `runlog.test.ts` : une action en entier avec la réponse d'archvow, un rafraîchissement en une ligne, `check` qui sort avec 1 n'est pas un échec, un échec dit ce qu'archvow a dit, les appels lents marqués, le texte pour le support (mots d'une personne cachés), le composant qu'une action touche |
 | `ListFilterRegression` | la ligne sous les vues (`ArchvowListFilter`), une vue finie dit où est le travail, l'ouvert suivant après un enregistrement, les liens, les quatre actions calmes |
 | `GuidanceRegression` | chaque diagnostic dit quoi faire (`ArchvowGuidance`) : chaque code documenté, et sur chaque message réel exactement le guidage de VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Installer archvow : le Python choisi, la ligne pip par source, WSL, pip seulement depuis une confirmation |
@@ -70,6 +71,7 @@ modules testés, la page est lue comme du texte.
 | Fichier | Ce qu'il vérifie |
 |---|---|
 | `cli.test.ts` | la ligne de commande, stdout et stderr séparés, stdin pour un fichier non enregistré, une commande à la fois, le délai, archvow absent, WSL ; avec un faux `archvow` écrit pour le test |
+| `runlog.test.ts` | le journal de session (0.19.0) : les mêmes cas que `RunLogRegression` |
 | `vowReader.test.ts` | le lecteur TypeScript donne **exactement** `contract/vow-reader/expected.json` |
 | `grammar.test.ts` | une couleur par profondeur dans la grammaire TextMate ; le pré-remplissage de Modifier la spec |
 | `model.test.ts` | le JSON enregistré des trois exemples et du scénario briefs se lit |

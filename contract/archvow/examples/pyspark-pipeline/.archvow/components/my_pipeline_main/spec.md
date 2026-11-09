@@ -20,6 +20,7 @@ Command line: --input PATH (the input folder), --output PATH (the output folder)
 - End the file with `if __name__ == "__main__": raise SystemExit(main())`: entrypoint.sh runs it with spark-submit.
 - Create the SparkSession with p0_common.spark.get_spark_session and stop it before returning.
 - Accept one --name-with-dashes argument per required parameter of the config decision (archvow next prints them in its run line), in line with what the job reads and writes.
+- Call setup_logging once, first, with the run id and the run date it will put on every line.
 
 ## File header
 

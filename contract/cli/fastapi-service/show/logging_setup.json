@@ -1,0 +1,47 @@
+{
+  "component": "logging_setup",
+  "type": "foundation",
+  "layer": "p0_common",
+  "known_columns": [],
+  "description": "Configures logging once, at the app's startup - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the settings, one line per event with the request id, never a secret, a token or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs must not write to a test's closed stream).",
+  "uses": [],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    }
+  ],
+  "examples": [],
+  "rule_texts": {},
+  "status": "implemented",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id and message?",
+      "answer": "stderr, one line per event: time, level, request id, message",
+      "template": true,
+      "suggested": "stderr, one line per event: time, level, request id, message",
+      "by": "update@archvow.invalid",
+      "on": "2026-11-08",
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [],
+  "assumptions": [],
+  "tasks": [],
+  "to_review": []
+}

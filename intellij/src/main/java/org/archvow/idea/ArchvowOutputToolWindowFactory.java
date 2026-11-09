@@ -11,6 +11,6 @@ import org.jetbrains.annotations.NotNull;
 public final class ArchvowOutputToolWindowFactory implements ToolWindowFactory, DumbAware {
     @Override public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         toolWindow.getContentManager().addContent(ContentFactory.getInstance().createContent(
-            ArchvowRunLog.createView(project), "", false));
+            ArchvowRunLogView.createView(project), "", false));
     }
 }

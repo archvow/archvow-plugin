@@ -818,7 +818,7 @@
  {
   "fr": false,
   "code": "ARCH002",
-  "message": "'logger' is not declared in component 'orders_clean_writer' (make it private with a leading underscore or declare it)",
+  "message": "'logger' is not declared in component 'clean_orders' (make it private with a leading underscore or declare it)",
   "guide": {
    "code": "ARCH002",
    "meaning": "a public name (no leading `_`), or a route even on a private function, is not declared",
@@ -828,15 +828,15 @@
    "then": "Then click Check (↻): the item disappears once it is fixed.",
    "command": null,
    "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 14
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 15
    }
   }
  },
  {
   "fr": true,
   "code": "ARCH002",
-  "message": "'logger' is not declared in component 'orders_clean_writer' (make it private with a leading underscore or declare it)",
+  "message": "'logger' is not declared in component 'clean_orders' (make it private with a leading underscore or declare it)",
   "guide": {
    "code": "ARCH002",
    "meaning": "un nom public (sans `_` au début), ou une route même sur une fonction privée, n'est pas déclaré",
@@ -846,8 +846,8 @@
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
    "command": null,
    "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 14
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 15
    }
   }
  },
@@ -1360,6 +1360,156 @@
  {
   "fr": false,
   "code": "ARCH008",
+  "message": "component 'access': assistant.p0_common.access is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'access': assistant.p0_common.access is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'answer_node': assistant.p3_agents.answer_node is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'answer_node': assistant.p3_agents.answer_node is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'answer_schema': assistant.p1_domain.answer_schema is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'answer_schema': assistant.p1_domain.answer_schema is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'assistant_graph': assistant.p4_app.assistant_graph is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'assistant_graph': assistant.p4_app.assistant_graph is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'chat_api': assistant.p4_app.chat_api is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'chat_api': assistant.p4_app.chat_api is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
   "message": "component 'clean_order': sales.p1_domain.clean_order is planned but not created",
   "guide": {
    "code": "ARCH008",
@@ -1720,6 +1870,36 @@
  {
   "fr": false,
   "code": "ARCH008",
+  "message": "component 'documents': assistant.p0_common.documents is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'documents': assistant.p0_common.documents is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
   "message": "component 'enrich_orders': sales.p1_domain.enrich_orders is planned but not created",
   "guide": {
    "code": "ARCH008",
@@ -1810,6 +1990,66 @@
  {
   "fr": false,
   "code": "ARCH008",
+  "message": "component 'logging_setup': api.p0_common.logging_setup is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'logging_setup': api.p0_common.logging_setup is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'logging_setup': assistant.p0_common.logging_setup is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'logging_setup': assistant.p0_common.logging_setup is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
   "message": "component 'logging_setup': invoicing.p0_common.logging_setup is planned but not created",
   "guide": {
    "code": "ARCH008",
@@ -1870,6 +2110,36 @@
  {
   "fr": false,
   "code": "ARCH008",
+  "message": "component 'logging_setup': orders_api.p0_common.logging_setup is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'logging_setup': orders_api.p0_common.logging_setup is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
   "message": "component 'logging_setup': sales.p0_common.logging_setup is planned but not created",
   "guide": {
    "code": "ARCH008",
@@ -1916,6 +2186,66 @@
   "fr": true,
   "code": "ARCH008",
   "message": "component 'main': orders_api.p4_api.main is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'memory': assistant.p0_common.memory is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'memory': assistant.p0_common.memory is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'models': assistant.p0_common.models is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'models': assistant.p0_common.models is planned but not created",
   "guide": {
    "code": "ARCH008",
    "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
@@ -2156,6 +2486,36 @@
   "fr": true,
   "code": "ARCH008",
   "message": "component 'orders_schema': my_pipeline.p1_domain.orders_schema is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'policies_retriever': assistant.p2_tools.policies_retriever is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'policies_retriever': assistant.p2_tools.policies_retriever is planned but not created",
   "guide": {
    "code": "ARCH008",
    "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
@@ -2456,6 +2816,36 @@
   "fr": true,
   "code": "ARCH008",
   "message": "component 'send_invoice': invoicing.p3_services.send_invoice is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
+   "todo": "écrire le composant, ou le supprimer avec `archvow component remove`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH008",
+  "message": "component 'settings': assistant.p0_common.settings is planned but not created",
+  "guide": {
+   "code": "ARCH008",
+   "meaning": "a declared file does not exist (with `--complete`)",
+   "todo": "write the component, or `archvow component remove` it",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH008",
+  "message": "component 'settings': assistant.p0_common.settings is planned but not created",
   "guide": {
    "code": "ARCH008",
    "meaning": "un fichier déclaré n'existe pas (avec `--complete`)",
@@ -2620,7 +3010,7 @@
  {
   "fr": false,
   "code": "ARCH009",
-  "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
+  "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
   "guide": {
    "code": "ARCH009",
    "meaning": "an invalid entry in a vow (`spec.vow`), or an unknown template",
@@ -2648,7 +3038,7 @@
  {
   "fr": true,
   "code": "ARCH009",
-  "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
+  "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
   "guide": {
    "code": "ARCH009",
    "meaning": "une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu",
@@ -2712,11 +3102,11 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.21.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.22.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.21.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
-   "todo": "Upgrade the project to 1.21.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
+   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.22.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
+   "todo": "Upgrade the project to 1.22.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
    "who": "An architect: it changes the guards of the whole project.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then commit: the warning disappears.",
@@ -2736,11 +3126,11 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.21.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.22.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.21.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
-   "todo": "Mettez le projet en 1.21.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
+   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.22.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
+   "todo": "Mettez le projet en 1.22.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
    "who": "Un architecte : cela change les garde-fous de tout le projet.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite commitez : l'avertissement disparaît.",
@@ -8542,6 +8932,1110 @@
  {
   "fr": false,
   "code": "ARCH035",
+  "message": "'answer_node': safety question S1 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S1 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S1 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S1 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S2 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S2 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S2 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S2 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S3 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S3 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S3 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_node': safety question S3 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_node"
+    },
+    "text": "archvow show answer_node",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_schema': safety question S1 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show answer_schema",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_schema"
+    },
+    "text": "archvow show answer_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_schema': safety question S1 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show answer_schema",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_schema"
+    },
+    "text": "archvow show answer_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_schema': safety question S1 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_schema",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_schema"
+    },
+    "text": "archvow show answer_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_schema': safety question S1 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_schema",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_schema"
+    },
+    "text": "archvow show answer_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_schema': safety question S2 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show answer_schema",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_schema"
+    },
+    "text": "archvow show answer_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_schema': safety question S2 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show answer_schema",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_schema"
+    },
+    "text": "archvow show answer_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'answer_schema': safety question S2 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_schema",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_schema"
+    },
+    "text": "archvow show answer_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'answer_schema': safety question S2 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_schema",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "answer_schema"
+    },
+    "text": "archvow show answer_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S1 not answered (acts) - Il agit sans l'accord qu'il faut (envoie, réserve, paie, supprime) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S1 not answered (acts) - Il agit sans l'accord qu'il faut (envoie, réserve, paie, supprime) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S1 not answered (acts) - It acts without the right approval (sends, books, pays, deletes): what must never happen? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S1 not answered (acts) - It acts without the right approval (sends, books, pays, deletes): what must never happen? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S2 not answered (runaway) - Il boucle ou dépense sans limite (trop d'étapes, d'appels de modèle, de tokens) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S2 not answered (runaway) - Il boucle ou dépense sans limite (trop d'étapes, d'appels de modèle, de tokens) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S2 not answered (runaway) - It loops or spends without limit (too many steps, model calls, tokens): what must never happen? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S2 not answered (runaway) - It loops or spends without limit (too many steps, model calls, tokens): what must never happen? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S3 not answered (partial) - Half done (an index half written, an action half done): what must never happen? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S3 not answered (partial) - Half done (an index half written, an action half done): what must never happen? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S3 not answered (partial) - À moitié fait (un index à moitié écrit, une action à moitié faite) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'assistant_graph': safety question S3 not answered (partial) - À moitié fait (un index à moitié écrit, une action à moitié faite) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "assistant_graph"
+    },
+    "text": "archvow show assistant_graph",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S1 not answered (leak) - An answer shows what the user may not see (another person's data, another team's document): what must never happen? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S1 not answered (leak) - An answer shows what the user may not see (another person's data, another team's document): what must never happen? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S1 not answered (leak) - Une réponse montre ce que l'utilisateur ne doit pas voir (les données d'une autre personne, le document d'une autre équipe) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S1 not answered (leak) - Une réponse montre ce que l'utilisateur ne doit pas voir (les données d'une autre personne, le document d'une autre équipe) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S2 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S2 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S2 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S2 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S3 not answered (runaway) - Il boucle ou dépense sans limite (trop d'étapes, d'appels de modèle, de tokens) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S3 not answered (runaway) - Il boucle ou dépense sans limite (trop d'étapes, d'appels de modèle, de tokens) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S3 not answered (runaway) - It loops or spends without limit (too many steps, model calls, tokens): what must never happen? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S3 not answered (runaway) - It loops or spends without limit (too many steps, model calls, tokens): what must never happen? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S4 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S4 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S4 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'chat_api': safety question S4 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show chat_api",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "chat_api"
+    },
+    "text": "archvow show chat_api",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
   "message": "'clean_order': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_order",
   "guide": {
    "code": "ARCH035",
@@ -14605,6 +16099,374 @@
      "component": "parse_amount"
     },
     "text": "archvow show parse_amount",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S1 not answered (leak) - An answer shows what the user may not see (another person's data, another team's document): what must never happen? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S1 not answered (leak) - An answer shows what the user may not see (another person's data, another team's document): what must never happen? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S1 not answered (leak) - Une réponse montre ce que l'utilisateur ne doit pas voir (les données d'une autre personne, le document d'une autre équipe) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S1 not answered (leak) - Une réponse montre ce que l'utilisateur ne doit pas voir (les données d'une autre personne, le document d'une autre équipe) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S2 not answered (stale) - Old data used as current (a deleted document, a removed right still in the index): what must never happen? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S2 not answered (stale) - Old data used as current (a deleted document, a removed right still in the index): what must never happen? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S2 not answered (stale) - Une donnée ancienne utilisée comme actuelle (un document supprimé, un droit retiré encore dans l'index) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S2 not answered (stale) - Une donnée ancienne utilisée comme actuelle (un document supprimé, un droit retiré encore dans l'index) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S3 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S3 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S3 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S3 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S4 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S4 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S4 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'policies_retriever': safety question S4 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show policies_retriever",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "policies_retriever"
+    },
+    "text": "archvow show policies_retriever",
     "missing": [],
     "readOnly": true
    },
@@ -19444,7 +21306,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "daily_sales_job: its task is about 982 tokens, over 500 - split it into smaller components",
+  "message": "daily_sales_job: its task is about 1,045 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -19462,7 +21324,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "daily_sales_job: its task is about 982 tokens, over 500 - split it into smaller components",
+  "message": "daily_sales_job: its task is about 1,045 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -19534,7 +21396,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "logging_setup: its task is about 602 tokens, over 500 - split it into smaller components",
+  "message": "logging_setup: its task is about 652 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -19552,7 +21414,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "logging_setup: its task is about 602 tokens, over 500 - split it into smaller components",
+  "message": "logging_setup: its task is about 652 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -20218,43 +22080,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 0b6a3144: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
-   "todo": "Redo the commit with the hooks on: git reset --soft HEAD~1, then git commit. If the hooks never run on your machine: git config core.hooksPath .githooks.",
-   "who": "You, who made the commit.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then push again: CI checks the branch again.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "ARCH053",
-  "message": "commit 0b6a3144: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
-   "todo": "Refaites le commit avec les hooks : git reset --soft HEAD~1, puis git commit. Si les hooks ne tournent jamais sur votre poste : git config core.hooksPath .githooks.",
-   "who": "Vous, qui avez fait le commit.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "ARCH053",
-  "message": "commit f44c5bd8: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 14fb3937: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
@@ -20272,7 +22098,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit f44c5bd8: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 14fb3937: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
@@ -20280,6 +22106,42 @@
    "who": "Vous, puis les architectes.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH053",
+  "message": "commit 418ea734: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
+   "todo": "Redo the commit with the hooks on: git reset --soft HEAD~1, then git commit. If the hooks never run on your machine: git config core.hooksPath .githooks.",
+   "who": "You, who made the commit.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then push again: CI checks the branch again.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH053",
+  "message": "commit 418ea734: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
+   "todo": "Refaites le commit avec les hooks : git reset --soft HEAD~1, puis git commit. Si les hooks ne tournent jamais sur votre poste : git config core.hooksPath .githooks.",
+   "who": "Vous, qui avez fait le commit.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
@@ -20903,6 +22765,78 @@
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
    "command": null,
    "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH059",
+  "message": "logging.basicConfig() configures logging: that belongs to sales.p0_common.logging_setup (setup_logging); here, only log with logging.getLogger(__name__)",
+  "guide": {
+   "code": "ARCH059",
+   "meaning": "`logging.basicConfig`, `logging.config.dictConfig` / `fileConfig`, a handler added or removed (`addHandler`), or the root logger's level set, anywhere but the project's `logging_setup` foundation (only when the project has one)",
+   "todo": "configure logging in `setup_logging` only; every other module takes its logger with `logging.getLogger(__name__)` and logs",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 20
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH059",
+  "message": "logging.basicConfig() configures logging: that belongs to sales.p0_common.logging_setup (setup_logging); here, only log with logging.getLogger(__name__)",
+  "guide": {
+   "code": "ARCH059",
+   "meaning": "`logging.basicConfig`, `logging.config.dictConfig` / `fileConfig`, un handler ajouté ou retiré (`addHandler`), ou le niveau du journal racine fixé, ailleurs que dans la fondation `logging_setup` du projet (seulement quand le projet en a une)",
+   "todo": "configurer la journalisation dans `setup_logging` seulement ; chaque autre module prend son journal avec `logging.getLogger(__name__)` et journalise",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 20
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH059",
+  "message": "logging.getLogger(__name__).addHandler() configures logging: that belongs to sales.p0_common.logging_setup (setup_logging); here, only log with logging.getLogger(__name__)",
+  "guide": {
+   "code": "ARCH059",
+   "meaning": "`logging.basicConfig`, `logging.config.dictConfig` / `fileConfig`, a handler added or removed (`addHandler`), or the root logger's level set, anywhere but the project's `logging_setup` foundation (only when the project has one)",
+   "todo": "configure logging in `setup_logging` only; every other module takes its logger with `logging.getLogger(__name__)` and logs",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 19
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH059",
+  "message": "logging.getLogger(__name__).addHandler() configures logging: that belongs to sales.p0_common.logging_setup (setup_logging); here, only log with logging.getLogger(__name__)",
+  "guide": {
+   "code": "ARCH059",
+   "meaning": "`logging.basicConfig`, `logging.config.dictConfig` / `fileConfig`, un handler ajouté ou retiré (`addHandler`), ou le niveau du journal racine fixé, ailleurs que dans la fondation `logging_setup` du projet (seulement quand le projet en a une)",
+   "todo": "configurer la journalisation dans `setup_logging` seulement ; chaque autre module prend son journal avec `logging.getLogger(__name__)` et journalise",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 19
+   }
   }
  },
  {

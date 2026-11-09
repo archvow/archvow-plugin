@@ -75,7 +75,7 @@
         {
           "group": "code",
           "file": "src/invoicing/p4_entrypoints/invoices_cli.py",
-          "line": 20,
+          "line": 21,
           "component": "invoices_cli",
           "part": "used",
           "text": "from invoicing.p1_domain.invoice_not_found_error import InvoiceNotFoundError",
@@ -84,7 +84,7 @@
         {
           "group": "code",
           "file": "src/invoicing/p4_entrypoints/invoices_cli.py",
-          "line": 39,
+          "line": 43,
           "component": "invoices_cli",
           "part": "used",
           "text": "except InvoiceNotFoundError as error:",

@@ -19,6 +19,17 @@ final class ArchvowVersion {
 
     private ArchvowVersion() { }
 
+    /** This plugin's version (the <version> of META-INF/plugin.xml, set from gradle.properties at build): the session log's header. */
+    static String plugin() {
+        try (InputStream in = ArchvowVersion.class.getResourceAsStream("/META-INF/plugin.xml")) {
+            if (in == null) return "";
+            Matcher m = Pattern.compile("<version>([^<]+)</version>").matcher(new String(in.readAllBytes(), StandardCharsets.UTF_8));
+            return m.find() ? m.group(1).trim() : "";
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
     private static String known() {
         try (InputStream in = ArchvowVersion.class.getResourceAsStream("/archvow/version.txt")) {
             if (in == null) return "?";

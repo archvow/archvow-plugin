@@ -18,8 +18,29 @@ commande archvow. Cette page explique comment une commande est lancée. Fichiers
 | **Sortie bornée** | un projet énorme ne doit pas remplir la mémoire | 20 millions de caractères par flux (`MAX_OUTPUT`) | - |
 | **`NO_COLOR=1`, `PYTHONIOENCODING=utf-8`** | ni couleurs ANSI dans le JSON, ni texte mal décodé | `ArchvowCli.prepare` | `env` de `spawn` |
 
-Le journal de session (bouton ☷) garde, par projet, chaque commande, son code de sortie et sa durée,
-jamais son contenu : `ArchvowRunLog` ; dans VS Code, le canal de sortie *archvow* (`archvow.showOutput`).
+### Le journal de session (0.19.0)
+
+Ce que le plugin a demandé à archvow : dans IntelliJ la fenêtre du bas *Archvow Output*, ouverte par le bouton ☷ (`ArchvowRunLog`, affichée par `ArchvowRunLogView`, et idea.log), dans VS
+Code le canal de sortie *archvow* (`runlog.ts`, `archvow.showOutput`), les mêmes lignes :
+
+- **une action d'une personne** (ce qui passe en tête de la file : `executeAction` dans IntelliJ,
+  `run(args, stdin, first)` dans VS Code) : `▶` sa commande entière, son code de sortie, sa durée et la
+  dernière ligne de texte d'archvow (`✔ Decision 1 of logging_setup made`) ;
+- **un rafraîchissement** : une ligne pour toutes ses lectures (`Refresh  ·  9 reads  ·  2.4 s`), chacune au
+  niveau debug (idea.log, ou *Developer: Set Log Level* dans VS Code) ;
+- **un échec** : `✖` la commande et ce qu'archvow a dit (les dernières lignes de stderr) ; `check` qui sort
+  avec 1 parce qu'il trouve des erreurs est une réponse, pas un échec ;
+- un appel de plus d'une seconde est marqué `slow` ; une ligne d'en-tête par session : version du plugin,
+  d'archvow, le Python utilisé, le projet, l'IDE.
+
+« Copier pour le support » (le bouton de la fenêtre *Archvow Output*, avec « masquer mes réponses » ; *archvow: Copy the archvow log for support* dans VS Code)
+donne l'en-tête et les lignes avec leur heure, les mots d'une personne (réponses, justifications,
+énoncés : `masked`) cachés si elle le demande.
+
+Après une action qui nomme un composant existant (`decision make <composant>`, `rule add`, `hazard add`...,
+`touchedComponent`), le plugin relit la spec, ce composant, `check` et `next` - 4 lectures au lieu de tout
+(`refreshAfter` / `refreshTouched`) ; le changement de vow qui suit vient de lui : l'observateur des vows
+l'ignore (`ownChangeUntil`).
 
 ## Où archvow est cherché
 

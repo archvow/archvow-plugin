@@ -37,6 +37,7 @@ what it protects:
 | `AiSkillsRegression` | the AI view of a component (`ArchvowAiSkills`): exactly VS Code's on `contract/forms/ai-skills.expected.json` (origins, To review counts, suggestion, blocked skills); the requests each tool gets |
 | `SkillFormRegression` | the launch form of a skill (`ArchvowSkillForm`): the request, Copy disabled without a brief, "Not yet"; Overview › Briefs (`ArchvowBriefs.statusHtml`); the cards' origin tags and the All / Open / To review filter |
 | `LoadChainRegression` | the project's load is one chain (show, check, next, catalog, each component, brief show): ArchvowCli refuses a command started beside another (0.16.0: no counts) |
+| `RunLogRegression` | the session log (0.19.0), like `runlog.test.ts`: an action in full with archvow's answer, a refresh in one line, `check` exiting 1 is not a failure, a failure says what archvow said, slow calls marked, the support text (a person's words hidden), the component an action touches |
 | `ListFilterRegression` | the line under the views (`ArchvowListFilter`), a done view says where the work is, the next open item after a save, the links, the four quiet actions |
 | `GuidanceRegression` | every diagnostic says what to do (`ArchvowGuidance`): each documented code, and on each real message exactly the guidance of VS Code (`contract/guidance/expected.json`) |
 | `InstallRegression` | Install archvow: the Python chosen, the pip line per source, WSL, pip only from a confirmation |
@@ -69,6 +70,7 @@ tested, the page is read as text.
 | File | What it checks |
 |---|---|
 | `cli.test.ts` | the command line, stdout and stderr apart, stdin for an unsaved file, one command at a time, the time-out, archvow missing, WSL; with a fake `archvow` written for the test |
+| `runlog.test.ts` | the session log (0.19.0): the same cases as `RunLogRegression` |
 | `vowReader.test.ts` | the TypeScript reader gives **exactly** `contract/vow-reader/expected.json` |
 | `grammar.test.ts` | one colour per depth in the TextMate grammar; the prefill of Edit spec |
 | `model.test.ts` | the recorded JSON of the three examples and of the briefs scenario can be read |

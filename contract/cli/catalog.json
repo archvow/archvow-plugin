@@ -2,7 +2,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "1.21.0",
+      "version": "1.22.0",
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
@@ -517,8 +517,634 @@
       "source": "<archvow>/packs/fastapi-service"
     },
     {
+      "name": "langgraph-agent",
+      "version": "1.22.0",
+      "language": "python",
+      "kind": "ai-application",
+      "style": "layered (common -> domain -> tools -> agents -> app)",
+      "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
+      "extends": [
+        "python-base"
+      ],
+      "questions": [
+        {
+          "id": "language",
+          "ask": true,
+          "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+          "default": "fr",
+          "choices": [
+            "fr",
+            "en"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "python_version",
+          "prompt": "Minimum Python version",
+          "default": "3.12",
+          "choices": [
+            "3.10",
+            "3.11",
+            "3.12",
+            "3.13"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "line_length",
+          "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+          "default": "88",
+          "choices": [
+            "79",
+            "88",
+            "99"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "platform",
+          "ask": true,
+          "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+          "default": "gitlab",
+          "choices": [
+            "gitlab",
+            "github",
+            "none"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "ci",
+          "ask": true,
+          "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+          "default": "auto",
+          "choices": [
+            "auto",
+            "gitlab",
+            "github",
+            "jenkins",
+            "none"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "architects",
+          "ask": true,
+          "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+          "required": true,
+          "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+          "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+          "multiple": false
+        },
+        {
+          "id": "ai_tools",
+          "ask": true,
+          "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+          "default": "copilot",
+          "multiple": true,
+          "choices_from": "ai_tool_files",
+          "choices": [
+            "copilot",
+            "claude-code",
+            "cursor",
+            "codex",
+            "junie",
+            "jetbrains-ai-chat",
+            "antigravity",
+            "continue",
+            "none"
+          ],
+          "required": false
+        },
+        {
+          "id": "reviewers",
+          "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+          "default": "",
+          "multiple": true,
+          "choices_from": "ai_tool_files",
+          "choices": [
+            "copilot",
+            "claude-code",
+            "cursor",
+            "codex",
+            "junie",
+            "jetbrains-ai-chat",
+            "antigravity",
+            "continue",
+            "none"
+          ],
+          "required": false
+        },
+        {
+          "id": "sonar",
+          "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+          "default": "no",
+          "choices": [
+            "no",
+            "yes"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "auto_approve",
+          "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+          "default": "yes",
+          "choices": [
+            "yes",
+            "no"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "mode",
+          "ask": true,
+          "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+          "default": "strict",
+          "choices": [
+            "strict",
+            "guided",
+            "free"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "sandbox",
+          "ask": true,
+          "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+          "default": "no",
+          "default_from": {
+            "mode": {
+              "strict": "yes"
+            }
+          },
+          "choices": [
+            "yes",
+            "no"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "rules",
+          "ask": true,
+          "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+          "multiple": true,
+          "choices_from": "rule_families",
+          "default": "ARCH,STYLE,AGENT,FASTAPI,GDPR,TST",
+          "choices": [
+            "ARCH",
+            "STYLE",
+            "AGENT",
+            "FASTAPI",
+            "GDPR",
+            "TST",
+            "DORA",
+            "all",
+            "none"
+          ],
+          "required": false
+        },
+        {
+          "id": "dependencies",
+          "prompt": "Approved third-party packages besides langgraph, langchain_core, fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported - the model providers too (e.g. langchain_anthropic, langchain_ollama, langchain_postgres)",
+          "default": "",
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "briefs",
+          "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+          "default": "briefs",
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "max_components",
+          "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+          "default": "",
+          "pattern": "^([1-9][0-9]*)?$",
+          "pattern_hint": "a whole number, or empty for no limit",
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "max_code_lines",
+          "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+          "default": "",
+          "pattern": "^([1-9][0-9]*)?$",
+          "pattern_hint": "a whole number, or empty for no limit",
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "git_hooks",
+          "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+          "default": "githooks",
+          "choices": [
+            "githooks",
+            "pre-commit",
+            "none"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "branch_naming",
+          "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+          "default": "gitflow",
+          "choices": [
+            "gitflow",
+            "none"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "ticket_pattern",
+          "ask": true,
+          "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+          "default": "[A-Z][A-Z0-9]*-[0-9]+",
+          "pattern": "^[^'\"\\s/]+$",
+          "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "pip_index_url",
+          "prompt": "Internal Python package index for CI (empty = public PyPI)",
+          "default": "",
+          "pattern": "^(https?://\\S+)?$",
+          "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "ci_image",
+          "prompt": "Internal CI image with Python and git (empty = public python image)",
+          "default": "",
+          "pattern": "^(\\S+)?$",
+          "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "langgraph_version",
+          "prompt": "LangGraph version line the project pins (1.x keeps its API until 2.0; doctor checks it)",
+          "default": "1",
+          "pattern": "^1(\\.[0-9]+)?$",
+          "pattern_hint": "a LangGraph line such as 1 or 1.2",
+          "required": false,
+          "multiple": false
+        }
+      ],
+      "layers": [
+        {
+          "name": "p0_common",
+          "description": "Foundations - settings, the models, logging, the access scope, documents, the memory",
+          "may_import": []
+        },
+        {
+          "name": "p1_domain",
+          "description": "The assistant's own shapes and pure logic - state, structured outputs, prompts, chunking; no I/O, no model call",
+          "may_import": [
+            "p0_common"
+          ]
+        },
+        {
+          "name": "p2_tools",
+          "description": "Tools, retrievers and clients - the only place that reads or changes the company's data and other systems",
+          "may_import": [
+            "p0_common",
+            "p1_domain"
+          ]
+        },
+        {
+          "name": "p3_agents",
+          "description": "Agents, routers and nodes - one step of thinking each, calling models and tools",
+          "may_import": [
+            "p0_common",
+            "p1_domain",
+            "p2_tools"
+          ]
+        },
+        {
+          "name": "p4_app",
+          "description": "The graphs, the API, the MCP server and the indexing jobs - what runs",
+          "may_import": [
+            "p0_common",
+            "p1_domain",
+            "p2_tools",
+            "p3_agents"
+          ]
+        }
+      ],
+      "component_types": {
+        "foundation": {
+          "layer": "p0_common",
+          "description": "Template-owned foundation module.",
+          "addable": false,
+          "name_pattern": null,
+          "name_hint": "",
+          "module": null,
+          "symbols": [],
+          "implicit_dependency": true,
+          "signature_overridable": false,
+          "kinds": []
+        },
+        "utility": {
+          "layer": "p0_common",
+          "description": "A small helper every layer may use (no business rule, no model call, no I/O beyond what it says).",
+          "addable": true,
+          "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+          "name_hint": "verb_noun, e.g. format_citation",
+          "module": "{name}",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "{name}"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "state": {
+          "layer": "p1_domain",
+          "description": "The state a graph carries from step to step (a TypedDict).",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the graph it belongs to, e.g. assistant",
+          "module": "{name}_state",
+          "symbols": [
+            {
+              "kind": "class",
+              "name": "{Name}State"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": false,
+          "kinds": []
+        },
+        "schema": {
+          "layer": "p1_domain",
+          "description": "A structured shape the models return or the tools take (a Pydantic model) - never text parsed by hand.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the data, e.g. answer",
+          "module": "{name}_schema",
+          "symbols": [
+            {
+              "kind": "class",
+              "name": "{Name}"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": false,
+          "kinds": []
+        },
+        "prompt": {
+          "layer": "p1_domain",
+          "description": "The instructions a model gets, built from the state - kept in the code, never pulled from a hub at run time.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the step it serves, e.g. answer",
+          "module": "{name}_prompt",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "build_{name}_prompt"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "chunker": {
+          "layer": "p1_domain",
+          "description": "Cuts one Document into the Passages that are indexed - a pure function.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the documents it cuts, e.g. policies",
+          "module": "{name}_chunker",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "chunk_{name}",
+              "signature": "(document: Document) -> list[Passage]"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": false,
+          "kinds": []
+        },
+        "tool": {
+          "layer": "p2_tools",
+          "description": "One thing an agent may do - read or change data, call a system - with typed arguments the model fills and a docstring it reads.",
+          "addable": true,
+          "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+          "name_hint": "verb_noun, e.g. book_ticket",
+          "module": "{name}_tool",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "{name}"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "retriever": {
+          "layer": "p2_tools",
+          "description": "Finds the passages a user may read that answer a question, best first, each with its source.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "what it searches, e.g. policies",
+          "module": "{name}_retriever",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "retrieve_{name}",
+              "signature": "(query: str, scope: AccessScope) -> list[Passage]"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": false,
+          "kinds": []
+        },
+        "mcp_client": {
+          "layer": "p2_tools",
+          "description": "Gives the tools of one approved MCP server to the agents.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the server, e.g. tickets",
+          "module": "{name}_mcp",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "load_{name}_tools"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "client": {
+          "layer": "p2_tools",
+          "description": "Talks to one other system (an HTTP API, a message broker, a source to index...).",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the other system, e.g. sharepoint",
+          "module": "{name}_client",
+          "symbols": [
+            {
+              "kind": "class",
+              "name": "{Name}Client"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": false,
+          "kinds": []
+        },
+        "router": {
+          "layer": "p3_agents",
+          "description": "Chooses the next step for a request, and the model role and thinking budget it gets.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "what it routes, e.g. question",
+          "module": "{name}_router",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "route_{name}"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "node": {
+          "layer": "p3_agents",
+          "description": "One step of a graph - reads the state, calls a model or a tool, writes its result back.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "what it does, e.g. answer",
+          "module": "{name}_node",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "{name}_node"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "agent": {
+          "layer": "p3_agents",
+          "description": "A model that chooses among its tools, step by step, until it has an answer (LangChain's create_agent).",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "its job, e.g. booking",
+          "module": "{name}_agent",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "build_{name}_agent"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "graph": {
+          "layer": "p4_app",
+          "description": "The workflow - its steps and how they follow each other, compiled with the memory.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the assistant, e.g. assistant",
+          "module": "{name}_graph",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "build_{name}_graph"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "api": {
+          "layer": "p4_app",
+          "description": "The HTTP API - signs the user in, builds the access scope, runs the graph. Run with uvicorn --factory.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the assistant, e.g. assistant",
+          "module": "{name}_api",
+          "symbols": [
+            {
+              "kind": "constant",
+              "name": "router",
+              "annotation": "APIRouter"
+            },
+            {
+              "kind": "function",
+              "name": "create_app",
+              "signature": "() -> FastAPI"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": false,
+          "kinds": []
+        },
+        "mcp_server": {
+          "layer": "p4_app",
+          "description": "Serves tools to other assistants over MCP (the company's assistants, IDEs).",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "what it serves, e.g. policies",
+          "module": "{name}_mcp_server",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "create_{name}_server"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "index_job": {
+          "layer": "p4_app",
+          "description": "Copies one source into the index - Documents, chunks, embeddings - only what changed.",
+          "addable": true,
+          "name_pattern": "^[a-z][a-z0-9_]*$",
+          "name_hint": "the source, e.g. policies",
+          "module": "{name}_index_job",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "index_{name}"
+            }
+          ],
+          "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        }
+      },
+      "source": "<archvow>/packs/langgraph-agent"
+    },
+    {
       "name": "pyspark-pipeline",
-      "version": "1.21.0",
+      "version": "1.22.0",
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -1054,7 +1680,7 @@
     },
     {
       "name": "python-app",
-      "version": "1.21.0",
+      "version": "1.22.0",
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",

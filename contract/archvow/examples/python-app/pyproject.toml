@@ -12,8 +12,8 @@ name = "invoicing"
 version = "0.1.0"
 description = "Marks invoices paid, from the command line"
 requires-python = ">=3.12"
-# What the program needs at run time. Packages approved later with `-a dependencies=` are added
-# here, by their pip name (import yaml -> pyyaml).
+# What the program needs at run time: the packages approved with `-a dependencies=`, by their pip
+# name (import yaml -> pyyaml). `init --force` writes this list again from the approvals.
 dependencies = []
 
 [tool.setuptools.packages.find]

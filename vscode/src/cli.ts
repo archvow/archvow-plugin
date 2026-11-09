@@ -121,6 +121,8 @@ export function display(args: string[]): string {
 interface Job {
   args: string[];
   stdin?: string;
+  /** A person asked for it (it went first): an action in the session log, not a read. */
+  first: boolean;
   resolve: (result: CliResult) => void;
 }
 
@@ -131,7 +133,8 @@ export class ArchvowCli {
   constructor(
     private readonly root: string,
     private readonly settings: () => CliSettings,
-    private readonly log: (line: string) => void = () => undefined,
+    /** Each call, once it is done: the session log (`action` when a person asked for it). */
+    private readonly onCall: (result: CliResult, action: boolean) => void = () => undefined,
     /** Variables added to the environment (ARCHVOW_TEMPLATES for a template folder). */
     private readonly extraEnv: Record<string, string> = {},
     /** False for a command outside the project (catalog): in WSL it runs from the home folder. */
@@ -176,11 +179,17 @@ export class ArchvowCli {
    */
   run(args: string[], stdin?: string, first = false): Promise<CliResult> {
     return new Promise((resolve) => {
-      const job: Job = { args, stdin, resolve };
+      const job: Job = { args, stdin, first, resolve };
       if (first) this.waiting.unshift(job);
       else this.waiting.push(job);
       void this.pump();
     });
+  }
+
+  /** The program archvow runs with (the Python, or the archvow executable), once found: for the session log. */
+  get program(): string {
+    const c = this.chosen?.candidate;
+    return c === undefined ? '' : c.python || c.executable;
   }
 
   /** Whether a command runs or waits. */
@@ -193,7 +202,9 @@ export class ArchvowCli {
     this.busy = true;
     try {
       for (let job = this.waiting.shift(); job !== undefined; job = this.waiting.shift()) {
-        job.resolve(await this.runNow(job.args, job.stdin));
+        const result = await this.runNow(job.args, job.stdin);
+        this.onCall(result, job.first);
+        job.resolve(result);
       }
     } finally {
       this.busy = false;
@@ -217,13 +228,12 @@ export class ArchvowCli {
     const settings = this.settings();
     const chosen = await this.choose(settings);
     if (chosen === null) {
-      this.log(`${display(args)}  ·  did not start  ·  archvow not found`);
       return { args, exitCode: -1, stdout: '', stderr: '', timedOut: false, startError: this.notFound, millis: 0 };
     }
-    return this.spawnOnce({ ...settings, executable: chosen.executable, python: chosen.python }, args, stdin, settings.timeoutSeconds, true);
+    return this.spawnOnce({ ...settings, executable: chosen.executable, python: chosen.python }, args, stdin, settings.timeoutSeconds);
   }
 
-  private spawnOnce(settings: CliSettings, args: string[], stdin: string | undefined, timeoutSeconds: number, logged = false): Promise<CliResult> {
+  private spawnOnce(settings: CliSettings, args: string[], stdin: string | undefined, timeoutSeconds: number): Promise<CliResult> {
     let program: string;
     let argv: string[];
     try {
@@ -243,7 +253,6 @@ export class ArchvowCli {
         settled = true;
         clearTimeout(timer);
         const done: CliResult = { ...result, args, millis: Date.now() - started };
-        if (logged) this.log(`${display(args)}  ·  ${done.startError ? 'did not start' : done.timedOut ? 'stopped' : 'exit ' + done.exitCode}  ·  ${done.millis} ms`);
         resolve(done);
       };
       const env: NodeJS.ProcessEnv = { ...process.env, ...this.extraEnv, NO_COLOR: '1', PYTHONIOENCODING: 'utf-8' };

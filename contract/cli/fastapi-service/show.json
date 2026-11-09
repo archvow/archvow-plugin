@@ -7,7 +7,7 @@
   "containers": [
     {
       "id": "orders_api",
-      "template": "fastapi-service@1.21.0",
+      "template": "fastapi-service@1.22.0",
       "package": "orders_api",
       "path": "src/orders_api",
       "components": [
@@ -38,6 +38,31 @@
               "answer": "Header missing or empty: 401 Unauthorized",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
+            }
+          ],
+          "assumptions": []
+        },
+        {
+          "id": "logging_setup",
+          "name": "logging_setup",
+          "type": "foundation",
+          "layer": "p0_common",
+          "module": "orders_api.p0_common.logging_setup",
+          "description": "Configures logging once, at the app's startup - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the settings, one line per event with the request id, never a secret, a token or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs must not write to a test's closed stream).",
+          "uses": [],
+          "symbols": [
+            {
+              "name": "setup_logging",
+              "kind": "function",
+              "signature": "(level: str = \"INFO\") -> None"
+            }
+          ],
+          "decisions": [
+            {
+              "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id and message?",
+              "answer": "stderr, one line per event: time, level, request id, message",
+              "by": "update@archvow.invalid",
+              "on": "2026-11-08T23:13:06.642908+00:00"
             }
           ],
           "assumptions": []

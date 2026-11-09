@@ -24,6 +24,9 @@ select = [
     "RUF",
     "S",        # security (Bandit): hard-coded passwords and secrets, unsafe calls ("Errors should never pass silently")
     "T20",      # no print(): output goes through logging, or through the command line's own layer
+    "LOG",      # logging: a logger per module (getLogger(__name__)), never the root logger directly
+    "G",        # logging format: no f-string or % in a log call (logging formats it, only when it is shown)
+    "TRY400",   # an error logged in an except block keeps its traceback (logger.exception)
     "FAST",     # FastAPI: Annotated dependencies, path parameters, response models
     "ASYNC",    # blocking calls inside async functions
 ]

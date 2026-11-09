@@ -11,6 +11,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
+from orders_api.p0_common.logging_setup import setup_logging
 from orders_api.p0_common.settings import get_settings
 from orders_api.p1_domain.order_not_found_error import OrderNotFoundError
 from orders_api.p4_api.orders_router import router as orders_router
@@ -18,6 +19,7 @@ from orders_api.p4_api.orders_router import router as orders_router
 
 def create_app() -> FastAPI:
     """The FastAPI app (uvicorn --factory orders_api.p4_api.main:create_app)."""
+    setup_logging()
     app = FastAPI(title=get_settings().app_name)
     app.include_router(orders_router, prefix="/v1")
     app.add_exception_handler(OrderNotFoundError, _not_found)

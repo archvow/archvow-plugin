@@ -8,9 +8,13 @@
 @date       2026-10-09
 """
 
+import logging
+
 from orders_api.p1_domain.new_order_model import NewOrder
 from orders_api.p1_domain.order_model import Order
 from orders_api.p2_io.orders_repository import OrdersRepository
+
+logger = logging.getLogger(__name__)
 
 
 def create_order(customer: str, new: NewOrder) -> Order:
@@ -20,4 +24,5 @@ def create_order(customer: str, new: NewOrder) -> Order:
         id=repository.next_id(), customer=customer, amount=new.amount, status="pending"
     )
     repository.add(order)
+    logger.info("order %s created", order.id)
     return order

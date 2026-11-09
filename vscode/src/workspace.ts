@@ -22,6 +22,7 @@ import { addableByLayer, filePlan } from './filePlan';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
 import { componentView, knownVersion, parseVersion, problemsOf, versionWarning } from './model';
+import { RunLog, touchedComponent } from './runlog';
 import { moduleFiles } from './vow/links';
 import { architectureRows, buildWork, Json, objects, str, Work } from './workItems';
 import { componentTypes, derive, Derived, readiness, Readiness, ruleExplanation } from './projectState';
@@ -107,10 +108,14 @@ export class ArchvowProject {
   readonly onDidChange = this.changed.event;
   private pendingConfirmations = new Map<string, { args: string[]; stdin?: string; label: string; target: Target; then?: () => void }>();
   private refreshing = false;
+  /** Until when a vow change comes from the extension's own action, already refreshed (0.19.0). */
+  private ownChangeUntil = 0;
   private versionChecked = false;
   private timer: NodeJS.Timeout | undefined;
   private lastEditor: vscode.TextEditor | undefined;
   private liveCatalog: { scope: string; data: Json } | undefined;
+  /** The session log: what was asked of archvow, in the "archvow" output channel (0.19.0). */
+  readonly runLog: RunLog;
 
   constructor(private readonly context: vscode.ExtensionContext, readonly root: string, private readonly log: vscode.LogOutputChannel) {
     this.resources = path.join(context.extensionPath, 'resources', 'archvow');
@@ -125,12 +130,14 @@ export class ArchvowProject {
     this.forms = JSON.parse(fs.readFileSync(path.join(this.resources, 'forms.json'), 'utf8')) as Json;
     this.commands = withPluginParameters(this.commands, this.forms);
     this.icons = JSON.parse(fs.readFileSync(path.join(this.resources, 'icons.json'), 'utf8')) as Json;
-    this.cli = new ArchvowCli(root, () => this.cliSettings(), (line) => log.info(line));
+    this.runLog = new RunLog(log);
+    this.cli = new ArchvowCli(root, () => this.cliSettings(), (result, action) => this.runLog.record(result, action));
     void this.readInterpreter();
     this.problems = vscode.languages.createDiagnosticCollection('archvow');
     this.state = this.emptyState();
     const vows = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(root, '.archvow/**/*.vow'));
-    const soon = (): void => this.refreshSoon();
+    // a vow changed: refresh, unless it is the action the extension just ran (it refreshes what it touched)
+    const soon = (): void => { if (Date.now() > this.ownChangeUntil) this.refreshSoon(); };
     this.lastEditor = vscode.window.activeTextEditor;
     context.subscriptions.push(this.problems, vows, vows.onDidChange(soon), vows.onDidCreate(soon), vows.onDidDelete(soon),
       vscode.window.onDidChangeActiveTextEditor((e) => { if (e) this.lastEditor = e; }),
@@ -218,6 +225,7 @@ export class ArchvowProject {
       return;
     }
     this.refreshing = true;
+    this.runLog.refreshStarted();
     const fr = this.french();
     try {
       this.state.fr = fr;
@@ -282,6 +290,7 @@ export class ArchvowProject {
       this.publish();
     } finally {
       this.refreshing = false;
+      this.runLog.refreshEnded();
     }
   }
 
@@ -326,6 +335,9 @@ export class ArchvowProject {
       return;
     }
     this.versionChecked = true;
+    this.runLog.header({ plugin: String(this.context.extension.packageJSON.version ?? ''),
+      archvow: (parseVersion(result.stdout + result.stderr) ?? []).join('.'), python: this.cli.program, project: this.root,
+      ide: `VS Code ${vscode.version}` });
     const warning = versionWarning(parseVersion(result.stdout + result.stderr), this.known, this.french());
     this.offerInstall(warning === null ? '' : 'version');
     if (warning !== null) {
@@ -911,7 +923,41 @@ export class ArchvowProject {
       void vscode.window.showInformationMessage(tr(this.state.fr, 'Archvow initialized successfully.', 'Archvow initialisé avec succès.'));
     }
     if (ok && then) then();
-    else if (ok && change) await this.refresh(false);
+    else if (ok && change) await this.refreshAfter(args);
+  }
+
+  /**
+   * After an action: what it touched only - the spec, that component, check and next - when it names
+   * one component that exists (decision make, rule add, hazard add...); everything otherwise (0.19.0).
+   */
+  private async refreshAfter(args: string[]): Promise<void> {
+    const id = touchedComponent(this.commandOf(args), args, Object.keys(this.state.snapshots));
+    if (id === null || this.refreshing || this.state.readiness !== 'READY') {
+      await this.refresh(false);
+      return;
+    }
+    this.refreshing = true;
+    this.ownChangeUntil = Date.now() + 2 * QUIET_MS;
+    this.runLog.refreshStarted(`Refresh ${id}`);
+    try {
+      const spec = parse((await this.cli.run(['show', '--json'])).stdout);
+      if (spec !== null) this.state.spec = spec;
+      const view = componentView(parse((await this.cli.run(['show', id, '--json'])).stdout), id);
+      if (view !== null) this.state.snapshots = { ...this.state.snapshots, [id]: view };
+      const checked = await this.cli.run(['check', '--json']);
+      this.setCheck(parse(checked.stdout), (checked.startError ?? (checked.stderr || checked.stdout)).trim());
+      const rows = parse((await this.cli.run(['next', '--json'])).stdout);
+      this.state.next = Array.isArray(rows) ? (rows as Json[]) : null;
+      const vows = { ...this.state.vows };
+      delete vows[id];
+      this.state.vows = vows;
+      this.recompute();
+      this.publish();
+    } finally {
+      this.refreshing = false;
+      this.ownChangeUntil = Date.now() + 2 * QUIET_MS;
+      this.runLog.refreshEnded();
+    }
   }
 
   /** The command line the form asks for, as it is typed: the live preview (design A), or what is still missing. */
@@ -1221,7 +1267,7 @@ export class ArchvowProject {
     post({ type: 'catalog', data: this.bundledCatalog, source: tr(fr, `Built-in archvow ${this.known} templates · Checking installed catalog…`,
       `Modèles intégrés archvow ${this.known} · Vérification du catalogue installé…`) });
     // outside any project, so a project's own templates do not shadow the installed ones
-    const neutral = new ArchvowCli(os.tmpdir(), () => this.cliSettings(), (line) => this.log.info(line),
+    const neutral = new ArchvowCli(os.tmpdir(), () => this.cliSettings(), (result, action) => this.runLog.record(result, action),
       scope ? { ARCHVOW_TEMPLATES: [process.env.ARCHVOW_TEMPLATES, path.dirname(scope)].filter((x) => x).join(path.delimiter) } : {}, false);
     const result = await neutral.run(['catalog', '--json']);
     const data = parse(result.stdout);

@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 1.21.0",
+ "archvow": "archvow 1.22.0",
  "messages": [
   {
    "code": "ACME001",
@@ -116,9 +116,9 @@
   {
    "code": "ARCH002",
    "severity": "error",
-   "message": "'logger' is not declared in component 'orders_clean_writer' (make it private with a leading underscore or declare it)",
-   "file": "src/sales/p2_io/orders_clean_writer.py",
-   "line": 14
+   "message": "'logger' is not declared in component 'clean_orders' (make it private with a leading underscore or declare it)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 15
   },
   {
    "code": "ARCH002",
@@ -214,6 +214,41 @@
   {
    "code": "ARCH008",
    "severity": "error",
+   "message": "component 'access': assistant.p0_common.access is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'answer_node': assistant.p3_agents.answer_node is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'answer_schema': assistant.p1_domain.answer_schema is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'assistant_graph': assistant.p4_app.assistant_graph is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'chat_api': assistant.p4_app.chat_api is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
    "message": "component 'clean_order': sales.p1_domain.clean_order is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -298,6 +333,13 @@
   {
    "code": "ARCH008",
    "severity": "error",
+   "message": "component 'documents': assistant.p0_common.documents is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
    "message": "component 'enrich_orders': sales.p1_domain.enrich_orders is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -319,6 +361,20 @@
   {
    "code": "ARCH008",
    "severity": "error",
+   "message": "component 'logging_setup': api.p0_common.logging_setup is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'logging_setup': assistant.p0_common.logging_setup is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
    "message": "component 'logging_setup': invoicing.p0_common.logging_setup is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -333,6 +389,13 @@
   {
    "code": "ARCH008",
    "severity": "error",
+   "message": "component 'logging_setup': orders_api.p0_common.logging_setup is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
    "message": "component 'logging_setup': sales.p0_common.logging_setup is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -341,6 +404,20 @@
    "code": "ARCH008",
    "severity": "error",
    "message": "component 'main': orders_api.p4_api.main is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'memory': assistant.p0_common.memory is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'models': assistant.p0_common.models is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -397,6 +474,13 @@
    "code": "ARCH008",
    "severity": "error",
    "message": "component 'orders_schema': my_pipeline.p1_domain.orders_schema is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
+   "message": "component 'policies_retriever': assistant.p2_tools.policies_retriever is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -473,6 +557,13 @@
   {
    "code": "ARCH008",
    "severity": "error",
+   "message": "component 'settings': assistant.p0_common.settings is planned but not created",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH008",
+   "severity": "error",
    "message": "component 'settings': orders_api.p0_common.settings is planned but not created",
    "file": ".archvow/spec.vow",
    "line": 0
@@ -508,7 +599,7 @@
   {
    "code": "ARCH009",
    "severity": "error",
-   "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
+   "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -522,7 +613,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.21.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.22.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -1523,6 +1614,174 @@
   {
    "code": "ARCH035",
    "severity": "warning",
+   "message": "'answer_node': safety question S1 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show answer_node",
+   "file": ".archvow/components/answer_node/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_node': safety question S1 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+   "file": ".archvow/components/answer_node/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_node': safety question S2 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+   "file": ".archvow/components/answer_node/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_node': safety question S2 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show answer_node",
+   "file": ".archvow/components/answer_node/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_node': safety question S3 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show answer_node",
+   "file": ".archvow/components/answer_node/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_node': safety question S3 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_node",
+   "file": ".archvow/components/answer_node/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_schema': safety question S1 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show answer_schema",
+   "file": ".archvow/components/answer_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_schema': safety question S1 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_schema",
+   "file": ".archvow/components/answer_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_schema': safety question S2 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show answer_schema",
+   "file": ".archvow/components/answer_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'answer_schema': safety question S2 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show answer_schema",
+   "file": ".archvow/components/answer_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'assistant_graph': safety question S1 not answered (acts) - Il agit sans l'accord qu'il faut (envoie, réserve, paie, supprime) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+   "file": ".archvow/components/assistant_graph/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'assistant_graph': safety question S1 not answered (acts) - It acts without the right approval (sends, books, pays, deletes): what must never happen? -> archvow show assistant_graph",
+   "file": ".archvow/components/assistant_graph/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'assistant_graph': safety question S2 not answered (runaway) - Il boucle ou dépense sans limite (trop d'étapes, d'appels de modèle, de tokens) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+   "file": ".archvow/components/assistant_graph/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'assistant_graph': safety question S2 not answered (runaway) - It loops or spends without limit (too many steps, model calls, tokens): what must never happen? -> archvow show assistant_graph",
+   "file": ".archvow/components/assistant_graph/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'assistant_graph': safety question S3 not answered (partial) - Half done (an index half written, an action half done): what must never happen? -> archvow show assistant_graph",
+   "file": ".archvow/components/assistant_graph/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'assistant_graph': safety question S3 not answered (partial) - À moitié fait (un index à moitié écrit, une action à moitié faite) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
+   "file": ".archvow/components/assistant_graph/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'chat_api': safety question S1 not answered (leak) - An answer shows what the user may not see (another person's data, another team's document): what must never happen? -> archvow show chat_api",
+   "file": ".archvow/components/chat_api/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'chat_api': safety question S1 not answered (leak) - Une réponse montre ce que l'utilisateur ne doit pas voir (les données d'une autre personne, le document d'une autre équipe) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+   "file": ".archvow/components/chat_api/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'chat_api': safety question S2 not answered (exposed) - Data exposed (personal data or secrets in a log, a trace, a prompt sent outside): what must never happen? -> archvow show chat_api",
+   "file": ".archvow/components/chat_api/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'chat_api': safety question S2 not answered (exposed) - Une donnée exposée (données personnelles ou secrets dans un journal, une trace, un prompt envoyé à l'extérieur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+   "file": ".archvow/components/chat_api/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'chat_api': safety question S3 not answered (runaway) - Il boucle ou dépense sans limite (trop d'étapes, d'appels de modèle, de tokens) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+   "file": ".archvow/components/chat_api/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'chat_api': safety question S3 not answered (runaway) - It loops or spends without limit (too many steps, model calls, tokens): what must never happen? -> archvow show chat_api",
+   "file": ".archvow/components/chat_api/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'chat_api': safety question S4 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show chat_api",
+   "file": ".archvow/components/chat_api/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'chat_api': safety question S4 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show chat_api",
+   "file": ".archvow/components/chat_api/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
    "message": "'clean_order': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_order",
    "file": ".archvow/components/clean_order/spec.vow",
    "line": 0
@@ -2447,6 +2706,62 @@
   {
    "code": "ARCH035",
    "severity": "warning",
+   "message": "'policies_retriever': safety question S1 not answered (leak) - An answer shows what the user may not see (another person's data, another team's document): what must never happen? -> archvow show policies_retriever",
+   "file": ".archvow/components/policies_retriever/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'policies_retriever': safety question S1 not answered (leak) - Une réponse montre ce que l'utilisateur ne doit pas voir (les données d'une autre personne, le document d'une autre équipe) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+   "file": ".archvow/components/policies_retriever/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'policies_retriever': safety question S2 not answered (stale) - Old data used as current (a deleted document, a removed right still in the index): what must never happen? -> archvow show policies_retriever",
+   "file": ".archvow/components/policies_retriever/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'policies_retriever': safety question S2 not answered (stale) - Une donnée ancienne utilisée comme actuelle (un document supprimé, un droit retiré encore dans l'index) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+   "file": ".archvow/components/policies_retriever/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'policies_retriever': safety question S3 not answered (wrong) - A wrong answer given as true (made up, from an old or another document): what must never happen? -> archvow show policies_retriever",
+   "file": ".archvow/components/policies_retriever/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'policies_retriever': safety question S3 not answered (wrong) - Une réponse fausse donnée comme vraie (inventée, tirée d'un document ancien ou d'un autre) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+   "file": ".archvow/components/policies_retriever/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'policies_retriever': safety question S4 not answered (missing) - Quelque chose manque (un modèle, un outil ou l'index en panne, rien de pertinent trouvé) : qu'est-ce qui ne doit jamais arriver ? -> archvow show policies_retriever",
+   "file": ".archvow/components/policies_retriever/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'policies_retriever': safety question S4 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show policies_retriever",
+   "file": ".archvow/components/policies_retriever/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
    "message": "'refunds_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show refunds_reader",
    "file": ".archvow/components/refunds_reader/spec.vow",
    "line": 0
@@ -3196,7 +3511,7 @@
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "daily_sales_job: its task is about 982 tokens, over 500 - split it into smaller components",
+   "message": "daily_sales_job: its task is about 1,045 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/daily_sales_job/spec.md",
    "line": 0
   },
@@ -3210,7 +3525,7 @@
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "logging_setup: its task is about 602 tokens, over 500 - split it into smaller components",
+   "message": "logging_setup: its task is about 652 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/logging_setup/spec.md",
    "line": 0
   },
@@ -3343,14 +3658,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 0b6a3144: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 14fb3937: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit f44c5bd8: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit 418ea734: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -3451,6 +3766,20 @@
    "message": "the project has 9 components of its 9 (100 %)",
    "file": ".archvow/spec.vow",
    "line": 0
+  },
+  {
+   "code": "ARCH059",
+   "severity": "error",
+   "message": "logging.basicConfig() configures logging: that belongs to sales.p0_common.logging_setup (setup_logging); here, only log with logging.getLogger(__name__)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 20
+  },
+  {
+   "code": "ARCH059",
+   "severity": "error",
+   "message": "logging.getLogger(__name__).addHandler() configures logging: that belongs to sales.p0_common.logging_setup (setup_logging); here, only log with logging.getLogger(__name__)",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 19
   },
   {
    "code": "DORA001",

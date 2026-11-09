@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -19,6 +20,8 @@ from invoicing.p0_common.config import load_config
 from invoicing.p0_common.logging_setup import setup_logging
 from invoicing.p1_domain.invoice_not_found_error import InvoiceNotFoundError
 from invoicing.p3_services.mark_paid import mark_paid
+
+logger = logging.getLogger(__name__)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -35,15 +38,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         given = {"INVOICING_DATA_DIR": args.data_dir} if args.data_dir else None
         config = load_config(given)
         setup_logging(config.log_level)
+        logger.info("%s started", args.command)
         invoice = mark_paid(Path(config.data_dir), args.number)
     except InvoiceNotFoundError as error:
         print(error, file=sys.stderr)
-        return 3
+        return _ended(args.command, 3)
     except ValueError as error:
         print(error, file=sys.stderr)
-        return 1
+        return _ended(args.command, 1)
     print(f"{invoice.number} {invoice.customer} {invoice.amount} {invoice.status}")
-    return 0
+    return _ended(args.command, 0)
+
+
+def _ended(command: str, code: int) -> int:
+    logger.info("%s ended with exit code %d", command, code)
+    return code
 
 
 if __name__ == "__main__":

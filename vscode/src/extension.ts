@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { tr } from './i18n';
+import { isFrench, tr } from './i18n';
 import { registerVowLanguage } from './vowLanguage';
 import { objects, str } from './workItems';
 import { ArchvowProject } from './workspace';
@@ -58,6 +58,19 @@ export function activate(context: vscode.ExtensionContext): void {
     const p = start();
     if (p) void run(p);
   };
+  context.subscriptions.push(vscode.commands.registerCommand('archvow.copyLog', async () => {
+    if (project === undefined) {
+      void vscode.window.showInformationMessage('archvow has not run anything yet in this window.');
+      return;
+    }
+    const fr = isFrench(vscode.workspace.getConfiguration('archvow').get<string>('language'), vscode.env.language);
+    const hide = tr(fr, 'Hide my answers and rationales', 'Masquer mes réponses et justifications');
+    const keep = tr(fr, 'Copy as it is', 'Copier tel quel');
+    const choice = await vscode.window.showQuickPick([hide, keep], { title: tr(fr, 'Copy the archvow log for support', 'Copier le journal archvow pour le support') });
+    if (choice === undefined) return;
+    await vscode.env.clipboard.writeText(project.runLog.supportText(choice === hide));
+    void vscode.window.showInformationMessage(tr(fr, 'The archvow log is in the clipboard.', 'Le journal archvow est dans le presse-papiers.'));
+  }));
 
   const initialize = async (): Promise<void> => {
     if (!vscode.workspace.isTrusted && findRoot() !== null) {

@@ -2,7 +2,7 @@
   "name": "archvow",
   "displayName": "archvow",
   "description": "Explore architecture, decisions, checks and AI skills in VS Code. Run guided ArchVow commands and edit .vow files.",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "publisher": "archvow",
   "license": "UNLICENSED",
   "private": true,
@@ -172,6 +172,11 @@
       {
         "command": "archvow.showOutput",
         "title": "Show the archvow log",
+        "category": "archvow"
+      },
+      {
+        "command": "archvow.copyLog",
+        "title": "Copy the archvow log for support",
         "category": "archvow"
       },
       {

@@ -10,7 +10,7 @@ PySpark pipeline for my_pipeline
 
 ```mermaid
 flowchart TB
-  subgraph my_pipeline["my_pipeline (pyspark-pipeline@1.21.0)"]
+  subgraph my_pipeline["my_pipeline (pyspark-pipeline@1.22.0)"]
     direction TB
     subgraph my_pipeline__p0_common["p0_common"]
       my_pipeline__config["config<br/><small>foundation</small>"]
@@ -166,6 +166,7 @@ What `archvow check` verifies on every component's code, family by family (the f
 | ARCH056 | warning | A business example has no marked test (an error in mode strict and with --complete) |
 | ARCH057 | warning | An item recorded before its component changed is not reviewed yet (an error with --complete) |
 | ARCH058 | error | The project is over its limit of components or lines of code (a warning from 90 %) |
+| ARCH059 | error | Logging configured outside the logging_setup foundation (one place configures it) |
 | ARCH021 | warning | New suppression compared to the base branch |
 | ARCH022 | error | Change too big for one merge request (files or lines over the budget) |
 | ARCH023 | error | Third-party package imported without approval |

@@ -23,6 +23,7 @@ Read the orders, clean them, compute their VAT, write the result
   - `my_pipeline.p1_domain.compute_vat` (transformation)
   - `my_pipeline.p2_io.vat_writer` (writer)
 - Used by: `my_pipeline_main` - their tests must stay green.
+- Log one line when it starts and one when it ends (with its duration), and the rows read and written per step, taken from what Spark already computed (the write's metrics, a DataFrame already cached): a df.count() of its own runs the whole job again.
 
 ## File header
 

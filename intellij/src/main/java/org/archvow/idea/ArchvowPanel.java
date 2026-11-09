@@ -421,10 +421,12 @@ final class ArchvowPanel extends JPanel {
         super(new BorderLayout());
         this.role = role;
         this.project = project;
+        ArchvowRunLog.sink(IDEA_LOG);
         this.cli = new ArchvowCli(project);
         this.catalogCli = new ArchvowCli(project);
         Disposer.register(project, lifetime);
         ArchvowVowWatcher.watch(project, lifetime, () -> {
+            if (System.currentTimeMillis() < ownChangeUntil) return true;  // the action just run, already read again
             if (refreshing || cli.isRunning()) return false;  // busy: the watcher tries again
             reload(false);
             return true;
@@ -744,7 +746,7 @@ final class ArchvowPanel extends JPanel {
         refresh.setToolTipText(ArchvowI18n.text(project,"Reload Archvow","Recharger Archvow"));
         compactUtility(refresh);
         right.add(refresh);
-        JButton logs = button("☷", () -> ArchvowRunLog.show(project));
+        JButton logs = button("☷", () -> ArchvowRunLogView.show(project));
         logs.setToolTipText(ArchvowI18n.text(project, "Open Archvow session log", "Ouvrir le journal Archvow"));
         logs.putClientProperty("JButton.buttonType", "toolBarButton");
         compactUtility(logs);
@@ -2555,7 +2557,7 @@ final class ArchvowPanel extends JPanel {
             "Loading task prompt…", "Chargement des instructions…"))));
         dataInlineResult.setCaretPosition(0);
         dataInlineResultCard.revalidate();
-        cli.execute("prompt", args, null, r -> {
+        cli.executeAction("prompt", args, null, r -> {
             if (ArchvowTaskPrompt.needsFullCardFallback(r.exitCode, r.output) && args.contains("--task")) {
                 runTaskPrompt(List.of("prompt", componentId), componentId, true);
                 return;
@@ -4018,7 +4020,7 @@ final class ArchvowPanel extends JPanel {
         commandResultCard.setVisible(true);
         commandResult.setText(htmlMessage("<b>⏳ " + escape(ArchvowI18n.text(project, "Running", "Exécution")) + "</b> · "
             + escape(ArchvowForms.commandLine(commandList.getSelectedValue(), currentValues(), ArchvowI18n.isFrench(project)))));
-        cli.execute(label, args, null, result -> {
+        cli.executeAction(label, args, null, result -> {
             if (!result.ok()) { storeCommandResult(commandResult, label, result); return; }
             try {
                 java.nio.file.Files.createDirectories(file.getParent());
@@ -4156,7 +4158,7 @@ final class ArchvowPanel extends JPanel {
             + "</b> · " + escape("archvow " + String.join(" ", args))));
         destination.setCaretPosition(0);
         revalidate();
-        cli.execute(label, args, stdin, result -> {
+        cli.executeAction(label, args, stdin, result -> {
             storeCommandResult(destination, label, result);
             destination.setToolTipText(String.join(" ", result.arguments));
             if (!args.isEmpty() && "check".equals(args.get(0)) && !result.interrupted) {
@@ -4180,8 +4182,64 @@ final class ArchvowPanel extends JPanel {
                     .notify(project);
                 reload(false);
             }
-            else if (refreshAfter && result.ok()) reload(false);
+            else if (refreshAfter && result.ok()) refreshTouched(args);
         });
+    }
+
+    /** Until when a vow change comes from the plugin's own action, already read again (0.19.0). */
+    private volatile long ownChangeUntil;
+
+    /**
+     * After an action: what it touched only - the spec, that component, check and next - when it names one
+     * component that exists (decision make, rule add, hazard add...); everything otherwise (0.19.0).
+     */
+    private void refreshTouched(List<String> args) {
+        String id = ArchvowGrammar.touchedComponent(args, componentSnapshots.keySet());
+        if (id == null || manifest == null || refreshing || cli.isRunning()) { reload(false); return; }
+        refreshing = true;
+        ownChangeUntil = System.currentTimeMillis() + 3000;
+        ArchvowRunLog.refreshStarted(project, "Refresh " + id);
+        cli.execute("Architecture after " + id, List.of("show", "--json"), null, read -> {
+            JsonObject data = ArchvowGrammar.parseObject(read.stdout);
+            if (data != null) { manifest = data; rebuildTree(); }
+            cli.execute("Component " + id, List.of("show", id, "--json"), null, shown -> {
+                JsonObject updated = ArchvowGrammar.componentView(shown.stdout, id);
+                if (updated != null) componentSnapshots.put(id, updated);
+                cli.execute("Check", List.of("check", "--json"), null, checked -> {
+                    check = ArchvowGrammar.parseObject(checked.stdout);
+                    checkFailure = check == null ? checked.output : "";
+                    cli.execute("Next", List.of("next", "--json"), null, next -> {
+                        nextResult = next.output == null ? "" : next.output;
+                        updateOverview();
+                        refreshing = false;
+                        ownChangeUntil = System.currentTimeMillis() + 3000;
+                        ArchvowRunLog.refreshEnded(project);
+                        if (role == Role.DETAIL && selectedComponent != null) loadComponent(selectedComponent);
+                        pushToDetail();
+                    });
+                });
+            });
+        });
+    }
+
+    /** The session log's lines in idea.log too: reads at debug level, actions at info, failures as warnings (0.19.0). */
+    private static final ArchvowRunLog.Sink IDEA_LOG = new ArchvowRunLog.Sink() {
+        private final com.intellij.openapi.diagnostic.Logger log = com.intellij.openapi.diagnostic.Logger.getInstance(ArchvowRunLog.class);
+        @Override public void info(String line) { log.info(line); }
+        @Override public void debug(String line) { log.debug(line); }
+        @Override public void warn(String line) { log.warn(line); }
+    };
+
+    /** The session log's header, once archvow answered --version (0.19.0). */
+    private void logSession(String versionOutput) {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+\\.\\d+\\.\\d+)").matcher(versionOutput == null ? "" : versionOutput);
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("plugin", ArchvowVersion.plugin());
+        fields.put("archvow", m.find() ? m.group(1) : "");
+        fields.put("python", cli.program());
+        fields.put("project", String.valueOf(project.getBasePath()));
+        fields.put("ide", com.intellij.openapi.application.ApplicationInfo.getInstance().getFullApplicationName());
+        ArchvowRunLog.header(project, fields);
     }
 
     /** After archvow --version: why the install would be offered, and the notification with "Install archvow". */
@@ -4242,17 +4300,20 @@ final class ArchvowPanel extends JPanel {
             versionChecked = true;
             cli.execute("Version", List.of("--version"), null, version -> {
                 versionChecked(version.output);
+                logSession(version.output);
                 reload(switchToOverview);
             });
             return;
         }
         refreshing = true;
+        ArchvowRunLog.refreshStarted(project, "Refresh");
         componentSnapshots.clear();
         if (switchToOverview) tabs.setSelectedIndex(0);
         overviewSummary.showLoading(ArchvowI18n.text(project, "Loading Archvow architecture…", "Chargement de l'architecture Archvow…"));
         cli.execute("Architecture", List.of("show", "--json"), null, read -> {
             if (read.interrupted) {
                 refreshing = false;
+                ArchvowRunLog.refreshEnded(project);
                 overviewSummary.showFailure(ArchvowI18n.text(project,
                     "Loading cancelled or timed out. You can retry with Refresh.",
                     "Chargement annulé ou délai dépassé. Tu peux relancer avec Rafraîchir."));
@@ -4261,6 +4322,7 @@ final class ArchvowPanel extends JPanel {
             JsonObject data = ArchvowGrammar.parseObject(read.stdout);
             if (!read.ok() || data == null) {
                 refreshing = false;
+                ArchvowRunLog.refreshEnded(project);
                 String detail = read.output == null ? "" : read.output.trim();
                 String hint = ArchvowResultFormatter.advice(detail, ArchvowI18n.isFrench(project));
                 String explanation = !hint.isBlank() ? hint :
@@ -4295,6 +4357,7 @@ final class ArchvowPanel extends JPanel {
                             briefStatus = briefs.ok() ? ArchvowGrammar.parseObject(briefs.stdout) : null;
                             updateOverview();
                             refreshing = false;
+                            ArchvowRunLog.refreshEnded(project);
                             if (role == Role.DETAIL && selectedComponent != null) loadComponent(selectedComponent);
                             pushToDetail();
                         });
@@ -5257,7 +5320,7 @@ final class ArchvowPanel extends JPanel {
         if (resultCard == null) return;
         resultCard.setVisible(true);
         destination.setText(htmlMessage("<b>" + escape(ArchvowI18n.text(project, "Running…", "Exécution…")) + "</b>"));
-        cli.execute(label, args, null, result -> {
+        cli.executeAction(label, args, null, result -> {
             storeCommandResult(destination, label, result);
             if (result.ok()) {
                 // Update the selected component in place, no navigation to Commands.

@@ -31,7 +31,7 @@ public class DetailAndLogRegression {
         if (!actual.startsWith("RÉPONDRE À LA DÉCISION 2") || actual.contains("Enregistrée par") || !actual.contains("SUGGÉRÉ"))
             throw new IllegalStateException("Open decision heading: " + actual);
         Object project = new Object();
-        ArchvowRunLog.record(project, "check", 2, false, 24);
+        ArchvowRunLog.record(project, new ArchvowRunLog.Call(java.util.List.of("check"), 2, "", "boom", false), true, 24);
         String log = ArchvowRunLog.snapshot(project, false);
         if (!log.contains("exit 2") || !log.contains("24 ms") || log.contains("--root"))
             throw new IllegalStateException("Unexpected log: " + log);

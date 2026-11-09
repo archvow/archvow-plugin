@@ -27,6 +27,7 @@ Personal columns it handles: `customer` (personal).
 - End the file with `if __name__ == "__main__": raise SystemExit(main())`, so `python -m <module>` runs it.
 - Parse the arguments with argparse; turn domain errors into a message on stderr and an exit code, never a traceback.
 - Accept one --name-with-dashes argument per required setting of the config decision (archvow next prints them in its run line).
+- Call setup_logging once, first; log the start and the end of the run with its exit code, never the values the user typed in when they may be personal.
 
 ## File header
 

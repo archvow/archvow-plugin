@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `fastapi-service@1.21.0`).
+(template `fastapi-service@1.22.0`).
 
 ## For developers
 
@@ -139,8 +139,9 @@ hook and the CI refuse other branch names. Releases and hotfixes:
 archvow's documentation, *Daily workflow*.
 
 `init` writes the spec folder `.archvow/`, the guards (AGENTS.md, ruff.toml, the test
-settings, CI, CODEOWNERS, the Git hook) and one starting component, `settings`. It never writes
-source code, and runs once: developers clone the repository instead.
+settings, CI, CODEOWNERS, the Git hook) and two starting components, `settings` and
+`logging_setup` (the only place that configures logging). It never writes source code, and runs
+once: developers clone the repository instead.
 
 **2. Declare the components** - each one's type, a name, and what it must do; here the whole
 chain, from the data to the entry point:
@@ -205,6 +206,7 @@ archvow next
 
 ```
   component                    type            status
+✖ logging_setup                foundation      blocked: 1 decision to make  -> archvow specify logging_setup
 ✖ settings                     foundation      blocked: 2 decisions to make  -> archvow specify settings
 ✖ order_model                  model           blocked: 2 decisions to make  -> archvow specify order_model
 ✖ create_order                 service         blocked: 5 decisions to make  -> archvow specify create_order
@@ -213,7 +215,7 @@ archvow next
 
 Safety: 1 of 13 questions answered  -> archvow specify
 
-! Not ready to run yet: main needs settings (planned), order_model (planned), create_order (planned), orders_router (planned), main (planned)
+! Not ready to run yet: main needs logging_setup (planned), settings (planned), order_model (planned), create_order (planned), orders_router (planned), main (planned)
 ```
 
 *blocked*: questions are still open; answer them as in step 3 and the component becomes

@@ -51,8 +51,18 @@ final class ArchvowCli {
     ArchvowCli(Project project) { this.project = project; }
     boolean isRunning() { return running.get(); }
 
+    /** The program archvow runs with (a Python, or the archvow executable), once found: for the session log. */
+    String program() { return program; }
+    private volatile String program = "";
+
+    /** A read the workspace does itself (show, check, next...): one line of a refresh in the session log. */
     void execute(String label, List<String> arguments, String stdin, Consumer<Result> finished) {
-        executeInternal(label, arguments, stdin, false, null, finished);
+        executeInternal(label, arguments, stdin, false, null, false, finished);
+    }
+
+    /** What a person asked for: a line of its own in the session log, with the whole command (0.19.0). */
+    void executeAction(String label, List<String> arguments, String stdin, Consumer<Result> finished) {
+        executeInternal(label, arguments, stdin, false, null, true, finished);
     }
 
     /**
@@ -61,11 +71,11 @@ final class ArchvowCli {
      * --template /path/to/pack may additionally expose its parent catalog.
      */
     void executeGlobalCatalog(String templateDirectory, Consumer<Result> finished) {
-        executeInternal("Catalog", List.of("catalog", "--json"), null, true, templateDirectory, finished);
+        executeInternal("Catalog", List.of("catalog", "--json"), null, true, templateDirectory, false, finished);
     }
 
     private void executeInternal(String label, List<String> arguments, String stdin,
-                                 boolean globalCatalog, String templateDirectory,
+                                 boolean globalCatalog, String templateDirectory, boolean action,
                                  Consumer<Result> finished) {
         if (!running.compareAndSet(false, true)) {
             finished.accept(new Result(arguments, -1, "Une autre commande Archvow est déjà en cours."));
@@ -79,8 +89,8 @@ final class ArchvowCli {
                 catch (Exception ex) {
                     result = new Result(arguments, -1, describeFailure(ex));
                 } finally { running.set(false); }
-                ArchvowRunLog.record(project, label, result.exitCode, result.interrupted,
-                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
+                ArchvowRunLog.record(project, new ArchvowRunLog.Call(result.arguments, result.exitCode, result.stdout,
+                    result.stderr, result.interrupted), action, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
                 Result returned = result;
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (!project.isDisposed()) finished.accept(returned);
@@ -123,11 +133,12 @@ final class ArchvowCli {
         synchronized (CHOSEN) {
             String[] known = CHOSEN.get(project);
             if (known != null && known[0].equals(signature))
-                for (ArchvowProcessCommand.Candidate c : candidates) if (c.toString().equals(known[1])) return c;
+                for (ArchvowProcessCommand.Candidate c : candidates) if (c.toString().equals(known[1])) { program = c.program(); return c; }
         }
         Probe probe = probe(candidates, root, ArchvowI18n.isFrench(project));
         if (probe.chosen() == null) throw new NotFound(probe.report());
         synchronized (CHOSEN) { CHOSEN.put(project, new String[] {signature, probe.chosen().toString()}); }
+        program = probe.chosen().program();
         return probe.chosen();
     }
 

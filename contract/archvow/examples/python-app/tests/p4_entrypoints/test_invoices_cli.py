@@ -36,7 +36,9 @@ def test_the_invoice_on_stdout_errors_on_stderr(
     assert main(["--data-dir", str(tmp_path), "pay", "F-1"]) == 0
     assert capsys.readouterr().out == "F-1 Ada 12.50 paid\n"
     main(["--data-dir", str(tmp_path), "pay", "F-404"])
-    assert capsys.readouterr().err == "Invoice not found: F-404\n"
+    err = capsys.readouterr().err.splitlines()
+    assert "Invoice not found: F-404" in err  # with the run's log lines around it
+    assert err[-1].endswith("INFO pay ended with exit code 3")
 
 
 @pytest.mark.example("US-001-pay-a-sent-invoice")
