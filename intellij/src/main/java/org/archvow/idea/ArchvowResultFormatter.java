@@ -22,7 +22,7 @@ final class ArchvowResultFormatter {
                            String raised, String good, String warn, String bad, String blue) {
         static Palette of(boolean dark) {
             return dark
-                ? new Palette("#282B30", "#E0E6EF", "#AAB6C6", "#505763", "#363B43",
+                ? new Palette("#2B3039", "#E0E6EF", "#AAB6C6", "#48505C", "#363D47",
                               "#80DFAC", "#F2C46A", "#FF909D", "#83B9FF")
                 : new Palette("#FFFFFF", "#253247", "#596B80", "#D9E1EB", "#F3F6FA",
                               "#13814F", "#A86B15", "#B82646", "#235FA9");
@@ -83,8 +83,8 @@ final class ArchvowResultFormatter {
                 } else paragraph(out, cut(raw, 16000), p.foreground);
             }
         }
-        out.append("<table width='100%' cellpadding='5' cellspacing='0' style='margin-top:12px;'><tr><td bgcolor='")
-            .append(p.raised).append("'><small><font color='").append(p.muted).append("'>")
+        out.append("<table id='av-footer' width='100%' cellspacing='0' cellpadding='0' border='0'>")
+            .append("<tr><td style='padding:9px 12px;'><small><font color='").append(p.muted).append("'>")
             .append(tr(french, "Exit code: ", "Code retour : ")).append(exitCode)
             .append(" &nbsp;·&nbsp; ")
             .append(tr(french, "Original output available via 'Raw output'", "Sortie originale accessible via « Sortie brute »"))
@@ -438,45 +438,43 @@ final class ArchvowResultFormatter {
 
     private static StringBuilder begin(Palette p) {
         // sizes from the IDE's font, in pt (ArchvowHtml): "12px" and h3/h4 drew text far larger than the IDE's
-        return new StringBuilder(ArchvowHtml.body(p.foreground, p.bg));
+        return new StringBuilder(ArchvowHtml.body(p.foreground, null));
     }
-    /** Shared visual hierarchy with the VS Code result cards, using Swing-safe HTML tables. */
+    /** Native Swing paints the rounded surface behind these transparent HTML tables. */
     private static void heading(StringBuilder out, Palette p, String title, String accent) {
-        out.append("<table width='100%' cellspacing='0' cellpadding='0' border='0' style='margin-bottom:10px;'><tr>")
-            .append("<td width='5' bgcolor='").append(accent).append("'>&nbsp;</td>")
-            .append("<td width='46' bgcolor='").append(p.raised).append("' align='center'><font color='")
+        out.append("<table id='av-heading-").append(accentName(p, accent))
+            .append("' width='100%' cellspacing='0' cellpadding='0' border='0'><tr>")
+            .append("<td width='7'>&nbsp;</td>")
+            .append("<td width='48' align='center'><font color='")
             .append(accent).append("' size='+2'><b>&#9670;</b></font></td>")
-            .append("<td bgcolor='").append(p.raised).append("' style='padding:8px;'>")
+            .append("<td style='padding:9px 10px;'>")
             .append("<font color='").append(p.muted).append("'><small><b>ARCHVOW &#183; RESULT</b></small></font>")
             .append("<div style='margin-top:3px;'>")
             .append(ArchvowHtml.heading(esc(title), 1.1, "color:" + accent + "; margin:3px 0;"))
-            .append("</div></td></tr></table>");
+            .append("</div></td></tr></table>")
+            .append(spacer(14));
     }
     private static void section(StringBuilder out, Palette p, String label) {
-        out.append("<div style='margin-top:12px; border-bottom:1px solid:").append(p.line).append(";'>")
-            .append(ArchvowHtml.heading(esc(label), 1.0, "color:" + p.foreground + "; margin:4px 0 6px 0;"))
+        out.append("<div style='margin-top:10px;'>")
+            .append(ArchvowHtml.heading(esc(label), 1.0, "color:" + p.foreground + "; margin:3px 0 7px 0;"))
             .append("</div>");
     }
     private static void summary(StringBuilder out, Palette p, List<String> chips) {
-        out.append("<table cellspacing='7' cellpadding='0' style='margin:8px 0 12px;'><tr>");
+        out.append("<table cellspacing='8' cellpadding='0' style='margin:6px 0 12px;'><tr>");
         for (String item : chips) {
-            out.append("<td bgcolor='").append(p.raised)
-                .append("' style='padding:9px 11px;'><font color='").append(p.muted)
-                .append("'><b>&#9679;</b></font>&nbsp;&nbsp;").append(item).append("</td>");
+            out.append("<td id='av-chip' style='padding:8px 11px;'>")
+                .append(item).append("</td>");
         }
         out.append("</tr></table>");
     }
     private static String chip(String text, String color) {
-        return "<b><font color='" + color + "'>" + esc(text) + "</font></b>";
+        return "<b><font color='" + color + "'>&#9679;&nbsp;" + esc(text) + "</font></b>";
     }
     private static void card(StringBuilder out, Palette p, String title, String body, String accent, String extraHtml) {
-        // Swing JEditorPane supports HTML 3.2 tables but not modern CSS grid/flex.
-        // Keep the status strip, raised background and distinct heading/detail rows
-        // consistent with the VS Code cards; don't alter or synthesize result data.
-        out.append("<table width='100%' cellspacing='0' cellpadding='0' border='0' style='margin-top:9px;'>")
-            .append("<tr><td width='5' bgcolor='").append(accent).append("'>&nbsp;</td>")
-            .append("<td bgcolor='").append(p.raised).append("'>")
-            .append("<table width='100%' cellspacing='0' cellpadding='9' border='0'><tr><td>")
+        out.append("<table id='av-card-").append(accentName(p, accent))
+            .append("' width='100%' cellspacing='0' cellpadding='0' border='0'>")
+            .append("<tr><td width='7'>&nbsp;</td>")
+            .append("<td><table width='100%' cellspacing='0' cellpadding='16' border='0'><tr><td>")
             .append("<font color='").append(accent).append("'><b>&#9679;</b></font>&nbsp;&nbsp;")
             .append("<b><font color='").append(p.foreground).append("'>")
             .append(esc(title)).append("</font></b>");
@@ -484,7 +482,19 @@ final class ArchvowResultFormatter {
             .append(esc(cut(body, 4500))).append("</div>");
         if (extraHtml != null && !extraHtml.isEmpty()) out.append("<div style='margin-top:7px;'>")
             .append(extraHtml).append("</div>");
-        out.append("</td></tr></table></td></tr></table><p style='margin:2px;'>&nbsp;</p>");
+        out.append("</td></tr></table></td></tr></table>")
+            .append(spacer(14));
+    }
+    /** Fixed HTML table height is respected by Swing's renderer; CSS margins are not. */
+    private static String spacer(int height) {
+        return "<table width='100%' cellspacing='0' cellpadding='0' border='0'>"
+            + "<tr><td height='" + height + "'></td></tr></table>";
+    }
+    private static String accentName(Palette p, String color) {
+        if (p.good.equals(color)) return "good";
+        if (p.warn.equals(color)) return "warn";
+        if (p.bad.equals(color)) return "bad";
+        return "blue";
     }
     private static void field(StringBuilder out, Palette p, String key, String value) {
         if (value == null || value.isBlank()) return;

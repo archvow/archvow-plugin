@@ -134,13 +134,13 @@ final class ArchvowPanel extends JPanel {
     private final ArchvowArchitectureView overviewSummary = new ArchvowArchitectureView();
     private final ArchvowChecksView diagnostics = new ArchvowChecksView(false);
     private final ArchvowChecksView detailDiagnostics = new ArchvowChecksView();
-    private final JEditorPane overviewResult = htmlPane();
-    private final JEditorPane commandResult = htmlPane();
+    private final JEditorPane overviewResult = resultHtmlPane();
+    private final JEditorPane commandResult = resultHtmlPane();
     private ArchvowInitQuestions initQuestions;
 
-    private final JEditorPane componentResult = htmlPane();
+    private final JEditorPane componentResult = resultHtmlPane();
     private JPanel componentResultCard;
-    private final JEditorPane quickResult = htmlPane();
+    private final JEditorPane quickResult = resultHtmlPane();
     private JPanel overviewResultCard;
     private JPanel commandResultCard;
     private JPanel quickResultCard;
@@ -199,7 +199,7 @@ final class ArchvowPanel extends JPanel {
     private final JTextPane safetyDetails = ArchvowSafetyView.create();
     private final JEditorPane questionDetails = htmlPane();
     private final JTextArea questionAnswer = new JTextArea(3, 30);
-    private final JEditorPane questionInlineResult = htmlPane();
+    private final JEditorPane questionInlineResult = resultHtmlPane();
     private JPanel questionInlineResultCard;
     private final DefaultListModel<ArchvowItemCards.Card> questionModel = new DefaultListModel<>();
     private final JList<ArchvowItemCards.Card> questionList = new JList<>(questionModel);
@@ -213,8 +213,8 @@ final class ArchvowPanel extends JPanel {
     private final JButton hazardInline = ArchvowSplitView.primary("");
     private final JButton dismissInline = new JButton();
     private final JLabel safetyInputLabel = new JLabel();
-    private final JEditorPane decisionInlineResult = htmlPane();
-    private final JEditorPane safetyInlineResult = htmlPane();
+    private final JEditorPane decisionInlineResult = resultHtmlPane();
+    private final JEditorPane safetyInlineResult = resultHtmlPane();
     private JPanel decisionInlineResultCard, safetyInlineResultCard;
     private final JEditorPane commandQuestionPreview = htmlPane();
     private final JEditorPane assumptionDetails = htmlPane();
@@ -227,7 +227,7 @@ final class ArchvowPanel extends JPanel {
     private final JButton dataActionButton = new JButton();
     private final JTextArea dataSelectedDetails = new JTextArea(4, 30);
     private final JButton dataEditDescription = new JButton();
-    private final JEditorPane dataInlineResult = htmlPane();
+    private final JEditorPane dataInlineResult = resultHtmlPane();
     private JPanel dataInlineResultCard;
     private JPanel dataActionsPanel;
     private final JButton safetySuggestedButton = new JButton();
@@ -744,7 +744,7 @@ final class ArchvowPanel extends JPanel {
         refresh.setToolTipText(ArchvowI18n.text(project,"Reload Archvow","Recharger Archvow"));
         compactUtility(refresh);
         right.add(refresh);
-        JButton logs = button("☷", () -> ArchvowRunLog.show(this, project, ArchvowI18n.isFrench(project)));
+        JButton logs = button("☷", () -> ArchvowRunLog.show(project));
         logs.setToolTipText(ArchvowI18n.text(project, "Open Archvow session log", "Ouvrir le journal Archvow"));
         logs.putClientProperty("JButton.buttonType", "toolBarButton");
         compactUtility(logs);
@@ -1707,10 +1707,14 @@ final class ArchvowPanel extends JPanel {
     }
 
     private JPanel inlineResultCard(JEditorPane pane, Runnable close) {
-        JPanel outer = new JPanel(new BorderLayout(0, 4)) {
+        JPanel outer = new JPanel(new BorderLayout(0, 7)) {
             @Override public void updateUI() {
                 super.updateUI();
                 applyResultCardPalette(this);
+            }
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                paintResultCardSurface(g, this);
             }
         };
         applyResultCardPalette(outer);
@@ -1720,8 +1724,7 @@ final class ArchvowPanel extends JPanel {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 12f));
         JPanel controls = new JPanel(new ArchvowWrapLayout(FlowLayout.RIGHT, 5, 1));
         controls.setOpaque(false);
-        JToggleButton rawToggle = new JToggleButton(ArchvowI18n.text(project, "Raw output", "Sortie brute"));
-        rawToggle.setFocusPainted(false);
+        JToggleButton rawToggle = resultToggleButton(ArchvowI18n.text(project, "Raw output", "Sortie brute"));
         rawToggle.setEnabled(false);
         rawToggle.setToolTipText(ArchvowI18n.text(project,
             "Show the original Archvow output for technical inspection",
@@ -1729,7 +1732,7 @@ final class ArchvowPanel extends JPanel {
         pane.putClientProperty("archvow.rawToggle", rawToggle);
         rawToggle.addActionListener(e -> showStoredCommandResult(pane));
         controls.add(rawToggle);
-        JButton copy = button(ArchvowI18n.text(project, "Copy", "Copier"), () -> {
+        JButton copy = resultActionButton(ArchvowI18n.text(project, "Copy", "Copier"), () -> {
             Object stored = pane.getClientProperty("archvow.resultOutput");
             if (stored instanceof String source && !source.isBlank()) {
                 java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
@@ -1740,20 +1743,21 @@ final class ArchvowPanel extends JPanel {
             "Copy original output (including the complete AI prompt)",
             "Copier la sortie originale (y compris les instructions IA complètes)"));
         controls.add(copy);
-        JButton dismiss = button("×", () -> {
+        JButton dismiss = resultActionButton("×", () -> {
             if (resultExpansion != null && resultExpansion.isExpanded()) collapseExpandedResult();
             close.run();
         });
         dismiss.setToolTipText(ArchvowI18n.text(project, "Close result", "Fermer le résultat"));
         JScrollPane scroll = scroll(pane);
-        scroll.setBorder(BorderFactory.createLineBorder(borderColor()));
+        // The result canvas sits inside the quiet surface without a second dark outline.
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setViewportBorder(null);
+        scroll.getViewport().setBackground(darkTheme() ? new Color(39, 43, 51) : new Color(249, 251, 254));
         scroll.setPreferredSize(new Dimension(200, RESULT_HEIGHT));
         // Drag changes inline height; Expand instead uses the entire workspace.
-        JToggleButton expand = new JToggleButton(ArchvowI18n.text(project, "Expand", "Agrandir"));
-        expand.setFocusPainted(false);
+        JToggleButton expand = resultToggleButton(ArchvowI18n.text(project, "Expand", "Agrandir"));
         expand.setToolTipText(ArchvowI18n.text(project, "Show the result across the entire editor. Reduce to return to the form.",
             "Afficher le résultat sur toute la largeur de l’éditeur. Réduire pour revenir au formulaire."));
-        ArchvowUiIcons.decorate(expand);
         expand.addActionListener(e -> {
             if (expand.isSelected()) {
                 // A taller card in BorderLayout.SOUTH is clipped above the command editor;
@@ -6663,6 +6667,15 @@ final class ArchvowPanel extends JPanel {
         pane.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         return pane;
     }
+    /** Result content alone gets rounded native card painting; other HTML views are unchanged. */
+    private static JEditorPane resultHtmlPane() {
+        JEditorPane pane = new ArchvowResultPane();
+        pane.setEditable(false);
+        pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        pane.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        pane.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        return pane;
+    }
     private static JLabel badgeLabel() {
         JLabel label = new JLabel();
         label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
@@ -6707,19 +6720,94 @@ final class ArchvowPanel extends JPanel {
         if (named != null) return darkTheme() ? ArchvowMotion.blend(named, Color.WHITE, .08) : named;
         return darkTheme() ? new Color(68, 74, 88) : new Color(220, 225, 230);
     }
-    /** Result cards use a subtle independent surface, with a theme-aware blue leading edge. */
+    /** Quiet, rounded command-results surface; no blue frame or double dark border. */
     private static void applyResultCardPalette(JPanel card) {
-        Color base = UIManager.getColor("Panel.background");
-        if (base == null) base = darkTheme() ? new Color(39, 40, 44) : new Color(246, 247, 249);
-        Color accent = ArchvowMotion.accent();
-        Color tint = ArchvowMotion.blend(base, accent, darkTheme() ? .17 : .075);
-        card.setOpaque(true);
-        card.setBackground(tint);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 3, 0, 0, accent),
-            BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(borderColor()),
-                BorderFactory.createEmptyBorder(6, 9, 7, 9))));
+        card.setOpaque(false);
+        card.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+    }
+
+    private static void paintResultCardSurface(Graphics graphics, JComponent card) {
+        Graphics2D g = (Graphics2D) graphics.create();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Color background = UIManager.getColor("Panel.background");
+            if (background == null) background = darkTheme() ? new Color(39, 40, 44) : Color.WHITE;
+            Color fill = ArchvowMotion.blend(background, ArchvowMotion.accent(), darkTheme() ? .075 : .035);
+            Color outline = ArchvowMotion.blend(fill, darkTheme() ? Color.WHITE : Color.BLACK,
+                darkTheme() ? .14 : .12);
+            int w = card.getWidth() - 1, h = card.getHeight() - 1;
+            if (w < 1 || h < 1) return;
+            g.setColor(fill);
+            g.fillRoundRect(0, 0, w, h, 13, 13);
+            g.setColor(outline);
+            g.drawRoundRect(0, 0, w, h, 13, 13);
+        } finally { g.dispose(); }
+    }
+
+    /** Result actions only: understated rounded buttons, with the existing labels and icons. */
+    private static void styleResultAction(AbstractButton button) {
+        // Do not install the generic animated border: it makes result buttons look boxed in.
+        button.putClientProperty("archvow.button.hoverInstalled", Boolean.TRUE);
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setRolloverEnabled(true);
+        button.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+    }
+
+    private static void paintResultActionSurface(Graphics graphics, AbstractButton button) {
+        Graphics2D g = (Graphics2D) graphics.create();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Color base = UIManager.getColor("Panel.background");
+            if (base == null) base = darkTheme() ? new Color(39, 40, 44) : Color.WHITE;
+            Color ink = darkTheme() ? Color.WHITE : Color.BLACK;
+            Color fill = ArchvowMotion.blend(base, ink, darkTheme() ? .09 : .045);
+            ButtonModel model = button.getModel();
+            if (model.isSelected()) fill = ArchvowMotion.blend(fill, ArchvowMotion.accent(), .16);
+            if (model.isRollover() && button.isEnabled())
+                fill = ArchvowMotion.blend(fill, ArchvowMotion.accent(), .12);
+            if (model.isPressed() && model.isArmed())
+                fill = ArchvowMotion.blend(fill, ArchvowMotion.accent(), .22);
+            Color outline = ArchvowMotion.blend(fill, ink, darkTheme() ? .16 : .14);
+            if (!button.isEnabled()) {
+                fill = ArchvowMotion.blend(fill, base, .35);
+                outline = ArchvowMotion.blend(outline, base, .35);
+            }
+            if (button.isFocusOwner()) outline = ArchvowMotion.blend(outline, ArchvowMotion.accent(), .4);
+            int w = button.getWidth() - 1, h = button.getHeight() - 1;
+            if (w < 1 || h < 1) return;
+            g.setColor(fill);
+            g.fillRoundRect(0, 0, w, h, 9, 9);
+            g.setColor(outline);
+            g.drawRoundRect(0, 0, w, h, 9, 9);
+        } finally { g.dispose(); }
+    }
+
+    private static JButton resultActionButton(String text, Runnable action) {
+        JButton button = new JButton(text) {
+            @Override protected void paintComponent(Graphics g) {
+                paintResultActionSurface(g, this);
+                super.paintComponent(g);
+            }
+        };
+        styleResultAction(button);
+        ArchvowUiIcons.decorate(button);
+        button.addActionListener(e -> action.run());
+        return button;
+    }
+
+    private static JToggleButton resultToggleButton(String text) {
+        JToggleButton button = new JToggleButton(text) {
+            @Override protected void paintComponent(Graphics g) {
+                paintResultActionSurface(g, this);
+                super.paintComponent(g);
+            }
+        };
+        styleResultAction(button);
+        ArchvowUiIcons.decorate(button);
+        return button;
     }
 
     /** The command as typed, a code chip (VS Code's <code>): monospaced, a tinted background, a thin outline. */

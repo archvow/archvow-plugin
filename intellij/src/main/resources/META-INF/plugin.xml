@@ -61,6 +61,9 @@
     <!-- the navigation (Overview, Components, Commands) on the left; what is chosen opens in ONE editor tab -->
     <toolWindow id="Archvow" anchor="left" icon="/icons/archvowToolWindow.svg"
                 factoryClass="org.archvow.idea.ArchvowToolWindowFactory"/>
+    <!-- The session log opens only when its existing header button is clicked. -->
+    <toolWindow id="Archvow Output" anchor="bottom" icon="/icons/archvowToolWindow.svg"
+                factoryClass="org.archvow.idea.ArchvowOutputToolWindowFactory"/>
     <editorTabTitleProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>
     <fileIconProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>
     <projectConfigurable instance="org.archvow.idea.ArchvowSettingsConfigurable" id="org.archvow.settings"
