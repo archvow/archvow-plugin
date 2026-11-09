@@ -3,7 +3,6 @@ package org.archvow.idea;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 0.19.0, the same as VS Code (vscode/src/test/runlog.test.ts): an action in full with archvow's answer, a
@@ -53,9 +52,6 @@ public final class RunLogRegression {
         check(ArchvowRunLog.supportText(project, false).contains("hunter2"), "as it is on request");
         check(ArchvowRunLog.masked(List.of("hazard", "dismiss", "t", "leak", "why")).equals(List.of("hazard", "dismiss", "t", "leak", "<text>")), "masked");
 
-        check("settings".equals(ArchvowGrammar.touchedComponent(List.of("decision", "make", "settings", "1", "x"), Set.of("settings"))), "touched");
-        check(ArchvowGrammar.touchedComponent(List.of("decision", "make", "gone", "1", "x"), Set.of("settings")) == null, "unknown component");
-        check(ArchvowGrammar.touchedComponent(List.of("component", "remove", "settings"), Set.of("settings")) == null, "component commands");
         System.out.println("OK: run log");
     }
 }

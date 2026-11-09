@@ -3,7 +3,6 @@
 // are one summary line (each read at debug level); a failure is an error with archvow's message.
 // Pure: the channel is given, so the tests read the lines without VS Code.
 import { CliResult, display, failure } from './cli';
-import { Command } from './grammar';
 
 /** Where the lines go: VS Code's LogOutputChannel (it adds the time, keeps the levels, rotates). */
 export interface LogSink {
@@ -136,17 +135,4 @@ export class RunLog {
     this.kept.push({ time, line, hidden });
     if (this.kept.length > KEPT) this.kept.splice(0, this.kept.length - KEPT);
   }
-}
-
-/**
- * The one component an action changes, when its command names it (decision make <component>, rule
- * add <component>...) and it exists: the extension then refreshes only that one. null for the
- * component commands themselves (add, remove, rename change the architecture) and for anything else.
- */
-export function touchedComponent(command: Command | undefined, args: string[], known: string[]): string | null {
-  if (command === undefined || command.path[0] === 'component' || command.path[0] === 'init') return null;
-  const positional = command.parameters.filter((p) => p.flags.length === 0);
-  const at = positional.findIndex((p) => p.name === 'component');
-  const id = at < 0 ? undefined : args[command.path.length + at];
-  return id !== undefined && known.includes(id) ? id : null;
 }

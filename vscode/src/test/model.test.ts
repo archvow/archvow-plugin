@@ -5,7 +5,7 @@ import * as path from 'node:path';
 import { test } from 'node:test';
 import {
   buildTree, CheckResult, componentOfViolation, componentView, describe, knownVersion, Node, NextRow, problemsOf, Spec, statusIcon,
-  contractWarning, parseContract,
+  contractWarning, parseContract, readWorkspace,
 } from '../model';
 
 const CLI = path.resolve(__dirname, '..', '..', '..', 'contract', 'cli');
@@ -80,7 +80,7 @@ test('the CLI contract: the same MAJOR and a MINOR at least the plugin\'s; older
   const tested = knownVersion(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'));
   const wanted = fs.readFileSync(path.join(CLI, 'contract.txt'), 'utf8').trim();
   assert.match(tested, /^\d+\.\d+\.\d+$/);
-  assert.deepEqual(parseContract(wanted), [1, 0]);
+  assert.deepEqual(parseContract(wanted), [1, 1]);  // 1.1: archvow 1.25's workspace
   assert.equal(parseContract('1.0.0'), null);
   assert.equal(contractWarning({ version: tested, contract: wanted }, wanted, tested), null);
   assert.equal(contractWarning({ version: '1.24.3', contract: '1.4' }, '1.0', tested), null, 'a later minor contract');
@@ -101,4 +101,26 @@ test('show <id> --json is a component\'s view only when it names that component 
   assert.equal(componentView(read<View>('python-app', 'search', 'mark_payd.json'), 'mark_payd'), null);
   assert.equal(componentView(read<View>('python-app', 'search', 'InvoiceNotFoundError.json'), 'InvoiceNotFoundError'), null);
   assert.equal(componentView(null, 'mark_paid'), null);
+});
+
+test('workspace --json is every command the extension reads, in one answer (archvow 1.25, contract 1.1)', () => {
+  type View = Record<string, unknown>;
+  const drop = (v: View): View => Object.fromEntries(Object.entries(v).filter(([k]) => k !== 'contract'));
+  for (const example of EXAMPLES.filter((e) => fs.existsSync(path.join(CLI, e, 'workspace.json')))) {
+    const answer = readWorkspace(read<View>(example, 'workspace.json'));
+    assert.ok(answer !== null && answer !== 'unchanged', example);
+    assert.equal(answer.digest, '<digest>');
+    assert.deepEqual(answer.spec, drop(read<View>(example, 'show.json')));
+    assert.deepEqual(answer.next, read<View[]>(example, 'next.json'));
+    assert.deepEqual(answer.check, drop(read<View>(example, 'check.json')));
+    const shown = fs.readdirSync(path.join(CLI, example, 'show')).map((f) => f.replace(/\.json$/, '')).sort();
+    assert.deepEqual(Object.keys(answer.snapshots).sort(), shown);
+    for (const id of shown) assert.deepEqual(answer.snapshots[id], drop(read<View>(example, 'show', `${id}.json`)));
+    assert.ok(Array.isArray(answer.briefStatus?.files), example);
+    assert.ok(Array.isArray(answer.catalog?.templates), example);
+  }
+  assert.equal(readWorkspace({ unchanged: true, digest: 'abc' }), 'unchanged');
+  assert.equal(readWorkspace(JSON.parse(read<{ stdout: string }>('errors', 'no-spec.json').stdout) as View), null);  // the error envelope
+  assert.equal(readWorkspace({ digest: 'abc', project: {} }), null);  // a part missing
+  assert.equal(readWorkspace(null), null);
 });

@@ -14,8 +14,8 @@ every flow, and why. The user documentation is in the READMEs (`README.md`, `int
 (`wiki/` of the archvow repository) explains the CLI itself: read it to learn what a decision, a hazard
 or `archvow check` is.
 
-Version described: **archvow-plugin 0.20.0**, speaking **archvow's contract 1.0** (`contract/cli/contract.txt`),
-tested with **archvow 1.23.0** (`contract/cli/version.txt`).
+Version described: **archvow-plugin 0.21.0**, speaking **archvow's contract 1.1** (`contract/cli/contract.txt`),
+tested with **archvow 1.25.0** (`contract/cli/version.txt`).
 About 21,800 lines of Java (`intellij/src/main/java`), 10,000 lines of TypeScript, JavaScript and CSS
 (`vscode/src`, `vscode/media`), 63 IntelliJ test classes and 162 VS Code tests.
 
@@ -83,6 +83,6 @@ flowchart LR
   vs -->|runs, no shell| CLI
 ```
 
-Both plugins **read what the CLI prints** (`show --json`, `next --json`, `check --json`) and **run an
+Both plugins **read what the CLI prints** (`workspace --json`, which holds `show`, `next` and `check`) and **run an
 archvow command, after a confirmation, for every change**. Everything in the repository serves one of
 these two halves, or the contract that guarantees they understand the same CLI.

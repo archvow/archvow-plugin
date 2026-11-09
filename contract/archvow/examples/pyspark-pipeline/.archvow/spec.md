@@ -10,7 +10,7 @@ PySpark pipeline for my_pipeline
 
 ```mermaid
 flowchart TB
-  subgraph my_pipeline["my_pipeline (pyspark-pipeline@1.23.0)"]
+  subgraph my_pipeline["my_pipeline (pyspark-pipeline@1.25.0)"]
     direction TB
     subgraph my_pipeline__p0_common["p0_common"]
       my_pipeline__config["config<br/><small>foundation</small>"]

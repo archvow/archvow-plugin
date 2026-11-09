@@ -9,7 +9,7 @@ names an archvow command, a form prefilled with it (vscode/src/test/guidance.tes
 
 The venv must have archvow's source installed with its test dependencies (pip install -e "<source>[dev]",
 plus pyspark and Java for the Spark scenario). For the run, a .pth file in the venv wraps
-archvow.check.Violation so every violation - in pytest and in the archvow commands the tests start - is
+archvow.checks.engine.Violation (archvow 1.25) so every violation - in pytest and in the archvow commands the tests start - is
 appended to a file; the .pth file is removed afterwards. Temporary paths and dates are normalised so the
 file only changes when a message does.
 """
@@ -30,7 +30,7 @@ def _install():
     if not target:
         return
     try:
-        from archvow import check
+        from archvow.checks import engine as check
     except Exception:
         return
     original = check.Violation.__init__

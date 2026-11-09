@@ -21,8 +21,8 @@ import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard
 import { addableByLayer, filePlan } from './filePlan';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
-import { componentView, contractWarning, knownVersion, parseVersion, problemsOf } from './model';
-import { RunLog, touchedComponent } from './runlog';
+import { componentView, contractWarning, knownVersion, parseVersion, problemsOf, readWorkspace } from './model';
+import { RunLog } from './runlog';
 import { moduleFiles } from './vow/links';
 import { architectureRows, buildWork, Json, objects, str, Work } from './workItems';
 import { componentTypes, derive, Derived, readiness, Readiness, ruleExplanation } from './projectState';
@@ -88,9 +88,9 @@ export class ArchvowProject {
   private remoteHead = '';
   /** The repository's first commit: changes --from it reports everything (0.15.0). */
   private firstCommit = '';
-  /** The archvow the plugin is tested with and installs ("1.23.0", contract/cli/version.txt). */
+  /** The archvow the plugin is tested with and installs ("1.25.0", contract/cli/version.txt). */
   readonly known: string;
-  /** The contract the plugin speaks ("1.0", contract/cli/contract.txt). */
+  /** The contract the plugin speaks ("1.1", contract/cli/contract.txt). */
   readonly contract: string;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
@@ -111,6 +111,8 @@ export class ArchvowProject {
   readonly onDidChange = this.changed.event;
   private pendingConfirmations = new Map<string, { args: string[]; stdin?: string; label: string; target: Target; then?: () => void }>();
   private refreshing = false;
+  /** The last `workspace --json` answer's digest, and the CLI settings it came from (--since, 0.21.0). */
+  private answered: { digest: string; by: string } | null = null;
   /** Until when a vow change comes from the extension's own action, already refreshed (0.19.0). */
   private ownChangeUntil = 0;
   private versionChecked = false;
@@ -140,7 +142,7 @@ export class ArchvowProject {
     this.problems = vscode.languages.createDiagnosticCollection('archvow');
     this.state = this.emptyState();
     const vows = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(root, '.archvow/**/*.vow'));
-    // a vow changed: refresh, unless it is the action the extension just ran (it refreshes what it touched)
+    // a vow changed: refresh, unless it is the action the extension just ran (it refreshes after it)
     const soon = (): void => { if (Date.now() > this.ownChangeUntil) this.refreshSoon(); };
     this.lastEditor = vscode.window.activeTextEditor;
     context.subscriptions.push(this.problems, vows, vows.onDidChange(soon), vows.onDidCreate(soon), vows.onDidDelete(soon),
@@ -219,11 +221,11 @@ export class ArchvowProject {
 
   refreshSoon(): void {
     clearTimeout(this.timer);
-    this.timer = setTimeout(() => void this.refresh(false), QUIET_MS);
+    this.timer = setTimeout(() => void this.refresh(false, true), QUIET_MS);
   }
 
-  /** show, check, next, then every component's show (behind what a person asks), as the IntelliJ workspace. */
-  async refresh(loud: boolean): Promise<void> {
+  /** The project as `archvow workspace --json` gives it, in one process, as the IntelliJ workspace (0.21.0). */
+  async refresh(loud: boolean, keep = false): Promise<void> {
     if (this.refreshing) {
       this.refreshSoon();
       return;
@@ -238,6 +240,7 @@ export class ArchvowProject {
       void this.readBranch();
       if (this.state.readiness === 'NOT_INITIALIZED') await this.checkVersion();  // init needs archvow too
       if (this.state.readiness !== 'READY') {
+        this.answered = null;
         Object.assign(this.state, { spec: null, check: null, next: null, snapshots: {}, checkFailure: '',
           welcomeError: this.state.install.reason === 'missing' ? this.state.welcomeError : '' });
         this.recompute();
@@ -247,55 +250,58 @@ export class ArchvowProject {
       await this.checkVersion();
       this.state.loading = tr(fr, 'Loading the architecture…', "Chargement de l'architecture…");
       this.publish();
-      const shown = await this.cli.run(['show', '--json']);
-      const spec = parse(shown.stdout);
-      if (shown.exitCode !== 0 || spec === null) {
-        this.state.welcomeError = failure(shown)
-          || tr(fr, 'archvow could not read the specification.', "archvow n'a pas pu lire la spécification.");
-        this.state.spec = null;
-        this.state.loading = '';
-        if (loud) void vscode.window.showErrorMessage(this.state.welcomeError);
-        this.recompute();
-        this.publish();
-        return;
-      }
-      this.state.welcomeError = '';
-      this.state.spec = spec;
-      this.state.briefs = readBriefs(this.root, spec);
-      this.state.aiTools = Array.isArray(spec.ai_tools) ? spec.ai_tools.map(String) : [];
-      // archvow 1.20: what each brief section gives (an older archvow has no `brief show`: no Briefs view)
-      this.state.briefStatus = parse((await this.cli.run(['brief', 'show', '--json'])).stdout);
-      // the project's catalog: its template's types and kinds, and the project's own templates (component add, template new)
-      const catalog = parse((await this.cli.run(['catalog', '--json'])).stdout);
-      if (catalog !== null && objects(catalog, 'templates').length > 0) this.projectCatalog = catalog;
-      const checked = await this.cli.run(['check', '--json']);
-      this.setCheck(parse(checked.stdout), failure(checked));
-      const next = await this.cli.run(['next', '--json']);
-      const rows = parse(next.stdout);
-      this.state.next = Array.isArray(rows) ? (rows as Json[]) : null;
-      this.state.loading = tr(fr, 'Reading each component…', 'Lecture de chaque composant…');
-      this.recompute();
-      this.publish();
-      const ids = objects(spec, 'containers').flatMap((c) => objects(c, 'components').map((x) => str(x, 'id')));
-      const snapshots: Record<string, Json> = {};
-      for (let i = 0; i < ids.length; i++) {
-        const view = componentView(parse((await this.cli.run(['show', ids[i], '--json'])).stdout), ids[i]);
-        if (view !== null) snapshots[ids[i]] = view;
-        if (i % 5 === 4) {
-          this.state.snapshots = { ...this.state.snapshots, ...snapshots };
-          this.recompute();
-          this.publish();
-        }
-      }
-      this.state.snapshots = snapshots;
-      this.state.vows = {};
-      this.state.loading = '';
-      this.recompute();
-      this.publish();
+      await this.load(fr, loud, keep);
     } finally {
       this.refreshing = false;
       this.runLog.refreshEnded();
     }
+  }
+
+  /**
+   * `archvow workspace --json` (archvow 1.25): the spec, every component's view, check, next, the briefs and the
+   * catalog. `keep` (a vow changed under the extension): --since the last answer, archvow says `unchanged` while
+   * no file changed and the extension keeps what it shows. Never after an action or when a person asks. The
+   * answer holds for the archvow that gave it (the same settings).
+   */
+  private async load(fr: boolean, loud: boolean, keep: boolean): Promise<void> {
+    const by = JSON.stringify(this.cliSettings());
+    const last = this.answered;
+    const since = keep && !loud && last !== null && last.by === by && this.state.spec !== null ? ['--since', last.digest] : [];
+    const result = await this.cli.run(['workspace', '--json', ...since]);
+    const answer = readWorkspace(parse(result.stdout));
+    const s = this.state;
+    if (answer === 'unchanged' && result.exitCode === 0) {
+      s.loading = '';
+      this.publish();
+      return;
+    }
+    if (result.exitCode !== 0 || answer === null || answer === 'unchanged') {
+      this.answered = null;
+      s.welcomeError = failure(result)
+        || tr(fr, 'archvow could not read the specification.', "archvow n'a pas pu lire la spécification.");
+      s.spec = null;
+      s.loading = '';
+      if (loud) void vscode.window.showErrorMessage(s.welcomeError);
+      this.recompute();
+      this.publish();
+      return;
+    }
+    this.answered = { digest: answer.digest, by };
+    s.welcomeError = '';
+    const spec = answer.spec;
+    s.spec = spec;
+    this.state.briefs = readBriefs(this.root, spec);
+    s.aiTools = Array.isArray(spec.ai_tools) ? spec.ai_tools.map(String) : [];
+    s.briefStatus = answer.briefStatus;
+    // the project's catalog: its template's types and kinds, and the project's own templates (component add, template new)
+    if (answer.catalog !== null && objects(answer.catalog, 'templates').length > 0) this.projectCatalog = answer.catalog;
+    this.setCheck(answer.check, '');
+    s.next = answer.next;
+    s.snapshots = answer.snapshots;
+    s.vows = {};
+    s.loading = '';
+    this.recompute();
+    this.publish();
   }
 
   private setCheck(check: Json | null, failure: string): void {
@@ -934,36 +940,20 @@ export class ArchvowProject {
       void vscode.window.showInformationMessage(tr(this.state.fr, 'Archvow initialized successfully.', 'Archvow initialisé avec succès.'));
     }
     if (ok && then) then();
-    else if (ok && change) await this.refreshAfter(args);
+    else if (ok && change) await this.refreshAfter();
   }
 
-  /**
-   * After an action: what it touched only - the spec, that component, check and next - when it names
-   * one component that exists (decision make, rule add, hazard add...); everything otherwise (0.19.0).
-   */
-  private async refreshAfter(args: string[]): Promise<void> {
-    const id = touchedComponent(this.commandOf(args), args, Object.keys(this.state.snapshots));
-    if (id === null || this.refreshing || this.state.readiness !== 'READY') {
+  /** After an action: the whole workspace again, in one process (0.21.0); the vow watcher stays quiet meanwhile. */
+  private async refreshAfter(): Promise<void> {
+    if (this.refreshing || this.state.readiness !== 'READY') {
       await this.refresh(false);
       return;
     }
     this.refreshing = true;
     this.ownChangeUntil = Date.now() + 2 * QUIET_MS;
-    this.runLog.refreshStarted(`Refresh ${id}`);
+    this.runLog.refreshStarted();
     try {
-      const spec = parse((await this.cli.run(['show', '--json'])).stdout);
-      if (spec !== null) this.state.spec = spec;
-      const view = componentView(parse((await this.cli.run(['show', id, '--json'])).stdout), id);
-      if (view !== null) this.state.snapshots = { ...this.state.snapshots, [id]: view };
-      const checked = await this.cli.run(['check', '--json']);
-      this.setCheck(parse(checked.stdout), failure(checked));
-      const rows = parse((await this.cli.run(['next', '--json'])).stdout);
-      this.state.next = Array.isArray(rows) ? (rows as Json[]) : null;
-      const vows = { ...this.state.vows };
-      delete vows[id];
-      this.state.vows = vows;
-      this.recompute();
-      this.publish();
+      await this.load(this.french(), false, false);
     } finally {
       this.refreshing = false;
       this.ownChangeUntil = Date.now() + 2 * QUIET_MS;

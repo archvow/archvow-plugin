@@ -28,7 +28,7 @@ archvow's wiki; here are the plugins' own, with where to find them in the code.
 | **error envelope** (0.20.0) | archvow's error as an object on stdout with `--json`: `{"error": {type, message, hint, exit}}` | `ArchvowOutput.error`, `errorOf()` |
 | **candidate** | a way to run archvow: the IDE's interpreter, the settings' Python, the executable; the first that answers `--version` is kept | `ArchvowProcessCommand.Candidate`, `candidates()` |
 | **WSL** | archvow installed in Linux under Windows, run through `wsl.exe` with Linux paths | `ArchvowWsl` |
-| **snapshot** | the last `show <component> --json` read, shown at once while it is read again | `componentSnapshots`; `snapshots` in the extension |
+| **snapshot** | a component's last view read (`show <component> --json`, one of `workspace --json`'s `components` since 0.21.0), shown at once while it is read again | `componentSnapshots`; `snapshots` in the extension |
 | **`.vow` reader** | the code that cuts a vow into tokens, reads its lines and its problems, without archvow | `org.archvow.vow.core`, `vscode/src/vow` |
 | **depth** | a keyword's indentation level (0, 1, 2, 3 and more), which gives its colour | `VowTokenKind` (`KEY_0`...) |
 | **stand-in** | an empty class with the name of an IntelliJ platform class, to compile without it; outside the repository | page [Tests](/en/13-tests) |

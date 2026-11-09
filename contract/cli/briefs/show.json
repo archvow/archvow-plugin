@@ -1,5 +1,5 @@
 {
-  "contract": "1.0",
+  "contract": "1.1",
   "schema_version": 2,
   "system": {
     "name": "invoicing",
@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "invoicing",
-      "template": "python-app@1.23.0",
+      "template": "python-app@1.25.0",
       "package": "invoicing",
       "path": "src/invoicing",
       "components": [

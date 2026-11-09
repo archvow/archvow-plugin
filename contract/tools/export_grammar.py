@@ -5,7 +5,7 @@ and writes contract/cli/commands.json, from which both plugins build their comma
 """
 import argparse
 import json
-from archvow.cli import build_parser
+from archvow.cli.parser import build_parser
 
 
 def walk(parser, path=()):

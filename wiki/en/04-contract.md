@@ -10,8 +10,8 @@ from a real archvow CLI, never written by hand.
 
 | Folder or file | What | Written by | Read by |
 |---|---|---|---|
-| `contract/cli/version.txt` | `archvow --version` (today `archvow 1.23.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the archvow the plugin is tested with and installs |
-| `contract/cli/contract.txt` (0.20.0) | the contract number of `archvow version --json` (MAJOR.MINOR, today `1.0`) | `regenerate.py` | `ArchvowVersion.CONTRACT`, `contractWarning()`: the contract the plugin speaks |
+| `contract/cli/version.txt` | `archvow --version` (today `archvow 1.25.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the archvow the plugin is tested with and installs |
+| `contract/cli/contract.txt` (0.20.0) | the contract number of `archvow version --json` (MAJOR.MINOR, today `1.1`: 1.0 plus `workspace`) | `regenerate.py` | `ArchvowVersion.CONTRACT`, `contractWarning()`: the contract the plugin speaks |
 | `contract/cli/errors/` (0.20.0) | three commands that fail, as the plugins get them (`ARCHVOW_LOG=info`): `no-spec`, `refused` (the error envelope on stdout, the message and archvow's log lines on stderr), `usage` (an argparse refusal: no envelope) | `regenerate.py` (`errors()`) | `cli.test.ts`, `OutputRegression` |
 | `contract/cli/commands.json` | every command and its parameters, drawn from archvow's argparse parser | `contract/tools/export_grammar.py` | `ArchvowGrammar`, `vscode/src/grammar.ts`: the Commands forms |
 | `contract/forms/forms.json` | how each form reads (0.14.0, design A): labels in plain words, essential fields and their order, the button's verb, what archvow will do - the plugins' own file, not archvow's | by hand | `ArchvowForms`, the page's `commandForm()`; `FormsRegression`, `grammar.test.ts` check its names against `commands.json` |
@@ -28,7 +28,7 @@ from a real archvow CLI, never written by hand.
 | `contract/cli/briefs/` (`show.json`, `next.json`, `check.json`, `show/<component>.json`, `refused.txt`) | python-app with Spec Kit's `specs/` declared as a brief folder (`-a briefs=briefs,specs`): `mark_paid` drawn from `specs/001-orders/plan.md#paying-an-invoice` (`source`), ARCH039 once that section changed, and archvow's refusal of `--from` before the folder was declared | `regenerate.py` (`briefs()`) | `vscode/src/test/briefs.test.ts`, `BriefsRegression` |
 | `contract/vows/<example>/.archvow/**/*.vow` | the vows archvow wrote on its examples | `regenerate.py` | both `.vow` readers (`CoreTests`, `vscode/src/test/vowReader.test.ts`) |
 | `contract/archvow/` | the archvow the plugins are tested with: the wheel of `contract/cli/version.txt`, archvow's three examples with their code, `docs/rules*.md` | `contract/tools/take_archvow.sh` | `regenerate.py` (CI job `contract`), `vscode/src/test/live.test.ts` |
-| `contract/cli/messages.json` | every check message archvow's own test suite makes archvow 1.23 print | `contract/tools/harvest_messages.py` (runs archvow's tests with a hook) | `vscode/src/test/guidance.test.ts`, `GuidanceRegression` |
+| `contract/cli/messages.json` | every check message archvow's own test suite makes archvow 1.25 print | `contract/tools/harvest_messages.py` (runs archvow's tests with a hook) | `vscode/src/test/guidance.test.ts`, `GuidanceRegression` |
 | `contract/guidance/expected.json` | what `guidance.ts` says on each of those messages, in English and French | `UPDATE_GUIDANCE=1 npm test` | `GuidanceRegression`: `ArchvowGuidance` must say exactly the same |
 | `contract/cli/kinds.json` | the kinds of each component type (`component add -k`), for an archvow whose catalog does not list them (1.17; archvow 1.18 gives them in `catalog --json`) | `contract/tools/export_kinds.py` (by `regenerate.py`) | `choices.ts`, `ArchvowChoices`: the `--kind` list |
 | `contract/choices/expected.json` | what each command form offers (`choiceBook()`) on the three examples, in English and French, and the comparison base on a few repositories | `UPDATE_CHOICES=1 npm test` | `ChoicesRegression`: `ArchvowChoices` must offer exactly the same |
@@ -55,7 +55,8 @@ git diff contract/          # review it: this is what changed for the plugins
 ```
 
 `regenerate.py` copies each archvow example into a temporary folder (nothing is written in the archvow
-tree), runs `show`, `next`, `check` and `show <component>` there, and writes the indented JSON. A command
+tree), runs `show`, `next`, `check`, `show <component>` and `workspace` there, and writes the indented JSON
+(`workspace.json`'s digest, made of file times, is written `<digest>`). A command
 that exits with an error (a code other than 0 or 1) or prints nothing stops everything: a half
 regenerated contract would be worse than the old one.
 
@@ -72,10 +73,17 @@ What to look for in the diff:
 
 ## The archvow version and the contract (0.20.0)
 
-archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "1.0", "archvow": "1.23.0",
+archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "1.1", "archvow": "1.25.0",
 ...}`, and every `--json` object starts with `"contract"`. `ArchvowVersion.warning` and `contractWarning()`
 compare it with `contract.txt`: the same MAJOR and a MINOR at least the plugin's, nothing; an older one, or
 an archvow that says no contract (before 1.23: it has no `version` command, its `--version` gives the
 number), "older: update archvow"; a later MAJOR, "newer: update the plugin". So an archvow release that
 keeps the contract needs no plugin release, while archvow still keeps no backward compatibility: the
-contract number is what tells. Install puts the tested archvow exactly (`archvow==1.23.0`).
+contract number is what tells. Install puts the tested archvow exactly (`archvow==1.25.0`).
+
+Contract 1.1 (archvow 1.25, plugin 0.21.0) adds `archvow workspace --json`: what the plugins load, in one
+process (`readWorkspace()` in `model.ts`, `WorkspaceAnswer` in IntelliJ, both tested on
+`contract/cli/<example>/workspace.json`). Each part has the shape of its own command (`project` is `show
+--json`, `components.<id>` is `show <id> --json`, then `next`, `check`, `briefs` and `catalog`); only the
+top of the answer says `"contract"`. `--since <digest>` answers `{"unchanged": true}` while no file of the
+project changed (paths, sizes and modification times).

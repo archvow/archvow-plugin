@@ -1,5 +1,5 @@
 {
-  "contract": "1.0",
+  "contract": "1.1",
   "schema_version": 2,
   "system": {
     "name": "my_pipeline",
@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "my_pipeline",
-      "template": "pyspark-pipeline@1.23.0",
+      "template": "pyspark-pipeline@1.25.0",
       "package": "my_pipeline",
       "path": "src/my_pipeline",
       "components": [

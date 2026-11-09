@@ -1,0 +1,5205 @@
+{
+  "contract": "1.1",
+  "digest": "<digest>",
+  "project": {
+    "schema_version": 2,
+    "system": {
+      "name": "orders_api",
+      "description": "Orders"
+    },
+    "containers": [
+      {
+        "id": "orders_api",
+        "template": "fastapi-service@1.25.0",
+        "package": "orders_api",
+        "path": "src/orders_api",
+        "components": [
+          {
+            "id": "get_current_user",
+            "name": "get_current_user",
+            "type": "dependency",
+            "layer": "p0_common",
+            "module": "orders_api.p0_common.get_current_user",
+            "spec": "US-001",
+            "description": "The authenticated customer's id, from the X-Customer header",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "get_current_user",
+                "kind": "function"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "What does it provide, and for how long (one request, the whole app)?",
+                "answer": "The customer id (str) from the X-Customer header, for one request",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end?",
+                "answer": "Header missing or empty: 401 Unauthorized",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "logging_setup",
+            "name": "logging_setup",
+            "type": "foundation",
+            "layer": "p0_common",
+            "module": "orders_api.p0_common.logging_setup",
+            "description": "Configures logging once, at the app's startup - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the settings, one line per event with the request id, never a secret, a token or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs must not write to a test's closed stream).",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "setup_logging",
+                "kind": "function",
+                "signature": "(level: str = \"INFO\") -> None"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id and message?",
+                "answer": "stderr, one line per event: time, level, request id, message",
+                "by": "update@archvow.invalid",
+                "on": "2026-11-08T23:13:06.642908+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "settings",
+            "name": "settings",
+            "type": "foundation",
+            "layer": "p0_common",
+            "module": "orders_api.p0_common.settings",
+            "description": "The service's settings, read from the environment (pydantic-settings), never from code.",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "Settings",
+                "kind": "class"
+              },
+              {
+                "name": "get_settings",
+                "kind": "function",
+                "signature": "() -> Settings"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which settings, with which defaults (name: type = default), and which are required?",
+                "answer": "app_name: str = 'orders'; nothing else yet",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Which settings are secrets (never logged, never in a response), and where do they come from?",
+                "answer": "No secret yet",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "new_order_model",
+            "name": "new_order",
+            "type": "model",
+            "layer": "p1_domain",
+            "module": "orders_api.p1_domain.new_order_model",
+            "spec": "US-001",
+            "description": "What a customer sends to create an order: amount Decimal > 0",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "NewOrder",
+                "kind": "class"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which fields are required, and which are optional (with which default)?",
+                "answer": "amount required",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
+                "answer": "amount > 0 with at most 2 decimals",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
+                "answer": "None",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": [],
+            "columns": {
+              "amount": "none"
+            }
+          },
+          {
+            "id": "order_model",
+            "name": "order",
+            "type": "model",
+            "layer": "p1_domain",
+            "module": "orders_api.p1_domain.order_model",
+            "spec": "US-001",
+            "description": "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "Order",
+                "kind": "class"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which fields are required, and which are optional (with which default)?",
+                "answer": "All fields required",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
+                "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
+                "answer": "None: the customer id is returned only to its owner",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": [],
+            "columns": {
+              "amount": "none",
+              "customer": "personal",
+              "id": "none",
+              "status": "none"
+            }
+          },
+          {
+            "id": "order_not_found_error",
+            "name": "order_not_found",
+            "type": "error",
+            "layer": "p1_domain",
+            "module": "orders_api.p1_domain.order_not_found_error",
+            "spec": "US-001",
+            "description": "The order does not exist, or belongs to another customer",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "OrderNotFoundError",
+                "kind": "class"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which HTTP status does the app answer with it (404, 409, 422...)?",
+                "answer": "404 Not Found",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "What does its message say - and never say (internal ids, personal data, whether the resource exists)?",
+                "answer": "\"Order not found\" - never the id's owner, never whether it exists",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "orders_repository",
+            "name": "orders",
+            "type": "repository",
+            "layer": "p2_io",
+            "module": "orders_api.p2_io.orders_repository",
+            "spec": "US-001",
+            "description": "Stores and finds orders (in memory to start)",
+            "uses": [
+              "order_model"
+            ],
+            "symbols": [
+              {
+                "name": "OrdersRepository",
+                "kind": "class"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Not found: return None, or raise which domain error?",
+                "answer": "Return None",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Who opens and commits the transaction (the service, never the repository)?",
+                "answer": "No transaction: memory; the service decides what is saved",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Two updates of the same record at the same time: last write wins, a version check, or a lock?",
+                "answer": "Last write wins: an order is only created, never updated yet",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Which queries can return many rows, and what is their maximum?",
+                "answer": "None: no list query yet",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": [],
+            "answers": {
+              "P.retention": {
+                "answer": "In memory: gone when the service stops; nothing kept, nothing to erase on request",
+                "by": "architect@example.com",
+                "on": "2026-10-12T00:46:56.442249+00:00"
+              },
+              "P.location": {
+                "answer": "The service's own memory, in the EU",
+                "by": "architect@example.com",
+                "on": "2026-10-12T00:46:56.757992+00:00"
+              }
+            }
+          },
+          {
+            "id": "create_order",
+            "name": "create_order",
+            "type": "service",
+            "layer": "p3_services",
+            "module": "orders_api.p3_services.create_order",
+            "spec": "US-001",
+            "description": "Create a pending order for the current customer and save it",
+            "uses": [
+              "order_model",
+              "new_order_model",
+              "orders_repository"
+            ],
+            "symbols": [
+              {
+                "name": "create_order",
+                "kind": "function"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "What does it do, step by step (read, check, change, save, call)?",
+                "answer": "Build a pending order with the next id, save it, return it",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Something it needs does not exist: which domain error?",
+                "answer": "Not applicable: it needs nothing that may be missing",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
+                "answer": "Two orders: a retry is a new order (customers cancel the extra one)",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Who may perform it, and is that checked here or in the router?",
+                "answer": "Any authenticated customer, for themselves; checked by the router",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
+                "answer": "One save, nothing else to undo",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "get_order",
+            "name": "get_order",
+            "type": "service",
+            "layer": "p3_services",
+            "module": "orders_api.p3_services.get_order",
+            "spec": "US-001",
+            "description": "Return one order of the current customer",
+            "uses": [
+              "order_model",
+              "order_not_found_error",
+              "orders_repository"
+            ],
+            "symbols": [
+              {
+                "name": "get_order",
+                "kind": "function"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "What does it do, step by step (read, check, change, save, call)?",
+                "answer": "Find the order; check it belongs to the customer; return it",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Something it needs does not exist: which domain error?",
+                "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
+                "answer": "Same result: it only reads",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Who may perform it, and is that checked here or in the router?",
+                "answer": "The owner only; checked here",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
+                "answer": "Nothing to undo: it only reads",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "main",
+            "name": "main",
+            "type": "app",
+            "layer": "p4_api",
+            "module": "orders_api.p4_api.main",
+            "spec": "US-001",
+            "description": "The service: the order routes under /v1, domain errors mapped to HTTP statuses",
+            "uses": [
+              "orders_router",
+              "order_not_found_error"
+            ],
+            "symbols": [
+              {
+                "name": "create_app",
+                "kind": "function",
+                "signature": "() -> FastAPI"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which routers, under which prefix (e.g. /v1)?",
+                "answer": "orders_router under /v1",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?",
+                "answer": "OrderNotFoundError -> 404, as decided by the error",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?",
+                "answer": "Nothing to start or stop yet",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "CORS: which origins may call it from a browser - or none?",
+                "answer": "No CORS: not called from browsers",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "orders_router",
+            "name": "orders",
+            "type": "router",
+            "layer": "p4_api",
+            "module": "orders_api.p4_api.orders_router",
+            "spec": "US-001",
+            "description": "The order API",
+            "uses": [
+              "create_order",
+              "get_order",
+              "order_model",
+              "new_order_model"
+            ],
+            "symbols": [
+              {
+                "name": "router",
+                "kind": "constant",
+                "annotation": "APIRouter"
+              },
+              {
+                "name": "post_order",
+                "kind": "route",
+                "method": "POST",
+                "path": "/orders"
+              },
+              {
+                "name": "read_order",
+                "kind": "route",
+                "method": "GET",
+                "path": "/orders/{order_id}"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?",
+                "answer": "Authenticated customers (get_current_user), each only on their own orders",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Status codes: success, not found, conflict, forbidden - and the error body format?",
+                "answer": "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Invalid input: FastAPI's 422, or 400 with your own error format?",
+                "answer": "FastAPI's 422",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "Lists: pagination, default and maximum page size - or no list route?",
+                "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              },
+              {
+                "question": "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?",
+                "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+                "by": "architect@example.com",
+                "on": "2026-10-09T12:00:00+00:00"
+              }
+            ],
+            "assumptions": [],
+            "answers": {
+              "P.purpose": {
+                "answer": "Take and show the orders of each customer, for that customer only",
+                "by": "architect@example.com",
+                "on": "2026-10-12T00:46:55.799694+00:00"
+              },
+              "P.legal_basis": {
+                "answer": "Contract: the customer's orders (terms of sale)",
+                "by": "architect@example.com",
+                "on": "2026-10-12T00:46:56.107070+00:00"
+              }
+            },
+            "examples": [
+              {
+                "name": "US-001-another-customers-order",
+                "ticket": "US-001",
+                "rule": "orders_router.INV1",
+                "source": {
+                  "file": "briefs/orders.md",
+                  "section": "reading-an-order",
+                  "hash": "a70f6aed477a"
+                },
+                "fingerprint": "6c402b9415ce",
+                "by": "architect@example.com",
+                "on": "2026-11-05T12:00:00+00:00"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "rules": {},
+    "language": "en",
+    "ai_tools": [
+      "copilot"
+    ],
+    "dependencies": [],
+    "init_answers": {
+      "language": "en",
+      "python_version": "3.12",
+      "line_length": "88",
+      "platform": "gitlab",
+      "ci": "auto",
+      "architects": "@my-team",
+      "sonar": "no",
+      "auto_approve": "yes",
+      "sandbox": "yes",
+      "briefs": "briefs",
+      "max_components": "",
+      "max_code_lines": "",
+      "git_hooks": "githooks",
+      "branch_naming": "gitflow",
+      "pip_index_url": "",
+      "ci_image": "",
+      "fastapi_version": "0.143"
+    },
+    "compliance": [
+      "gdpr",
+      "tst"
+    ],
+    "mode": "strict",
+    "families": [
+      "all"
+    ],
+    "hazards": [
+      {
+        "component": "create_order",
+        "id": "create_order.H1",
+        "guide_word": "wrong",
+        "severity": "high",
+        "description": "An order is saved with an amount of zero or less",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "orders_router",
+        "id": "orders_router.H1",
+        "guide_word": "exposed",
+        "severity": "critical",
+        "description": "A customer reads another customer's order",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      }
+    ],
+    "invariants": [
+      {
+        "component": "create_order",
+        "id": "create_order.INV1",
+        "statement": "every saved order has an amount greater than zero",
+        "mitigates": [
+          "create_order.H1"
+        ],
+        "verify": "property_test",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "orders_router",
+        "id": "orders_router.INV1",
+        "statement": "a customer only ever reads their own orders",
+        "mitigates": [
+          "orders_router.H1"
+        ],
+        "verify": "property_test",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      }
+    ],
+    "dismissed": [
+      {
+        "component": "create_order",
+        "guide_word": "missing",
+        "rationale": "No outside dependency: the repository is in memory, in the same process",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "create_order",
+        "guide_word": "partial",
+        "rationale": "One write to one in-memory store: nothing is saved in two places",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "get_current_user",
+        "guide_word": "missing",
+        "rationale": "Reads a request header only: it calls nothing that can be down",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "get_order",
+        "guide_word": "repeated",
+        "rationale": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "get_order",
+        "guide_word": "partial",
+        "rationale": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "get_order",
+        "guide_word": "concurrent",
+        "rationale": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "main",
+        "guide_word": "missing",
+        "rationale": "Builds the app only: it calls nothing that can be down",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "order_model",
+        "guide_word": "exposed",
+        "rationale": "orders hold no personal data beyond the customer id",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "order_not_found_error",
+        "guide_word": "exposed",
+        "rationale": "Its message names nothing but the fact that no order was found",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "orders_repository",
+        "guide_word": "missing",
+        "rationale": "In memory, in the process: no outside store to be down, one write per change, no cache or replica",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "orders_repository",
+        "guide_word": "partial",
+        "rationale": "In memory, in the process: no outside store to be down, one write per change, no cache or replica",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "orders_repository",
+        "guide_word": "stale",
+        "rationale": "In memory, in the process: no outside store to be down, one write per change, no cache or replica",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "orders_router",
+        "guide_word": "more",
+        "rationale": "No route returns a list; each answer is one order",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      }
+    ]
+  },
+  "components": {
+    "get_current_user": {
+      "component": "get_current_user",
+      "type": "dependency",
+      "layer": "p0_common",
+      "known_columns": [],
+      "description": "The authenticated customer's id, from the X-Customer header",
+      "uses": [],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p0_common/test_get_current_user.py::test_the_header_gives_the_customer"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p0_common/test_get_current_user.py::test_a_missing_header_is_401"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "What does it provide, and for how long (one request, the whole app)?",
+          "answer": "The customer id (str) from the X-Customer header, for one request",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end?",
+          "answer": "Header missing or empty: 401 Unauthorized",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+          "status": "answered",
+          "dismissed": "Reads a request header only: it calls nothing that can be down"
+        },
+        {
+          "number": 2,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+            "invariant": "a user only reads and changes their own data, and secrets never appear in a response or a log"
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "logging_setup": {
+      "component": "logging_setup",
+      "type": "foundation",
+      "layer": "p0_common",
+      "known_columns": [],
+      "description": "Configures logging once, at the app's startup - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the settings, one line per event with the request id, never a secret, a token or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs must not write to a test's closed stream).",
+      "uses": [],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "implemented",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id and message?",
+          "answer": "stderr, one line per event: time, level, request id, message",
+          "template": true,
+          "suggested": "stderr, one line per event: time, level, request id, message",
+          "by": "update@archvow.invalid",
+          "on": "2026-11-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "settings": {
+      "component": "settings",
+      "type": "foundation",
+      "layer": "p0_common",
+      "known_columns": [],
+      "description": "The service's settings, read from the environment (pydantic-settings), never from code.",
+      "uses": [],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "implemented",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which settings, with which defaults (name: type = default), and which are required?",
+          "answer": "app_name: str = 'orders'; nothing else yet",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which settings are secrets (never logged, never in a response), and where do they come from?",
+          "answer": "No secret yet",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "new_order_model": {
+      "component": "new_order_model",
+      "type": "model",
+      "layer": "p1_domain",
+      "known_columns": [
+        {
+          "component": "new_order_model",
+          "columns": [
+            "amount"
+          ]
+        }
+      ],
+      "description": "What a customer sends to create an order: amount Decimal > 0",
+      "uses": [],
+      "used_by": [
+        "create_order",
+        "orders_router"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p1_domain/test_new_order_model.py::test_a_positive_amount"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p1_domain/test_new_order_model.py::test_other_amounts_are_refused"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p1_domain/test_new_order_model.py::test_a_positive_amount"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which fields are required, and which are optional (with which default)?",
+          "answer": "amount required",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
+          "answer": "amount > 0 with at most 2 decimals",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
+          "answer": "None",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [
+        {
+          "name": "amount",
+          "class": "none",
+          "in_code": true
+        }
+      ],
+      "declares_columns": true,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "wrong",
+          "question": "Wrong input (invalid values, out of range, an illegal state change): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "invalid input is accepted and saved",
+            "invariant": "amount > 0 with at most 2 decimals (decision 2)",
+            "decision": {
+              "number": 2,
+              "answer": "amount > 0 with at most 2 decimals"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+            "decision": {
+              "number": 3,
+              "answer": "None"
+            },
+            "not_applicable": "decision 3: None"
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "order_model": {
+      "component": "order_model",
+      "type": "model",
+      "layer": "p1_domain",
+      "known_columns": [
+        {
+          "component": "order_model",
+          "columns": [
+            "amount",
+            "customer",
+            "id",
+            "status"
+          ]
+        }
+      ],
+      "description": "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled",
+      "uses": [],
+      "used_by": [
+        "orders_repository",
+        "create_order",
+        "get_order",
+        "orders_router"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p1_domain/test_order_model.py::test_a_valid_order"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p1_domain/test_order_model.py::test_invalid_values_are_refused"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p1_domain/test_order_model.py::test_a_valid_order"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which fields are required, and which are optional (with which default)?",
+          "answer": "All fields required",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
+          "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
+          "answer": "None: the customer id is returned only to its owner",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [
+        {
+          "name": "amount",
+          "class": "none",
+          "in_code": true
+        },
+        {
+          "name": "customer",
+          "class": "personal",
+          "in_code": true
+        },
+        {
+          "name": "id",
+          "class": "none",
+          "in_code": true
+        },
+        {
+          "name": "status",
+          "class": "none",
+          "in_code": true
+        }
+      ],
+      "declares_columns": true,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "wrong",
+          "question": "Wrong input (invalid values, out of range, an illegal state change): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "invalid input is accepted and saved",
+            "invariant": "amount >= 0 with 2 decimals; status pending, paid or cancelled (decision 2)",
+            "decision": {
+              "number": 2,
+              "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "answered",
+          "dismissed": "orders hold no personal data beyond the customer id"
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "order_not_found_error": {
+      "component": "order_not_found_error",
+      "type": "error",
+      "layer": "p1_domain",
+      "known_columns": [],
+      "description": "The order does not exist, or belongs to another customer",
+      "uses": [],
+      "used_by": [
+        "get_order",
+        "main"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p1_domain/test_order_not_found_error.py::test_it_is_an_exception_with_a_plain_message"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p1_domain/test_order_not_found_error.py::test_it_is_an_exception_with_a_plain_message"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which HTTP status does the app answer with it (404, 409, 422...)?",
+          "answer": "404 Not Found",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "What does its message say - and never say (internal ids, personal data, whether the resource exists)?",
+          "answer": "\"Order not found\" - never the id's owner, never whether it exists",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "answered",
+          "dismissed": "Its message names nothing but the fact that no order was found"
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "orders_repository": {
+      "component": "orders_repository",
+      "type": "repository",
+      "layer": "p2_io",
+      "known_columns": [
+        {
+          "component": "order_model",
+          "columns": [
+            "amount",
+            "customer",
+            "id",
+            "status"
+          ]
+        }
+      ],
+      "description": "Stores and finds orders (in memory to start)",
+      "uses": [
+        "order_model"
+      ],
+      "used_by": [
+        "create_order",
+        "get_order"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p2_io/test_orders_repository.py::test_store_and_find"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p2_io/test_orders_repository.py::test_store_and_find"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p2_io/test_orders_repository.py::test_store_and_find"
+          ]
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": [
+            "tests/p2_io/test_orders_repository.py::test_store_and_find"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Not found: return None, or raise which domain error?",
+          "answer": "Return None",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Who opens and commits the transaction (the service, never the repository)?",
+          "answer": "No transaction: memory; the service decides what is saved",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Two updates of the same record at the same time: last write wins, a version check, or a lock?",
+          "answer": "Last write wins: an order is only created, never updated yet",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Which queries can return many rows, and what is their maximum?",
+          "answer": "None: no list query yet",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {
+          "customer": "personal"
+        },
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [
+        {
+          "key": "P1",
+          "set": "P",
+          "title": "Personal data",
+          "id": "retention",
+          "rule": "GDPR003",
+          "question": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id?",
+          "answer": "In memory: gone when the service stops; nothing kept, nothing to erase on request",
+          "by": "architect@example.com",
+          "on": "2026-10-12T00:46:56.442249+00:00"
+        },
+        {
+          "key": "P2",
+          "set": "P",
+          "title": "Personal data",
+          "id": "location",
+          "rule": "GDPR008",
+          "question": "Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3?",
+          "answer": "The service's own memory, in the EU",
+          "by": "architect@example.com",
+          "on": "2026-10-12T00:46:56.757992+00:00"
+        }
+      ],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+          "status": "answered",
+          "dismissed": "In memory, in the process: no outside store to be down, one write per change, no cache or replica"
+        },
+        {
+          "number": 2,
+          "guide_word": "more",
+          "question": "Too much (unbounded results, duplicated records, a flood of requests): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "an unbounded result or a flood of requests overloads the service",
+            "decision": {
+              "number": 4,
+              "answer": "None: no list query yet"
+            },
+            "not_applicable": "decision 4: None: no list query yet"
+          }
+        },
+        {
+          "number": 3,
+          "guide_word": "partial",
+          "question": "A change half applied (saved here, not there; a failure mid-transaction): what must never happen?",
+          "status": "answered",
+          "dismissed": "In memory, in the process: no outside store to be down, one write per change, no cache or replica"
+        },
+        {
+          "number": 4,
+          "guide_word": "stale",
+          "question": "Old data shown as current (a cache, a replica, a read that misses the last write): what must never happen?",
+          "status": "answered",
+          "dismissed": "In memory, in the process: no outside store to be down, one write per change, no cache or replica"
+        },
+        {
+          "number": 5,
+          "guide_word": "concurrent",
+          "question": "Two requests change the same data at the same time (lost update, negative stock): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "two simultaneous changes overwrite each other",
+            "invariant": "Last write wins: an order is only created, never updated yet (decision 3)",
+            "decision": {
+              "number": 3,
+              "answer": "Last write wins: an order is only created, never updated yet"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+            "invariant": "a user only reads and changes their own data, and secrets never appear in a response or a log"
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "create_order": {
+      "component": "create_order",
+      "type": "service",
+      "layer": "p3_services",
+      "known_columns": [
+        {
+          "component": "order_model",
+          "columns": [
+            "amount",
+            "customer",
+            "id",
+            "status"
+          ]
+        },
+        {
+          "component": "new_order_model",
+          "columns": [
+            "amount"
+          ]
+        }
+      ],
+      "description": "Create a pending order for the current customer and save it",
+      "uses": [
+        "order_model",
+        "new_order_model",
+        "orders_repository"
+      ],
+      "used_by": [
+        "orders_router"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p3_services/test_create_order.py::test_a_retry_is_a_new_order"
+          ]
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": [
+            "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+          ]
+        },
+        {
+          "item": "decision 5",
+          "kind": "decision",
+          "key": "5",
+          "tests": [
+            "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+          ]
+        },
+        {
+          "item": "create_order.INV1",
+          "kind": "invariant",
+          "key": "CREATE_ORDER.INV1",
+          "tests": [
+            "tests/p3_services/test_create_order.py::test_every_saved_order_has_an_amount_greater_than_zero"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "verified",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "What does it do, step by step (read, check, change, save, call)?",
+          "answer": "Build a pending order with the next id, save it, return it",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Something it needs does not exist: which domain error?",
+          "answer": "Not applicable: it needs nothing that may be missing",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
+          "answer": "Two orders: a retry is a new order (customers cancel the extra one)",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Who may perform it, and is that checked here or in the router?",
+          "answer": "Any authenticated customer, for themselves; checked by the router",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 5,
+          "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
+          "answer": "One save, nothing else to undo",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+          "status": "answered",
+          "dismissed": "No outside dependency: the repository is in memory, in the same process"
+        },
+        {
+          "number": 2,
+          "guide_word": "repeated",
+          "question": "Sent twice (a client retries or submits twice): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a retried request is applied twice",
+            "invariant": "Two orders: a retry is a new order (customers cancel the extra one) (decision 3)",
+            "decision": {
+              "number": 3,
+              "answer": "Two orders: a retry is a new order (customers cancel the extra one)"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "guide_word": "partial",
+          "question": "A change half applied (saved here, not there; a failure mid-transaction): what must never happen?",
+          "status": "answered",
+          "dismissed": "One write to one in-memory store: nothing is saved in two places"
+        },
+        {
+          "number": 4,
+          "guide_word": "concurrent",
+          "question": "Two requests change the same data at the same time (lost update, negative stock): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "two simultaneous changes overwrite each other",
+            "invariant": "concurrent changes to the same record never lose an update"
+          }
+        },
+        {
+          "number": 5,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+            "invariant": "Any authenticated customer, for themselves; checked by the router (decision 4)",
+            "decision": {
+              "number": 4,
+              "answer": "Any authenticated customer, for themselves; checked by the router"
+            }
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "get_order": {
+      "component": "get_order",
+      "type": "service",
+      "layer": "p3_services",
+      "known_columns": [
+        {
+          "component": "order_model",
+          "columns": [
+            "amount",
+            "customer",
+            "id",
+            "status"
+          ]
+        }
+      ],
+      "description": "Return one order of the current customer",
+      "uses": [
+        "order_model",
+        "order_not_found_error",
+        "orders_repository"
+      ],
+      "used_by": [
+        "orders_router"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p3_services/test_get_order.py::test_own_order_and_others"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p3_services/test_get_order.py::test_own_order_and_others"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p3_services/test_get_order.py::test_own_order_and_others"
+          ]
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": [
+            "tests/p3_services/test_get_order.py::test_own_order_and_others"
+          ]
+        },
+        {
+          "item": "decision 5",
+          "kind": "decision",
+          "key": "5",
+          "tests": [
+            "tests/p3_services/test_get_order.py::test_own_order_and_others"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "What does it do, step by step (read, check, change, save, call)?",
+          "answer": "Find the order; check it belongs to the customer; return it",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Something it needs does not exist: which domain error?",
+          "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
+          "answer": "Same result: it only reads",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Who may perform it, and is that checked here or in the router?",
+          "answer": "The owner only; checked here",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 5,
+          "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
+          "answer": "Nothing to undo: it only reads",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a request fails badly when a dependency is down or the resource does not exist",
+            "invariant": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing (decision 2)",
+            "decision": {
+              "number": 2,
+              "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "guide_word": "repeated",
+          "question": "Sent twice (a client retries or submits twice): what must never happen?",
+          "status": "answered",
+          "dismissed": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+        },
+        {
+          "number": 3,
+          "guide_word": "partial",
+          "question": "A change half applied (saved here, not there; a failure mid-transaction): what must never happen?",
+          "status": "answered",
+          "dismissed": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+        },
+        {
+          "number": 4,
+          "guide_word": "concurrent",
+          "question": "Two requests change the same data at the same time (lost update, negative stock): what must never happen?",
+          "status": "answered",
+          "dismissed": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"
+        },
+        {
+          "number": 5,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+            "invariant": "The owner only; checked here (decision 4)",
+            "decision": {
+              "number": 4,
+              "answer": "The owner only; checked here"
+            }
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "main": {
+      "component": "main",
+      "type": "app",
+      "layer": "p4_api",
+      "known_columns": [],
+      "description": "The service: the order routes under /v1, domain errors mapped to HTTP statuses",
+      "uses": [
+        "orders_router",
+        "order_not_found_error"
+      ],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p4_api/test_main.py::test_routes_under_v1"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p4_api/test_main.py::test_routes_under_v1"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p4_api/test_main.py::test_routes_under_v1"
+          ]
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": [
+            "tests/p4_api/test_main.py::test_routes_under_v1"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which routers, under which prefix (e.g. /v1)?",
+          "answer": "orders_router under /v1",
+          "template": true,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?",
+          "answer": "OrderNotFoundError -> 404, as decided by the error",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?",
+          "answer": "Nothing to start or stop yet",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "CORS: which origins may call it from a browser - or none?",
+          "answer": "No CORS: not called from browsers",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
+          "status": "answered",
+          "dismissed": "Builds the app only: it calls nothing that can be down"
+        },
+        {
+          "number": 2,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
+            "invariant": "a user only reads and changes their own data, and secrets never appear in a response or a log"
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "run": {
+        "component": "main",
+        "ready": true,
+        "line": "Try it locally: make run, then curl localhost:8000<prefix>/orders/<order_id>"
+      },
+      "to_review": []
+    },
+    "orders_router": {
+      "component": "orders_router",
+      "type": "router",
+      "layer": "p4_api",
+      "known_columns": [
+        {
+          "component": "order_model",
+          "columns": [
+            "amount",
+            "customer",
+            "id",
+            "status"
+          ]
+        },
+        {
+          "component": "new_order_model",
+          "columns": [
+            "amount"
+          ]
+        }
+      ],
+      "description": "The order API",
+      "uses": [
+        "create_order",
+        "get_order",
+        "order_model",
+        "new_order_model"
+      ],
+      "used_by": [
+        "main"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p4_api/test_orders_router.py::test_a_customer_only_reads_their_own_orders"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p4_api/test_orders_router.py::test_create_then_read"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p4_api/test_orders_router.py::test_errors"
+          ]
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": [
+            "tests/p4_api/test_orders_router.py::test_create_then_read"
+          ]
+        },
+        {
+          "item": "decision 5",
+          "kind": "decision",
+          "key": "5",
+          "tests": [
+            "tests/p4_api/test_orders_router.py::test_create_then_read"
+          ]
+        },
+        {
+          "item": "orders_router.INV1",
+          "kind": "invariant",
+          "key": "ORDERS_ROUTER.INV1",
+          "tests": [
+            "tests/p4_api/test_orders_router.py::test_a_customer_only_reads_their_own_orders"
+          ]
+        },
+        {
+          "item": "example US-001-another-customers-order",
+          "kind": "example",
+          "key": "US-001-ANOTHER-CUSTOMERS-ORDER",
+          "tests": [
+            "tests/p4_api/test_orders_router.py::test_example_another_customers_order"
+          ]
+        }
+      ],
+      "examples": [
+        {
+          "name": "US-001-another-customers-order",
+          "ticket": "US-001",
+          "rule": "orders_router.INV1",
+          "source": {
+            "file": "briefs/orders.md",
+            "section": "reading-an-order",
+            "hash": "a70f6aed477a"
+          },
+          "level": "integration",
+          "folder": "tests/examples/orders_router/US-001-another-customers-order",
+          "tested": true,
+          "unchanged": true,
+          "result": "not_run",
+          "actual": false,
+          "files": [
+            {
+              "name": "response.json",
+              "kind": "document",
+              "state": "no_actual",
+              "differences": 0,
+              "rows": []
+            }
+          ],
+          "scenario": "Feature: read an order\n  Rule: orders_router.INV1\n    Scenario: another customer's order is not found\n      Given ann has an order of 5.00\n      When bob reads it\n      Then the answer is 404 \"Order not found\"",
+          "by": "architect@example.com",
+          "on": "2026-11-05"
+        }
+      ],
+      "rule_texts": {
+        "orders_router.INV1": "a customer only ever reads their own orders"
+      },
+      "status": "verified",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?",
+          "answer": "Authenticated customers (get_current_user), each only on their own orders",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Status codes: success, not found, conflict, forbidden - and the error body format?",
+          "answer": "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Invalid input: FastAPI's 422, or 400 with your own error format?",
+          "answer": "FastAPI's 422",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Lists: pagination, default and maximum page size - or no list route?",
+          "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        },
+        {
+          "number": 5,
+          "question": "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?",
+          "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-09",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [
+        {
+          "key": "P1",
+          "set": "P",
+          "title": "Personal data",
+          "id": "purpose",
+          "rule": "GDPR002",
+          "question": "Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
+          "answer": "Take and show the orders of each customer, for that customer only",
+          "by": "architect@example.com",
+          "on": "2026-10-12T00:46:55.799694+00:00"
+        },
+        {
+          "key": "P2",
+          "set": "P",
+          "title": "Personal data",
+          "id": "legal_basis",
+          "rule": "GDPR002",
+          "question": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
+          "answer": "Contract: the customer's orders (terms of sale)",
+          "by": "architect@example.com",
+          "on": "2026-10-12T00:46:56.107070+00:00"
+        }
+      ],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "exposed",
+          "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
+          "status": "answered",
+          "hazards": [
+            {
+              "id": "orders_router.H1",
+              "severity": "critical",
+              "description": "A customer reads another customer's order",
+              "suggested": false,
+              "prevented_by": [
+                {
+                  "id": "orders_router.INV1",
+                  "statement": "a customer only ever reads their own orders",
+                  "verify": "property_test",
+                  "tested": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "guide_word": "more",
+          "question": "Too much (unbounded results, duplicated records, a flood of requests): what must never happen?",
+          "status": "answered",
+          "dismissed": "No route returns a list; each answer is one order"
+        },
+        {
+          "number": 3,
+          "guide_word": "wrong",
+          "question": "Wrong input (invalid values, out of range, an illegal state change): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "invalid input is accepted and saved",
+            "invariant": "FastAPI's 422 (decision 3)",
+            "decision": {
+              "number": 3,
+              "answer": "FastAPI's 422"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "guide_word": "repeated",
+          "question": "Sent twice (a client retries or submits twice): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a retried request is applied twice",
+            "invariant": "No list route; POST repeated: two orders (no idempotency key yet) (decision 5)",
+            "decision": {
+              "number": 5,
+              "answer": "No list route; POST repeated: two orders (no idempotency key yet)"
+            }
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [
+        {
+          "task": "T1",
+          "core": true,
+          "done": true,
+          "items": [
+            {
+              "kind": "decision",
+              "key": "1",
+              "text": "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?",
+              "answer": "Authenticated customers (get_current_user), each only on their own orders",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "2",
+              "text": "Status codes: success, not found, conflict, forbidden - and the error body format?",
+              "answer": "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "3",
+              "text": "Invalid input: FastAPI's 422, or 400 with your own error format?",
+              "answer": "FastAPI's 422",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "4",
+              "text": "Lists: pagination, default and maximum page size - or no list route?",
+              "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "5",
+              "text": "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?",
+              "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+              "done": true
+            },
+            {
+              "kind": "example",
+              "key": "US-001-another-customers-order",
+              "text": "US-001",
+              "answer": null,
+              "done": true
+            }
+          ],
+          "summary": "the file and its public API, decisions 1-5, example US-001-another-customers-order"
+        },
+        {
+          "task": "T2",
+          "core": false,
+          "done": true,
+          "items": [
+            {
+              "kind": "invariant",
+              "key": "orders_router.INV1",
+              "text": "a customer only ever reads their own orders",
+              "answer": null,
+              "done": true
+            },
+            {
+              "kind": "question",
+              "key": "P1",
+              "text": "Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
+              "answer": "Take and show the orders of each customer, for that customer only",
+              "done": true
+            },
+            {
+              "kind": "question",
+              "key": "P2",
+              "text": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
+              "answer": "Contract: the customer's orders (terms of sale)",
+              "done": true
+            }
+          ],
+          "summary": "decisions P1, P2, orders_router.INV1"
+        }
+      ],
+      "to_review": []
+    }
+  },
+  "next": [],
+  "check": {
+    "ok": true,
+    "errors": 0,
+    "warnings": 15,
+    "violations": [
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'create_order': safety question S2 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show create_order",
+        "file": ".archvow/components/create_order/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "create_order"
+            },
+            "text": "archvow show create_order",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'create_order': safety question S4 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show create_order",
+        "file": ".archvow/components/create_order/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "create_order"
+            },
+            "text": "archvow show create_order",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'create_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show create_order",
+        "file": ".archvow/components/create_order/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "create_order"
+            },
+            "text": "archvow show create_order",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'get_current_user': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_current_user",
+        "file": ".archvow/components/get_current_user/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "get_current_user"
+            },
+            "text": "archvow show get_current_user",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'get_order': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show get_order",
+        "file": ".archvow/components/get_order/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "get_order"
+            },
+            "text": "archvow show get_order",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'get_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_order",
+        "file": ".archvow/components/get_order/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "get_order"
+            },
+            "text": "archvow show get_order",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'main': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show main",
+        "file": ".archvow/components/main/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "main"
+            },
+            "text": "archvow show main",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'new_order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show new_order_model",
+        "file": ".archvow/components/new_order_model/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "new_order_model"
+            },
+            "text": "archvow show new_order_model",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'new_order_model': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show new_order_model",
+        "file": ".archvow/components/new_order_model/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "new_order_model"
+            },
+            "text": "archvow show new_order_model",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show order_model",
+        "file": ".archvow/components/order_model/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "order_model"
+            },
+            "text": "archvow show order_model",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_repository': safety question S2 not answered (more) - Too much (unbounded results, duplicated records, a flood of requests): what must never happen? -> archvow show orders_repository",
+        "file": ".archvow/components/orders_repository/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_repository"
+            },
+            "text": "archvow show orders_repository",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_repository': safety question S5 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show orders_repository",
+        "file": ".archvow/components/orders_repository/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_repository"
+            },
+            "text": "archvow show orders_repository",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_repository': safety question S6 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show orders_repository",
+        "file": ".archvow/components/orders_repository/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_repository"
+            },
+            "text": "archvow show orders_repository",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_router': safety question S3 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show orders_router",
+        "file": ".archvow/components/orders_router/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_router"
+            },
+            "text": "archvow show orders_router",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_router': safety question S4 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show orders_router",
+        "file": ".archvow/components/orders_router/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_router"
+            },
+            "text": "archvow show orders_router",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      }
+    ],
+    "statuses": [
+      {
+        "container": "orders_api",
+        "component": "get_current_user",
+        "symbol": "get_current_user",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "logging_setup",
+        "symbol": "setup_logging",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "settings",
+        "symbol": "Settings",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "settings",
+        "symbol": "get_settings",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "new_order_model",
+        "symbol": "NewOrder",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "order_model",
+        "symbol": "Order",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "order_not_found_error",
+        "symbol": "OrderNotFoundError",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "orders_repository",
+        "symbol": "OrdersRepository",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "create_order",
+        "symbol": "create_order",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "get_order",
+        "symbol": "get_order",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "main",
+        "symbol": "create_app",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "orders_router",
+        "symbol": "router",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "orders_router",
+        "symbol": "post_order",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "orders_api",
+        "component": "orders_router",
+        "symbol": "read_order",
+        "status": "implemented",
+        "reason": ""
+      }
+    ],
+    "suppressed": [],
+    "changes": [],
+    "components": [
+      {
+        "container": "orders_api",
+        "component": "get_current_user",
+        "type": "dependency",
+        "layer": "p0_common",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "logging_setup",
+        "type": "foundation",
+        "layer": "p0_common",
+        "status": "implemented",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "settings",
+        "type": "foundation",
+        "layer": "p0_common",
+        "status": "implemented",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "new_order_model",
+        "type": "model",
+        "layer": "p1_domain",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "order_model",
+        "type": "model",
+        "layer": "p1_domain",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "order_not_found_error",
+        "type": "error",
+        "layer": "p1_domain",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "orders_repository",
+        "type": "repository",
+        "layer": "p2_io",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "create_order",
+        "type": "service",
+        "layer": "p3_services",
+        "status": "verified",
+        "tested": true,
+        "invariants_total": 1,
+        "invariants_verified": 1,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 1
+      },
+      {
+        "container": "orders_api",
+        "component": "get_order",
+        "type": "service",
+        "layer": "p3_services",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "main",
+        "type": "app",
+        "layer": "p4_api",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "orders_api",
+        "component": "orders_router",
+        "type": "router",
+        "layer": "p4_api",
+        "status": "verified",
+        "tested": true,
+        "invariants_total": 1,
+        "invariants_verified": 1,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 1
+      }
+    ],
+    "invariants": [
+      {
+        "id": "create_order.INV1",
+        "component": "create_order",
+        "statement": "every saved order has an amount greater than zero",
+        "verify": "property_test",
+        "verified": true,
+        "evidence": [
+          "tests/p3_services/test_create_order.py::test_every_saved_order_has_an_amount_greater_than_zero"
+        ],
+        "severity": "high"
+      },
+      {
+        "id": "orders_router.INV1",
+        "component": "orders_router",
+        "statement": "a customer only ever reads their own orders",
+        "verify": "property_test",
+        "verified": true,
+        "evidence": [
+          "tests/p4_api/test_orders_router.py::test_a_customer_only_reads_their_own_orders"
+        ],
+        "severity": "critical"
+      }
+    ],
+    "frozen": 0,
+    "stale_frozen": [],
+    "budget": null,
+    "safety": {
+      "answered": 14,
+      "total": 29
+    },
+    "counts": {
+      "ARCH035": 15
+    }
+  },
+  "briefs": {
+    "folders": [
+      "briefs"
+    ],
+    "files": [
+      {
+        "file": "briefs/orders.md",
+        "sections": [
+          {
+            "section": "orders-us-001",
+            "items": [],
+            "changed": false
+          },
+          {
+            "section": "reading-an-order",
+            "items": [
+              "orders_router example US-001-another-customers-order"
+            ],
+            "changed": false
+          }
+        ]
+      }
+    ],
+    "to_draft": 1,
+    "changed": 0
+  },
+  "catalog": {
+    "templates": [
+      {
+        "name": "fastapi-service",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "web-service",
+        "style": "layered (common -> domain -> io -> services -> api)",
+        "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,FASTAPI,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "FASTAPI",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported (e.g. sqlalchemy, jwt)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "fastapi_version",
+            "prompt": "FastAPI version line the project pins (upgrade deliberately; doctor checks it)",
+            "default": "0.143",
+            "pattern": "^0\\.[0-9]+$",
+            "pattern_hint": "a FastAPI minor line such as 0.143",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - settings, database session, the dependencies routes ask for",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Business rules - Pydantic models and pure functions, no HTTP, no database",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Repositories and clients - the only place that talks to the database and other services",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_services",
+            "description": "Services - one business operation each, calling repositories and clients and owning the transaction",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_api",
+            "description": "HTTP - routers and the app, which validate input, check who may call, call a service, shape the response",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p3_services"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. format_amount",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "dependency": {
+            "layer": "p0_common",
+            "description": "Something routes receive through Depends (the database session, the current user...).",
+            "addable": true,
+            "name_pattern": "^get_[a-z0-9_]+$",
+            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": true,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "model": {
+            "layer": "p1_domain",
+            "description": "A Pydantic model - the shape and the validation of one kind of data.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. order",
+            "module": "{name}_model",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "error": {
+            "layer": "p1_domain",
+            "description": "A domain error - raised by services and the domain, mapped to an HTTP status by the app.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what went wrong, e.g. order_not_found",
+            "module": "{name}_error",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Error"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "logic": {
+            "layer": "p1_domain",
+            "description": "A pure business rule - a function of its inputs, no I/O.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. compute_total",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "repository": {
+            "layer": "p2_io",
+            "description": "Stores and finds one kind of data (the database, or memory to start).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, plural, e.g. orders",
+            "module": "{name}_repository",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Repository"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_io",
+            "description": "Calls one other service (HTTP API, message broker...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other service, e.g. payments",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "service": {
+            "layer": "p3_services",
+            "description": "One business operation - calls repositories and clients, applies the rules, owns the transaction.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. create_order",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "router": {
+            "layer": "p4_api",
+            "description": "The HTTP routes of one resource - input, permissions, status codes, response.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the resource, plural, e.g. orders",
+            "module": "{name}_router",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "router",
+                "annotation": "APIRouter"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "app": {
+            "layer": "p4_api",
+            "description": "The FastAPI app - routers, prefix, lifespan, error mapping. Run with uvicorn --factory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "e.g. main",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "create_app",
+                "signature": "() -> FastAPI"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/fastapi-service"
+      },
+      {
+        "name": "langgraph-agent",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "ai-application",
+        "style": "layered (common -> domain -> tools -> agents -> app)",
+        "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,AGENT,FASTAPI,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "AGENT",
+              "FASTAPI",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides langgraph, langchain_core, fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported - the model providers too (e.g. langchain_anthropic, langchain_ollama, langchain_postgres)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "langgraph_version",
+            "prompt": "LangGraph version line the project pins (1.x keeps its API until 2.0; doctor checks it)",
+            "default": "1",
+            "pattern": "^1(\\.[0-9]+)?$",
+            "pattern_hint": "a LangGraph line such as 1 or 1.2",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Foundations - settings, the models, logging, the access scope, documents, the memory",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "The assistant's own shapes and pure logic - state, structured outputs, prompts, chunking; no I/O, no model call",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_tools",
+            "description": "Tools, retrievers and clients - the only place that reads or changes the company's data and other systems",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_agents",
+            "description": "Agents, routers and nodes - one step of thinking each, calling models and tools",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_tools"
+            ]
+          },
+          {
+            "name": "p4_app",
+            "description": "The graphs, the API, the MCP server and the indexing jobs - what runs",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_tools",
+              "p3_agents"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no model call, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. format_citation",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "state": {
+            "layer": "p1_domain",
+            "description": "The state a graph carries from step to step (a TypedDict).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the graph it belongs to, e.g. assistant",
+            "module": "{name}_state",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}State"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "schema": {
+            "layer": "p1_domain",
+            "description": "A structured shape the models return or the tools take (a Pydantic model) - never text parsed by hand.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. answer",
+            "module": "{name}_schema",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "prompt": {
+            "layer": "p1_domain",
+            "description": "The instructions a model gets, built from the state - kept in the code, never pulled from a hub at run time.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the step it serves, e.g. answer",
+            "module": "{name}_prompt",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_prompt"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "chunker": {
+            "layer": "p1_domain",
+            "description": "Cuts one Document into the Passages that are indexed - a pure function.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the documents it cuts, e.g. policies",
+            "module": "{name}_chunker",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "chunk_{name}",
+                "signature": "(document: Document) -> list[Passage]"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "tool": {
+            "layer": "p2_tools",
+            "description": "One thing an agent may do - read or change data, call a system - with typed arguments the model fills and a docstring it reads.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. book_ticket",
+            "module": "{name}_tool",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "retriever": {
+            "layer": "p2_tools",
+            "description": "Finds the passages a user may read that answer a question, best first, each with its source.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it searches, e.g. policies",
+            "module": "{name}_retriever",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "retrieve_{name}",
+                "signature": "(query: str, scope: AccessScope) -> list[Passage]"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "mcp_client": {
+            "layer": "p2_tools",
+            "description": "Gives the tools of one approved MCP server to the agents.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the server, e.g. tickets",
+            "module": "{name}_mcp",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "load_{name}_tools"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_tools",
+            "description": "Talks to one other system (an HTTP API, a message broker, a source to index...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other system, e.g. sharepoint",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "router": {
+            "layer": "p3_agents",
+            "description": "Chooses the next step for a request, and the model role and thinking budget it gets.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it routes, e.g. question",
+            "module": "{name}_router",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "route_{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "node": {
+            "layer": "p3_agents",
+            "description": "One step of a graph - reads the state, calls a model or a tool, writes its result back.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it does, e.g. answer",
+            "module": "{name}_node",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}_node"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "agent": {
+            "layer": "p3_agents",
+            "description": "A model that chooses among its tools, step by step, until it has an answer (LangChain's create_agent).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "its job, e.g. booking",
+            "module": "{name}_agent",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_agent"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "graph": {
+            "layer": "p4_app",
+            "description": "The workflow - its steps and how they follow each other, compiled with the memory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the assistant, e.g. assistant",
+            "module": "{name}_graph",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_graph"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "api": {
+            "layer": "p4_app",
+            "description": "The HTTP API - signs the user in, builds the access scope, runs the graph. Run with uvicorn --factory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the assistant, e.g. assistant",
+            "module": "{name}_api",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "router",
+                "annotation": "APIRouter"
+              },
+              {
+                "kind": "function",
+                "name": "create_app",
+                "signature": "() -> FastAPI"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "mcp_server": {
+            "layer": "p4_app",
+            "description": "Serves tools to other assistants over MCP (the company's assistants, IDEs).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it serves, e.g. policies",
+            "module": "{name}_mcp_server",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "create_{name}_server"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "index_job": {
+            "layer": "p4_app",
+            "description": "Copies one source into the index - Documents, chunks, embeddings - only what changed.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the source, e.g. policies",
+            "module": "{name}_index_job",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "index_{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/langgraph-agent"
+      },
+      {
+        "name": "pyspark-pipeline",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "data-pipeline",
+        "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
+        "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.11",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,SPARK,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "SPARK",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides pyspark, pytest and hypothesis, comma-separated, as imported (e.g. yaml, requests)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (and Java 17 for Spark) (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "spark_version",
+            "prompt": "PySpark version",
+            "default": "3.5",
+            "choices": [
+              "3.4",
+              "3.5",
+              "4.0"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "scheduler",
+            "ask": true,
+            "prompt": "Scheduler that runs the pipeline (none = run entrypoint.sh yourself or from your own scheduler)",
+            "default": "none",
+            "choices": [
+              "none",
+              "airflow",
+              "oozie"
+            ],
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - SparkSession factory, configuration, constants",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Schemas and pure, lazy DataFrame -> DataFrame transformations",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Readers and writers - the only place that touches storage",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_jobs",
+            "description": "Jobs wiring readers, transformations and writers together",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_entrypoints",
+            "description": "Process entry points (CLI, scheduler, Databricks/EMR job)",
+            "may_import": [
+              "p0_common",
+              "p3_jobs"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "Shared helper or constants module (no Spark actions, no I/O).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}",
+                "signature": "() -> None"
+              }
+            ],
+            "implicit_dependency": true,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "schema": {
+            "layer": "p1_domain",
+            "description": "Explicit StructType contract for a dataset.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders",
+            "module": "{name}_schema",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "{NAME}_SCHEMA",
+                "annotation": "T.StructType"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "transformation": {
+            "layer": "p1_domain",
+            "description": "Pure, lazy DataFrame -> DataFrame function.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. clean_orders",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}",
+                "signature": "(df: DataFrame) -> DataFrame"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "reader": {
+            "layer": "p2_io",
+            "description": "Reads one dataset and enforces its schema.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders",
+            "module": "{name}_reader",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "read_{name}",
+                "signature": "(spark: SparkSession, path: str) -> DataFrame"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": [
+              {
+                "name": "files",
+                "description": "Reads one dataset and enforces its schema.",
+                "default": true
+              },
+              {
+                "name": "table",
+                "description": "Reads one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi) and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "jdbc",
+                "description": "Reads a table or a query of a database over JDBC (spark.read.jdbc) and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "connector",
+                "description": "Reads with a Spark connector (spark.read.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka read in batch... - and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "custom",
+                "description": "Reads a source Spark has no reader for (a REST API, SFTP, a SaaS export, an in-house file format) with its own Python code - a Python data source (Spark 4.0) or calls on the executors - and enforces its schema.",
+                "default": false
+              }
+            ]
+          },
+          "writer": {
+            "layer": "p2_io",
+            "description": "Writes one dataset.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders_clean",
+            "module": "{name}_writer",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "write_{name}",
+                "signature": "(df: DataFrame, path: str) -> None"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": [
+              {
+                "name": "files",
+                "description": "Writes one dataset.",
+                "default": true
+              },
+              {
+                "name": "table",
+                "description": "Writes one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi).",
+                "default": false
+              },
+              {
+                "name": "jdbc",
+                "description": "Writes a table of a database over JDBC (df.write.jdbc).",
+                "default": false
+              },
+              {
+                "name": "connector",
+                "description": "Writes with a Spark connector (df.write.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka...",
+                "default": false
+              },
+              {
+                "name": "custom",
+                "description": "Writes to a target Spark has no writer for (a REST API, SFTP, a SaaS import, an in-house format) with its own Python code - foreachPartition, or a Python data source writer (Spark 4.0).",
+                "default": false
+              }
+            ]
+          },
+          "job": {
+            "layer": "p3_jobs",
+            "description": "Orchestrates read -> transform -> write for one output.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "output name, e.g. daily_sales",
+            "module": "{name}_job",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "run_{name}",
+                "signature": "(spark: SparkSession, config: JobConfig) -> None"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "entrypoint": {
+            "layer": "p4_entrypoints",
+            "description": "Process entry point that parses arguments and runs one job.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "",
+            "module": "{name}_main",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "main",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/pyspark-pipeline"
+      },
+      {
+        "name": "python-app",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "application",
+        "style": "layered (common -> domain -> io -> services -> entrypoints)",
+        "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides pytest and hypothesis, comma-separated, as imported (e.g. requests, yaml)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - settings, logging, small helpers every layer may use",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Business rules - data classes, domain errors and pure functions, no I/O",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Repositories and clients - the only place that reads and writes files, databases and other services",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_services",
+            "description": "Services - one operation each, calling repositories and clients and applying the domain's rules",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_entrypoints",
+            "description": "Entry points - the command line, which parses arguments, calls a service and sets the exit code",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p3_services"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. parse_date",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "model": {
+            "layer": "p1_domain",
+            "description": "A data class - the shape and the validation of one kind of data.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. invoice",
+            "module": "{name}_model",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "error": {
+            "layer": "p1_domain",
+            "description": "A domain error - raised by the domain and the services, turned into a message and an exit code by the entry point.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what went wrong, e.g. invoice_not_found",
+            "module": "{name}_error",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Error"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "logic": {
+            "layer": "p1_domain",
+            "description": "A pure business rule - a function of its inputs, no I/O.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. compute_total",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "repository": {
+            "layer": "p2_io",
+            "description": "Stores and finds one kind of data (files, a database).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, plural, e.g. invoices",
+            "module": "{name}_repository",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Repository"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_io",
+            "description": "Talks to one other system (an HTTP API, a mail server, a message broker...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other system, e.g. mailer",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "service": {
+            "layer": "p3_services",
+            "description": "One operation - calls repositories and clients and applies the domain's rules.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. send_invoice",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "cli": {
+            "layer": "p4_entrypoints",
+            "description": "The command line - parses the arguments, calls a service, prints the result, sets the exit code.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the program, e.g. invoices",
+            "module": "{name}_cli",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "main",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/python-app"
+      }
+    ]
+  }
+}

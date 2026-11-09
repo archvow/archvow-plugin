@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 1.23.0",
+ "archvow": "archvow 1.25.0",
  "messages": [
   {
    "code": "ACME001",
@@ -111,6 +111,13 @@
    "severity": "error",
    "message": "sales.p1_domain.rogue is not declared; add it with `archvow component add`",
    "file": "src/sales/p1_domain/rogue.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p2_transformations.clean_orders is not declared and sits in no layer: map it in `layer_paths` (archvow init sales --force --adopt proposes it), then archvow component add <type> <name> --file src/sales/p2_transformations/clean_orders.py",
+   "file": "src/sales/p2_transformations/clean_orders.py",
    "line": 0
   },
   {
@@ -625,9 +632,16 @@
    "line": 0
   },
   {
+   "code": "ARCH010",
+   "severity": "error",
+   "message": "'p2_transformations' is not a layer of template pyspark-pipeline (layers: p0_common, p1_domain, p2_io, p3_jobs, p4_entrypoints): move the file or map it in `layer_paths`",
+   "file": "src/sales/p2_transformations/__init__.py",
+   "line": 0
+  },
+  {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.23.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.25.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -3686,14 +3700,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 1bf0d7d0: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit b13d9453: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 3b8382fa: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit f3bba286: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },

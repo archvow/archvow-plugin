@@ -1,0 +1,5336 @@
+{
+  "contract": "1.1",
+  "digest": "<digest>",
+  "project": {
+    "schema_version": 2,
+    "system": {
+      "name": "my_pipeline",
+      "description": "PySpark pipeline for my_pipeline"
+    },
+    "containers": [
+      {
+        "id": "my_pipeline",
+        "template": "pyspark-pipeline@1.25.0",
+        "package": "my_pipeline",
+        "path": "src/my_pipeline",
+        "components": [
+          {
+            "id": "config",
+            "name": "config",
+            "type": "foundation",
+            "layer": "p0_common",
+            "module": "my_pipeline.p0_common.config",
+            "description": "Immutable job configuration passed from entry points to jobs.",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "JobConfig",
+                "kind": "class"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which fields does JobConfig hold (name: type, required or default value)?",
+                "answer": "input_path: str and output_path: str, both required; a frozen dataclass",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:23.938480+00:00"
+              },
+              {
+                "question": "What happens when a value is missing or invalid (which exception, raised where)?",
+                "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.000829+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "logging_setup",
+            "name": "logging_setup",
+            "type": "foundation",
+            "layer": "p0_common",
+            "module": "my_pipeline.p0_common.logging_setup",
+            "description": "Configure la journalisation une fois, pour le point d'entrée (niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde -, jamais un secret, une ligne de données ni une donnée personnelle).",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "setup_logging",
+                "kind": "function",
+                "signature": "(level: str = \"INFO\") -> None"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "(a question the template no longer asks: c1be6541bf31)",
+                "answer": "stderr, one line per event: time, level, component, message",
+                "by": "architect@example.com",
+                "on": "2026-11-02T00:56:44.374063+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "spark",
+            "name": "spark",
+            "type": "foundation",
+            "layer": "p0_common",
+            "module": "my_pipeline.p0_common.spark",
+            "description": "Single factory for SparkSession objects.",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "get_spark_session",
+                "kind": "function",
+                "signature": "(app_name: str, master: str | None = None) -> SparkSession"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none?",
+                "answer": "spark.sql.session.timeZone=UTC, nothing else",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:23.887902+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "clean_orders",
+            "name": "clean_orders",
+            "type": "transformation",
+            "layer": "p1_domain",
+            "module": "my_pipeline.p1_domain.clean_orders",
+            "spec": "US-002",
+            "description": "Keep only the valid rows: order_id not null and amount >= 0",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "clean_orders",
+                "kind": "function",
+                "signature": "(df: DataFrame) -> DataFrame"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which rows does it keep (filter conditions), or all of them?",
+                "answer": "Rows where order_id is not null and amount >= 0",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.289189+00:00"
+              },
+              {
+                "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+                "answer": "The schema columns, unchanged",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.343938+00:00"
+              },
+              {
+                "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+                "answer": "No grouping",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.412714+00:00"
+              },
+              {
+                "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+                "answer": "No join",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.487443+00:00"
+              },
+              {
+                "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+                "answer": "Return an empty DataFrame with the output schema",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.545560+00:00"
+              },
+              {
+                "question": "Null values in key columns: drop, keep, or fail?",
+                "answer": "Drop rows with a null order_id",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.601449+00:00"
+              },
+              {
+                "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+                "answer": "Keep one row per order_id",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.650108+00:00"
+              },
+              {
+                "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+                "answer": "Drop rows where amount is negative",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.700551+00:00"
+              },
+              {
+                "question": "Extra input columns not in the schema: drop silently or fail?",
+                "answer": "Drop them: output only the schema columns",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.782343+00:00"
+              }
+            ],
+            "assumptions": [],
+            "examples": [
+              {
+                "name": "US-002-negative-amount",
+                "ticket": "US-002",
+                "source": {
+                  "file": "briefs/orders.md",
+                  "section": "cleaning",
+                  "hash": "6b25cb7402c7"
+                },
+                "fingerprint": "43a1e5b65fd8",
+                "by": "architect@example.com",
+                "on": "2026-11-05T12:00:00+00:00"
+              },
+              {
+                "name": "US-002-zero-amount-kept",
+                "ticket": "US-002",
+                "rule": "clean_orders.INV1",
+                "source": {
+                  "file": "briefs/orders.md",
+                  "section": "cleaning",
+                  "hash": "6b25cb7402c7"
+                },
+                "fingerprint": "93f7590e39ff",
+                "by": "architect@example.com",
+                "on": "2026-11-05T12:00:00+00:00"
+              }
+            ]
+          },
+          {
+            "id": "compute_vat",
+            "name": "compute_vat",
+            "type": "transformation",
+            "layer": "p1_domain",
+            "module": "my_pipeline.p1_domain.compute_vat",
+            "spec": "US-002",
+            "description": "Add the column vat = amount * 0.2",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "compute_vat",
+                "kind": "function",
+                "signature": "(df: DataFrame) -> DataFrame"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which rows does it keep (filter conditions), or all of them?",
+                "answer": "All rows",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.833535+00:00"
+              },
+              {
+                "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+                "answer": "The input columns plus vat decimal(18,2) = amount * 0.2, not null",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.885979+00:00"
+              },
+              {
+                "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+                "answer": "No grouping",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.936127+00:00"
+              },
+              {
+                "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+                "answer": "No join",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.986387+00:00"
+              },
+              {
+                "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+                "answer": "Return an empty DataFrame with the output schema",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.038557+00:00"
+              },
+              {
+                "question": "Null values in key columns: drop, keep, or fail?",
+                "answer": "Not possible here: clean_orders runs first",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.122165+00:00"
+              },
+              {
+                "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+                "answer": "Not possible here: clean_orders runs first",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.205767+00:00"
+              },
+              {
+                "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+                "answer": "Not possible here: clean_orders runs first",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.290202+00:00"
+              },
+              {
+                "question": "Extra input columns not in the schema: drop silently or fail?",
+                "answer": "Keep them unchanged",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.374756+00:00"
+              }
+            ],
+            "assumptions": [],
+            "examples": [
+              {
+                "name": "US-002-vat-20",
+                "ticket": "US-002",
+                "rule": "compute_vat.INV1",
+                "source": {
+                  "file": "briefs/orders.md",
+                  "section": "vat",
+                  "hash": "7cd02699bae2"
+                },
+                "fingerprint": "e46d7bdbc884",
+                "by": "architect@example.com",
+                "on": "2026-11-05T12:00:00+00:00"
+              }
+            ]
+          },
+          {
+            "id": "orders_schema",
+            "name": "orders",
+            "type": "schema",
+            "layer": "p1_domain",
+            "module": "my_pipeline.p1_domain.orders_schema",
+            "spec": "US-001",
+            "description": "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "ORDERS_SCHEMA",
+                "kind": "constant",
+                "annotation": "T.StructType"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which columns are nullable, and which must never be null?",
+                "answer": "order_id and amount are never null; customer_id may be null",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.047585+00:00"
+              },
+              {
+                "question": "Which columns hold personal data, and where may they flow?",
+                "answer": "None: the input holds no personal data",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.096826+00:00"
+              }
+            ],
+            "assumptions": [],
+            "columns": {
+              "amount": "none",
+              "customer_id": "none",
+              "order_date": "none",
+              "order_id": "none"
+            }
+          },
+          {
+            "id": "orders_reader",
+            "name": "orders",
+            "type": "reader",
+            "layer": "p2_io",
+            "module": "my_pipeline.p2_io.orders_reader",
+            "spec": "US-001",
+            "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
+            "uses": [
+              "orders_schema"
+            ],
+            "symbols": [
+              {
+                "name": "read_orders",
+                "kind": "function",
+                "signature": "(spark: SparkSession, path: str) -> DataFrame"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "The path does not exist or is empty: fail or return an empty DataFrame?",
+                "answer": "Fail with a clear error: a missing input is an operations problem",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.141832+00:00"
+              },
+              {
+                "question": "Records not matching the schema: fail, drop, or quarantine?",
+                "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.189462+00:00"
+              },
+              {
+                "question": "Which partitions / dates are read, and what if the latest one is missing?",
+                "answer": "Everything under the given path, no partitions",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:24.237829+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "vat_writer",
+            "name": "vat",
+            "type": "writer",
+            "layer": "p2_io",
+            "module": "my_pipeline.p2_io.vat_writer",
+            "spec": "US-003",
+            "description": "Write the orders with their VAT as parquet",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "write_vat",
+                "kind": "function",
+                "signature": "(df: DataFrame, path: str) -> None"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Output already exists: overwrite, append, or fail?",
+                "answer": "Overwrite",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.528816+00:00"
+              },
+              {
+                "question": "A failure mid-write: how is a partial output prevented or detected?",
+                "answer": "Write to a temporary folder next to the output, then rename it",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.580782+00:00"
+              },
+              {
+                "question": "Re-running the same input: must the output be identical (idempotent)?",
+                "answer": "Yes: the same input gives the same output",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.637628+00:00"
+              },
+              {
+                "question": "Partitioning columns and file format?",
+                "answer": "Parquet, not partitioned",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.691110+00:00"
+              },
+              {
+                "question": "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?",
+                "answer": "No table: parquet files at the output path",
+                "by": "architect@example.com",
+                "on": "2026-10-08T21:41:29.424434+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "my_pipeline_job",
+            "name": "my_pipeline",
+            "type": "job",
+            "layer": "p3_jobs",
+            "module": "my_pipeline.p3_jobs.my_pipeline_job",
+            "spec": "US-003",
+            "description": "Read the orders, clean them, compute their VAT, write the result",
+            "uses": [
+              "orders_reader",
+              "clean_orders",
+              "compute_vat",
+              "vat_writer"
+            ],
+            "symbols": [
+              {
+                "name": "run_my_pipeline",
+                "kind": "function",
+                "signature": "(spark: SparkSession, config: JobConfig) -> None"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "One input is missing: skip the run, fail, or run with partial data?",
+                "answer": "Fail",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.742043+00:00"
+              },
+              {
+                "question": "Retries: how many, and is a retry safe?",
+                "answer": "No automatic retry; a re-run is safe (the writer overwrites)",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.836475+00:00"
+              },
+              {
+                "question": "Which run date / partition does the job process, and who decides it?",
+                "answer": "No run date: the job processes the input it is given",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.917216+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "my_pipeline_main",
+            "name": "my_pipeline",
+            "type": "entrypoint",
+            "layer": "p4_entrypoints",
+            "module": "my_pipeline.p4_entrypoints.my_pipeline_main",
+            "spec": "US-003",
+            "description": "Command line: --input PATH (the input folder), --output PATH (the output folder)",
+            "uses": [
+              "my_pipeline_job"
+            ],
+            "symbols": [
+              {
+                "name": "main",
+                "kind": "function",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Invalid arguments: which exit code and message?",
+                "answer": "Exit code 2 with a usage message",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:25.985654+00:00"
+              },
+              {
+                "question": "Which exit codes signal which failures to the scheduler?",
+                "answer": "0 success, 1 job failure, 2 invalid arguments",
+                "by": "architect@example.com",
+                "on": "2026-10-08T13:06:26.064705+00:00"
+              }
+            ],
+            "assumptions": []
+          }
+        ]
+      }
+    ],
+    "rules": {},
+    "language": "en",
+    "ai_tools": [
+      "claude-code"
+    ],
+    "dependencies": [],
+    "init_answers": {
+      "language": "en",
+      "python_version": "3.11",
+      "line_length": "88",
+      "platform": "gitlab",
+      "ci": "auto",
+      "architects": "@my-team",
+      "sonar": "no",
+      "auto_approve": "yes",
+      "sandbox": "yes",
+      "briefs": "briefs",
+      "max_components": "",
+      "max_code_lines": "",
+      "git_hooks": "githooks",
+      "branch_naming": "gitflow",
+      "pip_index_url": "",
+      "ci_image": "",
+      "spark_version": "3.5",
+      "scheduler": "none"
+    },
+    "project_rules": [
+      {
+        "id": "R1",
+        "text": "vat is rounded half-up to 2 decimals",
+        "scope": {
+          "components": [
+            "compute_vat"
+          ]
+        },
+        "by": "architect@example.com",
+        "on": "2026-10-08T13:06:25.458727+00:00"
+      }
+    ],
+    "compliance": [
+      "gdpr",
+      "tst"
+    ],
+    "mode": "strict",
+    "families": [
+      "all"
+    ],
+    "hazards": [
+      {
+        "component": "clean_orders",
+        "id": "clean_orders.H1",
+        "guide_word": "less",
+        "severity": "high",
+        "description": "A valid input row is dropped",
+        "by": "architect@example.com",
+        "on": "2026-10-08T13:06:26.136877+00:00"
+      },
+      {
+        "component": "compute_vat",
+        "id": "compute_vat.H1",
+        "guide_word": "wrong",
+        "severity": "high",
+        "description": "vat is computed wrongly",
+        "by": "architect@example.com",
+        "on": "2026-10-08T13:06:26.242983+00:00"
+      },
+      {
+        "component": "vat_writer",
+        "id": "vat_writer.H1",
+        "guide_word": "partial",
+        "severity": "critical",
+        "description": "Downstream reads a half-written output",
+        "by": "architect@example.com",
+        "on": "2026-10-08T13:06:26.379916+00:00"
+      }
+    ],
+    "invariants": [
+      {
+        "component": "clean_orders",
+        "id": "clean_orders.INV1",
+        "statement": "every input row with an order_id and amount >= 0 appears in the output",
+        "mitigates": [
+          "clean_orders.H1"
+        ],
+        "verify": "property_test",
+        "by": "architect@example.com",
+        "on": "2026-10-08T13:06:26.187286+00:00"
+      },
+      {
+        "component": "compute_vat",
+        "id": "compute_vat.INV1",
+        "statement": "vat = amount * 0.2 for every row",
+        "mitigates": [
+          "compute_vat.H1"
+        ],
+        "verify": "property_test",
+        "by": "architect@example.com",
+        "on": "2026-10-08T13:06:26.312399+00:00"
+      },
+      {
+        "component": "vat_writer",
+        "id": "vat_writer.INV1",
+        "statement": "the output folder is complete or absent",
+        "mitigates": [
+          "vat_writer.H1"
+        ],
+        "verify": "runtime",
+        "by": "architect@example.com",
+        "on": "2026-10-08T13:06:26.451398+00:00"
+      }
+    ],
+    "dismissed": [
+      {
+        "component": "orders_schema",
+        "guide_word": "exposed",
+        "rationale": "the input holds no personal data",
+        "by": "architect@example.com",
+        "on": "2026-10-08T13:06:26.537197+00:00"
+      }
+    ]
+  },
+  "components": {
+    "config": {
+      "component": "config",
+      "type": "foundation",
+      "layer": "p0_common",
+      "known_columns": [],
+      "description": "Immutable job configuration passed from entry points to jobs.",
+      "uses": [],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which fields does JobConfig hold (name: type, required or default value)?",
+          "answer": "input_path: str and output_path: str, both required; a frozen dataclass",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "What happens when a value is missing or invalid (which exception, raised where)?",
+          "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "logging_setup": {
+      "component": "logging_setup",
+      "type": "foundation",
+      "layer": "p0_common",
+      "known_columns": [],
+      "description": "Configure la journalisation une fois, pour le point d'entrée (niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde -, jamais un secret, une ligne de données ni une donnée personnelle).",
+      "uses": [],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "(a question the template no longer asks: c1be6541bf31)",
+          "answer": "stderr, one line per event: time, level, component, message",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-11-02",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "spark": {
+      "component": "spark",
+      "type": "foundation",
+      "layer": "p0_common",
+      "known_columns": [],
+      "description": "Single factory for SparkSession objects.",
+      "uses": [],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none?",
+          "answer": "spark.sql.session.timeZone=UTC, nothing else",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "clean_orders": {
+      "component": "clean_orders",
+      "type": "transformation",
+      "layer": "p1_domain",
+      "known_columns": [],
+      "description": "Keep only the valid rows: order_id not null and amount >= 0",
+      "uses": [],
+      "used_by": [
+        "my_pipeline_job"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": []
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": []
+        },
+        {
+          "item": "decision 5",
+          "kind": "decision",
+          "key": "5",
+          "tests": []
+        },
+        {
+          "item": "decision 6",
+          "kind": "decision",
+          "key": "6",
+          "tests": []
+        },
+        {
+          "item": "decision 7",
+          "kind": "decision",
+          "key": "7",
+          "tests": []
+        },
+        {
+          "item": "decision 8",
+          "kind": "decision",
+          "key": "8",
+          "tests": []
+        },
+        {
+          "item": "decision 9",
+          "kind": "decision",
+          "key": "9",
+          "tests": []
+        },
+        {
+          "item": "clean_orders.INV1",
+          "kind": "invariant",
+          "key": "CLEAN_ORDERS.INV1",
+          "tests": []
+        },
+        {
+          "item": "example US-002-negative-amount",
+          "kind": "example",
+          "key": "US-002-NEGATIVE-AMOUNT",
+          "tests": []
+        },
+        {
+          "item": "example US-002-zero-amount-kept",
+          "kind": "example",
+          "key": "US-002-ZERO-AMOUNT-KEPT",
+          "tests": []
+        }
+      ],
+      "examples": [
+        {
+          "name": "US-002-negative-amount",
+          "ticket": "US-002",
+          "source": {
+            "file": "briefs/orders.md",
+            "section": "cleaning",
+            "hash": "6b25cb7402c7"
+          },
+          "level": "unit",
+          "folder": "tests/examples/clean_orders/US-002-negative-amount",
+          "tested": false,
+          "unchanged": true,
+          "result": "no_test",
+          "actual": false,
+          "files": [
+            {
+              "name": "orders.csv",
+              "kind": "table",
+              "state": "no_actual",
+              "differences": 0,
+              "rows": []
+            }
+          ],
+          "scenario": "Feature: clean the orders\n  Scenario: an order with a negative amount is dropped\n    Given the orders A1 (5.00) and A2 (-3.00)\n    When clean_orders runs\n    Then only A1 is kept",
+          "by": "architect@example.com",
+          "on": "2026-11-05"
+        },
+        {
+          "name": "US-002-zero-amount-kept",
+          "ticket": "US-002",
+          "rule": "clean_orders.INV1",
+          "source": {
+            "file": "briefs/orders.md",
+            "section": "cleaning",
+            "hash": "6b25cb7402c7"
+          },
+          "level": "unit",
+          "folder": "tests/examples/clean_orders/US-002-zero-amount-kept",
+          "tested": false,
+          "unchanged": true,
+          "result": "no_test",
+          "actual": false,
+          "files": [
+            {
+              "name": "orders.csv",
+              "kind": "table",
+              "state": "no_actual",
+              "differences": 0,
+              "rows": []
+            }
+          ],
+          "scenario": "Feature: clean the orders\n  Rule: clean_orders.INV1\n    Scenario: an order of 0.00 is kept\n      Given the orders A1 (5.00) and A3 (0.00, a free sample)\n      When clean_orders runs\n      Then A1 and A3 are both kept",
+          "by": "architect@example.com",
+          "on": "2026-11-05"
+        }
+      ],
+      "rule_texts": {
+        "clean_orders.INV1": "every input row with an order_id and amount >= 0 appears in the output"
+      },
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which rows does it keep (filter conditions), or all of them?",
+          "answer": "Rows where order_id is not null and amount >= 0",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+          "answer": "The schema columns, unchanged",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+          "answer": "No grouping",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+          "answer": "No join",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 5,
+          "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+          "answer": "Return an empty DataFrame with the output schema",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 6,
+          "question": "Null values in key columns: drop, keep, or fail?",
+          "answer": "Drop rows with a null order_id",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 7,
+          "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+          "answer": "Keep one row per order_id",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 8,
+          "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+          "answer": "Drop rows where amount is negative",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 9,
+          "question": "Extra input columns not in the schema: drop silently or fail?",
+          "answer": "Drop them: output only the schema columns",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "Input missing, empty or late: what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "an absent, empty or late input is processed as if it were complete",
+            "invariant": "Return an empty DataFrame with the output schema (decision 5)",
+            "decision": {
+              "number": 5,
+              "answer": "Return an empty DataFrame with the output schema"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "guide_word": "more",
+          "question": "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
+            "invariant": "Keep one row per order_id (decision 7)",
+            "decision": {
+              "number": 7,
+              "answer": "Keep one row per order_id"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "guide_word": "less",
+          "question": "Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen?",
+          "status": "answered",
+          "hazards": [
+            {
+              "id": "clean_orders.H1",
+              "severity": "high",
+              "description": "A valid input row is dropped",
+              "suggested": false,
+              "prevented_by": [
+                {
+                  "id": "clean_orders.INV1",
+                  "statement": "every input row with an order_id and amount >= 0 appears in the output",
+                  "verify": "property_test",
+                  "tested": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "guide_word": "wrong",
+          "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a null, negative or out-of-range value reaches the output",
+            "invariant": "Drop rows where amount is negative (decision 8)",
+            "decision": {
+              "number": 8,
+              "answer": "Drop rows where amount is negative"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "guide_word": "exposed",
+          "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "personal or secret data is written where it must not be",
+            "invariant": "personal and secret columns never reach the output"
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [
+        {
+          "task": "T1",
+          "core": true,
+          "done": false,
+          "items": [
+            {
+              "kind": "decision",
+              "key": "1",
+              "text": "Which rows does it keep (filter conditions), or all of them?",
+              "answer": "Rows where order_id is not null and amount >= 0",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "2",
+              "text": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+              "answer": "The schema columns, unchanged",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "3",
+              "text": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+              "answer": "No grouping",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "4",
+              "text": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+              "answer": "No join",
+              "done": false
+            }
+          ],
+          "summary": "the file and its public API, decisions 1-4"
+        },
+        {
+          "task": "T2",
+          "core": false,
+          "done": false,
+          "items": [
+            {
+              "kind": "decision",
+              "key": "5",
+              "text": "Empty input: return an empty DataFrame with the output schema, or fail?",
+              "answer": "Return an empty DataFrame with the output schema",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "6",
+              "text": "Null values in key columns: drop, keep, or fail?",
+              "answer": "Drop rows with a null order_id",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "7",
+              "text": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+              "answer": "Keep one row per order_id",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "8",
+              "text": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+              "answer": "Drop rows where amount is negative",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "9",
+              "text": "Extra input columns not in the schema: drop silently or fail?",
+              "answer": "Drop them: output only the schema columns",
+              "done": false
+            }
+          ],
+          "summary": "decisions 5-9"
+        },
+        {
+          "task": "T3",
+          "core": false,
+          "done": false,
+          "items": [
+            {
+              "kind": "example",
+              "key": "US-002-negative-amount",
+              "text": "US-002",
+              "answer": null,
+              "done": false
+            },
+            {
+              "kind": "example",
+              "key": "US-002-zero-amount-kept",
+              "text": "US-002",
+              "answer": null,
+              "done": false
+            },
+            {
+              "kind": "invariant",
+              "key": "clean_orders.INV1",
+              "text": "every input row with an order_id and amount >= 0 appears in the output",
+              "answer": null,
+              "done": false
+            }
+          ],
+          "summary": "examples US-002-negative-amount, US-002-zero-amount-kept, clean_orders.INV1"
+        }
+      ],
+      "to_review": []
+    },
+    "compute_vat": {
+      "component": "compute_vat",
+      "type": "transformation",
+      "layer": "p1_domain",
+      "known_columns": [],
+      "description": "Add the column vat = amount * 0.2",
+      "uses": [],
+      "used_by": [
+        "my_pipeline_job"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": []
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": []
+        },
+        {
+          "item": "decision 5",
+          "kind": "decision",
+          "key": "5",
+          "tests": []
+        },
+        {
+          "item": "decision 6",
+          "kind": "decision",
+          "key": "6",
+          "tests": []
+        },
+        {
+          "item": "decision 7",
+          "kind": "decision",
+          "key": "7",
+          "tests": []
+        },
+        {
+          "item": "decision 8",
+          "kind": "decision",
+          "key": "8",
+          "tests": []
+        },
+        {
+          "item": "decision 9",
+          "kind": "decision",
+          "key": "9",
+          "tests": []
+        },
+        {
+          "item": "R1",
+          "kind": "rule",
+          "key": "R1",
+          "tests": []
+        },
+        {
+          "item": "compute_vat.INV1",
+          "kind": "invariant",
+          "key": "COMPUTE_VAT.INV1",
+          "tests": []
+        },
+        {
+          "item": "example US-002-vat-20",
+          "kind": "example",
+          "key": "US-002-VAT-20",
+          "tests": []
+        }
+      ],
+      "examples": [
+        {
+          "name": "US-002-vat-20",
+          "ticket": "US-002",
+          "rule": "compute_vat.INV1",
+          "source": {
+            "file": "briefs/orders.md",
+            "section": "vat",
+            "hash": "7cd02699bae2"
+          },
+          "level": "unit",
+          "folder": "tests/examples/compute_vat/US-002-vat-20",
+          "tested": false,
+          "unchanged": true,
+          "result": "no_test",
+          "actual": false,
+          "files": [
+            {
+              "name": "orders.csv",
+              "kind": "table",
+              "state": "no_actual",
+              "differences": 0,
+              "rows": []
+            }
+          ],
+          "scenario": "Feature: compute the VAT\n  Rule: compute_vat.INV1\n    Scenario: the VAT is 20 % of the amount\n      Given the orders A1 (12.50) and A3 (0.00)\n      When compute_vat runs\n      Then A1 has a vat of 2.50 and A3 a vat of 0.00",
+          "by": "architect@example.com",
+          "on": "2026-11-05"
+        }
+      ],
+      "rule_texts": {
+        "compute_vat.INV1": "vat = amount * 0.2 for every row"
+      },
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which rows does it keep (filter conditions), or all of them?",
+          "answer": "All rows",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+          "answer": "The input columns plus vat decimal(18,2) = amount * 0.2, not null",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+          "answer": "No grouping",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+          "answer": "No join",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 5,
+          "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+          "answer": "Return an empty DataFrame with the output schema",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 6,
+          "question": "Null values in key columns: drop, keep, or fail?",
+          "answer": "Not possible here: clean_orders runs first",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 7,
+          "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+          "answer": "Not possible here: clean_orders runs first",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 8,
+          "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+          "answer": "Not possible here: clean_orders runs first",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 9,
+          "question": "Extra input columns not in the schema: drop silently or fail?",
+          "answer": "Keep them unchanged",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [
+        {
+          "id": "R1",
+          "text": "vat is rounded half-up to 2 decimals",
+          "scope": "compute_vat"
+        }
+      ],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "Input missing, empty or late: what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "an absent, empty or late input is processed as if it were complete",
+            "invariant": "Return an empty DataFrame with the output schema (decision 5)",
+            "decision": {
+              "number": 5,
+              "answer": "Return an empty DataFrame with the output schema"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "guide_word": "more",
+          "question": "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
+            "invariant": "Not possible here: clean_orders runs first (decision 7)",
+            "decision": {
+              "number": 7,
+              "answer": "Not possible here: clean_orders runs first"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "guide_word": "less",
+          "question": "Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a valid row is silently dropped",
+            "invariant": "All rows (decision 1)",
+            "decision": {
+              "number": 1,
+              "answer": "All rows"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "guide_word": "wrong",
+          "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+          "status": "answered",
+          "hazards": [
+            {
+              "id": "compute_vat.H1",
+              "severity": "high",
+              "description": "vat is computed wrongly",
+              "suggested": false,
+              "prevented_by": [
+                {
+                  "id": "compute_vat.INV1",
+                  "statement": "vat = amount * 0.2 for every row",
+                  "verify": "property_test",
+                  "tested": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "guide_word": "exposed",
+          "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "personal or secret data is written where it must not be",
+            "invariant": "personal and secret columns never reach the output"
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [
+        {
+          "task": "T1",
+          "core": true,
+          "done": false,
+          "items": [
+            {
+              "kind": "decision",
+              "key": "1",
+              "text": "Which rows does it keep (filter conditions), or all of them?",
+              "answer": "All rows",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "2",
+              "text": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+              "answer": "The input columns plus vat decimal(18,2) = amount * 0.2, not null",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "3",
+              "text": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+              "answer": "No grouping",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "4",
+              "text": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+              "answer": "No join",
+              "done": false
+            }
+          ],
+          "summary": "the file and its public API, decisions 1-4"
+        },
+        {
+          "task": "T2",
+          "core": false,
+          "done": false,
+          "items": [
+            {
+              "kind": "decision",
+              "key": "5",
+              "text": "Empty input: return an empty DataFrame with the output schema, or fail?",
+              "answer": "Return an empty DataFrame with the output schema",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "6",
+              "text": "Null values in key columns: drop, keep, or fail?",
+              "answer": "Not possible here: clean_orders runs first",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "7",
+              "text": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+              "answer": "Not possible here: clean_orders runs first",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "8",
+              "text": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+              "answer": "Not possible here: clean_orders runs first",
+              "done": false
+            },
+            {
+              "kind": "decision",
+              "key": "9",
+              "text": "Extra input columns not in the schema: drop silently or fail?",
+              "answer": "Keep them unchanged",
+              "done": false
+            },
+            {
+              "kind": "rule",
+              "key": "R1",
+              "text": "vat is rounded half-up to 2 decimals",
+              "answer": null,
+              "done": false
+            }
+          ],
+          "summary": "decisions 5-9, rule R1"
+        },
+        {
+          "task": "T3",
+          "core": false,
+          "done": false,
+          "items": [
+            {
+              "kind": "example",
+              "key": "US-002-vat-20",
+              "text": "US-002",
+              "answer": null,
+              "done": false
+            },
+            {
+              "kind": "invariant",
+              "key": "compute_vat.INV1",
+              "text": "vat = amount * 0.2 for every row",
+              "answer": null,
+              "done": false
+            }
+          ],
+          "summary": "example US-002-vat-20, compute_vat.INV1"
+        }
+      ],
+      "to_review": []
+    },
+    "orders_schema": {
+      "component": "orders_schema",
+      "type": "schema",
+      "layer": "p1_domain",
+      "known_columns": [
+        {
+          "component": "orders_schema",
+          "columns": [
+            "amount",
+            "customer_id",
+            "order_date",
+            "order_id"
+          ]
+        }
+      ],
+      "description": "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date",
+      "uses": [],
+      "used_by": [
+        "orders_reader"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which columns are nullable, and which must never be null?",
+          "answer": "order_id and amount are never null; customer_id may be null",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which columns hold personal data, and where may they flow?",
+          "answer": "None: the input holds no personal data",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [
+        {
+          "name": "amount",
+          "class": "none",
+          "in_code": false
+        },
+        {
+          "name": "customer_id",
+          "class": "none",
+          "in_code": false
+        },
+        {
+          "name": "order_date",
+          "class": "none",
+          "in_code": false
+        },
+        {
+          "name": "order_id",
+          "class": "none",
+          "in_code": false
+        }
+      ],
+      "declares_columns": true,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "wrong",
+          "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a null, negative or out-of-range value reaches the output",
+            "invariant": "order_id and amount are never null; customer_id may be null (decision 1)",
+            "decision": {
+              "number": 1,
+              "answer": "order_id and amount are never null; customer_id may be null"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "guide_word": "exposed",
+          "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+          "status": "answered",
+          "dismissed": "the input holds no personal data"
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "orders_reader": {
+      "component": "orders_reader",
+      "type": "reader",
+      "layer": "p2_io",
+      "known_columns": [
+        {
+          "component": "orders_schema",
+          "columns": [
+            "amount",
+            "customer_id",
+            "order_date",
+            "order_id"
+          ]
+        }
+      ],
+      "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
+      "uses": [
+        "orders_schema"
+      ],
+      "used_by": [
+        "my_pipeline_job"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "The path does not exist or is empty: fail or return an empty DataFrame?",
+          "answer": "Fail with a clear error: a missing input is an operations problem",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Records not matching the schema: fail, drop, or quarantine?",
+          "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Which partitions / dates are read, and what if the latest one is missing?",
+          "answer": "Everything under the given path, no partitions",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "Input missing, empty or late: what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "an absent, empty or late input is processed as if it were complete",
+            "invariant": "Fail with a clear error: a missing input is an operations problem (decision 1)",
+            "decision": {
+              "number": 1,
+              "answer": "Fail with a clear error: a missing input is an operations problem"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "guide_word": "more",
+          "question": "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
+            "invariant": "the output has at most one row per key"
+          }
+        },
+        {
+          "number": 3,
+          "guide_word": "wrong",
+          "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a null, negative or out-of-range value reaches the output",
+            "invariant": "Fail the job (FAILFAST): a malformed file must be fixed upstream (decision 2)",
+            "decision": {
+              "number": 2,
+              "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "guide_word": "stale",
+          "question": "Old data treated as today's (the job reads the wrong date): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "old data is processed as if it were current",
+            "invariant": "Everything under the given path, no partitions (decision 3)",
+            "decision": {
+              "number": 3,
+              "answer": "Everything under the given path, no partitions"
+            }
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "vat_writer": {
+      "component": "vat_writer",
+      "type": "writer",
+      "layer": "p2_io",
+      "known_columns": [],
+      "description": "Write the orders with their VAT as parquet",
+      "uses": [],
+      "used_by": [
+        "my_pipeline_job"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": []
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": []
+        },
+        {
+          "item": "decision 5",
+          "kind": "decision",
+          "key": "5",
+          "tests": []
+        },
+        {
+          "item": "vat_writer.INV1",
+          "kind": "invariant",
+          "key": "VAT_WRITER.INV1",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Output already exists: overwrite, append, or fail?",
+          "answer": "Overwrite",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "A failure mid-write: how is a partial output prevented or detected?",
+          "answer": "Write to a temporary folder next to the output, then rename it",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Re-running the same input: must the output be identical (idempotent)?",
+          "answer": "Yes: the same input gives the same output",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Partitioning columns and file format?",
+          "answer": "Parquet, not partitioned",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 5,
+          "question": "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?",
+          "answer": "No table: parquet files at the output path",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [
+        "schema"
+      ],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "partial",
+          "question": "Half-written output (a failure in the middle of a write): what must never happen?",
+          "status": "answered",
+          "hazards": [
+            {
+              "id": "vat_writer.H1",
+              "severity": "critical",
+              "description": "Downstream reads a half-written output",
+              "suggested": false,
+              "prevented_by": [
+                {
+                  "id": "vat_writer.INV1",
+                  "statement": "the output folder is complete or absent",
+                  "verify": "runtime",
+                  "tested": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "guide_word": "repeated",
+          "question": "Run twice (a re-run or a retry): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a re-run gives a different or duplicated result",
+            "invariant": "Yes: the same input gives the same output (decision 3)",
+            "decision": {
+              "number": 3,
+              "answer": "Yes: the same input gives the same output"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "guide_word": "exposed",
+          "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "personal or secret data is written where it must not be",
+            "invariant": "personal and secret columns never reach the output"
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "my_pipeline_job": {
+      "component": "my_pipeline_job",
+      "type": "job",
+      "layer": "p3_jobs",
+      "known_columns": [],
+      "description": "Read the orders, clean them, compute their VAT, write the result",
+      "uses": [
+        "orders_reader",
+        "clean_orders",
+        "compute_vat",
+        "vat_writer"
+      ],
+      "used_by": [
+        "my_pipeline_main"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "One input is missing: skip the run, fail, or run with partial data?",
+          "answer": "Fail",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Retries: how many, and is a retry safe?",
+          "answer": "No automatic retry; a re-run is safe (the writer overwrites)",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Which run date / partition does the job process, and who decides it?",
+          "answer": "No run date: the job processes the input it is given",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "Input missing, empty or late: what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "an absent, empty or late input is processed as if it were complete",
+            "invariant": "Fail (decision 1)",
+            "decision": {
+              "number": 1,
+              "answer": "Fail"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "guide_word": "repeated",
+          "question": "Run twice (a re-run or a retry): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a re-run gives a different or duplicated result",
+            "invariant": "No automatic retry; a re-run is safe (the writer overwrites) (decision 2)",
+            "decision": {
+              "number": 2,
+              "answer": "No automatic retry; a re-run is safe (the writer overwrites)"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "guide_word": "stale",
+          "question": "Old data treated as today's (the job reads the wrong date): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "old data is processed as if it were current",
+            "invariant": "No run date: the job processes the input it is given (decision 3)",
+            "decision": {
+              "number": 3,
+              "answer": "No run date: the job processes the input it is given"
+            }
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "my_pipeline_main": {
+      "component": "my_pipeline_main",
+      "type": "entrypoint",
+      "layer": "p4_entrypoints",
+      "known_columns": [],
+      "description": "Command line: --input PATH (the input folder), --output PATH (the output folder)",
+      "uses": [
+        "my_pipeline_job"
+      ],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "planned",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Invalid arguments: which exit code and message?",
+          "answer": "Exit code 2 with a usage message",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which exit codes signal which failures to the scheduler?",
+          "answer": "0 success, 1 job failure, 2 invalid arguments",
+          "template": false,
+          "suggested": null,
+          "by": "architect@example.com",
+          "on": "2026-10-08",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "wrong",
+          "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+          "status": "open",
+          "suggestion": {
+            "hazard": "a null, negative or out-of-range value reaches the output",
+            "invariant": "Exit code 2 with a usage message (decision 1)",
+            "decision": {
+              "number": 1,
+              "answer": "Exit code 2 with a usage message"
+            }
+          }
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "run": {
+        "component": "my_pipeline_main",
+        "ready": false,
+        "line": "Not ready to run yet: my_pipeline_main needs config (planned), logging_setup (planned), spark (planned), orders_schema (planned), orders_reader (planned), clean_orders (planned), compute_vat (planned), vat_writer (planned), my_pipeline_job (planned), my_pipeline_main (planned)"
+      },
+      "to_review": []
+    }
+  },
+  "next": [
+    {
+      "component": "config",
+      "type": "foundation",
+      "readiness": "ready",
+      "invariants": 0,
+      "tokens": 559
+    },
+    {
+      "component": "logging_setup",
+      "type": "foundation",
+      "readiness": "ready",
+      "invariants": 0,
+      "tokens": 563
+    },
+    {
+      "component": "spark",
+      "type": "foundation",
+      "readiness": "ready",
+      "invariants": 0,
+      "tokens": 523
+    },
+    {
+      "component": "clean_orders",
+      "type": "transformation",
+      "readiness": "ready - task 1 of 3",
+      "invariants": 1,
+      "tasks": {
+        "total": 3,
+        "done": 0,
+        "next": "T1"
+      },
+      "tokens": 1790
+    },
+    {
+      "component": "compute_vat",
+      "type": "transformation",
+      "readiness": "ready - task 1 of 3",
+      "invariants": 1,
+      "tasks": {
+        "total": 3,
+        "done": 0,
+        "next": "T1"
+      },
+      "tokens": 1613
+    },
+    {
+      "component": "orders_schema",
+      "type": "schema",
+      "readiness": "ready",
+      "invariants": 0,
+      "tokens": 825
+    },
+    {
+      "component": "orders_reader",
+      "type": "reader",
+      "readiness": "waiting for orders_schema",
+      "invariants": 0,
+      "tokens": 843
+    },
+    {
+      "component": "vat_writer",
+      "type": "writer",
+      "readiness": "ready",
+      "invariants": 1,
+      "tokens": 934
+    },
+    {
+      "component": "my_pipeline_job",
+      "type": "job",
+      "readiness": "waiting for orders_reader, clean_orders, compute_vat, vat_writer",
+      "invariants": 0,
+      "tokens": 999
+    },
+    {
+      "component": "my_pipeline_main",
+      "type": "entrypoint",
+      "readiness": "waiting for my_pipeline_job",
+      "invariants": 0,
+      "tokens": 825
+    }
+  ],
+  "check": {
+    "ok": true,
+    "errors": 0,
+    "warnings": 20,
+    "violations": [
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'clean_orders': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_orders",
+        "file": ".archvow/components/clean_orders/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "clean_orders"
+            },
+            "text": "archvow show clean_orders",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'clean_orders': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show clean_orders",
+        "file": ".archvow/components/clean_orders/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "clean_orders"
+            },
+            "text": "archvow show clean_orders",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'clean_orders': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show clean_orders",
+        "file": ".archvow/components/clean_orders/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "clean_orders"
+            },
+            "text": "archvow show clean_orders",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'clean_orders': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show clean_orders",
+        "file": ".archvow/components/clean_orders/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "clean_orders"
+            },
+            "text": "archvow show clean_orders",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'compute_vat': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show compute_vat",
+        "file": ".archvow/components/compute_vat/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "compute_vat"
+            },
+            "text": "archvow show compute_vat",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'compute_vat': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show compute_vat",
+        "file": ".archvow/components/compute_vat/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "compute_vat"
+            },
+            "text": "archvow show compute_vat",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'compute_vat': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show compute_vat",
+        "file": ".archvow/components/compute_vat/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "compute_vat"
+            },
+            "text": "archvow show compute_vat",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'compute_vat': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show compute_vat",
+        "file": ".archvow/components/compute_vat/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "compute_vat"
+            },
+            "text": "archvow show compute_vat",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'my_pipeline_job': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show my_pipeline_job",
+        "file": ".archvow/components/my_pipeline_job/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "my_pipeline_job"
+            },
+            "text": "archvow show my_pipeline_job",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'my_pipeline_job': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show my_pipeline_job",
+        "file": ".archvow/components/my_pipeline_job/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "my_pipeline_job"
+            },
+            "text": "archvow show my_pipeline_job",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'my_pipeline_job': safety question S3 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show my_pipeline_job",
+        "file": ".archvow/components/my_pipeline_job/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "my_pipeline_job"
+            },
+            "text": "archvow show my_pipeline_job",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'my_pipeline_main': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show my_pipeline_main",
+        "file": ".archvow/components/my_pipeline_main/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "my_pipeline_main"
+            },
+            "text": "archvow show my_pipeline_main",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show orders_reader",
+        "file": ".archvow/components/orders_reader/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_reader"
+            },
+            "text": "archvow show orders_reader",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show orders_reader",
+        "file": ".archvow/components/orders_reader/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_reader"
+            },
+            "text": "archvow show orders_reader",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show orders_reader",
+        "file": ".archvow/components/orders_reader/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_reader"
+            },
+            "text": "archvow show orders_reader",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show orders_reader",
+        "file": ".archvow/components/orders_reader/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_reader"
+            },
+            "text": "archvow show orders_reader",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'orders_schema': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show orders_schema",
+        "file": ".archvow/components/orders_schema/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "orders_schema"
+            },
+            "text": "archvow show orders_schema",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'vat_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show vat_writer",
+        "file": ".archvow/components/vat_writer/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "vat_writer"
+            },
+            "text": "archvow show vat_writer",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'vat_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show vat_writer",
+        "file": ".archvow/components/vat_writer/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "vat_writer"
+            },
+            "text": "archvow show vat_writer",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH019",
+        "severity": "warning",
+        "message": "'vat_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit vat_writer -u <name>_schema",
+        "file": ".archvow/spec.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Component without the data contract its type works on (a reader without its schema)",
+        "guide": {
+          "language": "en",
+          "meaning": "a component works on columns written nowhere: a reader or writer without its schema, a repository without its model",
+          "fix": "`archvow component add schema <name> -d \"...\"`, then `archvow component edit <component> -u <name>_schema`",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "component add",
+            "values": {
+              "type": "schema"
+            },
+            "text": "archvow component add schema <name> -d \"...\"",
+            "missing": [
+              "name",
+              "description"
+            ],
+            "readOnly": false
+          },
+          "file": null
+        }
+      }
+    ],
+    "statuses": [
+      {
+        "container": "my_pipeline",
+        "component": "config",
+        "symbol": "JobConfig",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "logging_setup",
+        "symbol": "setup_logging",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "spark",
+        "symbol": "get_spark_session",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "clean_orders",
+        "symbol": "clean_orders",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "compute_vat",
+        "symbol": "compute_vat",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "orders_schema",
+        "symbol": "ORDERS_SCHEMA",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "orders_reader",
+        "symbol": "read_orders",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "vat_writer",
+        "symbol": "write_vat",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "my_pipeline_job",
+        "symbol": "run_my_pipeline",
+        "status": "planned",
+        "reason": ""
+      },
+      {
+        "container": "my_pipeline",
+        "component": "my_pipeline_main",
+        "symbol": "main",
+        "status": "planned",
+        "reason": ""
+      }
+    ],
+    "suppressed": [],
+    "changes": [],
+    "components": [
+      {
+        "container": "my_pipeline",
+        "component": "config",
+        "type": "foundation",
+        "layer": "p0_common",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "my_pipeline",
+        "component": "logging_setup",
+        "type": "foundation",
+        "layer": "p0_common",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "my_pipeline",
+        "component": "spark",
+        "type": "foundation",
+        "layer": "p0_common",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "my_pipeline",
+        "component": "clean_orders",
+        "type": "transformation",
+        "layer": "p1_domain",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 1,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 1
+      },
+      {
+        "container": "my_pipeline",
+        "component": "compute_vat",
+        "type": "transformation",
+        "layer": "p1_domain",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 1,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 1
+      },
+      {
+        "container": "my_pipeline",
+        "component": "orders_schema",
+        "type": "schema",
+        "layer": "p1_domain",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "my_pipeline",
+        "component": "orders_reader",
+        "type": "reader",
+        "layer": "p2_io",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "my_pipeline",
+        "component": "vat_writer",
+        "type": "writer",
+        "layer": "p2_io",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 1,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 1
+      },
+      {
+        "container": "my_pipeline",
+        "component": "my_pipeline_job",
+        "type": "job",
+        "layer": "p3_jobs",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "my_pipeline",
+        "component": "my_pipeline_main",
+        "type": "entrypoint",
+        "layer": "p4_entrypoints",
+        "status": "planned",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      }
+    ],
+    "invariants": [
+      {
+        "id": "clean_orders.INV1",
+        "component": "clean_orders",
+        "statement": "every input row with an order_id and amount >= 0 appears in the output",
+        "verify": "property_test",
+        "verified": false,
+        "evidence": [],
+        "severity": "high"
+      },
+      {
+        "id": "compute_vat.INV1",
+        "component": "compute_vat",
+        "statement": "vat = amount * 0.2 for every row",
+        "verify": "property_test",
+        "verified": false,
+        "evidence": [],
+        "severity": "high"
+      },
+      {
+        "id": "vat_writer.INV1",
+        "component": "vat_writer",
+        "statement": "the output folder is complete or absent",
+        "verify": "runtime",
+        "verified": false,
+        "evidence": [],
+        "severity": "critical"
+      }
+    ],
+    "frozen": 0,
+    "stale_frozen": [],
+    "budget": null,
+    "safety": {
+      "answered": 4,
+      "total": 23
+    },
+    "counts": {
+      "ARCH035": 19,
+      "ARCH019": 1
+    }
+  },
+  "briefs": {
+    "folders": [
+      "briefs"
+    ],
+    "files": [
+      {
+        "file": "briefs/orders.md",
+        "sections": [
+          {
+            "section": "orders-us-002",
+            "items": [],
+            "changed": false
+          },
+          {
+            "section": "cleaning",
+            "items": [
+              "clean_orders example US-002-negative-amount",
+              "clean_orders example US-002-zero-amount-kept"
+            ],
+            "changed": false
+          },
+          {
+            "section": "vat",
+            "items": [
+              "compute_vat example US-002-vat-20"
+            ],
+            "changed": false
+          }
+        ]
+      }
+    ],
+    "to_draft": 1,
+    "changed": 0
+  },
+  "catalog": {
+    "templates": [
+      {
+        "name": "fastapi-service",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "web-service",
+        "style": "layered (common -> domain -> io -> services -> api)",
+        "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,FASTAPI,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "FASTAPI",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported (e.g. sqlalchemy, jwt)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "fastapi_version",
+            "prompt": "FastAPI version line the project pins (upgrade deliberately; doctor checks it)",
+            "default": "0.143",
+            "pattern": "^0\\.[0-9]+$",
+            "pattern_hint": "a FastAPI minor line such as 0.143",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - settings, database session, the dependencies routes ask for",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Business rules - Pydantic models and pure functions, no HTTP, no database",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Repositories and clients - the only place that talks to the database and other services",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_services",
+            "description": "Services - one business operation each, calling repositories and clients and owning the transaction",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_api",
+            "description": "HTTP - routers and the app, which validate input, check who may call, call a service, shape the response",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p3_services"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. format_amount",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "dependency": {
+            "layer": "p0_common",
+            "description": "Something routes receive through Depends (the database session, the current user...).",
+            "addable": true,
+            "name_pattern": "^get_[a-z0-9_]+$",
+            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": true,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "model": {
+            "layer": "p1_domain",
+            "description": "A Pydantic model - the shape and the validation of one kind of data.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. order",
+            "module": "{name}_model",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "error": {
+            "layer": "p1_domain",
+            "description": "A domain error - raised by services and the domain, mapped to an HTTP status by the app.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what went wrong, e.g. order_not_found",
+            "module": "{name}_error",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Error"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "logic": {
+            "layer": "p1_domain",
+            "description": "A pure business rule - a function of its inputs, no I/O.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. compute_total",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "repository": {
+            "layer": "p2_io",
+            "description": "Stores and finds one kind of data (the database, or memory to start).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, plural, e.g. orders",
+            "module": "{name}_repository",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Repository"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_io",
+            "description": "Calls one other service (HTTP API, message broker...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other service, e.g. payments",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "service": {
+            "layer": "p3_services",
+            "description": "One business operation - calls repositories and clients, applies the rules, owns the transaction.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. create_order",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "router": {
+            "layer": "p4_api",
+            "description": "The HTTP routes of one resource - input, permissions, status codes, response.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the resource, plural, e.g. orders",
+            "module": "{name}_router",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "router",
+                "annotation": "APIRouter"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "app": {
+            "layer": "p4_api",
+            "description": "The FastAPI app - routers, prefix, lifespan, error mapping. Run with uvicorn --factory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "e.g. main",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "create_app",
+                "signature": "() -> FastAPI"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/fastapi-service"
+      },
+      {
+        "name": "langgraph-agent",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "ai-application",
+        "style": "layered (common -> domain -> tools -> agents -> app)",
+        "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,AGENT,FASTAPI,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "AGENT",
+              "FASTAPI",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides langgraph, langchain_core, fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported - the model providers too (e.g. langchain_anthropic, langchain_ollama, langchain_postgres)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "langgraph_version",
+            "prompt": "LangGraph version line the project pins (1.x keeps its API until 2.0; doctor checks it)",
+            "default": "1",
+            "pattern": "^1(\\.[0-9]+)?$",
+            "pattern_hint": "a LangGraph line such as 1 or 1.2",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Foundations - settings, the models, logging, the access scope, documents, the memory",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "The assistant's own shapes and pure logic - state, structured outputs, prompts, chunking; no I/O, no model call",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_tools",
+            "description": "Tools, retrievers and clients - the only place that reads or changes the company's data and other systems",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_agents",
+            "description": "Agents, routers and nodes - one step of thinking each, calling models and tools",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_tools"
+            ]
+          },
+          {
+            "name": "p4_app",
+            "description": "The graphs, the API, the MCP server and the indexing jobs - what runs",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_tools",
+              "p3_agents"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no model call, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. format_citation",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "state": {
+            "layer": "p1_domain",
+            "description": "The state a graph carries from step to step (a TypedDict).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the graph it belongs to, e.g. assistant",
+            "module": "{name}_state",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}State"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "schema": {
+            "layer": "p1_domain",
+            "description": "A structured shape the models return or the tools take (a Pydantic model) - never text parsed by hand.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. answer",
+            "module": "{name}_schema",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "prompt": {
+            "layer": "p1_domain",
+            "description": "The instructions a model gets, built from the state - kept in the code, never pulled from a hub at run time.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the step it serves, e.g. answer",
+            "module": "{name}_prompt",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_prompt"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "chunker": {
+            "layer": "p1_domain",
+            "description": "Cuts one Document into the Passages that are indexed - a pure function.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the documents it cuts, e.g. policies",
+            "module": "{name}_chunker",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "chunk_{name}",
+                "signature": "(document: Document) -> list[Passage]"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "tool": {
+            "layer": "p2_tools",
+            "description": "One thing an agent may do - read or change data, call a system - with typed arguments the model fills and a docstring it reads.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. book_ticket",
+            "module": "{name}_tool",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "retriever": {
+            "layer": "p2_tools",
+            "description": "Finds the passages a user may read that answer a question, best first, each with its source.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it searches, e.g. policies",
+            "module": "{name}_retriever",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "retrieve_{name}",
+                "signature": "(query: str, scope: AccessScope) -> list[Passage]"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "mcp_client": {
+            "layer": "p2_tools",
+            "description": "Gives the tools of one approved MCP server to the agents.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the server, e.g. tickets",
+            "module": "{name}_mcp",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "load_{name}_tools"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_tools",
+            "description": "Talks to one other system (an HTTP API, a message broker, a source to index...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other system, e.g. sharepoint",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "router": {
+            "layer": "p3_agents",
+            "description": "Chooses the next step for a request, and the model role and thinking budget it gets.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it routes, e.g. question",
+            "module": "{name}_router",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "route_{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "node": {
+            "layer": "p3_agents",
+            "description": "One step of a graph - reads the state, calls a model or a tool, writes its result back.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it does, e.g. answer",
+            "module": "{name}_node",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}_node"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "agent": {
+            "layer": "p3_agents",
+            "description": "A model that chooses among its tools, step by step, until it has an answer (LangChain's create_agent).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "its job, e.g. booking",
+            "module": "{name}_agent",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_agent"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "graph": {
+            "layer": "p4_app",
+            "description": "The workflow - its steps and how they follow each other, compiled with the memory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the assistant, e.g. assistant",
+            "module": "{name}_graph",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_graph"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "api": {
+            "layer": "p4_app",
+            "description": "The HTTP API - signs the user in, builds the access scope, runs the graph. Run with uvicorn --factory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the assistant, e.g. assistant",
+            "module": "{name}_api",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "router",
+                "annotation": "APIRouter"
+              },
+              {
+                "kind": "function",
+                "name": "create_app",
+                "signature": "() -> FastAPI"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "mcp_server": {
+            "layer": "p4_app",
+            "description": "Serves tools to other assistants over MCP (the company's assistants, IDEs).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it serves, e.g. policies",
+            "module": "{name}_mcp_server",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "create_{name}_server"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "index_job": {
+            "layer": "p4_app",
+            "description": "Copies one source into the index - Documents, chunks, embeddings - only what changed.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the source, e.g. policies",
+            "module": "{name}_index_job",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "index_{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/langgraph-agent"
+      },
+      {
+        "name": "pyspark-pipeline",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "data-pipeline",
+        "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
+        "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.11",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,SPARK,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "SPARK",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides pyspark, pytest and hypothesis, comma-separated, as imported (e.g. yaml, requests)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (and Java 17 for Spark) (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "spark_version",
+            "prompt": "PySpark version",
+            "default": "3.5",
+            "choices": [
+              "3.4",
+              "3.5",
+              "4.0"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "scheduler",
+            "ask": true,
+            "prompt": "Scheduler that runs the pipeline (none = run entrypoint.sh yourself or from your own scheduler)",
+            "default": "none",
+            "choices": [
+              "none",
+              "airflow",
+              "oozie"
+            ],
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - SparkSession factory, configuration, constants",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Schemas and pure, lazy DataFrame -> DataFrame transformations",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Readers and writers - the only place that touches storage",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_jobs",
+            "description": "Jobs wiring readers, transformations and writers together",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_entrypoints",
+            "description": "Process entry points (CLI, scheduler, Databricks/EMR job)",
+            "may_import": [
+              "p0_common",
+              "p3_jobs"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "Shared helper or constants module (no Spark actions, no I/O).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}",
+                "signature": "() -> None"
+              }
+            ],
+            "implicit_dependency": true,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "schema": {
+            "layer": "p1_domain",
+            "description": "Explicit StructType contract for a dataset.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders",
+            "module": "{name}_schema",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "{NAME}_SCHEMA",
+                "annotation": "T.StructType"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "transformation": {
+            "layer": "p1_domain",
+            "description": "Pure, lazy DataFrame -> DataFrame function.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. clean_orders",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}",
+                "signature": "(df: DataFrame) -> DataFrame"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "reader": {
+            "layer": "p2_io",
+            "description": "Reads one dataset and enforces its schema.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders",
+            "module": "{name}_reader",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "read_{name}",
+                "signature": "(spark: SparkSession, path: str) -> DataFrame"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": [
+              {
+                "name": "files",
+                "description": "Reads one dataset and enforces its schema.",
+                "default": true
+              },
+              {
+                "name": "table",
+                "description": "Reads one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi) and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "jdbc",
+                "description": "Reads a table or a query of a database over JDBC (spark.read.jdbc) and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "connector",
+                "description": "Reads with a Spark connector (spark.read.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka read in batch... - and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "custom",
+                "description": "Reads a source Spark has no reader for (a REST API, SFTP, a SaaS export, an in-house file format) with its own Python code - a Python data source (Spark 4.0) or calls on the executors - and enforces its schema.",
+                "default": false
+              }
+            ]
+          },
+          "writer": {
+            "layer": "p2_io",
+            "description": "Writes one dataset.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders_clean",
+            "module": "{name}_writer",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "write_{name}",
+                "signature": "(df: DataFrame, path: str) -> None"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": [
+              {
+                "name": "files",
+                "description": "Writes one dataset.",
+                "default": true
+              },
+              {
+                "name": "table",
+                "description": "Writes one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi).",
+                "default": false
+              },
+              {
+                "name": "jdbc",
+                "description": "Writes a table of a database over JDBC (df.write.jdbc).",
+                "default": false
+              },
+              {
+                "name": "connector",
+                "description": "Writes with a Spark connector (df.write.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka...",
+                "default": false
+              },
+              {
+                "name": "custom",
+                "description": "Writes to a target Spark has no writer for (a REST API, SFTP, a SaaS import, an in-house format) with its own Python code - foreachPartition, or a Python data source writer (Spark 4.0).",
+                "default": false
+              }
+            ]
+          },
+          "job": {
+            "layer": "p3_jobs",
+            "description": "Orchestrates read -> transform -> write for one output.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "output name, e.g. daily_sales",
+            "module": "{name}_job",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "run_{name}",
+                "signature": "(spark: SparkSession, config: JobConfig) -> None"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "entrypoint": {
+            "layer": "p4_entrypoints",
+            "description": "Process entry point that parses arguments and runs one job.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "",
+            "module": "{name}_main",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "main",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/pyspark-pipeline"
+      },
+      {
+        "name": "python-app",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "application",
+        "style": "layered (common -> domain -> io -> services -> entrypoints)",
+        "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides pytest and hypothesis, comma-separated, as imported (e.g. requests, yaml)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - settings, logging, small helpers every layer may use",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Business rules - data classes, domain errors and pure functions, no I/O",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Repositories and clients - the only place that reads and writes files, databases and other services",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_services",
+            "description": "Services - one operation each, calling repositories and clients and applying the domain's rules",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_entrypoints",
+            "description": "Entry points - the command line, which parses arguments, calls a service and sets the exit code",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p3_services"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. parse_date",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "model": {
+            "layer": "p1_domain",
+            "description": "A data class - the shape and the validation of one kind of data.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. invoice",
+            "module": "{name}_model",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "error": {
+            "layer": "p1_domain",
+            "description": "A domain error - raised by the domain and the services, turned into a message and an exit code by the entry point.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what went wrong, e.g. invoice_not_found",
+            "module": "{name}_error",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Error"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "logic": {
+            "layer": "p1_domain",
+            "description": "A pure business rule - a function of its inputs, no I/O.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. compute_total",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "repository": {
+            "layer": "p2_io",
+            "description": "Stores and finds one kind of data (files, a database).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, plural, e.g. invoices",
+            "module": "{name}_repository",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Repository"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_io",
+            "description": "Talks to one other system (an HTTP API, a mail server, a message broker...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other system, e.g. mailer",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "service": {
+            "layer": "p3_services",
+            "description": "One operation - calls repositories and clients and applies the domain's rules.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. send_invoice",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "cli": {
+            "layer": "p4_entrypoints",
+            "description": "The command line - parses the arguments, calls a service, prints the result, sets the exit code.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the program, e.g. invoices",
+            "module": "{name}_cli",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "main",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/python-app"
+      }
+    ]
+  }
+}

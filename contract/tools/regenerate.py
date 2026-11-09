@@ -15,6 +15,8 @@ nothing in the archvow tree is written. Recorded:
   contract/cli/version.txt                 `archvow --version`: the archvow the plugins are tested with and install
   contract/cli/contract.txt                `archvow version --json`'s "contract" (MAJOR.MINOR, 1.23): an installed
                                            archvow of the same MAJOR and a MINOR at least this one is accepted
+  contract/cli/<name>/workspace.json       `archvow workspace --json` (1.25, contract 1.1): all of the above in one
+                                           process - what the plugins load; its digest (file times) as <digest>
   contract/cli/<name>/search/<name>.json   `archvow show <name> --json` (1.21): a name found, and one found nowhere
   contract/cli/python-app/examples/        python-app's business example in each state (1.21: the test's verdict in a
                                            test-results.xml written here, actual/ against expected/): passing.json,
@@ -108,6 +110,9 @@ def main():
             write(out / "show.json", spec)
             write(out / "next.json", run([*archvow, "next", "--json"], project))
             write(out / "check.json", run([*archvow, "check", "--json"], project))
+            whole = run([*archvow, "workspace", "--json"], project)
+            whole["digest"] = "<digest>"  # file times: different at every copy
+            write(out / "workspace.json", whole)
             for container in spec["containers"]:
                 for component in container["components"]:
                     cid = component["id"]

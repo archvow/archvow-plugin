@@ -428,7 +428,7 @@ final class ArchvowPanel extends JPanel {
         ArchvowVowWatcher.watch(project, lifetime, () -> {
             if (System.currentTimeMillis() < ownChangeUntil) return true;  // the action just run, already read again
             if (refreshing || cli.isRunning()) return false;  // busy: the watcher tries again
-            reload(false);
+            reload(false, true);
             return true;
         });
         setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
@@ -4180,45 +4180,22 @@ final class ArchvowPanel extends JPanel {
                     .notify(project);
                 reload(false);
             }
-            else if (refreshAfter && result.ok()) refreshTouched(args);
+            else if (refreshAfter && result.ok()) {
+                ownLoad = true;  // the vow change that follows is this action's: the watcher stays quiet
+                ownChangeUntil = System.currentTimeMillis() + 3000;
+                reload(false);
+            }
         });
     }
 
     /** Until when a vow change comes from the plugin's own action, already read again (0.19.0). */
     private volatile long ownChangeUntil;
 
-    /**
-     * After an action: what it touched only - the spec, that component, check and next - when it names one
-     * component that exists (decision make, rule add, hazard add...); everything otherwise (0.19.0).
-     */
-    private void refreshTouched(List<String> args) {
-        String id = ArchvowGrammar.touchedComponent(args, componentSnapshots.keySet());
-        if (id == null || manifest == null || refreshing || cli.isRunning()) { reload(false); return; }
-        refreshing = true;
-        ownChangeUntil = System.currentTimeMillis() + 3000;
-        ArchvowRunLog.refreshStarted(project, "Refresh " + id);
-        cli.execute("Architecture after " + id, List.of("show", "--json"), null, read -> {
-            JsonObject data = ArchvowGrammar.parseObject(read.stdout);
-            if (data != null) { manifest = data; rebuildTree(); }
-            cli.execute("Component " + id, List.of("show", id, "--json"), null, shown -> {
-                JsonObject updated = ArchvowGrammar.componentView(shown.stdout, id);
-                if (updated != null) componentSnapshots.put(id, updated);
-                cli.execute("Check", List.of("check", "--json"), null, checked -> {
-                    check = ArchvowGrammar.parseObject(checked.stdout);
-                    checkFailure = check == null ? checked.output : "";
-                    cli.execute("Next", List.of("next", "--json"), null, next -> {
-                        nextResult = next.output == null ? "" : next.output;
-                        updateOverview();
-                        refreshing = false;
-                        ownChangeUntil = System.currentTimeMillis() + 3000;
-                        ArchvowRunLog.refreshEnded(project);
-                        if (role == Role.DETAIL && selectedComponent != null) loadComponent(selectedComponent);
-                        pushToDetail();
-                    });
-                });
-            });
-        });
-    }
+    /** The load after the plugin's own action (0.21.0): the vow watcher stays quiet a moment after it ends. */
+    private boolean ownLoad;
+
+    /** The last {@code workspace --json} answer's digest, and the archvow that gave it (--since, 0.21.0). */
+    private String answeredDigest, answeredBy;
 
     /** The session log's lines in idea.log too: reads at debug level, actions at info, failures as warnings (0.19.0). */
     private static final ArchvowRunLog.Sink IDEA_LOG = new ArchvowRunLog.Sink() {
@@ -4272,13 +4249,21 @@ final class ArchvowPanel extends JPanel {
     void dispose() { Disposer.dispose(lifetime); }
 
     void reload() { reload(role == Role.NAVIGATION); }
-    private void reload(boolean switchToOverview) {
+    private void reload(boolean switchToOverview) { reload(switchToOverview, false); }
+
+    /**
+     * Reads the project: {@code archvow workspace --json} (archvow 1.25), the spec, every component, check, next, the
+     * catalog and the briefs in one process. {@code keep} (a vow changed under the plugin): --since the last answer,
+     * archvow says {@code unchanged} while no file changed and the panel keeps what it shows; never after an action
+     * or when a person asks.
+     */
+    private void reload(boolean switchToOverview, boolean keep) {
         if (role == Role.DETAIL) {
             // the tool window reads the project and hands it over; alone, the tab reads it itself
             ArchvowPanel nav = navigation();
             if (nav != null) {
                 if (nav.manifest != null && !nav.refreshing) adoptFrom(nav);
-                nav.reload(false);
+                nav.reload(false, keep);
                 return;
             }
         }
@@ -4296,6 +4281,7 @@ final class ArchvowPanel extends JPanel {
             if (quickSelectionArea != null) quickSelectionArea.setVisible(false);
             if (overviewResultCard != null) overviewResultCard.setVisible(false);
             if (commandResultCard != null) commandResultCard.setVisible(false);
+            answeredDigest = null;
             if (!versionChecked && status.canInitialize() && !cli.isRunning()) {
                 // not initialized yet: is archvow there to initialize it? (0.12.0: the welcome card offers to install it)
                 versionChecked = true;
@@ -4314,16 +4300,22 @@ final class ArchvowPanel extends JPanel {
             askVersion(said -> {
                 versionChecked(said);
                 logSession(said);
-                reload(switchToOverview);
+                reload(switchToOverview, keep);
             });
             return;
         }
         refreshing = true;
         ArchvowRunLog.refreshStarted(project, "Refresh");
-        componentSnapshots.clear();
         if (switchToOverview) tabs.setSelectedIndex(0);
-        overviewSummary.showLoading(ArchvowI18n.text(project, "Loading Archvow architecture…", "Chargement de l'architecture Archvow…"));
-        cli.execute("Architecture", List.of("show", "--json"), null, read -> {
+        List<String> arguments = new ArrayList<>(List.of("workspace", "--json"));
+        if (keep && manifest != null && answeredDigest != null && cli.program().equals(answeredBy))
+            arguments.addAll(List.of("--since", answeredDigest));
+        else overviewSummary.showLoading(ArchvowI18n.text(project, "Loading Archvow architecture…", "Chargement de l'architecture Archvow…"));
+        // one command: ArchvowCli runs one at a time and refuses a second one (0.16.0 started `brief show` beside
+        // `check`: check was refused, next, the catalog and the components never ran); one process has no chain
+        cli.execute("Workspace", arguments, null, read -> {
+            boolean own = ownLoad;
+            ownLoad = false;
             if (read.interrupted) {
                 refreshing = false;
                 ArchvowRunLog.refreshEnded(project);
@@ -4332,8 +4324,14 @@ final class ArchvowPanel extends JPanel {
                     "Chargement annulé ou délai dépassé. Tu peux relancer avec Rafraîchir."));
                 return;
             }
-            JsonObject data = ArchvowGrammar.parseObject(read.stdout);
-            if (!read.ok() || data == null) {
+            WorkspaceAnswer answer = WorkspaceAnswer.read(read.stdout);
+            if (read.ok() && answer != null && answer.unchanged) {  // what the panel shows still holds
+                refreshing = false;
+                ArchvowRunLog.refreshEnded(project);
+                return;
+            }
+            if (!read.ok() || answer == null || answer.unchanged) {
+                answeredDigest = null;
                 refreshing = false;
                 ArchvowRunLog.refreshEnded(project);
                 String detail = read.output == null ? "" : read.output.trim();
@@ -4347,63 +4345,24 @@ final class ArchvowPanel extends JPanel {
                 pushToDetail();
                 return;
             }
-            manifest = data; rebuildTree();
-            cli.execute("Check", List.of("check", "--json"), null, checked -> {
-                check = ArchvowGrammar.parseObject(checked.stdout);
-                checkFailure = check == null ? checked.output : "";
-                // Show Architecture and Check & Gates immediately. Never wait for the
-                // sequential per-component `show` calls before drawing the overview.
-                updateOverview();
-                cli.execute("Next", List.of("next", "--json"), null, next -> {
-                    nextResult = next.output == null ? "" : next.output;
-                    // the project's catalog: its template's types and kinds, its own templates (component add, template new)
-                    cli.execute("Catalog", List.of("catalog", "--json"), null, listed -> {
-                    JsonObject catalog = ArchvowGrammar.parseObject(listed.stdout);
-                    if (ArchvowInitCatalog.hasTemplates(catalog)) projectCatalog = catalog;
-                    followBestBase();
-                    fetchComponentSnapshots(listComponentIds(), 0, () -> {
-                        // archvow 1.20: what each brief section gives (an older archvow has no `brief show`: the tab
-                        // says so). Inside the chain, never beside it: ArchvowCli runs one command at a time and
-                        // refuses a second one - started in parallel (0.16.0), it made `check` fail, and then
-                        // next, the catalog and every component's `show` never ran (no counts, "resolved" everywhere).
-                        cli.execute("Briefs", List.of("brief", "show", "--json"), null, briefs -> {
-                            briefStatus = briefs.ok() ? ArchvowGrammar.parseObject(briefs.stdout) : null;
-                            updateOverview();
-                            refreshing = false;
-                            ArchvowRunLog.refreshEnded(project);
-                            if (role == Role.DETAIL && selectedComponent != null) loadComponent(selectedComponent);
-                            pushToDetail();
-                        });
-                    });
-                    });
-                });
-            });
-        });
-    }
-
-    private List<String> listComponentIds() {
-        List<String> ids = new ArrayList<>();
-        if (manifest == null) return ids;
-        for (JsonObject container : ArchvowGrammar.objects(manifest, "containers")) {
-            for (JsonObject component : ArchvowGrammar.objects(container, "components")) {
-                String id = ArchvowGrammar.str(component, "id");
-                if (!id.isBlank()) ids.add(id);
-            }
-        }
-        return ids;
-    }
-
-    private void fetchComponentSnapshots(List<String> ids, int index, Runnable done) {
-        if (ids == null || index >= ids.size()) { done.run(); return; }
-        String id = ids.get(index);
-        cli.execute("Component " + id, List.of("show", id, "--json"), null, result -> {
-            JsonObject data = ArchvowGrammar.componentView(result.stdout, id);
-            if (data != null) {
-                componentSnapshots.put(id, data);
-                // Incremental status updates, batched so large projects stay responsive.
-                if (index % 5 == 0 || index + 1 == ids.size()) updateOverview();
-            }
-            fetchComponentSnapshots(ids, index + 1, done);
+            answeredDigest = answer.digest;
+            answeredBy = cli.program();
+            manifest = answer.spec; rebuildTree();
+            check = answer.check;
+            checkFailure = "";
+            nextResult = answer.next;
+            // the project's catalog: its template's types and kinds, its own templates (component add, template new)
+            if (ArchvowInitCatalog.hasTemplates(answer.catalog)) projectCatalog = answer.catalog;
+            componentSnapshots.clear();
+            componentSnapshots.putAll(answer.snapshots);
+            briefStatus = answer.briefs;  // archvow 1.20: what each brief section gives
+            followBestBase();
+            updateOverview();
+            refreshing = false;
+            if (own) ownChangeUntil = System.currentTimeMillis() + 3000;
+            ArchvowRunLog.refreshEnded(project);
+            if (role == Role.DETAIL && selectedComponent != null) loadComponent(selectedComponent);
+            pushToDetail();
         });
     }
 

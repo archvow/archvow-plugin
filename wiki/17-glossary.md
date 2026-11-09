@@ -28,7 +28,7 @@ wiki d'archvow ; voici ceux des plugins, avec où les trouver dans le code.
 | **enveloppe d'erreur** (0.20.0) | l'erreur d'archvow en objet sur stdout avec `--json` : `{"error": {type, message, hint, exit}}` | `ArchvowOutput.error`, `errorOf()` |
 | **candidat** | une façon de lancer archvow : l'interpréteur de l'IDE, le Python des réglages, l'exécutable ; le premier qui répond à `--version` est gardé | `ArchvowProcessCommand.Candidate`, `candidates()` |
 | **WSL** | archvow installé dans Linux sous Windows, lancé par `wsl.exe` avec des chemins Linux | `ArchvowWsl` |
-| **instantané** (snapshot) | le dernier `show <composant> --json` lu, affiché tout de suite pendant qu'il est relu | `componentSnapshots` ; `snapshots` dans l'extension |
+| **instantané** (snapshot) | la dernière vue lue d'un composant (`show <composant> --json`, l'une des `components` de `workspace --json` depuis 0.21.0), affichée tout de suite pendant qu'elle est relue | `componentSnapshots` ; `snapshots` dans l'extension |
 | **lecteur `.vow`** | le code qui coupe un vow en jetons, lit ses lignes et ses problèmes, sans archvow | `org.archvow.vow.core`, `vscode/src/vow` |
 | **profondeur** | le niveau d'indentation d'un mot-clé (0, 1, 2, 3 et plus), qui donne sa couleur | `VowTokenKind` (`KEY_0`...) |
 | **doublure** | une classe vide au nom d'une classe de la plateforme IntelliJ, pour compiler sans elle ; hors du dépôt | page [Les tests](/13-tests) |

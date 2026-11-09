@@ -42,10 +42,14 @@ Code le canal de sortie *archvow* (`runlog.ts`, `archvow.showOutput`), les même
 donne l'en-tête et les lignes avec leur heure, les mots d'une personne (réponses, justifications,
 énoncés : `masked`) cachés si elle le demande.
 
-Après une action qui nomme un composant existant (`decision make <composant>`, `rule add`, `hazard add`...,
-`touchedComponent`), le plugin relit la spec, ce composant, `check` et `next` - 4 lectures au lieu de tout
-(`refreshAfter` / `refreshTouched`) ; le changement de vow qui suit vient de lui : l'observateur des vows
-l'ignore (`ownChangeUntil`).
+Un rafraîchissement est un seul appel (0.21.0) : `archvow workspace --json` (archvow 1.25) donne ensemble
+la spec, la vue de chaque composant, `check`, `next`, les briefs et le catalogue (`ArchvowProject.load`,
+`ArchvowPanel.reload`). Après une action, le plugin fait le même appel (`refreshAfter` ; avant 0.21.0 un
+rafraîchissement partiel lançait quatre commandes) ; le changement de vow qui suit vient de lui :
+l'observateur des vows l'ignore (`ownChangeUntil`). Quand un vow change sur le disque, le plugin passe le
+condensé de la dernière réponse (`--since`, gardé avec les réglages ou l'archvow qui l'a donnée) : si aucun
+fichier du projet n'a changé, archvow répond `unchanged` et rien n'est redessiné. Jamais après une action
+ni quand une personne rafraîchit.
 
 ## Où archvow est cherché
 
@@ -107,13 +111,13 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 ## Installer archvow (0.12.0)
 
 Quand archvow ne démarre pas, ou ne parle pas le contrat du plugin (0.20.0, page [Le contrat](/04-contract)), les
-plugins proposent **Installer archvow 1.23.0** ; rien n'est installé au démarrage ni sans un clic.
+plugins proposent **Installer archvow 1.25.0** ; rien n'est installé au démarrage ni sans un clic.
 `ArchvowInstall` (IntelliJ) et `vscode/src/install.ts` (VS Code) portent les mêmes règles :
 
 | Question | Réponse |
 |---|---|
 | Dans quel Python ? | le `.venv` du projet, puis `venv` (`venvPythons()`), puis l'interpréteur de l'IDE, puis le Python des réglages ; jamais un `python` nu choisi à la place de la personne (`installPython()`, `ArchvowInstall.python`) : pas de Python trouvé, la carte dit **Configurer Python** |
-| Quelle version ? | `archvow==1.23.0` (`requirement()`) : exactement l'archvow avec lequel les plugins sont testés (0.20.0) ; une fois installé, tout archvow du contrat est accepté |
+| Quelle version ? | `archvow==1.25.0` (`requirement()`) : exactement l'archvow avec lequel les plugins sont testés (0.20.0) ; une fois installé, tout archvow du contrat est accepté |
 | D'où ? | le réglage *Installer archvow depuis* / `archvow.installFrom` (`installSource()`) : vide = la configuration de pip (pip.conf, `PIP_INDEX_URL`), une URL http(s) = `--index-url`, un fichier `.whl`, ou un dossier de wheels = `--no-index --find-links` (`pipArgs()`) |
 | Comment ? | la commande est affichée (`displayCommand()`), puis lancée seulement après **Confirmer et exécuter** : sans shell, dans le dossier du projet, 10 minutes au plus, `PIP_DISABLE_PIP_VERSION_CHECK=1` ; un Python dans WSL passe par `wsl.exe`, comme archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Ensuite ? | réussite : les réglages gardent ce Python, la version est sondée à nouveau, l'espace de travail se recharge ; échec : la sortie de pip, rien n'est enregistré |

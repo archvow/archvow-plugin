@@ -55,7 +55,7 @@ tels quels. Côté IntelliJ, la même idée : tout ce qui peut être une classe 
 
 | Moment | Commandes lancées | Où |
 |---|---|---|
-| Ouverture, Reload, un vow qui change sur le disque | `show --json`, `check --json`, `next --json`, puis `show <c> --json` pour chaque composant | `ArchvowPanel.reload`, `ArchvowProject.refresh` |
+| Ouverture, Reload, un vow qui change sur le disque, après une action | `workspace --json` (0.21.0, archvow 1.25) : la spec, chaque composant, check, next, les briefs et le catalogue en un seul processus ; `--since` son dernier condensé quand un vow a changé sur le disque | `ArchvowPanel.reload`, `ArchvowProject.refresh` / `load` |
 | Un composant choisi | `show <c> --json` | `loadComponent`, `reloadComponent` |
 | Un fichier Python enregistré (VS Code) | `check --file <f> --json`, le texte sur stdin | `checkFile` |
 | Une action | la commande archvow de l'action, après confirmation pour un changement | page [Les commandes](/09-commands) |

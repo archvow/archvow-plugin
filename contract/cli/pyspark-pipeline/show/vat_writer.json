@@ -1,5 +1,5 @@
 {
-  "contract": "1.0",
+  "contract": "1.1",
   "component": "vat_writer",
   "type": "writer",
   "layer": "p2_io",

@@ -245,6 +245,47 @@ export function componentView(view: Record<string, unknown> | null, id: string):
   return view !== null && id !== '' && view.component === id ? view : null;
 }
 
+/** `archvow workspace --json` (archvow 1.25, contract 1.1): what the extension shows of a project, read in one process. */
+export interface WorkspaceAnswer {
+  /** Give it back with --since: archvow answers `unchanged` while no file of the project changed. */
+  digest: string;
+  /** The spec, as `show --json`. */
+  spec: Record<string, unknown>;
+  /** Each component's view, as `show <id> --json`. */
+  snapshots: Record<string, Record<string, unknown>>;
+  /** The build plan, as `next --json`. */
+  next: Record<string, unknown>[];
+  /** The findings, as `check --json`. */
+  check: Record<string, unknown>;
+  /** The briefs, as `brief show --json`. */
+  briefStatus: Record<string, unknown> | null;
+  /** The templates, as `catalog --json` in the project. */
+  catalog: Record<string, unknown> | null;
+}
+
+/**
+ * The answer of `archvow workspace --json [--since <digest>]`: 'unchanged' when the earlier answer still holds,
+ * null when it is not one (a failure: its envelope, or nothing). A component whose view is not its own is left
+ * out, as with `show <id>`. The IntelliJ plugin reads it the same way (WorkspaceAnswer.java).
+ */
+export function readWorkspace(answer: Record<string, unknown> | null): WorkspaceAnswer | 'unchanged' | null {
+  if (answer === null || typeof answer.digest !== 'string') return null;
+  if (answer.unchanged === true) return 'unchanged';
+  const record = (v: unknown): Record<string, unknown> | null =>
+    v !== null && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : null;
+  const spec = record(answer.project);
+  const check = record(answer.check);
+  const views = record(answer.components);
+  if (spec === null || check === null || !Array.isArray(check.violations) || views === null || !Array.isArray(answer.next)) return null;
+  const snapshots: Record<string, Record<string, unknown>> = {};
+  for (const [id, view] of Object.entries(views)) {
+    const shown = componentView(record(view), id);
+    if (shown !== null) snapshots[id] = shown;
+  }
+  return { digest: answer.digest, spec, snapshots, next: answer.next as Record<string, unknown>[], check,
+    briefStatus: record(answer.briefs), catalog: record(answer.catalog) };
+}
+
 /** "1.23.0" from the contract's version.txt ("archvow 1.23.0"): the archvow the plugin is tested with and installs. */
 export function knownVersion(versionTxt: string): string {
   const v = parseVersion(versionTxt);

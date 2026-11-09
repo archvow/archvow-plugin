@@ -1,9 +1,9 @@
 {
-  "contract": "1.0",
+  "contract": "1.1",
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "1.23.0",
+      "version": "1.25.0",
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
@@ -518,7 +518,7 @@
     },
     {
       "name": "langgraph-agent",
-      "version": "1.23.0",
+      "version": "1.25.0",
       "language": "python",
       "kind": "ai-application",
       "style": "layered (common -> domain -> tools -> agents -> app)",
@@ -1143,7 +1143,7 @@
     },
     {
       "name": "pyspark-pipeline",
-      "version": "1.23.0",
+      "version": "1.25.0",
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -1679,7 +1679,7 @@
     },
     {
       "name": "python-app",
-      "version": "1.23.0",
+      "version": "1.25.0",
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",

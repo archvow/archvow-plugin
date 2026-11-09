@@ -1,5 +1,5 @@
 {
-  "contract": "1.0",
+  "contract": "1.1",
   "component": "invoices_repository",
   "type": "repository",
   "layer": "p2_io",

@@ -2,8 +2,7 @@
 import * as assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { CliResult } from '../cli';
-import { Command } from '../grammar';
-import { masked, resultLine, RunLog, touchedComponent } from '../runlog';
+import { masked, resultLine, RunLog } from '../runlog';
 
 function sink() {
   const lines: string[] = [];
@@ -75,14 +74,4 @@ test('masked keeps the command and hides a person\'s own words', () => {
 test('resultLine: the last text line, never JSON', () => {
   assert.equal(resultLine(call(['x'], { stdout: '{"a": 1}' })), '');
   assert.equal(resultLine(call(['x'], { stdout: 'a\n\nb  \n' })), 'b');
-});
-
-test('the component an action touches: refresh only that one', () => {
-  const param = (name: string, flags: string[] = []) => ({ name, flags, required: true, boolean: false, append: false, multiToken: false });
-  const make = { path: ['decision', 'make'], description: '', json: false, parameters: [param('component'), param('question'), param('answer')] } as unknown as Command;
-  const remove = { path: ['component', 'remove'], description: '', json: false, parameters: [param('component')] } as unknown as Command;
-  assert.equal(touchedComponent(make, ['decision', 'make', 'settings', '1', 'x'], ['settings']), 'settings');
-  assert.equal(touchedComponent(make, ['decision', 'make', 'gone', '1', 'x'], ['settings']), null);
-  assert.equal(touchedComponent(remove, ['component', 'remove', 'settings'], ['settings']), null);
-  assert.equal(touchedComponent(undefined, ['init'], ['settings']), null);
 });

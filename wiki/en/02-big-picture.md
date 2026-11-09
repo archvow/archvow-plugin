@@ -55,7 +55,7 @@ are. On the IntelliJ side, the same idea: everything that can be a plain Java cl
 
 | When | Commands run | Where |
 |---|---|---|
-| Opening, Reload, a vow changing on disk | `show --json`, `check --json`, `next --json`, then `show <c> --json` for each component | `ArchvowPanel.reload`, `ArchvowProject.refresh` |
+| Opening, Reload, a vow changing on disk, after an action | `workspace --json` (0.21.0, archvow 1.25): the spec, every component, check, next, the briefs and the catalog in one process; `--since` its last digest when a vow changed on disk | `ArchvowPanel.reload`, `ArchvowProject.refresh` / `load` |
 | A component chosen | `show <c> --json` | `loadComponent`, `reloadComponent` |
 | A Python file saved (VS Code) | `check --file <f> --json`, the text on stdin | `checkFile` |
 | An action | the action's archvow command, after a confirmation for a change | page [Commands](/en/09-commands) |

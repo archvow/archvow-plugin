@@ -2258,6 +2258,30 @@
     },
     {
       "path": [
+        "workspace"
+      ],
+      "description": "Everything an editor shows of the project, in one call (for tools).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "since",
+          "flags": [
+            "--since"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the digest of an earlier answer: when nothing changed since, print only {\"unchanged\": true, \"digest\": ...}",
+          "hidden": false,
+          "metavar": "DIGEST"
+        }
+      ]
+    },
+    {
+      "path": [
         "check"
       ],
       "description": "Verify the code against the spec (exit 1 on errors).",

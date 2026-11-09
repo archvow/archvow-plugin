@@ -1,0 +1,3970 @@
+{
+  "contract": "1.1",
+  "digest": "<digest>",
+  "project": {
+    "schema_version": 2,
+    "system": {
+      "name": "invoicing",
+      "description": "Marks invoices paid, from the command line"
+    },
+    "containers": [
+      {
+        "id": "invoicing",
+        "template": "python-app@1.25.0",
+        "package": "invoicing",
+        "path": "src/invoicing",
+        "components": [
+          {
+            "id": "config",
+            "name": "config",
+            "type": "foundation",
+            "layer": "p0_common",
+            "module": "invoicing.p0_common.config",
+            "description": "The program's settings, read from the environment and the command line, never from code.",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "Config",
+                "kind": "class"
+              },
+              {
+                "name": "load_config",
+                "kind": "function",
+                "signature": "(environ: Mapping[str, str] | None = None) -> Config"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?",
+                "answer": "data_dir: str (required), log_level: str = \"INFO\"",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:48.666456+00:00"
+              },
+              {
+                "question": "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?",
+                "answer": "None",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:48.945785+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "logging_setup",
+            "name": "logging_setup",
+            "type": "foundation",
+            "layer": "p0_common",
+            "module": "invoicing.p0_common.logging_setup",
+            "description": "Configures logging once, for the entry points (level from the config, one line per event, never a secret or personal data).",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "setup_logging",
+                "kind": "function",
+                "signature": "(level: str = \"INFO\") -> None"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?",
+                "answer": "stderr, one line per event: time, level, message",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:49.235795+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "invoice_model",
+            "name": "invoice",
+            "type": "model",
+            "layer": "p1_domain",
+            "module": "invoicing.p1_domain.invoice_model",
+            "spec": "US-001",
+            "description": "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "Invoice",
+                "kind": "class"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?",
+                "answer": "All fields required",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:49.515640+00:00"
+              },
+              {
+                "question": "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?",
+                "answer": "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:49.798659+00:00"
+              },
+              {
+                "question": "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?",
+                "answer": "None",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:50.138638+00:00"
+              },
+              {
+                "question": "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?",
+                "answer": "Frozen: a change builds a new one (dataclasses.replace)",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:50.522554+00:00"
+              }
+            ],
+            "assumptions": [],
+            "columns": {
+              "amount": "none",
+              "customer": "personal",
+              "number": "none",
+              "status": "none"
+            }
+          },
+          {
+            "id": "invoice_not_found_error",
+            "name": "invoice_not_found",
+            "type": "error",
+            "layer": "p1_domain",
+            "module": "invoicing.p1_domain.invoice_not_found_error",
+            "spec": "US-001",
+            "description": "No invoice with this number",
+            "uses": [],
+            "symbols": [
+              {
+                "name": "InvoiceNotFoundError",
+                "kind": "class"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?",
+                "answer": "Exit code 3",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:50.822682+00:00"
+              },
+              {
+                "question": "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?",
+                "answer": "A short fixed message, without personal data or secrets",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:51.141043+00:00"
+              }
+            ],
+            "assumptions": []
+          },
+          {
+            "id": "invoices_repository",
+            "name": "invoices",
+            "type": "repository",
+            "layer": "p2_io",
+            "module": "invoicing.p2_io.invoices_repository",
+            "spec": "US-001",
+            "description": "Stores and finds invoices, one JSON file per invoice in the data folder",
+            "uses": [
+              "invoice_model"
+            ],
+            "symbols": [
+              {
+                "name": "InvoicesRepository",
+                "kind": "class"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?",
+                "answer": "One file NUMBER.json in data_dir, the fields of the invoice, amount as a string",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:51.531837+00:00"
+              },
+              {
+                "question": "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?",
+                "answer": "Return None; the service raises the domain error",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:51.850312+00:00"
+              },
+              {
+                "question": "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?",
+                "answer": "Write to a temporary file next to it, then rename it",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:52.163044+00:00"
+              },
+              {
+                "question": "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?",
+                "answer": "The last one wins: marking paid twice gives the same file",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:52.567662+00:00"
+              }
+            ],
+            "assumptions": [],
+            "answers": {
+              "P.retention": {
+                "answer": "10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:21:02.537432+00:00"
+              },
+              "P.location": {
+                "answer": "The company's file server, in France",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:21:02.820664+00:00"
+              }
+            }
+          },
+          {
+            "id": "mark_paid",
+            "name": "mark_paid",
+            "type": "service",
+            "layer": "p3_services",
+            "module": "invoicing.p3_services.mark_paid",
+            "spec": "US-001",
+            "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
+            "uses": [
+              "invoice_model",
+              "invoice_not_found_error",
+              "invoices_repository"
+            ],
+            "symbols": [
+              {
+                "name": "mark_paid",
+                "kind": "function",
+                "signature": "(data_dir: Path, number: str) -> Invoice"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
+                "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:52.845862+00:00"
+              },
+              {
+                "question": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
+                "answer": "InvoiceNotFoundError",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:53.155922+00:00"
+              },
+              {
+                "question": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
+                "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:53.455983+00:00"
+              },
+              {
+                "question": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
+                "answer": "Only one change, one save: nothing to undo",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:53.785062+00:00"
+              }
+            ],
+            "assumptions": [],
+            "answers": {
+              "P.purpose": {
+                "answer": "To record which customers paid their invoices, for the finance team",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:21:01.953151+00:00"
+              },
+              "P.legal_basis": {
+                "answer": "Contract: the customer's purchase",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:21:02.230748+00:00"
+              }
+            }
+          },
+          {
+            "id": "invoices_cli",
+            "name": "invoices",
+            "type": "cli",
+            "layer": "p4_entrypoints",
+            "module": "invoicing.p4_entrypoints.invoices_cli",
+            "spec": "US-001",
+            "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
+            "uses": [
+              "mark_paid",
+              "invoice_not_found_error"
+            ],
+            "symbols": [
+              {
+                "name": "main",
+                "kind": "function",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "decisions": [
+              {
+                "question": "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?",
+                "answer": "Exit code 2 with the usage message (argparse)",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:54.114836+00:00"
+              },
+              {
+                "question": "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?",
+                "answer": "0 ok, 1 error, 2 bad arguments, 3 not found",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:54.414007+00:00"
+              },
+              {
+                "question": "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?",
+                "answer": "The invoice on one line on stdout; errors on stderr",
+                "by": "noreply@anthropic.com",
+                "on": "2026-10-21T16:20:54.764143+00:00"
+              }
+            ],
+            "assumptions": [],
+            "examples": [
+              {
+                "name": "US-001-pay-a-sent-invoice",
+                "ticket": "US-001",
+                "source": {
+                  "file": "briefs/invoices.md",
+                  "section": "paying-a-sent-invoice",
+                  "hash": "9652dc816ffb"
+                },
+                "fingerprint": "d1fe7f61cfa6",
+                "by": "architect@example.com",
+                "on": "2026-11-05T12:00:00+00:00"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "rules": {},
+    "language": "en",
+    "ai_tools": [
+      "claude-code"
+    ],
+    "dependencies": [],
+    "compliance": [
+      "gdpr",
+      "tst"
+    ],
+    "mode": "strict",
+    "families": [
+      "all"
+    ],
+    "init_answers": {
+      "language": "en",
+      "python_version": "3.12",
+      "line_length": "88",
+      "platform": "gitlab",
+      "ci": "auto",
+      "architects": "@acme/architects",
+      "sonar": "no",
+      "auto_approve": "yes",
+      "sandbox": "yes",
+      "briefs": "briefs",
+      "max_components": "",
+      "max_code_lines": "",
+      "git_hooks": "githooks",
+      "branch_naming": "gitflow",
+      "pip_index_url": "",
+      "ci_image": ""
+    },
+    "hazards": [
+      {
+        "component": "invoice_model",
+        "id": "invoice_model.H1",
+        "guide_word": "wrong",
+        "severity": "high",
+        "description": "An invoice with a negative amount is accepted",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:56.484566+00:00"
+      },
+      {
+        "component": "invoices_repository",
+        "id": "invoices_repository.H1",
+        "guide_word": "partial",
+        "severity": "high",
+        "description": "An invoice file is half written",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:55.133888+00:00"
+      },
+      {
+        "component": "mark_paid",
+        "id": "mark_paid.H1",
+        "guide_word": "repeated",
+        "severity": "high",
+        "description": "Paying twice changes the invoice twice",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:55.830391+00:00"
+      }
+    ],
+    "invariants": [
+      {
+        "component": "invoice_model",
+        "id": "invoice_model.INV1",
+        "statement": "every invoice has an amount of zero or more",
+        "mitigates": [
+          "invoice_model.H1"
+        ],
+        "verify": "example_test",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:56.927386+00:00"
+      },
+      {
+        "component": "invoices_repository",
+        "id": "invoices_repository.INV1",
+        "statement": "an invoice file is complete or absent",
+        "mitigates": [
+          "invoices_repository.H1"
+        ],
+        "verify": "example_test",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:55.452690+00:00"
+      },
+      {
+        "component": "mark_paid",
+        "id": "mark_paid.INV1",
+        "statement": "marking an invoice paid twice gives the same invoice as once",
+        "mitigates": [
+          "mark_paid.H1"
+        ],
+        "verify": "example_test",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:56.155074+00:00"
+      }
+    ],
+    "dismissed": [
+      {
+        "component": "invoice_model",
+        "guide_word": "exposed",
+        "rationale": "Invoices hold no secret; the customer name is printed only to the person who runs the command",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:57.296944+00:00"
+      },
+      {
+        "component": "invoice_not_found_error",
+        "guide_word": "exposed",
+        "rationale": "Its message is fixed and names only the invoice number the user typed",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:57.667154+00:00"
+      },
+      {
+        "component": "invoices_cli",
+        "guide_word": "wrong",
+        "rationale": "argparse refuses bad arguments with exit code 2 (decision 1)",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:58.002144+00:00"
+      },
+      {
+        "component": "invoices_cli",
+        "guide_word": "exposed",
+        "rationale": "It prints only the invoice the user asked for, to that user",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:58.249873+00:00"
+      },
+      {
+        "component": "invoices_repository",
+        "guide_word": "missing",
+        "rationale": "A missing file is reported as None, the service raises InvoiceNotFoundError (decision 2)",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:58.493972+00:00"
+      },
+      {
+        "component": "invoices_repository",
+        "guide_word": "more",
+        "rationale": "It reads one invoice at a time, by number",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:58.793526+00:00"
+      },
+      {
+        "component": "invoices_repository",
+        "guide_word": "stale",
+        "rationale": "Nothing is cached: every call reads the file",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:59.104422+00:00"
+      },
+      {
+        "component": "invoices_repository",
+        "guide_word": "concurrent",
+        "rationale": "Concurrent writes give the same paid invoice (decision 4)",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:59.429100+00:00"
+      },
+      {
+        "component": "invoices_repository",
+        "guide_word": "exposed",
+        "rationale": "Files stay in the data folder; nothing is logged",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:20:59.727068+00:00"
+      },
+      {
+        "component": "mark_paid",
+        "guide_word": "missing",
+        "rationale": "InvoiceNotFoundError (decision 2)",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:21:00.044915+00:00"
+      },
+      {
+        "component": "mark_paid",
+        "guide_word": "partial",
+        "rationale": "One save, written completely or not at all (invoices_repository.INV1)",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:21:00.407268+00:00"
+      },
+      {
+        "component": "mark_paid",
+        "guide_word": "concurrent",
+        "rationale": "Two runs write the same paid invoice (decision 3)",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:21:00.799379+00:00"
+      },
+      {
+        "component": "mark_paid",
+        "guide_word": "exposed",
+        "rationale": "Nothing is logged or printed here",
+        "by": "noreply@anthropic.com",
+        "on": "2026-10-21T16:21:01.113855+00:00"
+      }
+    ]
+  },
+  "components": {
+    "config": {
+      "component": "config",
+      "type": "foundation",
+      "layer": "p0_common",
+      "known_columns": [],
+      "description": "The program's settings, read from the environment and the command line, never from code.",
+      "uses": [],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "implemented",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?",
+          "answer": "data_dir: str (required), log_level: str = \"INFO\"",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?",
+          "answer": "None",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "logging_setup": {
+      "component": "logging_setup",
+      "type": "foundation",
+      "layer": "p0_common",
+      "known_columns": [],
+      "description": "Configures logging once, for the entry points (level from the config, one line per event, never a secret or personal data).",
+      "uses": [],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": []
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "implemented",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?",
+          "answer": "stderr, one line per event: time, level, message",
+          "template": true,
+          "suggested": "stderr, one line per event: time, level, message",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "invoice_model": {
+      "component": "invoice_model",
+      "type": "model",
+      "layer": "p1_domain",
+      "known_columns": [
+        {
+          "component": "invoice_model",
+          "columns": [
+            "amount",
+            "customer",
+            "number",
+            "status"
+          ]
+        }
+      ],
+      "description": "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid",
+      "uses": [],
+      "used_by": [
+        "invoices_repository",
+        "mark_paid"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p1_domain/test_invoice_model.py::test_all_fields_are_required"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p1_domain/test_invoice_model.py::test_values_follow_the_rules"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p1_domain/test_invoice_model.py::test_no_field_is_secret"
+          ]
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": [
+            "tests/p1_domain/test_invoice_model.py::test_an_invoice_is_frozen"
+          ]
+        },
+        {
+          "item": "invoice_model.INV1",
+          "kind": "invariant",
+          "key": "INVOICE_MODEL.INV1",
+          "tests": [
+            "tests/p1_domain/test_invoice_model.py::test_a_negative_amount_is_refused"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "verified",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?",
+          "answer": "All fields required",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?",
+          "answer": "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?",
+          "answer": "None",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?",
+          "answer": "Frozen: a change builds a new one (dataclasses.replace)",
+          "template": true,
+          "suggested": "Frozen: a change builds a new one (dataclasses.replace)",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [
+        {
+          "name": "amount",
+          "class": "none",
+          "in_code": true
+        },
+        {
+          "name": "customer",
+          "class": "personal",
+          "in_code": true
+        },
+        {
+          "name": "number",
+          "class": "none",
+          "in_code": true
+        },
+        {
+          "name": "status",
+          "class": "none",
+          "in_code": true
+        }
+      ],
+      "declares_columns": true,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "wrong",
+          "question": "Wrong input (invalid values, out of range, a wrong format): what must never happen?",
+          "status": "answered",
+          "hazards": [
+            {
+              "id": "invoice_model.H1",
+              "severity": "high",
+              "description": "An invoice with a negative amount is accepted",
+              "suggested": false,
+              "prevented_by": [
+                {
+                  "id": "invoice_model.INV1",
+                  "statement": "every invoice has an amount of zero or more",
+                  "verify": "example_test",
+                  "tested": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "guide_word": "exposed",
+          "question": "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?",
+          "status": "answered",
+          "dismissed": "Invoices hold no secret; the customer name is printed only to the person who runs the command"
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "invoice_not_found_error": {
+      "component": "invoice_not_found_error",
+      "type": "error",
+      "layer": "p1_domain",
+      "known_columns": [],
+      "description": "No invoice with this number",
+      "uses": [],
+      "used_by": [
+        "mark_paid",
+        "invoices_cli"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p1_domain/test_invoice_not_found_error.py::test_it_carries_the_number_for_exit_code_3"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p1_domain/test_invoice_not_found_error.py::test_its_message_names_only_the_number"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?",
+          "answer": "Exit code 3",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?",
+          "answer": "A short fixed message, without personal data or secrets",
+          "template": true,
+          "suggested": "A short fixed message, without personal data or secrets",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {},
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "exposed",
+          "question": "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?",
+          "status": "answered",
+          "dismissed": "Its message is fixed and names only the invoice number the user typed"
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "to_review": []
+    },
+    "invoices_repository": {
+      "component": "invoices_repository",
+      "type": "repository",
+      "layer": "p2_io",
+      "known_columns": [
+        {
+          "component": "invoice_model",
+          "columns": [
+            "amount",
+            "customer",
+            "number",
+            "status"
+          ]
+        }
+      ],
+      "description": "Stores and finds invoices, one JSON file per invoice in the data folder",
+      "uses": [
+        "invoice_model"
+      ],
+      "used_by": [
+        "mark_paid"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p2_io/test_invoices_repository.py::test_one_json_file_per_invoice"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p2_io/test_invoices_repository.py::test_a_missing_invoice_is_none"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p2_io/test_invoices_repository.py::test_a_failed_write_leaves_the_old_file"
+          ]
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": [
+            "tests/p2_io/test_invoices_repository.py::test_the_last_write_wins"
+          ]
+        },
+        {
+          "item": "invoices_repository.INV1",
+          "kind": "invariant",
+          "key": "INVOICES_REPOSITORY.INV1",
+          "tests": [
+            "tests/p2_io/test_invoices_repository.py::test_a_failed_write_leaves_the_old_file"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "verified",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?",
+          "answer": "One file NUMBER.json in data_dir, the fields of the invoice, amount as a string",
+          "template": true,
+          "suggested": null,
+          "choices": [
+            "One JSON file per item in a data folder",
+            "A SQLite table"
+          ],
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?",
+          "answer": "Return None; the service raises the domain error",
+          "template": true,
+          "suggested": "Return None; the service raises the domain error",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?",
+          "answer": "Write to a temporary file next to it, then rename it",
+          "template": true,
+          "suggested": "Write to a temporary file next to it, then rename it",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?",
+          "answer": "The last one wins: marking paid twice gives the same file",
+          "template": true,
+          "suggested": "The second one is refused",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {
+          "customer": "personal"
+        },
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [
+        {
+          "key": "P1",
+          "set": "P",
+          "title": "Personal data",
+          "id": "retention",
+          "rule": "GDPR003",
+          "question": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's records deleted by id?",
+          "answer": "10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21T16:21:02.537432+00:00"
+        },
+        {
+          "key": "P2",
+          "set": "P",
+          "title": "Personal data",
+          "id": "location",
+          "rule": "GDPR008",
+          "question": "Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3?",
+          "answer": "The company's file server, in France",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21T16:21:02.820664+00:00"
+        }
+      ],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "Something missing (an input, a file, a setting, a dependency down): what must never happen?",
+          "status": "answered",
+          "dismissed": "A missing file is reported as None, the service raises InvoiceNotFoundError (decision 2)"
+        },
+        {
+          "number": 2,
+          "guide_word": "more",
+          "question": "Too much (duplicates, an unbounded list, a huge file): what must never happen?",
+          "status": "answered",
+          "dismissed": "It reads one invoice at a time, by number"
+        },
+        {
+          "number": 3,
+          "guide_word": "partial",
+          "question": "Half done (a file half written, a change saved here and not there, a crash in the middle): what must never happen?",
+          "status": "answered",
+          "hazards": [
+            {
+              "id": "invoices_repository.H1",
+              "severity": "high",
+              "description": "An invoice file is half written",
+              "suggested": false,
+              "prevented_by": [
+                {
+                  "id": "invoices_repository.INV1",
+                  "statement": "an invoice file is complete or absent",
+                  "verify": "example_test",
+                  "tested": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "guide_word": "stale",
+          "question": "Old data used as current (a cache, an old file): what must never happen?",
+          "status": "answered",
+          "dismissed": "Nothing is cached: every call reads the file"
+        },
+        {
+          "number": 5,
+          "guide_word": "concurrent",
+          "question": "Two runs at the same time (two processes, two users): what must never happen?",
+          "status": "answered",
+          "dismissed": "Concurrent writes give the same paid invoice (decision 4)"
+        },
+        {
+          "number": 6,
+          "guide_word": "exposed",
+          "question": "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?",
+          "status": "answered",
+          "dismissed": "Files stay in the data folder; nothing is logged"
+        }
+      ],
+      "assumptions": [],
+      "tasks": [
+        {
+          "task": "T1",
+          "core": true,
+          "done": true,
+          "items": [
+            {
+              "kind": "decision",
+              "key": "1",
+              "text": "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?",
+              "answer": "One file NUMBER.json in data_dir, the fields of the invoice, amount as a string",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "2",
+              "text": "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?",
+              "answer": "Return None; the service raises the domain error",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "3",
+              "text": "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?",
+              "answer": "Write to a temporary file next to it, then rename it",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "4",
+              "text": "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?",
+              "answer": "The last one wins: marking paid twice gives the same file",
+              "done": true
+            },
+            {
+              "kind": "invariant",
+              "key": "invoices_repository.INV1",
+              "text": "an invoice file is complete or absent",
+              "answer": null,
+              "done": true
+            }
+          ],
+          "summary": "the file and its public API, decisions 1-4, invoices_repository.INV1"
+        },
+        {
+          "task": "T2",
+          "core": false,
+          "done": true,
+          "items": [
+            {
+              "kind": "question",
+              "key": "P1",
+              "text": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's records deleted by id?",
+              "answer": "10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)",
+              "done": true
+            },
+            {
+              "kind": "question",
+              "key": "P2",
+              "text": "Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3?",
+              "answer": "The company's file server, in France",
+              "done": true
+            }
+          ],
+          "summary": "decisions P1, P2"
+        }
+      ],
+      "to_review": []
+    },
+    "mark_paid": {
+      "component": "mark_paid",
+      "type": "service",
+      "layer": "p3_services",
+      "known_columns": [
+        {
+          "component": "invoice_model",
+          "columns": [
+            "amount",
+            "customer",
+            "number",
+            "status"
+          ]
+        }
+      ],
+      "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
+      "uses": [
+        "invoice_model",
+        "invoice_not_found_error",
+        "invoices_repository"
+      ],
+      "used_by": [
+        "invoices_cli"
+      ],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p3_services/test_mark_paid.py::test_a_sent_invoice_becomes_paid_and_a_draft_is_refused"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p3_services/test_mark_paid.py::test_an_unknown_invoice_is_not_found"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+          ]
+        },
+        {
+          "item": "decision 4",
+          "kind": "decision",
+          "key": "4",
+          "tests": [
+            "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+          ]
+        },
+        {
+          "item": "mark_paid.INV1",
+          "kind": "invariant",
+          "key": "MARK_PAID.INV1",
+          "tests": [
+            "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+          ]
+        }
+      ],
+      "examples": [],
+      "rule_texts": {},
+      "status": "verified",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
+          "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
+          "answer": "InvoiceNotFoundError",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
+          "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
+          "template": true,
+          "suggested": "The same result, no duplicate effect",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 4,
+          "question": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
+          "answer": "Only one change, one save: nothing to undo",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [
+        {
+          "key": "P1",
+          "set": "P",
+          "title": "Personal data",
+          "id": "purpose",
+          "rule": "GDPR002",
+          "question": "Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send invoices to customers, for the finance team?",
+          "answer": "To record which customers paid their invoices, for the finance team",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21T16:21:01.953151+00:00"
+        },
+        {
+          "key": "P2",
+          "set": "P",
+          "title": "Personal data",
+          "id": "legal_basis",
+          "rule": "GDPR002",
+          "question": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
+          "answer": "Contract: the customer's purchase",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21T16:21:02.230748+00:00"
+        }
+      ],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "missing",
+          "question": "Something missing (an input, a file, a setting, a dependency down): what must never happen?",
+          "status": "answered",
+          "dismissed": "InvoiceNotFoundError (decision 2)"
+        },
+        {
+          "number": 2,
+          "guide_word": "repeated",
+          "question": "Done twice (run twice, retried, the same input twice): what must never happen?",
+          "status": "answered",
+          "hazards": [
+            {
+              "id": "mark_paid.H1",
+              "severity": "high",
+              "description": "Paying twice changes the invoice twice",
+              "suggested": false,
+              "prevented_by": [
+                {
+                  "id": "mark_paid.INV1",
+                  "statement": "marking an invoice paid twice gives the same invoice as once",
+                  "verify": "example_test",
+                  "tested": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "guide_word": "partial",
+          "question": "Half done (a file half written, a change saved here and not there, a crash in the middle): what must never happen?",
+          "status": "answered",
+          "dismissed": "One save, written completely or not at all (invoices_repository.INV1)"
+        },
+        {
+          "number": 4,
+          "guide_word": "concurrent",
+          "question": "Two runs at the same time (two processes, two users): what must never happen?",
+          "status": "answered",
+          "dismissed": "Two runs write the same paid invoice (decision 3)"
+        },
+        {
+          "number": 5,
+          "guide_word": "exposed",
+          "question": "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?",
+          "status": "answered",
+          "dismissed": "Nothing is logged or printed here"
+        }
+      ],
+      "assumptions": [],
+      "tasks": [
+        {
+          "task": "T1",
+          "core": true,
+          "done": true,
+          "items": [
+            {
+              "kind": "decision",
+              "key": "1",
+              "text": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
+              "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "2",
+              "text": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
+              "answer": "InvoiceNotFoundError",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "3",
+              "text": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
+              "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
+              "done": true
+            },
+            {
+              "kind": "decision",
+              "key": "4",
+              "text": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
+              "answer": "Only one change, one save: nothing to undo",
+              "done": true
+            },
+            {
+              "kind": "invariant",
+              "key": "mark_paid.INV1",
+              "text": "marking an invoice paid twice gives the same invoice as once",
+              "answer": null,
+              "done": true
+            }
+          ],
+          "summary": "the file and its public API, decisions 1-4, mark_paid.INV1"
+        },
+        {
+          "task": "T2",
+          "core": false,
+          "done": true,
+          "items": [
+            {
+              "kind": "question",
+              "key": "P1",
+              "text": "Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send invoices to customers, for the finance team?",
+              "answer": "To record which customers paid their invoices, for the finance team",
+              "done": true
+            },
+            {
+              "kind": "question",
+              "key": "P2",
+              "text": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
+              "answer": "Contract: the customer's purchase",
+              "done": true
+            }
+          ],
+          "summary": "decisions P1, P2"
+        }
+      ],
+      "to_review": []
+    },
+    "invoices_cli": {
+      "component": "invoices_cli",
+      "type": "cli",
+      "layer": "p4_entrypoints",
+      "known_columns": [],
+      "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
+      "uses": [
+        "mark_paid",
+        "invoice_not_found_error"
+      ],
+      "used_by": [],
+      "evidence": [
+        {
+          "item": "decision 1",
+          "kind": "decision",
+          "key": "1",
+          "tests": [
+            "tests/p4_entrypoints/test_invoices_cli.py::test_bad_arguments_exit_with_2"
+          ]
+        },
+        {
+          "item": "decision 2",
+          "kind": "decision",
+          "key": "2",
+          "tests": [
+            "tests/p4_entrypoints/test_invoices_cli.py::test_exit_codes"
+          ]
+        },
+        {
+          "item": "decision 3",
+          "kind": "decision",
+          "key": "3",
+          "tests": [
+            "tests/p4_entrypoints/test_invoices_cli.py::test_the_invoice_on_stdout_errors_on_stderr"
+          ]
+        },
+        {
+          "item": "example US-001-pay-a-sent-invoice",
+          "kind": "example",
+          "key": "US-001-PAY-A-SENT-INVOICE",
+          "tests": [
+            "tests/p4_entrypoints/test_invoices_cli.py::test_example_pay_a_sent_invoice"
+          ]
+        }
+      ],
+      "examples": [
+        {
+          "name": "US-001-pay-a-sent-invoice",
+          "ticket": "US-001",
+          "source": {
+            "file": "briefs/invoices.md",
+            "section": "paying-a-sent-invoice",
+            "hash": "9652dc816ffb"
+          },
+          "level": "unit",
+          "folder": "tests/examples/invoices_cli/US-001-pay-a-sent-invoice",
+          "tested": true,
+          "unchanged": true,
+          "result": "not_run",
+          "actual": false,
+          "files": [
+            {
+              "name": "invoices/F-7.json",
+              "kind": "document",
+              "state": "no_actual",
+              "differences": 0,
+              "rows": []
+            },
+            {
+              "name": "stdout.txt",
+              "kind": "text",
+              "state": "no_actual",
+              "differences": 0,
+              "rows": []
+            }
+          ],
+          "scenario": "Feature: pay an invoice\n  Scenario: a sent invoice is marked paid\n    Given the sent invoice F-7 of Ada for 9.90\n    When the finance team runs invoices pay F-7\n    Then it prints \"F-7 Ada 9.90 paid\" and F-7 is saved paid",
+          "by": "architect@example.com",
+          "on": "2026-11-05"
+        }
+      ],
+      "rule_texts": {},
+      "status": "tested",
+      "decisions": [
+        {
+          "number": 1,
+          "question": "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?",
+          "answer": "Exit code 2 with the usage message (argparse)",
+          "template": true,
+          "suggested": "Exit code 2 with the usage message (argparse)",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 2,
+          "question": "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?",
+          "answer": "0 ok, 1 error, 2 bad arguments, 3 not found",
+          "template": true,
+          "suggested": "0 ok, 1 error, 2 bad arguments",
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        },
+        {
+          "number": 3,
+          "question": "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?",
+          "answer": "The invoice on one line on stdout; errors on stderr",
+          "template": true,
+          "suggested": null,
+          "by": "noreply@anthropic.com",
+          "on": "2026-10-21",
+          "proposed": null
+        }
+      ],
+      "rules": [],
+      "missing": [],
+      "columns": [],
+      "declares_columns": false,
+      "personal": {
+        "handles": {
+          "customer": "personal"
+        },
+        "writes": {},
+        "removed": [],
+        "pseudonymised": []
+      },
+      "questions": [],
+      "safety": [
+        {
+          "number": 1,
+          "guide_word": "wrong",
+          "question": "Wrong input (invalid values, out of range, a wrong format): what must never happen?",
+          "status": "answered",
+          "dismissed": "argparse refuses bad arguments with exit code 2 (decision 1)"
+        },
+        {
+          "number": 2,
+          "guide_word": "exposed",
+          "question": "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?",
+          "status": "answered",
+          "dismissed": "It prints only the invoice the user asked for, to that user"
+        }
+      ],
+      "assumptions": [],
+      "tasks": [],
+      "run": {
+        "component": "invoices_cli",
+        "ready": true,
+        "line": "Try it locally: python -m invoicing.p4_entrypoints.invoices_cli --data-dir <data_dir> --help"
+      },
+      "to_review": []
+    }
+  },
+  "next": [],
+  "check": {
+    "ok": true,
+    "errors": 0,
+    "warnings": 0,
+    "violations": [],
+    "statuses": [
+      {
+        "container": "invoicing",
+        "component": "config",
+        "symbol": "Config",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "invoicing",
+        "component": "config",
+        "symbol": "load_config",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "invoicing",
+        "component": "logging_setup",
+        "symbol": "setup_logging",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "invoicing",
+        "component": "invoice_model",
+        "symbol": "Invoice",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "invoicing",
+        "component": "invoice_not_found_error",
+        "symbol": "InvoiceNotFoundError",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "invoicing",
+        "component": "invoices_repository",
+        "symbol": "InvoicesRepository",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "invoicing",
+        "component": "mark_paid",
+        "symbol": "mark_paid",
+        "status": "implemented",
+        "reason": ""
+      },
+      {
+        "container": "invoicing",
+        "component": "invoices_cli",
+        "symbol": "main",
+        "status": "implemented",
+        "reason": ""
+      }
+    ],
+    "suppressed": [],
+    "changes": [],
+    "components": [
+      {
+        "container": "invoicing",
+        "component": "config",
+        "type": "foundation",
+        "layer": "p0_common",
+        "status": "implemented",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "invoicing",
+        "component": "logging_setup",
+        "type": "foundation",
+        "layer": "p0_common",
+        "status": "implemented",
+        "tested": false,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "invoicing",
+        "component": "invoice_model",
+        "type": "model",
+        "layer": "p1_domain",
+        "status": "verified",
+        "tested": true,
+        "invariants_total": 1,
+        "invariants_verified": 1,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 1
+      },
+      {
+        "container": "invoicing",
+        "component": "invoice_not_found_error",
+        "type": "error",
+        "layer": "p1_domain",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      },
+      {
+        "container": "invoicing",
+        "component": "invoices_repository",
+        "type": "repository",
+        "layer": "p2_io",
+        "status": "verified",
+        "tested": true,
+        "invariants_total": 1,
+        "invariants_verified": 1,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 1
+      },
+      {
+        "container": "invoicing",
+        "component": "mark_paid",
+        "type": "service",
+        "layer": "p3_services",
+        "status": "verified",
+        "tested": true,
+        "invariants_total": 1,
+        "invariants_verified": 1,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 1
+      },
+      {
+        "container": "invoicing",
+        "component": "invoices_cli",
+        "type": "cli",
+        "layer": "p4_entrypoints",
+        "status": "tested",
+        "tested": true,
+        "invariants_total": 0,
+        "invariants_verified": 0,
+        "open_questions": 0,
+        "pending_assumptions": 0,
+        "hazards": 0
+      }
+    ],
+    "invariants": [
+      {
+        "id": "invoice_model.INV1",
+        "component": "invoice_model",
+        "statement": "every invoice has an amount of zero or more",
+        "verify": "example_test",
+        "verified": true,
+        "evidence": [
+          "tests/p1_domain/test_invoice_model.py::test_a_negative_amount_is_refused"
+        ],
+        "severity": "high"
+      },
+      {
+        "id": "invoices_repository.INV1",
+        "component": "invoices_repository",
+        "statement": "an invoice file is complete or absent",
+        "verify": "example_test",
+        "verified": true,
+        "evidence": [
+          "tests/p2_io/test_invoices_repository.py::test_a_failed_write_leaves_the_old_file"
+        ],
+        "severity": "high"
+      },
+      {
+        "id": "mark_paid.INV1",
+        "component": "mark_paid",
+        "statement": "marking an invoice paid twice gives the same invoice as once",
+        "verify": "example_test",
+        "verified": true,
+        "evidence": [
+          "tests/p3_services/test_mark_paid.py::test_paying_twice_is_paying_once"
+        ],
+        "severity": "high"
+      }
+    ],
+    "frozen": 0,
+    "stale_frozen": [],
+    "budget": null,
+    "safety": {
+      "answered": 16,
+      "total": 16
+    },
+    "counts": {}
+  },
+  "briefs": {
+    "folders": [
+      "briefs"
+    ],
+    "files": [
+      {
+        "file": "briefs/invoices.md",
+        "sections": [
+          {
+            "section": "invoices-us-001",
+            "items": [],
+            "changed": false
+          },
+          {
+            "section": "paying-a-sent-invoice",
+            "items": [
+              "invoices_cli example US-001-pay-a-sent-invoice"
+            ],
+            "changed": false
+          }
+        ]
+      }
+    ],
+    "to_draft": 1,
+    "changed": 0
+  },
+  "catalog": {
+    "templates": [
+      {
+        "name": "fastapi-service",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "web-service",
+        "style": "layered (common -> domain -> io -> services -> api)",
+        "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,FASTAPI,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "FASTAPI",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported (e.g. sqlalchemy, jwt)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "fastapi_version",
+            "prompt": "FastAPI version line the project pins (upgrade deliberately; doctor checks it)",
+            "default": "0.143",
+            "pattern": "^0\\.[0-9]+$",
+            "pattern_hint": "a FastAPI minor line such as 0.143",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - settings, database session, the dependencies routes ask for",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Business rules - Pydantic models and pure functions, no HTTP, no database",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Repositories and clients - the only place that talks to the database and other services",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_services",
+            "description": "Services - one business operation each, calling repositories and clients and owning the transaction",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_api",
+            "description": "HTTP - routers and the app, which validate input, check who may call, call a service, shape the response",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p3_services"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. format_amount",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "dependency": {
+            "layer": "p0_common",
+            "description": "Something routes receive through Depends (the database session, the current user...).",
+            "addable": true,
+            "name_pattern": "^get_[a-z0-9_]+$",
+            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": true,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "model": {
+            "layer": "p1_domain",
+            "description": "A Pydantic model - the shape and the validation of one kind of data.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. order",
+            "module": "{name}_model",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "error": {
+            "layer": "p1_domain",
+            "description": "A domain error - raised by services and the domain, mapped to an HTTP status by the app.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what went wrong, e.g. order_not_found",
+            "module": "{name}_error",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Error"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "logic": {
+            "layer": "p1_domain",
+            "description": "A pure business rule - a function of its inputs, no I/O.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. compute_total",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "repository": {
+            "layer": "p2_io",
+            "description": "Stores and finds one kind of data (the database, or memory to start).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, plural, e.g. orders",
+            "module": "{name}_repository",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Repository"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_io",
+            "description": "Calls one other service (HTTP API, message broker...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other service, e.g. payments",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "service": {
+            "layer": "p3_services",
+            "description": "One business operation - calls repositories and clients, applies the rules, owns the transaction.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. create_order",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "router": {
+            "layer": "p4_api",
+            "description": "The HTTP routes of one resource - input, permissions, status codes, response.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the resource, plural, e.g. orders",
+            "module": "{name}_router",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "router",
+                "annotation": "APIRouter"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "app": {
+            "layer": "p4_api",
+            "description": "The FastAPI app - routers, prefix, lifespan, error mapping. Run with uvicorn --factory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "e.g. main",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "create_app",
+                "signature": "() -> FastAPI"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/fastapi-service"
+      },
+      {
+        "name": "langgraph-agent",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "ai-application",
+        "style": "layered (common -> domain -> tools -> agents -> app)",
+        "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,AGENT,FASTAPI,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "AGENT",
+              "FASTAPI",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides langgraph, langchain_core, fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported - the model providers too (e.g. langchain_anthropic, langchain_ollama, langchain_postgres)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "langgraph_version",
+            "prompt": "LangGraph version line the project pins (1.x keeps its API until 2.0; doctor checks it)",
+            "default": "1",
+            "pattern": "^1(\\.[0-9]+)?$",
+            "pattern_hint": "a LangGraph line such as 1 or 1.2",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Foundations - settings, the models, logging, the access scope, documents, the memory",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "The assistant's own shapes and pure logic - state, structured outputs, prompts, chunking; no I/O, no model call",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_tools",
+            "description": "Tools, retrievers and clients - the only place that reads or changes the company's data and other systems",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_agents",
+            "description": "Agents, routers and nodes - one step of thinking each, calling models and tools",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_tools"
+            ]
+          },
+          {
+            "name": "p4_app",
+            "description": "The graphs, the API, the MCP server and the indexing jobs - what runs",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_tools",
+              "p3_agents"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no model call, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. format_citation",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "state": {
+            "layer": "p1_domain",
+            "description": "The state a graph carries from step to step (a TypedDict).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the graph it belongs to, e.g. assistant",
+            "module": "{name}_state",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}State"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "schema": {
+            "layer": "p1_domain",
+            "description": "A structured shape the models return or the tools take (a Pydantic model) - never text parsed by hand.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. answer",
+            "module": "{name}_schema",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "prompt": {
+            "layer": "p1_domain",
+            "description": "The instructions a model gets, built from the state - kept in the code, never pulled from a hub at run time.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the step it serves, e.g. answer",
+            "module": "{name}_prompt",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_prompt"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "chunker": {
+            "layer": "p1_domain",
+            "description": "Cuts one Document into the Passages that are indexed - a pure function.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the documents it cuts, e.g. policies",
+            "module": "{name}_chunker",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "chunk_{name}",
+                "signature": "(document: Document) -> list[Passage]"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "tool": {
+            "layer": "p2_tools",
+            "description": "One thing an agent may do - read or change data, call a system - with typed arguments the model fills and a docstring it reads.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. book_ticket",
+            "module": "{name}_tool",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "retriever": {
+            "layer": "p2_tools",
+            "description": "Finds the passages a user may read that answer a question, best first, each with its source.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it searches, e.g. policies",
+            "module": "{name}_retriever",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "retrieve_{name}",
+                "signature": "(query: str, scope: AccessScope) -> list[Passage]"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "mcp_client": {
+            "layer": "p2_tools",
+            "description": "Gives the tools of one approved MCP server to the agents.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the server, e.g. tickets",
+            "module": "{name}_mcp",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "load_{name}_tools"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_tools",
+            "description": "Talks to one other system (an HTTP API, a message broker, a source to index...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other system, e.g. sharepoint",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "router": {
+            "layer": "p3_agents",
+            "description": "Chooses the next step for a request, and the model role and thinking budget it gets.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it routes, e.g. question",
+            "module": "{name}_router",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "route_{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "node": {
+            "layer": "p3_agents",
+            "description": "One step of a graph - reads the state, calls a model or a tool, writes its result back.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it does, e.g. answer",
+            "module": "{name}_node",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}_node"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "agent": {
+            "layer": "p3_agents",
+            "description": "A model that chooses among its tools, step by step, until it has an answer (LangChain's create_agent).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "its job, e.g. booking",
+            "module": "{name}_agent",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_agent"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "graph": {
+            "layer": "p4_app",
+            "description": "The workflow - its steps and how they follow each other, compiled with the memory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the assistant, e.g. assistant",
+            "module": "{name}_graph",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "build_{name}_graph"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "api": {
+            "layer": "p4_app",
+            "description": "The HTTP API - signs the user in, builds the access scope, runs the graph. Run with uvicorn --factory.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the assistant, e.g. assistant",
+            "module": "{name}_api",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "router",
+                "annotation": "APIRouter"
+              },
+              {
+                "kind": "function",
+                "name": "create_app",
+                "signature": "() -> FastAPI"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "mcp_server": {
+            "layer": "p4_app",
+            "description": "Serves tools to other assistants over MCP (the company's assistants, IDEs).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what it serves, e.g. policies",
+            "module": "{name}_mcp_server",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "create_{name}_server"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "index_job": {
+            "layer": "p4_app",
+            "description": "Copies one source into the index - Documents, chunks, embeddings - only what changed.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the source, e.g. policies",
+            "module": "{name}_index_job",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "index_{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/langgraph-agent"
+      },
+      {
+        "name": "pyspark-pipeline",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "data-pipeline",
+        "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
+        "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.11",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,SPARK,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "SPARK",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides pyspark, pytest and hypothesis, comma-separated, as imported (e.g. yaml, requests)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (and Java 17 for Spark) (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "spark_version",
+            "prompt": "PySpark version",
+            "default": "3.5",
+            "choices": [
+              "3.4",
+              "3.5",
+              "4.0"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "scheduler",
+            "ask": true,
+            "prompt": "Scheduler that runs the pipeline (none = run entrypoint.sh yourself or from your own scheduler)",
+            "default": "none",
+            "choices": [
+              "none",
+              "airflow",
+              "oozie"
+            ],
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - SparkSession factory, configuration, constants",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Schemas and pure, lazy DataFrame -> DataFrame transformations",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Readers and writers - the only place that touches storage",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_jobs",
+            "description": "Jobs wiring readers, transformations and writers together",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_entrypoints",
+            "description": "Process entry points (CLI, scheduler, Databricks/EMR job)",
+            "may_import": [
+              "p0_common",
+              "p3_jobs"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "Shared helper or constants module (no Spark actions, no I/O).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}",
+                "signature": "() -> None"
+              }
+            ],
+            "implicit_dependency": true,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "schema": {
+            "layer": "p1_domain",
+            "description": "Explicit StructType contract for a dataset.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders",
+            "module": "{name}_schema",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "{NAME}_SCHEMA",
+                "annotation": "T.StructType"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "transformation": {
+            "layer": "p1_domain",
+            "description": "Pure, lazy DataFrame -> DataFrame function.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. clean_orders",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}",
+                "signature": "(df: DataFrame) -> DataFrame"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "reader": {
+            "layer": "p2_io",
+            "description": "Reads one dataset and enforces its schema.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders",
+            "module": "{name}_reader",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "read_{name}",
+                "signature": "(spark: SparkSession, path: str) -> DataFrame"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": [
+              {
+                "name": "files",
+                "description": "Reads one dataset and enforces its schema.",
+                "default": true
+              },
+              {
+                "name": "table",
+                "description": "Reads one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi) and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "jdbc",
+                "description": "Reads a table or a query of a database over JDBC (spark.read.jdbc) and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "connector",
+                "description": "Reads with a Spark connector (spark.read.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka read in batch... - and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "custom",
+                "description": "Reads a source Spark has no reader for (a REST API, SFTP, a SaaS export, an in-house file format) with its own Python code - a Python data source (Spark 4.0) or calls on the executors - and enforces its schema.",
+                "default": false
+              }
+            ]
+          },
+          "writer": {
+            "layer": "p2_io",
+            "description": "Writes one dataset.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders_clean",
+            "module": "{name}_writer",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "write_{name}",
+                "signature": "(df: DataFrame, path: str) -> None"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": [
+              {
+                "name": "files",
+                "description": "Writes one dataset.",
+                "default": true
+              },
+              {
+                "name": "table",
+                "description": "Writes one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi).",
+                "default": false
+              },
+              {
+                "name": "jdbc",
+                "description": "Writes a table of a database over JDBC (df.write.jdbc).",
+                "default": false
+              },
+              {
+                "name": "connector",
+                "description": "Writes with a Spark connector (df.write.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka...",
+                "default": false
+              },
+              {
+                "name": "custom",
+                "description": "Writes to a target Spark has no writer for (a REST API, SFTP, a SaaS import, an in-house format) with its own Python code - foreachPartition, or a Python data source writer (Spark 4.0).",
+                "default": false
+              }
+            ]
+          },
+          "job": {
+            "layer": "p3_jobs",
+            "description": "Orchestrates read -> transform -> write for one output.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "output name, e.g. daily_sales",
+            "module": "{name}_job",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "run_{name}",
+                "signature": "(spark: SparkSession, config: JobConfig) -> None"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "entrypoint": {
+            "layer": "p4_entrypoints",
+            "description": "Process entry point that parses arguments and runs one job.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "",
+            "module": "{name}_main",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "main",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/pyspark-pipeline"
+      },
+      {
+        "name": "python-app",
+        "version": "1.25.0",
+        "language": "python",
+        "kind": "application",
+        "style": "layered (common -> domain -> io -> services -> entrypoints)",
+        "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "default": "fr",
+            "choices": [
+              "fr",
+              "en"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "ai_tool_files",
+            "choices": [
+              "copilot",
+              "claude-code",
+              "cursor",
+              "codex",
+              "junie",
+              "jetbrains-ai-chat",
+              "antigravity",
+              "continue",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "GDPR",
+              "TST",
+              "DORA",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides pytest and hypothesis, comma-separated, as imported (e.g. requests, yaml)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - settings, logging, small helpers every layer may use",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Business rules - data classes, domain errors and pure functions, no I/O",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Repositories and clients - the only place that reads and writes files, databases and other services",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_services",
+            "description": "Services - one operation each, calling repositories and clients and applying the domain's rules",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_entrypoints",
+            "description": "Entry points - the command line, which parses arguments, calls a service and sets the exit code",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p3_services"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. parse_date",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "model": {
+            "layer": "p1_domain",
+            "description": "A data class - the shape and the validation of one kind of data.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. invoice",
+            "module": "{name}_model",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "error": {
+            "layer": "p1_domain",
+            "description": "A domain error - raised by the domain and the services, turned into a message and an exit code by the entry point.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what went wrong, e.g. invoice_not_found",
+            "module": "{name}_error",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Error"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "logic": {
+            "layer": "p1_domain",
+            "description": "A pure business rule - a function of its inputs, no I/O.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. compute_total",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "repository": {
+            "layer": "p2_io",
+            "description": "Stores and finds one kind of data (files, a database).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, plural, e.g. invoices",
+            "module": "{name}_repository",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Repository"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_io",
+            "description": "Talks to one other system (an HTTP API, a mail server, a message broker...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other system, e.g. mailer",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "service": {
+            "layer": "p3_services",
+            "description": "One operation - calls repositories and clients and applies the domain's rules.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. send_invoice",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "cli": {
+            "layer": "p4_entrypoints",
+            "description": "The command line - parses the arguments, calls a service, prints the result, sets the exit code.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the program, e.g. invoices",
+            "module": "{name}_cli",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "main",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/python-app"
+      }
+    ]
+  }
+}

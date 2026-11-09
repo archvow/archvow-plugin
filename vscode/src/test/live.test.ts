@@ -101,6 +101,13 @@ for (const name of EXAMPLES) {
     const { data: check, result } = await cli.json<CheckResult>(['check', '--json']);
     assert.deepEqual(check, recorded(name, 'check.json'));
     assert.doesNotMatch(result.stderr, /Traceback/);
+    // workspace (archvow 1.25): all of it in one answer, exactly as recorded; --since that digest: unchanged
+    const { data: whole } = await cli.json<Record<string, unknown>>(['workspace', '--json']);
+    const digest = String(whole.digest);
+    assert.match(digest, /^[0-9a-f]{8,}$/);
+    assert.deepEqual({ ...whole, digest: '<digest>' }, recorded(name, 'workspace.json'));
+    const { data: same } = await cli.json<Record<string, unknown>>(['workspace', '--json', '--since', digest]);
+    assert.deepEqual(same, { contract: whole.contract, unchanged: true, digest });
   });
 }
 

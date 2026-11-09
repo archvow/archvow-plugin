@@ -2,6 +2,27 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.21.0 - 2026-11-09
+
+Built on archvow 1.25.0 (contract regenerated from the 1.25.0 wheel; contract 1.1).
+
+- **One archvow call loads a project**: `archvow workspace --json` (archvow 1.25) gives the spec, every
+  component's view, `check`, `next`, the briefs and the catalog together, each in the shape of its own
+  command. The plugin used to start `show`, `brief show`, `catalog`, `check`, `next` and then one `show
+  <component>` per component (16 processes on the FastAPI example); now it starts one. `check` runs once for
+  every component.
+- **After an action**, the whole workspace is read again in that same single call: one process, where the
+  partial refresh started four. The vow watcher still ignores the change the action made.
+- **Nothing to do when nothing changed**: when a vow changes on disk, the plugin passes the last answer's
+  digest (`--since`). If no file of the project changed, archvow answers `unchanged` and the views stay as
+  they are. This is never used after an action or when you refresh yourself.
+- A failed `workspace` call is reported in archvow's own words, as before. If `check` alone crashes, the
+  welcome card now shows that error; before, the plugin showed the spec without findings.
+- Needs archvow 1.25 or newer (contract 1.1); **Install archvow 1.25.0** pins `archvow==1.25.0`.
+- Contract: `contract/cli/<example>/workspace.json`, the 1.25.0 grammar (`workspace`, its form and icon),
+  594 messages for 73 codes. The tools follow archvow 1.25's modules (`archvow.cli.parser`,
+  `archvow.checks.engine`).
+
 ## 0.20.0 - 2026-11-09
 
 Built on archvow 1.23.0 (contract regenerated from the 1.23.0 wheel; contract 1.0).

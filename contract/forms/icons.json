@@ -70,5 +70,5 @@
   },
   "groups": {"components": "architecture", "decisions": "decisions", "questions": "questions", "safety": "safety", "rules": "rules", "assumptions": "assumptions", "briefs": "briefs", "data": "data", "project": "project", "other": "other"},
   "verbs": {"add": "add", "new": "add", "edit": "edit", "set": "edit", "remove": "remove", "accept": "accept", "reject": "reject", "make": "make", "propose": "propose", "dismiss": "dismiss"},
-  "commands": {"init": "start", "catalog": "list", "show": "show", "specify": "edit", "prompt": "propose", "next": "next", "check": "check", "review": "compare", "version": "health", "freeze": "lock", "audit": "search", "changes": "history", "diff": "compare", "doctor": "health", "completion": "terminal", "docs": "document", "template new": "template", "brief show": "show"}
+  "commands": {"init": "start", "catalog": "list", "show": "show", "specify": "edit", "prompt": "propose", "next": "next", "check": "check", "review": "compare", "version": "health", "freeze": "lock", "audit": "search", "changes": "history", "diff": "compare", "doctor": "health", "completion": "terminal", "docs": "document", "template new": "template", "brief show": "show", "workspace": "show"}
 }

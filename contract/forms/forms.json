@@ -59,6 +59,7 @@
     "shell": ["Shell", "Shell"],
     "install": ["Install it", "L'installer"],
     "check": ["Only check", "Seulement vérifier"],
+    "since": ["Since the answer", "Depuis la réponse"],
     "package": ["Package", "Paquet"],
     "template": ["Template", "Modèle"],
     "dir": ["Folder", "Dossier"],
@@ -74,7 +75,7 @@
     "output": ["Save to a file", "Enregistrer dans un fichier"]
   },
   "command_groups": [
-    {"id": "project", "label": ["Project & checks", "Projet et contrôles"], "prefixes": ["init", "catalog", "show", "specify", "prompt", "next", "check", "review", "version", "freeze", "audit", "changes", "diff", "doctor", "completion", "docs", "template"]},
+    {"id": "project", "label": ["Project & checks", "Projet et contrôles"], "prefixes": ["init", "catalog", "show", "specify", "prompt", "next", "check", "review", "version", "freeze", "audit", "changes", "diff", "doctor", "completion", "docs", "template", "workspace"]},
     {"id": "components", "label": ["Components", "Composants"], "prefixes": ["component"]},
     {"id": "decisions", "label": ["Decisions", "Décisions"], "prefixes": ["decision"]},
     {"id": "questions", "label": ["Questions", "Questions"], "prefixes": ["question"]},
@@ -169,6 +170,7 @@
     "example remove": {"title": ["Remove a business example", "Retirer un exemple métier"], "verb": ["Remove", "Retirer"], "does": ["Its files stay.", "Ses fichiers restent."], "essential": ["component", "name"]},
     "prompt": {"title": ["The AI's task", "La tâche de l'IA"], "verb": ["Show the card", "Afficher la fiche"], "does": ["Reads only.", "Lit seulement."]},
     "next": {"title": ["What to build next", "Quoi construire ensuite"], "verb": ["Show", "Afficher"], "does": ["Reads only.", "Lit seulement."]},
+    "workspace": {"title": ["Everything in one answer", "Tout en une réponse"], "verb": ["Show", "Afficher"], "does": ["Reads only: what the editor shows, in one call (for tools).", "Lit seulement : ce que l'éditeur montre, en un appel (pour les outils)."]},
     "check": {"title": ["Check", "Vérifier"], "verb": ["Check", "Vérifier"], "does": ["Reads only: the code against the spec.", "Lit seulement : le code face à la spec."], "essential": ["base", "complete"]},
     "review": {"title": ["AI review", "Relecture IA"], "verb": ["Review", "Relire"], "does": ["The approved reviewer reads the change and reports.", "Le relecteur approuvé lit le changement et rend compte."]},
     "changes": {"title": ["What a release contains", "Ce que contient une version"], "verb": ["Show", "Afficher"], "does": ["Reads only. With Save to a file: writes the report there (archvow changes ... --markdown > CHANGES.md).", "Lit seulement. Avec Enregistrer dans un fichier : y écrit le rapport (archvow changes ... --markdown > CHANGES.md)."], "hints": {"start": ["the previous release (a tag or a commit); the first commit: everything", "la version précédente (un tag ou un commit) ; le premier commit : tout"], "output": ["e.g. CHANGES.md: the report is written to this file of the project (replaced), then opened; empty: shown here", "par ex. CHANGES.md : le rapport est écrit dans ce fichier du projet (remplacé), puis ouvert ; vide : affiché ici"]}},

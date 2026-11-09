@@ -27,6 +27,7 @@ Pourquoi le code est tel qu'il est. À lire avant de « simplifier » quoi que c
 | **La logique sort du panneau** | le panneau demande un IntelliJ qui tourne ; une petite classe se teste en une ligne | `ArchvowSplitView`, `ArchvowItemCards`, `ArchvowCommandPrefill`, `ArchvowWsl`... et une régression chacune |
 | **Des tests sans framework** | ils tournent partout, même sans les dépôts JetBrains ni JUnit | un `main()` par régression, `WorkspaceTests` ; `node:test` côté VS Code |
 | **Un numéro de version à eux, un seul contrat d'archvow** (0.20.0) | archvow ne garde pas de compatibilité ; lire deux formats de JSON doublerait le code ; mais une version du plugin par version d'archvow est du gaspillage quand le JSON n'a pas changé | `contract/cli/contract.txt`, `contract/cli/version.txt`, `ArchvowVersion`, `contractWarning()` ; le plugin accepte la même MAJEURE et une MINEURE au moins la sienne, et installe l'archvow testé |
+| **Un seul appel pour lire un projet** (0.21.0) | un processus par commande faisait d'un rafraîchissement 16 processus sur l'exemple FastAPI ; chaque `show <composant>` relançait `check` ; ArchvowCli lance une commande à la fois, donc une chaîne était le seul ordre sûr | `archvow workspace --json` (archvow 1.25) dans chaque plugin, lu par `readWorkspace()` / `WorkspaceAnswer` ; `--since` seulement quand un vow a changé sur le disque |
 | **Le wiki vit avec le code** | une documentation interne qui n'est pas tenue à jour trompe | `wiki/` dans le dépôt, même commit que le code, `wiki.test.ts` |
 
 ## Ce que les plugins ne font pas, exprès
