@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `python-app@1.25.0`).
+(template `archvow/python-app@1.26.0`).
 
 ## For developers
 
@@ -125,7 +125,7 @@ complete application, from the empty project to a run: archvow's documentation, 
 **1. Create the project** - this one was created with:
 
 ```bash
-archvow init invoicing -t python-app -d 'Marks invoices paid, from the command line' \
+archvow init invoicing -t archvow/python-app -d 'Marks invoices paid, from the command line' \
     -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@acme/architects -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main

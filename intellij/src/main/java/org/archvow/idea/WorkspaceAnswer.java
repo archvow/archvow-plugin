@@ -1,5 +1,6 @@
 package org.archvow.idea;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -7,10 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * {@code archvow workspace --json} (archvow 1.25, contract 1.1), read: what the plugin shows of a project, from one
+ * {@code archvow workspace --json} (archvow 1.26, contract 1.2), read: what the plugin shows of a project, from one
  * process - the spec ({@code show --json}), each component's view ({@code show <id> --json}), the build plan
  * ({@code next --json}), the findings ({@code check --json}), the briefs ({@code brief show --json}) and the templates
- * ({@code catalog --json}), each in its own command's shape. VS Code reads it the same way (model.ts readWorkspace).
+ * ({@code catalog --json}), each in its own command's shape, and the project's packs (1.26). VS Code reads it the same way (model.ts readWorkspace).
  */
 final class WorkspaceAnswer {
     /** Given back with --since: archvow answers {@code unchanged} while no file of the project changed. */
@@ -25,9 +26,11 @@ final class WorkspaceAnswer {
     final JsonObject check;
     final JsonObject briefs;
     final JsonObject catalog;
+    /** The project's packs (archvow 1.26): name, version, what each brings, source, state ok / changed. */
+    final JsonArray packs;
 
     private WorkspaceAnswer(String digest, boolean unchanged, JsonObject spec, Map<String, JsonObject> snapshots, String next,
-                            JsonObject check, JsonObject briefs, JsonObject catalog) {
+                            JsonObject check, JsonObject briefs, JsonObject catalog, JsonArray packs) {
         this.digest = digest;
         this.unchanged = unchanged;
         this.spec = spec;
@@ -36,6 +39,7 @@ final class WorkspaceAnswer {
         this.check = check;
         this.briefs = briefs;
         this.catalog = catalog;
+        this.packs = packs;
     }
 
     /** What archvow printed, or null when it is not an answer (a failure: its error envelope, or nothing). */
@@ -44,7 +48,7 @@ final class WorkspaceAnswer {
         if (answer == null || !answer.has("digest") || !answer.get("digest").isJsonPrimitive()) return null;
         String digest = answer.get("digest").getAsString();
         if (answer.has("unchanged") && answer.get("unchanged").isJsonPrimitive() && answer.get("unchanged").getAsBoolean())
-            return new WorkspaceAnswer(digest, true, null, Map.of(), "", null, null, null);
+            return new WorkspaceAnswer(digest, true, null, Map.of(), "", null, null, null, new JsonArray());
         JsonObject spec = object(answer, "project");
         JsonObject check = object(answer, "check");
         JsonObject views = object(answer, "components");
@@ -58,7 +62,8 @@ final class WorkspaceAnswer {
             if (entry.getKey().equals(ArchvowGrammar.str(view, "component"))) snapshots.put(entry.getKey(), view);
         }
         return new WorkspaceAnswer(digest, false, spec, snapshots, next.toString(), check, object(answer, "briefs"),
-            object(answer, "catalog"));
+            object(answer, "catalog"), answer.has("packs") && answer.get("packs").isJsonArray()
+                ? answer.getAsJsonArray("packs") : new JsonArray());
     }
 
     private static JsonObject object(JsonObject parent, String key) {

@@ -109,6 +109,8 @@ final class ArchvowPanel extends JPanel {
     private JsonObject liveInitCatalog;
     /** {@code catalog --json} in the project: its template's types and kinds, the project's own templates (0.12.1). */
     private JsonObject projectCatalog;
+    /** The project's packs, as workspace --json gives them (archvow 1.26; Overview › Packs). */
+    private com.google.gson.JsonArray projectPacks = new com.google.gson.JsonArray();
     /** archvow/kinds.json: the kinds of each type for an archvow whose catalog has none (1.17). */
     private JsonObject bundledKinds;
     /** The repository's branches and tags, the current branch, what origin's HEAD names (the comparison base). */
@@ -192,6 +194,9 @@ final class ArchvowPanel extends JPanel {
                 if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
                 ArchvowBriefs.AddFolder add = ArchvowBriefs.initOf(event.getDescription());
                 if (add != null) openCommand("init", add.values());
+                // Overview › Packs: Update / Remove / Check / Add a pack / New pack / See the change open their form
+                Map.Entry<String, Map<String, String>> pack = ArchvowPacks.command(event.getDescription());
+                if (pack != null) openCommand(pack.getKey(), pack.getValue());
             });
         }
     }
@@ -364,6 +369,7 @@ final class ArchvowPanel extends JPanel {
     /** Overview cards are always visible, even when their detailed editor views are closed. */
     private final JLabel overviewArchitectureCounts = new JLabel("—");
     private final JLabel overviewChecksCounts = new JLabel("—");
+    private final JLabel overviewPacksCounts = new JLabel("—");
     private JComponent quickCard;
     private JComponent componentOtherCard;
     private JPanel overviewCenter;
@@ -865,6 +871,7 @@ final class ArchvowPanel extends JPanel {
         componentSnapshots.clear();
         componentSnapshots.putAll(source.componentSnapshots);
         projectCatalog = source.projectCatalog;
+        projectPacks = source.projectPacks;
         gitRefs = source.gitRefs;
         firstCommit = source.firstCommit;
         gitCurrent = source.gitCurrent;
@@ -1360,6 +1367,9 @@ final class ArchvowPanel extends JPanel {
         overviewRows.add(overviewSummaryRow(ArchvowI18n.text(project, "Checks", "Contrôles"), "shield",
             overviewChecksCounts, ArchvowI18n.text(project, "Open Checks →", "Voir les contrôles →"),
             this::runFullCheck));
+        overviewRows.add(Box.createVerticalStrut(6));
+        overviewRows.add(overviewSummaryRow("Packs", "layout", overviewPacksCounts,
+            ArchvowI18n.text(project, "Open Packs →", "Voir les packs →"), this::openPacks));
         overviewCenter.add(overviewRows, BorderLayout.NORTH);
 
         page.add(overviewCenter, BorderLayout.CENTER);
@@ -2863,6 +2873,23 @@ final class ArchvowPanel extends JPanel {
         return scroll(page);
     }
 
+    /** Overview › Packs (archvow 1.26): the project's packs, each with Update / Remove / Check (ArchvowPacks). */
+    private void openPacks() {
+        if (role == Role.NAVIGATION) {
+            ArchvowPanel editor = ArchvowEditorTab.panel(project);
+            if (editor != null) editor.openPacks();
+            return;
+        }
+        showWorkspace();
+        resultLabel = "Packs";
+        showDetailHome("result");
+        overviewResult.setText(htmlBare(ArchvowPacks.html(projectPacks, ArchvowI18n.isFrench(project))));
+        overviewResult.setCaretPosition(0);
+        overviewResultCard.setVisible(true);
+        tabs.setSelectedIndex(0);
+        afterSelectionChange();
+    }
+
     /** Read-only documentation: this is not `archvow docs` (which writes generated files). */
     private void openCommandReference() {
         if (role == Role.NAVIGATION) {
@@ -3113,7 +3140,7 @@ final class ArchvowPanel extends JPanel {
         String name = command.label;
         if (!name.equals(guidedCommand)) formStageIndex = 0;
         guidedCommand = name;
-        boolean guided = command.parameters.size() > 4 || "init".equals(name) || "template new".equals(name);
+        boolean guided = command.parameters.size() > 4 || "init".equals(name) || "pack template".equals(name);
         String extra = switch (name) {
             case "specify" -> ArchvowI18n.text(project, "IDE mode: clarification without interactive terminal.", "Mode IDE : clarification sans terminal interactif.");
             case "rule add" -> ArchvowI18n.text(project, "One argument per line in words.", "Un argument par ligne dans le champ words.");
@@ -3142,14 +3169,14 @@ final class ArchvowPanel extends JPanel {
         JToggleButton expertToggle = null;
         java.util.List<JComponent> expertParts = new ArrayList<>();
         for (ArchvowGrammar.Param param : ArchvowForms.ordered(command)) {
-            // init: the template is chosen once, in "Template and its questions" (under the package); template new:
+            // init: the template is chosen once, in "Template and its questions" (under the package); pack template:
             // its answers and layer folders are in "Settings of <base>", under --extends
             if ("init".equals(name) && "answer".equals(param.name)) continue;
             if ("init".equals(name) && "template".equals(param.name)) {
                 fields.put("template", new JTextField(values.getOrDefault("template", "")));  // not shown: the wizard sets it
                 continue;
             }
-            if ("template new".equals(name) && ("answer".equals(param.name) || "layer".equals(param.name))) continue;
+            if ("pack template".equals(name) && ("answer".equals(param.name) || "layer".equals(param.name))) continue;
             String text = values.getOrDefault(param.name, "");
             ArchvowChoices.Field field = param.bool ? null : offered.get(param.name);
             JComponent control;
@@ -3307,7 +3334,7 @@ final class ArchvowPanel extends JPanel {
                 form.add(initQuestions, wide(y++, 12));
                 if (guided) formStageComponents.computeIfAbsent("Template questions", unused -> new ArrayList<>()).add(initQuestions);
             }
-            if ("template new".equals(name) && "extends".equals(param.name)) {
+            if ("pack template".equals(name) && "extends".equals(param.name)) {
                 JsonObject base = baseTemplate(text);
                 if (base != null) {
                     templateSettings = new ArchvowTemplateSettings(base, ArchvowI18n.isFrench(project));
@@ -3381,7 +3408,7 @@ final class ArchvowPanel extends JPanel {
         }
         if ("component edit".equals(command)) return Set.of("component", "description", "spec", "uses").contains(parameter)
             ? "Identity & changes" : "Advanced changes";
-        if ("template new".equals(command)) return Set.of("name", "extends", "dir", "description").contains(parameter)
+        if ("pack template".equals(command)) return Set.of("pack", "name", "extends", "description").contains(parameter)
             ? "Template basics" : "Other options";
         if ("check".equals(command)) return Set.of("base", "complete", "file", "stdin").contains(parameter)
             ? "Scope" : "Validation options";
@@ -3648,7 +3675,7 @@ final class ArchvowPanel extends JPanel {
         return warning;
     }
 
-    /** template new: the base chosen in --extends, as the catalog knows it (the project's, then the installed one). */
+    /** pack template: the base chosen in --extends, as the catalog knows it (the project's, then the installed one). */
     private JsonObject baseTemplate(String name) {
         if (name == null || name.isBlank()) return null;
         for (JsonObject catalog : java.util.Arrays.asList(projectCatalog, liveInitCatalog, ArchvowInitCatalog.bundled()))
@@ -3673,7 +3700,7 @@ final class ArchvowPanel extends JPanel {
             for (ArchvowChoices.Choice c : choices) combo.addItem(c.value());
             combo.setSelectedItem(value);
             combo.setRenderer(choiceRenderer(labels, ""));
-            if ("template new".equals(command) && "extends".equals(param))
+            if ("pack template".equals(command) && "extends".equals(param))
                 combo.addActionListener(e -> { if (!buildingForm) choose(command, param, comboText(combo)); });
             return combo;
         }
@@ -3915,7 +3942,7 @@ final class ArchvowPanel extends JPanel {
                 String problem = refProblem(text);
                 if (!problem.isBlank()) { message(problem); return; }
             }
-            if ("template new".equals(command.label) && templateSettings != null && ("answer".equals(param.name) || "layer".equals(param.name))) {
+            if ("pack template".equals(command.label) && templateSettings != null && ("answer".equals(param.name) || "layer".equals(param.name))) {
                 if ("answer".equals(param.name) && !templateSettings.problem().isBlank()) { message(templateSettings.problem()); return; }
                 for (String item : "answer".equals(param.name) ? templateSettings.answers() : templateSettings.layerFolders()) {
                     args.add(param.option()); args.add(item);
@@ -4351,8 +4378,9 @@ final class ArchvowPanel extends JPanel {
             check = answer.check;
             checkFailure = "";
             nextResult = answer.next;
-            // the project's catalog: its template's types and kinds, its own templates (component add, template new)
+            // the project's catalog: its template's types and kinds, its own templates (component add, pack template)
             if (ArchvowInitCatalog.hasTemplates(answer.catalog)) projectCatalog = answer.catalog;
+            projectPacks = answer.packs;  // archvow 1.26: the project's packs
             componentSnapshots.clear();
             componentSnapshots.putAll(answer.snapshots);
             briefStatus = answer.briefs;  // archvow 1.20: what each brief section gives
@@ -5572,6 +5600,8 @@ final class ArchvowPanel extends JPanel {
         overviewChecksCounts.setText(errors + (fr ? " erreurs · " : " errors · ")
             + warnings + (fr ? " avertissements" : " warnings"));
         overviewChecksCounts.setForeground(errors > 0 ? ArchvowStatusPalette.statusColor(true) : mutedTextColor());
+        overviewPacksCounts.setText(ArchvowPacks.summary(projectPacks, fr));
+        overviewPacksCounts.setForeground(ArchvowPacks.changed(projectPacks) > 0 ? ArchvowStatusPalette.statusColor(true) : mutedTextColor());
         diagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
         detailDiagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
         refreshOverviewTabTitles();

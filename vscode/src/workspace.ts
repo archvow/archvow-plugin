@@ -67,6 +67,8 @@ export interface State {
   launched: Record<string, string[]>;
   /** `archvow brief show --json` (archvow 1.20): every brief, section by section; null with an older archvow. */
   briefStatus: Json | null;
+  /** The project's packs (`workspace --json` packs, 0.22.0): the Overview's Packs row and list. */
+  packs: Json[];
   /** The project's approved AI tools (init answer ai_tools): where a skill's request goes. */
   aiTools: string[];
 }
@@ -88,9 +90,9 @@ export class ArchvowProject {
   private remoteHead = '';
   /** The repository's first commit: changes --from it reports everything (0.15.0). */
   private firstCommit = '';
-  /** The archvow the plugin is tested with and installs ("1.25.0", contract/cli/version.txt). */
+  /** The archvow the plugin is tested with and installs ("1.26.0", contract/cli/version.txt). */
   readonly known: string;
-  /** The contract the plugin speaks ("1.1", contract/cli/contract.txt). */
+  /** The contract the plugin speaks ("1.2", contract/cli/contract.txt). */
   readonly contract: string;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
@@ -213,7 +215,7 @@ export class ArchvowProject {
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
       refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
-      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, aiTools: [],
+      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, packs: [], aiTools: [],
     };
   }
 
@@ -293,7 +295,8 @@ export class ArchvowProject {
     this.state.briefs = readBriefs(this.root, spec);
     s.aiTools = Array.isArray(spec.ai_tools) ? spec.ai_tools.map(String) : [];
     s.briefStatus = answer.briefStatus;
-    // the project's catalog: its template's types and kinds, and the project's own templates (component add, template new)
+    s.packs = answer.packs;
+    // the project's catalog: its template's types and kinds, and the project's own templates (component add, pack template)
     if (answer.catalog !== null && objects(answer.catalog, 'templates').length > 0) this.projectCatalog = answer.catalog;
     this.setCheck(answer.check, '');
     s.next = answer.next;
@@ -1253,31 +1256,28 @@ export class ArchvowProject {
     this.reply(from, { type: 'vow', component, text: this.state.vows[component], card });
   }
 
-  /** The template catalog for init: archvow's own (installed) when it answers, else the bundled one. */
-  private async loadCatalog(template: string, force: boolean, from: From): Promise<void> {
+  /** The template catalog for init: what archvow lists here (its own pack and the packs `pack add` copied into this
+   *  folder, 0.22.0), else the bundled one. */
+  private async loadCatalog(_template: string, force: boolean, from: From): Promise<void> {
     const post = (message: Json): void => this.reply(from, message);
     const fr = this.state.fr;
-    let scope = '';
-    try {
-      if (template && fs.statSync(path.join(path.resolve(template), 'template.yaml')).isFile()) scope = path.resolve(template);
-    } catch { /* a template name */ }
+    const scope = this.root;
     if (!force && this.liveCatalog && this.liveCatalog.scope === scope) {
       post({ type: 'catalog', data: this.liveCatalog.data, source: tr(fr, 'Loaded from installed archvow.', 'Chargé depuis archvow installé.') });
       return;
     }
     post({ type: 'catalog', data: this.bundledCatalog, source: tr(fr, `Built-in archvow ${this.known} templates · Checking installed catalog…`,
       `Modèles intégrés archvow ${this.known} · Vérification du catalogue installé…`) });
-    // outside any project, so a project's own templates do not shadow the installed ones
-    const neutral = new ArchvowCli(os.tmpdir(), () => this.cliSettings(), (result, action) => this.runLog.record(result, action),
-      scope ? { ARCHVOW_TEMPLATES: [process.env.ARCHVOW_TEMPLATES, path.dirname(scope)].filter((x) => x).join(path.delimiter) } : {}, false);
+    // in the project's folder: archvow's pack and the packs copied there (.archvow/packs/), named <pack>/<template>
+    const neutral = new ArchvowCli(this.root, () => this.cliSettings(), (result, action) => this.runLog.record(result, action));
     const result = await neutral.run(['catalog', '--json']);
     const data = parse(result.stdout);
     if (result.exitCode === 0 && data !== null && objects(data, 'templates').length > 0) {
       this.liveCatalog = { scope, data };
       post({ type: 'catalog', data, source: tr(fr, 'Loaded from installed archvow.', 'Chargé depuis archvow installé.') });
     } else {
-      post({ type: 'catalog', data: this.bundledCatalog, source: tr(fr, `Built-in archvow ${this.known} catalog (offline). Install/configure archvow to load company templates.`,
-        `Catalogue archvow ${this.known} intégré (hors ligne). Configure archvow pour charger les modèles d'entreprise.`) });
+      post({ type: 'catalog', data: this.bundledCatalog, source: tr(fr, `Built-in archvow ${this.known} catalog (offline). Install archvow, then add your company's pack (Packs), to load its templates.`,
+        `Catalogue archvow ${this.known} intégré (hors ligne). Installe archvow, puis ajoute le pack de ton entreprise (Packs), pour charger ses modèles.`) });
     }
   }
 

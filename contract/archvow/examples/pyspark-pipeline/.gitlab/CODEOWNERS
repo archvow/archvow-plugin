@@ -11,7 +11,7 @@
 /.archvow/spec.md            @my-team
 /.archvow/components/        @my-team
 /.archvow/frozen.json        @my-team
-/.archvow/templates/         @my-team
+/.archvow/packs/             @my-team
 /.archvow/proposals.vow      @my-team
 /AGENTS.md                  @my-team
 /CLAUDE.md                  @my-team
@@ -24,6 +24,7 @@
 /.claude/                   @my-team
 /.cursor/                   @my-team
 /.continue/                 @my-team
+/.agents/                   @my-team
 /.gitlab-ci.yml             @my-team
 /.gitlab/                   @my-team
 /.github/                   @my-team

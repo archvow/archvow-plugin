@@ -10,7 +10,7 @@ Marks invoices paid, from the command line
 
 ```mermaid
 flowchart TB
-  subgraph invoicing["invoicing (python-app@1.25.0)"]
+  subgraph invoicing["invoicing (archvow/python-app@1.26.0)"]
     direction TB
     subgraph invoicing__p0_common["p0_common"]
       invoicing__config["config<br/><small>foundation</small>"]
@@ -183,6 +183,7 @@ What `archvow check` verifies on every component's code, family by family (the f
 | ARCH057 | warning | An item recorded before its component changed is not reviewed yet (an error with --complete) |
 | ARCH058 | error | The project is over its limit of components or lines of code (a warning from 90 %) |
 | ARCH059 | error | Logging configured outside the logging_setup foundation (one place configures it) |
+| ARCH060 | error | A pack's copy changed outside `archvow pack add` / `pack update` |
 | ARCH021 | warning | New suppression compared to the base branch |
 | ARCH022 | error | Change too big for one merge request (files or lines over the budget) |
 | ARCH023 | error | Third-party package imported without approval |

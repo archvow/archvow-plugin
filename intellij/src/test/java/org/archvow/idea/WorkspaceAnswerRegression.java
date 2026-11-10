@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * 0.21.0: the panel loads a project with `archvow workspace --json` (archvow 1.25, contract 1.1). On the contract's
+ * 0.21.0: the panel loads a project with `archvow workspace --json` (archvow 1.25, contract 1.1; packs since 1.26, contract 1.2). On the contract's
  * real answers (../contract/cli/<example>/workspace.json), WorkspaceAnswer gives exactly what show, show <id>, next,
  * check, brief show and catalog print on their own; `unchanged` and a failure are told apart from an answer. VS Code
  * checks the same (model.test.ts).
@@ -57,9 +57,11 @@ public final class WorkspaceAnswerRegression {
             check(shown.equals(new TreeSet<>(answer.snapshots.keySet())), example + ": components " + answer.snapshots.keySet());
             check(answer.briefs != null && answer.briefs.has("files"), example + ": briefs");
             check(ArchvowInitCatalog.hasTemplates(answer.catalog), example + ": catalog");
+            check(answer.packs != null && answer.packs.equals(JsonParser.parseString(text(folder.resolve("workspace.json")))
+                .getAsJsonObject().get("packs")), example + ": packs");
             read++;
         }
-        WorkspaceAnswer same = WorkspaceAnswer.read("{\"contract\": \"1.1\", \"unchanged\": true, \"digest\": \"4f2a\"}");
+        WorkspaceAnswer same = WorkspaceAnswer.read("{\"contract\": \"1.2\", \"unchanged\": true, \"digest\": \"4f2a\"}");
         check(same != null && same.unchanged && "4f2a".equals(same.digest), "unchanged");
         String failure = JsonParser.parseString(text(CLI.resolve("errors").resolve("no-spec.json"))).getAsJsonObject().get("stdout").getAsString();
         check(WorkspaceAnswer.read(failure) == null, "the error envelope read as an answer");

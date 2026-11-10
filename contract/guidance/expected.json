@@ -13,7 +13,7 @@
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 10
+    "line": 11
    }
   }
  },
@@ -31,7 +31,7 @@
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 10
+    "line": 11
    }
   }
  },
@@ -49,7 +49,7 @@
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 16
+    "line": 17
    }
   }
  },
@@ -67,7 +67,7 @@
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 16
+    "line": 17
    }
   }
  },
@@ -85,7 +85,7 @@
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 17
+    "line": 18
    }
   }
  },
@@ -103,7 +103,7 @@
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 17
+    "line": 18
    }
   }
  },
@@ -139,6 +139,78 @@
    "command": null,
    "file": {
     "path": "notes.ipynb",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ACME006",
+  "message": "HTTP only in the readers: import requests",
+  "guide": {
+   "code": "ACME006",
+   "meaning": "archvow found this while checking the project (see the message above).",
+   "todo": "Open the file and fix what the message says.",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 10
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ACME006",
+  "message": "HTTP only in the readers: import requests",
+  "guide": {
+   "code": "ACME006",
+   "meaning": "archvow a trouvé ceci en vérifiant le projet (voir le message ci-dessus).",
+   "todo": "Ouvrez le fichier et corrigez ce que dit le message.",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 10
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ACME007",
+  "message": "Every transformation says what it exports: no ^__all__",
+  "guide": {
+   "code": "ACME007",
+   "meaning": "archvow found this while checking the project (see the message above).",
+   "todo": "Open the file and fix what the message says.",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/__init__.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ACME007",
+  "message": "Every transformation says what it exports: no ^__all__",
+  "guide": {
+   "code": "ACME007",
+   "meaning": "archvow a trouvé ceci en vérifiant le projet (voir le message ci-dessus).",
+   "todo": "Ouvrez le fichier et corrigez ce que dit le message.",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/__init__.py",
     "line": 0
    }
   }
@@ -1380,6 +1452,42 @@
  {
   "fr": false,
   "code": "ARCH007",
+  "message": "layer 'p1_domain' may not import 'requests'",
+  "guide": {
+   "code": "ARCH007",
+   "meaning": "an import forbidden in this layer (`os`, `pathlib`, `requests`... in `p1_domain`)",
+   "todo": "move the I/O to a reader or writer",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 10
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH007",
+  "message": "layer 'p1_domain' may not import 'requests'",
+  "guide": {
+   "code": "ARCH007",
+   "meaning": "un import interdit dans cette couche (`os`, `pathlib`, `requests`... dans `p1_domain`)",
+   "todo": "déplacer les E/S dans un lecteur ou un écrivain",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 10
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH007",
   "message": "layer 'p3_services' may not import 'fastapi'",
   "guide": {
    "code": "ARCH007",
@@ -3070,7 +3178,7 @@
   "guide": {
    "code": "ARCH009",
    "meaning": "an invalid entry in a vow (`spec.vow`), or an unknown template",
-   "todo": "the message names the entry; for a company template, set `ARCHVOW_TEMPLATES`",
+   "todo": "the message names the entry; a company template comes in a pack: `archvow pack add <folder>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -3088,7 +3196,7 @@
   "guide": {
    "code": "ARCH009",
    "meaning": "une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu",
-   "todo": "le message nomme l'entrée ; pour un template d'entreprise, définir `ARCHVOW_TEMPLATES`",
+   "todo": "le message nomme l'entrée ; un template d'entreprise vient dans un pack : `archvow pack add <dossier>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -3106,7 +3214,7 @@
   "guide": {
    "code": "ARCH009",
    "meaning": "an invalid entry in a vow (`spec.vow`), or an unknown template",
-   "todo": "the message names the entry; for a company template, set `ARCHVOW_TEMPLATES`",
+   "todo": "the message names the entry; a company template comes in a pack: `archvow pack add <folder>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -3124,7 +3232,7 @@
   "guide": {
    "code": "ARCH009",
    "meaning": "une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu",
-   "todo": "le message nomme l'entrée ; pour un template d'entreprise, définir `ARCHVOW_TEMPLATES`",
+   "todo": "le message nomme l'entrée ; un template d'entreprise vient dans un pack : `archvow pack add <dossier>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -3138,22 +3246,20 @@
  {
   "fr": false,
   "code": "ARCH009",
-  "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
+  "message": "container 'acoss_pipeline': unknown template 'acme/acme-pyspark' (available: archvow/fastapi-service, archvow/langgraph-agent, archvow/pyspark-pipeline, archvow/python-app, archvow/python-base). A company template comes in a pack that lives in the project: archvow pack add <the folder of pack acme>, then commit .archvow/packs/",
   "guide": {
    "code": "ARCH009",
    "meaning": "an invalid entry in a vow (`spec.vow`), or an unknown template",
-   "todo": "the message names the entry; for a company template, set `ARCHVOW_TEMPLATES`",
-   "who": "An architect: it changes the guards of the whole project.",
+   "todo": "the message names the entry; a company template comes in a pack: `archvow pack add <folder>`",
+   "who": "You (or the AI, with your review).",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
    "command": {
-    "name": "init",
+    "name": "pack add",
     "values": {
-     "package": "acoss_pipeline",
-     "force": "true",
-     "template": "<template"
+     "source": "<the"
     },
-    "text": "archvow init acoss_pipeline --force -t <template folder> does it",
+    "text": "archvow pack add <the folder of pack acme>",
     "missing": [],
     "readOnly": false
    },
@@ -3166,22 +3272,20 @@
  {
   "fr": true,
   "code": "ARCH009",
-  "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
+  "message": "container 'acoss_pipeline': unknown template 'acme/acme-pyspark' (available: archvow/fastapi-service, archvow/langgraph-agent, archvow/pyspark-pipeline, archvow/python-app, archvow/python-base). A company template comes in a pack that lives in the project: archvow pack add <the folder of pack acme>, then commit .archvow/packs/",
   "guide": {
    "code": "ARCH009",
    "meaning": "une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu",
-   "todo": "le message nomme l'entrée ; pour un template d'entreprise, définir `ARCHVOW_TEMPLATES`",
-   "who": "Un architecte : cela change les garde-fous de tout le projet.",
+   "todo": "le message nomme l'entrée ; un template d'entreprise vient dans un pack : `archvow pack add <dossier>`",
+   "who": "Vous (ou l'IA, sous votre relecture).",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
    "command": {
-    "name": "init",
+    "name": "pack add",
     "values": {
-     "package": "acoss_pipeline",
-     "force": "true",
-     "template": "<template"
+     "source": "<the"
     },
-    "text": "archvow init acoss_pipeline --force -t <template folder> does it",
+    "text": "archvow pack add <the folder of pack acme>",
     "missing": [],
     "readOnly": false
    },
@@ -3194,17 +3298,17 @@
  {
   "fr": false,
   "code": "ARCH009",
-  "message": "custom rule ACME006: give exactly one of forbid_import, forbid_call, forbid_pattern, forbid_file, require_question",
+  "message": "pack acme: <tmp>: ACME008: give its target (what the kind looks for)",
   "guide": {
    "code": "ARCH009",
    "meaning": "an invalid entry in a vow (`spec.vow`), or an unknown template",
-   "todo": "the message names the entry; for a company template, set `ARCHVOW_TEMPLATES`",
+   "todo": "the message names the entry; a company template comes in a pack: `archvow pack add <folder>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
    "command": null,
    "file": {
-    "path": ".archvow/spec.vow",
+    "path": ".archvow/packs/acme/pack.yaml",
     "line": 0
    }
   }
@@ -3212,17 +3316,17 @@
  {
   "fr": true,
   "code": "ARCH009",
-  "message": "custom rule ACME006: give exactly one of forbid_import, forbid_call, forbid_pattern, forbid_file, require_question",
+  "message": "pack acme: <tmp>: ACME008: give its target (what the kind looks for)",
   "guide": {
    "code": "ARCH009",
    "meaning": "une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu",
-   "todo": "le message nomme l'entrée ; pour un template d'entreprise, définir `ARCHVOW_TEMPLATES`",
+   "todo": "le message nomme l'entrée ; un template d'entreprise vient dans un pack : `archvow pack add <dossier>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
    "command": null,
    "file": {
-    "path": ".archvow/spec.vow",
+    "path": ".archvow/packs/acme/pack.yaml",
     "line": 0
    }
   }
@@ -3266,11 +3370,11 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.25.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.26.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "The project was set up with pyspark-pipeline 0.9.0; the archvow installed here brings 1.25.0. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of 0.9.0.",
-   "todo": "Upgrade the project to 1.25.0: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
+   "meaning": "The project was set up with the template an older version; the archvow installed here brings a newer one. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of an older version.",
+   "todo": "Upgrade the project to a newer one: run the prepared command (archvow init sales --force). It rewrites archvow's files with the new template and keeps your spec and your answers. Then review git diff - keep your own lines if you had edited a generated file such as the README - and commit.",
    "who": "An architect: it changes the guards of the whole project.",
    "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
    "then": "Then commit: the warning disappears.",
@@ -3290,11 +3394,11 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.25.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.26.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
-   "meaning": "Le projet a été créé avec pyspark-pipeline 0.9.0 ; l'archvow installé ici apporte 1.25.0. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de 0.9.0.",
-   "todo": "Mettez le projet en 1.25.0 : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
+   "meaning": "Le projet a été créé avec the template an older version ; l'archvow installé ici apporte a newer one. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de an older version.",
+   "todo": "Mettez le projet en a newer one : lancez la commande préparée (archvow init sales --force). Elle réécrit les fichiers d'archvow avec le nouveau template et garde votre spec et vos réponses. Relisez ensuite git diff - gardez vos propres lignes si vous aviez modifié un fichier généré comme le README - et commitez.",
    "who": "Un architecte : cela change les garde-fous de tout le projet.",
    "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
    "then": "Ensuite commitez : l'avertissement disparaît.",
@@ -6633,7 +6737,7 @@
    },
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 10
+    "line": 11
    }
   }
  },
@@ -6661,6 +6765,118 @@
    },
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 11
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH023",
+  "message": "'pyarrow' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=pyarrow",
+  "guide": {
+   "code": "ARCH023",
+   "meaning": "an import of a third-party package not approved",
+   "todo": "use the standard library or an approved package; an architect approves it with `archvow init <package> --force -a dependencies=a,b`. Imported outside the folder it is approved for (`dependencies_by_path`, optional): call it from that folder (Shared libraries)",
+   "who": "An architect: it changes the guards of the whole project.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "init",
+    "values": {
+     "package": "sales",
+     "force": "true",
+     "answer": "dependencies=pyarrow"
+    },
+    "text": "archvow init sales --force -a dependencies=pyarrow",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/labels.py",
+    "line": 18
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH023",
+  "message": "'pyarrow' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=pyarrow",
+  "guide": {
+   "code": "ARCH023",
+   "meaning": "l'import d'un paquet tiers non approuvé",
+   "todo": "utiliser la bibliothèque standard ou un paquet approuvé ; un architecte l'approuve avec `archvow init <package> --force -a dependencies=a,b`. Importé hors du dossier pour lequel il est approuvé (`dependencies_by_path`, facultatif) : l'appeler depuis ce dossier (Bibliothèques partagées)",
+   "who": "Un architecte : cela change les garde-fous de tout le projet.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "init",
+    "values": {
+     "package": "sales",
+     "force": "true",
+     "answer": "dependencies=pyarrow"
+    },
+    "text": "archvow init sales --force -a dependencies=pyarrow",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/labels.py",
+    "line": 18
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH023",
+  "message": "'requests' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=requests",
+  "guide": {
+   "code": "ARCH023",
+   "meaning": "an import of a third-party package not approved",
+   "todo": "use the standard library or an approved package; an architect approves it with `archvow init <package> --force -a dependencies=a,b`. Imported outside the folder it is approved for (`dependencies_by_path`, optional): call it from that folder (Shared libraries)",
+   "who": "An architect: it changes the guards of the whole project.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "init",
+    "values": {
+     "package": "sales",
+     "force": "true",
+     "answer": "dependencies=requests"
+    },
+    "text": "archvow init sales --force -a dependencies=requests",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 10
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH023",
+  "message": "'requests' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=requests",
+  "guide": {
+   "code": "ARCH023",
+   "meaning": "l'import d'un paquet tiers non approuvé",
+   "todo": "utiliser la bibliothèque standard ou un paquet approuvé ; un architecte l'approuve avec `archvow init <package> --force -a dependencies=a,b`. Importé hors du dossier pour lequel il est approuvé (`dependencies_by_path`, facultatif) : l'appeler depuis ce dossier (Bibliothèques partagées)",
+   "who": "Un architecte : cela change les garde-fous de tout le projet.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "init",
+    "values": {
+     "package": "sales",
+     "force": "true",
+     "answer": "dependencies=requests"
+    },
+    "text": "archvow init sales --force -a dependencies=requests",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
     "line": 10
    }
   }
@@ -6668,62 +6884,6 @@
  {
   "fr": false,
   "code": "ARCH023",
-  "message": "'pyarrow' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=pyarrow",
-  "guide": {
-   "code": "ARCH023",
-   "meaning": "an import of a third-party package not approved",
-   "todo": "use the standard library or an approved package; an architect approves it with `archvow init <package> --force -a dependencies=a,b`. Imported outside the folder it is approved for (`dependencies_by_path`, optional): call it from that folder (Shared libraries)",
-   "who": "An architect: it changes the guards of the whole project.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": {
-    "name": "init",
-    "values": {
-     "package": "sales",
-     "force": "true",
-     "answer": "dependencies=pyarrow"
-    },
-    "text": "archvow init sales --force -a dependencies=pyarrow",
-    "missing": [],
-    "readOnly": false
-   },
-   "file": {
-    "path": "src/sales/p1_domain/labels.py",
-    "line": 18
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "ARCH023",
-  "message": "'pyarrow' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=pyarrow",
-  "guide": {
-   "code": "ARCH023",
-   "meaning": "l'import d'un paquet tiers non approuvé",
-   "todo": "utiliser la bibliothèque standard ou un paquet approuvé ; un architecte l'approuve avec `archvow init <package> --force -a dependencies=a,b`. Importé hors du dossier pour lequel il est approuvé (`dependencies_by_path`, facultatif) : l'appeler depuis ce dossier (Bibliothèques partagées)",
-   "who": "Un architecte : cela change les garde-fous de tout le projet.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": {
-    "name": "init",
-    "values": {
-     "package": "sales",
-     "force": "true",
-     "answer": "dependencies=pyarrow"
-    },
-    "text": "archvow init sales --force -a dependencies=pyarrow",
-    "missing": [],
-    "readOnly": false
-   },
-   "file": {
-    "path": "src/sales/p1_domain/labels.py",
-    "line": 18
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "ARCH023",
   "message": "'yaml' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=yaml",
   "guide": {
    "code": "ARCH023",
@@ -20296,7 +20456,7 @@
  {
   "fr": false,
   "code": "ARCH040",
-  "message": "GEMINI.md configures a tool archvow does not approve; approved AI assistants: junie",
+  "message": "GEMINI.md configures 'gemini-cli'; approved AI assistants: junie",
   "guide": {
    "code": "ARCH040",
    "meaning": "the files of an AI assistant not approved (`.cursor/`, `GEMINI.md`, `.continue/`...)",
@@ -20314,7 +20474,7 @@
  {
   "fr": true,
   "code": "ARCH040",
-  "message": "GEMINI.md configures a tool archvow does not approve; approved AI assistants: junie",
+  "message": "GEMINI.md configures 'gemini-cli'; approved AI assistants: junie",
   "guide": {
    "code": "ARCH040",
    "meaning": "les fichiers d'un assistant IA non approuvé (`.cursor/`, `GEMINI.md`, `.continue/`...)",
@@ -20332,7 +20492,7 @@
  {
   "fr": false,
   "code": "ARCH040",
-  "message": "GEMINI.md configures a tool archvow does not approve; approved AI assistants: junie, cursor",
+  "message": "GEMINI.md configures 'gemini-cli'; approved AI assistants: junie, cursor",
   "guide": {
    "code": "ARCH040",
    "meaning": "the files of an AI assistant not approved (`.cursor/`, `GEMINI.md`, `.continue/`...)",
@@ -20350,7 +20510,7 @@
  {
   "fr": true,
   "code": "ARCH040",
-  "message": "GEMINI.md configures a tool archvow does not approve; approved AI assistants: junie, cursor",
+  "message": "GEMINI.md configures 'gemini-cli'; approved AI assistants: junie, cursor",
   "guide": {
    "code": "ARCH040",
    "meaning": "les fichiers d'un assistant IA non approuvé (`.cursor/`, `GEMINI.md`, `.continue/`...)",
@@ -22310,7 +22470,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit b13d9453: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 34ae7344: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
@@ -22328,7 +22488,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit b13d9453: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 34ae7344: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
@@ -22346,7 +22506,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit f3bba286: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 68ffe21a: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
@@ -22364,7 +22524,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit f3bba286: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 68ffe21a: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
@@ -23096,6 +23256,110 @@
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
     "line": 19
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH060",
+  "message": "pack acme: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
+  "guide": {
+   "code": "ARCH060",
+   "meaning": "a pack's copy in `.archvow/packs/<name>/` differs from what `archvow pack add` or `pack update` recorded in spec.vow (its digest), a recorded pack has no copy, or a copy is not recorded",
+   "todo": "an architect runs `archvow pack update <name>` to take a new version of the pack, or `archvow pack add <folder>` again; nobody edits the copy - a company change goes into the pack itself, then into its new version",
+   "who": "You (or the AI, with your review).",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "pack add",
+    "values": {},
+    "text": "archvow pack add",
+    "missing": [
+     "source"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": ".archvow/packs/acme",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH060",
+  "message": "pack acme: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
+  "guide": {
+   "code": "ARCH060",
+   "meaning": "la copie d'un pack dans `.archvow/packs/<nom>/` diffère de ce que `archvow pack add` ou `pack update` a enregistré dans spec.vow (son condensé), un pack enregistré n'a pas de copie, ou une copie n'est pas enregistrée",
+   "todo": "un architecte lance `archvow pack update <nom>` pour prendre une nouvelle version du pack, ou de nouveau `archvow pack add <dossier>` ; personne ne modifie la copie - un changement de l'entreprise va dans le pack lui-même, puis dans sa nouvelle version",
+   "who": "Vous (ou l'IA, sous votre relecture).",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "pack add",
+    "values": {},
+    "text": "archvow pack add",
+    "missing": [
+     "source"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": ".archvow/packs/acme",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH060",
+  "message": "pack team: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update team` (or `pack add`), never edits the copy",
+  "guide": {
+   "code": "ARCH060",
+   "meaning": "a pack's copy in `.archvow/packs/<name>/` differs from what `archvow pack add` or `pack update` recorded in spec.vow (its digest), a recorded pack has no copy, or a copy is not recorded",
+   "todo": "an architect runs `archvow pack update <name>` to take a new version of the pack, or `archvow pack add <folder>` again; nobody edits the copy - a company change goes into the pack itself, then into its new version",
+   "who": "You (or the AI, with your review).",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "pack add",
+    "values": {},
+    "text": "archvow pack add",
+    "missing": [
+     "source"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": ".archvow/packs/team",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH060",
+  "message": "pack team: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update team` (or `pack add`), never edits the copy",
+  "guide": {
+   "code": "ARCH060",
+   "meaning": "la copie d'un pack dans `.archvow/packs/<nom>/` diffère de ce que `archvow pack add` ou `pack update` a enregistré dans spec.vow (son condensé), un pack enregistré n'a pas de copie, ou une copie n'est pas enregistrée",
+   "todo": "un architecte lance `archvow pack update <nom>` pour prendre une nouvelle version du pack, ou de nouveau `archvow pack add <dossier>` ; personne ne modifie la copie - un changement de l'entreprise va dans le pack lui-même, puis dans sa nouvelle version",
+   "who": "Vous (ou l'IA, sous votre relecture).",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "pack add",
+    "values": {},
+    "text": "archvow pack add",
+    "missing": [
+     "source"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": ".archvow/packs/team",
+    "line": 0
    }
   }
  },
@@ -24367,7 +24631,7 @@
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 16
+    "line": 17
    }
   }
  },
@@ -24385,7 +24649,7 @@
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 16
+    "line": 17
    }
   }
  },

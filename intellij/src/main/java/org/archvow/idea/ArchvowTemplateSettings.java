@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * {@code template new}: the settings of the template it extends, filled in with the base's values (0.12.1).
+ * {@code pack template}: the settings of the template it extends, filled in with the base's values (0.12.1).
  * What the company may set - the defaults of the init answers, the folder of each layer - is editable,
  * within what the base allows (its choices only, its formats); what the base imposes - what it extends,
  * its version, its layers, its choices - is shown, not editable. Only what differs from the base becomes

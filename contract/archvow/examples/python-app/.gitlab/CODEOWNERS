@@ -11,7 +11,7 @@
 /.archvow/spec.md            @acme/architects
 /.archvow/components/        @acme/architects
 /.archvow/frozen.json        @acme/architects
-/.archvow/templates/         @acme/architects
+/.archvow/packs/             @acme/architects
 /.archvow/proposals.vow      @acme/architects
 /AGENTS.md                  @acme/architects
 /CLAUDE.md                  @acme/architects
@@ -24,6 +24,7 @@
 /.claude/                   @acme/architects
 /.cursor/                   @acme/architects
 /.continue/                 @acme/architects
+/.agents/                   @acme/architects
 /.gitlab-ci.yml             @acme/architects
 /.gitlab/                   @acme/architects
 /.github/                   @acme/architects

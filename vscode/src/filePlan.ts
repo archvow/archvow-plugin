@@ -20,6 +20,16 @@ export interface PlanContext {
 
 const MAX_COVERED = 4;
 
+/**
+ * Where a pack command writes (0.22.0): `{dir}` the folder `pack new --dir` names (empty: inside this project,
+ * .archvow/packs); `{pack}` a pack's folder, or the name of one of the project's packs (.archvow/packs/<name>).
+ */
+function packFolder(value: string | undefined, parent: boolean): string {
+  const text = (value ?? '').trim().replace(/\/+$/, '');
+  if (parent) return text || '.archvow/packs';
+  return /[/\\]/.test(text) || text.startsWith('.') ? text : `.archvow/packs/${text}`;
+}
+
 /** {name} orders_clean, {NAME} ORDERS_CLEAN, {Name} OrdersClean: archvow's manifest.name_values. */
 export function nameValues(name: string): Record<string, string> {
   return { name, NAME: name.toUpperCase(), Name: name.split('_').map((p) => (p ? p[0].toUpperCase() + p.slice(1) : '')).join('') };
@@ -159,15 +169,13 @@ export function filePlan(name: string, values: Record<string, string>, ctx: Plan
       const output = (values.output ?? '').trim();
       paths = output ? [output] : [];
       if (ctx.outputExists) change = 'updated';
-    } else if (pattern === '{dir}') {
-      const template = (values.name ?? '').trim();
-      const dir = (values.dir ?? '').trim().replace(/\/+$/, '');
-      paths = template ? [`${dir || '.archvow/templates'}/${template}/`] : [];
     } else {
       const id = pattern.includes('{new}') ? (made ? str(made.comp, 'id') : '') : component;
       if ((pattern.includes('{new}') || pattern.includes('{component}')) && !id) continue;
       if (pattern.includes('{name}') && !(values.name ?? '').trim()) continue;
-      paths = [pattern.replace('{new}', id).replace('{component}', id).replace('{name}', (values.name ?? '').trim())];
+      if (pattern.includes('{pack}') && !(values.pack ?? '').trim()) continue;
+      paths = [pattern.replace('{new}', id).replace('{component}', id).replace('{name}', (values.name ?? '').trim())
+        .replace('{dir}', packFolder(values.dir, true)).replace('{pack}', packFolder(values.pack, false))];
     }
     for (const p of paths) {
       const initForce = name === 'init' && values.force === 'true';

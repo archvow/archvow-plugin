@@ -32,7 +32,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "architecture template: a name (default: python-app; list: archvow catalog) or the folder of a company template; a company template is copied into .archvow/templates/",
+          "help": "architecture template: <pack>/<template>, or its short name when one pack only has it (default: archvow/python-app; list: archvow catalog); a company template comes in a pack: archvow pack add <folder> first",
           "hidden": false,
           "metavar": "TEMPLATE"
         },
@@ -2641,11 +2641,11 @@
     },
     {
       "path": [
-        "template",
+        "pack",
         "new"
       ],
-      "description": "Create a template that extends another one.",
-      "json": false,
+      "description": "Create a pack: pack.yaml, README.md, commented examples.",
+      "json": true,
       "parameters": [
         {
           "name": "name",
@@ -2656,7 +2656,104 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "name of the new template",
+          "help": "the pack's name: lowercase letters, digits and dashes (acme)",
+          "hidden": false,
+          "metavar": "name"
+        },
+        {
+          "name": "description",
+          "flags": [
+            "-d",
+            "--description"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the pack brings, in one line",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "dir",
+          "flags": [
+            "--dir"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "create it in this folder (a company pack; no project needed); default: inside this project",
+          "hidden": false,
+          "metavar": "FOLDER"
+        },
+        {
+          "name": "version",
+          "flags": [
+            "--version"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its version (default: 1.0.0)",
+          "hidden": false,
+          "metavar": "version"
+        },
+        {
+          "name": "languages",
+          "flags": [
+            "--languages"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its languages, English always (default: en,fr)",
+          "hidden": false,
+          "metavar": "languages"
+        }
+      ]
+    },
+    {
+      "path": [
+        "pack",
+        "template"
+      ],
+      "description": "Add a template to a pack, extending another one.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "pack",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the pack's folder, or the name of a pack of this project",
+          "hidden": false,
+          "metavar": "pack"
+        },
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the template's name (acme-pyspark)",
           "hidden": false,
           "metavar": "name"
         },
@@ -2671,24 +2768,9 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "template it builds on",
+          "help": "the template it builds on: <pack>/<template>, or a short name (one of this pack too)",
           "hidden": false,
           "metavar": "TEMPLATE"
-        },
-        {
-          "name": "dir",
-          "flags": [
-            "--dir"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "catalog folder to create it in (a company template; no project needed). Default: the current project's .archvow/templates/",
-          "hidden": false,
-          "metavar": "FOLDER"
         },
         {
           "name": "description",
@@ -2718,7 +2800,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "a company default for an init answer, repeatable (-a ci=jenkins -a sonar=yes); a project can still override it",
+          "help": "a company default for an init answer, repeatable (-a ci=jenkins); a project can override it",
           "hidden": false,
           "metavar": "KEY=VALUE"
         },
@@ -2733,7 +2815,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "top folders of Python files that are not components, comma-separated (devops,tools): no ARCH015 there; added to the base's",
+          "help": "top folders of Python files that are not components (devops,tools): no ARCH015 there",
           "hidden": false,
           "metavar": "FOLDERS"
         },
@@ -2748,7 +2830,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "folders of files/ copied exactly as they are, .j2 included, comma-separated (templates,deploy/ansible)",
+          "help": "folders of files/ copied exactly as they are, .j2 included (templates,deploy/ansible)",
           "hidden": false,
           "metavar": "FOLDERS"
         },
@@ -2763,7 +2845,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "rename a layer's folder, repeatable (--layer p1_domain=domain): src/<package>/domain/, tests/domain/; the others keep the base's",
+          "help": "rename a layer's folder, repeatable (--layer p1_domain=domain)",
           "hidden": false,
           "metavar": "LAYER=FOLDER"
         },
@@ -2778,9 +2860,589 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "never ask: without options, the settings stay commented examples",
+          "help": "never ask: without options, settings stay examples",
           "hidden": false,
           "metavar": "no_input"
+        }
+      ]
+    },
+    {
+      "path": [
+        "pack",
+        "agent"
+      ],
+      "description": "Add an agent profile to a pack (only what differs from the standard).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "pack",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the pack's folder, or the name of a pack of this project",
+          "hidden": false,
+          "metavar": "pack"
+        },
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the agent's name, as a project approves it (acme-assistant)",
+          "hidden": false,
+          "metavar": "name"
+        },
+        {
+          "name": "extends",
+          "flags": [
+            "--extends"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "start from a known agent's profile and files",
+          "hidden": false,
+          "metavar": "AGENT"
+        },
+        {
+          "name": "title",
+          "flags": [
+            "--title"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how AGENTS.md names it (ACME Assistant)",
+          "hidden": false,
+          "metavar": "title"
+        },
+        {
+          "name": "detect_env",
+          "flags": [
+            "--detect-env"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "variables it sets where it runs commands (NAME or NAME=start), comma-separated",
+          "hidden": false,
+          "metavar": "VARIABLES"
+        },
+        {
+          "name": "detect_process",
+          "flags": [
+            "--detect-process"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the programs it runs, comma-separated",
+          "hidden": false,
+          "metavar": "PROGRAMS"
+        },
+        {
+          "name": "instructions",
+          "flags": [
+            "--instructions"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its own instructions file: KIND import (a pointer to AGENTS.md) or rules (AGENTS.md's rules copied there)",
+          "hidden": false,
+          "metavar": "FILE:KIND"
+        },
+        {
+          "name": "skills",
+          "flags": [
+            "--skills"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "where it reads skills, when not .agents/skills (a copy)",
+          "hidden": false,
+          "metavar": "FOLDER"
+        },
+        {
+          "name": "unsafe_flag",
+          "flags": [
+            "--unsafe-flag"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": true,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "an option that lets it act without asking, repeatable (archvow refuses to run under it)",
+          "hidden": false,
+          "metavar": "FLAG"
+        },
+        {
+          "name": "fix",
+          "flags": [
+            "--fix"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how to start it again, protected",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "review_command",
+          "flags": [
+            "--review-command"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how `archvow review` runs it without a person (the task is in $ARCHVOW_REVIEW_PROMPT)",
+          "hidden": false,
+          "metavar": "COMMAND"
+        },
+        {
+          "name": "review_secret",
+          "flags": [
+            "--review-secret"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the CI secret its review command needs",
+          "hidden": false,
+          "metavar": "NAME"
+        },
+        {
+          "name": "owns",
+          "flags": [
+            "--owns"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its files, comma-separated: flagged while it is not approved",
+          "hidden": false,
+          "metavar": "FILES"
+        },
+        {
+          "name": "permissions",
+          "flags": [
+            "--permissions"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "where a person lists its auto-approved commands, when that is outside the project",
+          "hidden": false,
+          "metavar": "TEXT"
+        }
+      ]
+    },
+    {
+      "path": [
+        "pack",
+        "rule"
+      ],
+      "description": "Add a declarative rule to a pack (refused unless it catches its bad example and passes its good one).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "pack",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the pack's folder, or the name of a pack of this project",
+          "hidden": false,
+          "metavar": "pack"
+        },
+        {
+          "name": "code",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its code: the company's letters and 3 digits (ACME001)",
+          "hidden": false,
+          "metavar": "code"
+        },
+        {
+          "name": "kind",
+          "flags": [
+            "--kind"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "forbid_import",
+            "forbid_call",
+            "forbid_pattern",
+            "forbid_file",
+            "only_in",
+            "require_keyword",
+            "require_question"
+          ],
+          "help": "what it checks",
+          "hidden": false,
+          "metavar": "kind"
+        },
+        {
+          "name": "target",
+          "flags": [
+            "--target"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the kind looks for (modules, calls or files: comma-separated; a pattern, a keyword or a question: as it is)",
+          "hidden": false,
+          "metavar": "target"
+        },
+        {
+          "name": "in_types",
+          "flags": [
+            "--in-types"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "only in these component types, comma-separated",
+          "hidden": false,
+          "metavar": "TYPES"
+        },
+        {
+          "name": "in_layers",
+          "flags": [
+            "--in-layers"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "only in these layers, comma-separated",
+          "hidden": false,
+          "metavar": "LAYERS"
+        },
+        {
+          "name": "severity",
+          "flags": [
+            "--severity"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "error",
+            "warning"
+          ],
+          "help": "error (default) or warning",
+          "hidden": false,
+          "metavar": "severity"
+        },
+        {
+          "name": "message",
+          "flags": [
+            "--message"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the finding says",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "message_fr",
+          "flags": [
+            "--message-fr"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the same, in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "fix",
+          "flags": [
+            "--fix"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how to fix it",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "fix_fr",
+          "flags": [
+            "--fix-fr"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the same, in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "why",
+          "flags": [
+            "--why"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "why the rule exists",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "why_fr",
+          "flags": [
+            "--why-fr"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the same, in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "bad",
+          "flags": [
+            "--bad"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "an example it must catch (a file path for forbid_file)",
+          "hidden": false,
+          "metavar": "CODE"
+        },
+        {
+          "name": "good",
+          "flags": [
+            "--good"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "an example it must pass",
+          "hidden": false,
+          "metavar": "CODE"
+        }
+      ]
+    },
+    {
+      "path": [
+        "pack",
+        "add"
+      ],
+      "description": "Copy a pack into the project and record it (version, source, digest).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "source",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the pack's folder, or an installed package that carries one",
+          "hidden": false,
+          "metavar": "source"
+        },
+        {
+          "name": "project",
+          "flags": [
+            "--project"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the project's folder before init (default: here)",
+          "hidden": false,
+          "metavar": "FOLDER"
+        }
+      ]
+    },
+    {
+      "path": [
+        "pack",
+        "update"
+      ],
+      "description": "A new version of a pack, from the source it was added from.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the pack's name",
+          "hidden": false,
+          "metavar": "name"
+        },
+        {
+          "name": "source",
+          "flags": [
+            "--from"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "another folder or package to take it from",
+          "hidden": false,
+          "metavar": "SOURCE"
+        }
+      ]
+    },
+    {
+      "path": [
+        "pack",
+        "remove"
+      ],
+      "description": "Take a pack out of the project.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the pack's name",
+          "hidden": false,
+          "metavar": "name"
+        }
+      ]
+    },
+    {
+      "path": [
+        "pack",
+        "check"
+      ],
+      "description": "Test a whole pack before sharing it (every part, every language).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "pack",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the pack's folder, or the name of a pack of this project",
+          "hidden": false,
+          "metavar": "pack"
         }
       ]
     }

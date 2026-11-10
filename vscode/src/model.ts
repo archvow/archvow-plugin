@@ -259,8 +259,10 @@ export interface WorkspaceAnswer {
   check: Record<string, unknown>;
   /** The briefs, as `brief show --json`. */
   briefStatus: Record<string, unknown> | null;
-  /** The templates, as `catalog --json` in the project. */
+  /** The templates, packs and agents, as `catalog --json` in the project. */
   catalog: Record<string, unknown> | null;
+  /** The project's packs (archvow 1.26, contract 1.2): each with its source and state, `ok` or `changed` (ARCH060). */
+  packs: Record<string, unknown>[];
 }
 
 /**
@@ -283,7 +285,8 @@ export function readWorkspace(answer: Record<string, unknown> | null): Workspace
     if (shown !== null) snapshots[id] = shown;
   }
   return { digest: answer.digest, spec, snapshots, next: answer.next as Record<string, unknown>[], check,
-    briefStatus: record(answer.briefs), catalog: record(answer.catalog) };
+    briefStatus: record(answer.briefs), catalog: record(answer.catalog),
+    packs: Array.isArray(answer.packs) ? (answer.packs as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [] };
 }
 
 /** "1.23.0" from the contract's version.txt ("archvow 1.23.0"): the archvow the plugin is tested with and installs. */

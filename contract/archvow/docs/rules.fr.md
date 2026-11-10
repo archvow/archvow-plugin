@@ -30,7 +30,7 @@ neuf noms est un seul import).
 | ARCH006 | un composant en importe un autre absent de ses `uses` | `archvow component edit <composant> -u a,b` (revue d'un architecte) |
 | ARCH007 | un import interdit dans cette couche (`os`, `pathlib`, `requests`... dans `p1_domain`) | déplacer les E/S dans un lecteur ou un écrivain |
 | ARCH008 | un fichier déclaré n'existe pas (avec `--complete`) | écrire le composant, ou le supprimer avec `archvow component remove` |
-| ARCH009 | une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu | le message nomme l'entrée ; pour un template d'entreprise, définir `ARCHVOW_TEMPLATES` |
+| ARCH009 | une entrée invalide dans un engagement (`spec.vow`), ou un template inconnu | le message nomme l'entrée ; un template d'entreprise vient dans un pack : `archvow pack add <dossier>` |
 | ARCH010 | un fichier du paquet hors de toute couche (un module y est un `ARCH001`, qui dit comment le rattacher) | le déplacer dans le dossier d'une couche, ou le rattacher dans `layer_paths` |
 | ARCH011 | une exemption (`ignore`) sans raison | `# archvow: ignore[CODE] -- pourquoi` |
 | ARCH012 | (warning) la version du template installé diffère de celle du projet | `archvow init <package> --force`, relire, commiter ([montée de version](project-management.md#nouvelle-version-darchvow-dans-un-projet)) |
@@ -69,6 +69,7 @@ neuf noms est un seul import).
 | ARCH057 | (avertissement ; une erreur avec `check --complete`) la description, la signature ou les routes d'un composant ont changé (`archvow component edit`) après que des décisions, hazards, invariants, réponses « sans objet », hypothèses acceptées ou exemples métier ont été enregistrés pour lui : chacun peut ne plus tenir (« montant > 0 » quand la description dit maintenant « > 1 »). archvow ne supprime rien ; `archvow show` les liste, la fiche de spec arrête l'IA, `archvow next` dit que le composant est bloqué | une personne regarde chacun : celui qui ne tient plus est enregistré à nouveau (`archvow decision make <composant> <n> "..."`, `archvow hazard edit`...), ce qui le retire de la liste ; quand tous tiennent encore, `archvow component accept <composant>` |
 | ARCH058 | (une erreur ; un avertissement dès 90 %) le projet dépasse sa limite : plus de composants que `max_components`, ou plus de lignes de code sous le dossier du package que `max_code_lines` (réponses d'init, désactivées par défaut ; lignes qui ne sont ni vides, ni des commentaires, ni des docstrings ; tests non comptés). `archvow component add` refuse le composant de trop | découper le projet, ou un architecte relève la limite : `archvow init <package> --force -a max_components=<n>` (une limite relevée est un affaiblissement, ARCH020) |
 | ARCH059 | `logging.basicConfig`, `logging.config.dictConfig` / `fileConfig`, un handler ajouté ou retiré (`addHandler`), ou le niveau du journal racine fixé, ailleurs que dans la fondation `logging_setup` du projet (seulement quand le projet en a une) | configurer la journalisation dans `setup_logging` seulement ; chaque autre module prend son journal avec `logging.getLogger(__name__)` et journalise |
+| ARCH060 | la copie d'un pack dans `.archvow/packs/<nom>/` diffère de ce que `archvow pack add` ou `pack update` a enregistré dans spec.vow (son condensé), un pack enregistré n'a pas de copie, ou une copie n'est pas enregistrée | un architecte lance `archvow pack update <nom>` pour prendre une nouvelle version du pack, ou de nouveau `archvow pack add <dossier>` ; personne ne modifie la copie - un changement de l'entreprise va dans le pack lui-même, puis dans sa nouvelle version |
 | ARCH050 | un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire ; ou le dossier d'un composant qui a perdu son `spec.vow` (toujours actif) | le sortir de `.archvow/` ; un `spec.vow` perdu : le restaurer (`git checkout -- .archvow/components/<id>/spec.vow`) |
 | ARCH051 | un agent IA lance archvow hors d'un sandbox : il peut écrire hors du projet (archvow essaie un fichier vide dans le dossier personnel). Seulement quand la réponse `sandbox` du projet est yes (le défaut en mode strict). archvow s'arrête avant la commande, toujours actif | lancer l'agent dans son sandbox - [Sécurité de l'agent](agent-security.md) |
 | ARCH052 | un agent IA lance archvow en mode YOLO : sa ligne de commande a une option qui le laisse agir sans demander (`--dangerously-skip-permissions`, `--yolo`, `--allow-all`...). archvow s'arrête avant la commande, toujours actif | le lancer sans cette option - [Sécurité de l'agent](agent-security.md) |
@@ -175,12 +176,14 @@ Les règles lisent la classe de chaque colonne (`archvow column set`) et la suiv
 | DORA005 | un job, un point d'entrée ou une app codé n'a pas de réponse à O1, O2 (détection des pannes et alerte, reprise avec son RTO et son RPO) | `archvow decision make <composant> O1 "..."` |
 | DORA006 | (warning) la licence du registre diffère de celle des métadonnées du paquet installé | corriger le registre |
 
-## Les règles propres à une entreprise (`custom_rules`)
+## Les règles propres à une entreprise (le dossier `rules/` d'un pack)
 
-Un template d'entreprise déclare des règles comme des données, sans Python - imports, appels,
-textes ou fichiers interdits, ou une question posée à un type de composant (C1, C2...). Leurs
-codes sont ceux de l'entreprise (par exemple `ACME001`), leur section est ACME dans `.archvow/spec.md` (Contrôles).
-Voir [Templates d'entreprise](company-templates.md#vos-propres-interdits-et-questions).
+Un pack d'entreprise déclare des règles comme des données, sans Python - imports, appels, textes ou
+fichiers interdits, un import permis seulement dans certains types de composants, un texte que chaque
+fichier doit contenir, ou une question posée à un type de composant (C1, C2...). Leurs codes sont ceux de
+l'entreprise (par exemple `ACME001`), leur section est ACME dans `.archvow/spec.md` (Contrôles), et chaque
+règle porte un exemple qu'elle doit attraper et un qu'elle doit laisser passer. Voir
+[Packs](packs.fr.md#interdits-et-questions).
 
 ## Ruff
 
@@ -218,7 +221,7 @@ Le template fixe la vérification la plus faible que chaque gravité accepte (`v
 
 ## Changer un niveau ou une limite
 
-Pour tous les projets d'un template, dans ses `rules:` ([templates d'entreprise](company-templates.md)).
+Pour tous les projets d'un template, dans ses `rules:` ([packs](packs.md)).
 Pour un seul projet, dans le groupe `rules` de son `.archvow/spec.vow` (à la main, la seule
 partie d'un engagement qui l'est ; [le format .vow](vow-format.md)) - un changement de garde, approuvé
 par les architectes :

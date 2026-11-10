@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `fastapi-service@1.25.0`).
+(template `archvow/fastapi-service@1.26.0`).
 
 ## For developers
 
@@ -125,7 +125,7 @@ complete service, from the empty project to a run: archvow's documentation, *Fas
 **1. Create the project** - this one was created with:
 
 ```bash
-archvow init orders_api -t fastapi-service -d Orders \
+archvow init orders_api -t archvow/fastapi-service -d Orders \
     -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a fastapi_version=0.143 -a ai_tools=copilot -a mode=strict -a rules=ARCH,STYLE,FASTAPI,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main

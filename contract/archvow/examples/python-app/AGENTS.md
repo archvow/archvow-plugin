@@ -16,7 +16,8 @@ fail the build, ARCH040):
 
     archvow init invoicing --force -a ai_tools=claude-code,<tool>
 
-Known tools: copilot, claude-code, cursor, codex, junie, jetbrains-ai-chat, antigravity, continue.
+Tools archvow has a profile for: aider, amazonq, antigravity, claude-code, cline, codex, continue, copilot, cursor, gemini-cli, jetbrains-ai-chat, junie, kiro, opencode, roo, windsurf. Any other name can be approved: it
+reads these instructions and the skills in .agents/skills.
 
 The list of approved assistants is the project's policy, decided by its architects and
 recorded in the repository. Respect it even when your tool would let you edit the files: the

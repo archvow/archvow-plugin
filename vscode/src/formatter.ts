@@ -277,8 +277,8 @@ function catalog(out: Out, data: Json, fr: boolean): void {
   out.heading(tr(fr, 'Template catalog', 'Catalogue de modèles'), 'blue');
   out.chips([[templates.length + tr(fr, ' templates', ' modèles'), 'blue']]);
   if (templates.length === 0) {
-    out.paragraph(tr(fr, 'No templates found. Configure ARCHVOW_TEMPLATES if using company packs.',
-      "Aucun modèle trouvé. Configure ARCHVOW_TEMPLATES pour les modèles d'entreprise."), 'muted');
+    out.paragraph(tr(fr, "No templates found. A company's templates come in a pack: archvow pack add <folder>.",
+      "Aucun modèle trouvé. Les modèles d'une entreprise viennent dans un pack : archvow pack add <dossier>."), 'muted');
     return;
   }
   templates.slice(0, 25).forEach((t) => out.card(str(t, 'name'), str(t, 'description'), 'blue', [

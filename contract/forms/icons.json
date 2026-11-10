@@ -68,7 +68,8 @@
     "template": [["r", 1.6, 1.6, 7.6, 7.6, 1.2], ["p", "M4.8 12.4 L12.4 12.4 L12.4 4.8"]],
     "folder": [["p", "M1.5 3.2 L5.4 3.2 L6.8 4.8 L12.5 4.8 L12.5 11.8 L1.5 11.8 Z"]]
   },
-  "groups": {"components": "architecture", "decisions": "decisions", "questions": "questions", "safety": "safety", "rules": "rules", "assumptions": "assumptions", "briefs": "briefs", "data": "data", "project": "project", "other": "other"},
+  "groups": {"components": "architecture", "decisions": "decisions", "questions": "questions", "safety": "safety", "rules": "rules", "assumptions": "assumptions", "briefs": "briefs", "data": "data", "project": "project", "packs": "template",
+    "other": "other"},
   "verbs": {"add": "add", "new": "add", "edit": "edit", "set": "edit", "remove": "remove", "accept": "accept", "reject": "reject", "make": "make", "propose": "propose", "dismiss": "dismiss"},
-  "commands": {"init": "start", "catalog": "list", "show": "show", "specify": "edit", "prompt": "propose", "next": "next", "check": "check", "review": "compare", "version": "health", "freeze": "lock", "audit": "search", "changes": "history", "diff": "compare", "doctor": "health", "completion": "terminal", "docs": "document", "template new": "template", "brief show": "show", "workspace": "show"}
+  "commands": {"init": "start", "catalog": "list", "show": "show", "specify": "edit", "prompt": "propose", "next": "next", "check": "check", "review": "compare", "version": "health", "freeze": "lock", "audit": "search", "changes": "history", "diff": "compare", "doctor": "health", "completion": "terminal", "docs": "document", "brief show": "show", "workspace": "show", "pack": "template", "pack new": "template", "pack template": "template", "pack agent": "agent", "pack rule": "rules", "pack add": "add", "pack update": "edit", "pack remove": "remove", "pack check": "check"}
 }

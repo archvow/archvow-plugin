@@ -89,7 +89,7 @@ test('archvow in WSL, VS Code on Windows: wsl.exe with Linux paths, no shell (0.
   assert.deepEqual(commandLine(settings, ['catalog', '--json'], null, true).args.slice(0, 4), ['-d', 'Ubuntu', '--cd', '~']);
   assert.deepEqual(commandLine({ ...settings, python: '/venv/bin/python3' }, ['next'], '/work/p', false),
     { program: '/venv/bin/python3', args: ['-m', 'archvow', 'next'] }, 'Linux / macOS: unchanged');
-  assert.equal(wslenv('PATH/l'), 'PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG:ARCHVOW_TEMPLATES/l');
+  assert.equal(wslenv('PATH/l'), 'PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG');
 });
 
 test("the search order: VS Code's interpreter, archvow.python, archvow.executable; the first that answers runs", async () => {

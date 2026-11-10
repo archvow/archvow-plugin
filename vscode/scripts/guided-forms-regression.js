@@ -59,7 +59,7 @@ let total = 0;
 for (const cmd of commands) {
   const name = cmd.path.join(' ');
   const omissions = name === 'init' ? new Set(['template', 'answer'])
-    : name === 'template new' ? new Set(['answer', 'layer']) : new Set();
+    : name === 'pack template' ? new Set(['answer', 'layer']) : new Set();
   const steps = audit.commandStages(cmd, cmd.parameters);
   const listed = steps.flatMap(s => s.names);
   for (const field of cmd.parameters.filter(p => !omissions.has(p.name))) {
@@ -67,13 +67,13 @@ for (const cmd of commands) {
     total++;
   }
   if (name === 'init') assert.ok(steps.some(s => s.extra === 'init-template') && steps.some(s => s.extra === 'init-other'));
-  if (name === 'template new') assert.ok(steps.some(s => s.extra === 'template-basics'));
+  if (name === 'pack template') assert.ok(steps.some(s => s.extra === 'template-basics'));
 }
 // Every real command renders at every page: this catches a missing schema,
 // a broken conditional control or a renderer that only works for component add.
 for (const cmd of commands) {
   const name = cmd.path.join(' ');
-  const values = name === 'template new' ? { extends: 'python-app', name: 'company-app' }
+  const values = name === 'pack template' ? { pack: 'acme', extends: 'archvow/python-app', name: 'company-app' }
     : name === 'init' ? { package: 'sales-pipeline' } : {};
   audit.setCommand(name, values, '');
   const pages = audit.commandStages(cmd, cmd.parameters);

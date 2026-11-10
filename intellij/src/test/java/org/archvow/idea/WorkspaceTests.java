@@ -55,6 +55,7 @@ public final class WorkspaceTests {
         run("SkillFormRegression", () -> SkillFormRegression.main(NONE));
         run("LoadChainRegression", () -> LoadChainRegression.main(NONE));
         run("WorkspaceAnswerRegression", () -> WorkspaceAnswerRegression.main(NONE));
+        run("PacksRegression", () -> PacksRegression.main(NONE));
         run("ListFilterRegression", () -> ListFilterRegression.main(NONE));
         run("SplitViewRegression", () -> SplitViewRegression.main(NONE));
         run("StatusPaletteRegression", () -> StatusPaletteRegression.main(NONE));

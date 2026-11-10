@@ -1,32 +1,46 @@
 {
- "archvow": "archvow 1.25.0",
+ "archvow": "archvow 1.26.0",
  "messages": [
   {
    "code": "ACME001",
    "severity": "error",
    "message": "No direct use of the old billing API: import legacy_billing -> use acme_billing.client",
    "file": "src/sales/p1_domain/clean_orders.py",
-   "line": 10
+   "line": 11
   },
   {
    "code": "ACME002",
    "severity": "error",
    "message": "No toPandas() in production code: df.toPandas()",
    "file": "src/sales/p1_domain/clean_orders.py",
-   "line": 16
+   "line": 17
   },
   {
    "code": "ACME003",
    "severity": "error",
    "message": "No production bucket in the code: return df.filter(\"bucket != 's3://acme-prod'\")",
    "file": "src/sales/p1_domain/clean_orders.py",
-   "line": 17
+   "line": 18
   },
   {
    "code": "ACME004",
    "severity": "warning",
    "message": "No notebooks: notes.ipynb",
    "file": "notes.ipynb",
+   "line": 0
+  },
+  {
+   "code": "ACME006",
+   "severity": "error",
+   "message": "HTTP only in the readers: import requests",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 10
+  },
+  {
+   "code": "ACME007",
+   "severity": "warning",
+   "message": "Every transformation says what it exports: no ^__all__",
+   "file": "src/sales/p1_domain/__init__.py",
    "line": 0
   },
   {
@@ -208,6 +222,13 @@
    "code": "ARCH007",
    "severity": "error",
    "message": "layer 'p1_domain' may not import 'os'",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 10
+  },
+  {
+   "code": "ARCH007",
+   "severity": "error",
+   "message": "layer 'p1_domain' may not import 'requests'",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 10
   },
@@ -620,15 +641,15 @@
   {
    "code": "ARCH009",
    "severity": "error",
-   "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). A company template lives in the project: copy its folder to .archvow/templates/acme-pyspark/ and commit it (archvow init acoss_pipeline --force -t <template folder> does it)",
+   "message": "container 'acoss_pipeline': unknown template 'acme/acme-pyspark' (available: archvow/fastapi-service, archvow/langgraph-agent, archvow/pyspark-pipeline, archvow/python-app, archvow/python-base). A company template comes in a pack that lives in the project: archvow pack add <the folder of pack acme>, then commit .archvow/packs/",
    "file": ".archvow/spec.vow",
    "line": 0
   },
   {
    "code": "ARCH009",
    "severity": "error",
-   "message": "custom rule ACME006: give exactly one of forbid_import, forbid_call, forbid_pattern, forbid_file, require_question",
-   "file": ".archvow/spec.vow",
+   "message": "pack acme: <tmp>: ACME008: give its target (what the kind looks for)",
+   "file": ".archvow/packs/acme/pack.yaml",
    "line": 0
   },
   {
@@ -641,7 +662,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, installed is pyspark-pipeline@1.25.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.26.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -1280,7 +1301,7 @@
    "severity": "error",
    "message": "'legacy_billing' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=legacy_billing",
    "file": "src/sales/p1_domain/clean_orders.py",
-   "line": 10
+   "line": 11
   },
   {
    "code": "ARCH023",
@@ -1288,6 +1309,13 @@
    "message": "'pyarrow' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=pyarrow",
    "file": "src/sales/p1_domain/labels.py",
    "line": 18
+  },
+  {
+   "code": "ARCH023",
+   "severity": "error",
+   "message": "'requests' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=requests",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 10
   },
   {
    "code": "ARCH023",
@@ -3364,14 +3392,14 @@
   {
    "code": "ARCH040",
    "severity": "error",
-   "message": "GEMINI.md configures a tool archvow does not approve; approved AI assistants: junie",
+   "message": "GEMINI.md configures 'gemini-cli'; approved AI assistants: junie",
    "file": "GEMINI.md",
    "line": 0
   },
   {
    "code": "ARCH040",
    "severity": "error",
-   "message": "GEMINI.md configures a tool archvow does not approve; approved AI assistants: junie, cursor",
+   "message": "GEMINI.md configures 'gemini-cli'; approved AI assistants: junie, cursor",
    "file": "GEMINI.md",
    "line": 0
   },
@@ -3700,14 +3728,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit b13d9453: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 34ae7344: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit f3bba286: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit 68ffe21a: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -3829,6 +3857,20 @@
    "message": "logging.getLogger(__name__).addHandler() configures logging: that belongs to sales.p0_common.logging_setup (setup_logging); here, only log with logging.getLogger(__name__)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 19
+  },
+  {
+   "code": "ARCH060",
+   "severity": "error",
+   "message": "pack acme: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
+   "file": ".archvow/packs/acme",
+   "line": 0
+  },
+  {
+   "code": "ARCH060",
+   "severity": "error",
+   "message": "pack team: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update team` (or `pack add`), never edits the copy",
+   "file": ".archvow/packs/team",
+   "line": 0
   },
   {
    "code": "DORA001",
@@ -4045,7 +4087,7 @@
    "severity": "error",
    "message": "'.toPandas()' triggers execution; layer 'p1_domain' must stay lazy",
    "file": "src/sales/p1_domain/clean_orders.py",
-   "line": 16
+   "line": 17
   },
   {
    "code": "SPK004",

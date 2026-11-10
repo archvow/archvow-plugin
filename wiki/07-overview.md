@@ -106,6 +106,18 @@ celles qui ont changé ; la ligne « Dossiers de briefs » de la bande d'état y
 (architecte)…** ouvre le formulaire d'init prérempli. VS Code : `briefsView()`, `briefsDue()` ; IntelliJ :
 `ArchvowBriefs.statusHtml`, `ArchvowBriefs.due`, liens `DRAFT_LINK`, `ACCEPT_LINK`.
 
+## Packs (0.22.0)
+
+Une troisième ligne sous Architecture et Contrôles, depuis `packs` de `workspace --json` d'archvow 1.26 (lu avec
+le reste, sans appel de plus) : « 2 packs · 1 modifié à la main ». **Voir les packs →** liste chaque pack de
+`.archvow/packs/` : sa version, ce qu'il apporte (templates, agents, règles), sa source, et s'il est tel
+qu'ajouté ou modifié à la main (ARCH060, avec ce qui diffère). Chacun a **Mettre à jour**, **Retirer** et
+**Vérifier** (les formulaires de `pack update`, `pack remove`, `pack check`, son nom rempli) ; un pack modifié
+a aussi **Voir le changement** (`diff`). En haut, **Ajouter un pack** et **Nouveau pack** (`pack add`, `pack
+new`). Les deux plugins font la même chose : VS Code `packsSummary()` / `packsView()` dans
+`vscode/media/workspace.js` ; IntelliJ `ArchvowPacks` (la ligne, la liste, ce qu'ouvre chaque lien `archvow-pack:`),
+testé par `PacksRegression`.
+
 ## La langue
 
 En bas d'Overview : la langue de l'espace de travail (celle de l'IDE, anglais ou français). Elle est

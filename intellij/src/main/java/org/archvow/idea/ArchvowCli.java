@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -74,12 +72,11 @@ final class ArchvowCli {
     }
 
     /**
-     * Read the installed Archvow catalog, NOT the IDE project's .archvow directory.
-     * Built-ins and ARCHVOW_TEMPLATES are discovered by the actual CLI. A custom
-     * --template /path/to/pack may additionally expose its parent catalog.
+     * The catalog for init (0.22.0): what archvow lists in the project's folder - its own pack and the packs
+     * `archvow pack add` copied there (.archvow/packs/), templates named {@code <pack>/<template>}.
      */
-    void executeGlobalCatalog(String templateDirectory, Consumer<Result> finished) {
-        executeInternal("Catalog", List.of("catalog", "--json"), null, true, templateDirectory, false, finished);
+    void executeGlobalCatalog(String ignored, Consumer<Result> finished) {
+        executeInternal("Catalog", List.of("catalog", "--json"), null, false, null, false, finished);
     }
 
     private void executeInternal(String label, List<String> arguments, String stdin,
@@ -238,22 +235,75 @@ final class ArchvowCli {
         // stdout and stderr apart: a warning on stderr must never be read as part of the JSON on stdout.
         ProcessBuilder builder = new ProcessBuilder(argv).directory(workingDirectory);
         prepare(builder, argv, workingDirectory.getPath());
-        if (globalCatalog && templateDirectory != null && !templateDirectory.isBlank()) {
-            try {
-                Path pack = Path.of(templateDirectory).toAbsolutePath().normalize();
-                if (Files.isDirectory(pack) && Files.isRegularFile(pack.resolve("template.yaml"))) {
-                    String catalogRoot = pack.getParent().toString();
-                    String previous = builder.environment().getOrDefault("ARCHVOW_TEMPLATES", "");
-                    if (!List.of(previous.split(java.util.regex.Pattern.quote(File.pathSeparator)))
-                        .contains(catalogRoot)) {
-                        builder.environment().put("ARCHVOW_TEMPLATES", previous.isBlank()
-                            ? catalogRoot : previous + File.pathSeparator + catalogRoot);
-                    }
+        Process process = builder.start();
+           try {
+                // WSL may have to start its machine first: a longer wait through wsl.exe
+                int seconds = ArchvowWsl.isWsl(argv) ? 60 : 10;
+                if (!process.waitFor(seconds, TimeUnit.SECONDS)) {
+                    process.destroyForcibly();
+                    said = (french ? "pas de réponse en " : "no answer within ") + seconds + " s";
+                } else {
+                    String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).strip();
+                    if (process.exitValue() == 0 && out.toLowerCase(java.util.Locale.ROOT).contains("archvow"))
+                        return new Probe(c, report.toString());
+                    String last = out.isEmpty() ? "" : out.lines().reduce((a, b) -> b).orElse("");
+                    said = "exit " + process.exitValue() + (last.isBlank() ? "" : ": " + last);
                 }
-            } catch (java.nio.file.InvalidPathException ignored) {
-                // The catalog still loads built-in and configured company templates.
+            } catch (IOException | IllegalArgumentException e) {
+                said = e.getMessage();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                said = "interrupted";
             }
+            report.append("- ").append(where).append(" (").append(c.program()).append("): ").append(said).append('\n');
         }
+        report.append(french
+            ? "Installe archvow dans l'interpréteur Python du projet, ou indique un Python qui l'a dans Settings > Tools > Archvow."
+            : "Install archvow in the project's Python interpreter, or give a Python that has it in Settings > Tools > Archvow.");
+        return new Probe(null, report.toString());
+    }
+
+    /** The folder and environment of an archvow process; through wsl.exe, a Windows folder and WSLENV. */
+    static void prepare(ProcessBuilder builder, List<String> argv, String root) {
+        builder.environment().put("NO_COLOR", "1");
+        builder.environment().put("PYTHONIOENCODING", "utf-8");
+        // what archvow did, for the session log (a level the person set is kept)
+        if (builder.environment().getOrDefault("ARCHVOW_LOG", "").isBlank()) builder.environment().put("ARCHVOW_LOG", "info");
+        if (ArchvowWsl.isWsl(argv)) {
+            // the Linux folder is given by --cd; wsl.exe itself starts from the user's home (never a \\wsl$ folder)
+            builder.directory(new File(System.getProperty("user.home", ".")));
+            builder.environment().put("WSLENV", ArchvowWsl.wslenv(builder.environment().get("WSLENV")));
+        } else if (root != null) {
+            builder.directory(new File(root));
+        }
+    }
+
+    private Result invoke(List<String> arguments, String stdin, ProgressIndicator indicator,
+                          boolean globalCatalog, String templateDirectory) throws Exception {
+        ArchvowSettings.Values opts = ArchvowSettings.get(project).getState();
+        File workingDirectory;
+        List<String> argv;
+        if (globalCatalog) {
+            // Archvow's cmd_catalog supports running outside a project. Using a neutral
+            // directory avoids discovering any .archvow/templates/ from the IDE workspace.
+            // No --root argument is emitted, even when Project.getBasePath() is null.
+            workingDirectory = new File(System.getProperty("java.io.tmpdir", "."));
+            if (!workingDirectory.isDirectory())
+                workingDirectory = new File(System.getProperty("user.home", "."));
+            ArchvowProcessCommand.Candidate chosen = choose(opts, null);
+            argv = ArchvowProcessCommand.buildWithoutProject(chosen.executable(), chosen.python(), arguments);
+        } else {
+            String root = project.getBasePath();
+            if (root == null) throw new IllegalStateException("Aucun dossier racine pour ce projet IntelliJ");
+            workingDirectory = new File(root);
+            if (!workingDirectory.isDirectory())
+                throw new IllegalStateException("Le dossier du projet n'existe pas : " + root);
+            ArchvowProcessCommand.Candidate chosen = choose(opts, root);
+            argv = ArchvowProcessCommand.build(chosen.executable(), chosen.python(), root, arguments);
+        }
+        // stdout and stderr apart: a warning on stderr must never be read as part of the JSON on stdout.
+        ProcessBuilder builder = new ProcessBuilder(argv).directory(workingDirectory);
+        prepare(builder, argv, workingDirectory.getPath());
         Process process = builder.start();
         StringBuilder buffer = new StringBuilder();
         StringBuilder errors = new StringBuilder();

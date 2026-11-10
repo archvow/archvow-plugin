@@ -8,7 +8,7 @@ ArchVow connects VS Code to the **ArchVow CLI** and provides a visual workspace 
 
 Open **ArchVow** from the Activity Bar to access:
 
-- **Overview** — See the project's architecture status, pending and resolved items, and quick actions such as Check, Next, Doctor and Audit.
+- **Overview** — See the project's architecture status, pending and resolved items, and quick actions such as Check, Next, Doctor and Audit, and the project's packs (archvow 1.26): what each brings, whether its copy was changed by hand, with Update, Remove and Check.
 - **Components** — Browse components by layer and inspect their decisions, questions, safety, assumptions, rules, tasks and specifications. Follow links to related components, briefs and code.
 - **Commands** — Run ArchVow commands through guided forms. Review the options, see the exact command and read its result without switching to a terminal.
 - **AI skills** — Prepare structured prompts to draft from a brief, find missing questions or risks, implement a component or review changes. Copy them to your preferred AI assistant, then review proposed items before keeping them.

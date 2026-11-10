@@ -227,6 +227,8 @@ final class ArchvowInitQuestions extends JPanel {
             String source = string(t, "source");
             if (requested.equals(name) || requested.equals(source) || requested.endsWith("/" + name)) return name;
         }
+        // a short name (python-app) is a pack's template (archvow/python-app), as archvow's init --template reads it
+        for (JsonObject t : catalog) if (string(t, "name").endsWith("/" + requested)) return string(t, "name");
         return null;
     }
 

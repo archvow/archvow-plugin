@@ -99,13 +99,12 @@ final class ArchvowWsl {
     }
 
     /**
-     * The WSLENV value that hands NO_COLOR, PYTHONIOENCODING, ARCHVOW_LOG and ARCHVOW_TEMPLATES (a list of folders,
-     * translated to Linux paths: /l) to the Linux side, after what {@code previous} already shares.
+     * The WSLENV value that hands NO_COLOR, PYTHONIOENCODING and ARCHVOW_LOG to the Linux side, after what {@code previous} already shares.
      */
     static String wslenv(String previous) {
         List<String> names = new ArrayList<>();
         if (previous != null) for (String part : previous.split(":")) if (!part.isBlank()) names.add(part);
-        for (String wanted : List.of("NO_COLOR", "PYTHONIOENCODING", "ARCHVOW_LOG", "ARCHVOW_TEMPLATES/l")) {
+        for (String wanted : List.of("NO_COLOR", "PYTHONIOENCODING", "ARCHVOW_LOG")) {
             String name = wanted.split("/")[0];
             if (names.stream().noneMatch(n -> n.split("/")[0].equals(name))) names.add(wanted);
         }

@@ -272,7 +272,7 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
       } else if (name === 'dependency remove' && p === 'name') {
         field = { kind: 'select', choices: objects(input.spec, 'dependencies').map((d) => item(str(d, 'name'), str(d, 'supplier'))),
           empty: tr(fr, 'No dependency declared.', 'Aucune dépendance déclarée.') };
-      } else if (name === 'template new' && p === 'extends') {
+      } else if (name === 'pack template' && p === 'extends') {
         field = { kind: 'suggest', choices: objects(input.catalog, 'templates').map((t) => item(str(t, 'name'), str(t, 'description'))),
           note: tr(fr, "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed.",
             "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas.") };

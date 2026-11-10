@@ -394,7 +394,7 @@ final class ArchvowChoices {
                     List<Choice> choices = new ArrayList<>();
                     for (JsonObject d : objects(input.spec(), "dependencies")) choices.add(item(str(d, "name"), str(d, "supplier")));
                     field = select(choices, tr(fr, "No dependency declared.", "Aucune dépendance déclarée."));
-                } else if ("template new".equals(name) && "extends".equals(p)) {
+                } else if ("pack template".equals(name) && "extends".equals(p)) {
                     field = new Field("suggest");
                     field.choices = new ArrayList<>();
                     for (JsonObject t : objects(input.catalog(), "templates")) field.choices.add(item(str(t, "name"), str(t, "description")));

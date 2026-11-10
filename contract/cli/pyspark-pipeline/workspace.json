@@ -1,5 +1,5 @@
 {
-  "contract": "1.1",
+  "contract": "1.2",
   "digest": "<digest>",
   "project": {
     "schema_version": 2,
@@ -10,7 +10,7 @@
     "containers": [
       {
         "id": "my_pipeline",
-        "template": "pyspark-pipeline@1.25.0",
+        "template": "archvow/pyspark-pipeline@1.26.0",
         "package": "my_pipeline",
         "path": "src/my_pipeline",
         "components": [
@@ -3186,14 +3186,15 @@
   "catalog": {
     "templates": [
       {
-        "name": "fastapi-service",
-        "version": "1.25.0",
+        "name": "archvow/fastapi-service",
+        "pack": "archvow",
+        "version": "1.26.0",
         "language": "python",
         "kind": "web-service",
         "style": "layered (common -> domain -> io -> services -> api)",
         "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
         "extends": [
-          "python-base"
+          "archvow/python-base"
         ],
         "questions": [
           {
@@ -3275,16 +3276,24 @@
             "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
             "default": "copilot",
             "multiple": true,
-            "choices_from": "ai_tool_files",
-            "choices": [
-              "copilot",
-              "claude-code",
-              "cursor",
-              "codex",
-              "junie",
-              "jetbrains-ai-chat",
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
               "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
               "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
               "none"
             ],
             "required": false
@@ -3294,16 +3303,24 @@
             "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
             "default": "",
             "multiple": true,
-            "choices_from": "ai_tool_files",
-            "choices": [
-              "copilot",
-              "claude-code",
-              "cursor",
-              "codex",
-              "junie",
-              "jetbrains-ai-chat",
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
               "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
               "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
               "none"
             ],
             "required": false
@@ -3698,17 +3715,18 @@
             "kinds": []
           }
         },
-        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/fastapi-service"
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/resources/archvow/templates/fastapi-service"
       },
       {
-        "name": "langgraph-agent",
-        "version": "1.25.0",
+        "name": "archvow/langgraph-agent",
+        "pack": "archvow",
+        "version": "1.26.0",
         "language": "python",
         "kind": "ai-application",
         "style": "layered (common -> domain -> tools -> agents -> app)",
         "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
         "extends": [
-          "python-base"
+          "archvow/python-base"
         ],
         "questions": [
           {
@@ -3790,16 +3808,24 @@
             "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
             "default": "copilot",
             "multiple": true,
-            "choices_from": "ai_tool_files",
-            "choices": [
-              "copilot",
-              "claude-code",
-              "cursor",
-              "codex",
-              "junie",
-              "jetbrains-ai-chat",
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
               "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
               "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
               "none"
             ],
             "required": false
@@ -3809,16 +3835,24 @@
             "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
             "default": "",
             "multiple": true,
-            "choices_from": "ai_tool_files",
-            "choices": [
-              "copilot",
-              "claude-code",
-              "cursor",
-              "codex",
-              "junie",
-              "jetbrains-ai-chat",
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
               "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
               "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
               "none"
             ],
             "required": false
@@ -4323,17 +4357,18 @@
             "kinds": []
           }
         },
-        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/langgraph-agent"
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/resources/archvow/templates/langgraph-agent"
       },
       {
-        "name": "pyspark-pipeline",
-        "version": "1.25.0",
+        "name": "archvow/pyspark-pipeline",
+        "pack": "archvow",
+        "version": "1.26.0",
         "language": "python",
         "kind": "data-pipeline",
         "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
         "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
         "extends": [
-          "python-base"
+          "archvow/python-base"
         ],
         "questions": [
           {
@@ -4415,16 +4450,24 @@
             "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
             "default": "copilot",
             "multiple": true,
-            "choices_from": "ai_tool_files",
-            "choices": [
-              "copilot",
-              "claude-code",
-              "cursor",
-              "codex",
-              "junie",
-              "jetbrains-ai-chat",
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
               "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
               "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
               "none"
             ],
             "required": false
@@ -4434,16 +4477,24 @@
             "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
             "default": "",
             "multiple": true,
-            "choices_from": "ai_tool_files",
-            "choices": [
-              "copilot",
-              "claude-code",
-              "cursor",
-              "codex",
-              "junie",
-              "jetbrains-ai-chat",
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
               "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
               "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
               "none"
             ],
             "required": false
@@ -4859,17 +4910,18 @@
             "kinds": []
           }
         },
-        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/pyspark-pipeline"
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/resources/archvow/templates/pyspark-pipeline"
       },
       {
-        "name": "python-app",
-        "version": "1.25.0",
+        "name": "archvow/python-app",
+        "pack": "archvow",
+        "version": "1.26.0",
         "language": "python",
         "kind": "application",
         "style": "layered (common -> domain -> io -> services -> entrypoints)",
         "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
         "extends": [
-          "python-base"
+          "archvow/python-base"
         ],
         "questions": [
           {
@@ -4951,16 +5003,24 @@
             "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
             "default": "copilot",
             "multiple": true,
-            "choices_from": "ai_tool_files",
-            "choices": [
-              "copilot",
-              "claude-code",
-              "cursor",
-              "codex",
-              "junie",
-              "jetbrains-ai-chat",
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
               "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
               "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
               "none"
             ],
             "required": false
@@ -4970,16 +5030,24 @@
             "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
             "default": "",
             "multiple": true,
-            "choices_from": "ai_tool_files",
-            "choices": [
-              "copilot",
-              "claude-code",
-              "cursor",
-              "codex",
-              "junie",
-              "jetbrains-ai-chat",
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
               "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
               "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
               "none"
             ],
             "required": false
@@ -5329,8 +5397,481 @@
             "kinds": []
           }
         },
-        "source": "/tmp/av/lib/python3.13/site-packages/archvow/packs/python-app"
+        "source": "/tmp/av/lib/python3.13/site-packages/archvow/resources/archvow/templates/python-app"
+      }
+    ],
+    "packs": [
+      {
+        "name": "archvow",
+        "version": "1.26.0",
+        "description": "The templates, agents and languages archvow ships.",
+        "archvow": "",
+        "builtin": true,
+        "templates": [
+          "fastapi-service",
+          "langgraph-agent",
+          "pyspark-pipeline",
+          "python-app",
+          "python-base"
+        ],
+        "agents": [
+          "aider",
+          "amazonq",
+          "antigravity",
+          "claude-code",
+          "cline",
+          "codex",
+          "continue",
+          "copilot",
+          "cursor",
+          "gemini-cli",
+          "jetbrains-ai-chat",
+          "junie",
+          "kiro",
+          "opencode",
+          "roo",
+          "windsurf"
+        ],
+        "rule_families": []
+      }
+    ],
+    "agents": [
+      {
+        "name": "aider",
+        "title": "Aider",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          ".aider.conf.yml"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "amazonq",
+        "title": "Amazon Q Developer",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          ".amazonq"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "antigravity",
+        "title": "Google Antigravity",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [
+          ".agents/rules/archvow.md.j2"
+        ],
+        "owns": [
+          ".agents/rules",
+          ".agent"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "claude-code",
+        "title": "Claude Code",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills",
+          ".claude/skills"
+        ],
+        "files": [
+          ".claude/settings.json.j2",
+          "CLAUDE.md"
+        ],
+        "owns": [
+          "CLAUDE.md",
+          ".claude"
+        ],
+        "detect": {
+          "processes": [
+            "claude"
+          ],
+          "env": [
+            "CLAUDECODE",
+            "CLAUDE_CODE_ENTRYPOINT",
+            "AI_AGENT=claude-code",
+            "AGENT=claude-code"
+          ],
+          "yolo": [
+            "--dangerously-skip-permissions",
+            "--permission-mode bypassPermissions"
+          ],
+          "unseen": "",
+          "fix": "start Claude Code with its sandbox on (/sandbox; on Windows inside WSL2) and without --dangerously-skip-permissions or --permission-mode bypassPermissions"
+        },
+        "review": true,
+        "seen": true,
+        "unseen": ""
+      },
+      {
+        "name": "cline",
+        "title": "Cline",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          ".clinerules"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "codex",
+        "title": "OpenAI Codex",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          ".codex"
+        ],
+        "detect": {
+          "processes": [
+            "codex"
+          ],
+          "env": [
+            "AI_AGENT=codex",
+            "AGENT=codex"
+          ],
+          "yolo": [
+            "--yolo",
+            "--dangerously-bypass-approvals-and-sandbox"
+          ],
+          "unseen": "",
+          "fix": "start Codex with --sandbox workspace-write (its default) and without --yolo or --dangerously-bypass-approvals-and-sandbox"
+        },
+        "review": true,
+        "seen": true,
+        "unseen": ""
+      },
+      {
+        "name": "continue",
+        "title": "Continue",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [
+          ".continue/rules/archvow.md.j2"
+        ],
+        "owns": [
+          ".continue"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "copilot",
+        "title": "GitHub Copilot",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [
+          ".github/copilot-instructions.md.j2"
+        ],
+        "owns": [
+          ".github/copilot-instructions.md",
+          ".github/instructions",
+          ".github/prompts",
+          ".github/skills"
+        ],
+        "detect": {
+          "processes": [
+            "copilot"
+          ],
+          "env": [
+            "COPILOT_AGENT",
+            "AI_AGENT=github_copilot",
+            "AI_AGENT=github-copilot",
+            "AGENT=github-copilot"
+          ],
+          "yolo": [
+            "--yolo",
+            "--allow-all",
+            "--allow-all-tools"
+          ],
+          "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)",
+          "fix": "run Copilot inside a container (the CLI has no sandbox of its own; in VS Code, a dev container) and start it without --yolo, --allow-all or --allow-all-tools"
+        },
+        "review": true,
+        "seen": true,
+        "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
+      },
+      {
+        "name": "cursor",
+        "title": "Cursor",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [
+          ".cursor/cli.json.j2",
+          ".cursor/rules/archvow.mdc.j2"
+        ],
+        "owns": [
+          ".cursor",
+          ".cursorrules"
+        ],
+        "detect": {
+          "processes": [
+            "cursor-agent"
+          ],
+          "env": [
+            "CURSOR_AGENT",
+            "AI_AGENT=cursor",
+            "AGENT=cursor"
+          ],
+          "yolo": [
+            "--force",
+            "--yolo"
+          ],
+          "unseen": "",
+          "fix": "in Cursor, choose a run mode with the sandbox on (not Run Everything); start cursor-agent without --force or --yolo"
+        },
+        "review": false,
+        "seen": true,
+        "unseen": ""
+      },
+      {
+        "name": "gemini-cli",
+        "title": "Gemini CLI",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          "GEMINI.md",
+          ".gemini"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "jetbrains-ai-chat",
+        "title": "JetBrains AI chat, with its own built-in assistant",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [
+          ".aiassistant/rules/archvow.md.j2"
+        ],
+        "owns": [
+          ".aiassistant"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "junie",
+        "title": "JetBrains Junie",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          ".junie"
+        ],
+        "detect": {
+          "processes": [
+            "junie"
+          ],
+          "env": [
+            "AI_AGENT=junie",
+            "AGENT=junie"
+          ],
+          "yolo": [],
+          "unseen": "in the IDE plugin (it sets no variable archvow knows)",
+          "fix": "start Junie CLI in its sandbox, with brave mode off"
+        },
+        "review": false,
+        "seen": true,
+        "unseen": "in the IDE plugin (it sets no variable archvow knows)"
+      },
+      {
+        "name": "kiro",
+        "title": "Kiro",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          ".kiro"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "opencode",
+        "title": "OpenCode",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          "opencode.json",
+          ".opencode"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "roo",
+        "title": "Roo Code",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          ".roo"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
+      },
+      {
+        "name": "windsurf",
+        "title": "Windsurf",
+        "pack": "archvow",
+        "standard": false,
+        "skills": [
+          ".agents/skills"
+        ],
+        "files": [],
+        "owns": [
+          ".windsurfrules",
+          ".windsurf"
+        ],
+        "detect": {
+          "processes": [],
+          "env": [],
+          "yolo": [],
+          "unseen": "",
+          "fix": ""
+        },
+        "review": false,
+        "seen": false,
+        "unseen": ""
       }
     ]
-  }
+  },
+  "packs": []
 }

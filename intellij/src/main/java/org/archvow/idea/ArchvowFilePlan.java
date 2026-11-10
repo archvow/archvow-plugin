@@ -215,17 +215,14 @@ final class ArchvowFilePlan {
             } else if ("{output}".equals(pattern)) {
                 if (!value(values, "output").isEmpty()) paths.add(value(values, "output"));
                 if (outputExists) change = "updated";
-            } else if ("{dir}".equals(pattern)) {
-                String template = value(values, "name");
-                String dir = value(values, "dir").replaceAll("/+$", "");
-                if (!template.isEmpty()) paths.add((dir.isEmpty() ? ".archvow/templates" : dir) + "/" + template + "/");
             } else {
                 String id = pattern.contains("{new}") ? (made != null ? str(made.comp(), "id") : "") : component;
                 if ((pattern.contains("{new}") || pattern.contains("{component}")) && id.isEmpty()) continue;
                 if (pattern.contains("{name}") && value(values, "name").isEmpty()) continue;
-                paths.add(pattern.replaceFirst(java.util.regex.Pattern.quote("{new}"), java.util.regex.Matcher.quoteReplacement(id))
-                    .replaceFirst(java.util.regex.Pattern.quote("{component}"), java.util.regex.Matcher.quoteReplacement(id))
-                    .replaceFirst(java.util.regex.Pattern.quote("{name}"), java.util.regex.Matcher.quoteReplacement(value(values, "name"))));
+                if (pattern.contains("{pack}") && value(values, "pack").isEmpty()) continue;
+                paths.add(pattern.replace("{new}", id).replace("{component}", id).replace("{name}", value(values, "name"))
+                    .replace("{dir}", packFolder(value(values, "dir"), true))
+                    .replace("{pack}", packFolder(value(values, "pack"), false)));
             }
             for (String p : paths) {
                 String action = "init".equals(name) && "true".equals(values.get("force"))
@@ -254,5 +251,15 @@ final class ArchvowFilePlan {
             out.computeIfAbsent(str(def, "layer"), k -> new ArrayList<>()).add(new Addable(e.getKey(), str(def, "description")));
         }
         return out;
+    }
+
+    /**
+     * Where a pack command writes (0.22.0): {@code {dir}} the folder {@code pack new --dir} names (empty: inside this
+     * project, .archvow/packs); {@code {pack}} a pack's folder, or the name of a project's pack (.archvow/packs/name).
+     */
+    static String packFolder(String value, boolean parent) {
+        String text = value == null ? "" : value.trim().replaceAll("[/\\\\]+$", "");
+        if (parent) return text.isEmpty() ? ".archvow/packs" : text;
+        return text.contains("/") || text.contains("\\") || text.startsWith(".") ? text : ".archvow/packs/" + text;
     }
 }

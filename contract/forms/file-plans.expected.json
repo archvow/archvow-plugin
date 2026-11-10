@@ -975,36 +975,100 @@
    ]
   },
   {
-   "command": "template new",
+   "command": "pack new",
    "values": {
-    "name": "acme-pyspark",
-    "extends": "pyspark-pipeline",
-    "dir": "/srv/templates/"
+    "name": "acme",
+    "description": "ACME",
+    "dir": "/srv/packs/"
    },
    "example": "pyspark-pipeline",
    "fr": false,
    "rows": [
     {
      "change": "new",
-     "path": "/srv/templates/acme-pyspark/",
-     "note": "template.yaml and files/, a guard the architects approve"
+     "path": "/srv/packs/acme/pack.yaml",
+     "note": "the pack: its name, version, the archvow versions it works with, its languages"
+    },
+    {
+     "change": "new",
+     "path": "/srv/packs/acme/README.md",
+     "note": "what the pack brings, how to add parts and share it"
+    },
+    {
+     "change": "new",
+     "path": "/srv/packs/acme/examples/",
+     "note": "commented examples of an agent profile and a rule"
     }
    ]
   },
   {
-   "command": "template new",
+   "command": "pack new",
    "values": {
-    "name": "acme-pyspark",
-    "extends": "pyspark-pipeline",
-    "dir": "/srv/templates/"
+    "name": "acme",
+    "description": "ACME",
+    "dir": "/srv/packs/"
    },
    "example": "pyspark-pipeline",
    "fr": true,
    "rows": [
     {
      "change": "new",
-     "path": "/srv/templates/acme-pyspark/",
-     "note": "template.yaml et files/, une garde que les architectes approuvent"
+     "path": "/srv/packs/acme/pack.yaml",
+     "note": "le pack : son nom, sa version, les versions d'archvow avec lesquelles il marche, ses langues"
+    },
+    {
+     "change": "new",
+     "path": "/srv/packs/acme/README.md",
+     "note": "ce que le pack apporte, comment ajouter des parties et le partager"
+    },
+    {
+     "change": "new",
+     "path": "/srv/packs/acme/examples/",
+     "note": "exemples commentés d'un profil d'agent et d'une règle"
+    }
+   ]
+  },
+  {
+   "command": "pack template",
+   "values": {
+    "pack": "acme",
+    "name": "acme-pyspark",
+    "extends": "pyspark-pipeline"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/packs/acme/templates/acme-pyspark/template.yaml",
+     "note": "the template: what it changes from the one it extends"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/packs/acme/templates/acme-pyspark/files/",
+     "note": "the files it adds to every new project (empty)"
+    }
+   ]
+  },
+  {
+   "command": "pack template",
+   "values": {
+    "pack": "acme",
+    "name": "acme-pyspark",
+    "extends": "pyspark-pipeline"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/packs/acme/templates/acme-pyspark/template.yaml",
+     "note": "le template : ce qu'il change de celui qu'il étend"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/packs/acme/templates/acme-pyspark/files/",
+     "note": "les fichiers qu'il ajoute à chaque nouveau projet (vide)"
     }
    ]
   },

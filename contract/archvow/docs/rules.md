@@ -27,7 +27,7 @@ hit is reported once per file, line and message (an import of nine names is one 
 | ARCH006 | a component imports another one not listed in its `uses` | `archvow component edit <component> -u a,b` (architect review) |
 | ARCH007 | an import forbidden in this layer (`os`, `pathlib`, `requests`... in `p1_domain`) | move the I/O to a reader or writer |
 | ARCH008 | a declared file does not exist (with `--complete`) | write the component, or `archvow component remove` it |
-| ARCH009 | an invalid entry in a vow (`spec.vow`), or an unknown template | the message names the entry; for a company template, set `ARCHVOW_TEMPLATES` |
+| ARCH009 | an invalid entry in a vow (`spec.vow`), or an unknown template | the message names the entry; a company template comes in a pack: `archvow pack add <folder>` |
 | ARCH010 | a file in the package outside every layer (a module there is `ARCH001`, which says how to map it) | move it into a layer folder, or map it in `layer_paths` |
 | ARCH011 | a suppression without a reason | `# archvow: ignore[CODE] -- why` |
 | ARCH012 | (warning) the installed template version differs from the project's | `archvow init <package> --force`, review, commit ([upgrading](project-management.md#upgrading-archvow-in-a-project)) |
@@ -66,6 +66,7 @@ hit is reported once per file, line and message (an import of nine names is one 
 | ARCH057 | (warning; an error with `check --complete`) a component's description, signature or routes changed (`archvow component edit`) after decisions, hazards, invariants, "not applicable" answers, accepted assumptions or business examples were recorded for it: each may no longer hold ("amount > 0" when the description now says "> 1"). archvow deletes nothing; `archvow show` lists them, the spec card stops the AI, `archvow next` says the component is blocked | a person looks at each one: one that no longer holds is recorded again (`archvow decision make <component> <n> "..."`, `archvow hazard edit`...), which takes it off the list; when every one still holds, `archvow component accept <component>` |
 | ARCH058 | (an error; a warning from 90 %) the project is over its limit: more components than `max_components`, or more lines of code under the package's folder than `max_code_lines` (init answers, off by default; lines that are not blank, comments or docstrings; tests not counted). `archvow component add` refuses the component over the limit | split the project, or an architect raises the limit: `archvow init <package> --force -a max_components=<n>` (a raised limit is a weakening, ARCH020) |
 | ARCH059 | `logging.basicConfig`, `logging.config.dictConfig` / `fileConfig`, a handler added or removed (`addHandler`), or the root logger's level set, anywhere but the project's `logging_setup` foundation (only when the project has one) | configure logging in `setup_logging` only; every other module takes its logger with `logging.getLogger(__name__)` and logs |
+| ARCH060 | a pack's copy in `.archvow/packs/<name>/` differs from what `archvow pack add` or `pack update` recorded in spec.vow (its digest), a recorded pack has no copy, or a copy is not recorded | an architect runs `archvow pack update <name>` to take a new version of the pack, or `archvow pack add <folder>` again; nobody edits the copy - a company change goes into the pack itself, then into its new version |
 | ARCH050 | a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it; or a component folder that lost its `spec.vow` (always on) | move it out of `.archvow/`; a lost `spec.vow`: restore it (`git checkout -- .archvow/components/<id>/spec.vow`) |
 | ARCH051 | an AI agent runs archvow outside a sandbox: it can write outside the project (archvow tries an empty file in the home folder). Only when the project's `sandbox` answer is yes (the default in mode strict). archvow stops before the command, always on | start the agent in its sandbox - [Agent security](agent-security.md) |
 | ARCH052 | an AI agent runs archvow in YOLO mode: its command line has an option that lets it act without asking (`--dangerously-skip-permissions`, `--yolo`, `--allow-all`...). archvow stops before the command, always on | start it without that option - [Agent security](agent-security.md) |
@@ -172,12 +173,13 @@ The rules read the classification of each column (`archvow column set`) and foll
 | DORA005 | a coded job, entry point or app has no answer to O1, O2 (failure detection and alerting, recovery with its RTO and RPO) | `archvow decision make <component> O1 "..."` |
 | DORA006 | (warning) the licence in the register differs from the installed package's metadata | correct the register |
 
-## A company's own rules (`custom_rules`)
+## A company's own rules (a pack's `rules/`)
 
-A company template declares rules as data, without Python - forbidden imports, calls, text or
-files, or a question asked of a component type (C1, C2...). Their codes are the company's (for
-example `ACME001`), their section is ACME in `.archvow/spec.md` (Checks). See
-[Company templates](company-templates.md#your-own-rules).
+A company pack declares rules as data, without Python - forbidden imports, calls, text or files, an
+import allowed only in some component types, a text every file must contain, or a question asked of a
+component type (C1, C2...). Their codes are the company's (for example `ACME001`), their section is ACME
+in `.archvow/spec.md` (Checks), and each rule carries an example it must catch and one it must pass.
+See [Packs](packs.md#rules).
 
 ## Ruff
 
@@ -215,7 +217,7 @@ The template sets the weakest check each severity accepts (`verification_floor`)
 
 ## Changing a severity or a limit
 
-For every project of a template, in its `rules:` ([company templates](company-templates.md)).
+For every project of a template, in its `rules:` ([packs](packs.md)).
 For one project, in the `rules` group of its `.archvow/spec.vow` (by hand, the only part of a
 vow that is; [the .vow format](vow-format.md)) - a guard change, approved by the architects:
 

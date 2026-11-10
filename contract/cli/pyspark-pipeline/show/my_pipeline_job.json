@@ -1,5 +1,5 @@
 {
-  "contract": "1.1",
+  "contract": "1.2",
   "component": "my_pipeline_job",
   "type": "job",
   "layer": "p3_jobs",

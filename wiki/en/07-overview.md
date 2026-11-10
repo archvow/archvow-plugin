@@ -102,6 +102,17 @@ form). Its count is the sections not used plus the ones changed; the "Brief fold
 links to it. **Add a briefs folder (architect)…** opens the init form prefilled. VS Code: `briefsView()`,
 `briefsDue()`; IntelliJ: `ArchvowBriefs.statusHtml`, `ArchvowBriefs.due`, links `DRAFT_LINK`, `ACCEPT_LINK`.
 
+## Packs (0.22.0)
+
+A third row under Architecture and Checks, from `packs` of archvow 1.26's `workspace --json` (read with the rest,
+no extra call): "2 packs · 1 changed by hand". **Open Packs →** lists each pack of `.archvow/packs/`: its
+version, what it brings (templates, agents, rules), its source, and whether it is as added or changed by hand
+(ARCH060, with what differs). Each has **Update**, **Remove** and **Check** (the forms of `pack update`, `pack
+remove`, `pack check`, its name filled in); a changed pack also has **See the change** (`diff`). At the top,
+**Add a pack** and **New pack** (`pack add`, `pack new`). Both plugins do the same: VS Code `packsSummary()` /
+`packsView()` in `vscode/media/workspace.js`; IntelliJ `ArchvowPacks` (the row, the list, what each
+`archvow-pack:` link opens), tested by `PacksRegression`.
+
 ## The language
 
 At the bottom of Overview: the workspace's language (the IDE's, English or French). It is there, and

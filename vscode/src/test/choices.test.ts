@@ -101,7 +101,7 @@ test('component add: only the types of the project\'s template; a reader or a wr
 test('the kinds of archvow 1.18\'s catalog come first; kinds.json only for an archvow whose catalog has none', () => {
   const data = input('pyspark-pipeline');
   const catalog = JSON.parse(JSON.stringify(data.catalog)) as Json;
-  const pyspark = (catalog.templates as Json[]).find((t) => t.name === 'pyspark-pipeline')!;
+  const pyspark = (catalog.templates as Json[]).find((t) => t.name === 'archvow/pyspark-pipeline')!;
   pyspark.component_types.reader.kinds = [{ name: 'files', description: 'Reads files', default: true }, { name: 'kafka', description: 'Reads a topic', default: false }];
   const kind = choiceBook(COMMANDS, { ...data, catalog })['component add'].kind;
   assert.deepEqual(values(kind, { type: 'reader' }), ['files', 'kafka']);
@@ -128,10 +128,10 @@ test('hazard add / dismiss: the component\'s safety questions, by guide word, th
   assert.match(offered[0].label, /^missing — S1 Input missing, empty or late/);
 });
 
-test('template new: the templates to extend; the branches to compare with, and the one a merge request targets', () => {
+test('pack template: the templates to extend; the branches to compare with, and the one a merge request targets', () => {
   const b = book('python-app');
-  assert.equal(b['template new'].extends.kind, 'suggest');
-  assert.ok(values(b['template new'].extends, {}).includes('pyspark-pipeline'));
+  assert.equal(b['pack template'].extends.kind, 'suggest');
+  assert.ok(values(b['pack template'].extends, {}).includes('archvow/pyspark-pipeline'));
   for (const command of ['next', 'check', 'diff', 'review']) {
     assert.equal(b[command].base.kind, 'suggest', command);
     assert.deepEqual(values(b[command].base, {}), REFS);

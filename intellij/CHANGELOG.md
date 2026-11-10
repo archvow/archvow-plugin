@@ -2,6 +2,32 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.22.0 - 2026-11-10
+
+Built on archvow 1.26.0 (contract regenerated from the 1.26.0 wheel; contract 1.2).
+
+- **Packs in the overview**: a third row under Architecture and Checks, "2 packs · 1 changed by hand", read
+  from `packs` of `workspace --json` (no extra call). **Open Packs →** lists each pack of `.archvow/packs/`:
+  its version, what it brings (templates, agents, rules), its source, and whether its copy is as added or was
+  changed by hand (ARCH060, with what differs). Each pack has **Update**, **Remove** and **Check**, which open
+  the form of `pack update`, `pack remove` or `pack check` with its name filled in; a changed pack also has
+  **See the change** (`diff`). **Add a pack** and **New pack** open `pack add` and `pack new`.
+- **A Packs group in Commands**: one form for each of the eight `archvow pack` commands (`new`, `template`,
+  `agent`, `rule`, `add`, `update`, `remove`, `check`), with plain labels, the essential fields first, and a
+  file plan that shows what each writes in the pack's folder (`--dir`, or the named pack in `.archvow/packs/`).
+  `pack template` replaces `template new`; its `--extends` lists the catalog's `<pack>/<template>` names.
+- **The init wizard reads the project's catalog**: `archvow catalog --json` now runs in the project's folder,
+  where archvow 1.26 also sees the packs `pack add` copied before `init`. Templates are named
+  `<pack>/<template>` (`archvow/python-app`); a short name (`python-app`) still selects the pack's template, as
+  `init --template` reads it. The plugins no longer set `ARCHVOW_TEMPLATES` (archvow 1.26 no longer reads it),
+  also through WSL.
+- The message for an empty catalog points to `archvow pack add`.
+- Needs archvow 1.26 or newer (contract 1.2); **Install archvow 1.26.0** pins `archvow==1.26.0`.
+- Contract: the 1.26.0 grammar (the `pack` commands, their forms and icons), the examples' `.agents/skills`,
+  600 messages for 76 codes, the vow-reader cases on the 1.26 examples.
+- Not in this version: the seven-screen New pack wizard of the plan. The `pack` forms and the Packs list cover
+  the same commands; the wizard would only order them.
+
 ## 0.21.0 - 2026-11-09
 
 Built on archvow 1.25.0 (contract regenerated from the 1.25.0 wheel; contract 1.1).

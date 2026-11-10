@@ -67,7 +67,7 @@ public final class InitWizardRegression {
             var review = wizard.reviewAnswers();
             JsonObject spark = null;
             for (JsonElement item : shipped.getAsJsonArray("templates"))
-                if ("pyspark-pipeline".equals(item.getAsJsonObject().get("name").getAsString()))
+                if ("archvow/pyspark-pipeline".equals(item.getAsJsonObject().get("name").getAsString()))
                     spark = item.getAsJsonObject();
             if (spark == null || review.size() != spark.getAsJsonArray("questions").size())
                 throw new AssertionError("Review must contain all catalog questions: " + review);

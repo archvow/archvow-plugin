@@ -52,7 +52,7 @@
         "label": "utility — A small helper every layer may use (no business rule, no I/O beyond what it says)."
        }
       ],
-      "note": "The types of python-app, the template of this project."
+      "note": "The types of archvow/python-app, the template of this project."
      },
      "kind": {
       "kind": "select",
@@ -1837,25 +1837,25 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
-    "template new": {
+    "pack template": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "fastapi-service",
-        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
+        "value": "archvow/fastapi-service",
+        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
        },
        {
-        "value": "langgraph-agent",
-        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+        "value": "archvow/langgraph-agent",
+        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
        },
        {
-        "value": "pyspark-pipeline",
-        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
+        "value": "archvow/pyspark-pipeline",
+        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
        },
        {
-        "value": "python-app",
-        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
+        "value": "archvow/python-app",
+        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
        }
       ],
       "note": "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
@@ -1904,7 +1904,7 @@
         "label": "utility — A small helper every layer may use (no business rule, no I/O beyond what it says)."
        }
       ],
-      "note": "Les types de python-app, le modèle de ce projet."
+      "note": "Les types de archvow/python-app, le modèle de ce projet."
      },
      "kind": {
       "kind": "select",
@@ -3689,25 +3689,25 @@
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
-    "template new": {
+    "pack template": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "fastapi-service",
-        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
+        "value": "archvow/fastapi-service",
+        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
        },
        {
-        "value": "langgraph-agent",
-        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+        "value": "archvow/langgraph-agent",
+        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
        },
        {
-        "value": "pyspark-pipeline",
-        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
+        "value": "archvow/pyspark-pipeline",
+        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
        },
        {
-        "value": "python-app",
-        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
+        "value": "archvow/python-app",
+        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
        }
       ],
       "note": "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."
@@ -3764,7 +3764,7 @@
         "label": "utility — A small helper every layer may use (no business rule, no I/O beyond what it says)."
        }
       ],
-      "note": "The types of fastapi-service, the template of this project."
+      "note": "The types of archvow/fastapi-service, the template of this project."
      },
      "kind": {
       "kind": "select",
@@ -6382,25 +6382,25 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
-    "template new": {
+    "pack template": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "fastapi-service",
-        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
+        "value": "archvow/fastapi-service",
+        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
        },
        {
-        "value": "langgraph-agent",
-        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+        "value": "archvow/langgraph-agent",
+        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
        },
        {
-        "value": "pyspark-pipeline",
-        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
+        "value": "archvow/pyspark-pipeline",
+        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
        },
        {
-        "value": "python-app",
-        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
+        "value": "archvow/python-app",
+        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
        }
       ],
       "note": "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
@@ -6457,7 +6457,7 @@
         "label": "utility — A small helper every layer may use (no business rule, no I/O beyond what it says)."
        }
       ],
-      "note": "Les types de fastapi-service, le modèle de ce projet."
+      "note": "Les types de archvow/fastapi-service, le modèle de ce projet."
      },
      "kind": {
       "kind": "select",
@@ -9075,25 +9075,25 @@
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
-    "template new": {
+    "pack template": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "fastapi-service",
-        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
+        "value": "archvow/fastapi-service",
+        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
        },
        {
-        "value": "langgraph-agent",
-        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+        "value": "archvow/langgraph-agent",
+        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
        },
        {
-        "value": "pyspark-pipeline",
-        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
+        "value": "archvow/pyspark-pipeline",
+        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
        },
        {
-        "value": "python-app",
-        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
+        "value": "archvow/python-app",
+        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
        }
       ],
       "note": "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."
@@ -9138,7 +9138,7 @@
         "label": "writer — Writes one dataset."
        }
       ],
-      "note": "The types of pyspark-pipeline, the template of this project."
+      "note": "The types of archvow/pyspark-pipeline, the template of this project."
      },
      "kind": {
       "kind": "select",
@@ -11694,25 +11694,25 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
-    "template new": {
+    "pack template": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "fastapi-service",
-        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
+        "value": "archvow/fastapi-service",
+        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
        },
        {
-        "value": "langgraph-agent",
-        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+        "value": "archvow/langgraph-agent",
+        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
        },
        {
-        "value": "pyspark-pipeline",
-        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
+        "value": "archvow/pyspark-pipeline",
+        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
        },
        {
-        "value": "python-app",
-        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
+        "value": "archvow/python-app",
+        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
        }
       ],
       "note": "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
@@ -11757,7 +11757,7 @@
         "label": "writer — Writes one dataset."
        }
       ],
-      "note": "Les types de pyspark-pipeline, le modèle de ce projet."
+      "note": "Les types de archvow/pyspark-pipeline, le modèle de ce projet."
      },
      "kind": {
       "kind": "select",
@@ -14313,25 +14313,25 @@
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
-    "template new": {
+    "pack template": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "fastapi-service",
-        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
+        "value": "archvow/fastapi-service",
+        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
        },
        {
-        "value": "langgraph-agent",
-        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
+        "value": "archvow/langgraph-agent",
+        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
        },
        {
-        "value": "pyspark-pipeline",
-        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
+        "value": "archvow/pyspark-pipeline",
+        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
        },
        {
-        "value": "python-app",
-        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
+        "value": "archvow/python-app",
+        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
        }
       ],
       "note": "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."

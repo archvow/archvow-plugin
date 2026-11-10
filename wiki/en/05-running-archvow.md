@@ -42,13 +42,19 @@ What the plugin asked archvow: in IntelliJ the bottom *Archvow Output* tool wind
 header and the lines with their time, a person's own words (answers, rationales, statements: `masked`)
 hidden on request.
 
-A refresh is one call (0.21.0): `archvow workspace --json` (archvow 1.25) gives the spec, every component's
+A refresh is one call (0.21.0): `archvow workspace --json` (archvow 1.25 and later) gives the spec, every component's
 view, `check`, `next`, the briefs and the catalog together (`ArchvowProject.load`, `ArchvowPanel.reload`).
 After an action the plugin makes the same call (`refreshAfter`; before 0.21.0 a partial refresh started
 four commands); the vow change that follows is its own: the vow watcher ignores it (`ownChangeUntil`). When
 a vow changes on disk, the plugin passes the last answer's digest (`--since`, kept with the settings or the
 archvow that gave it): if no file of the project changed, archvow answers `unchanged` and nothing is
-redrawn. It never does this after an action or when a person refreshes.
+redrawn. It never does this after an action or when a person refreshes. Since 0.22.0 (archvow 1.26) the
+answer also gives the project's packs (`packs`: the overview's Packs row, page 7) and its catalog is the
+project's.
+
+The init wizard's catalog (0.22.0): `archvow catalog --json` run in the project's folder, even before `init`
+(archvow 1.26 reads `.archvow/packs/` there once `pack add` copied a pack into it); before 0.22.0 it ran
+outside the project, with `ARCHVOW_TEMPLATES`.
 
 ## Where archvow is looked for
 
@@ -102,8 +108,8 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 - The project folder becomes a Linux path (`C:\work\p` -> `/mnt/c/work/p`, `\\wsl.localhost\Ubuntu\home\p` -> `/home/p`),
   as does every argument that is a Windows path (`ArchvowWsl.argument`).
 - `--exec`: no shell on the Linux side either.
-- `WSLENV` passes `NO_COLOR`, `PYTHONIOENCODING` and `ARCHVOW_TEMPLATES` (a list of folders, translated
-  into Linux paths: `/l`).
+- `WSLENV` passes `NO_COLOR`, `PYTHONIOENCODING` and `ARCHVOW_LOG` (0.22.0: no longer `ARCHVOW_TEMPLATES`,
+  which archvow 1.26 no longer reads: company templates come from the project's packs).
 - The first answer may wait for WSL to start: the probe waits 60 s through `wsl.exe` (10 s otherwise).
 - With VS Code opened *inside* WSL (Remote - WSL), the extension runs on the Linux side: none of this
   is needed.
@@ -111,13 +117,13 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 ## Installing archvow (0.12.0)
 
 When archvow does not start, or does not speak the plugin's contract (0.20.0, page [The contract](/en/04-contract)), the plugins offer
-**Install archvow 1.25.0**; nothing is installed at startup or without a click. `ArchvowInstall`
+**Install archvow 1.26.0**; nothing is installed at startup or without a click. `ArchvowInstall`
 (IntelliJ) and `vscode/src/install.ts` (VS Code) hold the same rules:
 
 | Question | Answer |
 |---|---|
 | Into which Python? | the project's `.venv`, then `venv` (`venvPythons()`), then the IDE's interpreter, then the Python of the settings; a bare `python` is never chosen for the person (`installPython()`, `ArchvowInstall.python`): no Python found, the card says **Configure Python** |
-| Which version? | `archvow==1.25.0` (`requirement()`): exactly the archvow the plugins are tested with (0.20.0); once installed, any archvow of the contract is accepted |
+| Which version? | `archvow==1.26.0` (`requirement()`): exactly the archvow the plugins are tested with (0.20.0); once installed, any archvow of the contract is accepted |
 | From where? | the setting *Install archvow from* / `archvow.installFrom` (`installSource()`): empty = pip's own configuration (pip.conf, `PIP_INDEX_URL`), an http(s) URL = `--index-url`, a `.whl` file, or a folder of wheels = `--no-index --find-links` (`pipArgs()`) |
 | How? | the command is shown (`displayCommand()`), then run only after **Confirm and run**: no shell, in the project folder, 10 minutes at most, `PIP_DISABLE_PIP_VERSION_CHECK=1`; a Python in WSL through `wsl.exe`, as archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Afterwards? | success: the settings keep that Python, the version is probed again, the workspace reloads; failure: pip's output, nothing saved |

@@ -6,7 +6,7 @@ here is a change the plugins must follow.
 | Folder | What | Written by | Read by |
 |---|---|---|---|
 | `vows/` | the vows of archvow's three examples | `tools/regenerate.py` (from archvow) | both `.vow` readers (`coreTest`, `npm test`) |
-| `cli/<example>/` | what `show --json`, `show <component> --json`, `next --json` and `check --json` print on each example, and `workspace.json`: `workspace --json` (archvow 1.25, contract 1.1), all of them in one answer - what both plugins load (its digest as `<digest>`); `cli/version.txt` the archvow version; `cli/contract.txt` its contract number (MAJOR.MINOR, `archvow version --json`) | `tools/regenerate.py` | the VS Code extension's tests; the IntelliJ workspace reads the same commands |
+| `cli/<example>/` | what `show --json`, `show <component> --json`, `next --json` and `check --json` print on each example, and `workspace.json`: `workspace --json` (archvow 1.25, contract 1.1; its `packs` since archvow 1.26, contract 1.2), all of them in one answer - what both plugins load (its digest as `<digest>`); `cli/version.txt` the archvow version; `cli/contract.txt` its contract number (MAJOR.MINOR, `archvow version --json`) | `tools/regenerate.py` | the VS Code extension's tests; the IntelliJ workspace reads the same commands |
 | `cli/errors/` | three commands that fail, as the plugins get them (archvow 1.23, `ARCHVOW_LOG=info`): the error envelope on stdout, the message and archvow's log lines on stderr; `usage` is an argparse refusal, with no envelope | `tools/regenerate.py` | the output readers of both plugins (`cli.test.ts`, `OutputRegression`) |
 | `archvow/` | the archvow the plugins are tested with: its wheel (the version of `cli/version.txt`), and from its source the three examples with their code and `docs/rules*.md` | `tools/take_archvow.sh` | `regenerate.py` (CI job `contract`), the live tests (`vscode/src/test/live.test.ts`) |
 | `cli/messages.json` | every check message archvow's own tests make it print (587, 72 codes) | `tools/harvest_messages.py <archvow source> --python <venv>` | the guidance tests of both plugins |
@@ -17,7 +17,7 @@ here is a change the plugins must follow.
 After an archvow release:
 
 ```bash
-contract/tools/take_archvow.sh ../archvow v1.25.0 ../archvow/dist/archvow-1.25.0-py3-none-any.whl
+contract/tools/take_archvow.sh ../archvow v1.26.0 ../archvow/dist/archvow-1.26.0-py3-none-any.whl
 python3 -m venv /tmp/av && /tmp/av/bin/pip install contract/archvow/archvow-*.whl
 python3 contract/tools/regenerate.py contract/archvow --python /tmp/av/bin/python
 python3 contract/tools/harvest_messages.py ../archvow --python ../archvow/.venv/bin/python   # its venv with archvow[dev]
@@ -27,4 +27,4 @@ python3 contract/tools/harvest_messages.py ../archvow --python ../archvow/.venv/
 git diff contract/                                         # review: this is what changed for the plugins
 ```
 
-Recorded from archvow 1.25.0.
+Recorded from archvow 1.26.0.

@@ -62,10 +62,10 @@ export function wslArgument(arg: string): string {
   return arg;
 }
 
-/** WSLENV handing NO_COLOR, PYTHONIOENCODING, ARCHVOW_LOG and ARCHVOW_TEMPLATES (a folder list, as Linux paths) to WSL. */
+/** WSLENV handing NO_COLOR, PYTHONIOENCODING and ARCHVOW_LOG to WSL. */
 export function wslenv(previous: string | undefined): string {
   const names = (previous || '').split(':').filter((x) => x);
-  for (const wanted of ['NO_COLOR', 'PYTHONIOENCODING', 'ARCHVOW_LOG', 'ARCHVOW_TEMPLATES/l']) {
+  for (const wanted of ['NO_COLOR', 'PYTHONIOENCODING', 'ARCHVOW_LOG']) {
     if (!names.some((n) => n.split('/')[0] === wanted.split('/')[0])) names.push(wanted);
   }
   return names.join(':');
@@ -204,7 +204,7 @@ export class ArchvowCli {
     private readonly settings: () => CliSettings,
     /** Each call, once it is done: the session log (`action` when a person asked for it). */
     private readonly onCall: (result: CliResult, action: boolean) => void = () => undefined,
-    /** Variables added to the environment (ARCHVOW_TEMPLATES for a template folder). */
+    /** Variables added to the environment. */
     private readonly extraEnv: Record<string, string> = {},
     /** False for a command outside the project (catalog): in WSL it runs from the home folder. */
     private readonly inProject = true,
