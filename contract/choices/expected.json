@@ -15,6 +15,30 @@
    "example": "python-app",
    "fr": false,
    "book": {
+    "feature rename": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     }
+    },
+    "feature remove": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     }
+    },
     "component add": {
      "type": {
       "kind": "select",
@@ -53,6 +77,21 @@
        }
       ],
       "note": "The types of archvow/python-app, the template of this project."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add.",
+      "note": "Empty: the project's one feature (the first component makes one, named after the project). shared: what every feature uses."
      },
      "kind": {
       "kind": "select",
@@ -169,6 +208,56 @@
        }
       ],
       "empty": "No component yet: add one with component add."
+     }
+    },
+    "component move": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "invoice_model",
+        "label": "invoice_model — model"
+       },
+       {
+        "value": "invoice_not_found_error",
+        "label": "invoice_not_found_error — error"
+       },
+       {
+        "value": "invoices_repository",
+        "label": "invoices_repository — repository"
+       },
+       {
+        "value": "mark_paid",
+        "label": "mark_paid — service"
+       },
+       {
+        "value": "invoices_cli",
+        "label": "invoices_cli — cli"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
      }
     },
     "component remove": {
@@ -600,7 +689,7 @@
         },
         {
          "value": "P1",
-         "label": "P1 — Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g.…",
+         "label": "P1 — Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. t…",
          "fill": {
           "answer": "To record which customers paid their invoices, for the finance team"
          }
@@ -1614,6 +1703,20 @@
       ],
       "empty": "No component yet: add one with component add."
      },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
      "task": {
       "kind": "select",
       "by": "component",
@@ -1648,6 +1751,20 @@
      }
     },
     "next": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
      "base": {
       "kind": "suggest",
       "choices": [
@@ -1837,6 +1954,52 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
+    "doc": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
+     "base": {
+      "kind": "suggest",
+      "choices": [
+       {
+        "value": "develop",
+        "label": "develop — branch or tag"
+       },
+       {
+        "value": "feature/vat",
+        "label": "feature/vat — branch or tag"
+       },
+       {
+        "value": "main",
+        "label": "main — branch or tag"
+       },
+       {
+        "value": "origin/develop",
+        "label": "origin/develop — branch or tag"
+       },
+       {
+        "value": "origin/main",
+        "label": "origin/main — branch or tag"
+       },
+       {
+        "value": "v1.0.0",
+        "label": "v1.0.0 — branch or tag"
+       }
+      ],
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
+     }
+    },
     "pack template": {
      "extends": {
       "kind": "suggest",
@@ -1867,6 +2030,30 @@
    "example": "python-app",
    "fr": true,
    "book": {
+    "feature rename": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     }
+    },
+    "feature remove": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     }
+    },
     "component add": {
      "type": {
       "kind": "select",
@@ -1905,6 +2092,21 @@
        }
       ],
       "note": "Les types de archvow/python-app, le modèle de ce projet."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add.",
+      "note": "Vide : la seule fonctionnalité du projet (le premier composant en crée une, nommée d'après le projet). shared : ce que chaque fonctionnalité utilise."
      },
      "kind": {
       "kind": "select",
@@ -2021,6 +2223,56 @@
        }
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
+     }
+    },
+    "component move": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "invoice_model",
+        "label": "invoice_model — model"
+       },
+       {
+        "value": "invoice_not_found_error",
+        "label": "invoice_not_found_error — error"
+       },
+       {
+        "value": "invoices_repository",
+        "label": "invoices_repository — repository"
+       },
+       {
+        "value": "mark_paid",
+        "label": "mark_paid — service"
+       },
+       {
+        "value": "invoices_cli",
+        "label": "invoices_cli — cli"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
      }
     },
     "component remove": {
@@ -2452,7 +2704,7 @@
         },
         {
          "value": "P1",
-         "label": "P1 — Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g.…",
+         "label": "P1 — Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. t…",
          "fill": {
           "answer": "To record which customers paid their invoices, for the finance team"
          }
@@ -3466,6 +3718,20 @@
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
      },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
      "task": {
       "kind": "select",
       "by": "component",
@@ -3500,6 +3766,20 @@
      }
     },
     "next": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
      "base": {
       "kind": "suggest",
       "choices": [
@@ -3689,6 +3969,52 @@
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
+    "doc": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "invoices",
+        "label": "invoices — Marks invoices paid, from the command line"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
+     "base": {
+      "kind": "suggest",
+      "choices": [
+       {
+        "value": "develop",
+        "label": "develop — branche ou tag"
+       },
+       {
+        "value": "feature/vat",
+        "label": "feature/vat — branche ou tag"
+       },
+       {
+        "value": "main",
+        "label": "main — branche ou tag"
+       },
+       {
+        "value": "origin/develop",
+        "label": "origin/develop — branche ou tag"
+       },
+       {
+        "value": "origin/main",
+        "label": "origin/main — branche ou tag"
+       },
+       {
+        "value": "v1.0.0",
+        "label": "v1.0.0 — branche ou tag"
+       }
+      ],
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
+     }
+    },
     "pack template": {
      "extends": {
       "kind": "suggest",
@@ -3719,6 +4045,30 @@
    "example": "fastapi-service",
    "fr": false,
    "book": {
+    "feature rename": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     }
+    },
+    "feature remove": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     }
+    },
     "component add": {
      "type": {
       "kind": "select",
@@ -3765,6 +4115,21 @@
        }
       ],
       "note": "The types of archvow/fastapi-service, the template of this project."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add.",
+      "note": "Empty: the project's one feature (the first component makes one, named after the project). shared: what every feature uses."
      },
      "kind": {
       "kind": "select",
@@ -3933,6 +4298,72 @@
        }
       ],
       "empty": "No component yet: add one with component add."
+     }
+    },
+    "component move": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "get_current_user",
+        "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "settings",
+        "label": "settings — foundation"
+       },
+       {
+        "value": "new_order_model",
+        "label": "new_order_model — model"
+       },
+       {
+        "value": "order_model",
+        "label": "order_model — model"
+       },
+       {
+        "value": "order_not_found_error",
+        "label": "order_not_found_error — error"
+       },
+       {
+        "value": "orders_repository",
+        "label": "orders_repository — repository"
+       },
+       {
+        "value": "create_order",
+        "label": "create_order — service"
+       },
+       {
+        "value": "get_order",
+        "label": "get_order — service"
+       },
+       {
+        "value": "main",
+        "label": "main — app"
+       },
+       {
+        "value": "orders_router",
+        "label": "orders_router — router"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
      }
     },
     "component remove": {
@@ -4773,7 +5204,7 @@
         },
         {
          "value": "P1",
-         "label": "P1 — Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g.…",
+         "label": "P1 — Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. t…",
          "fill": {
           "answer": "Take and show the orders of each customer, for that customer only"
          }
@@ -6164,6 +6595,20 @@
       ],
       "empty": "No component yet: add one with component add."
      },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
      "task": {
       "kind": "select",
       "by": "component",
@@ -6193,6 +6638,20 @@
      }
     },
     "next": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
      "base": {
       "kind": "suggest",
       "choices": [
@@ -6382,6 +6841,52 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
+    "doc": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
+     "base": {
+      "kind": "suggest",
+      "choices": [
+       {
+        "value": "develop",
+        "label": "develop — branch or tag"
+       },
+       {
+        "value": "feature/vat",
+        "label": "feature/vat — branch or tag"
+       },
+       {
+        "value": "main",
+        "label": "main — branch or tag"
+       },
+       {
+        "value": "origin/develop",
+        "label": "origin/develop — branch or tag"
+       },
+       {
+        "value": "origin/main",
+        "label": "origin/main — branch or tag"
+       },
+       {
+        "value": "v1.0.0",
+        "label": "v1.0.0 — branch or tag"
+       }
+      ],
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
+     }
+    },
     "pack template": {
      "extends": {
       "kind": "suggest",
@@ -6412,6 +6917,30 @@
    "example": "fastapi-service",
    "fr": true,
    "book": {
+    "feature rename": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     }
+    },
+    "feature remove": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     }
+    },
     "component add": {
      "type": {
       "kind": "select",
@@ -6458,6 +6987,21 @@
        }
       ],
       "note": "Les types de archvow/fastapi-service, le modèle de ce projet."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add.",
+      "note": "Vide : la seule fonctionnalité du projet (le premier composant en crée une, nommée d'après le projet). shared : ce que chaque fonctionnalité utilise."
      },
      "kind": {
       "kind": "select",
@@ -6626,6 +7170,72 @@
        }
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
+     }
+    },
+    "component move": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "get_current_user",
+        "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "settings",
+        "label": "settings — foundation"
+       },
+       {
+        "value": "new_order_model",
+        "label": "new_order_model — model"
+       },
+       {
+        "value": "order_model",
+        "label": "order_model — model"
+       },
+       {
+        "value": "order_not_found_error",
+        "label": "order_not_found_error — error"
+       },
+       {
+        "value": "orders_repository",
+        "label": "orders_repository — repository"
+       },
+       {
+        "value": "create_order",
+        "label": "create_order — service"
+       },
+       {
+        "value": "get_order",
+        "label": "get_order — service"
+       },
+       {
+        "value": "main",
+        "label": "main — app"
+       },
+       {
+        "value": "orders_router",
+        "label": "orders_router — router"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
      }
     },
     "component remove": {
@@ -7466,7 +8076,7 @@
         },
         {
          "value": "P1",
-         "label": "P1 — Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g.…",
+         "label": "P1 — Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. t…",
          "fill": {
           "answer": "Take and show the orders of each customer, for that customer only"
          }
@@ -8857,6 +9467,20 @@
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
      },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
      "task": {
       "kind": "select",
       "by": "component",
@@ -8886,6 +9510,20 @@
      }
     },
     "next": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
      "base": {
       "kind": "suggest",
       "choices": [
@@ -9075,6 +9713,52 @@
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
+    "doc": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "orders",
+        "label": "orders — Orders"
+       },
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
+     "base": {
+      "kind": "suggest",
+      "choices": [
+       {
+        "value": "develop",
+        "label": "develop — branche ou tag"
+       },
+       {
+        "value": "feature/vat",
+        "label": "feature/vat — branche ou tag"
+       },
+       {
+        "value": "main",
+        "label": "main — branche ou tag"
+       },
+       {
+        "value": "origin/develop",
+        "label": "origin/develop — branche ou tag"
+       },
+       {
+        "value": "origin/main",
+        "label": "origin/main — branche ou tag"
+       },
+       {
+        "value": "v1.0.0",
+        "label": "v1.0.0 — branche ou tag"
+       }
+      ],
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
+     }
+    },
     "pack template": {
      "extends": {
       "kind": "suggest",
@@ -9105,6 +9789,30 @@
    "example": "pyspark-pipeline",
    "fr": false,
    "book": {
+    "feature rename": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     }
+    },
+    "feature remove": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     }
+    },
     "component add": {
      "type": {
       "kind": "select",
@@ -9139,6 +9847,21 @@
        }
       ],
       "note": "The types of archvow/pyspark-pipeline, the template of this project."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add.",
+      "note": "Empty: the project's one feature (the first component makes one, named after the project). shared: what every feature uses."
      },
      "kind": {
       "kind": "select",
@@ -9331,6 +10054,68 @@
        }
       ],
       "empty": "No component yet: add one with component add."
+     }
+    },
+    "component move": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "spark",
+        "label": "spark — foundation"
+       },
+       {
+        "value": "clean_orders",
+        "label": "clean_orders — transformation"
+       },
+       {
+        "value": "compute_vat",
+        "label": "compute_vat — transformation"
+       },
+       {
+        "value": "orders_schema",
+        "label": "orders_schema — schema"
+       },
+       {
+        "value": "orders_reader",
+        "label": "orders_reader — reader"
+       },
+       {
+        "value": "vat_writer",
+        "label": "vat_writer — writer"
+       },
+       {
+        "value": "my_pipeline_job",
+        "label": "my_pipeline_job — job"
+       },
+       {
+        "value": "my_pipeline_main",
+        "label": "my_pipeline_main — entrypoint"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
      }
     },
     "component remove": {
@@ -11460,6 +12245,20 @@
       ],
       "empty": "No component yet: add one with component add."
      },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
      "task": {
       "kind": "select",
       "by": "component",
@@ -11505,6 +12304,20 @@
      }
     },
     "next": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
      "base": {
       "kind": "suggest",
       "choices": [
@@ -11694,6 +12507,52 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
+    "doc": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "No feature yet: add one with feature add."
+     },
+     "base": {
+      "kind": "suggest",
+      "choices": [
+       {
+        "value": "develop",
+        "label": "develop — branch or tag"
+       },
+       {
+        "value": "feature/vat",
+        "label": "feature/vat — branch or tag"
+       },
+       {
+        "value": "main",
+        "label": "main — branch or tag"
+       },
+       {
+        "value": "origin/develop",
+        "label": "origin/develop — branch or tag"
+       },
+       {
+        "value": "origin/main",
+        "label": "origin/main — branch or tag"
+       },
+       {
+        "value": "v1.0.0",
+        "label": "v1.0.0 — branch or tag"
+       }
+      ],
+      "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
+     }
+    },
     "pack template": {
      "extends": {
       "kind": "suggest",
@@ -11724,6 +12583,30 @@
    "example": "pyspark-pipeline",
    "fr": true,
    "book": {
+    "feature rename": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     }
+    },
+    "feature remove": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     }
+    },
     "component add": {
      "type": {
       "kind": "select",
@@ -11758,6 +12641,21 @@
        }
       ],
       "note": "Les types de archvow/pyspark-pipeline, le modèle de ce projet."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add.",
+      "note": "Vide : la seule fonctionnalité du projet (le premier composant en crée une, nommée d'après le projet). shared : ce que chaque fonctionnalité utilise."
      },
      "kind": {
       "kind": "select",
@@ -11950,6 +12848,68 @@
        }
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
+     }
+    },
+    "component move": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "spark",
+        "label": "spark — foundation"
+       },
+       {
+        "value": "clean_orders",
+        "label": "clean_orders — transformation"
+       },
+       {
+        "value": "compute_vat",
+        "label": "compute_vat — transformation"
+       },
+       {
+        "value": "orders_schema",
+        "label": "orders_schema — schema"
+       },
+       {
+        "value": "orders_reader",
+        "label": "orders_reader — reader"
+       },
+       {
+        "value": "vat_writer",
+        "label": "vat_writer — writer"
+       },
+       {
+        "value": "my_pipeline_job",
+        "label": "my_pipeline_job — job"
+       },
+       {
+        "value": "my_pipeline_main",
+        "label": "my_pipeline_main — entrypoint"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
+     },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
      }
     },
     "component remove": {
@@ -14079,6 +15039,20 @@
       ],
       "empty": "Aucun composant : en ajouter un avec component add."
      },
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
      "task": {
       "kind": "select",
       "by": "component",
@@ -14124,6 +15098,20 @@
      }
     },
     "next": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
      "base": {
       "kind": "suggest",
       "choices": [
@@ -14282,6 +15270,52 @@
      }
     },
     "diff": {
+     "base": {
+      "kind": "suggest",
+      "choices": [
+       {
+        "value": "develop",
+        "label": "develop — branche ou tag"
+       },
+       {
+        "value": "feature/vat",
+        "label": "feature/vat — branche ou tag"
+       },
+       {
+        "value": "main",
+        "label": "main — branche ou tag"
+       },
+       {
+        "value": "origin/develop",
+        "label": "origin/develop — branche ou tag"
+       },
+       {
+        "value": "origin/main",
+        "label": "origin/main — branche ou tag"
+       },
+       {
+        "value": "v1.0.0",
+        "label": "v1.0.0 — branche ou tag"
+       }
+      ],
+      "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
+     }
+    },
+    "doc": {
+     "feature": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "shared",
+        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
+       },
+       {
+        "value": "vat_report",
+        "label": "vat_report — PySpark pipeline for my_pipeline"
+       }
+      ],
+      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+     },
      "base": {
       "kind": "suggest",
       "choices": [

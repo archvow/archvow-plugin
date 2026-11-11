@@ -37,7 +37,7 @@ not done.
 
 ## "Implement <component>"
 When asked to implement a component, that means all of this, without being told again: read
-its spec card, follow the rules below, write its file with the header and its tests, run
+its task, follow the rules below, write its file with the header and its tests, run
 `ruff format .`, `archvow check`, `ruff check .` and `pytest`, and fix everything they report. Asked for
 several components ("everything `archvow next` lists as ready"), do them one at a time:
 before each one, run `archvow next --base develop` (or the branch the merge request targets, if
@@ -45,7 +45,7 @@ you were told another) and implement the first component it lists as ready. Stop
 ready. If it says the change budget is full, say so in your report: the rest goes in the next
 merge request, so the reviewers get a change small enough to read (ARCH022). Finish with a short
 report: files written, tests, anything you had to assume. Commit only when asked.
-**A big card is cut into tasks** (`archvow show <component>` lists T1, T2...): do one task at a
+**A big spec is cut into tasks** (`archvow show <component>` lists T1, T2...): do one task at a
 time, in order. `archvow prompt <component>` prints the next open one; mark each test with what
 it tests (`@pytest.mark.decision(3)`, `@pytest.mark.rule("R2")`), which is how archvow sees a task
 done; after each task `archvow check` and `pytest` pass, then go on with the next task, until none
@@ -55,18 +55,20 @@ is left or the change budget is full.
 `feature/<ticket>-<short-name>` (`hotfix/<ticket>-<short-name>` for a fix of production), stop
 before writing anything and give the developer the commands, in order:
 1. only if `develop` does not exist yet (`git branch -a`): `git switch -c develop main && git push -u origin develop`;
-2. then, with the ticket of the spec card (`@spec`): `git switch -c feature/<ticket>-<short-name> develop`
+2. then, with the ticket of its task (`@spec`): `git switch -c feature/<ticket>-<short-name> develop`
    (e.g. `git switch -c feature/US-001-sales-reader develop`).
 The Git hook and the CI refuse other names.
 
 ## "Draft the spec of <feature>"
 When asked to draft the spec of a feature described in plain words, you **propose**; a person
 decides. Write no code and run none of the commands below.
-1. Read what exists: `archvow next`, `.archvow/spec.md` (the whole project on one page), and `archvow catalog` (the
+1. Read what exists: `archvow next`, `archvow show <feature>` (each feature and its components), and `archvow catalog` (the
    component types, their layer and the id each one gives).
 2. Answer with one shell block of the commands you propose, in order: an
-   `archvow component add <type> <name> -d "<what it must do>" -s <ticket> -u <components it uses>` for
-   each new component (reuse the existing ones), then an
+   `archvow feature add <feature> -d "<what the product does there>"` when the feature is new (one word for
+   what the product does - orders, invoices - never a ticket), then an
+   `archvow component add <type> <name> -d "<what it must do>" --feature <feature> -s <ticket> -u <components it uses>` for
+   each new component (reuse the existing ones, of any feature), then an
    `archvow rule add <component>[,<component>...] "Given <situation>, when <action>, then <result>"`
    for each rule the feature states (`--type <type>` or `--all` when it applies to every component
    of a type, or to all) - one rule, one test. Write the real columns, values and conditions:
@@ -114,7 +116,7 @@ and run none of the commands below.
 A bug is something the code does that the spec does not want. Fix it test first; change nothing else.
 1. Start from the file the bug points to (an error trace, a failing test): `archvow show <file>:<line>`
    names its component, what uses it, and the test behind each decision and rule.
-2. Read the component's spec card. What it should do must be a decision or a rule of the card. If it is
+2. Read the component's task. What it should do must be a decision or a rule of its vow. If it is
    not, write nothing and give the developer the command that records it, e.g.
    `archvow rule add <component> "When an order has no lines, <component> rejects it"`.
 3. Write the failing test first, marked with that decision or rule (`@pytest.mark.rule("R3")`),
@@ -128,7 +130,7 @@ The procedures of this file are also skills, in your tool's skills folder (`.cla
 apply in every case, with or without a skill.
 
 ## Before coding
-1. Read the spec card of the component: `.archvow/components/<component>/spec.md`
+1. Read the component's task: `archvow prompt <component>` (with its whole feature: `archvow prompt --feature <feature> <component>`)
    (`archvow prompt <component>`). Start with its **Must never happen** section.
    To find files, use your own file tools or `archvow next` (every component, in order), never
    `find` (it can delete files or run commands, so it is never auto-approved). Run one command per
@@ -144,18 +146,18 @@ apply in every case, with or without a skill.
    give the archvow command that records it. Missing columns or fields: `archvow component add schema <name> -d "<its columns>" -s <ticket>`, then `archvow component edit <component> -u <name>_schema`;
    a wrong description: `archvow component edit <component> -d "..."`; anything else: run
    `archvow question add <component> "<question>"` yourself.
-   A change you are asked for that contradicts a decision or a rule of the card is a gap too: write
+   A change you are asked for that contradicts a decision or a rule of the task is a gap too: write
    nothing, say which one, and give the command that changes it for a person to run
    (`archvow decision make <component> <n> "..."`, `archvow rule edit R<n> "..."`).
 
 ## While coding
-4. Create exactly the file and public names of the spec card. Nothing else public;
+4. Create exactly the file and public names of its task. Nothing else public;
    helpers start with `_`. No new module, package or folder that the spec does not declare.
    Keep it short: files up to 250 lines, functions up to 70, shell scripts up to 150 (the
    logic goes in Python). Say things with names and docstrings; a `#` comment only for a why
    the code cannot show, on its own line, as a sentence - never commented-out code.
 5. Layers: `p0_common` <- `p1_domain` <- `p2_io` <- `p3_jobs` <- `p4_entrypoints`. Import only
-   what the spec card lists. `p1_domain` is pure and lazy: no I/O, no actions, no SparkSession.
+   what the task lists. `p1_domain` is pure and lazy: no I/O, no actions, no SparkSession.
 6. PySpark style: `functions as F`, `types as T`; `how=` on every join; no right joins;
    explicit window frames; chains of at most 5 calls; parentheses, never `\`.
    Tables are created by the Spark SQL scripts in `ddl/` (run before the job), never by the
@@ -170,24 +172,24 @@ apply in every case, with or without a skill.
    settings), the CI or the scheduler files - the
    deployment (a cluster, Kubernetes, a serverless platform) keeps its own settings.
 
-Personal data (GDPR): the spec card's *Personal data* section lists the personal columns. Never
+Personal data (GDPR): the task's *Personal data* section lists the personal columns. Never
 show, print or log their values or collected rows, never partition files by them, never put them
 in a URL. A new column is classified by a person first (`archvow column set`): ask.
 
-Start every file with the header from its spec card (section *File header*): fill `@author`
+Start every file with the header from its task (section *File header*): fill `@author`
 with the person responsible (the one you work for: `git config user.name`), `@assisted` with your own name as listed in the approved
 assistants above, `@date` with today's date. A missing or wrong header fails the build.
 When you change a file someone else wrote, keep its `@author` and add your name to `@assisted`:
 `none` becomes your name, `copilot` becomes `copilot, <your name>`.
 
 ## Evidence
-9. Every invariant of the component is tested, as its spec card says (*tested by*): a test
-   marked `@pytest.mark.invariant("clean_sales.INV1")` (a Hypothesis `@given` test when the card says
-   so), or, when the card asks for it, a guard in the code marked `# archvow: enforces[clean_sales.INV1]`.
+9. Every invariant of the component is tested, as its task says (*tested by*): a test
+   marked `@pytest.mark.invariant("clean_sales.INV1")` (a Hypothesis `@given` test when the task says
+   so), or, when the task asks for it, a guard in the code marked `# archvow: enforces[clean_sales.INV1]`.
    A marked test is evidence only if it can fail: assert on what the component returns, or use
    `pytest.raises` (`assert True` is no evidence, ARCH045). When a Hypothesis test fails, add the
    input it found as `@example(...)` on the test before fixing the code, so it is tried every time.
-   A business example of the card (*Examples*) gets one test that reads its `input/`, runs the
+   A business example of the task (*Examples*) gets one test that reads its `input/`, runs the
    component, writes what it gave to `actual/` (same file names and format as `expected/`) and
    compares the result with its `expected/`, marked `@pytest.mark.example("<name>")`. Open the files
    with `encoding="utf-8"` (and `newline=""` for CSV); compare what you read, not bytes.

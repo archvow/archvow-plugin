@@ -4,7 +4,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 
-/** Files ending in .vow: spec.vow, proposals.vow. */
+/** Files ending in .vow: project.vow, a feature's, a component's, proposals.vow. */
 public final class VowFileType extends LanguageFileType {
     public static final VowFileType INSTANCE = new VowFileType();
 

@@ -14,8 +14,8 @@ chaque fichier, chaque flux, et pourquoi. La documentation pour les utilisateurs
 code qui est derrière. Celui d'archvow (`wiki/` du dépôt archvow) explique la CLI elle-même : lisez-le
 pour savoir ce qu'est une décision, un danger ou `archvow check`.
 
-Version décrite : **archvow-plugin 0.23.0**, qui parle le **contrat 1.3 d'archvow** (`contract/cli/contract.txt`),
-testé avec **archvow 1.27.0** (`contract/cli/version.txt`).
+Version décrite : **archvow-plugin 0.24.0**, qui parle le **contrat 2.0 d'archvow** (`contract/cli/contract.txt`),
+testé avec **archvow 2.0.0** (`contract/cli/version.txt`).
 Environ 21 800 lignes de Java (`intellij/src/main/java`), 10 000 lignes de TypeScript, JavaScript et CSS
 (`vscode/src`, `vscode/media`), 63 classes de tests IntelliJ et 162 tests VS Code.
 

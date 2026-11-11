@@ -10,7 +10,7 @@ variables:
   GIT_DEPTH: "0"  # `archvow check --base` needs the target branch history
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   # Where CI installs archvow from (Settings > CI/CD > Variables can override it).
-  ARCHVOW_PIP_SPEC: "archvow==1.27.0"           # pinned: upgrade deliberately
+  ARCHVOW_PIP_SPEC: "archvow==2.0.0"           # pinned: upgrade deliberately
 
 workflow:  # gitflow: merge requests, then main and develop after each merge
   rules:
@@ -32,7 +32,6 @@ architecture:
       if [ -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ] && ! echo "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" |
       grep -Eq '^(feature|hotfix)/([A-Z][A-Z0-9]*-[0-9]+)-[A-Za-z0-9._-]+$|^release/[0-9]+([.][0-9]+)*$|^(main|master|develop)$'; then
       echo "branch name must be feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name> or release/<version>"; exit 1; fi
-    - archvow docs --check        # specs up to date, never edited by hand
     - archvow check               # code matches the spec: names, layers, safety evidence, Python rules
     - ruff check .                # PEP 8 and Zen of Python
     - ruff format --check .
@@ -49,11 +48,12 @@ guards-not-weakened:
       if echo ",$CI_MERGE_REQUEST_LABELS," | grep -q ",architecture-approved,"; then
       FLAGS="--accept-weakening"; fi
     - archvow diff --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --markdown | tee spec-diff.md
+    - archvow doc --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"   # the spec to read, changes marked
     - archvow check --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" $FLAGS
   artifacts:
     when: always
-    expose_as: "Spec changes"  # link shown in the merge request
-    paths: [spec-diff.md]
+    expose_as: "Spec changes"  # link shown in the merge request: the changes, the project and each feature
+    paths: [spec-diff.md, .archvow/doc/]
 
 tests:
   stage: test

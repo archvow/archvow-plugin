@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/fastapi-service@1.27.0`).
+(template `archvow/fastapi-service@2.0.0`).
 
 ## For developers
 
@@ -27,14 +27,14 @@ make run                                   # the service on http://127.0.0.1:800
 | Step | Do |
 |---|---|
 | What to build | `archvow next` - the planned components in build order, *ready* or what each waits for |
-| Your task | the spec card `.archvow/components/<component>/spec.md`: the file, its public names and routes, the decisions made, the tests, what must never happen |
-| Write it | yourself, starting the file with the card's header (`@assisted none`) - or with the AI assistant, one line in its chat: `implement <component>` |
+| Your task | `archvow prompt <component>` (the whole feature: `archvow prompt --feature <feature>`): the file, its public names and routes, the decisions made, the tests, what must never happen |
+| Write it | yourself, starting the file with the task's header (`@assisted none`) - or with the AI assistant, one line in its chat: `implement <component>` |
 | Something is unclear | do not guess: `archvow question add <component> "<question>"`, an architect decides |
 | Commit | `git commit` - the Git hook runs ruff and `archvow check`; `make test` runs the tests |
 
 **Good to know**
 
-- Private helpers (`_to_response`, `_Row`) are free. Anything public must be in the spec card,
+- Private helpers (`_to_response`, `_Row`) are free. Anything public must be in the component's vow,
   or the build fails (`ARCH001`, `ARCH002`) - and so must every route.
 - HTTP stays in `p4_api` (and the dependencies of `p0_common`): services raise domain errors,
   the app turns them into statuses.
@@ -42,7 +42,7 @@ make run                                   # the service on http://127.0.0.1:800
   a service) is a plain `def` (`FAPI001`).
 - One test per component: `tests/<layer>/test_<component>.py`; end-to-end scenarios go in
   `tests/integration/`.
-- Every error says how to fix it; the rules are in [`.archvow/spec.md`](.archvow/spec.md) (Checks)
+- Every error says how to fix it; the rules are in the project's doc (`archvow doc`, Checks)
   and explained in [`.archvow/README.md`](.archvow/README.md).
 - `.archvow/` changes only through archvow commands, approved by the architects - never
   by hand.
@@ -68,8 +68,8 @@ reach the database without a service.
 The full specification - every component, its public functions and routes, the decided edge
 cases and what must never happen - is in [`.archvow/`](.archvow/README.md):
 
-- [The project's spec](.archvow/spec.md) - the whole project on one page: diagram, components, rules, hazards, invariants, personal data, checks
-- [Each component's spec](.archvow/components/) - `components/<component>/spec.md`, its task; its vow `spec.vow` next to it
+- The project's doc - `archvow doc` writes it into `.archvow/doc/` (never committed): the whole project on one page - diagram, features, components, rules, hazards, invariants, personal data, checks - and one page per feature
+- [The spec](.archvow/) - `project.vow`, then `features/<feature>/<feature>.vow` and one vow per component in `features/<feature>/components/`; a component's task: `archvow prompt <component>`
 
 ## Project layout
 
@@ -77,7 +77,7 @@ Right after `archvow init` - the spec and the guards, no code yet:
 
 ```
 orders-api/
-├── .archvow/                           the spec: spec.vow, spec.md, components/<component>/, README.md
+├── .archvow/                           the spec: project.vow, features/<feature>/, README.md
 ├── AGENTS.md                           rules for every AI assistant
 ├── .gitlab-ci.yml                      CI: guards and tests
 ├── .gitlab/CODEOWNERS                  the architects approve the spec and the guards
@@ -89,14 +89,13 @@ orders-api/
 └── .gitignore
 ```
 
-When development is done - every component written from its spec card, with its test:
+When development is done - every component written from its task, with its test:
 
 ```
 orders-api/
 ├── .archvow/
-│   ├── spec.vow                        the project's vow
-│   ├── spec.md                         the whole project on one page
-│   └── components/<component>/         spec.vow (its spec) + spec.md (its task)
+│   ├── project.vow                     the project's vow
+│   └── features/<feature>/             <feature>.vow + components/<component>.vow (one vow each)
 ├── migrations/                         database schema changes, if the service has a database
 ├── src/
 │   └── orders_api/
@@ -183,14 +182,13 @@ Personal data (GDPR): every column of a model is classified - `archvow column se
 email,phone personal` (`special` for health, religion, biometrics..., `none` otherwise); code
 with an unclassified column fails the build. A router and a repository that handle personal data
 then answer the questions of each regime (GDPR: P1, P2...; `archvow show <component>` lists them):
-`archvow decision make <component> P1 "..."`. The result: each regime's register in `.archvow/spec.md`.
+`archvow decision make <component> P1 "..."`. The result: each regime's register in the project's doc (`archvow doc`).
 
 **4. Say what must never happen, then commit the spec**
 
 ```bash
 archvow hazard add order_model S1 high "An order is saved with a negative amount"
 archvow invariant add order_model "every order has an amount of zero or more"
-archvow docs --check
 git add .archvow && git commit -m "US-001: specify order_model"
 ```
 
@@ -227,10 +225,10 @@ implement everything archvow next lists as ready
 ```
 
 `AGENTS.md` tells every approved assistant (copilot) what "implement" means:
-read the spec card, write the file with its header and its tests, run the checks, fix, and
+read its task, write the file with its header and its tests, run the checks, fix, and
 report anything it had to assume.
 
-*Yourself*: the spec card `.archvow/components/<component>/spec.md` is your task; start the file with
+*Yourself*: `archvow prompt <component>` is your task; start the file with
 its header, `@assisted none`. Commit each component; the Git hook runs the checks first. If the
 assistant had to assume something, the commit is refused until a person reviews it:
 `archvow assumption accept order_model 1` (or `archvow assumption reject order_model 1`).
@@ -295,7 +293,7 @@ return type or `response_model=` (`FAPI005`).
 ## Tests
 
 Every component has its test, `tests/<layer>/test_<component>.py`; an implemented component
-without it fails the build. Its spec card says which kind and what to cover.
+without it fails the build. Its task says which kind and what to cover.
 
 - **Unit** (models, pure rules, dependencies): plain objects, fast.
 - **Integration** (repositories, clients, services, routers, the app): through FastAPI's
@@ -331,9 +329,9 @@ repositories use it and the services own the transaction. Schema changes are mig
 
 The same rules apply to everyone, people and AI assistants alike:
 
-1. **Commit `.archvow/` with the change.** Every command above updates the vows (`spec.vow`) and
-   the generated specs in `.archvow/`; commit the whole folder (the local `status.md` is ignored).
-   Never edit those files by hand: `archvow docs --check` fails in CI if you do.
+1. **Commit `.archvow/` with the change.** Every command above updates the vows (`.vow` files) in
+   `.archvow/`; commit the whole folder (`doc/`, what `archvow doc` writes, is ignored). Never edit a vow
+   by hand: `archvow check` sees it (`ARCH014`).
 2. **The spec and the code that follows it travel together.** Code without its spec change fails
    (`ARCH001`, `ARCH002`); a spec change without its code is simply *planned*.
 3. **Spec changes are approved by the architects** (@my-team), through

@@ -1,0 +1,4 @@
+vow 1 feature orders
+# archvow vow of the feature orders - what the product does; its components are in components/.
+# Read: archvow show orders. Never edit by hand: archvow feature add / rename / remove.
+description "Orders"

@@ -13,18 +13,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/orders_reader/spec.vow",
+     "path": ".archvow/features/vat_report/components/orders_reader.vow",
      "note": "its vow: what it must be and do"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/orders_reader/spec.md",
-     "note": "its card: the task the AI or the developer reads"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "the project's page: architecture, traceability"
     },
     {
      "change": "planned",
@@ -51,18 +41,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/orders_reader/spec.vow",
+     "path": ".archvow/features/vat_report/components/orders_reader.vow",
      "note": "son vow : ce qu'il doit être et faire"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/orders_reader/spec.md",
-     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "la page du projet : architecture, traçabilité"
     },
     {
      "change": "planned",
@@ -89,18 +69,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/clean_refunds/spec.vow",
+     "path": ".archvow/features/vat_report/components/clean_refunds.vow",
      "note": "its vow: what it must be and do"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/clean_refunds/spec.md",
-     "note": "its card: the task the AI or the developer reads"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "the project's page: architecture, traceability"
     },
     {
      "change": "planned",
@@ -127,18 +97,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/clean_refunds/spec.vow",
+     "path": ".archvow/features/vat_report/components/clean_refunds.vow",
      "note": "son vow : ce qu'il doit être et faire"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/clean_refunds/spec.md",
-     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "la page du projet : architecture, traçabilité"
     },
     {
      "change": "planned",
@@ -165,18 +125,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/join_stores/spec.vow",
+     "path": ".archvow/features/vat_report/components/join_stores.vow",
      "note": "its vow: what it must be and do"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/join_stores/spec.md",
-     "note": "its card: the task the AI or the developer reads"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "the project's page: architecture, traceability"
     },
     {
      "change": "planned",
@@ -203,18 +153,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/join_stores/spec.vow",
+     "path": ".archvow/features/vat_report/components/join_stores.vow",
      "note": "son vow : ce qu'il doit être et faire"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/join_stores/spec.md",
-     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "la page du projet : architecture, traçabilité"
     },
     {
      "change": "planned",
@@ -241,18 +181,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/legacy_reader/spec.vow",
+     "path": ".archvow/features/vat_report/components/legacy_reader.vow",
      "note": "its vow: what it must be and do"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/legacy_reader/spec.md",
-     "note": "its card: the task the AI or the developer reads"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "the project's page: architecture, traceability"
     },
     {
      "change": "kept",
@@ -274,18 +204,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/legacy_reader/spec.vow",
+     "path": ".archvow/features/vat_report/components/legacy_reader.vow",
      "note": "son vow : ce qu'il doit être et faire"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/legacy_reader/spec.md",
-     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "la page du projet : architecture, traçabilité"
     },
     {
      "change": "kept",
@@ -307,18 +227,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/orders_router/spec.vow",
+     "path": ".archvow/features/orders/components/orders_router.vow",
      "note": "its vow: what it must be and do"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/orders_router/spec.md",
-     "note": "its card: the task the AI or the developer reads"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "the project's page: architecture, traceability"
     },
     {
      "change": "planned",
@@ -345,18 +255,8 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/components/orders_router/spec.vow",
+     "path": ".archvow/features/orders/components/orders_router.vow",
      "note": "son vow : ce qu'il doit être et faire"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/components/orders_router/spec.md",
-     "note": "sa fiche : la tâche que lit l'IA ou le développeur"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "la page du projet : architecture, traçabilité"
     },
     {
      "change": "planned",
@@ -379,13 +279,7 @@
    },
    "example": "pyspark-pipeline",
    "fr": false,
-   "rows": [
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "the project's page: architecture, traceability"
-    }
-   ]
+   "rows": []
   },
   {
    "command": "component add",
@@ -396,13 +290,7 @@
    },
    "example": "pyspark-pipeline",
    "fr": true,
-   "rows": [
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "la page du projet : architecture, traçabilité"
-    }
-   ]
+   "rows": []
   },
   {
    "command": "component edit",
@@ -415,18 +303,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.vow",
+     "path": ".archvow/features/vat_report/components/clean_orders.vow",
      "note": "what was recorded before becomes to review"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
     }
    ]
   },
@@ -441,18 +319,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.vow",
+     "path": ".archvow/features/vat_report/components/clean_orders.vow",
      "note": "ce qui était enregistré devient à revoir"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
     }
    ]
   },
@@ -466,13 +334,8 @@
    "rows": [
     {
      "change": "removed",
-     "path": ".archvow/components/compute_vat/",
-     "note": "its vow and its card, with its hazards and invariants"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
+     "path": ".archvow/features/vat_report/components/compute_vat.vow",
+     "note": "its vow, with its hazards and invariants"
     },
     {
      "change": "kept",
@@ -491,13 +354,8 @@
    "rows": [
     {
      "change": "removed",
-     "path": ".archvow/components/compute_vat/",
-     "note": "son vow et sa fiche, avec ses hazards et invariants"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
+     "path": ".archvow/features/vat_report/components/compute_vat.vow",
+     "note": "son vow, avec ses hazards et invariants"
     },
     {
      "change": "kept",
@@ -518,13 +376,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.vow",
+     "path": ".archvow/features/vat_report/components/clean_orders.vow",
      "note": "the answer, signed with your name"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.md",
-     "note": ""
     }
    ]
   },
@@ -540,13 +393,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.vow",
+     "path": ".archvow/features/vat_report/components/clean_orders.vow",
      "note": "la réponse, signée de votre nom"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.md",
-     "note": ""
     }
    ]
   },
@@ -562,7 +410,7 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/proposals.vow",
+     "path": ".archvow/features/vat_report/proposals.vow",
      "note": "until a person accepts it"
     }
    ]
@@ -579,7 +427,7 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/proposals.vow",
+     "path": ".archvow/features/vat_report/proposals.vow",
      "note": "jusqu'à ce qu'une personne l'accepte"
     }
    ]
@@ -595,13 +443,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/orders_reader/spec.vow",
+     "path": ".archvow/features/vat_report/components/orders_reader.vow",
      "note": "a new numbered question, open"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/orders_reader/spec.md",
-     "note": "the card stops the AI until it is answered"
     }
    ]
   },
@@ -616,13 +459,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/orders_reader/spec.vow",
+     "path": ".archvow/features/vat_report/components/orders_reader.vow",
      "note": "une nouvelle question numérotée, ouverte"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/orders_reader/spec.md",
-     "note": "la fiche arrête l'IA jusqu'à la réponse"
     }
    ]
   },
@@ -638,18 +476,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/vat_writer/spec.vow",
+     "path": ".archvow/features/vat_report/components/vat_writer.vow",
      "note": "the hazard (and its invariant for critical or high)"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/vat_writer/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "Hazards, Invariants"
     }
    ]
   },
@@ -665,18 +493,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/vat_writer/spec.vow",
+     "path": ".archvow/features/vat_report/components/vat_writer.vow",
      "note": "le hazard (et son invariant pour critical ou high)"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/vat_writer/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "Hazards, Invariants"
     }
    ]
   },
@@ -691,23 +509,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "the rule R<n>"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.md",
-     "note": "each one needs a test marked with the rule"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/compute_vat/spec.md",
-     "note": ""
     }
    ]
   },
@@ -722,23 +525,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "la règle R<n>"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.md",
-     "note": "chacun a besoin d'un test marqué par la règle"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/compute_vat/spec.md",
-     "note": ""
     }
    ]
   },
@@ -753,33 +541,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "the rule R<n>"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/config/spec.md",
-     "note": "each one needs a test marked with the rule - and 6 more"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/logging_setup/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/spark/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.md",
-     "note": ""
     }
    ]
   },
@@ -794,33 +557,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "la règle R<n>"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/config/spec.md",
-     "note": "chacun a besoin d'un test marqué par la règle - et 6 autres"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/logging_setup/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/spark/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/clean_orders/spec.md",
-     "note": ""
     }
    ]
   },
@@ -835,18 +573,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "the rule R<n>"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/orders_reader/spec.md",
-     "note": "each one needs a test marked with the rule"
     }
    ]
   },
@@ -861,18 +589,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "la règle R<n>"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/orders_reader/spec.md",
-     "note": "chacun a besoin d'un test marqué par la règle"
     }
    ]
   },
@@ -887,13 +605,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/compute_vat/spec.vow",
+     "path": ".archvow/features/vat_report/components/compute_vat.vow",
      "note": "the example's fingerprint"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/compute_vat/spec.md",
-     "note": ""
     },
     {
      "change": "kept",
@@ -913,13 +626,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/components/compute_vat/spec.vow",
+     "path": ".archvow/features/vat_report/components/compute_vat.vow",
      "note": "l'empreinte de l'exemple"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/components/compute_vat/spec.md",
-     "note": ""
     },
     {
      "change": "kept",
@@ -941,13 +649,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "the third-party register"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
     }
    ]
   },
@@ -964,13 +667,8 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "le registre des tiers"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": ""
     }
    ]
   },
@@ -1146,23 +844,18 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "project specification, preserving committed changes with --force"
     },
     {
      "change": "new",
-     "path": ".archvow/spec.md",
-     "note": "generated architecture overview"
+     "path": ".archvow/features/shared/",
+     "note": "what every feature uses: the template's own components"
     },
     {
      "change": "new",
      "path": ".archvow/README.md",
      "note": "architecture guide"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/status.md",
-     "note": "project status"
     },
     {
      "change": "new",
@@ -1216,23 +909,18 @@
    "rows": [
     {
      "change": "new",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "spécification du projet, conservée si commitée avec --force"
     },
     {
      "change": "new",
-     "path": ".archvow/spec.md",
-     "note": "vue d'ensemble de l'architecture générée"
+     "path": ".archvow/features/shared/",
+     "note": "ce que chaque fonctionnalité utilise : les composants propres au template"
     },
     {
      "change": "new",
      "path": ".archvow/README.md",
      "note": "guide de l'architecture"
-    },
-    {
-     "change": "new",
-     "path": ".archvow/status.md",
-     "note": "état du projet"
     },
     {
      "change": "new",
@@ -1287,23 +975,18 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "project specification, preserving committed changes with --force"
     },
     {
      "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "generated architecture overview"
+     "path": ".archvow/features/shared/",
+     "note": "what every feature uses: the template's own components"
     },
     {
      "change": "updated",
      "path": ".archvow/README.md",
      "note": "architecture guide"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/status.md",
-     "note": "project status"
     },
     {
      "change": "updated",
@@ -1358,23 +1041,18 @@
    "rows": [
     {
      "change": "updated",
-     "path": ".archvow/spec.vow",
+     "path": ".archvow/project.vow",
      "note": "spécification du projet, conservée si commitée avec --force"
     },
     {
      "change": "updated",
-     "path": ".archvow/spec.md",
-     "note": "vue d'ensemble de l'architecture générée"
+     "path": ".archvow/features/shared/",
+     "note": "ce que chaque fonctionnalité utilise : les composants propres au template"
     },
     {
      "change": "updated",
      "path": ".archvow/README.md",
      "note": "guide de l'architecture"
-    },
-    {
-     "change": "updated",
-     "path": ".archvow/status.md",
-     "note": "état du projet"
     },
     {
      "change": "updated",
@@ -1415,6 +1093,178 @@
      "change": "updated",
      "path": ".gitignore",
      "note": "les entrées archvow sont fusionnées dans le fichier existant"
+    }
+   ]
+  },
+  {
+   "command": "feature add",
+   "values": {
+    "name": "refunds",
+    "description": "Refunds the cancelled orders"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/features/refunds/refunds.vow",
+     "note": "what the product does in it; its components go to its components/"
+    }
+   ]
+  },
+  {
+   "command": "feature add",
+   "values": {
+    "name": "refunds",
+    "description": "Refunds the cancelled orders"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/features/refunds/refunds.vow",
+     "note": "ce que fait le produit dans celle-ci ; ses composants vont dans son components/"
+    }
+   ]
+  },
+  {
+   "command": "component move",
+   "values": {
+    "component": "compute_vat",
+    "feature": "refunds"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "removed",
+     "path": ".archvow/features/vat_report/components/compute_vat.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/refunds/components/compute_vat.vow",
+     "note": "the same vow: its id, file and tests stay"
+    }
+   ]
+  },
+  {
+   "command": "component move",
+   "values": {
+    "component": "compute_vat",
+    "feature": "refunds"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "removed",
+     "path": ".archvow/features/vat_report/components/compute_vat.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/refunds/components/compute_vat.vow",
+     "note": "le même vow : son id, son fichier et ses tests restent"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "reader",
+    "name": "stores",
+    "description": "x",
+    "feature": "shared"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/features/shared/components/stores_reader.vow",
+     "note": "its vow: what it must be and do"
+    },
+    {
+     "change": "planned",
+     "path": "src/my_pipeline/p2_io/stores_reader.py",
+     "note": "read_stores(spark: SparkSession, path: str) -> DataFrame"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p2_io/test_stores_reader.py",
+     "note": "its test, marked with its decisions"
+    }
+   ]
+  },
+  {
+   "command": "component add",
+   "values": {
+    "type": "reader",
+    "name": "stores",
+    "description": "x",
+    "feature": "shared"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "new",
+     "path": ".archvow/features/shared/components/stores_reader.vow",
+     "note": "son vow : ce qu'il doit être et faire"
+    },
+    {
+     "change": "planned",
+     "path": "src/my_pipeline/p2_io/stores_reader.py",
+     "note": "read_stores(spark: SparkSession, path: str) -> DataFrame"
+    },
+    {
+     "change": "planned",
+     "path": "tests/p2_io/test_stores_reader.py",
+     "note": "son test, marqué par ses décisions"
+    }
+   ]
+  },
+  {
+   "command": "feature rename",
+   "values": {
+    "feature": "vat_report",
+    "name": "vat"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "removed",
+     "path": ".archvow/features/vat_report/",
+     "note": "its folder, its components with it"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/",
+     "note": "the same vows, under the new name"
+    }
+   ]
+  },
+  {
+   "command": "feature rename",
+   "values": {
+    "feature": "vat_report",
+    "name": "vat"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "removed",
+     "path": ".archvow/features/vat_report/",
+     "note": "son dossier, ses composants avec"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/",
+     "note": "les mêmes vows, sous le nouveau nom"
     }
    ]
   }

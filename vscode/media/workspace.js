@@ -1,6 +1,6 @@
 // The archvow workspace page, the same functions as the IntelliJ workspace, in two roles:
-// - 'nav', the sidebar: Overview, Components (the tree) and Commands (the list), to choose;
-// - 'editor', the one editor tab: the chosen component, the chosen command's form, a command's result.
+// - 'nav', the sidebar: Overview, Features (the tree, by feature or by layer) and Commands (the list), to choose;
+// - 'editor', the one editor tab: the chosen feature or component, the chosen command's form, a command's result.
 // It shows what the extension sends (what archvow said) and asks the extension for every command; the
 // extension checks it against archvow's grammar, and a change runs only after "Confirm and run" here.
 // Plain script, no framework, nothing loaded from outside.
@@ -15,7 +15,7 @@
   /** What the person chose on the page. */
   const ui = {
     tab: 'overview', overSub: 'architecture', packsOpen: false, forceWorkspace: false, filterMenu: false, projectMore: false,
-    /** The editor tab: 'empty', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
+    /** The editor tab: 'empty', 'feature', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
     sel: { decision: '', question: '', safety: '', assumption: '', data: '', example: '', other: -1 },
@@ -23,7 +23,7 @@
      *  group filter and selected hit, and the text typed in the sidebar's find field. */
     exampleFile: {}, search: null, searchName: '', searchGroup: '', searchSel: 0, findText: '',
     otherList: 0, drafts: {}, severity: {}, changing: {}, suggested: {}, results: {}, raw: {}, confirm: null,
-    /** The Spec view: the card (spec.md) or the vow (spec.vow), and the cards read. */
+    /** The Spec view: the task the AI implements (archvow prompt) or the vow, and the tasks read. */
     specPart: 'card', cards: {},
     /** The editor tab: the component (and its view) a command was opened from, for Back; null without. */
     back: null, backArmed: null,
@@ -35,6 +35,8 @@
     formBaseline: {}, tplAnswers: {}, tplLayers: {}, smartRows: {}, smartQuestions: {}, paramRows: {},
     /** The layer whose "+" is open in the Components tab (its types to add), or ''. */
     addLayer: '',
+    /** 0.24.0 (contract 2.0): the Features tab groups by feature or by layer; the features folded; the feature shown. */
+    group: 'feature', folded: {}, feature: '',
     /** The comparison base: the extension's best one (an existing branch) until the person types another. */
     base: '', baseTouched: false, checkSel: 0, explained: {},
     /** The manually resized result height remains intact when full-editor mode closes. */
@@ -59,6 +61,8 @@
       ui.backArmed = { component: ui.component, view: ui.view };
     } else if (!NAV && ui.mode === 'briefs' && m.type === 'openCommand') {
       ui.backArmed = { briefs: true };
+    } else if (!NAV && ui.mode === 'feature' && ui.feature && m.type === 'openCommand') {
+      ui.backArmed = { feature: ui.feature };
     }
     vscode.postMessage(m);
   };
@@ -189,6 +193,14 @@
         break;
       case 'selected':
         ui.component = m.component || '';
+        break;
+      case 'feature':
+        // a feature's page (0.24.0): its components, its map, what to do next
+        if (NAV) return;
+        ui.forceWorkspace = true; ui.mode = 'feature'; ui.feature = m.feature || ''; ui.back = null;
+        break;
+      case 'featureSelected':
+        ui.feature = m.feature || '';
         break;
       case 'commandSelected':
         ui.command = m.command;
@@ -376,6 +388,7 @@
   /** The editor tab's title: what it shows. */
   function editorTitle() {
     if (ui.mode === 'component') return 'archvow: ' + (ui.component || t('Components', 'Composants'));
+    if (ui.mode === 'feature') return 'archvow: ' + (ui.feature || t('Features', 'Fonctionnalités'));
     if (ui.mode === 'checks') return 'archvow: ' + t('Check & Gates', 'Contrôles et validations');
     if (ui.mode === 'briefs') return 'archvow: Briefs';
     if (ui.mode === 'commandDocs') return 'archvow: ' + t('Command reference', 'Docs des commandes');
@@ -397,24 +410,26 @@
     <div><div class="title">Archvow</div><div class="project" title="${esc(S.project.root)}">⌂ ${esc(S.project.name)}</div></div></div>
   <div class="right">${findBox()}${reload}${log}</div></header>${progress}`;
     }
-    const what = ui.mode === 'component' ? ui.component
+    const what = ui.mode === 'component' ? ui.component : ui.mode === 'feature' ? ui.feature
       : ui.mode === 'checks' ? t('Check & Gates', 'Contrôles et validations')
         : ui.mode === 'briefs' ? 'Briefs'
         : ui.mode === 'commandDocs' ? t('Command reference', 'Docs des commandes')
         : ui.mode === 'project' ? t('Project items', 'Éléments du projet')
         : ui.mode === 'command' ? 'archvow ' + ui.command : ui.mode === 'skill' ? skillLabel(ui.skill) : ui.mode === 'result' ? ui.resultLabel
           : ui.mode === 'search' ? ui.searchName : '';
-    const kind = ui.mode === 'component' ? t('Component', 'Composant') : ui.mode === 'command' ? t('Command', 'Commande')
+    const kind = ui.mode === 'component' ? t('Component', 'Composant') : ui.mode === 'feature' ? t('Feature', 'Fonctionnalité') : ui.mode === 'command' ? t('Command', 'Commande')
       : ui.mode === 'skill' ? t('AI skill', 'Skill IA')
       : ui.mode === 'briefs' ? 'Briefs'
       : ui.mode === 'commandDocs' ? t('Reference', 'Référence')
       : ui.mode === 'checks' ? t('Checks', 'Contrôles') : ui.mode === 'project' ? t('Project', 'Projet') : ui.mode === 'result' ? t('Result', 'Résultat')
         : ui.mode === 'search' ? t('Find', 'Recherche') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
-    const named = ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot();
+    const named = (ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot()) || (ui.mode === 'feature' && featureOf(ui.feature));
     const back = ui.back && ui.mode !== 'component'
       ? ui.back.briefs
         ? `<button class="secondary back" data-a="back" title="${esc(t('Back to Briefs', 'Retour aux briefs'))}">← Briefs</button>`
+        : ui.back.feature
+        ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.feature)}">← ${esc(ui.back.feature)}</button>`
         : `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.component)}">← ${esc(ui.back.component)}</button>`
       : '';
     return `<header class="top ${named ? 'slim' : ''}">
@@ -427,6 +442,7 @@
   /** The editor tab: the component, the command or the result chosen in the sidebar. */
   function editorBody() {
     if (ui.mode === 'component') return `<section class="detail-only">${componentDetail()}</section>`;
+    if (ui.mode === 'feature') return `<section class="detail-only feature-page">${featureDetail()}</section>`;
     if (ui.mode === 'briefs') return `<section class="detail-only briefs-editor">${briefsView()}</section>`;
     if (ui.mode === 'checks') return `<section class="detail-only checks-editor">${checksView(true)}</section>`;
     if (ui.mode === 'commandDocs') return `<section class="detail-only">${commandReference()}</section>`;
@@ -449,9 +465,9 @@
     const texts = {
       NO_PROJECT: [t('No project', 'Aucun projet'), t('Open a folder to use Archvow.', 'Ouvre un dossier pour utiliser Archvow.')],
       ROOT_MISSING: [t('Project directory unavailable', 'Dossier projet inaccessible'), t('The project directory is not accessible.', 'Le dossier du projet est introuvable ou inaccessible.')],
-      NOT_INITIALIZED: [t('Archvow not initialized', 'Archvow non initialisé'), t('This folder does not contain .archvow/spec.vow. Initialize Archvow to begin or open an initialized project.',
-        'Ce dossier ne contient pas .archvow/spec.vow. Initialise Archvow ou ouvre un projet existant.')],
-      SPEC_INACCESSIBLE: [t('Specification unavailable', 'Spécification inaccessible'), t('.archvow/spec.vow is not readable.', ".archvow/spec.vow n'est pas lisible.")],
+      NOT_INITIALIZED: [t('Archvow not initialized', 'Archvow non initialisé'), t('This folder does not contain .archvow/project.vow. Initialize Archvow to begin or open an initialized project. A project of archvow 1.x (.archvow/spec.vow) is converted once with archvow 2.0\'s tools/convert_to_2.py.',
+        'Ce dossier ne contient pas .archvow/project.vow. Initialise Archvow ou ouvre un projet existant. Un projet archvow 1.x (.archvow/spec.vow) se convertit une fois avec tools/convert_to_2.py d\'archvow 2.0.')],
+      SPEC_INACCESSIBLE: [t('Specification unavailable', 'Spécification inaccessible'), t('.archvow/project.vow is not readable.', ".archvow/project.vow n'est pas lisible.")],
     };
     const [title, detail] = texts[S.readiness] || [t('Archvow needs attention', 'Configuration Archvow à vérifier'),
       t('The project is initialized, but Archvow could not load it.', "Le projet est initialisé, mais Archvow n'a pas pu le charger.")];
@@ -482,7 +498,7 @@
 
   /** The sidebar: Overview, Components (the tree), Commands (the list). */
   function tabs() {
-    const names = [['overview', t('Overview', "Vue d'ensemble")], ['components', t('Components', 'Composants')], ['commands', t('Commands', 'Commandes')], ['ai', t('AI skills', 'Skills IA')]];
+    const names = [['overview', t('Overview', "Vue d'ensemble")], ['components', t('Features', 'Fonctionnalités')], ['commands', t('Commands', 'Commandes')], ['ai', t('AI skills', 'Skills IA')]];
     const body = ui.tab === 'components' ? `<section class="browser-only">${componentBrowser()}</section>` : ui.tab === 'commands' ? commandsTab() : ui.tab === 'ai' ? aiSkillsTab() : overviewTab();
     return `<nav class="tabs main">${names.map(([id, l]) => `<button class="tab ${ui.tab === id ? 'current' : ''}" data-a="tab" data-tab="${id}">${esc(l)}</button>`).join('')}</nav>
 <main>${body}</main>`;
@@ -759,7 +775,6 @@
     if (checkConfigurationFolder(path)) return t('Show configuration folder', 'Afficher le dossier de configuration');
     const lower = String(path || '').toLowerCase();
     if (lower.endsWith('.vow')) return t('Open vow', 'Ouvrir la vow');
-    if (lower.endsWith('spec.md')) return t('Open spec', 'Ouvrir la spec');
     if (/\.(py|java|ts|js)$/.test(lower)) return t('Open source', 'Ouvrir le code source');
     if (lower.endsWith('.md')) return t('Open document', 'Ouvrir le document');
     return t('Open configuration', 'Ouvrir la configuration');
@@ -829,7 +844,71 @@
 
   // ---------------------------------------------------------------- Components
 
+  /** The Features tab (0.24.0): by feature (what the product does, shared last) or by layer (the template's). */
   function componentBrowser() {
+    const seg = `<div class="segmented group-by" role="radiogroup" aria-label="${esc(t('Group the components', 'Grouper les composants'))}">${[['feature', t('By feature', 'Par fonctionnalité')], ['layer', t('By layer', 'Par couche')]]
+      .map(([id, l]) => `<button type="button" role="radio" aria-checked="${ui.group === id}" class="${ui.group === id ? 'on' : 'secondary'}" data-a="groupBy" data-id="${id}">${esc(l)}</button>`).join('')}</div>`;
+    const add = S.spec ? `<button class="small add-feature" data-a="addFeature" title="${esc(t('Add a feature (archvow feature add): what the product does, never a ticket', 'Ajouter une fonctionnalité (archvow feature add) : ce que fait le produit, jamais un ticket'))}">${icon('add')}${esc(t('Add feature', 'Ajouter une fonctionnalité'))}</button>` : '';
+    const head = `<div class="row tree-tools">${seg}<span class="grow"></span>${add}</div>`;
+    // a spec without features (an archvow before contract 2.0) has only layers to show
+    return head + (ui.group === 'layer' || !featureNames().length ? layerBrowser() : featureBrowser());
+  }
+
+  /** A feature's view (show <feature> --json), from the workspace's answer. */
+  function featureOf(name) {
+    return (S && S.features && S.features[name]) || null;
+  }
+
+  /** The features in reading order: what the product does first, by name, then shared. */
+  function featureNames() {
+    const names = list(S && S.spec, 'features').map((f) => str(f, 'name')).filter(Boolean);
+    return names.sort((a, b) => (a === 'shared' ? 1 : b === 'shared' ? -1 : a.localeCompare(b)));
+  }
+
+  /** The filter's three words (All, Pending, Resolved) with how many components each shows. */
+  function filterWords() {
+    const pending = S.work.pendingByComponent || {};
+    const resolved = S.work.resolvedByComponent || {};
+    const ids = componentIds();
+    const counts = { all: ids.length, pending: ids.filter((id) => (pending[id] || 0) > 0).length, resolved: ids.filter((id) => (resolved[id] || 0) > 0).length };
+    return `<div class="filter-words" role="group" aria-label="${esc(t('Filter components', 'Filtrer les composants'))}">${[['all', t('All', 'Tous')], ['pending', t('Pending', 'En attente')], ['resolved', t('Resolved', 'Traités')]]
+      .map(([id, l]) => `<button class="filter-word ${ui.filter === id ? 'on' : ''}" data-a="filter" data-filter="${id}" aria-pressed="${ui.filter === id}">${esc(l)} <span class="n">${counts[id]}</span></button>`).join('')}</div>`;
+  }
+
+  /** One component's row of the trees: its status dot, its name, its type, and its layer or its open items. */
+  function componentRow(comp, aside) {
+    const pending = S.work.pendingByComponent || {};
+    const id = str(comp, 'id');
+    const p = pending[id] || 0;
+    const state = (S.rows.find((r) => r.id === id) || {}).state || str(comp, 'status') || 'planned';
+    return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${aside ? `<span class="muted small mono layer-tag">${esc(aside)}</span>` : ''}${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
+  }
+
+  /** By feature: each feature, folded or not, its components; its name opens its page, its "+" adds a component to it. */
+  function featureBrowser() {
+    const pending = S.work.pendingByComponent || {};
+    const resolved = S.work.resolvedByComponent || {};
+    const show = (id) => (ui.filter === 'pending' ? (pending[id] || 0) > 0 : ui.filter === 'resolved' ? (resolved[id] || 0) > 0 : true);
+    const all = list(S.spec, 'containers').flatMap((c) => list(c, 'components'));
+    const described = Object.fromEntries(list(S.spec, 'features').map((f) => [str(f, 'name'), str(f, 'description')]));
+    const tree = featureNames().map((name) => {
+      const comps = all.filter((c) => str(c, 'feature') === name);
+      const shown = comps.filter((c) => show(str(c, 'id')));
+      if (ui.filter !== 'all' && !shown.length) return '';
+      const open = comps.reduce((n, c) => n + (pending[str(c, 'id')] || 0), 0);
+      const folded = !!ui.folded[name];
+      const chevron = `<button class="icon chevron" data-a="fold" data-id="${esc(name)}" aria-expanded="${!folded}" title="${esc(folded ? t('Unfold', 'Déplier') : t('Fold', 'Replier'))}">${folded ? '▸' : '▾'}</button>`;
+      const plus = `<button class="icon add-here" data-a="addToFeature" data-id="${esc(name)}" title="${esc(t(`Add a component to ${name}`, `Ajouter un composant à ${name}`))}">${icon('add')}</button>`;
+      const rows = folded ? '' : `<ul>${shown.map((c) => componentRow(c, str(c, 'layer').split('_')[0])).join('')
+        || `<li class="muted small empty-layer">${esc(t('No component yet: + adds the first one', 'Pas encore de composant : + ajoute le premier'))}</li>`}</ul>`;
+      return `<li class="feature ${name === ui.feature && ui.mode !== 'component' ? 'selected' : ''} ${name === 'shared' ? 'shared' : ''}"><div class="node">${chevron}${icon('feature') || icon('folder')}
+  <button class="link feature-name" data-a="pickFeature" data-id="${esc(name)}" title="${esc(described[name] || '')}">${esc(name)}</button><span class="muted small">${comps.length}</span><span class="grow"></span>${open ? `<span class="count">${open}</span>` : ''}${plus}</div>${rows}</li>`;
+    }).join('');
+    return `${filterWords()}<ul class="tree features" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No feature.', 'Aucune fonctionnalité.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
+  }
+
+  /** By layer: the template's layers in their order, each with its components and its "+" (the 0.15 tree). */
+  function layerBrowser() {
     const filters = [['all', t('All', 'Tous')], ['pending', t('Pending', 'En attente')], ['resolved', t('Resolved', 'Traités')]];
     const pending = S.work.pendingByComponent || {};
     const resolved = S.work.resolvedByComponent || {};
@@ -862,8 +941,80 @@
       }).join('')}</ul></li>`;
     });
     const add = S.spec ? `<button class="secondary small add-component" data-a="addComponent" title="${esc(t('Add a component (archvow component add): its type, name and what it must do', 'Ajouter un composant (archvow component add) : son type, son nom et ce qu\'il doit faire'))}">${icon('add')}${esc(t('Add component', 'Ajouter un composant'))}</button>` : '';
-    return `<div class="row tree-tools">${filters.map(([id, l]) => btn(l, 'filter', attrs({ filter: id }) + ` title="${esc(ui.filter === id ? t('Current filter', 'Filtre actif') : t('Filter components', 'Filtrer les composants'))}"`, ui.filter === id, 'secondary small')).join('')}<span class="grow"></span>${add}</div>
+    void filters;
+    return `<div class="row tree-tools sub">${filterWords()}<span class="grow"></span>${add}</div>
   <ul class="tree" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No component.', 'Aucun composant.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
+  }
+
+  /**
+   * A feature's page (0.24.0, contract 2.0): what the product does in it, how far it is, what it uses and what uses
+   * it (worked out from the components' uses), its components by layer, and what is open in it. Its actions: add a
+   * component to it, its doc (archvow doc <feature>), its AI prompt (prompt --feature), its next steps, rename.
+   */
+  function featureDetail() {
+    const name = ui.feature;
+    const f = featureOf(name);
+    if (!f) return `<p class="muted">${esc(name ? (S.spec ? t(`No feature named ${name} (renamed or removed?): choose one in the Archvow sidebar.`, `Aucune fonctionnalité nommée ${name} (renommée ou retirée ?) : choisis-en une dans le panneau Archvow.`) : t('Loading', 'Chargement') + ': ' + name + '…') : t('Choose a feature in the Archvow sidebar.', 'Choisis une fonctionnalité dans le panneau Archvow.'))}</p>`;
+    const comps = list(f, 'components');
+    const pending = S.work.pendingByComponent || {};
+    const ids = new Set(comps.map((c) => str(c, 'id')));
+    const open = comps.reduce((n, c) => n + (pending[str(c, 'id')] || 0), 0);
+    const verified = comps.filter((c) => str(c, 'status') === 'verified').length;
+    const entries = list(S.spec, 'containers').flatMap((c) => list(c, 'components')).filter((c) => ids.has(str(c, 'id')));
+    const tickets = [...new Set(entries.map((c) => str(c, 'spec')).filter(Boolean))];
+    const featureLink = (other) => `<button class="link" data-a="pickFeature" data-id="${esc(other)}">${esc(other)}</button>`;
+    const pairs = (byFeature) => Object.entries(byFeature || {}).map(([other, ps]) =>
+      `${featureLink(other)} <span class="muted">(${esc((ps || []).map((x) => `${str(x, 'component')} → ${str(x, 'uses')}`).join(', '))})</span>`).join(' · ');
+    const uses = Object.keys(f.uses || {});
+    const usedBy = Object.keys(f.used_by || {});
+    const meta = [`${comps.length} ${t(comps.length === 1 ? 'component' : 'components', comps.length === 1 ? 'composant' : 'composants')}`,
+      str(f, 'brief') ? `brief <button class="link" data-a="openFile" data-file="${esc(str(f, 'brief'))}" data-line="0">${esc(str(f, 'brief'))}</button>` : '',
+      tickets.length ? `${esc(t('tickets', 'tickets'))} ${esc(tickets.join(', '))}` : ''].filter(Boolean).join(' · ');
+    // 10 % steps (no inline style in the page), never full when not complete, never empty when started
+    const fill = !comps.length ? 0 : verified === comps.length ? 100 : Math.min(90, Math.max(verified ? 10 : 0, Math.round((10 * verified) / comps.length) * 10));
+    const shared = name === 'shared';
+    const actions = [
+      btn(t('Add component', 'Ajouter un composant'), 'addToFeature', attrs({ id: name }), false, ''),
+      btn(t('Open feature doc', 'Ouvrir la doc'), 'featureDoc', attrs({ id: name }) + ` title="${esc(t(`archvow doc ${name}: its page, written into .archvow/doc/ (ignored by Git)`, `archvow doc ${name} : sa page, écrite dans .archvow/doc/ (ignoré par Git)`))}"`, false, 'secondary'),
+      btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name}: the feature in a few lines, then the task of its next component`, `archvow prompt --feature ${name} : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant`))}"`, false, 'secondary'),
+      btn(t('Next steps', 'Prochaines étapes'), 'run', attrs({ label: `next --feature ${name}`, args: `next --feature ${name} --json`, target: 'overview' }), false, 'secondary'),
+      shared ? '' : btn(t('Rename…', 'Renommer…'), 'openCommand', attrs({ command: 'feature rename', feature: name }), false, 'link quiet'),
+      shared || comps.length ? '' : btn(t('Remove…', 'Retirer…'), 'openCommand', attrs({ command: 'feature remove', feature: name }), false, 'link quiet'),
+    ].join('');
+    const byLayer = new Map();
+    for (const c of comps) {
+      const layer = str(c, 'layer');
+      if (!byLayer.has(layer)) byLayer.set(layer, []);
+      byLayer.get(layer).push(c);
+    }
+    const layers = [...byLayer.keys()].sort().reverse();  // the entry points first, the domain last
+    const table = comps.length ? `<div class="feature-table" role="table">
+  <div class="ft-row ft-head" role="row"><span>${esc(t('Component', 'Composant'))}</span><span>Type</span><span>${esc(t('Code', 'Code'))}</span><span>${esc(t('Status', 'Statut'))}</span></div>
+  ${layers.map((layer) => `<div class="ft-layer mono" role="row">${esc(layer)}</div>${byLayer.get(layer).map((c) => {
+      const id = str(c, 'id');
+      const p = pending[id] || 0;
+      const state = str(c, 'status') || 'planned';
+      return `<div class="ft-row" role="row"><button class="link" data-a="pick" data-id="${esc(id)}">${esc(id)}</button><span class="muted">${esc(str(c, 'type'))}</span>
+  <button class="link mono small ellipsis" data-a="openFile" data-file="${esc(str(c, 'file'))}" data-line="0" title="${esc(str(c, 'file'))}">${esc(str(c, 'file').split('/').slice(-2).join('/'))}</button>
+  <span class="component-state ${esc(p ? 'warn' : stateTone(state))}">${esc(p ? t(`${p} open`, `${p} ouvert${p > 1 ? 's' : ''}`) : localizedState(state))}</span></div>`;
+    }).join('')}`).join('')}</div>` : `<p class="muted">${esc(t('No component yet. Add the first one: its type, its name, what it must do.', 'Pas encore de composant. Ajoute le premier : son type, son nom, ce qu\'il doit faire.'))}</p>`;
+    const chip = (n, cls) => `<button class="chip-feature ${cls}" data-a="pickFeature" data-id="${esc(n)}">${esc(n)}</button>`;
+    const map = `<div class="card feature-map"><h3>${esc(t('Feature map', 'Carte des fonctionnalités'))}</h3>
+  <div class="map-row">${uses.map((n) => chip(n, '')).join('')}${uses.length ? '<span class="muted">←</span>' : ''}<span class="chip-feature current">${esc(name)}</span>${usedBy.length ? '<span class="muted">←</span>' : ''}${usedBy.map((n) => chip(n, '')).join('')}</div>
+  <p class="muted small">${esc(t("Worked out from the components' uses. A feature never uses another in a loop (ARCH061); shared uses a feature only from an entry point (ARCH062).",
+    "Déduite de ce qu'utilisent les composants. Une fonctionnalité n'en utilise jamais une autre en boucle (ARCH061) ; shared n'utilise une fonctionnalité que depuis un point d'entrée (ARCH062)."))}</p></div>`;
+    const items = S.work.pending.filter((w) => ids.has(w.component)).slice(0, 8);
+    const openCard = `<div class="card feature-open"><h3>${esc(t('Open in this feature', 'Ouvert dans cette fonctionnalité'))}</h3>${items.length
+      ? `<ul class="plain-list">${items.map((w) => `<li><button class="link" data-a="pick" data-id="${esc(w.component)}">${esc(w.component)}</button> <span class="muted">· ${esc(w.title)}</span></li>`).join('')}</ul>`
+      : `<p class="muted small tone-good">${esc(t('Nothing open: every decision is made.', 'Rien d\'ouvert : chaque décision est prise.'))}</p>`}</div>`;
+    return `<div class="feature-head"><h2>${esc(name)}${open ? `<span class="component-state warn">${esc(t(`${open} open`, `${open} ouvert${open > 1 ? 's' : ''}`))}</span>` : ''}</h2>
+  <p class="meta muted">${meta}</p>
+  ${str(f, 'description') ? `<p class="description">${esc(str(f, 'description'))}</p>` : ''}
+  <div class="progress-line"><div class="progress-track"><div class="progress-fill p${fill}"></div></div><span class="muted small">${esc(t(`${verified} of ${comps.length} components verified`, `${verified} composants vérifiés sur ${comps.length}`))}</span></div>
+  ${uses.length || usedBy.length ? `<p class="links muted small">${uses.length ? `${esc(t('Uses', 'Utilise'))} ${pairs(f.uses)}` : ''}${uses.length && usedBy.length ? '  ·  ' : ''}${usedBy.length ? `${esc(t('Used by', 'Utilisée par'))} ${pairs(f.used_by)}` : ''}</p>` : ''}</div>
+<div class="row wrap actions">${actions}</div>
+<div class="feature-body"><section class="feature-main"><h3>${esc(t('Components, by layer', 'Composants, par couche'))}</h3>${table}</section>
+<aside class="feature-side">${map}${openCard}</aside></div>`;
   }
 
   const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Other', 'Autres'), t('Examples', 'Exemples')];
@@ -877,6 +1028,7 @@
       `<span class="ai-anchor">${btn(t('✦ AI ▾', '✦ IA ▾'), 'aiMenu', `title="${esc(t('What you ask the AI for this component: it adds, you decide', "Ce que tu demandes à l'IA pour ce composant : elle ajoute, tu décides"))}" aria-haspopup="menu" aria-expanded="${ui.aiMenu ? 'true' : 'false'}"`, false, 'ai-skills')}${ui.aiMenu ? aiMenu() : ''}</span>`,
       `<span class="ai-anchor">${btn(t('+ Add ▾', '+ Ajouter ▾'), 'addMenu', `title="${esc(t('What you add yourself to this component', 'Ce que tu ajoutes toi-même à ce composant'))}" aria-haspopup="menu" aria-expanded="${ui.addMenu ? 'true' : 'false'}"`, false, 'secondary')}${ui.addMenu ? addMenu() : ''}</span>`,
       btn('✎ ' + t('Edit spec', 'Modifier la spec'), 'openCommand', attrs({ command: 'component edit', component: ui.component }) + ` title="${esc(t('Change the description, ticket, signature, uses, group, owners or brief (archvow component edit). Decisions, questions and hazards stay as they are: review the ones the change touches.', 'Changer la description, le ticket, la signature, les dépendances, le groupe, les responsables ou la brief (archvow component edit). Les décisions, questions et hazards restent tels quels : revoir ceux que le changement touche.'))}"`, false, 'secondary'),
+      btn('⇄ ' + t('Move…', 'Déplacer…'), 'openCommand', attrs({ command: 'component move', component: ui.component }) + ` title="${esc(t('Move it to another feature (archvow component move): its vow moves; its id, file and tests stay.', 'Le déplacer vers une autre fonctionnalité (archvow component move) : son vow bouge ; son id, son fichier et ses tests restent.'))}"`, false, 'secondary'),
       btn('⌘ ' + t('Open code', 'Ouvrir le code'), 'openCode', `title="${esc(t("Open this component's Python file (and its test). Change the code there; save, then Check.", 'Ouvrir le fichier Python de ce composant (et son test). Modifier le code là ; enregistrer, puis Vérifier.'))}"`, false, 'secondary'),
     ];
     const view = snapshot();
@@ -913,7 +1065,7 @@
     const waitingBadge = waiting > 0 ? ` <button class="badge-ai" data-a="toReview" title="${esc(t('Show only what the AI added and no person kept yet', "N'afficher que ce que l'IA a ajouté et qu'aucune personne n'a encore gardé"))}">${esc(t(`${waiting} from AI to review`, `${waiting} de l'IA à relire`))}</button>` : '';
     const componentState = (S.rows.find((r) => r.id === ui.component) || {}).state || str(view, 'status');
     const head = view ? `<div class="component-head"><h2>${esc(ui.component)}<span class="component-state ${esc(stateTone(componentState))}">${esc(localizedState(componentState))}</span>${openBadge(ui.component)}${aiBadge(view)}${waitingBadge}${failingBadge(view)}</h2>${createdByAi(view)}<p class="meta muted">${esc(meta(view))}</p>${progressBar(view)}
-  <p class="description">${esc(str(view, 'description'))}</p>${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
+  <p class="description">${esc(str(view, 'description'))}</p>${featureLine()}${drawnFrom(view)}${links(view)}${examples(view)}${list(view, 'missing').length || (Array.isArray(view.missing) && view.missing.length)
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
     // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
@@ -981,7 +1133,7 @@
   <span class="grow"><b>${esc(pair(def.label))}</b>${sg === id ? ` <span class="sugg">${esc(t('SUGGESTED', 'SUGGÉRÉ'))}</span>` : ''}<span class="small ${blocked ? 'tone-warn' : ''}">${esc(blocked ? pair(blocked) : pair(def.does))}</span></span>
   <span class="mono small muted">${esc(id)}</span></button>`;
     }).join('');
-    const copy = `<button class="ai-item" role="menuitem" data-a="aiPrompt"><span class="grow"><b>${esc(t('Copy the card for another AI', 'Copier la fiche pour une autre IA'))}</b><span class="small">${esc(t("for an assistant that cannot read the project's files", 'pour un assistant qui ne lit pas les fichiers du projet'))}</span></span><span class="mono small muted">prompt</span></button>`;
+    const copy = `<button class="ai-item" role="menuitem" data-a="aiPrompt"><span class="grow"><b>${esc(t('Copy the task for another AI', 'Copier la tâche pour une autre IA'))}</b><span class="small">${esc(t("for an assistant that cannot read the project's files", 'pour un assistant qui ne lit pas les fichiers du projet'))}</span></span><span class="mono small muted">prompt</span></button>`;
     return `<div class="ai-menu" role="menu"><div class="ai-menu-head">${esc(t('WHAT THE AI CAN DO · in the order of the work', "CE QUE L'IA PEUT FAIRE · dans l'ordre du travail"))}</div>${items}<div class="menu-sep"></div>${copy}</div>`;
   }
 
@@ -1102,7 +1254,7 @@
   /** type · layer · module · ticket · status: the component's place, from show --json and the spec. */
   function meta(view) {
     const entry = list(S.spec, 'containers').flatMap((c) => list(c, 'components')).find((x) => str(x, 'id') === ui.component) || {};
-    return [str(view, 'type'), str(view, 'layer') || str(entry, 'layer'),
+    return [str(entry, 'feature') ? t('feature ', 'fonctionnalité ') + str(entry, 'feature') : '', str(view, 'type'), str(view, 'layer') || str(entry, 'layer'),
       str(entry, 'module') ? 'module ' + str(entry, 'module') : '',
       str(entry, 'spec') ? t('ticket ', 'ticket ') + str(entry, 'spec') : '',
       localizedState(str(view, 'status'))].filter((x) => x).join(' · ');
@@ -1137,6 +1289,13 @@
   function answerHead(text, state, good) {
     const tone = typeof good === 'string' ? good : good ? 'good' : 'warn';
     return `<div class="answer-head"><span>${esc(text)}</span>${state ? ` <b class="tone-${tone}">${esc(state)}</b>` : ''}</div>`;
+  }
+
+  /** The feature the component is in, a link to its page (0.24.0). */
+  function featureLine() {
+    const entry = list(S.spec, 'containers').flatMap((c) => list(c, 'components')).find((x) => str(x, 'id') === ui.component) || {};
+    const name = str(entry, 'feature');
+    return name ? `<p class="links muted small">${esc(t('In the feature', 'Dans la fonctionnalité'))} <button class="link" data-a="pickFeature" data-id="${esc(name)}">${esc(name)}</button></p>` : '';
   }
 
   /** What the component uses and what uses it (show --json `uses`, `used_by`), each one a link: what a
@@ -1824,8 +1983,8 @@
   }
 
   /**
-   * Spec: one view of the component's spec - the card the AI implements (spec.md, written by archvow)
-   * and the vow it is written from (spec.vow). Two files on disk, one place to read them; both read only.
+   * Spec: one view of the component's spec - the task the AI implements (archvow prompt: nothing generated is
+   * committed since archvow 2.0) and the vow it is written from. One place to read them; both read only.
    */
   function vowView() {
     const text = S.vows[ui.component];
@@ -1834,16 +1993,17 @@
       return `<p class="muted">${esc(t('Loading', 'Chargement'))}…</p>`;
     }
     const part = ui.specPart === 'vow' ? 'vow' : 'card';
-    const toggle = `<div class="segmented" role="radiogroup">${[['card', t('The card the AI implements', "La fiche que l'IA implémente")], ['vow', t('The vow it is written from', 'Le vow dont elle est écrite')]]
+    const toggle = `<div class="segmented" role="radiogroup">${[['card', t('The task the AI implements', "La tâche que l'IA implémente")], ['vow', t('The vow it is written from', 'Le vow dont elle est écrite')]]
       .map(([id, l]) => `<button type="button" role="radio" aria-checked="${part === id}" class="${part === id ? 'on' : 'secondary'}" data-a="specPart" data-id="${id}">${esc(l)}</button>`).join('')}</div>`;
-    const file = `.archvow/components/${ui.component}/${part === 'vow' ? 'spec.vow' : 'spec.md'}`;
+    const entry = list(S.spec, 'containers').flatMap((c) => list(c, 'components')).find((x) => str(x, 'id') === ui.component) || {};
+    const file = part === 'vow' ? `.archvow/features/${str(entry, 'feature') || '…'}/components/${ui.component}.vow` : `archvow prompt ${ui.component}`;
     const bar = `<div class="row wrap">${toggle}<span class="muted small"><code>${esc(file)}</code> - ${esc(t('read only: change it with the commands (Edit spec, + Question, + Rule...)', 'en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)'))}</span>
-  ${btn(t('Open in the editor', "Ouvrir dans l'éditeur"), part === 'vow' ? 'openVowFile' : 'openSpec', '', false, 'secondary')}${btn(t('Project vow', 'Vow du projet'), 'openProjectVow', '', false, 'secondary')}</div>`;
+  ${part === 'vow' ? btn(t('Open in the editor', "Ouvrir dans l'éditeur"), 'openVowFile', '', false, 'secondary') : btn(t('Copy', 'Copier'), 'aiPrompt', '', false, 'secondary')}${btn(t('Project vow', 'Vow du projet'), 'openProjectVow', '', false, 'secondary')}</div>`;
     if (part === 'card') {
       const card = ui.cards[ui.component] || '';
-      return bar + (card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('No spec.md yet: archvow docs writes it.', 'Pas encore de spec.md : archvow docs l\'écrit.'))}</p>`);
+      return bar + (card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('archvow prompt gave nothing for this component.', "archvow prompt n'a rien donné pour ce composant."))}</p>`);
     }
-    if (!text) return bar + `<p class="muted">${esc(t('No spec.vow for this component.', 'Pas de spec.vow pour ce composant.'))}</p>`;
+    if (!text) return bar + `<p class="muted">${esc(t('No vow for this component.', 'Pas de vow pour ce composant.'))}</p>`;
     const lines = text.split('\n').map((line) => {
       const m = /^(\s*)("(?:[^"\\]|\\.)*"|[A-Za-z_][A-Za-z0-9_./-]*)(.*)$/.exec(line);
       if (line.trimStart().startsWith('#') || !m) return `<span class="${line.trimStart().startsWith('#') ? 'comment' : ''}">${esc(line)}</span>`;
@@ -2147,7 +2307,7 @@
       for (let i = 0; i < rest.length; i += 5) stages.push({ title: t('Other template answers', 'Autres réponses du modèle'), names: [], questions: rest.slice(i, i + 5) });
       stages.push(stage('Advanced CLI', 'Options CLI avancées', ['force', 'no_git', 'no_input', 'adopt'], 'init-other'));
     } else if (name === 'component add') {
-      stages.push(stage('Basics', 'Essentiel', ['type', 'name', 'description']));
+      stages.push(stage('Basics', 'Essentiel', ['type', 'name', 'description', 'feature']));
       stages.push(stage('Architecture', 'Architecture', ['kind', 'spec', 'uses', 'container', 'group']));
       stages.push(stage('Source & advanced', 'Source et options', ['signature', 'route', 'source', 'file']));
     } else if (name === 'component edit') {
@@ -2721,6 +2881,12 @@
         ui.mode = 'briefs';
         return;
       }
+      if (to.feature) {
+        ui.forceWorkspace = true;
+        ui.mode = 'feature';
+        ui.feature = to.feature;
+        return;
+      }
       ui.view = to.view;
       post({ type: 'show', component: to.component });
     },
@@ -2794,6 +2960,13 @@
     pick: (e) => { if (NAV) ui.component = e.dataset.id; post({ type: 'show', component: e.dataset.id }); },
     filter: (e) => { ui.filterMenu = false; ui.filter = e.dataset.filter; ui.tab = 'components'; },
     addComponent: () => post({ type: 'openCommand', command: 'component add', values: {}, selected: '' }),
+    groupBy: (e) => { ui.group = e.dataset.id === 'layer' ? 'layer' : 'feature'; },
+    fold: (e) => { ui.folded[e.dataset.id] = !ui.folded[e.dataset.id]; },
+    pickFeature: (e) => { ui.feature = e.dataset.id; post({ type: 'showFeature', feature: e.dataset.id }); },
+    addFeature: () => post({ type: 'openCommand', command: 'feature add', values: {}, selected: '' }),
+    addToFeature: (e) => post({ type: 'openCommand', command: 'component add', values: { feature: e.dataset.id }, selected: '' }),
+    featureDoc: (e) => post({ type: 'openDoc', feature: e.dataset.id }),
+    featurePrompt: (e) => post({ type: 'featurePrompt', feature: e.dataset.id }),
     addHere: (e) => { ui.addLayer = ui.addLayer === e.dataset.id ? '' : e.dataset.id; },
     addType: (e) => { ui.addLayer = ''; post({ type: 'openCommand', command: 'component add', values: { type: e.dataset.id }, selected: '' }); },
     view: (e) => {
@@ -2826,6 +2999,7 @@
     openCommand: (e) => {
       const values = {};
       if (e.dataset.component) values.component = e.dataset.component;
+      if (e.dataset.feature) values.feature = e.dataset.feature;  // feature rename / remove, from its page (0.24.0)
       if (e.dataset.number) values.number = e.dataset.number;
       if (e.dataset.id) values.id = e.dataset.id;  // hazard accept, rule accept / remove (0.16.0)
       if (e.dataset.brief) values.brief = e.dataset.brief;  // brief accept, from Overview › Briefs

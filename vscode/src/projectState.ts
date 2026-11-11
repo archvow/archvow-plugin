@@ -15,7 +15,7 @@ export function readiness(root: string | null): Readiness {
   } catch {
     return 'ROOT_MISSING';
   }
-  const spec = path.join(root, '.archvow', 'spec.vow');
+  const spec = path.join(root, '.archvow', 'project.vow');
   if (!fs.existsSync(spec)) return 'NOT_INITIALIZED';
   try {
     const stat = fs.statSync(spec);

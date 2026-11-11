@@ -1,18 +1,16 @@
 # Guard files written by archvow: changes need an architect's approval. .archvow/ is listed path by
-# path: in mode free, the AI's proposals (.archvow/proposals.vow) are not the architects' (ARCH050
-# refuses any other file there).
+# path (ARCH050 refuses any other file there); in mode free, the AI's proposals (each feature's
+# proposals.vow) are not the architects': the exclusion below (GitLab 17.10 or later).
 # Enforced only with GitLab Premium/Ultimate and, on the protected default branch:
 #   Settings > Repository > Branch rules > "Code owner approval" ON, "Allowed to push" = No one.
 # The [Architecture guards] section is required (no ^ prefix) and needs 1 approval.
 
 [Architecture guards][1]
-/.archvow/spec.vow           @acme/architects
+/.archvow/project.vow        @acme/architects
 /.archvow/README.md          @acme/architects
-/.archvow/spec.md            @acme/architects
-/.archvow/components/        @acme/architects
+/.archvow/features/          @acme/architects
 /.archvow/frozen.json        @acme/architects
 /.archvow/packs/             @acme/architects
-/.archvow/proposals.vow      @acme/architects
 /AGENTS.md                  @acme/architects
 /CLAUDE.md                  @acme/architects
 /.aiassistant/              @acme/architects

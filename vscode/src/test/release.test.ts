@@ -152,7 +152,7 @@ test('contract/archvow: the archvow CI installs is the contract\'s, with the exa
   const wheels = fs.readdirSync(path.join(ROOT, 'contract', 'archvow')).filter((f) => f.endsWith('.whl'));
   assert.deepEqual(wheels, [`archvow-${recordedFrom}-py3-none-any.whl`], 'one wheel, the version of contract/cli/version.txt');
   for (const example of ['python-app', 'fastapi-service', 'pyspark-pipeline']) {
-    assert.ok(exists('contract', 'archvow', 'examples', example, '.archvow', 'spec.vow'), example);
+    assert.ok(exists('contract', 'archvow', 'examples', example, '.archvow', 'project.vow'), example);
     assert.ok(exists('contract', 'archvow', 'examples', example, 'pyproject.toml'), `${example}: its code`);
   }
   for (const name of ['rules.md', 'rules.fr.md']) {

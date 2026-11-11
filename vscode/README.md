@@ -9,11 +9,11 @@ ArchVow connects VS Code to the **ArchVow CLI** and provides a visual workspace 
 Open **ArchVow** from the Activity Bar to access:
 
 - **Overview** — See the project's architecture status, pending and resolved items, and quick actions such as Check, Next, Doctor and Audit, and the project's packs (archvow 1.26): what each brings, whether its copy was changed by hand, with Update, Remove and Check.
-- **Components** — Browse components by layer and inspect their decisions, questions, safety, assumptions, rules, tasks and specifications. Follow links to related components, briefs and code.
+- **Features** — Browse what the product does: each feature with its components (or the components by layer), and open a feature's page - how far it is, the features it uses and that use it, its components by layer, what is open - with Add component, Open feature doc, Copy AI prompt and Next steps. Inspect each component's decisions, questions, safety, assumptions, rules, tasks and specification, move it to another feature, and follow links to related components, briefs and code.
 - **Commands** — Run ArchVow commands through guided forms. Review the options, see the exact command and read its result without switching to a terminal.
 - **AI skills** — Prepare structured prompts to draft from a brief, find missing questions or risks, implement a component or review changes. Copy them to your preferred AI assistant, then review proposed items before keeping them.
 
-Selecting a component, command or result opens it in **one reusable editor tab**, so your workspace stays uncluttered.
+Selecting a feature, component, command or result opens it in **one reusable editor tab**, so your workspace stays uncluttered.
 
 ## AI-assisted development guided by specifications
 
@@ -33,7 +33,7 @@ ArchVow **does not change architecture files directly**. When an action changes 
 ## Getting started
 
 1. Install the **ArchVow CLI** and verify it with `archvow --version`.
-2. Open your project folder in VS Code. If it does not contain `.archvow/spec.vow`, choose **Initialize ArchVow**.
+2. Open your project folder in VS Code. If it does not contain `.archvow/project.vow`, choose **Initialize ArchVow**.
 3. Open **ArchVow** in the Activity Bar to explore the project and run commands.
 
 The extension looks for ArchVow in your project's Python interpreter, then in `archvow.python`, then in `archvow.executable`. It can offer to install the supported CLI version, but only after your confirmation. VS Code Remote - SSH and WSL environments are supported.

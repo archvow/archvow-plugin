@@ -3,9 +3,22 @@
 > 🇫🇷 [Version française](/06-sidebar-and-tab) · English version
 
 Both plugins have the same layout: **the sidebar chooses, one single editor tab shows**. Overview,
-Components (the tree) and Commands (the list) are on the left; what is chosen there (a component, a
+Features (the tree) and Commands (the list) are on the left; what is chosen there (a feature, a component, a
 command's form, the result of an Overview command) opens in the tab *archvow: clean_orders*, reused for
 the next choice. Never one tab per component.
+
+## The Features tab and a feature's page (0.24.0, contract 2.0)
+
+The tree groups the components **by feature** (the default: what the product does, by name, `shared` last; a
+feature folds, its "+" adds a component to it, its name opens its page) or **by layer** (the template's layers,
+as before 0.24.0); **Add feature** opens `feature add`. VS Code: `componentBrowser()` with `featureBrowser()` and
+`layerBrowser()`; IntelliJ: `rebuildTree` with `buildFeatureTree`, the *By feature / By layer* switch above it.
+A feature's page (VS Code `featureDetail()`, IntelliJ `ArchvowFeatureView`, from `workspace --json`'s `features`):
+its open items, its components and tickets, what the product does in it, how many components are verified, the
+features it uses and that use it (with the uses that make each link), its components by layer and what is open in
+it; **Add component** (`component add -f <feature>`), **Open feature doc** (`archvow doc <feature>`, then the page
+in an editor), **Copy AI prompt** (`archvow prompt --feature`), **Next steps** (`next --feature`), **Rename…**. A
+component's head names its feature (a link), and **Move…** opens `component move`.
 
 ## IntelliJ: one class, two roles
 
@@ -103,6 +116,6 @@ Whether it changes through a command in a terminal, an AI agent or a `git pull`:
 
 ## At start-up
 
-IntelliJ: `ArchvowOpenOnStartup` shows the tool window when the project has a `.archvow/spec.vow`,
-nothing for other projects. VS Code: the extension activates on `workspaceContains:.archvow/spec.vow`
+IntelliJ: `ArchvowOpenOnStartup` shows the tool window when the project has a `.archvow/project.vow`,
+nothing for other projects. VS Code: the extension activates on `workspaceContains:.archvow/project.vow`
 or when a `.vow` is opened; in an untrusted folder, only the `.vow` language works.

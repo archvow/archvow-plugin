@@ -149,7 +149,7 @@ question and its state ("Load question") before you answer.
 
 ## The init wizard
 
-In a folder without `.archvow/spec.vow`, **Initialize Archvow** opens the `init` form with a wizard:
+In a folder without `.archvow/project.vow`, **Initialize Archvow** opens the `init` form with a wizard:
 the template, then its questions (the essential ones; the others under "advanced settings"). The
 questions come from `archvow catalog --json` run in the project's folder (0.22.0, archvow 1.26: archvow's
 templates and those of the packs `archvow pack add` copied there, named `<pack>/<template>`), otherwise from

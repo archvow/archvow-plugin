@@ -14,8 +14,8 @@ disque seulement, sans lancer Python pour un projet qui n'est pas un projet arch
 |---|---|
 | `NO_PROJECT` | « Ouvre un dossier » |
 | `ROOT_MISSING` | le dossier du projet est introuvable |
-| `NOT_INITIALIZED` | pas de `.archvow/spec.vow` : **Initialiser Archvow** (l'assistant `init`, page [Les commandes](/09-commands)) |
-| `SPEC_INACCESSIBLE` | `spec.vow` vide ou illisible |
+| `NOT_INITIALIZED` | pas de `.archvow/project.vow` : **Initialiser Archvow** (l'assistant `init`, page [Les commandes](/09-commands)) |
+| `SPEC_INACCESSIBLE` | `project.vow` vide ou illisible |
 | `READY` | l'espace de travail ; si la CLI échoue malgré tout, son message, avec Configurer Python et Réessayer |
 
 ## La bande « État du projet »
@@ -49,7 +49,7 @@ peut puiser) et combien de fichiers `.md` / `.txt` ils contiennent : `ArchvowBri
 | Full check | `check --complete --json` | l'onglet |
 | Doctor | `doctor --json` | l'onglet |
 | Audit | `audit --json` | l'onglet |
-| Project vow | ouvre `.archvow/spec.vow` | un onglet d'éditeur ordinaire |
+| Project vow | ouvre `.archvow/project.vow` | un onglet d'éditeur ordinaire |
 | Budget / Next | `next --base <Base> --json` | l'onglet |
 | Diff, Review | le formulaire de `diff` / `review`, `--base` déjà rempli | l'onglet |
 

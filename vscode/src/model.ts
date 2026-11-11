@@ -1,10 +1,13 @@
 // What the archvow CLI prints with --json, as the extension reads it, and the pure functions that turn
 // it into what VS Code shows. No archvow rule is decided here: statuses, readiness and problems are the
 // CLI's; this file only arranges them. The shapes are checked against ../contract/cli/ (test/model.test.ts).
+import { componentOfPath, PROJECT_VOW } from './layout';
 
 /** `archvow show --json`: the whole spec. */
 export interface Spec {
   system?: { name?: string; description?: string };
+  /** Contract 2.0: what the product does, `shared` always; each component names its own. */
+  features?: { name: string; description?: string; brief?: string }[];
   containers: Container[];
 }
 
@@ -19,9 +22,27 @@ export interface SpecComponent {
   id: string;
   type: string;
   layer: string;
+  /** Contract 2.0: the feature it is in (its vow's folder). */
+  feature?: string;
   module?: string;
   description?: string;
   uses?: string[];
+}
+
+/** `archvow show <feature> --json` (contract 2.0), and each entry of `workspace --json`'s `features`. */
+export interface FeatureView {
+  feature: string;
+  description: string;
+  brief: string | null;
+  components: { id: string; type: string; layer: string; file: string; vow: string; status: string }[];
+  /** The features it uses, each with the uses that make the link. */
+  uses: Record<string, { component: string; uses: string }[]>;
+  used_by: Record<string, { component: string; uses: string }[]>;
+}
+
+/** The features in the order a person reads them: what the product does first, by name, then `shared`. */
+export function featureOrder(names: string[]): string[] {
+  return [...names].sort((a, b) => (a === 'shared' ? 1 : b === 'shared' ? -1 : a.localeCompare(b)));
 }
 
 /** `archvow check --json`. */
@@ -178,10 +199,9 @@ export function problemsByComponent(check: CheckResult | null): Map<string, numb
   return counts;
 }
 
-/** The component a violation is about, when its file says it (`.archvow/components/<id>/spec.vow`). */
+/** The component a violation is about, when its file says it (`.archvow/features/<feature>/components/<id>.vow`). */
 export function componentOfViolation(v: Violation): string | null {
-  const m = /^\.archvow\/components\/([^/]+)\//.exec(v.file.replace(/\\/g, '/'));
-  return m ? m[1] : null;
+  return componentOfPath(v.file);
 }
 
 /** One line of description under a component in the tree: archvow's own words. */
@@ -221,7 +241,7 @@ export interface FileProblem {
 /** check's violations as editor problems: files, 0-based lines, errors and warnings. */
 export function problemsOf(check: CheckResult): FileProblem[] {
   return (check.violations ?? []).map((v) => ({
-    file: (v.file || '.archvow/spec.vow').replace(/\\/g, '/'),
+    file: (v.file || PROJECT_VOW).replace(/\\/g, '/'),
     line: Math.max(0, (v.line ?? 0) - 1),
     col: Math.max(0, v.col ?? 0),
     error: v.severity === 'error',
@@ -259,6 +279,8 @@ export interface WorkspaceAnswer {
   check: Record<string, unknown>;
   /** The briefs, as `brief show --json`. */
   briefStatus: Record<string, unknown> | null;
+  /** Contract 2.0: each feature, as `show <feature> --json`, by name. */
+  features: Record<string, Record<string, unknown>>;
   /** The templates, packs and agents, as `catalog --json` in the project. */
   catalog: Record<string, unknown> | null;
   /** The project's packs (archvow 1.26, contract 1.2): each with its source and state, `ok` or `changed` (ARCH060). */
@@ -286,6 +308,7 @@ export function readWorkspace(answer: Record<string, unknown> | null): Workspace
   }
   return { digest: answer.digest, spec, snapshots, next: answer.next as Record<string, unknown>[], check,
     briefStatus: record(answer.briefs), catalog: record(answer.catalog),
+    features: Object.fromEntries(Object.entries(record(answer.features) ?? {}).map(([k, v]) => [k, record(v)]).filter(([, v]) => v !== null)) as Record<string, Record<string, unknown>>,
     packs: Array.isArray(answer.packs) ? (answer.packs as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [] };
 }
 

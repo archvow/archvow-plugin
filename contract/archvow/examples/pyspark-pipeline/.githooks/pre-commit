@@ -53,5 +53,3 @@ echo "pre-commit: ruff format --check"
 ruff format --check .
 echo "pre-commit: archvow check (code matches the spec)"
 archvow check
-echo "pre-commit: archvow docs --check (specs up to date)"
-archvow docs --check

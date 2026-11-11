@@ -44,6 +44,10 @@ const SCENARIOS: [string, Record<string, string>, string][] = [
   ['check', {}, 'pyspark-pipeline'],
   ['init', { package: 'sales_pipeline' }, 'pyspark-pipeline'],
   ['init', { package: 'sales_pipeline', force: 'true' }, 'pyspark-pipeline'],
+  ['feature add', { name: 'refunds', description: 'Refunds the cancelled orders' }, 'pyspark-pipeline'],
+  ['component move', { component: 'compute_vat', feature: 'refunds' }, 'pyspark-pipeline'],
+  ['component add', { type: 'reader', name: 'stores', description: 'x', feature: 'shared' }, 'pyspark-pipeline'],
+  ['feature rename', { feature: 'vat_report', name: 'vat' }, 'pyspark-pipeline'],
 ];
 
 test('init: wizard preview is the actual non-interactive command, even with overridden answers', () => {
@@ -60,7 +64,8 @@ test('init: wizard preview is the actual non-interactive command, even with over
 
 test('init: preview the primary guard-file tree, including --force behavior', () => {
   const rows = filePlan('init', { package: 'sales_pipeline' }, ctx('pyspark-pipeline'));
-  assert.ok(rows.some((r) => r.path === '.archvow/spec.vow'));
+  assert.ok(rows.some((r) => r.path === '.archvow/project.vow'));
+  assert.ok(rows.some((r) => r.path === '.archvow/features/shared/'));
   assert.ok(rows.some((r) => r.path === 'AGENTS.md'));
   assert.ok(rows.some((r) => r.path === 'README.md'));
   assert.ok(rows.every((r) => r.change === 'new'));
@@ -68,38 +73,39 @@ test('init: preview the primary guard-file tree, including --force behavior', ()
   assert.ok(revised.every((r) => r.change === 'updated' || r.change === 'kept'));
 });
 
-test('component add: the vow and the card it writes, and the code and test it plans', () => {
+test('component add: the vow it writes in its feature, and the code and test it plans', () => {
   const rows = filePlan('component add', SCENARIOS[0][1], ctx('pyspark-pipeline'));
   assert.deepEqual(rows.map((r) => [r.change, r.path]), [
-    ['new', '.archvow/components/orders_reader/spec.vow'], ['new', '.archvow/components/orders_reader/spec.md'],
-    ['updated', '.archvow/spec.md'], ['planned', 'src/my_pipeline/p2_io/orders_reader.py'], ['planned', 'tests/p2_io/test_orders_reader.py']]);
-  assert.equal(rows[3].note, 'read_orders(spark: SparkSession, path: str) -> DataFrame');
+    ['new', '.archvow/features/vat_report/components/orders_reader.vow'],
+    ['planned', 'src/my_pipeline/p2_io/orders_reader.py'], ['planned', 'tests/p2_io/test_orders_reader.py']]);
+  assert.equal(rows[1].note, 'read_orders(spark: SparkSession, path: str) -> DataFrame');
+  // without --feature: the project's one feature besides shared; with it, that one
+  assert.equal(filePlan('component add', SCENARIOS[26][1], ctx('pyspark-pipeline'))[0].path, '.archvow/features/shared/components/stores_reader.vow');
   // a group is a sub-folder of the layer, for the code and for its test
   const grouped = filePlan('component add', SCENARIOS[1][1], ctx('pyspark-pipeline')).map((r) => r.path);
   assert.ok(grouped.includes('src/my_pipeline/p1_domain/refunds/clean_refunds.py') && grouped.includes('tests/p1_domain/refunds/test_clean_refunds.py'));
   // the signature given replaces the type's; an existing file is adopted where it is (no test planned)
-  assert.equal(filePlan('component add', SCENARIOS[2][1], ctx('pyspark-pipeline'))[3].note, 'join_stores(sales: DataFrame, stores: DataFrame) -> DataFrame');
+  assert.equal(filePlan('component add', SCENARIOS[2][1], ctx('pyspark-pipeline'))[1].note, 'join_stores(sales: DataFrame, stores: DataFrame) -> DataFrame');
   const adopted = filePlan('component add', SCENARIOS[3][1], ctx('pyspark-pipeline'));
-  assert.deepEqual(adopted.slice(3).map((r) => [r.change, r.path]), [['kept', 'src/my_pipeline/legacy/read.py']]);
-  // a type the catalog does not know: only the project page (archvow refuses it, in red under the form)
-  assert.deepEqual(filePlan('component add', SCENARIOS[5][1], ctx('pyspark-pipeline')).map((r) => r.path), ['.archvow/spec.md']);
+  assert.deepEqual(adopted.slice(1).map((r) => [r.change, r.path]), [['kept', 'src/my_pipeline/legacy/read.py']]);
+  // a type the catalog does not know: nothing (archvow refuses it, in red under the form)
+  assert.deepEqual(filePlan('component add', SCENARIOS[5][1], ctx('pyspark-pipeline')).map((r) => r.path), []);
   // in French, the notes are French
-  assert.match(filePlan('component add', SCENARIOS[0][1], ctx('pyspark-pipeline', true))[1].note, /sa fiche/);
+  assert.match(filePlan('component add', SCENARIOS[0][1], ctx('pyspark-pipeline', true))[0].note, /son vow/);
   assert.deepEqual(nameValues('orders_clean'), { name: 'orders_clean', NAME: 'ORDERS_CLEAN', Name: 'OrdersClean' });
 });
 
-test('the other commands: what they update, remove or keep; rules name the cards they reach', () => {
+test('the other commands: what they update, remove or keep; a component\'s vow is in its feature', () => {
   const p = ctx('pyspark-pipeline');
   const removed = filePlan('component remove', { component: 'compute_vat' }, p);
-  assert.deepEqual(removed.map((r) => [r.change, r.path]), [['removed', '.archvow/components/compute_vat/'], ['updated', '.archvow/spec.md'],
+  assert.deepEqual(removed.map((r) => [r.change, r.path]), [['removed', '.archvow/features/vat_report/components/compute_vat.vow'],
     ['kept', 'src/my_pipeline/p1_domain/compute_vat.py']]);
-  assert.deepEqual(filePlan('decision propose', { component: 'clean_orders' }, p).map((r) => r.path), ['.archvow/proposals.vow']);
-  assert.deepEqual(filePlan('rule add', { words: 'clean_orders,compute_vat\nAmounts are rounded half up' }, p).slice(2).map((r) => r.path),
-    ['.archvow/components/clean_orders/spec.md', '.archvow/components/compute_vat/spec.md']);
-  const all = filePlan('rule add', { words: 'x', all: 'true' }, p);
-  assert.equal(all.length, 2 + 4);
-  assert.match(all[2].note, /and \d+ more$/);
-  assert.deepEqual(filePlan('rule add', { words: 'x', type: 'reader' }, p).slice(2).map((r) => r.path), ['.archvow/components/orders_reader/spec.md']);
+  assert.deepEqual(filePlan('decision propose', { component: 'clean_orders' }, p).map((r) => r.path), ['.archvow/features/vat_report/proposals.vow']);
+  assert.deepEqual(filePlan('rule add', { words: 'x', all: 'true' }, p).map((r) => r.path), ['.archvow/project.vow'], 'nothing generated is written');
+  assert.deepEqual(filePlan('feature add', SCENARIOS[24][1], p).map((r) => [r.change, r.path]), [['new', '.archvow/features/refunds/refunds.vow']]);
+  assert.deepEqual(filePlan('component move', SCENARIOS[25][1], p).map((r) => [r.change, r.path]), [
+    ['removed', '.archvow/features/vat_report/components/compute_vat.vow'], ['new', '.archvow/features/refunds/components/compute_vat.vow']]);
+  assert.deepEqual(filePlan('feature rename', SCENARIOS[27][1], p).map((r) => r.path), ['.archvow/features/vat_report/', '.archvow/features/vat/']);
   assert.deepEqual(filePlan('example add', { component: 'compute_vat', name: 'vat-20' }, p).map((r) => r.path).pop(), 'tests/examples/compute_vat/vat-20/');
   assert.deepEqual(filePlan('pack new', { name: 'team', dir: '' }, p).map((r) => r.path), ['.archvow/packs/team/pack.yaml',
     '.archvow/packs/team/README.md', '.archvow/packs/team/examples/']);  // a pack of this project

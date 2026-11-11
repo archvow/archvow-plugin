@@ -34,7 +34,6 @@ final class ArchvowCheckActions {
         if (configurationFolder(path)) return french ? "Afficher le dossier de configuration" : "Show configuration folder";
         String p = path == null ? "" : path.toLowerCase(java.util.Locale.ROOT);
         if (p.endsWith(".vow")) return french ? "Ouvrir la vow" : "Open vow";
-        if (p.endsWith("spec.md")) return french ? "Ouvrir la spec" : "Open spec";
         if (p.endsWith(".py") || p.endsWith(".java") || p.endsWith(".ts") || p.endsWith(".js"))
             return french ? "Ouvrir le code source" : "Open source";
         if (p.endsWith(".md")) return french ? "Ouvrir le document" : "Open document";

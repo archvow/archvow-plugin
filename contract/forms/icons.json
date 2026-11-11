@@ -66,10 +66,12 @@
     "terminal": [["r", 1, 2, 12, 10, 1.8], ["p", "M3.6 5.2 L5.9 7 L3.6 8.8"], ["l", 7.3, 9, 10.4, 9]],
     "document": [["p", "M3 1.5 L8.6 1.5 L11.5 4.4 L11.5 12.5 L3 12.5 Z"], ["p", "M8.6 1.5 L8.6 4.4 L11.5 4.4"], ["l", 5, 7.5, 9.5, 7.5], ["l", 5, 10, 9.5, 10]],
     "template": [["r", 1.6, 1.6, 7.6, 7.6, 1.2], ["p", "M4.8 12.4 L12.4 12.4 L12.4 4.8"]],
-    "folder": [["p", "M1.5 3.2 L5.4 3.2 L6.8 4.8 L12.5 4.8 L12.5 11.8 L1.5 11.8 Z"]]
+    "folder": [["p", "M1.5 3.2 L5.4 3.2 L6.8 4.8 L12.5 4.8 L12.5 11.8 L1.5 11.8 Z"]],
+    "feature": [["p", "M1.5 2.8 L5.2 2.8 L6.5 4.2 L12.5 4.2 L12.5 12 L1.5 12 Z"], ["r", 3.6, 6.4, 2.6, 2.6, 0.6], ["r", 7.8, 6.4, 2.6, 2.6, 0.6], ["l", 6.2, 7.7, 7.8, 7.7]],
+    "move": [["r", 1.5, 2, 4.2, 4.2, 0.8], ["p", "M3.6 6.2 L3.6 9.8 L10.8 9.8"], ["p", "M8.6 7.6 L10.8 9.8 L8.6 12"]]
   },
   "groups": {"components": "architecture", "decisions": "decisions", "questions": "questions", "safety": "safety", "rules": "rules", "assumptions": "assumptions", "briefs": "briefs", "data": "data", "project": "project", "packs": "template",
     "other": "other"},
-  "verbs": {"add": "add", "new": "add", "edit": "edit", "set": "edit", "remove": "remove", "accept": "accept", "reject": "reject", "make": "make", "propose": "propose", "dismiss": "dismiss"},
-  "commands": {"init": "start", "catalog": "list", "show": "show", "specify": "edit", "prompt": "propose", "next": "next", "check": "check", "review": "compare", "version": "health", "freeze": "lock", "audit": "search", "changes": "history", "diff": "compare", "doctor": "health", "completion": "terminal", "docs": "document", "brief show": "show", "workspace": "show", "pack": "template", "pack new": "template", "pack template": "template", "pack agent": "agent", "pack rule": "rules", "pack add": "add", "pack update": "edit", "pack remove": "remove", "pack check": "check"}
+  "verbs": {"add": "add", "new": "add", "edit": "edit", "set": "edit", "remove": "remove", "accept": "accept", "reject": "reject", "make": "make", "propose": "propose", "dismiss": "dismiss", "rename": "edit", "move": "move"},
+  "commands": {"init": "start", "catalog": "list", "show": "show", "specify": "edit", "prompt": "propose", "next": "next", "check": "check", "review": "compare", "version": "health", "freeze": "lock", "audit": "search", "changes": "history", "diff": "compare", "doctor": "health", "completion": "terminal", "doc": "document", "feature": "feature", "brief show": "show", "workspace": "show", "pack": "template", "pack new": "template", "pack template": "template", "pack agent": "agent", "pack rule": "rules", "pack add": "add", "pack update": "edit", "pack remove": "remove", "pack check": "check"}
 }

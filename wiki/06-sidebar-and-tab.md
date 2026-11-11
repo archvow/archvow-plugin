@@ -7,6 +7,22 @@ montre**. Overview, Components (l'arbre) et Commands (la liste) sont à gauche ;
 (un composant, le formulaire d'une commande, le résultat d'une commande d'Overview) s'ouvre dans
 l'onglet *archvow: clean_orders*, réutilisé pour le choix suivant. Jamais un onglet par composant.
 
+
+## L'onglet Fonctionnalités et la page d'une fonctionnalité (0.24.0, contrat 2.0)
+
+L'arbre range les composants **par fonctionnalité** (par défaut : ce que fait le produit, par nom, `shared` en
+dernier ; une fonctionnalité se replie, son « + » lui ajoute un composant, son nom ouvre sa page) ou **par couche**
+(les couches du template, comme avant 0.24.0) ; **Ajouter une fonctionnalité** ouvre `feature add`. VS Code :
+`componentBrowser()` avec `featureBrowser()` et `layerBrowser()` ; IntelliJ : `rebuildTree` avec `buildFeatureTree`,
+le sélecteur *Par fonctionnalité / Par couche* au-dessus. La page d'une fonctionnalité (VS Code `featureDetail()`,
+IntelliJ `ArchvowFeatureView`, à partir des `features` de `workspace --json`) : ses éléments ouverts, ses composants
+et tickets, ce que fait le produit dans celle-ci, combien de composants sont vérifiés, les fonctionnalités qu'elle
+utilise et qui l'utilisent (avec les usages qui font chaque lien), ses composants par couche et ce qui y est ouvert ;
+**Ajouter un composant** (`component add -f <fonctionnalité>`), **Ouvrir la doc** (`archvow doc <fonctionnalité>`,
+puis la page dans un éditeur), **Copier le prompt IA** (`archvow prompt --feature`), **Prochaines étapes**
+(`next --feature`), **Renommer…**. L'en-tête d'un composant nomme sa fonctionnalité (un lien), et **Déplacer…**
+ouvre `component move`.
+
 ## IntelliJ : une classe, deux rôles
 
 `ArchvowPanel` construit tout l'espace de travail et montre ce qui revient à son rôle
@@ -106,6 +122,6 @@ VS Code : un `FileSystemWatcher` sur `.archvow/**/*.vow`, puis `refreshSoon` (m�
 
 ## Au démarrage
 
-IntelliJ : `ArchvowOpenOnStartup` montre la fenêtre d'outils quand le projet a un `.archvow/spec.vow`,
-rien pour les autres projets. VS Code : l'extension s'active sur `workspaceContains:.archvow/spec.vow`
+IntelliJ : `ArchvowOpenOnStartup` montre la fenêtre d'outils quand le projet a un `.archvow/project.vow`,
+rien pour les autres projets. VS Code : l'extension s'active sur `workspaceContains:.archvow/project.vow`
 ou à l'ouverture d'un `.vow` ; dans un dossier non approuvé, seul le langage `.vow` fonctionne.

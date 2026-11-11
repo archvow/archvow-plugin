@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@1.27.0`).
+[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@2.0.0`).
 
 ## For developers
 
@@ -27,18 +27,18 @@ archvow doctor                             # checks your setup, with the fix for
 | Step | Do |
 |---|---|
 | What to build | `archvow next` - the planned components in build order, *ready* or what each waits for |
-| Your task | the spec card `.archvow/components/<component>/spec.md`: the file, its public names, the decisions made, the tests, what must never happen |
-| Write it | yourself, starting the file with the card's header (`@assisted none`) - or with the AI assistant, one line in its chat: `implement <component>` |
+| Your task | `archvow prompt <component>` (the whole feature: `archvow prompt --feature <feature>`): the file, its public names, the decisions made, the tests, what must never happen |
+| Write it | yourself, starting the file with the task's header (`@assisted none`) - or with the AI assistant, one line in its chat: `implement <component>` |
 | Something is unclear | do not guess: `archvow question add <component> "<question>"`, an architect decides |
 | Commit | `git commit` - the Git hook runs ruff and `archvow check`; `make test` runs the tests |
 
 **Good to know**
 
-- Private helpers (`_parse_date`, `_Row`) are free. Anything public must be in the spec card,
+- Private helpers (`_parse_date`, `_Row`) are free. Anything public must be in the component's vow,
   or the build fails (`ARCH001`, `ARCH002`).
 - One test per component: `tests/<layer>/test_<component>.py`; end-to-end scenarios go in
   `tests/integration/`.
-- Every error says how to fix it; the rules are in [`.archvow/spec.md`](.archvow/spec.md) (Checks)
+- Every error says how to fix it; the rules are in the project's doc (`archvow doc`, Checks)
   and explained in [`.archvow/README.md`](.archvow/README.md).
 - `.archvow/` changes only through archvow commands, approved by the architects - never
   by hand.
@@ -63,8 +63,8 @@ next to it, so business logic never depends on storage or orchestration:
 The full specification - every component, its public functions, the decisions made on edge cases and
 what must never happen - is in [`.archvow/`](.archvow/README.md):
 
-- [The project's spec](.archvow/spec.md) - the whole project on one page: diagram, components, rules, hazards, invariants, personal data, checks
-- [Each component's spec](.archvow/components/) - `components/<component>/spec.md`, its task; its vow `spec.vow` next to it
+- The project's doc - `archvow doc` writes it into `.archvow/doc/` (never committed): the whole project on one page - diagram, features, components, rules, hazards, invariants, personal data, checks - and one page per feature
+- [The spec](.archvow/) - `project.vow`, then `features/<feature>/<feature>.vow` and one vow per component in `features/<feature>/components/`; a component's task: `archvow prompt <component>`
 
 ## Project layout
 
@@ -72,7 +72,7 @@ Right after `archvow init` - the spec and the guards, no code yet:
 
 ```
 my-pipeline/
-├── .archvow/                           the spec: spec.vow, spec.md, components/<component>/, README.md
+├── .archvow/                           the spec: project.vow, features/<feature>/, README.md
 ├── AGENTS.md                           rules for every AI assistant
 ├── .gitlab-ci.yml                      CI: guards and tests
 ├── .gitlab/CODEOWNERS                  the architects approve the spec and the guards
@@ -85,14 +85,13 @@ my-pipeline/
 └── .gitignore
 ```
 
-When development is done - every component written from its spec card, with its test:
+When development is done - every component written from its task, with its test:
 
 ```
 my-pipeline/
 ├── .archvow/
-│   ├── spec.vow                        the project's vow
-│   ├── spec.md                         the whole project on one page
-│   └── components/<component>/         spec.vow (its spec) + spec.md (its task)
+│   ├── project.vow                     the project's vow
+│   └── features/<feature>/             <feature>.vow + components/<component>.vow (one vow each)
 ├── ddl/                                tables, created before the job (--ddl)
 │   ├── 001_<table>.sql                 CREATE TABLE IF NOT EXISTS ...
 │   └── 002_<table>_<change>.sql        ALTER TABLE ... ADD COLUMNS (additive)
@@ -191,14 +190,13 @@ Personal data (GDPR): every column of a schema is classified - `archvow column s
 email,phone personal` (`special` for health, religion, biometrics..., `none` otherwise); code
 with an unclassified column fails the build. A job and a writer that handle personal data
 then answer the questions of each regime (GDPR: P1, P2...; `archvow show <component>` lists them):
-`archvow decision make <component> P1 "..."`. The result: each regime's register in `.archvow/spec.md`.
+`archvow decision make <component> P1 "..."`. The result: each regime's register in the project's doc (`archvow doc`).
 
 **4. Say what must never happen, then commit the spec**
 
 ```bash
 archvow hazard add sales_reader S1 high "An empty input is processed as if it were complete"
 archvow invariant add sales_reader "an empty or missing input fails the job"
-archvow docs --check
 git add .archvow && git commit -m "US-001: specify sales_reader"
 ```
 
@@ -239,10 +237,10 @@ implement everything archvow next lists as ready
 ```
 
 `AGENTS.md` tells every approved assistant (claude-code) what "implement" means:
-read the spec card, write the file with its header and its tests, run the checks, fix, and
+read its task, write the file with its header and its tests, run the checks, fix, and
 report anything it had to assume.
 
-*Yourself*: the spec card `.archvow/components/<component>/spec.md` is your task; start the file with
+*Yourself*: `archvow prompt <component>` is your task; start the file with
 its header, `@assisted none`. Commit each component; the Git hook runs the checks first. If the
 assistant had to assume something, the commit is refused until a person reviews it:
 `archvow assumption accept sales_reader 1` (or `archvow assumption reject sales_reader 1`).
@@ -290,7 +288,7 @@ declare fails the build, whoever wrote it. Private helpers (`_parse`, `_Row`) ar
 ## Tests
 
 Every component has its test, `tests/<layer>/test_<component>.py`; an implemented component
-without it fails the build. Its spec card says which kind and what to cover.
+without it fails the build. Its task says which kind and what to cover.
 
 - **Unit** (schemas, transformations, helpers, entry points): small DataFrames in memory, fast.
 - **Integration** (readers, writers, jobs): real files or tables in a temporary folder, marked
@@ -308,7 +306,7 @@ node / cluster, Spark is already installed. Keep their `pyspark` version equal t
 **End to end, with golden files:** put input files in `tests/integration/actuals/` and the
 output they must produce in `tests/integration/expecteds/`; a test in `tests/integration/`
 runs the job on the actuals and compares the result with the expecteds (sorted, same columns
-and types). The job's spec card asks for it.
+and types). The job's task asks for it.
 
 ## Tables
 
@@ -333,7 +331,7 @@ ALTER TABLE <database>.<table> ADD COLUMNS (source STRING);
 - The writer's test runs the scripts on the local test catalog and asserts that
   `spark.table(<table>).schema` equals the schema: the script and the code cannot drift apart.
 
-The writer's spec card asks which table and which script.
+The writer's task asks which table and which script.
 
 ## Running the pipeline
 
@@ -367,9 +365,9 @@ cluster. A third-party package that the cluster does not have (approved with
 
 The same rules apply to everyone, people and AI assistants alike:
 
-1. **Commit `.archvow/` with the change.** Every command above updates the vows (`spec.vow`) and
-   the generated specs in `.archvow/`; commit the whole folder (the local `status.md` is ignored).
-   Never edit those files by hand: `archvow docs --check` fails in CI if you do.
+1. **Commit `.archvow/` with the change.** Every command above updates the vows (`.vow` files) in
+   `.archvow/`; commit the whole folder (`doc/`, what `archvow doc` writes, is ignored). Never edit a vow
+   by hand: `archvow check` sees it (`ARCH014`).
 2. **The spec and the code that follows it travel together.** Code without its spec change fails
    (`ARCH001`, `ARCH002`); a spec change without its code is simply *planned*.
 3. **Spec changes are approved by the architects** (@my-team), through

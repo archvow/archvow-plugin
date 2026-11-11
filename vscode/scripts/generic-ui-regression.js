@@ -14,9 +14,10 @@ assert.ok(all.every(item => item.groups.length === 1), 'each CLI command belongs
 
 const state = {
   fr: false, project: { name: 'example', root: '/tmp/example' }, languageMode: 'en', readiness: 'READY',
-  spec: { system: { name: 'example' }, containers: [{ id: 'core', components: [
-    { id: 'reader', type: 'reader', layer: 'io' }, { id: 'schema', type: 'schema', layer: 'domain' },
-    { id: 'config', type: 'foundation', layer: 'core' },
+  spec: { system: { name: 'example' }, features: [{ name: 'orders', description: 'Orders' }, { name: 'shared', description: 'What every feature uses' }],
+    containers: [{ id: 'core', components: [
+    { id: 'reader', type: 'reader', layer: 'io', feature: 'orders' }, { id: 'schema', type: 'schema', layer: 'domain', feature: 'orders' },
+    { id: 'config', type: 'foundation', layer: 'core', feature: 'shared' },
   ] }] },
   snapshots: { schema: { component: 'schema', type: 'schema', layer: 'domain', description: 'Records',
     uses: [], decisions: [{ number: 1, question: 'Which columns are nullable and contain personal data?', answer: '' }],
@@ -65,9 +66,19 @@ assert.doesNotMatch(nav.app.innerHTML, /Command reference|Brief folders|Base: or
 assert.equal((nav.app.innerHTML.match(/data-a="refresh"/g) || []).length, 1, 'one reload in the header');
 assert.equal((nav.app.innerHTML.match(/title="Check"/g) || []).length, 1, 'one complete Check action');
 nav.click('tab', { tab: 'components' });
-assert.match(nav.app.innerHTML, /data-a="addHere"/, 'the layer plus control remains visible');
+// 0.24.0 (contract 2.0): by feature first - what the product does, shared last - each with its "+"
+assert.match(nav.app.innerHTML, /data-a="groupBy" data-id="feature"/, 'the By feature / By layer switch');
+assert.match(nav.app.innerHTML, /data-a="addFeature"/, 'Add feature');
+assert.match(nav.app.innerHTML, /data-a="addToFeature" data-id="orders"/, 'a feature\'s plus control');
+assert.ok(nav.app.innerHTML.indexOf('data-id="orders"') < nav.app.innerHTML.indexOf('data-id="shared"'), 'shared last');
 assert.match(nav.app.innerHTML, /class="count">1<\/span>/, 'per-component pending count remains visible');
 assert.match(nav.app.innerHTML, /class="component-state tone-warn">planned<\/span>/, 'component status appears alongside counts');
+nav.click('pickFeature', { id: 'orders' });
+assert.equal(JSON.stringify(nav.posted.at(-1)), JSON.stringify({ type: 'showFeature', feature: 'orders' }), 'a feature\'s name opens its page');
+nav.click('groupBy', { id: 'layer' });
+assert.match(nav.app.innerHTML, /data-a="addHere"/, 'by layer: the layer plus control remains visible');
+assert.match(nav.app.innerHTML, /class="count">1<\/span>/, 'by layer: per-component pending count');
+nav.click('groupBy', { id: 'feature' });
 nav.click('openComponents');
 assert.match(nav.app.innerHTML, /data-tab="components"/, 'Overview shortcut reaches Components');
 nav.click('tab', { tab: 'ai' });

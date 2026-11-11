@@ -1,5 +1,5 @@
 {
-  "contract": "1.3",
+  "contract": "2.0",
   "digest": "<digest>",
   "project": {
     "schema_version": 2,
@@ -10,12 +10,13 @@
     "containers": [
       {
         "id": "orders_api",
-        "template": "archvow/fastapi-service@1.27.0",
+        "template": "archvow/fastapi-service@2.0.0",
         "package": "orders_api",
         "path": "src/orders_api",
         "components": [
           {
             "id": "get_current_user",
+            "feature": "shared",
             "name": "get_current_user",
             "type": "dependency",
             "layer": "p0_common",
@@ -47,6 +48,7 @@
           },
           {
             "id": "logging_setup",
+            "feature": "shared",
             "name": "logging_setup",
             "type": "foundation",
             "layer": "p0_common",
@@ -72,6 +74,7 @@
           },
           {
             "id": "settings",
+            "feature": "shared",
             "name": "settings",
             "type": "foundation",
             "layer": "p0_common",
@@ -107,6 +110,7 @@
           },
           {
             "id": "new_order_model",
+            "feature": "orders",
             "name": "new_order",
             "type": "model",
             "layer": "p1_domain",
@@ -147,6 +151,7 @@
           },
           {
             "id": "order_model",
+            "feature": "orders",
             "name": "order",
             "type": "model",
             "layer": "p1_domain",
@@ -190,6 +195,7 @@
           },
           {
             "id": "order_not_found_error",
+            "feature": "orders",
             "name": "order_not_found",
             "type": "error",
             "layer": "p1_domain",
@@ -221,6 +227,7 @@
           },
           {
             "id": "orders_repository",
+            "feature": "orders",
             "name": "orders",
             "type": "repository",
             "layer": "p2_io",
@@ -278,6 +285,7 @@
           },
           {
             "id": "create_order",
+            "feature": "orders",
             "name": "create_order",
             "type": "service",
             "layer": "p3_services",
@@ -331,6 +339,7 @@
           },
           {
             "id": "get_order",
+            "feature": "orders",
             "name": "get_order",
             "type": "service",
             "layer": "p3_services",
@@ -384,6 +393,7 @@
           },
           {
             "id": "main",
+            "feature": "shared",
             "name": "main",
             "type": "app",
             "layer": "p4_api",
@@ -431,6 +441,7 @@
           },
           {
             "id": "orders_router",
+            "feature": "orders",
             "name": "orders",
             "type": "router",
             "layer": "p4_api",
@@ -559,6 +570,16 @@
     "families": [
       "all"
     ],
+    "features": [
+      {
+        "name": "orders",
+        "description": "Orders"
+      },
+      {
+        "name": "shared",
+        "description": "What every feature uses: settings, logging, the app or job that plugs the features in"
+      }
+    ],
     "hazards": [
       {
         "component": "create_order",
@@ -619,13 +640,6 @@
         "on": "2026-10-09T12:00:00+00:00"
       },
       {
-        "component": "get_current_user",
-        "guide_word": "missing",
-        "rationale": "Reads a request header only: it calls nothing that can be down",
-        "by": "architect@example.com",
-        "on": "2026-10-09T12:00:00+00:00"
-      },
-      {
         "component": "get_order",
         "guide_word": "repeated",
         "rationale": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing",
@@ -643,13 +657,6 @@
         "component": "get_order",
         "guide_word": "concurrent",
         "rationale": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing",
-        "by": "architect@example.com",
-        "on": "2026-10-09T12:00:00+00:00"
-      },
-      {
-        "component": "main",
-        "guide_word": "missing",
-        "rationale": "Builds the app only: it calls nothing that can be down",
         "by": "architect@example.com",
         "on": "2026-10-09T12:00:00+00:00"
       },
@@ -694,8 +701,152 @@
         "rationale": "No route returns a list; each answer is one order",
         "by": "architect@example.com",
         "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "get_current_user",
+        "guide_word": "missing",
+        "rationale": "Reads a request header only: it calls nothing that can be down",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
+      },
+      {
+        "component": "main",
+        "guide_word": "missing",
+        "rationale": "Builds the app only: it calls nothing that can be down",
+        "by": "architect@example.com",
+        "on": "2026-10-09T12:00:00+00:00"
       }
     ]
+  },
+  "features": {
+    "orders": {
+      "feature": "orders",
+      "description": "Orders",
+      "brief": null,
+      "components": [
+        {
+          "id": "new_order_model",
+          "type": "model",
+          "layer": "p1_domain",
+          "file": "src/orders_api/p1_domain/new_order_model.py",
+          "vow": ".archvow/features/orders/components/new_order_model.vow",
+          "status": "tested"
+        },
+        {
+          "id": "order_model",
+          "type": "model",
+          "layer": "p1_domain",
+          "file": "src/orders_api/p1_domain/order_model.py",
+          "vow": ".archvow/features/orders/components/order_model.vow",
+          "status": "tested"
+        },
+        {
+          "id": "order_not_found_error",
+          "type": "error",
+          "layer": "p1_domain",
+          "file": "src/orders_api/p1_domain/order_not_found_error.py",
+          "vow": ".archvow/features/orders/components/order_not_found_error.vow",
+          "status": "tested"
+        },
+        {
+          "id": "orders_repository",
+          "type": "repository",
+          "layer": "p2_io",
+          "file": "src/orders_api/p2_io/orders_repository.py",
+          "vow": ".archvow/features/orders/components/orders_repository.vow",
+          "status": "tested"
+        },
+        {
+          "id": "create_order",
+          "type": "service",
+          "layer": "p3_services",
+          "file": "src/orders_api/p3_services/create_order.py",
+          "vow": ".archvow/features/orders/components/create_order.vow",
+          "status": "verified"
+        },
+        {
+          "id": "get_order",
+          "type": "service",
+          "layer": "p3_services",
+          "file": "src/orders_api/p3_services/get_order.py",
+          "vow": ".archvow/features/orders/components/get_order.vow",
+          "status": "tested"
+        },
+        {
+          "id": "orders_router",
+          "type": "router",
+          "layer": "p4_api",
+          "file": "src/orders_api/p4_api/orders_router.py",
+          "vow": ".archvow/features/orders/components/orders_router.vow",
+          "status": "verified"
+        }
+      ],
+      "uses": {},
+      "used_by": {
+        "shared": [
+          {
+            "component": "main",
+            "uses": "orders_router"
+          },
+          {
+            "component": "main",
+            "uses": "order_not_found_error"
+          }
+        ]
+      }
+    },
+    "shared": {
+      "feature": "shared",
+      "description": "What every feature uses: settings, logging, the app or job that plugs the features in",
+      "brief": null,
+      "components": [
+        {
+          "id": "get_current_user",
+          "type": "dependency",
+          "layer": "p0_common",
+          "file": "src/orders_api/p0_common/get_current_user.py",
+          "vow": ".archvow/features/shared/components/get_current_user.vow",
+          "status": "tested"
+        },
+        {
+          "id": "logging_setup",
+          "type": "foundation",
+          "layer": "p0_common",
+          "file": "src/orders_api/p0_common/logging_setup.py",
+          "vow": ".archvow/features/shared/components/logging_setup.vow",
+          "status": "implemented"
+        },
+        {
+          "id": "settings",
+          "type": "foundation",
+          "layer": "p0_common",
+          "file": "src/orders_api/p0_common/settings.py",
+          "vow": ".archvow/features/shared/components/settings.vow",
+          "status": "implemented"
+        },
+        {
+          "id": "main",
+          "type": "app",
+          "layer": "p4_api",
+          "file": "src/orders_api/p4_api/main.py",
+          "vow": ".archvow/features/shared/components/main.vow",
+          "status": "tested"
+        }
+      ],
+      "uses": {
+        "orders": [
+          {
+            "component": "main",
+            "uses": "orders_router"
+          },
+          {
+            "component": "main",
+            "uses": "order_not_found_error"
+          }
+        ]
+      },
+      "used_by": {}
+    }
   },
   "components": {
     "get_current_user": {
@@ -2171,7 +2322,7 @@
           "title": "GDPR",
           "id": "purpose",
           "rule": "GDPR002",
-          "question": "Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
+          "question": "Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. to bill customers for their orders, for the finance team?",
           "answer": "Take and show the orders of each customer, for that customer only",
           "by": "architect@example.com",
           "on": "2026-10-12T00:46:55.799694+00:00"
@@ -2314,7 +2465,7 @@
             {
               "kind": "question",
               "key": "P1",
-              "text": "Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
+              "text": "Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. to bill customers for their orders, for the finance team?",
               "answer": "Take and show the orders of each customer, for that customer only",
               "done": true
             },
@@ -2342,7 +2493,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'create_order': safety question S2 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show create_order",
-        "file": ".archvow/components/create_order/spec.vow",
+        "file": ".archvow/features/orders/components/create_order.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2369,7 +2520,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'create_order': safety question S4 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show create_order",
-        "file": ".archvow/components/create_order/spec.vow",
+        "file": ".archvow/features/orders/components/create_order.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2396,7 +2547,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'create_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show create_order",
-        "file": ".archvow/components/create_order/spec.vow",
+        "file": ".archvow/features/orders/components/create_order.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2422,35 +2573,8 @@
       {
         "code": "ARCH035",
         "severity": "warning",
-        "message": "'get_current_user': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_current_user",
-        "file": ".archvow/components/get_current_user/spec.vow",
-        "line": 0,
-        "col": 0,
-        "title": "Safety question of a component not answered (no hazard, no dismissal)",
-        "guide": {
-          "language": "en",
-          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-          "then": "Then run archvow check again: the finding disappears once it is fixed.",
-          "command": {
-            "name": "show",
-            "values": {
-              "component": "get_current_user"
-            },
-            "text": "archvow show get_current_user",
-            "missing": [],
-            "readOnly": true
-          },
-          "file": null
-        }
-      },
-      {
-        "code": "ARCH035",
-        "severity": "warning",
         "message": "'get_order': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show get_order",
-        "file": ".archvow/components/get_order/spec.vow",
+        "file": ".archvow/features/orders/components/get_order.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2477,7 +2601,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'get_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_order",
-        "file": ".archvow/components/get_order/spec.vow",
+        "file": ".archvow/features/orders/components/get_order.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2503,35 +2627,8 @@
       {
         "code": "ARCH035",
         "severity": "warning",
-        "message": "'main': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show main",
-        "file": ".archvow/components/main/spec.vow",
-        "line": 0,
-        "col": 0,
-        "title": "Safety question of a component not answered (no hazard, no dismissal)",
-        "guide": {
-          "language": "en",
-          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-          "then": "Then run archvow check again: the finding disappears once it is fixed.",
-          "command": {
-            "name": "show",
-            "values": {
-              "component": "main"
-            },
-            "text": "archvow show main",
-            "missing": [],
-            "readOnly": true
-          },
-          "file": null
-        }
-      },
-      {
-        "code": "ARCH035",
-        "severity": "warning",
         "message": "'new_order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show new_order_model",
-        "file": ".archvow/components/new_order_model/spec.vow",
+        "file": ".archvow/features/orders/components/new_order_model.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2558,7 +2655,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'new_order_model': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show new_order_model",
-        "file": ".archvow/components/new_order_model/spec.vow",
+        "file": ".archvow/features/orders/components/new_order_model.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2585,7 +2682,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show order_model",
-        "file": ".archvow/components/order_model/spec.vow",
+        "file": ".archvow/features/orders/components/order_model.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2612,7 +2709,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'orders_repository': safety question S2 not answered (more) - Too much (unbounded results, duplicated records, a flood of requests): what must never happen? -> archvow show orders_repository",
-        "file": ".archvow/components/orders_repository/spec.vow",
+        "file": ".archvow/features/orders/components/orders_repository.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2639,7 +2736,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'orders_repository': safety question S5 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show orders_repository",
-        "file": ".archvow/components/orders_repository/spec.vow",
+        "file": ".archvow/features/orders/components/orders_repository.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2666,7 +2763,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'orders_repository': safety question S6 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show orders_repository",
-        "file": ".archvow/components/orders_repository/spec.vow",
+        "file": ".archvow/features/orders/components/orders_repository.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2693,7 +2790,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'orders_router': safety question S3 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show orders_router",
-        "file": ".archvow/components/orders_router/spec.vow",
+        "file": ".archvow/features/orders/components/orders_router.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2720,7 +2817,7 @@
         "code": "ARCH035",
         "severity": "warning",
         "message": "'orders_router': safety question S4 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show orders_router",
-        "file": ".archvow/components/orders_router/spec.vow",
+        "file": ".archvow/features/orders/components/orders_router.vow",
         "line": 0,
         "col": 0,
         "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -2737,6 +2834,60 @@
               "component": "orders_router"
             },
             "text": "archvow show orders_router",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'get_current_user': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_current_user",
+        "file": ".archvow/features/shared/components/get_current_user.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "get_current_user"
+            },
+            "text": "archvow show get_current_user",
+            "missing": [],
+            "readOnly": true
+          },
+          "file": null
+        }
+      },
+      {
+        "code": "ARCH035",
+        "severity": "warning",
+        "message": "'main': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show main",
+        "file": ".archvow/features/shared/components/main.vow",
+        "line": 0,
+        "col": 0,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)",
+        "guide": {
+          "language": "en",
+          "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+          "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+          "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+          "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+          "then": "Then run archvow check again: the finding disappears once it is fixed.",
+          "command": {
+            "name": "show",
+            "values": {
+              "component": "main"
+            },
+            "text": "archvow show main",
             "missing": [],
             "readOnly": true
           },
@@ -3057,7 +3208,7 @@
       {
         "name": "archvow/fastapi-service",
         "pack": "archvow",
-        "version": "1.27.0",
+        "version": "2.0.0",
         "language": "python",
         "kind": "web-service",
         "style": "layered (common -> domain -> io -> services -> api)",
@@ -3069,7 +3220,7 @@
           {
             "id": "language",
             "ask": true,
-            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
             "default": "fr",
             "choices": [
               "fr",
@@ -3257,11 +3408,11 @@
               "ARCH",
               "STYLE",
               "FASTAPI",
+              "DORA",
               "GDPR",
               "GLBA",
               "US-PRIVACY",
               "TST",
-              "DORA",
               "all",
               "none"
             ],
@@ -3591,7 +3742,7 @@
       {
         "name": "archvow/langgraph-agent",
         "pack": "archvow",
-        "version": "1.27.0",
+        "version": "2.0.0",
         "language": "python",
         "kind": "ai-application",
         "style": "layered (common -> domain -> tools -> agents -> app)",
@@ -3603,7 +3754,7 @@
           {
             "id": "language",
             "ask": true,
-            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
             "default": "fr",
             "choices": [
               "fr",
@@ -3792,11 +3943,11 @@
               "STYLE",
               "AGENT",
               "FASTAPI",
+              "DORA",
               "GDPR",
               "GLBA",
               "US-PRIVACY",
               "TST",
-              "DORA",
               "all",
               "none"
             ],
@@ -4235,7 +4386,7 @@
       {
         "name": "archvow/pyspark-pipeline",
         "pack": "archvow",
-        "version": "1.27.0",
+        "version": "2.0.0",
         "language": "python",
         "kind": "data-pipeline",
         "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -4247,7 +4398,7 @@
           {
             "id": "language",
             "ask": true,
-            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
             "default": "fr",
             "choices": [
               "fr",
@@ -4435,11 +4586,11 @@
               "ARCH",
               "STYLE",
               "SPARK",
+              "DORA",
               "GDPR",
               "GLBA",
               "US-PRIVACY",
               "TST",
-              "DORA",
               "all",
               "none"
             ],
@@ -4790,7 +4941,7 @@
       {
         "name": "archvow/python-app",
         "pack": "archvow",
-        "version": "1.27.0",
+        "version": "2.0.0",
         "language": "python",
         "kind": "application",
         "style": "layered (common -> domain -> io -> services -> entrypoints)",
@@ -4802,7 +4953,7 @@
           {
             "id": "language",
             "ask": true,
-            "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
             "default": "fr",
             "choices": [
               "fr",
@@ -4989,11 +5140,11 @@
             "choices": [
               "ARCH",
               "STYLE",
+              "DORA",
               "GDPR",
               "GLBA",
               "US-PRIVACY",
               "TST",
-              "DORA",
               "all",
               "none"
             ],
@@ -5280,7 +5431,7 @@
     "packs": [
       {
         "name": "archvow",
-        "version": "1.27.0",
+        "version": "2.0.0",
         "description": "The templates, agents and languages archvow ships.",
         "archvow": "",
         "builtin": true,
@@ -5311,6 +5462,7 @@
         ],
         "rule_families": [],
         "regimes": [
+          "dora",
           "gdpr",
           "glba",
           "us-privacy"
@@ -5756,8 +5908,31 @@
     ],
     "regimes": [
       {
+        "id": "dora",
+        "name": "DORA",
+        "kind": "resilience",
+        "pack": "archvow",
+        "prefix": "DORA",
+        "letter": "O",
+        "default": false,
+        "title": "DORA: traceability, separation of duties, third parties, tested resilience",
+        "law": "Regulation (EU) 2022/2554 (DORA): ICT business continuity (art. 11), the register of information on ICT third-party providers (art. 28(3); Commission Implementing Regulation (EU) 2024/2956); Commission Delegated Regulation (EU) 2024/1774 (ICT risk management)",
+        "checked": "2026-11-11",
+        "covers": [],
+        "rules": {
+          "DORA001": "Component without a ticket",
+          "DORA002": "Separation of duties: fewer than two people can approve guard changes",
+          "DORA003": "Third-party package missing from the register, or a critical one not pinned",
+          "DORA004": "An invariant's test can be skipped, or a failing test job allowed to pass",
+          "DORA005": "Operational question not answered (failure detection, recovery)",
+          "DORA006": "Registered licence differs from the installed package's"
+        },
+        "register": "THIRD_PARTIES.md"
+      },
+      {
         "id": "gdpr",
         "name": "GDPR",
+        "kind": "privacy",
         "pack": "archvow",
         "prefix": "GDPR",
         "letter": "P",
@@ -5776,6 +5951,7 @@
       {
         "id": "glba",
         "name": "GLBA",
+        "kind": "privacy",
         "pack": "archvow",
         "prefix": "GLBA",
         "letter": "G",
@@ -5799,6 +5975,7 @@
       {
         "id": "us-privacy",
         "name": "US-PRIVACY",
+        "kind": "privacy",
         "pack": "archvow",
         "prefix": "USP",
         "letter": "U",

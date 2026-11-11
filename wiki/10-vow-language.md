@@ -2,8 +2,9 @@
 
 > 🇬🇧 [English version](/en/10-vow-language) · Version française
 
-Les deux plugins savent lire les fichiers `.vow` (`.archvow/spec.vow`,
-`.archvow/components/<c>/spec.vow`, `.archvow/proposals.vow`) : couleurs, erreurs à la lecture,
+Les deux plugins savent lire les fichiers `.vow` (`.archvow/project.vow`,
+celui d'une fonctionnalité `.archvow/features/<f>/<f>.vow`,
+`.archvow/features/<f>/components/<c>.vow`, le `proposals.vow` de chaque fonctionnalité) : couleurs, erreurs à la lecture,
 pliage, structure, liens. Ils lisent **le format, pas une liste de mots-clés** : n'importe quel mot-clé
 est accepté à n'importe quelle profondeur, donc un mot-clé nouveau d'archvow (ou d'une entreprise)
 n'exige pas de nouveau plugin. Ce que chaque mot-clé veut dire, c'est `archvow check` qui le vérifie.
@@ -52,7 +53,7 @@ les textes, nombres, booléens, personnes (`@alice`), dates, listes, JSON et com
 | Erreurs | `VowAnnotator` | lit le fichier une fois (`VowDocument`) et souligne ce qui empêche archvow de le lire |
 | Pliage, structure | `VowFoldingBuilder`, `VowStructureViewFactory`, `VowStructureViewModel`, `VowStructureElement` | chaque bloc, à toute profondeur |
 | Commentaires | `VowCommenter` | Ctrl+/ ajoute ou retire `# ` |
-| Ctrl+clic | `VowReference` | un composant de `uses` ouvre son `spec.vow`, un danger de `prevents` va à sa ligne, `module` ouvre le fichier Python ; trouvé par chemin, sans index |
+| Ctrl+clic | `VowReference` | un composant de `uses` ouvre son engagement (trouvé dans le `components/` de n'importe quelle fonctionnalité), un danger de `prevents` va à sa ligne, `module` ouvre le fichier Python ; trouvé par chemin, sans index |
 | Bandeau | `VowEditorNotification` | au-dessus du vow : quelle commande archvow le change (on ne l'édite pas à la main) |
 
 ## VS Code : le même lecteur, autres branchements
@@ -67,6 +68,6 @@ les textes, nombres, booléens, personnes (`@alice`), dates, listes, JSON et com
 
 ## Le vow d'un composant dans l'espace de travail
 
-La vue **Spec** d'un composant montre son `spec.vow` coloré (et sa fiche `spec.md`), en lecture seule (`ArchvowVowViewer` ;
+La vue **Spec** d'un composant montre son engagement coloré (et sa tâche, `archvow prompt`), en lecture seule (`ArchvowVowViewer` ;
 VS Code : `vowView()` dans la page, l'extension lit le fichier). Une couleur par profondeur, comme dans
 l'éditeur.

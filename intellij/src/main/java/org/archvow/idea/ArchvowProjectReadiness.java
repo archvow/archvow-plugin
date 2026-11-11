@@ -18,7 +18,7 @@ final class ArchvowProjectReadiness {
         try {
             Path root = Path.of(basePath);
             if (!Files.isDirectory(root)) return new Status(State.ROOT_MISSING, basePath);
-            Path spec = root.resolve(".archvow").resolve("spec.vow");
+            Path spec = root.resolve(".archvow").resolve("project.vow");
             if (!Files.exists(spec)) return new Status(State.NOT_INITIALIZED, basePath);
             if (!Files.isRegularFile(spec) || !Files.isReadable(spec) || Files.size(spec) == 0)
                 return new Status(State.SPEC_INACCESSIBLE, basePath);

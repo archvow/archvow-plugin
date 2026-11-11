@@ -14,8 +14,8 @@ only, without starting Python for a project that is not an archvow project:
 |---|---|
 | `NO_PROJECT` | "Open a folder" |
 | `ROOT_MISSING` | the project folder cannot be found |
-| `NOT_INITIALIZED` | no `.archvow/spec.vow`: **Initialize Archvow** (the `init` wizard, page [Commands](/en/09-commands)) |
-| `SPEC_INACCESSIBLE` | `spec.vow` empty or unreadable |
+| `NOT_INITIALIZED` | no `.archvow/project.vow`: **Initialize Archvow** (the `init` wizard, page [Commands](/en/09-commands)) |
+| `SPEC_INACCESSIBLE` | `project.vow` empty or unreadable |
 | `READY` | the workspace; if the CLI fails all the same, its message, with Configure Python and Retry |
 
 ## The "Project status" strip
@@ -47,7 +47,7 @@ and how many `.md` / `.txt` files they hold: `ArchvowBriefs.foldersLine` (Intell
 | Full check | `check --complete --json` | the tab |
 | Doctor | `doctor --json` | the tab |
 | Audit | `audit --json` | the tab |
-| Project vow | opens `.archvow/spec.vow` | an ordinary editor tab |
+| Project vow | opens `.archvow/project.vow` | an ordinary editor tab |
 | Budget / Next | `next --base <Base> --json` | the tab |
 | Diff, Review | the `diff` / `review` form, `--base` already filled | the tab |
 

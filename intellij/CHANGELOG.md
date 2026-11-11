@@ -2,6 +2,37 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.24.0 - 2026-11-11
+
+Built on archvow 2.0.0 (contract regenerated from the 2.0.0 wheel; contract 2.0, a new MAJOR).
+
+- **Features.** archvow 2.0 organises the spec by what the product does: `.archvow/features/<feature>/` holds the
+  feature's vow, one vow per component and its own proposals. The sidebar's **Features** tab (was Components)
+  groups the components **by feature** - each feature folds, its "+" adds a component to it, its name opens its
+  page, `shared` last - or **by layer** (the tree of 0.15-0.23), with **Add feature** above it.
+- **A feature's page** in the editor tab: what the product does in it, its open items, its tickets, how many of
+  its components are verified, the features it uses and that use it (with the uses that make each link), its
+  components by layer and what is open in it. **Add component** (`component add -f`), **Open feature doc**
+  (`archvow doc <feature>`, then its page in an editor), **Copy AI prompt** (`archvow prompt --feature`: the
+  feature in a few lines, then the task of its next component), **Next steps** (`next --feature`), **Rename…**.
+- **A component** names its feature (a link to its page) and has **Move…** (`component move`). Its **Spec**
+  view shows the task the AI implements from `archvow prompt` (nothing generated is committed in archvow 2.0)
+  next to its vow, found in its feature's folder.
+- **Forms** for `feature add / rename / remove`, `component move` and `doc`; every `feature` field offers the
+  project's features (`shared` is never renamed nor removed). The Files block shows each vow in its feature
+  (`{home}`, `{feature}`) and no generated `spec.md` any more; `doc` runs without a confirmation (it writes only
+  the ignored `.archvow/doc/`). The checks reference opens the project doc (`archvow doc`).
+- **Paths**: the project is the folder holding `.archvow/project.vow` (activation, readiness, watcher); a vow's
+  banner and Ctrl+click find a component's vow in any feature. An archvow 1.x project (`.archvow/spec.vow`) shows
+  "not initialized", with how to convert it (archvow 2.0's `tools/convert_to_2.py`).
+- Needs archvow 2.0 (contract 2.0); **Install archvow 2.0.0** pins `archvow==2.0.0`. Contract: the 2.0.0 grammar,
+  the examples' new layout, `workspace.json` with `features`, 587 harvested messages (81 codes); icons for
+  `feature` and `move`.
+- Tests: the plain regressions (62, the new `FeatureViewRegression` on the recorded workspace among them) compiled and
+  passed with `javac` and Gson; `ArchvowPanel`, `ArchvowEditorTab` and the `.vow` language classes need the
+  IntelliJ Platform and were not compiled where this release was built (Gradle could not download it): run
+  `./gradlew test` before publishing.
+
 ## 0.23.0 - 2026-11-11
 
 Built on archvow 1.27.0 (contract regenerated from the 1.27.0 wheel; contract 1.3).

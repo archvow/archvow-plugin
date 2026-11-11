@@ -110,7 +110,7 @@ test('the search: groups, places, the selected one\'s lines; a name found nowher
   assert.match(html, /<h2 class="mono">InvoiceNotFoundError<\/h2><span class="muted">found in \d+ places · a class of invoice_not_found_error/);
   assert.match(html, /data-a="searchGroup" data-id="code"><span>Code<\/span><span class="n">\d+<\/span>/);
   assert.match(html, /<span class="here">  13  symbol InvoiceNotFoundError<\/span>/);
-  assert.match(html, /data-a="openFile" data-file="\.archvow\/components\/invoice_not_found_error\/spec\.vow" data-line="13"/);
+  assert.match(html, /data-a="openFile" data-file="\.archvow\/features\/invoices\/components\/invoice_not_found_error\.vow" data-line="13"/);
   assert.equal(searchHits(found, '').length, found.total);
   ui.searchGroup = 'tests';
   assert.ok(searchHits(found, ui.searchGroup).every((h: Json) => h.group === 'tests'));

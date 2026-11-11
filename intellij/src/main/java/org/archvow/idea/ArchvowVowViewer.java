@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Read-only, selectable, syntax-highlighted view of the real spec.vow. */
+/** Read-only, selectable, syntax-highlighted view of a component's real vow. */
 final class ArchvowVowViewer {
     private static final int MAX_BYTES = 1_000_000;
     private static final Set<String> KEYWORDS = Set.of(
@@ -34,13 +34,13 @@ final class ArchvowVowViewer {
         }
         try {
             Path root = Path.of(projectRoot).toRealPath();
-            Path spec = root.resolve(".archvow").resolve("components").resolve(componentId).resolve("spec.vow");
-            if (!Files.isRegularFile(spec)) return "spec.vow not found / Fichier spec.vow introuvable : " + componentId;
+            Path spec = ArchvowLayout.componentVow(root, componentId);
+            if (spec == null) return "vow not found / vow introuvable : " + componentId;
             if (!spec.toRealPath().startsWith(root)) return "File outside the project / Fichier hors du projet.";
-            if (Files.size(spec) > MAX_BYTES) return "spec.vow too large to preview / Fichier trop volumineux pour l'aperçu.";
+            if (Files.size(spec) > MAX_BYTES) return "vow too large to preview / Fichier trop volumineux pour l'aperçu.";
             return Files.readString(spec, StandardCharsets.UTF_8);
         } catch (IOException | SecurityException e) {
-            return "Cannot read spec.vow / Impossible de lire spec.vow : " + e.getMessage();
+            return "Cannot read the vow / Impossible de lire le vow : " + e.getMessage();
         }
     }
 

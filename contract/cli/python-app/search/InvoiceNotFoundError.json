@@ -1,5 +1,5 @@
 {
-  "contract": "1.3",
+  "contract": "2.0",
   "name": "InvoiceNotFoundError",
   "summary": "a class of invoice_not_found_error",
   "total": 12,
@@ -10,7 +10,7 @@
       "hits": [
         {
           "group": "spec",
-          "file": ".archvow/components/invoice_not_found_error/spec.vow",
+          "file": ".archvow/features/invoices/components/invoice_not_found_error.vow",
           "line": 13,
           "component": "invoice_not_found_error",
           "part": "symbol InvoiceNotFoundError",
@@ -18,7 +18,7 @@
         },
         {
           "group": "spec",
-          "file": ".archvow/components/invoices_repository/spec.vow",
+          "file": ".archvow/features/invoices/components/invoices_repository.vow",
           "line": 70,
           "component": "invoices_repository",
           "part": "not_applicable missing because",
@@ -26,7 +26,7 @@
         },
         {
           "group": "spec",
-          "file": ".archvow/components/mark_paid/spec.vow",
+          "file": ".archvow/features/invoices/components/mark_paid.vow",
           "line": 26,
           "component": "mark_paid",
           "part": "decision 2 answer",
@@ -34,7 +34,7 @@
         },
         {
           "group": "spec",
-          "file": ".archvow/components/mark_paid/spec.vow",
+          "file": ".archvow/features/invoices/components/mark_paid.vow",
           "line": 71,
           "component": "mark_paid",
           "part": "not_applicable missing because",

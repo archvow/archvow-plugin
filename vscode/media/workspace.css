@@ -879,3 +879,47 @@ body.editor .guided-command-layout .guided-panel .field { grid-template-columns:
 body.editor .guided-command-layout .guided-panel .field > div,
 body.editor .guided-command-layout fieldset { min-width: 0; max-width: 100%; box-sizing: border-box; }
 body.editor > main:has(.guided-command-layout) { min-width: 0; }
+/* 0.24.0 (contract 2.0): the Features tab - by feature or by layer - and a feature's page */
+.tree-tools .segmented.group-by button { padding: 3px 9px; font-size: .92em; }
+button.add-feature { display: inline-flex; align-items: center; gap: 5px; }
+.tree-tools.sub { margin-top: 0; }
+.filter-words { display: flex; gap: 10px; padding: 2px 2px 6px; font-size: .92em; }
+.filter-words .n { color: var(--vscode-descriptionForeground); font-weight: normal; }
+.tree.features > .feature { padding: 1px 0; }
+.tree.features > .feature > .node { display: flex; width: 100%; gap: 6px; padding: 3px 2px; border-radius: 3px; }
+.tree.features > .feature.selected > .node { background: var(--vscode-list-inactiveSelectionBackground); }
+.tree.features > .feature > .node:hover { background: var(--vscode-list-hoverBackground); }
+.tree.features > .feature > .node:hover button.add-here, .tree.features > .feature > .node button.add-here:focus { opacity: 1; }
+.tree.features > .feature.shared > .node .feature-name { font-weight: normal; color: var(--vscode-descriptionForeground); }
+.tree.features .feature-name { font-weight: 600; color: var(--vscode-foreground); text-decoration: none; }
+.tree.features .grow { flex: 1 1 auto; }
+button.icon.chevron { background: transparent; border: none; color: var(--vscode-descriptionForeground); padding: 0 2px; min-width: 14px; }
+.tree .layer-tag { flex: 0 0 auto; opacity: .8; }
+.feature-head h2 { font-size: 1.7em; margin: 12px 0 2px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.feature-head h2 .component-state { font-size: .48em; }
+.feature-head .meta { margin: 2px 0 6px; }
+.feature-head .description { margin: 6px 0; max-width: 72ch; }
+.progress-line { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
+.progress-line .progress-track { width: 220px; flex: 0 0 auto; }
+button.link.quiet { color: var(--vscode-descriptionForeground); }
+.feature-body { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; margin-top: 14px; }
+.feature-main { flex: 999 1 460px; min-width: 0; }
+.feature-side { flex: 1 1 260px; min-width: 240px; display: flex; flex-direction: column; gap: 0; }
+.feature-main h3, .feature-side h3 { margin: 0 0 8px; font-size: 1em; }
+.feature-table { border: 1px solid var(--vscode-panel-border); border-radius: 4px; overflow: hidden; }
+.feature-table .ft-row { display: grid; grid-template-columns: minmax(120px, 1.3fr) minmax(70px, .7fr) minmax(0, 2fr) minmax(80px, .8fr); gap: 10px;
+  align-items: center; padding: 6px 10px; border-top: 1px solid var(--vscode-panel-border); }
+.feature-table .ft-row:first-child { border-top: none; }
+.feature-table .ft-head { font-size: .82em; letter-spacing: .04em; text-transform: uppercase; color: var(--vscode-descriptionForeground);
+  background: var(--vscode-sideBar-background, transparent); }
+.feature-table .ft-layer { padding: 4px 10px; font-size: .85em; color: var(--vscode-descriptionForeground);
+  border-top: 1px solid var(--vscode-panel-border); background: var(--vscode-editorWidget-background, transparent); }
+.feature-table .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.feature-map .map-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+button.chip-feature, span.chip-feature { border: 1px solid var(--vscode-panel-border); border-radius: 4px; padding: 3px 8px; background: transparent;
+  color: var(--vscode-descriptionForeground); font: inherit; }
+button.chip-feature:hover { color: var(--vscode-foreground); border-color: var(--vscode-focusBorder); }
+span.chip-feature.current { border-color: var(--archvow); color: var(--vscode-foreground); font-weight: 600; }
+ul.plain-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.progress-line .progress-fill { background: var(--vscode-charts-orange, #d18616); }
+.progress-line .progress-fill.p100 { background: var(--vscode-charts-green, #388a34); }

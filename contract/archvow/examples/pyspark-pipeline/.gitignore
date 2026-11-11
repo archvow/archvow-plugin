@@ -35,3 +35,7 @@ derby.log
 
 # archvow: what each business example's test really gave at its last run (local)
 tests/examples/*/*/actual/
+
+# --- added by archvow init ---
+# archvow: the spec to read and the local status (archvow doc writes them; never committed)
+.archvow/doc/

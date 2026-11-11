@@ -29,8 +29,8 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "--strict-markers"
 markers = [
-    "invariant(id): the test of an archvow invariant (see .archvow/spec.md, Invariants)",
-    "decision(number): the test of a decision of the component's spec card (e.g. 3, or \"P1\")",
+    "invariant(id): the test of an archvow invariant (archvow show <component>, Invariants)",
+    "decision(number): the test of a decision of the component's task (archvow prompt) (e.g. 3, or \"P1\")",
     "rule(id): the test of a project rule (e.g. \"R2\")",
     "example(name): the test of a business example, tests/examples/<component>/<name>/ (e.g. \"FATTRIB-012-paid\")",
     'integration: through the app or a real database in a temporary folder; skip with -m "not integration"',

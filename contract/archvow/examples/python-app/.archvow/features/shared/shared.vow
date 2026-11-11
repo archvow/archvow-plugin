@@ -1,0 +1,4 @@
+vow 1 feature shared
+# archvow vow of the feature shared - what the product does; its components are in components/.
+# Read: archvow show shared. Never edit by hand: archvow feature add / rename / remove.
+description "What every feature uses: settings, logging, the app or job that plugs the features in"

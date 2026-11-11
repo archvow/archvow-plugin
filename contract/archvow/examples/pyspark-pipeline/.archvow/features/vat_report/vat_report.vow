@@ -1,0 +1,4 @@
+vow 1 feature vat_report
+# archvow vow of the feature vat_report - what the product does; its components are in components/.
+# Read: archvow show vat_report. Never edit by hand: archvow feature add / rename / remove.
+description "PySpark pipeline for my_pipeline"

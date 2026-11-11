@@ -48,7 +48,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "what the system does, in one line: goes into the vow, the README and every spec card (default: the package name)",
+          "help": "what the system does, in one line: goes into the vow, the README and every doc (default: the package name)",
           "hidden": false,
           "metavar": "TEXT"
         },
@@ -154,7 +154,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "existing code: propose `layer_paths` from folder and file names (core, models, crud, services, api...) so the files stay where they are; written into .archvow/spec.vow and printed for the architects to review (with --force in a project: adds the files not mapped yet)",
+          "help": "existing code: propose `layer_paths` from folder and file names (core, models, crud, services, api...) so the files stay where they are; written into .archvow/project.vow and printed for the architects to review (with --force in a project: adds the files not mapped yet)",
           "hidden": false,
           "metavar": "adopt"
         }
@@ -167,6 +167,119 @@
       "description": "List templates, their init answers and component types.",
       "json": true,
       "parameters": []
+    },
+    {
+      "path": [
+        "feature",
+        "add"
+      ],
+      "description": "Add a feature: .archvow/features/<name>/.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "lower case, digits and _: it names the folder (orders, invoices) - what the product does, not a ticket",
+          "hidden": false,
+          "metavar": "name"
+        },
+        {
+          "name": "description",
+          "flags": [
+            "-d",
+            "--description"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the product does in it",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "brief",
+          "flags": [
+            "--brief"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the brief people wrote for it (briefs/orders.md)",
+          "hidden": false,
+          "metavar": "FILE"
+        }
+      ]
+    },
+    {
+      "path": [
+        "feature",
+        "rename"
+      ],
+      "description": "Rename a feature (its folder moves with its components).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "feature",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the feature (archvow show lists them)",
+          "hidden": false,
+          "metavar": "feature"
+        },
+        {
+          "name": "name",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its new name",
+          "hidden": false,
+          "metavar": "name"
+        }
+      ]
+    },
+    {
+      "path": [
+        "feature",
+        "remove"
+      ],
+      "description": "Remove a feature with no component left.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "feature",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the feature (archvow show lists them)",
+          "hidden": false,
+          "metavar": "feature"
+        }
+      ]
     },
     {
       "path": [
@@ -217,6 +330,22 @@
           "help": "what the component must do - the instruction the AI assistant or developer implements, with the details that matter (change it with archvow component edit)",
           "hidden": false,
           "metavar": "TEXT"
+        },
+        {
+          "name": "feature",
+          "flags": [
+            "-f",
+            "--feature"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the feature it belongs to (archvow feature add); default: the project's one feature - the first component makes it, named after the project; `shared`: what every feature uses",
+          "hidden": false,
+          "metavar": "FEATURE"
         },
         {
           "name": "spec",
@@ -377,7 +506,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -525,9 +654,45 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
+        }
+      ]
+    },
+    {
+      "path": [
+        "component",
+        "move"
+      ],
+      "description": "Move a component to another feature (its vow moves; its id, uses and tests stay).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or `archvow show` shows it",
+          "hidden": false,
+          "metavar": "component"
+        },
+        {
+          "name": "feature",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the feature it goes to (archvow show lists them)",
+          "hidden": false,
+          "metavar": "feature"
         }
       ]
     },
@@ -548,7 +713,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -643,7 +808,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -686,7 +851,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "why it is added, in a few words (what in the card or the brief leaves it open) - shown to the person who keeps it",
+          "help": "why it is added, in a few words (what in the spec or the brief leaves it open) - shown to the person who keeps it",
           "hidden": false,
           "metavar": "REASON"
         }
@@ -709,7 +874,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -745,7 +910,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -796,7 +961,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it (with --type: the question's number)",
+          "help": "component id, as `archvow next` or `archvow show` shows it (with --type: the question's number)",
           "hidden": false,
           "metavar": "component"
         },
@@ -875,7 +1040,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -924,7 +1089,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -960,7 +1125,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -1084,7 +1249,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "why it is added, in a few words (what in the card or the brief leaves it open) - shown to the person who keeps it",
+          "help": "why it is added, in a few words (what in the spec or the brief leaves it open) - shown to the person who keeps it",
           "hidden": false,
           "metavar": "REASON"
         }
@@ -1204,7 +1369,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -1240,7 +1405,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -1276,7 +1441,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -1403,7 +1568,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "why it is added, in a few words (what in the card or the brief leaves it open) - shown to the person who keeps it",
+          "help": "why it is added, in a few words (what in the spec or the brief leaves it open) - shown to the person who keeps it",
           "hidden": false,
           "metavar": "REASON"
         }
@@ -2079,7 +2244,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -2146,7 +2311,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "component id, as `archvow next` or `archvow show` shows it",
           "hidden": false,
           "metavar": "component"
         },
@@ -2184,21 +2349,37 @@
       "path": [
         "prompt"
       ],
-      "description": "Print a component's spec card as a task for an AI assistant.",
+      "description": "Print a component's task for an AI assistant: its spec, what it uses, the rules.",
       "json": false,
       "parameters": [
         {
           "name": "component",
           "flags": [],
-          "required": true,
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "component id, as `archvow next` or `archvow show` shows it (with --feature: the one to build now; default: the feature's next ready one)",
+          "hidden": false,
+          "metavar": "component"
+        },
+        {
+          "name": "feature",
+          "flags": [
+            "-f",
+            "--feature"
+          ],
+          "required": false,
           "boolean": false,
           "append": false,
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "component id, as `archvow next` or the spec cards show it",
+          "help": "the whole feature: what it does, one line per component (the AI sees every one), then the full task of the component to build now",
           "hidden": false,
-          "metavar": "component"
+          "metavar": "FEATURE"
         },
         {
           "name": "task",
@@ -2211,7 +2392,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "a card cut into tasks (archvow show lists them): task N instead of the next open one",
+          "help": "a spec cut into tasks (archvow show lists them): task N instead of the next open one",
           "hidden": false,
           "metavar": "N"
         },
@@ -2254,6 +2435,22 @@
       "description": "Planned components in build order, with what each one waits for.",
       "json": true,
       "parameters": [
+        {
+          "name": "feature",
+          "flags": [
+            "-f",
+            "--feature"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "only this feature's components",
+          "hidden": false,
+          "metavar": "FEATURE"
+        },
         {
           "name": "base",
           "flags": [
@@ -2632,25 +2829,38 @@
     },
     {
       "path": [
-        "docs"
+        "doc"
       ],
-      "description": "Regenerate the specs (committed) and the status report (local).",
+      "description": "Write the spec to read: the project, each feature, the status (.archvow/doc/, never committed).",
       "json": false,
       "parameters": [
         {
-          "name": "check",
+          "name": "feature",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "only this feature (default: the project and every feature)",
+          "hidden": false,
+          "metavar": "feature"
+        },
+        {
+          "name": "base",
           "flags": [
-            "--check"
+            "--base"
           ],
           "required": false,
-          "boolean": true,
+          "boolean": false,
           "append": false,
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "fail if committed specs are stale or edited by hand (CI)",
+          "help": "mark what changed since this branch (archvow diff --base)",
           "hidden": false,
-          "metavar": "check"
+          "metavar": "BRANCH"
         }
       ]
     },

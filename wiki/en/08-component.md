@@ -203,5 +203,5 @@ confirmation left open: you never confirm an action prepared for something else.
 |---|---|---|
 | Rules | the rules that apply to the component (R1, R2...) and their scope | Add, Edit, Remove a rule (forms) |
 | Tasks | the columns to classify and the card's tasks; personal data | Classify column (`column set`), a task's instructions (`prompt <c> --task n`, `ArchvowTaskPrompt`, `promptCommand()`) |
-| Spec | the card the AI implements (`spec.md`) or the vow it is written from (`spec.vow`, highlighted), a switch between them, read only (0.14.0: one view instead of Open spec and Full vow; `vowView()`, `specPanel()`) | Open in the editor, Project vow |
+| Spec | the task the AI implements (`archvow prompt <component>`, contract 2.0: no `spec.md` any more) or the vow it is written from (highlighted), a switch between them, read only (0.14.0: one view instead of Open spec and Full vow; `vowView()`, `specPanel()`) | Open in the editor, Project vow |
 | Other / Project | the checks and items of the whole project, or without a proven component | each item's action; a fix is drawn from a message only when it is documented (`ArchvowIssueAction`, `issueFix()`), never run as it is |

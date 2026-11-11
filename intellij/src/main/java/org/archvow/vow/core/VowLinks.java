@@ -13,7 +13,7 @@ public final class VowLinks {
     }
 
     public enum Kind {
-        /** Another component: its {@code components/<name>/spec.vow}. */
+        /** Another component: its {@code features/<feature>/components/<name>.vow}. */
         COMPONENT,
         /** A hazard: {@code H1} in the same vow, {@code clean_orders.H1} in that component's vow. */
         HAZARD,

@@ -161,6 +161,7 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
   const answered = (d: Json): string => (str(d, 'answer') ? tr(fr, ' (answered)', ' (répondue)') : '');
   const { type, kinds } = types(input);
   const hazards = objects(input.spec, 'hazards');
+  const features = objects(input.spec, 'features');
   const refs = input.refs.filter((r) => !r.endsWith('/HEAD'));
   const baseNote = refs.length
     ? tr(fr, 'Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch.',
@@ -191,6 +192,14 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
       const p = param.name;
       let field: Field | undefined;
       if (p === 'component' && name !== 'component add') field = componentField(name);
+      else if (p === 'feature') {
+        // contract 2.0: the project's features; shared is never renamed nor removed
+        const own = name === 'feature rename' || name === 'feature remove';
+        field = { kind: 'select', choices: features.filter((f) => !own || str(f, 'name') !== 'shared').map((f) => item(str(f, 'name'), str(f, 'description'))),
+          empty: tr(fr, 'No feature yet: add one with feature add.', 'Aucune fonctionnalité : en ajouter une avec feature add.') };
+        if (name === 'component add') field.note = tr(fr, 'Empty: the project\'s one feature (the first component makes one, named after the project). shared: what every feature uses.',
+          "Vide : la seule fonctionnalité du projet (le premier composant en crée une, nommée d'après le projet). shared : ce que chaque fonctionnalité utilise.");
+      }
       else if (name === 'decision make' && p === 'question') {
         field = perComponent(byComponent((id) => {
           const rows = decisions(id);

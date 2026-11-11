@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * The ONE Archvow editor tab of a project: the component, the command form or the result chosen in the
+ * The ONE Archvow editor tab of a project: the feature, the component, the command form or the result chosen in the
  * Archvow tool window. A click on another component shows it in this same tab; closing the tab and
  * clicking again opens it again. Its title follows what it shows ("archvow: clean_orders").
  */
@@ -71,6 +71,12 @@ final class ArchvowEditorTab extends LightVirtualFile {
     static void showSearch(Project project, String name) {
         ArchvowPanel panel = panel(project);
         if (panel != null) panel.showSearch(name);
+    }
+
+    /** A feature's page in the editor tab (0.24.0, contract 2.0). */
+    static void showFeature(Project project, String name) {
+        ArchvowPanel panel = panel(project);
+        if (panel != null) panel.showFeature(name);
     }
 
     static void showBriefs(Project project) {

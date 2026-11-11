@@ -133,7 +133,7 @@ test('a failure as archvow 1.23 prints it: its log lines apart, its error envelo
       assert.ok(log.some((l) => / info +start /.test(l)) && log.some((l) => / info +done exit 2/.test(l)), `${name}: ${log.join('|')}`);
     }
   }
-  assert.match(errorOf(cases['no-spec'].stdout)?.message ?? '', /no \.archvow\/spec\.vow found in <project>/);
+  assert.match(errorOf(cases['no-spec'].stdout)?.message ?? '', /no \.archvow\/project\.vow found in <project>/);
   assert.equal(errorOf(cases.refused.stdout)?.type, 'SpecError');
 });
 

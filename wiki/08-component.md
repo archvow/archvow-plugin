@@ -208,5 +208,5 @@ confirmation laissée ouverte : on ne confirme jamais une action préparée pour
 |---|---|---|
 | Règles | les règles qui s'appliquent au composant (R1, R2...) et leur portée | Ajouter, Modifier, Supprimer une règle (formulaires) |
 | Tâches | les colonnes à classer et les tâches de la fiche ; données personnelles | Classer la colonne (`column set`), les instructions d'une tâche (`prompt <c> --task n`, `ArchvowTaskPrompt`, `promptCommand()`) |
-| Spec | la fiche que l'IA implémente (`spec.md`) ou le vow dont elle est écrite (`spec.vow`, coloré), un sélecteur entre les deux, en lecture seule (0.14.0 : une vue au lieu d'Ouvrir la spec et Full vow ; `vowView()`, `specPanel()`) | Ouvrir dans l'éditeur, Vow du projet |
+| Spec | la tâche que l'IA implémente (`archvow prompt <composant>`, contrat 2.0 : plus de `spec.md`) ou le vow dont elle est écrite (coloré), un sélecteur entre les deux, en lecture seule (0.14.0 : une vue au lieu d'Ouvrir la spec et Full vow ; `vowView()`, `specPanel()`) | Ouvrir dans l'éditeur, Vow du projet |
 | Autres / Projet | les contrôles et éléments de tout le projet, ou sans composant prouvé | l'action de chaque élément ; une correction n'est tirée d'un message que si elle est documentée (`ArchvowIssueAction`, `issueFix()`), jamais exécutée telle quelle |

@@ -117,13 +117,13 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 ## Installing archvow (0.12.0)
 
 When archvow does not start, or does not speak the plugin's contract (0.20.0, page [The contract](/en/04-contract)), the plugins offer
-**Install archvow 1.27.0**; nothing is installed at startup or without a click. `ArchvowInstall`
+**Install archvow 2.0.0**; nothing is installed at startup or without a click. `ArchvowInstall`
 (IntelliJ) and `vscode/src/install.ts` (VS Code) hold the same rules:
 
 | Question | Answer |
 |---|---|
 | Into which Python? | the project's `.venv`, then `venv` (`venvPythons()`), then the IDE's interpreter, then the Python of the settings; a bare `python` is never chosen for the person (`installPython()`, `ArchvowInstall.python`): no Python found, the card says **Configure Python** |
-| Which version? | `archvow==1.27.0` (`requirement()`): exactly the archvow the plugins are tested with (0.20.0); once installed, any archvow of the contract is accepted |
+| Which version? | `archvow==2.0.0` (`requirement()`): exactly the archvow the plugins are tested with (0.20.0); once installed, any archvow of the contract is accepted |
 | From where? | the setting *Install archvow from* / `archvow.installFrom` (`installSource()`): empty = pip's own configuration (pip.conf, `PIP_INDEX_URL`), an http(s) URL = `--index-url`, a `.whl` file, or a folder of wheels = `--no-index --find-links` (`pipArgs()`) |
 | How? | the command is shown (`displayCommand()`), then run only after **Confirm and run**: no shell, in the project folder, 10 minutes at most, `PIP_DISABLE_PIP_VERSION_CHECK=1`; a Python in WSL through `wsl.exe`, as archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Afterwards? | success: the settings keep that Python, the version is probed again, the workspace reloads; failure: pip's output, nothing saved |

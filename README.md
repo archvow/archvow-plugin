@@ -10,13 +10,13 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.23.0.zip, dist/archvow-0.23.0.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.24.0.zip, dist/archvow-0.24.0.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) runs both plugins' tests, regenerates the contract with the
-archvow kept in `contract/archvow/` (the 1.27.0 wheel, its examples and rules) and requires it unchanged,
+archvow kept in `contract/archvow/` (the 2.0.0 wheel, its examples and rules) and requires it unchanged,
 runs the VS Code tests against that archvow, then opens the built `.vsix` and `.zip` as the IDEs do. The
 page [Tests](wiki/en/13-tests.md) says what each job checks.
 
@@ -28,8 +28,12 @@ Publisher setup, GitHub secrets, channel-specific versioning, and retry behavior
 ## The rules both plugins follow
 
 - **The same layout in both editors.** The sidebar (IntelliJ: the Archvow tool window, left; VS Code: the
-  activity bar) chooses: Overview (a project summary), Components (the tree), Commands (the list), AI skills. ONE editor tab shows what
-  was chosen (a component, a command's form, a result) and is reused for the next choice.
+  activity bar) chooses: Overview (a project summary), Features (the tree: by feature - what the product does,
+  `shared` last - or by layer), Commands (the list), AI skills. ONE editor tab shows what
+  was chosen (a feature, a component, a command's form, a result) and is reused for the next choice.
+  A feature shows what the product does in it, how far it is, the features it uses and that use it, its
+  components by layer and what is open in it, with Add component, Open feature doc (`archvow doc <feature>`),
+  Copy AI prompt (`archvow prompt --feature`), Next steps and Rename.
   A component shows its head over the whole width, then, for Decisions, Questions, Safety and
   Assumptions, the items as cards on the left and the selected one's answer panel on the right (under
   the cards in a narrow tab); it opens on its first open item.
@@ -38,7 +42,7 @@ Publisher setup, GitHub secrets, channel-specific versioning, and retry behavior
   Commands (every archvow command as a form built from archvow's own parser, the init wizard built from
   `archvow catalog --json`). VS Code reproduces what the IntelliJ workspace does, rule by rule
   (`vscode/src/workItems.ts`, `grammar.ts`, `formatter.ts` name the Java class each one follows).
-- **The CLI is the only writer.** The state is the vows (`.archvow/**/*.vow`). A plugin reads what the
+- **The CLI is the only writer.** The state is the vows (`.archvow/project.vow`, `.archvow/features/**/*.vow`). A plugin reads what the
   CLI prints (`show`, `next`, `check --json`) and runs an archvow command, after a confirmation that
   shows it, for every change. One reading of an archvow rule is still in both workspaces (a high or
   critical hazard without an invariant shows as "NEEDS INVARIANT", ARCH030): moving it into archvow's
@@ -58,13 +62,13 @@ Publisher setup, GitHub secrets, channel-specific versioning, and retry behavior
   least the plugin's is accepted, so an archvow release that keeps the contract needs no plugin release.
 - **No outside source at run time.** Neither plugin downloads anything on its own; for a team, the `.zip`
   and the `.vsix` go to an internal plugin repository (JetBrains `updatePlugins.xml`, a self-hosted Open
-  VSX) or a share. When archvow is missing or does not speak the contract, **Install archvow 1.27.0** shows the pip
+  VSX) or a share. When archvow is missing or does not speak the contract, **Install archvow 2.0.0** shows the pip
   command (into the project's venv, from pip's own configuration, your company's index or a wheel: the
   setting *Install archvow from*) and runs it only after **Confirm and run** - never at startup.
 
 ## Versions
 
-Both plugins have the same version (0.23.0), their own, not archvow's. They read `.vow` format 1, speak
-archvow's contract 1.3 (`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI
-1.27.0 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
+Both plugins have the same version (0.24.0), their own, not archvow's. They read `.vow` format 1, speak
+archvow's contract 2.0 (`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI
+2.0.0 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
 installed archvow does not speak that contract (archvow keeps no backward compatibility).

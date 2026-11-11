@@ -18,8 +18,6 @@ export interface PlanContext {
   outputExists?: boolean;
 }
 
-const MAX_COVERED = 4;
-
 /**
  * Where a pack command writes (0.22.0): `{dir}` the folder `pack new --dir` names (empty: inside this project,
  * .archvow/packs); `{pack}` a pack's folder, or the name of one of the project's packs (.archvow/packs/<name>).
@@ -107,27 +105,13 @@ function symbolsNote(comp: Json, routes: string): string {
   return [...parts, ...declared].join(', ');
 }
 
-/** The components a rule covers: rule add (words, --type, --all), or rule edit / remove (its scope). */
-function covered(ctx: PlanContext, name: string, values: Record<string, string>): string[] {
-  const all = componentsOf(ctx.spec).map((x) => x.comp);
-  let ids: string[] = [];
-  if (name === 'rule add') {
-    if ((values.all ?? '') === 'true') ids = all.map((c) => str(c, 'id'));
-    else if ((values.type ?? '').trim()) ids = all.filter((c) => str(c, 'type') === values.type.trim()).map((c) => str(c, 'id'));
-    else {
-      const lines = (values.words ?? '').split('\n').map((l) => l.trim()).filter((l) => l);
-      const known = new Set(all.map((c) => str(c, 'id')));
-      const first = lines.length > 1 ? lines[0].split(',').map((x) => x.trim()) : [];
-      ids = first.filter((x) => known.has(x));
-    }
-  } else {
-    const rule = objects(ctx.spec, 'project_rules').find((r) => str(r, 'id') === (values.id ?? '').trim());
-    const scope = rule && rule.scope && typeof rule.scope === 'object' ? (rule.scope as Json) : null;
-    if (scope && scope.all === true) ids = all.map((c) => str(c, 'id'));
-    else if (scope && str(scope, 'type')) ids = all.filter((c) => str(c, 'type') === str(scope, 'type')).map((c) => str(c, 'id'));
-    else if (scope && Array.isArray(scope.components)) ids = (scope.components as unknown[]).map(String);
-  }
-  return ids;
+/** The feature a new component goes to without --feature (archvow's features.home_for): the project's one feature
+ *  besides `shared`; none yet: one named after the system; several: none (the form asks). */
+export function defaultFeature(spec: Json | null): string {
+  const names = objects(spec, 'features').map((f) => str(f, 'name')).filter((n) => n && n !== 'shared');
+  if (names.length === 1) return names[0];
+  if (names.length === 0) return str((spec?.system ?? null) as Json | null, 'name');
+  return '';
 }
 
 /** The rows of the Files block for a command and what its form holds now. */
@@ -159,12 +143,6 @@ export function filePlan(name: string, values: Record<string, string>, ctx: Plan
       if (name === 'component add' && (values.file ?? '').trim()) continue;
       const target = made ?? known;
       paths = target ? [testPath(target.comp)] : [];
-    } else if (pattern === '{covered}') {
-      const ids = covered(ctx, name, values);
-      paths = ids.slice(0, MAX_COVERED).map((id) => `.archvow/components/${id}/spec.md`);
-      if (ids.length > MAX_COVERED) {
-        note = (note ? note + ' - ' : '') + (ctx.fr ? `et ${ids.length - MAX_COVERED} autres` : `and ${ids.length - MAX_COVERED} more`);
-      }
     } else if (pattern === '{output}') {
       const output = (values.output ?? '').trim();
       paths = output ? [output] : [];
@@ -172,9 +150,14 @@ export function filePlan(name: string, values: Record<string, string>, ctx: Plan
     } else {
       const id = pattern.includes('{new}') ? (made ? str(made.comp, 'id') : '') : component;
       if ((pattern.includes('{new}') || pattern.includes('{component}')) && !id) continue;
+      // {home}: the feature the component is in; {feature}: the one the form names (component add: else the default)
+      const home = known ? str(known.comp, 'feature') : '';
+      const feature = (values.feature ?? '').trim() || (name === 'component add' ? defaultFeature(ctx.spec) : '');
+      if ((pattern.includes('{home}') && !home) || (pattern.includes('{feature}') && !feature)) continue;
       if (pattern.includes('{name}') && !(values.name ?? '').trim()) continue;
       if (pattern.includes('{pack}') && !(values.pack ?? '').trim()) continue;
-      paths = [pattern.replace('{new}', id).replace('{component}', id).replace('{name}', (values.name ?? '').trim())
+      paths = [pattern.replace('{new}', id).replace(/\{component\}/g, id).replace(/\{name\}/g, (values.name ?? '').trim())
+        .replace('{home}', home).replace('{feature}', feature)
         .replace('{dir}', packFolder(values.dir, true)).replace('{pack}', packFolder(values.pack, false))];
     }
     for (const p of paths) {

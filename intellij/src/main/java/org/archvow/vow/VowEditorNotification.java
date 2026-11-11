@@ -34,10 +34,14 @@ public final class VowEditorNotification implements EditorNotificationProvider, 
             return "Decisions the AI proposed - a person reviews each one: archvow decision accept <component> <n>,"
                     + " or archvow decision make <component> <n> \"...\"";
         }
-        if (folder != null && folder.getParent() != null && folder.getParent().getName().equals("components")) {
-            String component = folder.getName();
-            return "Written by archvow commands - change it with: archvow specify " + component
-                    + " (all of it: archvow show " + component + ")";
+        String stem = name.endsWith(".vow") ? name.substring(0, name.length() - 4) : name;
+        if (folder != null && folder.getName().equals("components")) {
+            return "Written by archvow commands - change it with: archvow specify " + stem
+                    + " (all of it: archvow show " + stem + "; another feature: archvow component move " + stem + " <feature>)";
+        }
+        if (folder != null && folder.getName().equals(stem) && folder.getParent() != null && folder.getParent().getName().equals("features")) {
+            return "Written by archvow commands - what the product does: archvow show " + stem + ", archvow feature rename "
+                    + stem + " <name>, its page: archvow doc " + stem;
         }
         return "Written by archvow commands (archvow init <package> --force -a <answer>=..., archvow rule add...)"
                 + " - only rules, allowed_paths and dependencies_by_path are edited by hand, by an architect";

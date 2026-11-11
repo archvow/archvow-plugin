@@ -1,5 +1,5 @@
 {
-  "contract": "1.3",
+  "contract": "2.0",
   "ok": true,
   "errors": 0,
   "warnings": 15,
@@ -8,7 +8,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'create_order': safety question S2 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show create_order",
-      "file": ".archvow/components/create_order/spec.vow",
+      "file": ".archvow/features/orders/components/create_order.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -35,7 +35,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'create_order': safety question S4 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show create_order",
-      "file": ".archvow/components/create_order/spec.vow",
+      "file": ".archvow/features/orders/components/create_order.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -62,7 +62,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'create_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show create_order",
-      "file": ".archvow/components/create_order/spec.vow",
+      "file": ".archvow/features/orders/components/create_order.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -88,35 +88,8 @@
     {
       "code": "ARCH035",
       "severity": "warning",
-      "message": "'get_current_user': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_current_user",
-      "file": ".archvow/components/get_current_user/spec.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "get_current_user"
-          },
-          "text": "archvow show get_current_user",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
       "message": "'get_order': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show get_order",
-      "file": ".archvow/components/get_order/spec.vow",
+      "file": ".archvow/features/orders/components/get_order.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -143,7 +116,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'get_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_order",
-      "file": ".archvow/components/get_order/spec.vow",
+      "file": ".archvow/features/orders/components/get_order.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -169,35 +142,8 @@
     {
       "code": "ARCH035",
       "severity": "warning",
-      "message": "'main': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show main",
-      "file": ".archvow/components/main/spec.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "main"
-          },
-          "text": "archvow show main",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
       "message": "'new_order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show new_order_model",
-      "file": ".archvow/components/new_order_model/spec.vow",
+      "file": ".archvow/features/orders/components/new_order_model.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -224,7 +170,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'new_order_model': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show new_order_model",
-      "file": ".archvow/components/new_order_model/spec.vow",
+      "file": ".archvow/features/orders/components/new_order_model.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -251,7 +197,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show order_model",
-      "file": ".archvow/components/order_model/spec.vow",
+      "file": ".archvow/features/orders/components/order_model.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -278,7 +224,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'orders_repository': safety question S2 not answered (more) - Too much (unbounded results, duplicated records, a flood of requests): what must never happen? -> archvow show orders_repository",
-      "file": ".archvow/components/orders_repository/spec.vow",
+      "file": ".archvow/features/orders/components/orders_repository.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -305,7 +251,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'orders_repository': safety question S5 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show orders_repository",
-      "file": ".archvow/components/orders_repository/spec.vow",
+      "file": ".archvow/features/orders/components/orders_repository.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -332,7 +278,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'orders_repository': safety question S6 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show orders_repository",
-      "file": ".archvow/components/orders_repository/spec.vow",
+      "file": ".archvow/features/orders/components/orders_repository.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -359,7 +305,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'orders_router': safety question S3 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show orders_router",
-      "file": ".archvow/components/orders_router/spec.vow",
+      "file": ".archvow/features/orders/components/orders_router.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -386,7 +332,7 @@
       "code": "ARCH035",
       "severity": "warning",
       "message": "'orders_router': safety question S4 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show orders_router",
-      "file": ".archvow/components/orders_router/spec.vow",
+      "file": ".archvow/features/orders/components/orders_router.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -403,6 +349,60 @@
             "component": "orders_router"
           },
           "text": "archvow show orders_router",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'get_current_user': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_current_user",
+      "file": ".archvow/features/shared/components/get_current_user.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "get_current_user"
+          },
+          "text": "archvow show get_current_user",
+          "missing": [],
+          "readOnly": true
+        },
+        "file": null
+      }
+    },
+    {
+      "code": "ARCH035",
+      "severity": "warning",
+      "message": "'main': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show main",
+      "file": ".archvow/features/shared/components/main.vow",
+      "line": 0,
+      "col": 0,
+      "title": "Safety question of a component not answered (no hazard, no dismissal)",
+      "guide": {
+        "language": "en",
+        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+        "then": "Then run archvow check again: the finding disappears once it is fixed.",
+        "command": {
+          "name": "show",
+          "values": {
+            "component": "main"
+          },
+          "text": "archvow show main",
           "missing": [],
           "readOnly": true
         },

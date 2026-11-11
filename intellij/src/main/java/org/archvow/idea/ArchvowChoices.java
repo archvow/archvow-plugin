@@ -241,6 +241,7 @@ final class ArchvowChoices {
         Map<String, List<Choice>> kinds = new LinkedHashMap<>();
         types(input, type, kinds);
         List<JsonObject> hazards = objects(input.spec(), "hazards");
+        List<JsonObject> features = objects(input.spec(), "features");
         List<String> refs = input.refs().stream().filter(r -> !r.endsWith("/HEAD")).toList();
         String base = input.base() == null ? "" : input.base();
         String baseNote = !refs.isEmpty()
@@ -269,6 +270,14 @@ final class ArchvowChoices {
                         choices.add(item(id, str(c, "type"), fill));
                     }
                     field = select(choices, tr(fr, "No component yet: add one with component add.", "Aucun composant : en ajouter un avec component add."));
+                } else if ("feature".equals(p)) {
+                    // contract 2.0: the project's features; shared is never renamed nor removed
+                    boolean own = "feature rename".equals(name) || "feature remove".equals(name);
+                    List<Choice> choices = new ArrayList<>();
+                    for (JsonObject f : features) if (!own || !"shared".equals(str(f, "name"))) choices.add(item(str(f, "name"), str(f, "description"), null));
+                    field = select(choices, tr(fr, "No feature yet: add one with feature add.", "Aucune fonctionnalité : en ajouter une avec feature add."));
+                    if ("component add".equals(name)) field.note = tr(fr, "Empty: the project's one feature (the first component makes one, named after the project). shared: what every feature uses.",
+                        "Vide : la seule fonctionnalité du projet (le premier composant en crée une, nommée d'après le projet). shared : ce que chaque fonctionnalité utilise.");
                 } else if ("decision make".equals(name) && "question".equals(p)) {
                     field = perComponent(byComponent.apply(id -> {
                         List<JsonObject> rows = decisions.apply(id);

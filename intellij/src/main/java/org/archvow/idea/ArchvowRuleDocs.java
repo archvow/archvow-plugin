@@ -25,7 +25,7 @@ final class ArchvowRuleDocs {
     static Reference findProjectReference(Path root, String candidate) {
         String code = canonical(candidate);
         if (root == null || code.isBlank()) return null;
-        for (String relative : List.of(".archvow/spec.md", "docs/rules.fr.md", "docs/rules.md",
+        for (String relative : List.of(".archvow/doc/project.md", "docs/rules.fr.md", "docs/rules.md",
                 "docs/project.md", "project.md", ".archvow/README.md")) {
             Path file = root.resolve(relative).normalize();
             if (!file.startsWith(root.normalize()) || !Files.isRegularFile(file)) continue;

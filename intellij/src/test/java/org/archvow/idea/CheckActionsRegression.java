@@ -10,8 +10,8 @@ public final class CheckActionsRegression {
     }
 
     public static void main(String[] args) {
-        expect("Open vow".equals(ArchvowCheckActions.fileLabel(".archvow/spec.vow", false)), "vow label");
-        expect("Open spec".equals(ArchvowCheckActions.fileLabel(".archvow/components/x/spec.md", false)), "spec label");
+        expect("Open vow".equals(ArchvowCheckActions.fileLabel(".archvow/project.vow", false)), "vow label");
+        expect("Open vow".equals(ArchvowCheckActions.fileLabel(".archvow/features/orders/components/x.vow", false)), "a component's vow");
         expect("Open source".equals(ArchvowCheckActions.fileLabel("src/reader.py", false)), "source label");
         expect("Open document".equals(ArchvowCheckActions.fileLabel("CLAUDE.md", false)), "document label");
         expect("Open configuration".equals(ArchvowCheckActions.fileLabel(".claude/settings.json", false)), "config file label");

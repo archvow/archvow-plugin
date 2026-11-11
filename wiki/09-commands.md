@@ -158,7 +158,7 @@ la question et son état (« Charger la question ») avant qu'on réponde.
 
 ## L'assistant init
 
-Dans un dossier sans `.archvow/spec.vow`, **Initialiser Archvow** ouvre le formulaire d'`init` avec un
+Dans un dossier sans `.archvow/project.vow`, **Initialiser Archvow** ouvre le formulaire d'`init` avec un
 assistant : le template, puis ses questions (les essentielles ; les autres avec « réglages avancés »).
 Les questions viennent d'`archvow catalog --json` lancé dans le dossier du projet (0.22.0, archvow 1.26 : les
 templates d'archvow et ceux des packs qu'`archvow pack add` y a copiés, nommés `<pack>/<modèle>`), sinon de la

@@ -1,0 +1,4 @@
+vow 1 feature invoices
+# archvow vow of the feature invoices - what the product does; its components are in components/.
+# Read: archvow show invoices. Never edit by hand: archvow feature add / rename / remove.
+description "Marks invoices paid, from the command line"

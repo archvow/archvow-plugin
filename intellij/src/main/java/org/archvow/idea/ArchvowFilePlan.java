@@ -6,10 +6,8 @@ import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * The files a command writes, shown under the command in the form (Files): what is new, updated, removed or
@@ -23,7 +21,6 @@ final class ArchvowFilePlan {
     record Row(String change, String path, String note) {}
     record Addable(String type, String description) {}
 
-    private static final int MAX_COVERED = 4;
 
     /** archvow's JSON as text, as filePlan.ts's str(): '' for absent or null, objects as JSON. */
     private static String str(JsonObject o, String key) {
@@ -142,32 +139,14 @@ final class ArchvowFilePlan {
         return String.join(", ", parts);
     }
 
-    /** The components a rule covers: rule add (words, --type, --all), or rule edit / remove (its scope). */
-    private static List<String> covered(JsonObject spec, String name, Map<String, String> values) {
-        List<JsonObject> all = new ArrayList<>();
-        for (Placed p : components(spec)) all.add(p.comp());
-        List<String> ids = new ArrayList<>();
-        if ("rule add".equals(name)) {
-            if ("true".equals(values.getOrDefault("all", ""))) { for (JsonObject c : all) ids.add(str(c, "id")); }
-            else if (!value(values, "type").isEmpty()) { for (JsonObject c : all) if (str(c, "type").equals(value(values, "type"))) ids.add(str(c, "id")); }
-            else {
-                List<String> lines = new ArrayList<>();
-                for (String l : values.getOrDefault("words", "").split("\n", -1)) if (!l.trim().isEmpty()) lines.add(l.trim());
-                Set<String> known = new LinkedHashSet<>();
-                for (JsonObject c : all) known.add(str(c, "id"));
-                if (lines.size() > 1) for (String x : lines.get(0).split(",", -1)) if (known.contains(x.trim())) ids.add(x.trim());
-            }
-        } else {
-            JsonObject scope = null;
-            for (JsonObject r : objects(spec, "project_rules"))
-                if (str(r, "id").equals(value(values, "id")) && r.get("scope") instanceof JsonObject s) { scope = s; break; }
-            if (scope != null && scope.get("all") != null && scope.get("all").isJsonPrimitive() && scope.get("all").getAsJsonPrimitive().isBoolean()
-                && scope.get("all").getAsBoolean()) { for (JsonObject c : all) ids.add(str(c, "id")); }
-            else if (scope != null && !str(scope, "type").isEmpty()) { for (JsonObject c : all) if (str(c, "type").equals(str(scope, "type"))) ids.add(str(c, "id")); }
-            else if (scope != null && scope.get("components") != null && scope.get("components").isJsonArray())
-                for (JsonElement e : scope.getAsJsonArray("components")) ids.add(e.isJsonPrimitive() ? e.getAsString() : e.toString());
-        }
-        return ids;
+    /** The feature a new component goes to without --feature (archvow's features.home_for): the project's one feature
+     *  besides {@code shared}; none yet: one named after the system; several: none (the form asks). */
+    static String defaultFeature(JsonObject spec) {
+        List<String> names = new ArrayList<>();
+        for (JsonObject f : objects(spec, "features")) if (!str(f, "name").isEmpty() && !"shared".equals(str(f, "name"))) names.add(str(f, "name"));
+        if (names.size() == 1) return names.get(0);
+        if (names.isEmpty()) return spec != null && spec.get("system") instanceof JsonObject system ? str(system, "name") : "";
+        return "";
     }
 
     /** The rows of the Files block for a command and what its form holds now. */
@@ -205,22 +184,21 @@ final class ArchvowFilePlan {
             } else if ("{test}".equals(pattern)) {
                 if ("component add".equals(name) && !value(values, "file").isEmpty()) continue;
                 if (target != null) paths.add(testPath(target.comp()));
-            } else if ("{covered}".equals(pattern)) {
-                List<String> ids = covered(spec, name, values);
-                for (String id : ids.subList(0, Math.min(MAX_COVERED, ids.size()))) paths.add(".archvow/components/" + id + "/spec.md");
-                if (ids.size() > MAX_COVERED) {
-                    int more = ids.size() - MAX_COVERED;
-                    note = (note.isEmpty() ? "" : note + " - ") + (fr ? "et " + more + " autres" : "and " + more + " more");
-                }
             } else if ("{output}".equals(pattern)) {
                 if (!value(values, "output").isEmpty()) paths.add(value(values, "output"));
                 if (outputExists) change = "updated";
             } else {
                 String id = pattern.contains("{new}") ? (made != null ? str(made.comp(), "id") : "") : component;
                 if ((pattern.contains("{new}") || pattern.contains("{component}")) && id.isEmpty()) continue;
+                // {home}: the feature the component is in; {feature}: the one the form names (component add: else the default)
+                String home = known != null ? str(known.comp(), "feature") : "";
+                String feature = !value(values, "feature").isEmpty() ? value(values, "feature")
+                    : "component add".equals(name) ? defaultFeature(spec) : "";
+                if ((pattern.contains("{home}") && home.isEmpty()) || (pattern.contains("{feature}") && feature.isEmpty())) continue;
                 if (pattern.contains("{name}") && value(values, "name").isEmpty()) continue;
                 if (pattern.contains("{pack}") && value(values, "pack").isEmpty()) continue;
                 paths.add(pattern.replace("{new}", id).replace("{component}", id).replace("{name}", value(values, "name"))
+                    .replace("{home}", home).replace("{feature}", feature)
                     .replace("{dir}", packFolder(value(values, "dir"), true))
                     .replace("{pack}", packFolder(value(values, "pack"), false)));
             }

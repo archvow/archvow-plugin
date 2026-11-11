@@ -30,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +57,7 @@ final class ArchvowPanel extends JPanel {
     private static final Set<String> LONG_TEXT = Set.of("description", "answer", "rationale", "statement", "question", "text", "words");
     private static final Set<String> DESTRUCTIVE = Set.of("component remove", "question remove", "rule remove", "hazard remove", "invariant remove",
             "example remove");
-    private static final Set<String> READ_ONLY = Set.of("show", "catalog", "next", "check", "audit", "doctor", "changes", "diff", "prompt");
+    private static final Set<String> READ_ONLY = Set.of("show", "catalog", "next", "check", "audit", "doctor", "changes", "diff", "prompt", "doc");
     private static final Pattern QUOTED_COMPONENT = Pattern.compile("'([^']+)'");
 
     /** An AI skill in the Commands tree (0.16.0): opens its launch form. */
@@ -111,6 +112,11 @@ final class ArchvowPanel extends JPanel {
     private JsonObject projectCatalog;
     /** The project's packs, as workspace --json gives them (archvow 1.26; Overview › Packs). */
     private com.google.gson.JsonArray projectPacks = new com.google.gson.JsonArray();
+    /** Contract 2.0 (0.24.0): each feature, as show <feature> --json; the Components tab groups by feature or by layer. */
+    private Map<String, JsonObject> projectFeatures = new LinkedHashMap<>();
+    private boolean groupByFeature = true;
+    private ArchvowFeatureView featureView;
+    private String shownFeature = "";
     /** archvow/kinds.json: the kinds of each type for an archvow whose catalog has none (1.17). */
     private JsonObject bundledKinds;
     /** The repository's branches and tags, the current branch, what origin's HEAD names (the comparison base). */
@@ -251,7 +257,7 @@ final class ArchvowPanel extends JPanel {
     private final JTextPane rulesOnlyDetails = ArchvowDataView.create();
     private final JTextPane rulesDetails = ArchvowDataView.create();
     private final JTextPane vowDetails = ArchvowVowViewer.create();
-    /** The Spec view: the card the AI implements (spec.md) over the vow it is written from (spec.vow), both read only. */
+    /** The Spec view: the task the AI implements (archvow prompt) over the vow it is written from, both read only. */
     private final JTextArea cardDetails = new JTextArea();
     /** archvow 1.19: the answers a question without a safe default offers to start from, one button each. */
     private final JPanel decisionChoices = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 4, 4));
@@ -832,10 +838,20 @@ final class ArchvowPanel extends JPanel {
                 @Override public void search(String name) { showSearch(name); }
             });
             detailHomeCards.add(searchView, "search");
+            featureView = new ArchvowFeatureView(new ArchvowFeatureView.Actions() {
+                @Override public void showComponent(String id) { ArchvowPanel.this.showComponent(id); }
+                @Override public void showFeature(String name) { ArchvowPanel.this.showFeature(name); }
+                @Override public void openFile(String relative) { openViolationFile(relative, 0); }
+                @Override public void openCommand(String command, Map<String, String> values) { ArchvowPanel.this.openCommand(command, values); }
+                @Override public void openDoc(String feature) { ArchvowPanel.this.openDoc(feature, List.of()); }
+                @Override public void copyPrompt(String feature) { copyFeaturePrompt(feature); }
+                @Override public void nextSteps(String feature) { executeDirect("next", List.of("next", "--feature", feature, "--json"), null, false); }
+            });
+            detailHomeCards.add(featureView, "feature");
             detailHomeLayout.show(detailHomeCards, detailHomeMode);
             tabs.addTab("Result", detailHomeCards);
         }
-        tabs.addTab("Components", componentPanel());
+        tabs.addTab(ArchvowI18n.text(project, "Features", "Fonctionnalités"), componentPanel());
         tabs.addTab("Commands", commandPanel());
         if (role == Role.NAVIGATION) tabs.addTab(ArchvowI18n.text(project, "AI skills", "Skills IA"), aiSkillsPanel());
         tabs.setStripVisible(role == Role.NAVIGATION);
@@ -872,6 +888,7 @@ final class ArchvowPanel extends JPanel {
         componentSnapshots.putAll(source.componentSnapshots);
         projectCatalog = source.projectCatalog;
         projectPacks = source.projectPacks;
+        projectFeatures = source.projectFeatures;
         gitRefs = source.gitRefs;
         firstCommit = source.firstCommit;
         gitCurrent = source.gitCurrent;
@@ -894,6 +911,7 @@ final class ArchvowPanel extends JPanel {
             // only when it changed: a person may be typing an answer
             if (fresh != null && !fresh.equals(selectedView)) { selectedView = fresh; renderComponent(fresh); }
         }
+        if ("feature".equals(detailHomeMode) && !shownFeature.isBlank()) renderFeature();
     }
 
     /** The tool window: hands what it read to the editor tab, when the tab is open. */
@@ -958,6 +976,66 @@ final class ArchvowPanel extends JPanel {
             showDetailHome("search");
             tabs.setSelectedIndex(0);
             afterSelectionChange();
+        });
+    }
+
+    /** A feature's page in the editor tab (0.24.0, contract 2.0): from the Components tab, a link or the page itself. */
+    void showFeature(String name) {
+        if (name == null || name.isBlank()) return;
+        if (role == Role.NAVIGATION) { ArchvowEditorTab.showFeature(project, name); return; }
+        ArchvowPanel nav = navigation();
+        if (nav != null && nav.manifest != null) adoptFrom(nav);
+        backComponent = null;
+        shownFeature = name;
+        showWorkspace();
+        renderFeature();
+        resultLabel = name;
+        showDetailHome("feature");
+        tabs.setSelectedIndex(0);
+        afterSelectionChange();
+    }
+
+    private void renderFeature() {
+        if (featureView == null) return;
+        Map<String, String> openItems = new LinkedHashMap<>();
+        for (int i = 0; i < pendingModel.size(); i++) {
+            QuickItem item = pendingModel.get(i);
+            if (!item.componentId.isBlank()) openItems.putIfAbsent(item.componentId, item.title);
+        }
+        featureView.show(projectFeatures.get(shownFeature), manifest, pendingByComponent, openItems, ArchvowI18n.isFrench(project));
+    }
+
+    /** {@code archvow doc [<feature>]}, then its page in an editor, at the first of {@code headings} it has: Markdown
+     *  to read, written into .archvow/doc/ (ignored by Git, never read back - nothing to confirm). */
+    private void openDoc(String feature, List<String> headings) {
+        List<String> args = feature == null || feature.isBlank() ? List.of("doc") : List.of("doc", feature);
+        String page = ".archvow/doc/" + (feature == null || feature.isBlank() ? "project" : feature) + ".md";
+        cli.executeAction("doc", args, null, r -> {
+            String base = project.getBasePath();
+            File file = base == null ? null : new File(base, page);
+            if (!r.ok() || file == null || !file.isFile()) {
+                message(r.output == null || r.output.isBlank() ? ArchvowI18n.text(project, "archvow doc wrote nothing.", "archvow doc n'a rien écrit.") : r.output);
+                return;
+            }
+            int line = 0;
+            try {
+                List<String> lines = Files.readAllLines(file.toPath());
+                for (int i = 0; i < lines.size() && line == 0; i++)
+                    for (String h : headings) if (lines.get(i).startsWith(h)) { line = i + 1; break; }
+            } catch (IOException ignored) {
+                line = 0;
+            }
+            openViolationFile(page, line);
+        });
+    }
+
+    /** {@code archvow prompt --feature <feature>} into the clipboard: the feature in a few lines, then the task of its next component. */
+    private void copyFeaturePrompt(String feature) {
+        cli.executeAction("prompt", List.of("prompt", "--feature", feature), null, r -> {
+            if (!r.ok()) { message(r.output); return; }
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(r.stdout), null);
+            message(ArchvowI18n.text(project, "The instruction for " + feature + " is in the clipboard: paste it to your AI assistant.",
+                "L'instruction pour " + feature + " est dans le presse-papiers : colle-la à ton assistant IA."));
         });
     }
 
@@ -1181,13 +1259,13 @@ final class ArchvowPanel extends JPanel {
             case NOT_INITIALIZED -> {
                 title = ArchvowI18n.text(project, "Archvow not initialized", "Archvow non initialisé");
                 detail = ArchvowI18n.text(project,
-                    "This folder does not contain .archvow/spec.vow. Initialize Archvow to begin or open an initialized project.",
-                    "Ce dossier ne contient pas .archvow/spec.vow. Initialise Archvow ou ouvre un projet existant.");
+                    "This folder does not contain .archvow/project.vow. Initialize Archvow to begin or open an initialized project. A project of archvow 1.x (.archvow/spec.vow) is converted once with archvow 2.0's tools/convert_to_2.py.",
+                    "Ce dossier ne contient pas .archvow/project.vow. Initialise Archvow ou ouvre un projet existant. Un projet archvow 1.x (.archvow/spec.vow) se convertit une fois avec tools/convert_to_2.py d'archvow 2.0.");
             }
             case SPEC_INACCESSIBLE -> {
                 title = ArchvowI18n.text(project, "Specification unavailable", "Spécification inaccessible");
-                detail = ArchvowI18n.text(project, ".archvow/spec.vow is not readable.",
-                    ".archvow/spec.vow n'est pas lisible.");
+                detail = ArchvowI18n.text(project, ".archvow/project.vow is not readable.",
+                    ".archvow/project.vow n'est pas lisible.");
             }
             default -> {
                 title = ArchvowI18n.text(project, "Archvow needs attention", "Configuration Archvow à vérifier");
@@ -1917,6 +1995,10 @@ final class ArchvowPanel extends JPanel {
             if (rebuilding) return;
             Object nodeObject = componentsTree.getLastSelectedPathComponent();
             if (!(nodeObject instanceof DefaultMutableTreeNode node)) return;
+            if (node.getUserObject() instanceof ArchvowTreeIcons.Node featureNode && "feature".equals(featureNode.kind())) {
+                showFeature(featureNode.text());
+                return;
+            }
             if (!(node.getUserObject() instanceof NodeComponent comp)) return;
             if (role == Role.NAVIGATION) {
                 // the tool window chooses; the component opens in the editor tab
@@ -2199,7 +2281,7 @@ final class ArchvowPanel extends JPanel {
         rightTop.add(headAndSuggestion, BorderLayout.NORTH);
         rightTop.add(actionStrip, BorderLayout.SOUTH);
         JPanel viewsHeader = new JPanel(new BorderLayout(0, 3));
-        // One spec.vow per component; these sections also include checks and project issues.
+        // One vow per component; these sections also include checks and project issues.
         vowsLabel = translated(new JLabel(), "Vows", "Vows");
         vowsLabel.setFont(vowsLabel.getFont().deriveFont(Font.BOLD, 13f));
         vowsLabel.setVisible(false);
@@ -2245,7 +2327,25 @@ final class ArchvowPanel extends JPanel {
         addComponentButton.setToolTipText(ArchvowI18n.text(project, "Add a component (archvow component add): its type, name and what it must do. Or right-click a layer.",
             "Ajouter un composant (archvow component add) : son type, son nom et ce qu'il doit faire. Ou clic droit sur une couche."));
         languageRefreshers.add(() -> addComponentButton.setText(ArchvowI18n.text(project, "Add component", "Ajouter un composant")));
+        // 0.24.0 (contract 2.0): by feature or by layer, and Add feature
+        String byFeature = ArchvowI18n.text(project, "By feature", "Par fonctionnalité");
+        String byLayer = ArchvowI18n.text(project, "By layer", "Par couche");
+        ArchvowSegmented groupBy = new ArchvowSegmented(List.of(byFeature, byLayer), byFeature, true);
+        groupBy.onChange(() -> { groupByFeature = byFeature.equals(groupBy.value()); rebuildTree(); });
+        JButton addFeature = button(ArchvowI18n.text(project, "Add feature", "Ajouter une fonctionnalité"), () -> openCommand("feature add", Map.of()));
+        addFeature.setIcon(ArchvowTreeIcons.icon("add", null));
+        addFeature.setMargin(new Insets(3, 6, 3, 6));
+        addFeature.setToolTipText(ArchvowI18n.text(project, "Add a feature (archvow feature add): what the product does, never a ticket",
+            "Ajouter une fonctionnalité (archvow feature add) : ce que fait le produit, jamais un ticket"));
+        JPanel groupRow = new JPanel(new BorderLayout());
+        JPanel groupLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 2));
+        groupLeft.add(groupBy);
+        groupRow.add(groupLeft, BorderLayout.CENTER);
+        JPanel groupRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 2));
+        groupRight.add(addFeature);
+        groupRow.add(groupRight, BorderLayout.EAST);
         JPanel tools = new JPanel(new BorderLayout());
+        tools.add(groupRow, BorderLayout.NORTH);
         tools.add(filterRow, BorderLayout.CENTER);
         JPanel addRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 2));
         addRow.add(addComponentButton);
@@ -2890,7 +2990,7 @@ final class ArchvowPanel extends JPanel {
         afterSelectionChange();
     }
 
-    /** Read-only documentation: this is not `archvow docs` (which writes generated files). */
+    /** Read-only documentation: the command reference, not `archvow doc` (which writes the project's pages). */
     private void openCommandReference() {
         if (role == Role.NAVIGATION) {
             ArchvowPanel editor = ArchvowEditorTab.panel(project);
@@ -3095,7 +3195,7 @@ final class ArchvowPanel extends JPanel {
         if (checkCard != null && checkCard.getClientProperty("archvow.heading") instanceof JLabel title)
             title.setText(ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations"));
         tabs.setTitleAt(0, ArchvowI18n.text(project, "Overview", "Vue d'ensemble"));
-        tabs.setTitleAt(1, ArchvowI18n.text(project, "Components", "Composants"));
+        tabs.setTitleAt(1, ArchvowI18n.text(project, "Features", "Fonctionnalités"));
         tabs.setTitleAt(2, ArchvowI18n.text(project, "Commands", "Commandes"));
         quickTabs.setTitleAt(0, ArchvowI18n.text(project, "Pending", "En attente") + " (" + otherPendingModel.size() + ")");
         quickTabs.setTitleAt(1, ArchvowI18n.text(project, "Resolved", "Traités") + " (" + otherResolvedModel.size() + ")");
@@ -3402,7 +3502,7 @@ final class ArchvowPanel extends JPanel {
         if ("init".equals(command)) return Set.of("package", "description", "dir", "src").contains(parameter)
             ? "Project" : "Advanced CLI";
         if ("component add".equals(command)) {
-            if (Set.of("type", "name", "description").contains(parameter)) return "Basics";
+            if (Set.of("type", "name", "description", "feature").contains(parameter)) return "Basics";
             if (Set.of("kind", "spec", "uses", "container", "group").contains(parameter)) return "Architecture";
             return "Source & advanced";
         }
@@ -4002,8 +4102,7 @@ final class ArchvowPanel extends JPanel {
         }
         if (command.json && !args.contains("--json")) args.add("--json");
         boolean destructive = DESTRUCTIVE.contains(command.label);
-        boolean mutating = destructive || ("docs".equals(command.label) ? !args.contains("--check") :
-            "completion".equals(command.label) ? args.contains("--install") : !READ_ONLY.contains(command.path.get(0)));
+        boolean mutating = destructive || ("completion".equals(command.label) ? args.contains("--install") : !READ_ONLY.contains(command.path.get(0)));
         // The confirmation is displayed inline after all arguments have been prepared.
         if (destructive && !args.contains("--yes")) args.add("--yes");
         String stdin = null;
@@ -4365,8 +4464,8 @@ final class ArchvowPanel extends JPanel {
                 String hint = ArchvowResultFormatter.advice(detail, ArchvowI18n.isFrench(project));
                 String explanation = !hint.isBlank() ? hint :
                     ArchvowI18n.text(project,
-                        "Archvow could not read the specification. Verify Python, CLI installation and .archvow/spec.vow.",
-                        "Archvow n'a pas pu lire la spécification. Vérifie Python, l'installation du CLI et .archvow/spec.vow.");
+                        "Archvow could not read the specification. Verify Python, CLI installation and .archvow/project.vow.",
+                        "Archvow n'a pas pu lire la spécification. Vérifie Python, l'installation du CLI et .archvow/project.vow.");
                 showWelcome(status, !hint.isBlank() ? hint : explanation +
                     (detail.isBlank() ? "" : "\n" + shorten(detail, 280)));
                 pushToDetail();
@@ -4374,6 +4473,7 @@ final class ArchvowPanel extends JPanel {
             }
             answeredDigest = answer.digest;
             answeredBy = cli.program();
+            projectFeatures = answer.features;
             manifest = answer.spec; rebuildTree();
             check = answer.check;
             checkFailure = "";
@@ -4381,6 +4481,7 @@ final class ArchvowPanel extends JPanel {
             // the project's catalog: its template's types and kinds, its own templates (component add, pack template)
             if (ArchvowInitCatalog.hasTemplates(answer.catalog)) projectCatalog = answer.catalog;
             projectPacks = answer.packs;  // archvow 1.26: the project's packs
+            projectFeatures = answer.features;  // archvow 2.0: each feature
             componentSnapshots.clear();
             componentSnapshots.putAll(answer.snapshots);
             briefStatus = answer.briefs;  // archvow 1.20: what each brief section gives
@@ -4398,6 +4499,14 @@ final class ArchvowPanel extends JPanel {
         String previous = selectedComponent == null ? null : selectedComponent.id;
         rebuilding = true;
         componentsRoot.removeAllChildren();
+        if (groupByFeature) {
+            buildFeatureTree();
+            ((DefaultTreeModel) componentsTree.getModel()).reload();
+            for (int i = 0; i < componentsTree.getRowCount(); i++) componentsTree.expandRow(i);
+            if (previous != null) locate(componentsRoot, new ArrayList<>(), previous);
+            rebuilding = false;
+            return;
+        }
         for (JsonObject container : ArchvowGrammar.objects(manifest, "containers")) {
             String containerId = ArchvowGrammar.str(container, "id");
             DefaultMutableTreeNode containerNode = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(containerId, "system", ""));
@@ -4430,6 +4539,29 @@ final class ArchvowPanel extends JPanel {
         for (int i = 0; i < componentsTree.getRowCount(); i++) componentsTree.expandRow(i);
         if (previous != null) locate(componentsRoot, new ArrayList<>(), previous);
         rebuilding = false;
+    }
+
+    /** By feature (0.24.0): each feature - what the product does first, by name, then shared - with its components. */
+    private void buildFeatureTree() {
+        List<String> names = new ArrayList<>();
+        for (JsonObject f : ArchvowGrammar.objects(manifest, "features")) names.add(ArchvowGrammar.str(f, "name"));
+        names.sort((a, b) -> "shared".equals(a) ? 1 : "shared".equals(b) ? -1 : a.compareTo(b));
+        for (String name : names) {
+            DefaultMutableTreeNode featureNode = new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(name, "feature", ""));
+            for (JsonObject container : ArchvowGrammar.objects(manifest, "containers")) {
+                String containerId = ArchvowGrammar.str(container, "id");
+                for (JsonObject component : ArchvowGrammar.objects(container, "components")) {
+                    String id = ArchvowGrammar.str(component, "id");
+                    if (!name.equals(ArchvowGrammar.str(component, "feature")) || !showComponentInTree(id)) continue;
+                    featureNode.add(new DefaultMutableTreeNode(new NodeComponent(id, ArchvowGrammar.str(component, "type"),
+                        ArchvowGrammar.str(component, "layer"), containerId)));
+                }
+            }
+            if (featureNode.getChildCount() == 0 && !"all".equals(componentFilter)) continue;
+            if (featureNode.getChildCount() == 0) featureNode.add(new DefaultMutableTreeNode(new ArchvowTreeIcons.Node(
+                ArchvowI18n.text(project, "No component yet", "Pas encore de composant"), "add", "")));
+            componentsRoot.add(featureNode);
+        }
     }
 
     private boolean locate(DefaultMutableTreeNode node, List<Object> path, String id) {
@@ -4521,7 +4653,7 @@ final class ArchvowPanel extends JPanel {
         refreshDataActions(data);
         ArchvowVowViewer.display(vowDetails,
             ArchvowVowViewer.read(project.getBasePath(), ArchvowGrammar.str(data, "component")));
-        cardDetails.setText(readCard(ArchvowGrammar.str(data, "component")));
+        readCard(ArchvowGrammar.str(data, "component"));
         cardDetails.setCaretPosition(0);
         assumptionDetails.setCaretPosition(0);
         rulesDetails.setCaretPosition(0);
@@ -5469,26 +5601,26 @@ final class ArchvowPanel extends JPanel {
     }
 
     /**
-     * Spec: one view of the component's spec - the card the AI implements (spec.md, written by archvow) and the
-     * vow it is written from (spec.vow). Two files on disk, one place to read them.
+     * Spec: one view of the component's spec - the task the AI implements (archvow prompt: nothing generated is
+     * committed since archvow 2.0) and the vow it is written from. One place to read them.
      */
     private JComponent specPanel() {
         boolean fr = ArchvowI18n.isFrench(project);
-        specPart = new ArchvowSegmented(List.of(fr ? "La fiche que l'IA implémente" : "The card the AI implements",
-            fr ? "Le vow dont elle est écrite" : "The vow it is written from"), fr ? "La fiche que l'IA implémente" : "The card the AI implements", true);
+        specPart = new ArchvowSegmented(List.of(fr ? "La tâche que l'IA implémente" : "The task the AI implements",
+            fr ? "Le vow dont elle est écrite" : "The vow it is written from"), fr ? "La tâche que l'IA implémente" : "The task the AI implements", true);
         cardDetails.setEditable(false); cardDetails.setLineWrap(true); cardDetails.setWrapStyleWord(true);
         cardDetails.setFont(new Font(Font.MONOSPACED, Font.PLAIN, cardDetails.getFont().getSize()));
         specCards.add(scroll(cardDetails), "card");
         specCards.add(scroll(vowDetails), "vow");
         specPart.onChange(() -> ((CardLayout) specCards.getLayout()).show(specCards, specPart.buttons().get(0).isSelected() ? "card" : "vow"));
         languageRefreshers.add(() -> {  // the switch follows the language; which one is pressed stays
-            specPart.buttons().get(0).setText(ArchvowI18n.text(project, "The card the AI implements", "La fiche que l'IA implémente"));
+            specPart.buttons().get(0).setText(ArchvowI18n.text(project, "The task the AI implements", "La tâche que l'IA implémente"));
             specPart.buttons().get(1).setText(ArchvowI18n.text(project, "The vow it is written from", "Le vow dont elle est écrite"));
         });
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
         bar.add(specPart);
         bar.add(button(ArchvowI18n.text(project, "Open in the editor", "Ouvrir dans l'éditeur"), () -> {
-            if (specPart.buttons().get(0).isSelected()) openSpec(); else openVowFile();
+            if (specPart.buttons().get(0).isSelected()) copyText(cardDetails.getText()); else openVowFile();
         }));
         bar.add(button(ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
         JLabel readOnly = new JLabel(ArchvowI18n.text(project, "read only: change it with the commands (Edit spec, + Question, + Rule...)",
@@ -5501,26 +5633,28 @@ final class ArchvowPanel extends JPanel {
         return panel;
     }
 
-    private String readCard(String component) {
-        if (component == null || component.isBlank() || project.getBasePath() == null) return "";
-        File card = new File(project.getBasePath(), ".archvow/components/" + component + "/spec.md");
-        try { return card.isFile() ? java.nio.file.Files.readString(card.toPath(), java.nio.charset.StandardCharsets.UTF_8)
-            : ArchvowI18n.text(project, "No spec.md yet: archvow docs writes it.", "Pas encore de spec.md : archvow docs l'écrit."); }
-        catch (IOException e) { return e.getMessage(); }
+    /** The task the AI implements, as {@code archvow prompt <component>} gives it (nothing generated is committed since 2.0). */
+    private void readCard(String component) {
+        if (component == null || component.isBlank()) { cardDetails.setText(""); return; }
+        cardDetails.setText(ArchvowI18n.text(project, "Loading the task…", "Chargement de la tâche…"));
+        cli.executeAction("prompt", List.of("prompt", component), null, r -> {
+            if (selectedComponent == null || !component.equals(selectedComponent.id)) return;
+            cardDetails.setText(r.ok() ? r.stdout : r.output);
+            cardDetails.setCaretPosition(0);
+        });
+    }
+
+    private void copyText(String text) {
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(text == null ? "" : text), null);
+        message(ArchvowI18n.text(project, "Copied.", "Copié."));
     }
 
     private void openVowFile() {
         if (selectedComponent == null || project.getBasePath() == null) return;
-        showFirstFile(List.of(new File(project.getBasePath(), ".archvow/components/" + selectedComponent.id + "/spec.vow")),
-            "Spec not found / Spec introuvable : " + selectedComponent.id);
+        Path vow = ArchvowLayout.componentVow(Path.of(project.getBasePath()), selectedComponent.id);
+        showFirstFile(vow == null ? List.of() : List.of(vow.toFile()), "Spec not found / Spec introuvable : " + selectedComponent.id);
     }
 
-    private void openSpec() {
-        if (selectedComponent == null || project.getBasePath() == null) return;
-        String id = selectedComponent.id;
-        showFirstFile(List.of(new File(project.getBasePath(), ".archvow/components/" + id + "/spec.md"),
-            new File(project.getBasePath(), ".archvow/components/" + id + "/spec.vow")), "Spec not found / Spec introuvable : " + id);
-    }
     private void openCode() {
         if (selectedComponent == null || project.getBasePath() == null) return;
         String root = project.getBasePath();
@@ -5628,38 +5762,20 @@ final class ArchvowPanel extends JPanel {
     private void openProjectVow() {
         String root = project.getBasePath();
         if (root == null) return;
-        Path filePath = Path.of(root, ".archvow", "spec.vow");
+        Path filePath = Path.of(root, ArchvowLayout.PROJECT_VOW);
         if (!java.nio.file.Files.isRegularFile(filePath)) {
             message(ArchvowI18n.text(project,
-                "Project vow not available: .archvow/spec.vow",
-                "Vow du projet indisponible : .archvow/spec.vow"));
+                "Project vow not available: " + ArchvowLayout.PROJECT_VOW,
+                "Vow du projet indisponible : " + ArchvowLayout.PROJECT_VOW));
             return;
         }
         var file = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(filePath.toFile());
         if (file != null) FileEditorManager.getInstance(project).openFile(file, true);
     }
 
+    /** The project doc's Checks section: archvow doc writes it, then it opens there. */
     private void openChecksDocument() {
-        String root = project.getBasePath();
-        if (root == null) return;
-        Path filePath = Path.of(root, ".archvow", "spec.md");
-        if (!java.nio.file.Files.isRegularFile(filePath)) {
-            message(ArchvowI18n.text(project,
-                "The generated project reference .archvow/spec.md is not available. Run archvow docs to generate it.",
-                "Le document projet .archvow/spec.md n'est pas disponible. Exécute archvow docs pour le générer."));
-            return;
-        }
-        var file = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(filePath.toFile());
-        if (file == null) return;
-        int offset = 0;
-        try {
-            String doc = java.nio.file.Files.readString(filePath);
-            int found = doc.indexOf("## Checks");
-            if (found < 0) found = doc.indexOf("## Contrôles");
-            if (found >= 0) offset = found;
-        } catch (IOException ignored) { /* Open the file from its beginning */ }
-        FileEditorManager.getInstance(project).openTextEditor(
-            new OpenFileDescriptor(project, file, offset), true);
+        openDoc("", List.of("## Checks", "## Contrôles"));
     }
 
     private void openDiagnosticCode(String code) {
@@ -5681,8 +5797,8 @@ final class ArchvowPanel extends JPanel {
             ArchvowI18n.text(project, "No bundled definition for this project-specific code.",
                 "Aucune définition intégrée pour ce code propre au projet.") : description)
             + "\n\n" + ArchvowI18n.text(project,
-                "Project references: .archvow/spec.md (Checks); generate them with archvow docs.",
-                "Référence du projet : .archvow/spec.md (Contrôles) ; génère-la avec archvow docs."));
+                "Project reference: .archvow/doc/project.md (Checks); write it with archvow doc.",
+                "Référence du projet : .archvow/doc/project.md (Contrôles) ; écris-la avec archvow doc."));
     }
 
     /** Every pending card is grounded in a real unresolved engine record. */

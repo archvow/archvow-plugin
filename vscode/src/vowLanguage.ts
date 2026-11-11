@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { Line, VowDocument } from './vow/document';
 import { hazardComponent, hazardShortId, linksOf, moduleFiles } from './vow/links';
 import { tokenize, TokenKind } from './vow/scanner';
+import { componentVow, vowKind } from './layout';
 
 const TOKEN_TYPES = ['vowKey0', 'vowKey1', 'vowKey2', 'vowKey3', 'vowId', 'vowPerson', 'vowDate'];
 export const LEGEND = new vscode.SemanticTokensLegend(TOKEN_TYPES, []);
@@ -30,14 +31,15 @@ export function projectOf(file: string): string | null {
 
 /** What the line over a vow says: which archvow command changes it. */
 export function bannerOf(file: string): string {
-  const parts = file.split(/[\\/]/);
-  const name = parts[parts.length - 1];
-  if (name === 'proposals.vow') {
+  const what = vowKind(file);
+  if (what.kind === 'proposals') {
     return 'Decisions the AI proposed - a person reviews each one: archvow decision accept <component> <n>, or archvow decision make <component> <n> "..."';
   }
-  if (parts.length >= 3 && parts[parts.length - 3] === 'components') {
-    const component = parts[parts.length - 2];
-    return `Written by archvow commands - change it with: archvow specify ${component} (all of it: archvow show ${component})`;
+  if (what.kind === 'component') {
+    return `Written by archvow commands - change it with: archvow specify ${what.name} (all of it: archvow show ${what.name}; another feature: archvow component move ${what.name} <feature>)`;
+  }
+  if (what.kind === 'feature') {
+    return `Written by archvow commands - what the product does: archvow show ${what.name}, archvow feature rename ${what.name} <name>, its page: archvow doc ${what.name}`;
   }
   return 'Written by archvow commands (archvow init <package> --force -a <answer>=..., archvow rule add...) - only rules, allowed_paths and dependencies_by_path are edited by hand, by an architect';
 }
@@ -76,8 +78,8 @@ class Links implements vscode.DocumentLinkProvider {
 
   private target(root: string, document: vscode.TextDocument, doc: VowDocument, kind: string, name: string): vscode.Uri | null {
     if (kind === 'COMPONENT') {
-      const file = path.join(root, '.archvow', 'components', name, 'spec.vow');
-      return fs.existsSync(file) ? vscode.Uri.file(file) : null;
+      const file = componentVow(root, name);
+      return file === null ? null : vscode.Uri.file(file);
     }
     if (kind === 'MODULE') {
       for (const candidate of moduleFiles(name)) {
@@ -89,7 +91,8 @@ class Links implements vscode.DocumentLinkProvider {
     // a hazard: H1 in this vow, clean_orders.H1 in that component's vow
     const component = hazardComponent(name);
     const id = hazardShortId(name);
-    const file = component === null ? document.uri.fsPath : path.join(root, '.archvow', 'components', component, 'spec.vow');
+    const file = component === null ? document.uri.fsPath : componentVow(root, component);
+    if (file === null) return null;
     let text: string;
     try {
       text = component === null ? document.getText() : fs.readFileSync(file, 'utf8');

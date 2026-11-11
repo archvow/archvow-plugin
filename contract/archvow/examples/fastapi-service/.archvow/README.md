@@ -6,25 +6,27 @@ This folder is the project's specification and the rules that guard it. It is wr
 `archvow` and protected by CODEOWNERS: change it with `archvow` commands, in a merge
 request an architect approves - never by hand, never to make a check pass.
 
-One rule to read it: **`spec.vow` is the spec** (what must be; archvow commands change it),
-**`spec.md` is to read** (generated from the `spec.vow` next to it).
+One rule to read it: **the `.vow` files are the spec** (what must be; archvow commands change them),
+**`archvow doc` writes it to read** (in `doc/`, never committed). The spec is grouped by feature - what the
+product does - and each component has its own vow.
 
 | File | What it is |
 |---|---|
-| `spec.vow` | The project's vow: mode, the families of checks that run, approved AI assistants, reviewers and packages, the project's own rules R1, R2... (`archvow rule add`), the third-party register |
-| `spec.md` | The whole project on one page: architecture diagram, components, rules, hazards, invariants, personal data (each privacy regime's register), third parties (DORA), and every check of the families that are on |
-| `components/<component>/spec.vow` | One component's vow: its file and public names, decisions, assumptions, columns, hazards (H1, H2...) and invariants (INV1...) |
-| `components/<component>/spec.md` | Its spec card = the task given to a developer or an AI (`archvow prompt <component>`) |
-| `proposals.vow` | Decisions the AI proposed, waiting for a person (modes guided and free; only while some wait) |
+| `project.vow` | The project's vow: mode, the families of checks that run, approved AI assistants, reviewers and packages, the project's own rules R1, R2... (`archvow rule add`), the third-party register |
+| `features/<feature>/<feature>.vow` | A feature: what the product does there, and the brief people wrote for it (`archvow feature add`) |
+| `features/<feature>/components/<component>.vow` | One component's vow: its file and public names, decisions, assumptions, columns, hazards (H1, H2...) and invariants (INV1...) |
+| `features/shared/` | What every feature uses: settings, logging, the app or job that plugs the features in |
+| `features/<feature>/proposals.vow` | Decisions the AI proposed, waiting for a person (modes guided and free; only while some wait) |
 | `frozen.json` | Violations that existed before archvow was adopted (may only shrink) |
-| `templates/` | The company template the project uses (when it is not a built-in one) |
-| `status.md` | Local implementation status (not committed; `archvow docs`) |
+| `packs/` | The company packs the project uses (templates, agents, rules, laws), when it uses some |
+| `doc/` | What `archvow doc` writes to read: the project, each feature, the local status - ignored by Git |
 | `README.md` | This file: how the rules work and why |
 
-Everyday commands: `archvow show <component>` (everything about it), `archvow specify` (answer
-what is open), `archvow next` (what to build, in order), `archvow prompt <component>`
-(the task), `archvow check` (does the code follow the spec), `archvow diff --base develop`
-(what a branch changes in the spec).
+Everyday commands: `archvow show <component>` (everything about it; `archvow show <feature>`: the
+feature), `archvow specify` (answer what is open), `archvow next` (what to build, in order),
+`archvow prompt <component>` or `archvow prompt --feature <feature>` (the task), `archvow check` (does the
+code follow the spec), `archvow doc` (the spec to read), `archvow diff --base develop` (what a branch changes
+in the spec).
 
 ## The rules and where they come from
 
@@ -94,8 +96,8 @@ Four sources, each enforced by a tool rather than by memory:
 
 ## File header
 
-Every component file starts with a header in its module docstring, given pre-filled by the
-spec card. It records the component, spec and project, and who wrote the file with which AI
+Every component file starts with a header in its module docstring, given pre-filled by its
+task (`archvow prompt`). It records the component, spec and project, and who wrote the file with which AI
 assistant (or `none`):
 
 ```python
@@ -116,7 +118,7 @@ another component, spec or project, or names an AI assistant that is not approve
 ## Tests
 
 Every component type declares the test it needs; an implemented component without
-`tests/<layer>/[<group>/]test_<component>.py` fails the build (`ARCH017`). The spec card lists what to cover:
+`tests/<layer>/[<group>/]test_<component>.py` fails the build (`ARCH017`). Its task (`archvow prompt`) lists what to cover:
 one test per decision, and the test of each invariant.
 
 | Kind | For | What it does |
@@ -152,7 +154,7 @@ properties few, and verify those without compromise.
    without harm.
 2. **Prevent each critical/high hazard with an invariant** - what is always true, so the hazard
    cannot happen, e.g. "a customer only ever reads their own orders" (`archvow invariant add`, `ARCH030`). Medium and low
-   hazards may have one. Both are listed in `spec.md` (Hazards, Invariants).
+   hazards may have one. Both are listed by `archvow doc` (Hazards, Invariants).
 3. **Test it.** Every invariant is tested by a test marked `@pytest.mark.invariant("create_order_service.INV1")`;
    for a critical hazard, a Hypothesis `@given` test that searches for counterexamples
    (`ARCH031`, `ARCH037`). Experts can ask for another check instead: a guard in the code marked
@@ -184,7 +186,7 @@ such as `-a rules=ARCH,GDPR,US-PRIVACY,DORA`).
 - **The privacy regimes** - each asks its own questions where personal data is processed, stored or
   sent, and fails while one is open on coded code: GDPR P1, P2... (purpose and legal basis `GDPR002`,
   retention `GDPR003`, location and recipients `GDPR008`), US-PRIVACY U1, U2..., GLBA G1, G2... (the
-  columns tagged `financial`): `archvow decision make <component> P1 "..."`. `spec.md` sums up each
+  columns tagged `financial`): `archvow decision make <component> P1 "..."`. `archvow doc` sums up each
   regime's register (GDPR: the record of processing, art. 30).
 - **TST** - tests use invented data: nothing read outside `tests/` (`TST001`), no real-looking
   e-mail, IBAN, card, social security or phone number (`TST002`), no binary extract and no big
@@ -197,11 +199,11 @@ such as `-a rules=ARCH,GDPR,US-PRIVACY,DORA`).
   `archvow changes --from <last release>` lists what a release contains, merge by merge.
 
 A company template adds its own rules as data (`custom_rules`: forbidden imports, calls, text,
-files, or a question per component type); each family gets its section in `spec.md` (Checks).
+files, or a question per component type); each family gets its section in the project's doc (`archvow doc`, Checks).
 
 ## AI assistants: a policy, not a lock
 
-`archvow init -a ai_tools=...` records which assistants are approved (`ai_tools` in `spec.vow`,
+`archvow init -a ai_tools=...` records which assistants are approved (`ai_tools` in `project.vow`,
 protected). The list is the project's **policy**: decided by the architects, visible in the
 repository, traced in every file header, and checked at merge time. It is not a lock - no
 repository can see which tool typed the code. It works the same in every editor (VS Code,
@@ -247,7 +249,7 @@ Only on one line, only with a reason (at least a few words):
 time.sleep(1)  # archvow: ignore[FAPI001] -- test helper, never on a request path
 ```
 
-Project-wide changes go in `spec.vow`, under `rules`, and are reviewed like any other architecture
+Project-wide changes go in `project.vow`, under `rules`, and are reviewed like any other architecture
 change:
 
 ```vow

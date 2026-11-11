@@ -2,8 +2,8 @@
 
 > 🇫🇷 [Version française](/10-vow-language) · English version
 
-Both plugins can read `.vow` files (`.archvow/spec.vow`, `.archvow/components/<c>/spec.vow`,
-`.archvow/proposals.vow`): colours, errors while reading, folding, structure, links. They read **the
+Both plugins can read `.vow` files (`.archvow/project.vow`, a feature's `.archvow/features/<f>/<f>.vow`,
+`.archvow/features/<f>/components/<c>.vow`, each feature's `proposals.vow`): colours, errors while reading, folding, structure, links. They read **the
 format, not a list of keywords**: any keyword is accepted at any depth, so a new archvow (or company)
 keyword needs no new plugin. What each keyword means, `archvow check` checks.
 
@@ -51,7 +51,7 @@ people (`@alice`), dates, lists, JSON and comments.
 | Errors | `VowAnnotator` | reads the file once (`VowDocument`) and underlines what stops archvow from reading it |
 | Folding, structure | `VowFoldingBuilder`, `VowStructureViewFactory`, `VowStructureViewModel`, `VowStructureElement` | every block, at any depth |
 | Comments | `VowCommenter` | Ctrl+/ adds or removes `# ` |
-| Ctrl+click | `VowReference` | a component in `uses` opens its `spec.vow`, a hazard in `prevents` goes to its line, `module` opens the Python file; found by path, no index |
+| Ctrl+click | `VowReference` | a component in `uses` opens its vow (found in any feature's `components/`), a hazard in `prevents` goes to its line, `module` opens the Python file; found by path, no index |
 | Banner | `VowEditorNotification` | above the vow: which archvow command changes it (it is not edited by hand) |
 
 ## VS Code: the same reader, other plugs
@@ -66,5 +66,5 @@ people (`@alice`), dates, lists, JSON and comments.
 
 ## A component's vow in the workspace
 
-A component's **Spec** view shows its `spec.vow` highlighted (and its card `spec.md`), read-only (`ArchvowVowViewer`;
+A component's **Spec** view shows its vow highlighted (and its task, `archvow prompt`), read-only (`ArchvowVowViewer`;
 VS Code: `vowView()` in the page, the extension reads the file). One colour per depth, as in the editor.

@@ -1,4 +1,4 @@
-// The workspace's rules, the same as the IntelliJ workspace's, on archvow 1.25's real outputs
+// The workspace's rules, the same as the IntelliJ workspace's, on archvow's real outputs (contract/cli)
 // (../contract/cli): forms into command lines, prefill, the pending and resolved work, the counts on each
 // view, the formatter, where the project stands.
 import * as assert from 'node:assert/strict';
@@ -23,11 +23,11 @@ const EXAMPLES = ['fastapi-service', 'pyspark-pipeline', 'python-app'];
 const snapshots = (example: string): Record<string, Json> => Object.fromEntries(
   fs.readdirSync(path.join(CLI, example, 'show')).map((f) => [f.replace(/\.json$/, ''), read(example, 'show', f)]));
 
-test('the grammar is archvow 1.27\'s, with every command the workspace offers', () => {
-  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /1\.27\./);
+test('the grammar is archvow 2.0\'s, with every command the workspace offers', () => {
+  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /2\.0\./);
   for (const name of ['init', 'check', 'next', 'show', 'decision make', 'decision propose', 'decision accept', 'question add',
     'question accept', 'hazard add', 'hazard dismiss', 'hazard edit', 'hazard accept', 'rule accept', 'brief show', 'invariant add', 'invariant edit', 'invariant remove', 'component accept', 'assumption accept', 'rule add', 'column set', 'prompt', 'doctor', 'audit', 'diff', 'review', 'version', 'workspace', 'pack new', 'pack template', 'pack agent', 'pack rule', 'pack add',
-    'pack update', 'pack remove', 'pack check']) {
+    'pack update', 'pack remove', 'pack check', 'feature add', 'feature rename', 'feature remove', 'component move', 'doc']) {
     command(name);
   }
 });
@@ -57,8 +57,10 @@ test('a form becomes the command line archvow expects (the IntelliJ submitForm r
   assert.equal(run('prompt', { component: 'x', task: 'T0' }).kind, 'error');
   const prompt = run('prompt', { component: 'x', task: 'T2' });
   assert.ok(prompt.kind === 'run' && prompt.args.join(' ') === 'prompt x --task 2');
-  assert.equal(isMutating(command('docs'), ['docs', '--check']), false);
-  assert.equal(isMutating(command('docs'), ['docs']), true);
+  assert.equal(isMutating(command('doc'), ['doc', 'orders']), false, 'doc writes only the ignored .archvow/doc/');
+  assert.equal(isMutating(command('feature add'), ['feature', 'add', 'orders', '-d', 'x']), true);
+  const moved = run('component move', { component: 'clean_orders', feature: 'refunds' });
+  assert.ok(moved.kind === 'run' && moved.mutating && moved.args.join(' ') === 'component move clean_orders refunds --json');
 });
 
 test('prefill: the selected component, and for "Edit spec" what the spec says, nothing guessed', () => {
@@ -155,9 +157,11 @@ test('where the project stands, the catalog\'s component types, the meaning of a
   assert.equal(readiness(path.join(dir, 'gone')), 'ROOT_MISSING');
   assert.equal(readiness(dir), 'NOT_INITIALIZED');
   fs.mkdirSync(path.join(dir, '.archvow'));
-  fs.writeFileSync(path.join(dir, '.archvow', 'spec.vow'), '');
-  assert.equal(readiness(dir), 'SPEC_INACCESSIBLE');
   fs.writeFileSync(path.join(dir, '.archvow', 'spec.vow'), 'vow 1 project\n');
+  assert.equal(readiness(dir), 'NOT_INITIALIZED', 'an archvow 1.x project: convert it first (archvow 2.0, tools/convert_to_2.py)');
+  fs.writeFileSync(path.join(dir, '.archvow', 'project.vow'), '');
+  assert.equal(readiness(dir), 'SPEC_INACCESSIBLE');
+  fs.writeFileSync(path.join(dir, '.archvow', 'project.vow'), 'vow 1 project\n');
   assert.equal(readiness(dir), 'READY');
   const types = componentTypes(read('catalog.json'));
   assert.ok('transformation' in types && 'reader' in types, Object.keys(types).join(','));

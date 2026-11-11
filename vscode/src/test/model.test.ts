@@ -72,7 +72,7 @@ test('the pyspark example: the planned components come first in next, ready or w
 });
 
 test('a violation names its component by its vow file', () => {
-  assert.equal(componentOfViolation({ code: 'ARCH035', severity: 'warning', message: '', file: '.archvow/components/clean_orders/spec.vow', line: 0, col: 0 }), 'clean_orders');
+  assert.equal(componentOfViolation({ code: 'ARCH035', severity: 'warning', message: '', file: '.archvow/features/vat_report/components/clean_orders.vow', line: 0, col: 0 }), 'clean_orders');
   assert.equal(componentOfViolation({ code: 'ARCH002', severity: 'error', message: '', file: 'src/a/b.py', line: 3, col: 0 }), null);
 });
 
@@ -80,7 +80,7 @@ test('the CLI contract: the same MAJOR and a MINOR at least the plugin\'s; older
   const tested = knownVersion(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'));
   const wanted = fs.readFileSync(path.join(CLI, 'contract.txt'), 'utf8').trim();
   assert.match(tested, /^\d+\.\d+\.\d+$/);
-  assert.deepEqual(parseContract(wanted), [1, 3]);  // 1.3: archvow 1.27's privacy regimes
+  assert.deepEqual(parseContract(wanted), [2, 0]);  // 2.0: archvow 2.0's features
   assert.equal(parseContract('1.0.0'), null);
   assert.equal(contractWarning({ version: tested, contract: wanted }, wanted, tested), null);
   assert.equal(contractWarning({ version: '1.24.3', contract: '1.4' }, '1.0', tested), null, 'a later minor contract');

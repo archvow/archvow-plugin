@@ -26,7 +26,7 @@ public final class FormsRegression {
             if (p.hidden) check(!ArchvowForms.essential("invariant add", p), "expert " + p.name + " under More options");
         ArchvowGrammar.Command add = command("component add");
         for (ArchvowGrammar.Param p : add.parameters)
-            check(ArchvowForms.essential("component add", p) == List.of("type", "kind", "name", "description", "spec", "uses").contains(p.name), "essential " + p.name);
+            check(ArchvowForms.essential("component add", p) == List.of("type", "kind", "name", "description", "feature", "spec", "uses").contains(p.name), "essential " + p.name);
         check(ArchvowForms.verb("catalog", false).isEmpty() && "item".equals(ArchvowForms.label("x", "item", false).isEmpty() ? "" : "item"), "fallback");
         check(ArchvowForms.label("catalog", "no_such_param", false).equals("no such param"), "archvow's own name");
         // the preview: what Run sends, without --json; a required field left empty is named

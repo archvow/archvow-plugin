@@ -1,10 +1,10 @@
 {
-  "contract": "1.3",
+  "contract": "2.0",
   "templates": [
     {
       "name": "archvow/fastapi-service",
       "pack": "archvow",
-      "version": "1.27.0",
+      "version": "2.0.0",
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
@@ -16,7 +16,7 @@
         {
           "id": "language",
           "ask": true,
-          "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+          "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
           "default": "fr",
           "choices": [
             "fr",
@@ -204,11 +204,11 @@
             "ARCH",
             "STYLE",
             "FASTAPI",
+            "DORA",
             "GDPR",
             "GLBA",
             "US-PRIVACY",
             "TST",
-            "DORA",
             "all",
             "none"
           ],
@@ -538,7 +538,7 @@
     {
       "name": "archvow/langgraph-agent",
       "pack": "archvow",
-      "version": "1.27.0",
+      "version": "2.0.0",
       "language": "python",
       "kind": "ai-application",
       "style": "layered (common -> domain -> tools -> agents -> app)",
@@ -550,7 +550,7 @@
         {
           "id": "language",
           "ask": true,
-          "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+          "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
           "default": "fr",
           "choices": [
             "fr",
@@ -739,11 +739,11 @@
             "STYLE",
             "AGENT",
             "FASTAPI",
+            "DORA",
             "GDPR",
             "GLBA",
             "US-PRIVACY",
             "TST",
-            "DORA",
             "all",
             "none"
           ],
@@ -1182,7 +1182,7 @@
     {
       "name": "archvow/pyspark-pipeline",
       "pack": "archvow",
-      "version": "1.27.0",
+      "version": "2.0.0",
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -1194,7 +1194,7 @@
         {
           "id": "language",
           "ask": true,
-          "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+          "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
           "default": "fr",
           "choices": [
             "fr",
@@ -1382,11 +1382,11 @@
             "ARCH",
             "STYLE",
             "SPARK",
+            "DORA",
             "GDPR",
             "GLBA",
             "US-PRIVACY",
             "TST",
-            "DORA",
             "all",
             "none"
           ],
@@ -1737,7 +1737,7 @@
     {
       "name": "archvow/python-app",
       "pack": "archvow",
-      "version": "1.27.0",
+      "version": "2.0.0",
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",
@@ -1749,7 +1749,7 @@
         {
           "id": "language",
           "ask": true,
-          "prompt": "Language of the generated documents (README, AGENTS.md, guide, spec cards; archvow's commands stay English). One per project",
+          "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
           "default": "fr",
           "choices": [
             "fr",
@@ -1936,11 +1936,11 @@
           "choices": [
             "ARCH",
             "STYLE",
+            "DORA",
             "GDPR",
             "GLBA",
             "US-PRIVACY",
             "TST",
-            "DORA",
             "all",
             "none"
           ],
@@ -2227,7 +2227,7 @@
   "packs": [
     {
       "name": "archvow",
-      "version": "1.27.0",
+      "version": "2.0.0",
       "description": "The templates, agents and languages archvow ships.",
       "archvow": "",
       "builtin": true,
@@ -2258,6 +2258,7 @@
       ],
       "rule_families": [],
       "regimes": [
+        "dora",
         "gdpr",
         "glba",
         "us-privacy"
@@ -2703,8 +2704,31 @@
   ],
   "regimes": [
     {
+      "id": "dora",
+      "name": "DORA",
+      "kind": "resilience",
+      "pack": "archvow",
+      "prefix": "DORA",
+      "letter": "O",
+      "default": false,
+      "title": "DORA: traceability, separation of duties, third parties, tested resilience",
+      "law": "Regulation (EU) 2022/2554 (DORA): ICT business continuity (art. 11), the register of information on ICT third-party providers (art. 28(3); Commission Implementing Regulation (EU) 2024/2956); Commission Delegated Regulation (EU) 2024/1774 (ICT risk management)",
+      "checked": "2026-11-11",
+      "covers": [],
+      "rules": {
+        "DORA001": "Component without a ticket",
+        "DORA002": "Separation of duties: fewer than two people can approve guard changes",
+        "DORA003": "Third-party package missing from the register, or a critical one not pinned",
+        "DORA004": "An invariant's test can be skipped, or a failing test job allowed to pass",
+        "DORA005": "Operational question not answered (failure detection, recovery)",
+        "DORA006": "Registered licence differs from the installed package's"
+      },
+      "register": "THIRD_PARTIES.md"
+    },
+    {
       "id": "gdpr",
       "name": "GDPR",
+      "kind": "privacy",
       "pack": "archvow",
       "prefix": "GDPR",
       "letter": "P",
@@ -2723,6 +2747,7 @@
     {
       "id": "glba",
       "name": "GLBA",
+      "kind": "privacy",
       "pack": "archvow",
       "prefix": "GLBA",
       "letter": "G",
@@ -2746,6 +2771,7 @@
     {
       "id": "us-privacy",
       "name": "US-PRIVACY",
+      "kind": "privacy",
       "pack": "archvow",
       "prefix": "USP",
       "letter": "U",

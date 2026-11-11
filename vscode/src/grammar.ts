@@ -38,8 +38,9 @@ export const LONG_TEXT = new Set(['description', 'answer', 'rationale', 'stateme
 /** Commands that remove something: they get --yes, after the confirmation. */
 export const DESTRUCTIVE = new Set(['component remove', 'question remove', 'rule remove', 'hazard remove', 'invariant remove',
   'example remove']);
-/** First words of the commands that change nothing. */
-export const READ_ONLY = new Set(['show', 'catalog', 'next', 'check', 'audit', 'doctor', 'changes', 'diff', 'prompt']);
+/** First words of the commands that change nothing (`doc` writes only .archvow/doc/, ignored by Git and never read
+ *  back: nothing to confirm). */
+export const READ_ONLY = new Set(['show', 'catalog', 'next', 'check', 'audit', 'doctor', 'changes', 'diff', 'prompt', 'doc']);
 
 export function findCommand(commands: Command[], name: string): Command | undefined {
   return commands.find((c) => label(c) === name);
@@ -49,7 +50,6 @@ export function findCommand(commands: Command[], name: string): Command | undefi
 export function isMutating(command: Command, args: string[]): boolean {
   const name = label(command);
   if (DESTRUCTIVE.has(name)) return true;
-  if (name === 'docs') return !args.includes('--check');
   if (name === 'completion') return args.includes('--install');
   return !READ_ONLY.has(command.path[0]);
 }

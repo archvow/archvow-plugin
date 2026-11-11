@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A word of a vow that names something else: a component (its spec.vow), a hazard (its line), a Python
+ * A word of a vow that names something else: a component (its vow), a hazard (its line), a Python
  * module (its file). Found by path from the vow itself, so it works without any index; a name that
  * leads nowhere is simply not a link (soft reference, no error).
  */
@@ -38,10 +38,19 @@ final class VowReference extends PsiReferenceBase<VowLinePsi> {
         };
     }
 
+    /** A component's vow, wherever its feature is: {@code .archvow/features/<feature>/components/<component>.vow}. */
     private @Nullable PsiFile componentVow(VirtualFile vow, String component) {
-        VirtualFile components = componentsFolder(vow);
-        VirtualFile target = components == null ? null : components.findFileByRelativePath(component + "/spec.vow");
-        return target == null ? null : PsiManager.getInstance(getElement().getProject()).findFile(target);
+        VirtualFile features = featuresFolder(vow);
+        if (features == null) {
+            return null;
+        }
+        for (VirtualFile feature : features.getChildren()) {
+            VirtualFile target = feature.isDirectory() ? feature.findFileByRelativePath("components/" + component + ".vow") : null;
+            if (target != null) {
+                return PsiManager.getInstance(getElement().getProject()).findFile(target);
+            }
+        }
+        return null;
     }
 
     private @Nullable PsiElement hazard(PsiFile file, VirtualFile vow) {
@@ -73,17 +82,14 @@ final class VowReference extends PsiReferenceBase<VowLinePsi> {
         return null;
     }
 
-    /** `.archvow/components/` seen from a component's vow or from the project's. */
-    private static @Nullable VirtualFile componentsFolder(VirtualFile vow) {
-        VirtualFile folder = vow.getParent();
-        if (folder == null) {
-            return null;
+    /** `.archvow/features/`, seen from any vow of the project. */
+    private static @Nullable VirtualFile featuresFolder(VirtualFile vow) {
+        for (VirtualFile dir = vow.getParent(); dir != null; dir = dir.getParent()) {
+            if (dir.getName().equals(".archvow")) {
+                return dir.findChild("features");
+            }
         }
-        VirtualFile parent = folder.getParent();
-        if (parent != null && parent.getName().equals("components")) {
-            return parent;
-        }
-        return folder.findChild("components");
+        return null;
     }
 
     /** The folder holding `.archvow/`. */

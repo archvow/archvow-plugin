@@ -142,7 +142,7 @@ export function activate(context: vscode.ExtensionContext): void {
   void vscode.commands.executeCommand('setContext', 'archvow.project', hasVow(root));
   if (root !== null && hasVow(root) && vscode.workspace.isTrusted) void start()?.refresh(false);
   void openPendingInit();
-  const created = vscode.workspace.createFileSystemWatcher('**/.archvow/spec.vow', false, true, true);
+  const created = vscode.workspace.createFileSystemWatcher('**/.archvow/project.vow', false, true, true);
   context.subscriptions.push(created, created.onDidCreate(() => {
     void vscode.commands.executeCommand('setContext', 'archvow.project', true);
     void start()?.refresh(false);
@@ -153,7 +153,7 @@ export function deactivate(): void {
   // everything is disposed through context.subscriptions
 }
 
-/** The first folder of the window holding `.archvow/spec.vow`, else the first folder. */
+/** The first folder of the window holding `.archvow/project.vow`, else the first folder. */
 function findRoot(): string | null {
   const folders = (vscode.workspace.workspaceFolders ?? []).filter((f) => f.uri.scheme === 'file');
   const withVow = folders.find((f) => hasVow(f.uri.fsPath));
@@ -161,7 +161,7 @@ function findRoot(): string | null {
 }
 
 function hasVow(root: string | null): boolean {
-  return root !== null && fs.existsSync(path.join(root, '.archvow', 'spec.vow'));
+  return root !== null && fs.existsSync(path.join(root, '.archvow', 'project.vow'));
 }
 
 /** The component id a command was given: an id, or nothing. */

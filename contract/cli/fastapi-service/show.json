@@ -1,5 +1,5 @@
 {
-  "contract": "1.3",
+  "contract": "2.0",
   "schema_version": 2,
   "system": {
     "name": "orders_api",
@@ -8,12 +8,13 @@
   "containers": [
     {
       "id": "orders_api",
-      "template": "archvow/fastapi-service@1.27.0",
+      "template": "archvow/fastapi-service@2.0.0",
       "package": "orders_api",
       "path": "src/orders_api",
       "components": [
         {
           "id": "get_current_user",
+          "feature": "shared",
           "name": "get_current_user",
           "type": "dependency",
           "layer": "p0_common",
@@ -45,6 +46,7 @@
         },
         {
           "id": "logging_setup",
+          "feature": "shared",
           "name": "logging_setup",
           "type": "foundation",
           "layer": "p0_common",
@@ -70,6 +72,7 @@
         },
         {
           "id": "settings",
+          "feature": "shared",
           "name": "settings",
           "type": "foundation",
           "layer": "p0_common",
@@ -105,6 +108,7 @@
         },
         {
           "id": "new_order_model",
+          "feature": "orders",
           "name": "new_order",
           "type": "model",
           "layer": "p1_domain",
@@ -145,6 +149,7 @@
         },
         {
           "id": "order_model",
+          "feature": "orders",
           "name": "order",
           "type": "model",
           "layer": "p1_domain",
@@ -188,6 +193,7 @@
         },
         {
           "id": "order_not_found_error",
+          "feature": "orders",
           "name": "order_not_found",
           "type": "error",
           "layer": "p1_domain",
@@ -219,6 +225,7 @@
         },
         {
           "id": "orders_repository",
+          "feature": "orders",
           "name": "orders",
           "type": "repository",
           "layer": "p2_io",
@@ -276,6 +283,7 @@
         },
         {
           "id": "create_order",
+          "feature": "orders",
           "name": "create_order",
           "type": "service",
           "layer": "p3_services",
@@ -329,6 +337,7 @@
         },
         {
           "id": "get_order",
+          "feature": "orders",
           "name": "get_order",
           "type": "service",
           "layer": "p3_services",
@@ -382,6 +391,7 @@
         },
         {
           "id": "main",
+          "feature": "shared",
           "name": "main",
           "type": "app",
           "layer": "p4_api",
@@ -429,6 +439,7 @@
         },
         {
           "id": "orders_router",
+          "feature": "orders",
           "name": "orders",
           "type": "router",
           "layer": "p4_api",
@@ -557,6 +568,16 @@
   "families": [
     "all"
   ],
+  "features": [
+    {
+      "name": "orders",
+      "description": "Orders"
+    },
+    {
+      "name": "shared",
+      "description": "What every feature uses: settings, logging, the app or job that plugs the features in"
+    }
+  ],
   "hazards": [
     {
       "component": "create_order",
@@ -617,13 +638,6 @@
       "on": "2026-10-09T12:00:00+00:00"
     },
     {
-      "component": "get_current_user",
-      "guide_word": "missing",
-      "rationale": "Reads a request header only: it calls nothing that can be down",
-      "by": "architect@example.com",
-      "on": "2026-10-09T12:00:00+00:00"
-    },
-    {
       "component": "get_order",
       "guide_word": "repeated",
       "rationale": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing",
@@ -641,13 +655,6 @@
       "component": "get_order",
       "guide_word": "concurrent",
       "rationale": "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing",
-      "by": "architect@example.com",
-      "on": "2026-10-09T12:00:00+00:00"
-    },
-    {
-      "component": "main",
-      "guide_word": "missing",
-      "rationale": "Builds the app only: it calls nothing that can be down",
       "by": "architect@example.com",
       "on": "2026-10-09T12:00:00+00:00"
     },
@@ -690,6 +697,20 @@
       "component": "orders_router",
       "guide_word": "more",
       "rationale": "No route returns a list; each answer is one order",
+      "by": "architect@example.com",
+      "on": "2026-10-09T12:00:00+00:00"
+    },
+    {
+      "component": "get_current_user",
+      "guide_word": "missing",
+      "rationale": "Reads a request header only: it calls nothing that can be down",
+      "by": "architect@example.com",
+      "on": "2026-10-09T12:00:00+00:00"
+    },
+    {
+      "component": "main",
+      "guide_word": "missing",
+      "rationale": "Builds the app only: it calls nothing that can be down",
       "by": "architect@example.com",
       "on": "2026-10-09T12:00:00+00:00"
     }

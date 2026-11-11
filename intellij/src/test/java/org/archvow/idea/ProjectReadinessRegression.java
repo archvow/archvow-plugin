@@ -14,7 +14,9 @@ public final class ProjectReadinessRegression {
         Path temp = Files.createTempDirectory("archvow-project-readiness-");
         require(ArchvowProjectReadiness.State.ROOT_MISSING, temp.resolve("missing").toString());
         require(ArchvowProjectReadiness.State.NOT_INITIALIZED, temp.toString());
-        Path marker = Files.createDirectories(temp.resolve(".archvow")).resolve("spec.vow");
+        Files.writeString(Files.createDirectories(temp.resolve(".archvow")).resolve("spec.vow"), "vow 1 project\n");
+        require(ArchvowProjectReadiness.State.NOT_INITIALIZED, temp.toString());  // archvow 1.x: converted first
+        Path marker = temp.resolve(".archvow").resolve("project.vow");
         Files.createDirectory(marker);
         require(ArchvowProjectReadiness.State.SPEC_INACCESSIBLE, temp.toString());
         Files.delete(marker);
@@ -24,8 +26,9 @@ public final class ProjectReadinessRegression {
         require(ArchvowProjectReadiness.State.READY, temp.toString());
         Files.delete(marker);
         require(ArchvowProjectReadiness.State.NOT_INITIALIZED, temp.toString());
+        Files.delete(temp.resolve(".archvow").resolve("spec.vow"));
         Files.delete(temp.resolve(".archvow"));
         Files.delete(temp);
-        System.out.println("OK: 8 readiness scenarios");
+        System.out.println("OK: 9 readiness scenarios");
     }
 }

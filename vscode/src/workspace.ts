@@ -19,6 +19,7 @@ import { renderResult } from './formatter';
 import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, previewWithOutput, promptCommand,
   withPluginParameters } from './grammar';
 import { addableByLayer, filePlan } from './filePlan';
+import { componentVow, docPage, PROJECT_VOW } from './layout';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
 import { componentView, contractWarning, knownVersion, parseVersion, problemsOf, readWorkspace } from './model';
@@ -69,6 +70,8 @@ export interface State {
   briefStatus: Json | null;
   /** The project's packs (`workspace --json` packs, 0.22.0): the Overview's Packs row and list. */
   packs: Json[];
+  /** Each feature, as `show <feature> --json` (contract 2.0, 0.24.0): the Features tab and the feature page. */
+  features: Record<string, Json>;
   /** The project's approved AI tools (init answer ai_tools): where a skill's request goes. */
   aiTools: string[];
 }
@@ -215,7 +218,7 @@ export class ArchvowProject {
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
       refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
-      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, packs: [], aiTools: [],
+      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, packs: [], features: {}, aiTools: [],
     };
   }
 
@@ -296,6 +299,7 @@ export class ArchvowProject {
     s.aiTools = Array.isArray(spec.ai_tools) ? spec.ai_tools.map(String) : [];
     s.briefStatus = answer.briefStatus;
     s.packs = answer.packs;
+    s.features = answer.features;
     // the project's catalog: its template's types and kinds, and the project's own templates (component add, pack template)
     if (answer.catalog !== null && objects(answer.catalog, 'templates').length > 0) this.projectCatalog = answer.catalog;
     this.setCheck(answer.check, '');
@@ -712,6 +716,15 @@ export class ArchvowProject {
         return;
       case 'show':
         return this.show(String(m.component), false);
+      case 'showFeature':
+        // a feature's page (contract 2.0, 0.24.0): in the editor tab, from the Features tab or a link
+        this.toEditor({ type: 'feature', feature: String(m.feature) });
+        this.toNav({ type: 'featureSelected', feature: String(m.feature) });
+        return;
+      case 'featurePrompt':
+        return this.copyPrompt('', String(m.feature));
+      case 'openDoc':
+        return this.openDoc(String(m.feature ?? ''));
       case 'quickList':
         this.toEditor({ type: 'quickList', index: Number(m.index) || 0 });
         return;
@@ -787,12 +800,12 @@ export class ArchvowProject {
       case 'openSpec':
         return this.openSpec(String(m.component));
       case 'openVowFile':
-        return this.openFile(path.join(this.root, '.archvow', 'components', String(m.component), 'spec.vow'), 0, '');
+        return this.openFile(componentVow(this.root, String(m.component)) ?? path.join(this.root, PROJECT_VOW), 0, '');
       case 'openCode':
         return this.openCode(String(m.component));
       case 'openProjectVow':
-        return this.openFile(path.join(this.root, '.archvow', 'spec.vow'), 0,
-          tr(fr, 'Project vow not available: .archvow/spec.vow', 'Vow du projet indisponible : .archvow/spec.vow'));
+        return this.openFile(path.join(this.root, PROJECT_VOW), 0,
+          tr(fr, `Project vow not available: ${PROJECT_VOW}`, `Vow du projet indisponible : ${PROJECT_VOW}`));
       case 'openChecks':
         // The overview link is equivalent to the Check toolbar button: run the
         // complete, read-only check and display its formatted command result.
@@ -878,17 +891,33 @@ export class ArchvowProject {
     await this.runDirect('check', ['check', '--json'], 'overview');
   }
 
-  /** `archvow prompt <component>` into the clipboard. */
-  async copyPrompt(component: string): Promise<void> {
+  /** `archvow prompt <component>` into the clipboard; with a feature, `archvow prompt --feature <feature>`: the
+   *  feature in a few lines, then the task of its next component (contract 2.0). */
+  async copyPrompt(component: string, feature = ''): Promise<void> {
     const fr = this.state.fr;
-    const result = await this.cli.run(['prompt', component], undefined, true);
+    const result = await this.cli.run(feature ? ['prompt', '--feature', feature] : ['prompt', component], undefined, true);
     if (result.exitCode !== 0 || result.startError !== undefined) {
       void vscode.window.showErrorMessage(failure(result));
       return;
     }
     await vscode.env.clipboard.writeText(result.stdout);
-    void vscode.window.showInformationMessage(tr(fr, `The instruction for ${component} is in the clipboard: paste it to your AI assistant.`,
-      `L'instruction pour ${component} est dans le presse-papiers : colle-la à ton assistant IA.`));
+    const what = component || feature;
+    void vscode.window.showInformationMessage(tr(fr, `The instruction for ${what} is in the clipboard: paste it to your AI assistant.`,
+      `L'instruction pour ${what} est dans le presse-papiers : colle-la à ton assistant IA.`));
+  }
+
+  /** `archvow doc [<feature>]`, then its page in an editor: Markdown to read, written into .archvow/doc/ (ignored
+   *  by Git, never read back - nothing to confirm). `line`: where to open it. */
+  async openDoc(feature: string, heading: string[] = []): Promise<void> {
+    const result = await this.cli.run(feature ? ['doc', feature] : ['doc'], undefined, true);
+    const file = docPage(this.root, feature || 'project');
+    if (result.exitCode !== 0 || result.startError !== undefined || !fs.existsSync(file)) {
+      void vscode.window.showErrorMessage(failure(result) || tr(this.state.fr, 'archvow doc wrote nothing.', "archvow doc n'a rien écrit."));
+      return;
+    }
+    const text = fs.readFileSync(file, 'utf8');
+    const at = heading.map((h) => text.indexOf(h)).find((i) => i >= 0) ?? -1;
+    await this.openFile(file, at < 0 ? 0 : text.substring(0, at).split('\n').length - 1, '');
   }
 
   /** A read-only command from a button (Check, Next, Doctor...). Anything else asks for a confirmation. */
@@ -1241,18 +1270,16 @@ export class ArchvowProject {
   }
 
   private async readVow(component: string, from: From): Promise<void> {
-    const file = path.join(this.root, '.archvow', 'components', component, 'spec.vow');
+    const file = componentVow(this.root, component);
     try {
-      this.state.vows[component] = fs.readFileSync(file, 'utf8');
+      this.state.vows[component] = file === null ? '' : fs.readFileSync(file, 'utf8');
     } catch {
       this.state.vows[component] = '';
     }
-    let card = '';  // the Spec view shows the card the AI implements and the vow it is written from, side by side
-    try {
-      card = fs.readFileSync(path.join(this.root, '.archvow', 'components', component, 'spec.md'), 'utf8');
-    } catch {
-      card = '';
-    }
+    // the Spec view shows the task the AI implements (archvow prompt: nothing generated is committed in 2.0) and
+    // the vow it is written from, side by side
+    const prompt = await this.cli.run(['prompt', component], undefined, true);
+    const card = prompt.exitCode === 0 ? prompt.stdout : '';
     this.reply(from, { type: 'vow', component, text: this.state.vows[component], card });
   }
 
@@ -1284,10 +1311,8 @@ export class ArchvowProject {
   // ------------------------------------------------------------------ opening files
 
   async openSpec(component: string): Promise<void> {
-    const dir = path.join(this.root, '.archvow', 'components', component);
-    for (const name of ['spec.md', 'spec.vow']) {
-      if (fs.existsSync(path.join(dir, name))) return this.openFile(path.join(dir, name), 0, '');
-    }
+    const file = componentVow(this.root, component);
+    if (file !== null) return this.openFile(file, 0, '');
     void vscode.window.showInformationMessage('Spec not found / Spec introuvable : ' + component);
   }
 
@@ -1340,26 +1365,17 @@ export class ArchvowProject {
     await this.openFile(file, Math.max(0, line - 1), '');
   }
 
+  /** The project doc's Checks section (archvow doc writes it, then it opens there). */
   private async openChecksReference(): Promise<void> {
-    const fr = this.state.fr;
-    const file = path.join(this.root, '.archvow', 'spec.md');
-    if (!fs.existsSync(file)) {
-      void vscode.window.showInformationMessage(tr(fr, 'The generated project reference .archvow/spec.md is not available. Run archvow docs to generate it.',
-        "Le document projet .archvow/spec.md n'est pas disponible. Exécute archvow docs pour le générer."));
-      return;
-    }
-    const text = fs.readFileSync(file, 'utf8');
-    let at = text.indexOf('## Checks');
-    if (at < 0) at = text.indexOf('## Contrôles');
-    await this.openFile(file, at < 0 ? 0 : text.substring(0, at).split('\n').length - 1, '');
+    await this.openDoc('', ['## Checks', '## Contrôles']);
   }
 
-  /** A check code: its row in the project's spec.md, else archvow's own explanation. */
+  /** A check code: its row in the project doc (.archvow/doc/project.md, once archvow doc wrote it), else archvow's own explanation. */
   private async openRule(candidate: string): Promise<void> {
     const fr = this.state.fr;
     const code = candidate.trim().toUpperCase();
     if (!/^[A-Z]{2,12}[0-9]{3}$/.test(code)) return;
-    for (const relative of ['.archvow/spec.md', 'docs/rules.fr.md', 'docs/rules.md', 'docs/project.md', 'project.md', '.archvow/README.md']) {
+    for (const relative of ['.archvow/doc/project.md', 'docs/rules.fr.md', 'docs/rules.md', 'docs/project.md', 'project.md', '.archvow/README.md']) {
       const file = path.join(this.root, relative);
       try {
         if (!fs.statSync(file).isFile() || fs.statSync(file).size > 2_000_000) continue;
@@ -1372,8 +1388,8 @@ export class ArchvowProject {
     }
     const explanation = ruleExplanation(fs.readFileSync(path.join(this.resources, fr ? 'rules.fr.md' : 'rules.md'), 'utf8'), code);
     void vscode.window.showInformationMessage(code + '\n\n' + (explanation || tr(fr, 'No bundled definition for this project-specific code.',
-      'Aucune définition intégrée pour ce code propre au projet.')) + '\n\n' + tr(fr, 'Project references: .archvow/spec.md (Checks); generate them with archvow docs.',
-      'Référence du projet : .archvow/spec.md (Contrôles) ; génère-la avec archvow docs.'), { modal: true });
+      'Aucune définition intégrée pour ce code propre au projet.')) + '\n\n' + tr(fr, 'Project reference: .archvow/doc/project.md (Checks); write it with archvow doc.',
+      'Référence du projet : .archvow/doc/project.md (Contrôles) ; écris-la avec archvow doc.'), { modal: true });
   }
 
   /** archvow's explanation of a check code, from its docs/rules (bundled). */

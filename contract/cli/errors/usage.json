@@ -7,5 +7,5 @@
   ],
   "exit": 2,
   "stdout": "",
-  "stderr": "usage: archvow component add [-h] [--json] -d TEXT [-s TICKET] [-u IDS]\n                             [-k KIND] [--signature SIGNATURE]\n                             [--container CONTAINER] [-g GROUP] [-r ROUTE]\n                             [--from BRIEF] [--file PATH]\n                             type name\narchvow component add: error: the following arguments are required: name, -d/--description\n"
+  "stderr": "usage: archvow component add [-h] [--json] -d TEXT [-f FEATURE] [-s TICKET]\n                             [-u IDS] [-k KIND] [--signature SIGNATURE]\n                             [--container CONTAINER] [-g GROUP] [-r ROUTE]\n                             [--from BRIEF] [--file PATH]\n                             type name\narchvow component add: error: the following arguments are required: name, -d/--description\n"
 }
