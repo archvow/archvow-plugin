@@ -12,7 +12,7 @@ One rule to read it: **`spec.vow` is the spec** (what must be; archvow commands 
 | File | What it is |
 |---|---|
 | `spec.vow` | The project's vow: mode, the families of checks that run, approved AI assistants, reviewers and packages, the project's own rules R1, R2... (`archvow rule add`), the third-party register |
-| `spec.md` | The whole project on one page: architecture diagram, components, rules, hazards, invariants, personal data (GDPR), third parties (DORA), and every check of the families that are on |
+| `spec.md` | The whole project on one page: architecture diagram, components, rules, hazards, invariants, personal data (each privacy regime's register), third parties (DORA), and every check of the families that are on |
 | `components/<component>/spec.vow` | One component's vow: its file and public names, decisions, assumptions, columns, hazards (H1, H2...) and invariants (INV1...) |
 | `components/<component>/spec.md` | Its spec card = the task given to a developer or an AI (`archvow prompt <component>`) |
 | `proposals.vow` | Decisions the AI proposed, waiting for a person (modes guided and free; only while some wait) |
@@ -159,19 +159,24 @@ counts as weakening a guard (`ARCH020` with `check --base`).
 
 ## Personal data, test data, DORA (compliance)
 
-The `rules` answer of `init` chooses the rule families: GDPR and TST are on by default, DORA on
-request (`archvow init <package> --force -a rules=all`, or a list such as `-a rules=ARCH,GDPR,DORA`).
+The `rules` answer of `init` chooses the rule families: GDPR and TST are on by default; DORA and the
+US privacy regimes (US-PRIVACY, GLBA) on request (`archvow init <package> --force -a rules=all`, or a list
+such as `-a rules=ARCH,GDPR,US-PRIVACY,DORA`).
 
-- **GDPR** - every column of a schema or model is classified: `archvow column set <component>
-  <columns> personal|special|none` (special = health, religion, biometrics... art. 9). Code with
-  an unclassified column fails (`GDPR001`). archvow follows the columns through the `uses` of
-  the spec: a component that handles personal data never shows, prints or logs rows (`GDPR004`),
-  never partitions files by them (`GDPR006`), never puts them in a URL (`GDPR007`). The service (or
-  job) answers P1, P2 - purpose and legal basis (`GDPR002`); the writer (or repository)
-  retention and location (`GDPR003`, `GDPR008`): `archvow decision make <component> P1 "..."`.
-  Special data written in clear needs a critical `exposed` hazard and its tested invariant, unless
-  a step pseudonymises it (`archvow column set <step> <columns> --pseudonymises`, `GDPR005`).
-  `spec.md` (Personal data) sums it up for the record of processing (art. 30).
+- **Personal data (PRIV, with every privacy regime)** - every column of a schema or model is classified:
+  `archvow column set <component> <columns> personal|special|none` (special = health, religion,
+  biometrics...: GDPR art. 9, US sensitive personal information), with tags a regime may need
+  (`--tag financial`, `health`, `biometric`, `children`, `precise-location`). Code with an unclassified
+  column fails (`PRIV001`). archvow follows the columns through the `uses` of the spec: a component
+  that handles personal data never shows, prints or logs rows (`PRIV002`), never partitions files by
+  them (`PRIV004`), never puts them in a URL (`PRIV005`). Special data written in clear needs a
+  critical `exposed` hazard and its tested invariant, unless a step pseudonymises it (`archvow column
+  set <step> <columns> --pseudonymises`, `PRIV003`).
+- **The privacy regimes** - each asks its own questions where personal data is processed, stored or
+  sent, and fails while one is open on coded code: GDPR P1, P2... (purpose and legal basis `GDPR002`,
+  retention `GDPR003`, location and recipients `GDPR008`), US-PRIVACY U1, U2..., GLBA G1, G2... (the
+  columns tagged `financial`): `archvow decision make <component> P1 "..."`. `spec.md` sums up each
+  regime's register (GDPR: the record of processing, art. 30).
 - **TST** - tests use invented data: nothing read outside `tests/` (`TST001`), no real-looking
   e-mail, IBAN, card, social security or phone number (`TST002`), no binary extract and no big
   data file (`TST003`).

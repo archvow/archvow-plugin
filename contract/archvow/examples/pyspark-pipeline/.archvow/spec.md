@@ -10,7 +10,7 @@ PySpark pipeline for my_pipeline
 
 ```mermaid
 flowchart TB
-  subgraph my_pipeline["my_pipeline (archvow/pyspark-pipeline@1.26.0)"]
+  subgraph my_pipeline["my_pipeline (archvow/pyspark-pipeline@1.27.0)"]
     direction TB
     subgraph my_pipeline__p0_common["p0_common"]
       my_pipeline__config["config<br/><small>foundation</small>"]
@@ -203,19 +203,24 @@ PEP 8 and the Python style rules are enforced by ruff (ruff.toml).
 | SPK013 | warning | withColumnRenamed() (prefer .alias() inside a select) |
 | SPK014 | warning | distinct()/dropDuplicates() (fix the cause of duplicates instead) |
 
-### GDPR - Personal data (GDPR / RGPD): every column classified, then the code checked
+### PRIV - Personal data in the code (every privacy regime): every column classified, never logged, special data protected
 
 | Code | Severity | Rule |
 |---|---|---|
-| GDPR001 | error | Column not classified in the spec (personal, special or none) |
+| PRIV001 | error | Column not classified in the spec (personal, special or none) |
+| PRIV002 | error | Personal data printed, shown or logged |
+| PRIV003 | error | Special (sensitive) data written without a tested pseudonymisation or encryption |
+| PRIV004 | error | Files partitioned or bucketed by a personal column (values end up in paths) |
+| PRIV005 | error | Personal data in a URL (path or query parameter: it ends up in access logs) |
+| PRIV006 | warning | Classified column not found in the code |
+
+### GDPR - Personal data (GDPR / RGPD): purpose, legal basis, retention, location, recipients
+
+| Code | Severity | Rule |
+|---|---|---|
 | GDPR002 | error | Personal data processed without a decided purpose and legal basis |
 | GDPR003 | error | Personal data written without a decided retention and erasure |
-| GDPR004 | error | Personal data printed, shown or logged |
-| GDPR005 | error | Special-category data written without a tested pseudonymisation or encryption |
-| GDPR006 | error | Files partitioned or bucketed by a personal column (values end up in paths) |
-| GDPR007 | error | Personal data in a URL (path or query parameter: it ends up in access logs) |
-| GDPR008 | error | Personal data stored without a decided location and transfer safeguard |
-| GDPR009 | warning | Classified column not found in the code |
+| GDPR008 | error | Personal data stored or sent without a decided location, recipient and transfer safeguard |
 
 ### TST - Test data: no real data in tests
 

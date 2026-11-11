@@ -1,5 +1,5 @@
 {
-  "contract": "1.2",
+  "contract": "1.3",
   "component": "invoices_repository",
   "type": "repository",
   "layer": "p2_io",
@@ -130,10 +130,10 @@
     {
       "key": "P1",
       "set": "P",
-      "title": "Personal data",
+      "title": "GDPR",
       "id": "retention",
       "rule": "GDPR003",
-      "question": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's records deleted by id?",
+      "question": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id?",
       "answer": "10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)",
       "by": "noreply@anthropic.com",
       "on": "2026-10-21T16:21:02.537432+00:00"
@@ -141,7 +141,7 @@
     {
       "key": "P2",
       "set": "P",
-      "title": "Personal data",
+      "title": "GDPR",
       "id": "location",
       "rule": "GDPR008",
       "question": "Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3?",
@@ -262,7 +262,7 @@
         {
           "kind": "question",
           "key": "P1",
-          "text": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's records deleted by id?",
+          "text": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id?",
           "answer": "10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)",
           "done": true
         },

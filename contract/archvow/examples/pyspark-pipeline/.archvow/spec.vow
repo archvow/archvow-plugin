@@ -10,7 +10,7 @@ system
 
 # --- containers
 container my_pipeline
-  template archvow/pyspark-pipeline@1.26.0
+  template archvow/pyspark-pipeline@1.27.0
   package my_pipeline
   path src/my_pipeline
 

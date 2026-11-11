@@ -82,6 +82,9 @@ def main() -> None:
             seen.add(key)
             messages.append(entry)
     raw.unlink(missing_ok=True)
+    if not messages:  # the hook did not load (archvow or its dependencies not importable at startup): say so
+        sys.exit("no message recorded: archvow_plugin_harvest did not load - install archvow and its dependencies in "
+                 "the venv itself (pip install -e '<archvow>[dev]'), not only on the user's site")
     messages.sort(key=lambda m: (m["code"], m["message"]))
     version = subprocess.run([args.python, "-m", "archvow", "--version"], capture_output=True, text=True).stdout.strip()
     out = CONTRACT / "cli" / "messages.json"

@@ -10,7 +10,7 @@ system
 
 # --- containers
 container invoicing
-  template archvow/python-app@1.26.0
+  template archvow/python-app@1.27.0
   package invoicing
   path src/invoicing
 

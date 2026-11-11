@@ -1,5 +1,5 @@
 {
-  "contract": "1.2",
+  "contract": "1.3",
   "schema_version": 2,
   "system": {
     "name": "orders_api",
@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "orders_api",
-      "template": "archvow/fastapi-service@1.26.0",
+      "template": "archvow/fastapi-service@1.27.0",
       "package": "orders_api",
       "path": "src/orders_api",
       "components": [

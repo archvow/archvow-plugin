@@ -1,5 +1,5 @@
 {
-  "contract": "1.2",
+  "contract": "1.3",
   "component": "create_order",
   "type": "service",
   "layer": "p3_services",

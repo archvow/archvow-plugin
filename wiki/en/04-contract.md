@@ -10,7 +10,7 @@ from a real archvow CLI, never written by hand.
 
 | Folder or file | What | Written by | Read by |
 |---|---|---|---|
-| `contract/cli/version.txt` | `archvow --version` (today `archvow 1.26.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the archvow the plugin is tested with and installs |
+| `contract/cli/version.txt` | `archvow --version` (today `archvow 1.27.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the archvow the plugin is tested with and installs |
 | `contract/cli/contract.txt` (0.20.0) | the contract number of `archvow version --json` (MAJOR.MINOR, today `1.1`: 1.0 plus `workspace`) | `regenerate.py` | `ArchvowVersion.CONTRACT`, `contractWarning()`: the contract the plugin speaks |
 | `contract/cli/errors/` (0.20.0) | three commands that fail, as the plugins get them (`ARCHVOW_LOG=info`): `no-spec`, `refused` (the error envelope on stdout, the message and archvow's log lines on stderr), `usage` (an argparse refusal: no envelope) | `regenerate.py` (`errors()`) | `cli.test.ts`, `OutputRegression` |
 | `contract/cli/commands.json` | every command and its parameters, drawn from archvow's argparse parser | `contract/tools/export_grammar.py` | `ArchvowGrammar`, `vscode/src/grammar.ts`: the Commands forms |
@@ -73,13 +73,13 @@ What to look for in the diff:
 
 ## The archvow version and the contract (0.20.0)
 
-archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "1.2", "archvow": "1.26.0",
+archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "1.3", "archvow": "1.27.0",
 ...}`, and every `--json` object starts with `"contract"`. `ArchvowVersion.warning` and `contractWarning()`
 compare it with `contract.txt`: the same MAJOR and a MINOR at least the plugin's, nothing; an older one, or
 an archvow that says no contract (before 1.23: it has no `version` command, its `--version` gives the
 number), "older: update archvow"; a later MAJOR, "newer: update the plugin". So an archvow release that
 keeps the contract needs no plugin release, while archvow still keeps no backward compatibility: the
-contract number is what tells. Install puts the tested archvow exactly (`archvow==1.26.0`).
+contract number is what tells. Install puts the tested archvow exactly (`archvow==1.27.0`).
 
 Contract 1.1 (archvow 1.25, plugin 0.21.0) adds `archvow workspace --json`: what the plugins load, in one
 process (`readWorkspace()` in `model.ts`, `WorkspaceAnswer` in IntelliJ, both tested on
@@ -93,3 +93,10 @@ project, what it brings, its source, `state` `ok` or `changed`, `why`), `catalog
 `agents`, and templates are named `<pack>/<template>` (`archvow/python-app`); the `pack new/template/agent/
 rule/add/update/remove/check` commands replace `template new`. The plugins read `packs` (the Packs row, page
 7), have one form per `pack` command and no longer pass `ARCHVOW_TEMPLATES`.
+
+Contract 1.3 (archvow 1.27, plugin 0.23.0) adds the privacy regimes: `catalog --json` (and the catalog of
+`workspace --json`) has `regimes` (name, prefix, letter, title, law, the codes and the register of each), a pack
+says the regimes it holds, `column set` takes `--tag`, and the personal-data codes are PRIV001-006 (GDPR001, 004-007,
+009 before) next to each regime's own (GDPR002, USP001, GLBA003...). Nothing in the plugins names a regime: the
+questions of each one (P1, U1, G1...) are component questions like the others, the `rules` choices come from the
+catalog, and a regime's codes are explained from archvow's rules pages.

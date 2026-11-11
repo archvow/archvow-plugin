@@ -1,7 +1,7 @@
 # Development tools for invoicing: tests and checks (CI installs the same).
 #   pip install -r requirements.txt          (or: uv pip install -r requirements.txt)
 -e .
-archvow==1.26.0
+archvow==1.27.0
 ruff>=0.6
 mypy>=1.10
 pytest>=8

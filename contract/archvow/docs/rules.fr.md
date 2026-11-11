@@ -140,22 +140,58 @@ neuf noms est un seul import).
 | STY003 | (warning) un script shell (`*.sh`, hors dossiers cachés) de plus de 150 lignes | mettre la logique dans un composant Python testé ; le script reste un lanceur |
 | STY004 | (warning) un fichier Python avec plus de lignes de commentaire que 30 % de ses lignes de code (à partir de 20 lignes de code ; le bloc de commentaires en tête - licence, copyright - ne compte pas) | renommer, extraire une fonction, mettre l'explication dans la docstring ; `ERA` de ruff refuse déjà le code commenté |
 
-## Données personnelles - RGPD (réponse `rules` : GDPR, activée par défaut)
+## Données personnelles - PRIV (actives avec tout régime de protection : GDPR par défaut, US-PRIVACY, GLBA, celui d'un pack)
 
 Les règles lisent la classe de chaque colonne (`archvow column set`) et la suivent à travers les
 `uses` de la spec - voir [Conformité](compliance.md).
 
 | Code | Échoue quand | Correction |
 |---|---|---|
-| GDPR001 | une colonne définie dans le code d'un schéma ou d'un modèle (`StructField("x")`, un champ de modèle) n'est pas classée - dès le premier jour, elle bloque le code | `archvow column set <composant> x personal\|special\|none` |
-| GDPR002 | un job (ou router) codé qui manipule des données personnelles n'a pas de réponse à P1, P2 (finalité, base légale) - ni à la condition de l'art. 9 pour les données particulières | `archvow decision make <composant> P1 "..."` |
-| GDPR003 | un writer (ou repository) codé de données personnelles n'a pas de réponse sur la conservation et l'effacement | `archvow decision make <composant> P1 "..."` |
-| GDPR004 | un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...) | journaliser des comptes, vérifier les lignes dans un test |
-| GDPR005 | des données de catégorie particulière arrivent à un writer sans étape qui les pseudonymise, et sans hazard `exposed` critique empêché par un invariant testé (cette question ne peut pas être « sans objet ») | `archvow column set <étape> <colonnes> --pseudonymises`, ou le hazard et son invariant |
-| GDPR006 | `partitionBy` ou `bucketBy` sur une colonne personnelle (ses valeurs deviennent des noms de dossiers) | partitionner selon une colonne non personnelle |
-| GDPR007 | une route FastAPI a un champ personnel dans son chemin ou en paramètre de requête (il finit dans les journaux d'accès) | utiliser un id, l'envoyer dans le corps |
-| GDPR008 | un writer, repository ou client codé de données personnelles n'a pas de réponse sur sa localisation (pays ou région) et la garantie de transfert (art. 46) | `archvow decision make <composant> P2 "..."` |
-| GDPR009 | (warning) une colonne classée n'est plus dans le code | renommer la classification, ou la retirer avec la colonne |
+| PRIV001 | une colonne définie dans le code d'un schéma ou d'un modèle (`StructField("x")`, un champ de modèle) n'est pas classée - dès le premier jour, elle bloque le code | `archvow column set <composant> x personal\|special\|none` |
+| PRIV002 | un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...) | journaliser des comptes, vérifier les lignes dans un test |
+| PRIV003 | des données particulières (sensibles) arrivent à un writer sans étape qui les pseudonymise, et sans hazard `exposed` critique empêché par un invariant testé (cette question ne peut pas être « sans objet ») | `archvow column set <étape> <colonnes> --pseudonymises`, ou le hazard et son invariant |
+| PRIV004 | `partitionBy` ou `bucketBy` sur une colonne personnelle (ses valeurs deviennent des noms de dossiers) | partitionner selon une colonne non personnelle |
+| PRIV005 | une route FastAPI a un champ personnel dans son chemin ou en paramètre de requête (il finit dans les journaux d'accès) | utiliser un id, l'envoyer dans le corps |
+| PRIV006 | (avertissement) une colonne classée n'est plus dans le code | renommer la classification, ou la retirer avec la colonne |
+
+## Données personnelles - RGPD (réponse `rules` : GDPR, activée par défaut)
+
+Les questions du RGPD, P1, P2... là où des données personnelles sont traitées, stockées et envoyées (un régime : `regimes/gdpr.yaml`).
+
+| Code | Échoue quand | Correction |
+|---|---|---|
+| GDPR002 | un job (ou router, service) codé qui manipule des données personnelles n'a pas de réponse sur sa finalité ou sa base légale (art. 6) - ni sur la condition de l'art. 9 pour les données particulières | `archvow decision make <composant> P1 "..."` |
+| GDPR003 | un writer (ou repository) codé de données personnelles n'a pas de réponse sur la conservation et l'effacement (art. 17) | `archvow decision make <composant> P1 "..."` |
+| GDPR008 | un writer, repository ou client codé de données personnelles n'a pas de réponse sur leur localisation, leur destinataire et la garantie de transfert (art. 28, 46) | `archvow decision make <composant> P2 "..."` |
+
+## Données personnelles - US-PRIVACY (réponse `rules` : US-PRIVACY, sur demande)
+
+Les lois des États américains, la règle commune la plus stricte (`regimes/us-privacy.yaml`) : U1, U2... Avec
+GLBA actif, les colonnes étiquetées `financial` sont laissées de côté.
+
+| Code | Échoue quand | Correction |
+|---|---|---|
+| USP001 | un composant codé qui manipule des informations personnelles n'a pas de réponse sur l'information à la collecte (catégories, finalités, où le consommateur en est informé) | `archvow decision make <composant> U1 "..."` |
+| USP002 | pas de réponse sur la vente, le partage pour la publicité ciblée et le profilage, ni sur la façon dont un refus (Global Privacy Control compris) atteint le composant | `archvow decision make <composant> U2 "..."` |
+| USP003 | des informations sensibles (colonnes particulières) sans réponse sur leur seule finalité, le consentement explicite avant le traitement et le droit d'en limiter l'usage | `archvow decision make <composant> U3 "..."` |
+| USP004 | une colonne étiquetée `children` sans réponse sur le contrôle d'âge, ni vente ni publicité ciblée avant 18 ans, le consentement parental avant 13 ans | `archvow decision make <composant> U<n> "..."` |
+| USP005 | pas de réponse sur le traitement à haut risque : l'évaluation des risques avant, et pour une décision importante automatisée l'information et le refus ou l'appel | `archvow decision make <composant> U<n> "..."` |
+| USP006 | un writer codé d'informations personnelles n'a pas de réponse sur la façon dont les demandes des consommateurs (accès, suppression, rectification, portabilité) atteignent ce qu'il stocke | `archvow decision make <composant> U1 "..."` |
+| USP007 | un writer codé d'informations personnelles n'a pas de réponse sur la conservation de chaque catégorie | `archvow decision make <composant> U2 "..."` |
+| USP008 | un client codé envoie des informations personnelles sans réponse sur le contrat du destinataire et la vérification du refus | `archvow decision make <composant> U1 "..."` |
+
+## Données personnelles - GLBA (réponse `rules` : GLBA, sur demande)
+
+Les institutions financières américaines (`regimes/glba.yaml`) : les colonnes étiquetées `financial`, G1, G2...
+
+| Code | Échoue quand | Correction |
+|---|---|---|
+| GLBA001 | pas de réponse sur le partage avec des tiers non affiliés hors des exceptions de la Privacy Rule, ni sur le refus du client | `archvow decision make <composant> G1 "..."` |
+| GLBA002 | pas de réponse sur qui peut accéder aux informations et comment, avec authentification multifacteur | `archvow decision make <composant> G2 "..."` |
+| GLBA003 | un writer codé de ces informations n'a pas de réponse sur leur chiffrement au repos et en transit | `archvow decision make <composant> G1 "..."` |
+| GLBA004 | un writer codé n'a pas de réponse sur leur destruction sûre (au plus deux ans après leur dernier usage au service du client) | `archvow decision make <composant> G2 "..."` |
+| GLBA005 | un writer codé n'a pas de réponse sur la détection des incidents et l'information du régulateur à temps (36 heures pour une banque, 30 jours à la FTC sinon) | `archvow decision make <composant> G3 "..."` |
+| GLBA006 | un client codé envoie ces informations sans réponse sur la surveillance du prestataire | `archvow decision make <composant> G1 "..."` |
 
 ## Données de test (réponse `rules` : TST, activée par défaut)
 

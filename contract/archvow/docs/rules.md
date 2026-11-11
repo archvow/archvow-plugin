@@ -137,22 +137,58 @@ hit is reported once per file, line and message (an import of nine names is one 
 | STY003 | (warning) a shell script (`*.sh`, outside hidden folders) over 150 lines | move the logic into a tested Python component; keep the script a launcher |
 | STY004 | (warning) a Python file with more comment lines than 30% of its code lines (from 20 code lines; the comment block at the top - licence, copyright - is not counted) | rename, extract a function, move the explanation into the docstring; ruff's `ERA` already refuses commented-out code |
 
-## Personal data - GDPR (`rules` answer GDPR, on by default)
+## Personal data - PRIV (on with any privacy regime: GDPR by default, US-PRIVACY, GLBA, a pack's)
 
 The rules read the classification of each column (`archvow column set`) and follow it through the
 `uses` of the spec - see [Compliance](compliance.md).
 
 | Code | Fails when | Fix |
 |---|---|---|
-| GDPR001 | a column defined in the code of a schema or model (`StructField("x")`, a model field) is not classified - from day one, it blocks the code | `archvow column set <component> x personal\|special\|none` |
-| GDPR002 | a coded job (or router) handling personal data has no answer to P1, P2 (purpose, legal basis) - or to the art. 9 condition for special data | `archvow decision make <component> P1 "..."` |
-| GDPR003 | a coded writer (or repository) of personal data has no answer on retention and erasure | `archvow decision make <component> P1 "..."` |
-| GDPR004 | a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...) | log counts, check rows in a test |
-| GDPR005 | special-category data reaches a writer without a step that pseudonymises it, and without a critical `exposed` hazard prevented by a tested invariant (that question cannot be "not applicable") | `archvow column set <step> <columns> --pseudonymises`, or the hazard and its invariant |
-| GDPR006 | `partitionBy` or `bucketBy` on a personal column (its values become folder names) | partition by a non-personal column |
-| GDPR007 | a FastAPI route has a personal field in its path or as a query parameter (it ends up in access logs) | use an id, send it in the body |
-| GDPR008 | a coded writer, repository or client of personal data has no answer on its location (country or region) and transfer safeguard (art. 46) | `archvow decision make <component> P2 "..."` |
-| GDPR009 | (warning) a classified column is not in the code any more | rename the classification, or remove it with the column |
+| PRIV001 | a column defined in the code of a schema or model (`StructField("x")`, a model field) is not classified - from day one, it blocks the code | `archvow column set <component> x personal\|special\|none` |
+| PRIV002 | a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...) | log counts, check rows in a test |
+| PRIV003 | special (sensitive) data reaches a writer without a step that pseudonymises it, and without a critical `exposed` hazard prevented by a tested invariant (that question cannot be "not applicable") | `archvow column set <step> <columns> --pseudonymises`, or the hazard and its invariant |
+| PRIV004 | `partitionBy` or `bucketBy` on a personal column (its values become folder names) | partition by a non-personal column |
+| PRIV005 | a FastAPI route has a personal field in its path or as a query parameter (it ends up in access logs) | use an id, send it in the body |
+| PRIV006 | (warning) a classified column is not in the code any more | rename the classification, or remove it with the column |
+
+## Personal data - GDPR (`rules` answer GDPR, on by default)
+
+The questions of the GDPR, P1, P2... where personal data is processed, stored and sent (a regime: `regimes/gdpr.yaml`).
+
+| Code | Fails when | Fix |
+|---|---|---|
+| GDPR002 | a coded job (or router, service) handling personal data has no answer on its purpose or legal basis (art. 6) - or on the art. 9 condition for special data | `archvow decision make <component> P1 "..."` |
+| GDPR003 | a coded writer (or repository) of personal data has no answer on retention and erasure (art. 17) | `archvow decision make <component> P1 "..."` |
+| GDPR008 | a coded writer, repository or client of personal data has no answer on its location, recipient and transfer safeguard (art. 28, 46) | `archvow decision make <component> P2 "..."` |
+
+## Personal data - US-PRIVACY (`rules` answer US-PRIVACY, on request)
+
+The US state privacy laws, the strictest common rule (`regimes/us-privacy.yaml`): U1, U2... With GLBA on, the
+columns tagged `financial` are left out.
+
+| Code | Fails when | Fix |
+|---|---|---|
+| USP001 | a coded component handling personal information has no answer on the notice at collection (categories, purposes, where the consumer is told) | `archvow decision make <component> U1 "..."` |
+| USP002 | no answer on sale, sharing for targeted advertising and profiling, and how an opt-out (Global Privacy Control included) reaches the component | `archvow decision make <component> U2 "..."` |
+| USP003 | sensitive personal information (special columns) with no answer on its one purpose, the opt-in consent before processing and the right to limit its use | `archvow decision make <component> U3 "..."` |
+| USP004 | a column tagged `children` with no answer on age checks, no sale or targeted advertising under 18, parental consent under 13 | `archvow decision make <component> U<n> "..."` |
+| USP005 | no answer on high-risk processing: the risk assessment before it, and for an automated significant decision the notice and the opt-out or appeal | `archvow decision make <component> U<n> "..."` |
+| USP006 | a coded writer of personal information has no answer on how consumer requests (access, delete, correct, portability) reach what it stores | `archvow decision make <component> U1 "..."` |
+| USP007 | a coded writer of personal information has no answer on the retention of each category | `archvow decision make <component> U2 "..."` |
+| USP008 | a coded client sends personal information with no answer on the recipient's contract and the opt-out check | `archvow decision make <component> U1 "..."` |
+
+## Personal data - GLBA (`rules` answer GLBA, on request)
+
+US financial institutions (`regimes/glba.yaml`): the columns tagged `financial`, G1, G2...
+
+| Code | Fails when | Fix |
+|---|---|---|
+| GLBA001 | no answer on sharing with nonaffiliated third parties outside the Privacy Rule's exceptions, and the customer's opt-out | `archvow decision make <component> G1 "..."` |
+| GLBA002 | no answer on who may access the information and how, with multi-factor authentication | `archvow decision make <component> G2 "..."` |
+| GLBA003 | a coded writer of the information has no answer on its encryption at rest and in transit | `archvow decision make <component> G1 "..."` |
+| GLBA004 | a coded writer has no answer on its secure disposal (at most two years after it last served the customer) | `archvow decision make <component> G2 "..."` |
+| GLBA005 | a coded writer has no answer on detecting incidents and telling the regulator in time (36 hours for a bank, 30 days to the FTC otherwise) | `archvow decision make <component> G3 "..."` |
+| GLBA006 | a coded client sends the information with no answer on the service provider's oversight | `archvow decision make <component> G1 "..."` |
 
 ## Test data (`rules` answer TST, on by default)
 

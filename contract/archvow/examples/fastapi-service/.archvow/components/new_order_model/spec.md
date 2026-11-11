@@ -14,7 +14,7 @@ What a customer sends to create an order: amount Decimal > 0
 
 ## Personal data
 
-Columns and their class (GDPR). Define exactly these; a new column is classified first (`archvow column set`), or the build fails (GDPR001):
+Columns and their class (personal data). Define exactly these; a new column is classified first (`archvow column set`), or the build fails (PRIV001):
 - `amount`: none
 
 ## Create exactly
@@ -63,7 +63,7 @@ Anything this spec does not define is not yours to decide. Ask before coding. If
 ## Definition of done
 
 - `archvow check` reports no errors for this component.
-- Checks on this code: ARCH, STYLE, FASTAPI, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
+- Checks on this code: ARCH, STYLE, FASTAPI, PRIV, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
 - `ruff format .` run, then `ruff check .` and `pytest` pass.
 - Every invariant above is tested.
 - The tests of the components that use it still pass.

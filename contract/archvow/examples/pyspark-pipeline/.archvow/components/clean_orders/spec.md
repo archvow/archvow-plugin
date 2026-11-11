@@ -138,7 +138,7 @@ Anything this spec does not define is not yours to decide. Ask before coding. If
 ## Definition of done
 
 - `archvow check` reports no errors for this component.
-- Checks on this code: ARCH, STYLE, SPARK, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
+- Checks on this code: ARCH, STYLE, SPARK, PRIV, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
 - `ruff format .` run, then `ruff check .` and `pytest` pass.
 - Every invariant above is tested.
 - The tests of the components that use it still pass.

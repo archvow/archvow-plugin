@@ -22,8 +22,8 @@ This card is cut into 2 tasks: implement one at a time, in order; after each one
 ## Personal data
 
 Personal columns it handles: `customer` (personal).
-- Never show, print or log their values, nor collected rows (GDPR004): log counts.
-- Never partition or bucket files by them (GDPR006).
+- Never show, print or log their values, nor collected rows (PRIV002): log counts.
+- Never partition or bucket files by them (PRIV004).
 - It writes: `customer`.
 
 ## Create exactly
@@ -71,7 +71,7 @@ Start the file with this docstring. Fill in the `<...>` values: the person respo
 
 ## Decisions made for personal data and operations (implement exactly)
 
-P1. Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's records deleted by id?
+P1. Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id?
    **10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)**
 P2. Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3?
    **The company's file server, in France**
@@ -83,7 +83,7 @@ Anything this spec does not define is not yours to decide. Ask before coding. If
 ## Definition of done
 
 - `archvow check` reports no errors for this component.
-- Checks on this code: ARCH, STYLE, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
+- Checks on this code: ARCH, STYLE, PRIV, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
 - `ruff format .` run, then `ruff check .` and `pytest` pass.
 - Every invariant above is tested.
 - The tests of the components that use it still pass.

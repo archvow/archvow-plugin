@@ -10,7 +10,7 @@ Marks invoices paid, from the command line
 
 ```mermaid
 flowchart TB
-  subgraph invoicing["invoicing (archvow/python-app@1.26.0)"]
+  subgraph invoicing["invoicing (archvow/python-app@1.27.0)"]
     direction TB
     subgraph invoicing__p0_common["p0_common"]
       invoicing__config["config<br/><small>foundation</small>"]
@@ -115,9 +115,9 @@ Every column the spec classifies as personal or special (GDPR art. 9), and the c
 
 | Component | Question | Answer |
 |---|---|---|
-| invoices_repository | P1 Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's records deleted by id? | 10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation) |
+| invoices_repository | P1 Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? | 10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation) |
 | invoices_repository | P2 Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? | The company's file server, in France |
-| mark_paid | P1 Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send invoices to customers, for the finance team? | To record which customers paid their invoices, for the finance team |
+| mark_paid | P1 Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team? | To record which customers paid their invoices, for the finance team |
 | mark_paid | P2 Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing? | Contract: the customer's purchase |
 
 ## Briefs - invoicing
@@ -200,19 +200,24 @@ What `archvow check` verifies on every component's code, family by family (the f
 
 PEP 8 and the Python style rules are enforced by ruff (ruff.toml).
 
-### GDPR - Personal data (GDPR / RGPD): every column classified, then the code checked
+### PRIV - Personal data in the code (every privacy regime): every column classified, never logged, special data protected
 
 | Code | Severity | Rule |
 |---|---|---|
-| GDPR001 | error | Column not classified in the spec (personal, special or none) |
+| PRIV001 | error | Column not classified in the spec (personal, special or none) |
+| PRIV002 | error | Personal data printed, shown or logged |
+| PRIV003 | error | Special (sensitive) data written without a tested pseudonymisation or encryption |
+| PRIV004 | error | Files partitioned or bucketed by a personal column (values end up in paths) |
+| PRIV005 | error | Personal data in a URL (path or query parameter: it ends up in access logs) |
+| PRIV006 | warning | Classified column not found in the code |
+
+### GDPR - Personal data (GDPR / RGPD): purpose, legal basis, retention, location, recipients
+
+| Code | Severity | Rule |
+|---|---|---|
 | GDPR002 | error | Personal data processed without a decided purpose and legal basis |
 | GDPR003 | error | Personal data written without a decided retention and erasure |
-| GDPR004 | error | Personal data printed, shown or logged |
-| GDPR005 | error | Special-category data written without a tested pseudonymisation or encryption |
-| GDPR006 | error | Files partitioned or bucketed by a personal column (values end up in paths) |
-| GDPR007 | error | Personal data in a URL (path or query parameter: it ends up in access logs) |
-| GDPR008 | error | Personal data stored without a decided location and transfer safeguard |
-| GDPR009 | warning | Classified column not found in the code |
+| GDPR008 | error | Personal data stored or sent without a decided location, recipient and transfer safeguard |
 
 ### TST - Test data: no real data in tests
 

@@ -1,5 +1,5 @@
 {
-  "contract": "1.2",
+  "contract": "1.3",
   "component": "orders_router",
   "type": "router",
   "layer": "p4_api",
@@ -190,10 +190,10 @@
     {
       "key": "P1",
       "set": "P",
-      "title": "Personal data",
+      "title": "GDPR",
       "id": "purpose",
       "rule": "GDPR002",
-      "question": "Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
+      "question": "Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
       "answer": "Take and show the orders of each customer, for that customer only",
       "by": "architect@example.com",
       "on": "2026-10-12T00:46:55.799694+00:00"
@@ -201,7 +201,7 @@
     {
       "key": "P2",
       "set": "P",
-      "title": "Personal data",
+      "title": "GDPR",
       "id": "legal_basis",
       "rule": "GDPR002",
       "question": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
@@ -336,7 +336,7 @@
         {
           "kind": "question",
           "key": "P1",
-          "text": "Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
+          "text": "Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
           "answer": "Take and show the orders of each customer, for that customer only",
           "done": true
         },

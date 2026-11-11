@@ -1,5 +1,5 @@
 {
-  "contract": "1.2",
+  "contract": "1.3",
   "component": "get_current_user",
   "type": "dependency",
   "layer": "p0_common",

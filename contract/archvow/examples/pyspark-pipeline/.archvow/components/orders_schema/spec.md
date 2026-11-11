@@ -14,7 +14,7 @@ Input orders: order_id string, customer_id string, amount decimal(18,2), order_d
 
 ## Personal data
 
-Columns and their class (GDPR). Define exactly these; a new column is classified first (`archvow column set`), or the build fails (GDPR001):
+Columns and their class (personal data). Define exactly these; a new column is classified first (`archvow column set`), or the build fails (PRIV001):
 - `amount`: none
 - `customer_id`: none
 - `order_date`: none
@@ -64,7 +64,7 @@ Anything this spec does not define is not yours to decide. Ask before coding. If
 ## Definition of done
 
 - `archvow check` reports no errors for this component.
-- Checks on this code: ARCH, STYLE, SPARK, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
+- Checks on this code: ARCH, STYLE, SPARK, PRIV, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
 - `ruff format .` run, then `ruff check .` and `pytest` pass.
 - Every invariant above is tested.
 - The tests of the components that use it still pass.

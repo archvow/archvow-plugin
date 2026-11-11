@@ -1874,7 +1874,7 @@
         "column",
         "set"
       ],
-      "description": "Classify columns: personal, special (GDPR art. 9) or none.",
+      "description": "Classify columns: personal, special (sensitive) or none, with tags.",
       "json": true,
       "parameters": [
         {
@@ -1919,6 +1919,21 @@
           "help": "personal | special | none",
           "hidden": false,
           "metavar": "kind"
+        },
+        {
+          "name": "tag",
+          "flags": [
+            "--tag"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": true,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what a privacy regime covers: health, financial, biometric, children, precise-location (repeat it, or commas; none removes them)",
+          "hidden": false,
+          "metavar": "TAG"
         },
         {
           "name": "removes",

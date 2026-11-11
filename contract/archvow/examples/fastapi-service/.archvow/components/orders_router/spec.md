@@ -25,8 +25,8 @@ This card is cut into 2 tasks: implement one at a time, in order; after each one
 ## Personal data
 
 Personal columns it handles: `customer` (personal).
-- Never show, print or log their values, nor collected rows (GDPR004): log counts.
-- Never partition or bucket files by them (GDPR006).
+- Never show, print or log their values, nor collected rows (PRIV002): log counts.
+- Never partition or bucket files by them (PRIV004).
 
 ## Create exactly
 
@@ -120,7 +120,7 @@ The test also writes what the component gave to `actual/`, with the same file na
 
 ## Decisions made for personal data and operations (implement exactly)
 
-P1. Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?
+P1. Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?
    **Take and show the orders of each customer, for that customer only**
 P2. Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?
    **Contract: the customer's orders (terms of sale)**
@@ -132,7 +132,7 @@ Anything this spec does not define is not yours to decide. Ask before coding. If
 ## Definition of done
 
 - `archvow check` reports no errors for this component.
-- Checks on this code: ARCH, STYLE, FASTAPI, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
+- Checks on this code: ARCH, STYLE, FASTAPI, PRIV, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
 - `ruff format .` run, then `ruff check .` and `pytest` pass.
 - Every invariant above is tested.
 - The tests of the components that use it still pass.

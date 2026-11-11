@@ -80,7 +80,7 @@ test('the CLI contract: the same MAJOR and a MINOR at least the plugin\'s; older
   const tested = knownVersion(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'));
   const wanted = fs.readFileSync(path.join(CLI, 'contract.txt'), 'utf8').trim();
   assert.match(tested, /^\d+\.\d+\.\d+$/);
-  assert.deepEqual(parseContract(wanted), [1, 2]);  // 1.2: archvow 1.26's packs and agents
+  assert.deepEqual(parseContract(wanted), [1, 3]);  // 1.3: archvow 1.27's privacy regimes
   assert.equal(parseContract('1.0.0'), null);
   assert.equal(contractWarning({ version: tested, contract: wanted }, wanted, tested), null);
   assert.equal(contractWarning({ version: '1.24.3', contract: '1.4' }, '1.0', tested), null, 'a later minor contract');

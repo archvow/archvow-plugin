@@ -91,7 +91,7 @@ final class ArchvowForms {
         String q = question.toLowerCase(java.util.Locale.ROOT);
         boolean aboutColumns = q.contains("column") || q.contains("field") || q.contains("colonne") || q.contains("champ");
         boolean aboutProperties = q.contains("null") || q.contains("person") || q.contains("priv") || q.contains("required")
-            || q.contains("optional") || q.contains("obligat") || q.contains("facultat") || q.contains("gdpr") || q.contains("rgpd") || q.contains("type");
+            || q.contains("optional") || q.contains("obligat") || q.contains("facultat") || q.contains("sensitive") || q.contains("sensible") || q.contains("type");
         if (!aboutColumns || !aboutProperties) return false;
         JsonObject smart = DATA.getAsJsonObject("smart_answers");
         if (smart == null) return false;

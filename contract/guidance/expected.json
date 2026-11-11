@@ -3370,7 +3370,7 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.26.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.27.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
    "meaning": "The project was set up with the template an older version; the archvow installed here brings a newer one. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of an older version.",
@@ -3394,7 +3394,7 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.26.0: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.27.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
    "meaning": "Le projet a été créé avec the template an older version ; l'archvow installé ici apporte a newer one. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de an older version.",
@@ -3916,6 +3916,66 @@
  {
   "fr": false,
   "code": "ARCH017",
+  "message": "'customers_schema' is implemented but has no unit test: tests/p1_domain/test_customers_schema.py",
+  "guide": {
+   "code": "ARCH017",
+   "meaning": "an implemented component without its test",
+   "todo": "write `tests/<layer>/test_<component>.py`",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH017",
+  "message": "'customers_schema' is implemented but has no unit test: tests/p1_domain/test_customers_schema.py",
+  "guide": {
+   "code": "ARCH017",
+   "meaning": "un composant implémenté sans son test",
+   "todo": "écrire `tests/<couche>/test_<composant>.py`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH017",
+  "message": "'customers_writer' is implemented but has no integration test: tests/p2_io/test_customers_writer.py",
+  "guide": {
+   "code": "ARCH017",
+   "meaning": "an implemented component without its test",
+   "todo": "write `tests/<layer>/test_<component>.py`",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH017",
+  "message": "'customers_writer' is implemented but has no integration test: tests/p2_io/test_customers_writer.py",
+  "guide": {
+   "code": "ARCH017",
+   "meaning": "un composant implémenté sans son test",
+   "todo": "écrire `tests/<couche>/test_<composant>.py`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH017",
   "message": "'daily_main' is implemented but has no unit test: tests/p4_entrypoints/test_daily_main.py",
   "guide": {
    "code": "ARCH017",
@@ -5490,6 +5550,36 @@
   "fr": true,
   "code": "ARCH020",
   "message": "cannot compare with base 'origin/main': 'origin/main' is not a branch of this repository (its remote 'origin' was never fetched here: git fetch origin). Choose one that exists: feature, main",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, un hazard ou un invariant supprimé, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier retiré de la spec, un fichier de garde modifié, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
+   "todo": "l'annuler, ou les architectes l'approuvent (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, ou `--accept-weakening`)",
+   "who": "Un architecte : cela change les garde-fous de tout le projet.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH020",
+  "message": "column customers_schema.card_number no longer tagged financial",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "a guard is weakened: a lower severity or verification, a removed hazard or invariant, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example taken out of the spec, an edited guard file, more frozen violations, a new AI assistant or dependency",
+   "todo": "undo it, or the architects approve it (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, or `--accept-weakening`)",
+   "who": "An architect: it changes the guards of the whole project.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH020",
+  "message": "column customers_schema.card_number no longer tagged financial",
   "guide": {
    "code": "ARCH020",
    "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, un hazard ou un invariant supprimé, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier retiré de la spec, un fichier de garde modifié, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
@@ -8666,6 +8756,110 @@
  {
   "fr": false,
   "code": "ARCH033",
+  "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
+  "guide": {
+   "code": "ARCH033",
+   "meaning": "code exists while a decision is still to make",
+   "todo": "`archvow decision make <component> <n> \"...\"` (a person)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_schema"
+    },
+    "text": "archvow decision make customers_schema <number> \"...\"",
+    "missing": [
+     "question",
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH033",
+  "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
+  "guide": {
+   "code": "ARCH033",
+   "meaning": "du code existe alors qu'une décision reste à prendre",
+   "todo": "`archvow decision make <composant> <n> \"...\"` (une personne)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_schema"
+    },
+    "text": "archvow decision make customers_schema <number> \"...\"",
+    "missing": [
+     "question",
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH033",
+  "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
+  "guide": {
+   "code": "ARCH033",
+   "meaning": "code exists while a decision is still to make",
+   "todo": "`archvow decision make <component> <n> \"...\"` (a person)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer"
+    },
+    "text": "archvow decision make customers_writer <number> \"...\"",
+    "missing": [
+     "question",
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH033",
+  "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
+  "guide": {
+   "code": "ARCH033",
+   "meaning": "du code existe alors qu'une décision reste à prendre",
+   "todo": "`archvow decision make <composant> <n> \"...\"` (une personne)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer"
+    },
+    "text": "archvow decision make customers_writer <number> \"...\"",
+    "missing": [
+     "question",
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH033",
   "message": "'daily_main' is implemented but 2 decision(s) are still to make, e.g. 'Invalid arguments (e.g. --run-date <date>): which exit code and message?' - the code made a silent choice -> archvow show daily_main, then archvow decision make daily_main <number> \"...\"",
   "guide": {
    "code": "ARCH033",
@@ -12644,6 +12838,52 @@
  {
   "fr": false,
   "code": "ARCH035",
+  "message": "'customers_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show customers_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_reader"
+    },
+    "text": "archvow show customers_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'customers_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show customers_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_reader"
+    },
+    "text": "archvow show customers_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
   "message": "'customers_reader': safety question S4 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_reader",
   "guide": {
    "code": "ARCH035",
@@ -12668,6 +12908,52 @@
   "fr": true,
   "code": "ARCH035",
   "message": "'customers_reader': safety question S4 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_reader"
+    },
+    "text": "archvow show customers_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'customers_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show customers_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_reader"
+    },
+    "text": "archvow show customers_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'customers_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show customers_reader",
   "guide": {
    "code": "ARCH035",
    "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
@@ -12773,6 +13059,144 @@
      "component": "customers_schema"
     },
     "text": "archvow show customers_schema",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'customers_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show customers_writer",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_writer"
+    },
+    "text": "archvow show customers_writer",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'customers_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show customers_writer",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_writer"
+    },
+    "text": "archvow show customers_writer",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'customers_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show customers_writer",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_writer"
+    },
+    "text": "archvow show customers_writer",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'customers_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show customers_writer",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_writer"
+    },
+    "text": "archvow show customers_writer",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'customers_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_writer",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_writer"
+    },
+    "text": "archvow show customers_writer",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'customers_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_writer",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "customers_writer"
+    },
+    "text": "archvow show customers_writer",
     "missing": [],
     "readOnly": true
    },
@@ -21570,7 +21994,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "clean_orders: its task is about 1,250 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
+  "message": "clean_orders: its task is about 1,251 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -21597,7 +22021,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "clean_orders: its task is about 1,250 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
+  "message": "clean_orders: its task is about 1,251 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -21624,7 +22048,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "config: its task is about 592 tokens, over 500 - split it into smaller components",
+  "message": "config: its task is about 594 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -21642,7 +22066,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "config: its task is about 592 tokens, over 500 - split it into smaller components",
+  "message": "config: its task is about 594 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -21660,7 +22084,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "daily_sales_job: its task is about 1,045 tokens, over 500 - split it into smaller components",
+  "message": "daily_sales_job: its task is about 1,046 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -21678,7 +22102,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "daily_sales_job: its task is about 1,045 tokens, over 500 - split it into smaller components",
+  "message": "daily_sales_job: its task is about 1,046 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -21696,7 +22120,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "enrich_orders: its task is about 1,223 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
+  "message": "enrich_orders: its task is about 1,224 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -21723,7 +22147,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "enrich_orders: its task is about 1,223 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
+  "message": "enrich_orders: its task is about 1,224 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -21750,7 +22174,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "logging_setup: its task is about 652 tokens, over 500 - split it into smaller components",
+  "message": "logging_setup: its task is about 654 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -21768,7 +22192,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "logging_setup: its task is about 652 tokens, over 500 - split it into smaller components",
+  "message": "logging_setup: its task is about 654 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -21786,7 +22210,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "orders_clean_writer: its task is about 1,019 tokens, over 500 - split it into smaller components",
+  "message": "orders_clean_writer: its task is about 1,021 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -21804,7 +22228,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "orders_clean_writer: its task is about 1,019 tokens, over 500 - split it into smaller components",
+  "message": "orders_clean_writer: its task is about 1,021 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -21822,7 +22246,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "orders_reader: its task is about 979 tokens, over 500 - split it into smaller components",
+  "message": "orders_reader: its task is about 980 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -21840,7 +22264,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "orders_reader: its task is about 979 tokens, over 500 - split it into smaller components",
+  "message": "orders_reader: its task is about 980 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -21858,7 +22282,7 @@
  {
   "fr": false,
   "code": "ARCH044",
-  "message": "spark: its task is about 583 tokens, over 500 - split it into smaller components",
+  "message": "spark: its task is about 585 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "the task an AI reads for a component - its `spec.md` - is over 4000 tokens (about 16 000 characters; `archvow next` and `archvow prompt` show each size): a long task gets followed less well",
@@ -21876,7 +22300,7 @@
  {
   "fr": true,
   "code": "ARCH044",
-  "message": "spark: its task is about 583 tokens, over 500 - split it into smaller components",
+  "message": "spark: its task is about 585 tokens, over 500 - split it into smaller components",
   "guide": {
    "code": "ARCH044",
    "meaning": "la tâche qu'une IA lit pour un composant - son `spec.md` - dépasse 4000 tokens (environ 16 000 caractères ; `archvow next` et `archvow prompt` affichent chaque taille) : une tâche longue est moins bien suivie",
@@ -22470,7 +22894,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 34ae7344: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 04d935c8: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
@@ -22488,7 +22912,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit 34ae7344: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 04d935c8: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
@@ -22506,7 +22930,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 68ffe21a: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit c3dcb49b: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
@@ -22524,7 +22948,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit 68ffe21a: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit c3dcb49b: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
@@ -23893,185 +24317,63 @@
  },
  {
   "fr": false,
-  "code": "GDPR001",
-  "message": "column 'diagnosis' of orders_schema is not classified -> archvow column set orders_schema diagnosis personal|special|none",
+  "code": "GDPR003",
+  "message": "'customers_writer' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make customers_writer P1 \"...\"",
   "guide": {
-   "code": "GDPR001",
-   "meaning": "a column defined in the code of a schema or model (`StructField(\"x\")`, a model field) is not classified - from day one, it blocks the code",
-   "todo": "`archvow column set <component> x personal|special|none`",
+   "code": "GDPR003",
+   "meaning": "a coded writer (or repository) of personal data has no answer on retention and erasure (art. 17)",
+   "todo": "`archvow decision make <component> P1 \"...\"`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
    "command": {
-    "name": "column set",
+    "name": "decision make",
     "values": {
-     "component": "orders_schema",
-     "names": "diagnosis"
+     "component": "customers_writer",
+     "question": "P1"
     },
-    "text": "archvow column set orders_schema diagnosis personal|special|none",
+    "text": "archvow decision make customers_writer P1 \"...\"",
     "missing": [
-     "kind"
+     "answer"
     ],
     "readOnly": false
    },
-   "file": {
-    "path": "src/sales/p1_domain/orders_schema.py",
-    "line": 15
-   }
+   "file": null
   }
  },
  {
   "fr": true,
-  "code": "GDPR001",
-  "message": "column 'diagnosis' of orders_schema is not classified -> archvow column set orders_schema diagnosis personal|special|none",
+  "code": "GDPR003",
+  "message": "'customers_writer' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make customers_writer P1 \"...\"",
   "guide": {
-   "code": "GDPR001",
-   "meaning": "une colonne définie dans le code d'un schéma ou d'un modèle (`StructField(\"x\")`, un champ de modèle) n'est pas classée - dès le premier jour, elle bloque le code",
-   "todo": "`archvow column set <composant> x personal|special|none`",
+   "code": "GDPR003",
+   "meaning": "un writer (ou repository) codé de données personnelles n'a pas de réponse sur la conservation et l'effacement (art. 17)",
+   "todo": "`archvow decision make <composant> P1 \"...\"`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
    "command": {
-    "name": "column set",
+    "name": "decision make",
     "values": {
-     "component": "orders_schema",
-     "names": "diagnosis"
+     "component": "customers_writer",
+     "question": "P1"
     },
-    "text": "archvow column set orders_schema diagnosis personal|special|none",
+    "text": "archvow decision make customers_writer P1 \"...\"",
     "missing": [
-     "kind"
+     "answer"
     ],
     "readOnly": false
    },
-   "file": {
-    "path": "src/sales/p1_domain/orders_schema.py",
-    "line": 15
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "GDPR001",
-  "message": "column 'email' of orders_schema is not classified -> archvow column set orders_schema email personal|special|none",
-  "guide": {
-   "code": "GDPR001",
-   "meaning": "a column defined in the code of a schema or model (`StructField(\"x\")`, a model field) is not classified - from day one, it blocks the code",
-   "todo": "`archvow column set <component> x personal|special|none`",
-   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": {
-    "name": "column set",
-    "values": {
-     "component": "orders_schema",
-     "names": "email"
-    },
-    "text": "archvow column set orders_schema email personal|special|none",
-    "missing": [
-     "kind"
-    ],
-    "readOnly": false
-   },
-   "file": {
-    "path": "src/sales/p1_domain/orders_schema.py",
-    "line": 14
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "GDPR001",
-  "message": "column 'email' of orders_schema is not classified -> archvow column set orders_schema email personal|special|none",
-  "guide": {
-   "code": "GDPR001",
-   "meaning": "une colonne définie dans le code d'un schéma ou d'un modèle (`StructField(\"x\")`, un champ de modèle) n'est pas classée - dès le premier jour, elle bloque le code",
-   "todo": "`archvow column set <composant> x personal|special|none`",
-   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": {
-    "name": "column set",
-    "values": {
-     "component": "orders_schema",
-     "names": "email"
-    },
-    "text": "archvow column set orders_schema email personal|special|none",
-    "missing": [
-     "kind"
-    ],
-    "readOnly": false
-   },
-   "file": {
-    "path": "src/sales/p1_domain/orders_schema.py",
-    "line": 14
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "GDPR001",
-  "message": "column 'order_id' of orders_schema is not classified -> archvow column set orders_schema order_id personal|special|none",
-  "guide": {
-   "code": "GDPR001",
-   "meaning": "a column defined in the code of a schema or model (`StructField(\"x\")`, a model field) is not classified - from day one, it blocks the code",
-   "todo": "`archvow column set <component> x personal|special|none`",
-   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": {
-    "name": "column set",
-    "values": {
-     "component": "orders_schema",
-     "names": "order_id"
-    },
-    "text": "archvow column set orders_schema order_id personal|special|none",
-    "missing": [
-     "kind"
-    ],
-    "readOnly": false
-   },
-   "file": {
-    "path": "src/sales/p1_domain/orders_schema.py",
-    "line": 13
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "GDPR001",
-  "message": "column 'order_id' of orders_schema is not classified -> archvow column set orders_schema order_id personal|special|none",
-  "guide": {
-   "code": "GDPR001",
-   "meaning": "une colonne définie dans le code d'un schéma ou d'un modèle (`StructField(\"x\")`, un champ de modèle) n'est pas classée - dès le premier jour, elle bloque le code",
-   "todo": "`archvow column set <composant> x personal|special|none`",
-   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": {
-    "name": "column set",
-    "values": {
-     "component": "orders_schema",
-     "names": "order_id"
-    },
-    "text": "archvow column set orders_schema order_id personal|special|none",
-    "missing": [
-     "kind"
-    ],
-    "readOnly": false
-   },
-   "file": {
-    "path": "src/sales/p1_domain/orders_schema.py",
-    "line": 13
-   }
+   "file": null
   }
  },
  {
   "fr": false,
   "code": "GDPR003",
-  "message": "'orders_clean_writer' is implemented but P1 (Personal data) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make orders_clean_writer P1 \"...\"",
+  "message": "'orders_clean_writer' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make orders_clean_writer P1 \"...\"",
   "guide": {
    "code": "GDPR003",
-   "meaning": "a coded writer (or repository) of personal data has no answer on retention and erasure",
+   "meaning": "a coded writer (or repository) of personal data has no answer on retention and erasure (art. 17)",
    "todo": "`archvow decision make <component> P1 \"...\"`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
@@ -24094,10 +24396,10 @@
  {
   "fr": true,
   "code": "GDPR003",
-  "message": "'orders_clean_writer' is implemented but P1 (Personal data) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make orders_clean_writer P1 \"...\"",
+  "message": "'orders_clean_writer' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make orders_clean_writer P1 \"...\"",
   "guide": {
    "code": "GDPR003",
-   "meaning": "un writer (ou repository) codé de données personnelles n'a pas de réponse sur la conservation et l'effacement",
+   "meaning": "un writer (ou repository) codé de données personnelles n'a pas de réponse sur la conservation et l'effacement (art. 17)",
    "todo": "`archvow decision make <composant> P1 \"...\"`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
@@ -24119,169 +24421,25 @@
  },
  {
   "fr": false,
-  "code": "GDPR004",
-  "message": ".show() prints rows of personal data (diagnosis, email, phone); remove it (count or check in a test instead)",
+  "code": "GDPR008",
+  "message": "'customers_writer' is implemented but P2 (GDPR) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make customers_writer P2 \"...\"",
   "guide": {
-   "code": "GDPR004",
-   "meaning": "a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...)",
-   "todo": "log counts, check rows in a test",
-   "who": "Whoever writes the code: you, or the AI with your review.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 19
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "GDPR004",
-  "message": ".show() prints rows of personal data (diagnosis, email, phone); remove it (count or check in a test instead)",
-  "guide": {
-   "code": "GDPR004",
-   "meaning": "un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...)",
-   "todo": "journaliser des comptes, vérifier les lignes dans un test",
-   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 19
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "GDPR004",
-  "message": ".show() prints rows of personal data (diagnosis, phone); remove it (count or check in a test instead)",
-  "guide": {
-   "code": "GDPR004",
-   "meaning": "a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...)",
-   "todo": "log counts, check rows in a test",
-   "who": "Whoever writes the code: you, or the AI with your review.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 19
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "GDPR004",
-  "message": ".show() prints rows of personal data (diagnosis, phone); remove it (count or check in a test instead)",
-  "guide": {
-   "code": "GDPR004",
-   "meaning": "un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...)",
-   "todo": "journaliser des comptes, vérifier les lignes dans un test",
-   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 19
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "GDPR004",
-  "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, email, phone)",
-  "guide": {
-   "code": "GDPR004",
-   "meaning": "a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...)",
-   "todo": "log counts, check rows in a test",
-   "who": "Whoever writes the code: you, or the AI with your review.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 20
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "GDPR004",
-  "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, email, phone)",
-  "guide": {
-   "code": "GDPR004",
-   "meaning": "un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...)",
-   "todo": "journaliser des comptes, vérifier les lignes dans un test",
-   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 20
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "GDPR004",
-  "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, phone)",
-  "guide": {
-   "code": "GDPR004",
-   "meaning": "a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...)",
-   "todo": "log counts, check rows in a test",
-   "who": "Whoever writes the code: you, or the AI with your review.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 20
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "GDPR004",
-  "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, phone)",
-  "guide": {
-   "code": "GDPR004",
-   "meaning": "un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...)",
-   "todo": "journaliser des comptes, vérifier les lignes dans un test",
-   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 20
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "GDPR005",
-  "message": "'orders_clean_writer' writes special-category data (diagnosis) that no step pseudonymises -> archvow hazard add orders_clean_writer exposed critical \"special-category data is written in clear\", then archvow invariant add orders_clean_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
-  "guide": {
-   "code": "GDPR005",
-   "meaning": "special-category data reaches a writer without a step that pseudonymises it, and without a critical `exposed` hazard prevented by a tested invariant (that question cannot be \"not applicable\")",
-   "todo": "`archvow column set <step> <columns> --pseudonymises`, or the hazard and its invariant",
+   "code": "GDPR008",
+   "meaning": "a coded writer, repository or client of personal data has no answer on its location, recipient and transfer safeguard (art. 28, 46)",
+   "todo": "`archvow decision make <component> P2 \"...\"`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
    "command": {
-    "name": "hazard add",
+    "name": "decision make",
     "values": {
-     "component": "orders_clean_writer",
-     "guide_word": "exposed",
-     "severity": "critical",
-     "description": "special-category data is written in clear"
+     "component": "customers_writer",
+     "question": "P2"
     },
-    "text": "archvow hazard add orders_clean_writer exposed critical \"special-category data is written in clear\"",
-    "missing": [],
+    "text": "archvow decision make customers_writer P2 \"...\"",
+    "missing": [
+     "answer"
+    ],
     "readOnly": false
    },
    "file": null
@@ -24289,73 +24447,37 @@
  },
  {
   "fr": true,
-  "code": "GDPR005",
-  "message": "'orders_clean_writer' writes special-category data (diagnosis) that no step pseudonymises -> archvow hazard add orders_clean_writer exposed critical \"special-category data is written in clear\", then archvow invariant add orders_clean_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+  "code": "GDPR008",
+  "message": "'customers_writer' is implemented but P2 (GDPR) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make customers_writer P2 \"...\"",
   "guide": {
-   "code": "GDPR005",
-   "meaning": "des données de catégorie particulière arrivent à un writer sans étape qui les pseudonymise, et sans hazard `exposed` critique empêché par un invariant testé (cette question ne peut pas être « sans objet »)",
-   "todo": "`archvow column set <étape> <colonnes> --pseudonymises`, ou le hazard et son invariant",
+   "code": "GDPR008",
+   "meaning": "un writer, repository ou client codé de données personnelles n'a pas de réponse sur leur localisation, leur destinataire et la garantie de transfert (art. 28, 46)",
+   "todo": "`archvow decision make <composant> P2 \"...\"`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
    "command": {
-    "name": "hazard add",
+    "name": "decision make",
     "values": {
-     "component": "orders_clean_writer",
-     "guide_word": "exposed",
-     "severity": "critical",
-     "description": "special-category data is written in clear"
+     "component": "customers_writer",
+     "question": "P2"
     },
-    "text": "archvow hazard add orders_clean_writer exposed critical \"special-category data is written in clear\"",
-    "missing": [],
+    "text": "archvow decision make customers_writer P2 \"...\"",
+    "missing": [
+     "answer"
+    ],
     "readOnly": false
    },
    "file": null
-  }
- },
- {
-  "fr": false,
-  "code": "GDPR006",
-  "message": "partitionBy('email'): personal values become folder names; partition by a non-personal column",
-  "guide": {
-   "code": "GDPR006",
-   "meaning": "`partitionBy` or `bucketBy` on a personal column (its values become folder names)",
-   "todo": "partition by a non-personal column",
-   "who": "Whoever writes the code: you, or the AI with your review.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then click Check (↻): the item disappears once it is fixed.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 22
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "GDPR006",
-  "message": "partitionBy('email'): personal values become folder names; partition by a non-personal column",
-  "guide": {
-   "code": "GDPR006",
-   "meaning": "`partitionBy` ou `bucketBy` sur une colonne personnelle (ses valeurs deviennent des noms de dossiers)",
-   "todo": "partitionner selon une colonne non personnelle",
-   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p2_io/orders_clean_writer.py",
-    "line": 22
-   }
   }
  },
  {
   "fr": false,
   "code": "GDPR008",
-  "message": "'orders_clean_writer' is implemented but P2 (Personal data) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make orders_clean_writer P2 \"...\"",
+  "message": "'orders_clean_writer' is implemented but P2 (GDPR) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make orders_clean_writer P2 \"...\"",
   "guide": {
    "code": "GDPR008",
-   "meaning": "a coded writer, repository or client of personal data has no answer on its location (country or region) and transfer safeguard (art. 46)",
+   "meaning": "a coded writer, repository or client of personal data has no answer on its location, recipient and transfer safeguard (art. 28, 46)",
    "todo": "`archvow decision make <component> P2 \"...\"`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
@@ -24378,10 +24500,10 @@
  {
   "fr": true,
   "code": "GDPR008",
-  "message": "'orders_clean_writer' is implemented but P2 (Personal data) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make orders_clean_writer P2 \"...\"",
+  "message": "'orders_clean_writer' is implemented but P2 (GDPR) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make orders_clean_writer P2 \"...\"",
   "guide": {
    "code": "GDPR008",
-   "meaning": "un writer, repository ou client codé de données personnelles n'a pas de réponse sur sa localisation (pays ou région) et la garantie de transfert (art. 46)",
+   "meaning": "un writer, repository ou client codé de données personnelles n'a pas de réponse sur leur localisation, leur destinataire et la garantie de transfert (art. 28, 46)",
    "todo": "`archvow decision make <composant> P2 \"...\"`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
@@ -24403,10 +24525,624 @@
  },
  {
   "fr": false,
-  "code": "GDPR009",
+  "code": "GLBA003",
+  "message": "'customers_writer' is implemented but G1 (GLBA) is not answered: Encryption: how is it encrypted at rest and in transit - or which compensating control the qualified individual (your CISO) approved in writing - e.g. AES-256 storage encryption with keys in the KMS; TLS 1.2 or later for every connection? -> archvow decision make customers_writer G1 \"...\"",
+  "guide": {
+   "code": "GLBA003",
+   "meaning": "a coded writer of the information has no answer on its encryption at rest and in transit",
+   "todo": "`archvow decision make <component> G1 \"...\"`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "G1"
+    },
+    "text": "archvow decision make customers_writer G1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "GLBA003",
+  "message": "'customers_writer' is implemented but G1 (GLBA) is not answered: Encryption: how is it encrypted at rest and in transit - or which compensating control the qualified individual (your CISO) approved in writing - e.g. AES-256 storage encryption with keys in the KMS; TLS 1.2 or later for every connection? -> archvow decision make customers_writer G1 \"...\"",
+  "guide": {
+   "code": "GLBA003",
+   "meaning": "un writer codé de ces informations n'a pas de réponse sur leur chiffrement au repos et en transit",
+   "todo": "`archvow decision make <composant> G1 \"...\"`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "G1"
+    },
+    "text": "archvow decision make customers_writer G1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "GLBA004",
+  "message": "'customers_writer' is implemented but G2 (GLBA) is not answered: Disposal: how is it securely disposed of no later than two years after it was last used to serve the customer, unless a law or a documented business need requires keeping it - e.g. deleted two years after the account closes, except what the 5-year record-keeping law requires? -> archvow decision make customers_writer G2 \"...\"",
+  "guide": {
+   "code": "GLBA004",
+   "meaning": "a coded writer has no answer on its secure disposal (at most two years after it last served the customer)",
+   "todo": "`archvow decision make <component> G2 \"...\"`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "G2"
+    },
+    "text": "archvow decision make customers_writer G2 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "GLBA004",
+  "message": "'customers_writer' is implemented but G2 (GLBA) is not answered: Disposal: how is it securely disposed of no later than two years after it was last used to serve the customer, unless a law or a documented business need requires keeping it - e.g. deleted two years after the account closes, except what the 5-year record-keeping law requires? -> archvow decision make customers_writer G2 \"...\"",
+  "guide": {
+   "code": "GLBA004",
+   "meaning": "un writer codé n'a pas de réponse sur leur destruction sûre (au plus deux ans après leur dernier usage au service du client)",
+   "todo": "`archvow decision make <composant> G2 \"...\"`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "G2"
+    },
+    "text": "archvow decision make customers_writer G2 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "GLBA005",
+  "message": "'customers_writer' is implemented but G3 (GLBA) is not answered: Incidents: how is unauthorized access to it detected, and who tells the regulator in time - a bank's primary federal regulator within 36 hours of a notification incident; for another financial institution, the FTC within 30 days of an event involving 500 or more consumers - e.g. access alerts to the security team; incident plan IR-2 names who notifies? -> archvow decision make customers_writer G3 \"...\"",
+  "guide": {
+   "code": "GLBA005",
+   "meaning": "a coded writer has no answer on detecting incidents and telling the regulator in time (36 hours for a bank, 30 days to the FTC otherwise)",
+   "todo": "`archvow decision make <component> G3 \"...\"`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "G3"
+    },
+    "text": "archvow decision make customers_writer G3 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "GLBA005",
+  "message": "'customers_writer' is implemented but G3 (GLBA) is not answered: Incidents: how is unauthorized access to it detected, and who tells the regulator in time - a bank's primary federal regulator within 36 hours of a notification incident; for another financial institution, the FTC within 30 days of an event involving 500 or more consumers - e.g. access alerts to the security team; incident plan IR-2 names who notifies? -> archvow decision make customers_writer G3 \"...\"",
+  "guide": {
+   "code": "GLBA005",
+   "meaning": "un writer codé n'a pas de réponse sur la détection des incidents et l'information du régulateur à temps (36 heures pour une banque, 30 jours à la FTC sinon)",
+   "todo": "`archvow decision make <composant> G3 \"...\"`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "G3"
+    },
+    "text": "archvow decision make customers_writer G3 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV001",
+  "message": "column 'diagnosis' of orders_schema is not classified -> archvow column set orders_schema diagnosis personal|special|none",
+  "guide": {
+   "code": "PRIV001",
+   "meaning": "a column defined in the code of a schema or model (`StructField(\"x\")`, a model field) is not classified - from day one, it blocks the code",
+   "todo": "`archvow column set <component> x personal|special|none`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "column set",
+    "values": {
+     "component": "orders_schema",
+     "names": "diagnosis"
+    },
+    "text": "archvow column set orders_schema diagnosis personal|special|none",
+    "missing": [
+     "kind"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/orders_schema.py",
+    "line": 15
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV001",
+  "message": "column 'diagnosis' of orders_schema is not classified -> archvow column set orders_schema diagnosis personal|special|none",
+  "guide": {
+   "code": "PRIV001",
+   "meaning": "une colonne définie dans le code d'un schéma ou d'un modèle (`StructField(\"x\")`, un champ de modèle) n'est pas classée - dès le premier jour, elle bloque le code",
+   "todo": "`archvow column set <composant> x personal|special|none`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "column set",
+    "values": {
+     "component": "orders_schema",
+     "names": "diagnosis"
+    },
+    "text": "archvow column set orders_schema diagnosis personal|special|none",
+    "missing": [
+     "kind"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/orders_schema.py",
+    "line": 15
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV001",
+  "message": "column 'email' of orders_schema is not classified -> archvow column set orders_schema email personal|special|none",
+  "guide": {
+   "code": "PRIV001",
+   "meaning": "a column defined in the code of a schema or model (`StructField(\"x\")`, a model field) is not classified - from day one, it blocks the code",
+   "todo": "`archvow column set <component> x personal|special|none`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "column set",
+    "values": {
+     "component": "orders_schema",
+     "names": "email"
+    },
+    "text": "archvow column set orders_schema email personal|special|none",
+    "missing": [
+     "kind"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/orders_schema.py",
+    "line": 14
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV001",
+  "message": "column 'email' of orders_schema is not classified -> archvow column set orders_schema email personal|special|none",
+  "guide": {
+   "code": "PRIV001",
+   "meaning": "une colonne définie dans le code d'un schéma ou d'un modèle (`StructField(\"x\")`, un champ de modèle) n'est pas classée - dès le premier jour, elle bloque le code",
+   "todo": "`archvow column set <composant> x personal|special|none`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "column set",
+    "values": {
+     "component": "orders_schema",
+     "names": "email"
+    },
+    "text": "archvow column set orders_schema email personal|special|none",
+    "missing": [
+     "kind"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/orders_schema.py",
+    "line": 14
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV001",
+  "message": "column 'order_id' of orders_schema is not classified -> archvow column set orders_schema order_id personal|special|none",
+  "guide": {
+   "code": "PRIV001",
+   "meaning": "a column defined in the code of a schema or model (`StructField(\"x\")`, a model field) is not classified - from day one, it blocks the code",
+   "todo": "`archvow column set <component> x personal|special|none`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "column set",
+    "values": {
+     "component": "orders_schema",
+     "names": "order_id"
+    },
+    "text": "archvow column set orders_schema order_id personal|special|none",
+    "missing": [
+     "kind"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/orders_schema.py",
+    "line": 13
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV001",
+  "message": "column 'order_id' of orders_schema is not classified -> archvow column set orders_schema order_id personal|special|none",
+  "guide": {
+   "code": "PRIV001",
+   "meaning": "une colonne définie dans le code d'un schéma ou d'un modèle (`StructField(\"x\")`, un champ de modèle) n'est pas classée - dès le premier jour, elle bloque le code",
+   "todo": "`archvow column set <composant> x personal|special|none`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "column set",
+    "values": {
+     "component": "orders_schema",
+     "names": "order_id"
+    },
+    "text": "archvow column set orders_schema order_id personal|special|none",
+    "missing": [
+     "kind"
+    ],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/orders_schema.py",
+    "line": 13
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV002",
+  "message": ".show() prints rows of personal data (diagnosis, email, phone); remove it (count or check in a test instead)",
+  "guide": {
+   "code": "PRIV002",
+   "meaning": "a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...)",
+   "todo": "log counts, check rows in a test",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 19
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV002",
+  "message": ".show() prints rows of personal data (diagnosis, email, phone); remove it (count or check in a test instead)",
+  "guide": {
+   "code": "PRIV002",
+   "meaning": "un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...)",
+   "todo": "journaliser des comptes, vérifier les lignes dans un test",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 19
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV002",
+  "message": ".show() prints rows of personal data (diagnosis, phone); remove it (count or check in a test instead)",
+  "guide": {
+   "code": "PRIV002",
+   "meaning": "a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...)",
+   "todo": "log counts, check rows in a test",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 19
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV002",
+  "message": ".show() prints rows of personal data (diagnosis, phone); remove it (count or check in a test instead)",
+  "guide": {
+   "code": "PRIV002",
+   "meaning": "un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...)",
+   "todo": "journaliser des comptes, vérifier les lignes dans un test",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 19
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV002",
+  "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, email, phone)",
+  "guide": {
+   "code": "PRIV002",
+   "meaning": "a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...)",
+   "todo": "log counts, check rows in a test",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 20
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV002",
+  "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, email, phone)",
+  "guide": {
+   "code": "PRIV002",
+   "meaning": "un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...)",
+   "todo": "journaliser des comptes, vérifier les lignes dans un test",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 20
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV002",
+  "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, phone)",
+  "guide": {
+   "code": "PRIV002",
+   "meaning": "a component handling personal data calls `.show()`, `.display()` or `.explain()`, or prints or logs collected rows (`collect`, `take`, `head`, `toPandas`...)",
+   "todo": "log counts, check rows in a test",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 20
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV002",
+  "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, phone)",
+  "guide": {
+   "code": "PRIV002",
+   "meaning": "un composant qui manipule des données personnelles appelle `.show()`, `.display()` ou `.explain()`, ou imprime ou journalise des lignes collectées (`collect`, `take`, `head`, `toPandas`...)",
+   "todo": "journaliser des comptes, vérifier les lignes dans un test",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 20
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV003",
+  "message": "'customers_writer' writes special (sensitive) data (diagnosis) that no step pseudonymises -> archvow hazard add customers_writer exposed critical \"special data is written in clear\", then archvow invariant add customers_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+  "guide": {
+   "code": "PRIV003",
+   "meaning": "special (sensitive) data reaches a writer without a step that pseudonymises it, and without a critical `exposed` hazard prevented by a tested invariant (that question cannot be \"not applicable\")",
+   "todo": "`archvow column set <step> <columns> --pseudonymises`, or the hazard and its invariant",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "hazard add",
+    "values": {
+     "component": "customers_writer",
+     "guide_word": "exposed",
+     "severity": "critical",
+     "description": "special data is written in clear"
+    },
+    "text": "archvow hazard add customers_writer exposed critical \"special data is written in clear\"",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV003",
+  "message": "'customers_writer' writes special (sensitive) data (diagnosis) that no step pseudonymises -> archvow hazard add customers_writer exposed critical \"special data is written in clear\", then archvow invariant add customers_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+  "guide": {
+   "code": "PRIV003",
+   "meaning": "des données particulières (sensibles) arrivent à un writer sans étape qui les pseudonymise, et sans hazard `exposed` critique empêché par un invariant testé (cette question ne peut pas être « sans objet »)",
+   "todo": "`archvow column set <étape> <colonnes> --pseudonymises`, ou le hazard et son invariant",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "hazard add",
+    "values": {
+     "component": "customers_writer",
+     "guide_word": "exposed",
+     "severity": "critical",
+     "description": "special data is written in clear"
+    },
+    "text": "archvow hazard add customers_writer exposed critical \"special data is written in clear\"",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV003",
+  "message": "'orders_clean_writer' writes special (sensitive) data (diagnosis) that no step pseudonymises -> archvow hazard add orders_clean_writer exposed critical \"special data is written in clear\", then archvow invariant add orders_clean_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+  "guide": {
+   "code": "PRIV003",
+   "meaning": "special (sensitive) data reaches a writer without a step that pseudonymises it, and without a critical `exposed` hazard prevented by a tested invariant (that question cannot be \"not applicable\")",
+   "todo": "`archvow column set <step> <columns> --pseudonymises`, or the hazard and its invariant",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "hazard add",
+    "values": {
+     "component": "orders_clean_writer",
+     "guide_word": "exposed",
+     "severity": "critical",
+     "description": "special data is written in clear"
+    },
+    "text": "archvow hazard add orders_clean_writer exposed critical \"special data is written in clear\"",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV003",
+  "message": "'orders_clean_writer' writes special (sensitive) data (diagnosis) that no step pseudonymises -> archvow hazard add orders_clean_writer exposed critical \"special data is written in clear\", then archvow invariant add orders_clean_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+  "guide": {
+   "code": "PRIV003",
+   "meaning": "des données particulières (sensibles) arrivent à un writer sans étape qui les pseudonymise, et sans hazard `exposed` critique empêché par un invariant testé (cette question ne peut pas être « sans objet »)",
+   "todo": "`archvow column set <étape> <colonnes> --pseudonymises`, ou le hazard et son invariant",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "hazard add",
+    "values": {
+     "component": "orders_clean_writer",
+     "guide_word": "exposed",
+     "severity": "critical",
+     "description": "special data is written in clear"
+    },
+    "text": "archvow hazard add orders_clean_writer exposed critical \"special data is written in clear\"",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV004",
+  "message": "partitionBy('email'): personal values become folder names; partition by a non-personal column",
+  "guide": {
+   "code": "PRIV004",
+   "meaning": "`partitionBy` or `bucketBy` on a personal column (its values become folder names)",
+   "todo": "partition by a non-personal column",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 22
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "PRIV004",
+  "message": "partitionBy('email'): personal values become folder names; partition by a non-personal column",
+  "guide": {
+   "code": "PRIV004",
+   "meaning": "`partitionBy` ou `bucketBy` sur une colonne personnelle (ses valeurs deviennent des noms de dossiers)",
+   "todo": "partitionner selon une colonne non personnelle",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p2_io/orders_clean_writer.py",
+    "line": 22
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "PRIV006",
   "message": "column 'phone' is classified in the spec of orders_schema but not defined in its code (renamed?)",
   "guide": {
-   "code": "GDPR009",
+   "code": "PRIV006",
    "meaning": "a classified column is not in the code any more",
    "todo": "rename the classification, or remove it with the column",
    "who": "Whoever writes the code: you, or the AI with your review.",
@@ -24421,10 +25157,10 @@
  },
  {
   "fr": true,
-  "code": "GDPR009",
+  "code": "PRIV006",
   "message": "column 'phone' is classified in the spec of orders_schema but not defined in its code (renamed?)",
   "guide": {
-   "code": "GDPR009",
+   "code": "PRIV006",
    "meaning": "une colonne classée n'est plus dans le code",
    "todo": "renommer la classification, ou la retirer avec la colonne",
    "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
@@ -25227,6 +25963,110 @@
     "path": "tests/data/extract.parquet",
     "line": 0
    }
+  }
+ },
+ {
+  "fr": false,
+  "code": "USP006",
+  "message": "'customers_writer' is implemented but U1 (US-PRIVACY) is not answered: Consumer requests: how does a request to access, delete, correct or port one consumer's data reach what it stores, and within what time (45 days in most states) - e.g. the privacy request job finds and deletes rows by consumer id within 30 days? -> archvow decision make customers_writer U1 \"...\"",
+  "guide": {
+   "code": "USP006",
+   "meaning": "a coded writer of personal information has no answer on how consumer requests (access, delete, correct, portability) reach what it stores",
+   "todo": "`archvow decision make <component> U1 \"...\"`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "U1"
+    },
+    "text": "archvow decision make customers_writer U1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "USP006",
+  "message": "'customers_writer' is implemented but U1 (US-PRIVACY) is not answered: Consumer requests: how does a request to access, delete, correct or port one consumer's data reach what it stores, and within what time (45 days in most states) - e.g. the privacy request job finds and deletes rows by consumer id within 30 days? -> archvow decision make customers_writer U1 \"...\"",
+  "guide": {
+   "code": "USP006",
+   "meaning": "un writer codé d'informations personnelles n'a pas de réponse sur la façon dont les demandes des consommateurs (accès, suppression, rectification, portabilité) atteignent ce qu'il stocke",
+   "todo": "`archvow decision make <composant> U1 \"...\"`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "U1"
+    },
+    "text": "archvow decision make customers_writer U1 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "USP007",
+  "message": "'customers_writer' is implemented but U2 (US-PRIVACY) is not answered: Retention: how long is each category of personal information it stores kept, and how is it deleted then - e.g. order history 3 years after the account closes, then deleted? -> archvow decision make customers_writer U2 \"...\"",
+  "guide": {
+   "code": "USP007",
+   "meaning": "a coded writer of personal information has no answer on the retention of each category",
+   "todo": "`archvow decision make <component> U2 \"...\"`",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "U2"
+    },
+    "text": "archvow decision make customers_writer U2 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "USP007",
+  "message": "'customers_writer' is implemented but U2 (US-PRIVACY) is not answered: Retention: how long is each category of personal information it stores kept, and how is it deleted then - e.g. order history 3 years after the account closes, then deleted? -> archvow decision make customers_writer U2 \"...\"",
+  "guide": {
+   "code": "USP007",
+   "meaning": "un writer codé d'informations personnelles n'a pas de réponse sur la conservation de chaque catégorie",
+   "todo": "`archvow decision make <composant> U2 \"...\"`",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "customers_writer",
+     "question": "U2"
+    },
+    "text": "archvow decision make customers_writer U2 \"...\"",
+    "missing": [
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
   }
  }
 ]

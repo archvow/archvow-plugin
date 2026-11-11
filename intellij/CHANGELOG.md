@@ -2,6 +2,29 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.23.0 - 2026-11-11
+
+Built on archvow 1.27.0 (contract regenerated from the 1.27.0 wheel; contract 1.3).
+
+- **The privacy regimes come from archvow, none is named in the plugins.** archvow 1.27 makes GDPR, the US state
+  privacy laws (US-PRIVACY) and GLBA data files, and a company adds its own (HIPAA...) in a pack: their questions
+  (P1, U1, G1, H1...) are component questions like the others, the init wizard offers them from the catalog
+  (`rules`: ...GDPR, GLBA, US-PRIVACY, TST, DORA), and each code (PRIV001-006, GDPR002, USP001, GLBA003...) is
+  explained from archvow's rules pages. The two column forms no longer look for "gdpr" or "rgpd" in a question.
+- **Classify columns** (`column set`): a **Tags** field, the ones a privacy regime covers (`financial`, `health`,
+  `biometric`, `children`, `precise-location`); its title says personal data, not GDPR, and its file plan
+  each regime's register in `.archvow/spec.md`.
+- **Packs**: what a pack brings lists its privacy regimes too.
+- Needs archvow 1.27 or newer (contract 1.3); **Install archvow 1.27.0** pins `archvow==1.27.0`.
+- Contract: the 1.27.0 grammar (`column set --tag`), the catalog's `regimes`, the examples' new codes and
+  registers, 618 harvested messages (81 codes). `contract/tools/regenerate.py` records the built-in templates' `source` without the machine's
+  path again (archvow 1.26 moved them: `<archvow>/templates/<name>`), in `workspace.json` too;
+  `harvest_messages.py` stops when it records nothing instead of writing an empty file.
+- Tests: the live tests read the templates' `source` the way `regenerate.py` records it (archvow 1.26's
+  `<archvow>/templates/<name>`), in `workspace --json` too. VS Code: 156 passed with archvow 1.27.0 live, 6 skipped
+  (no .vsix or .zip built). The IntelliJ tests were not run for this release (Gradle could not be downloaded where
+  it was built): run `./gradlew test` before publishing.
+
 ## 0.22.0 - 2026-11-10
 
 Built on archvow 1.26.0 (contract regenerated from the 1.26.0 wheel; contract 1.2).

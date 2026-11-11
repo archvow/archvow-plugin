@@ -13,8 +13,8 @@ Command line: pay NUMBER - marks the invoice paid and prints it
 ## Personal data
 
 Personal columns it handles: `customer` (personal).
-- Never show, print or log their values, nor collected rows (GDPR004): log counts.
-- Never partition or bucket files by them (GDPR006).
+- Never show, print or log their values, nor collected rows (PRIV002): log counts.
+- Never partition or bucket files by them (PRIV004).
 
 ## Create exactly
 
@@ -111,7 +111,7 @@ Anything this spec does not define is not yours to decide. Ask before coding. If
 ## Definition of done
 
 - `archvow check` reports no errors for this component.
-- Checks on this code: ARCH, STYLE, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
+- Checks on this code: ARCH, STYLE, PRIV, GDPR, TST - what each one checks: `.archvow/spec.md` (Checks).
 - `ruff format .` run, then `ruff check .` and `pytest` pass.
 - Every invariant above is tested.
 - Every example above has its marked test, and its files are the ones recorded.

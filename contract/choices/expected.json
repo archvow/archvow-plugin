@@ -600,7 +600,7 @@
         },
         {
          "value": "P1",
-         "label": "P1 — Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send in…",
+         "label": "P1 — Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g.…",
          "fill": {
           "answer": "To record which customers paid their invoices, for the finance team"
          }
@@ -2452,7 +2452,7 @@
         },
         {
          "value": "P1",
-         "label": "P1 — Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send in…",
+         "label": "P1 — Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g.…",
          "fill": {
           "answer": "To record which customers paid their invoices, for the finance team"
          }
@@ -4773,7 +4773,7 @@
         },
         {
          "value": "P1",
-         "label": "P1 — Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill c…",
+         "label": "P1 — Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g.…",
          "fill": {
           "answer": "Take and show the orders of each customer, for that customer only"
          }
@@ -7466,7 +7466,7 @@
         },
         {
          "value": "P1",
-         "label": "P1 — Purpose: why does it process personal data (the columns of its spec card), and for whom - e.g. to bill c…",
+         "label": "P1 — Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g.…",
          "fill": {
           "answer": "Take and show the orders of each customer, for that customer only"
          }

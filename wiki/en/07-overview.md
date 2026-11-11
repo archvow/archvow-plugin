@@ -106,7 +106,7 @@ links to it. **Add a briefs folder (architect)…** opens the init form prefille
 
 A third row under Architecture and Checks, from `packs` of archvow 1.26's `workspace --json` (read with the rest,
 no extra call): "2 packs · 1 changed by hand". **Open Packs →** lists each pack of `.archvow/packs/`: its
-version, what it brings (templates, agents, rules), its source, and whether it is as added or changed by hand
+version, what it brings (templates, agents, rules, privacy regimes), its source, and whether it is as added or changed by hand
 (ARCH060, with what differs). Each has **Update**, **Remove** and **Check** (the forms of `pack update`, `pack
 remove`, `pack check`, its name filled in); a changed pack also has **See the change** (`diff`). At the top,
 **Add a pack** and **New pack** (`pack add`, `pack new`). Both plugins do the same: VS Code `packsSummary()` /

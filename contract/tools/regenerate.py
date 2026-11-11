@@ -61,11 +61,15 @@ def write(path, data):
 
 def portable(catalog):
     """A built-in template's `source` is where archvow is installed on this machine: recorded as
-    <archvow>/packs/<name>, so the contract is the same wherever it is regenerated (the CI job
-    `contract` regenerates it and fails on any difference). The plugins do not read it."""
+    <archvow>/templates/<name> (archvow 1.26: resources/archvow/templates/<name>; before, packs/<name>), so the
+    contract is the same wherever it is regenerated (the CI job `contract` regenerates it and fails on any
+    difference). The plugins do not read it."""
     for template in catalog.get("templates", []):
         source = Path(str(template.get("source") or ""))
-        if source.parent.name == "packs" and source.parent.parent.name == "archvow":
+        if source.parent.name == "templates" and source.parent.parent.name == "archvow" \
+                and source.parent.parent.parent.name == "resources":
+            template["source"] = f"<archvow>/templates/{source.name}"
+        elif source.parent.name == "packs" and source.parent.parent.name == "archvow":
             template["source"] = f"<archvow>/packs/{source.name}"
     return catalog
 
@@ -112,6 +116,7 @@ def main():
             write(out / "check.json", run([*archvow, "check", "--json"], project))
             whole = run([*archvow, "workspace", "--json"], project)
             whole["digest"] = "<digest>"  # file times: different at every copy
+            portable(whole.get("catalog") or {})  # its catalog too: where archvow is installed
             write(out / "workspace.json", whole)
             for container in spec["containers"]:
                 for component in container["components"]:

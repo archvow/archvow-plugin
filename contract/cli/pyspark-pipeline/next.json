@@ -4,21 +4,21 @@
     "type": "foundation",
     "readiness": "ready",
     "invariants": 0,
-    "tokens": 559
+    "tokens": 560
   },
   {
     "component": "logging_setup",
     "type": "foundation",
     "readiness": "ready",
     "invariants": 0,
-    "tokens": 563
+    "tokens": 564
   },
   {
     "component": "spark",
     "type": "foundation",
     "readiness": "ready",
     "invariants": 0,
-    "tokens": 523
+    "tokens": 525
   },
   {
     "component": "clean_orders",
@@ -30,7 +30,7 @@
       "done": 0,
       "next": "T1"
     },
-    "tokens": 1790
+    "tokens": 1792
   },
   {
     "component": "compute_vat",
@@ -42,41 +42,41 @@
       "done": 0,
       "next": "T1"
     },
-    "tokens": 1613
+    "tokens": 1615
   },
   {
     "component": "orders_schema",
     "type": "schema",
     "readiness": "ready",
     "invariants": 0,
-    "tokens": 825
+    "tokens": 829
   },
   {
     "component": "orders_reader",
     "type": "reader",
     "readiness": "waiting for orders_schema",
     "invariants": 0,
-    "tokens": 843
+    "tokens": 844
   },
   {
     "component": "vat_writer",
     "type": "writer",
     "readiness": "ready",
     "invariants": 1,
-    "tokens": 934
+    "tokens": 935
   },
   {
     "component": "my_pipeline_job",
     "type": "job",
     "readiness": "waiting for orders_reader, clean_orders, compute_vat, vat_writer",
     "invariants": 0,
-    "tokens": 999
+    "tokens": 1000
   },
   {
     "component": "my_pipeline_main",
     "type": "entrypoint",
     "readiness": "waiting for my_pipeline_job",
     "invariants": 0,
-    "tokens": 825
+    "tokens": 826
   }
 ]

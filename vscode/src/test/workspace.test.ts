@@ -23,8 +23,8 @@ const EXAMPLES = ['fastapi-service', 'pyspark-pipeline', 'python-app'];
 const snapshots = (example: string): Record<string, Json> => Object.fromEntries(
   fs.readdirSync(path.join(CLI, example, 'show')).map((f) => [f.replace(/\.json$/, ''), read(example, 'show', f)]));
 
-test('the grammar is archvow 1.26\'s, with every command the workspace offers', () => {
-  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /1\.26\./);
+test('the grammar is archvow 1.27\'s, with every command the workspace offers', () => {
+  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /1\.27\./);
   for (const name of ['init', 'check', 'next', 'show', 'decision make', 'decision propose', 'decision accept', 'question add',
     'question accept', 'hazard add', 'hazard dismiss', 'hazard edit', 'hazard accept', 'rule accept', 'brief show', 'invariant add', 'invariant edit', 'invariant remove', 'component accept', 'assumption accept', 'rule add', 'column set', 'prompt', 'doctor', 'audit', 'diff', 'review', 'version', 'workspace', 'pack new', 'pack template', 'pack agent', 'pack rule', 'pack add',
     'pack update', 'pack remove', 'pack check']) {

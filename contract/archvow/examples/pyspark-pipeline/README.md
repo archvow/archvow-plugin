@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@1.26.0`).
+[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@1.27.0`).
 
 ## For developers
 
@@ -189,9 +189,9 @@ sales_reader` asks what is open, one question at a time. Code written while a qu
 
 Personal data (GDPR): every column of a schema is classified - `archvow column set sales_schema
 email,phone personal` (`special` for health, religion, biometrics..., `none` otherwise); code
-with an unclassified column fails the build. A job that handles personal data then answers
-P1, P2 (purpose, legal basis) and a writer P1, P2 (retention, location):
-`archvow decision make <component> P1 "..."`. The result: `.archvow/spec.md` (Personal data).
+with an unclassified column fails the build. A job and a writer that handle personal data
+then answer the questions of each regime (GDPR: P1, P2...; `archvow show <component>` lists them):
+`archvow decision make <component> P1 "..."`. The result: each regime's register in `.archvow/spec.md`.
 
 **4. Say what must never happen, then commit the spec**
 
@@ -277,7 +277,7 @@ SPARK_MASTER="local[*]" ./entrypoint.sh my_pipeline <its arguments>   # that lin
 | let the AI propose the risks of a component | in the chat: `/archvow-analyze sales_reader` |
 | build a big component one task at a time | `archvow show clean_sales` lists its tasks T1, T2...; `archvow prompt clean_sales` gives the next one; mark each test: `@pytest.mark.decision(3)` |
 | draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init my_pipeline --force -a briefs=...`) | in the chat: `/archvow-draft-spec briefs/sales.md`; after the brief changes (ARCH039): `archvow brief accept briefs/sales.md#cleaning` |
-| classify columns (GDPR) | `archvow column set sales_schema email,phone personal` |
+| classify columns (personal data) | `archvow column set sales_schema email,phone personal` |
 | say a step removes or pseudonymises them | `archvow column set clean_sales phone --removes` |
 | list what a release contains | `archvow changes --from v1.0.0 --markdown` |
 | adopt archvow on existing code | `archvow freeze` |

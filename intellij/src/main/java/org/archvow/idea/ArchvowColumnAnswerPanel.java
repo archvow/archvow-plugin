@@ -111,7 +111,7 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         String q = question.toLowerCase(Locale.ROOT);
         asksType = Pattern.compile("(\\btypes?\\b|datatype|data type)").matcher(q).find();
         asksNullable = Pattern.compile("(null|requir|option|obligat|facultat)").matcher(q).find();
-        asksPersonal = Pattern.compile("(person|privat|gdpr|rgpd)").matcher(q).find();
+        asksPersonal = Pattern.compile("(person|privat|sensitiv|sensibl)").matcher(q).find();
         rows.clear();
         if (mode == Mode.COLUMNS) {
             Map<String, Row> names = new LinkedHashMap<>();

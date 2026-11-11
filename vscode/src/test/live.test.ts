@@ -35,6 +35,14 @@ const COMMANDS = recorded<{ commands: Command[] }>('commands.json').commands;
 
 const settings = (): CliSettings => ({ executable: EXECUTABLE || 'archvow', python: PYTHON, timeoutSeconds: 120, useProjectInterpreter: false });
 
+/** Where archvow is installed here, as regenerate.py records it: <archvow>/templates/<name> (<archvow>/packs/<name> before 1.26). */
+function portable(templates: { source?: string }[] | undefined): void {
+  for (const t of templates ?? []) {
+    if (t.source && /[\\/]archvow[\\/]resources[\\/]archvow[\\/]templates[\\/]/.test(t.source)) t.source = `<archvow>/templates/${path.basename(t.source)}`;
+    else if (t.source && /[\\/]archvow[\\/]packs[\\/]/.test(t.source)) t.source = `<archvow>/packs/${path.basename(t.source)}`;
+  }
+}
+
 /** An example of archvow's source, code included, copied to a new folder (as regenerate.py does). */
 function example(name: string): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), `archvow-exact-${name}-`));
@@ -82,9 +90,7 @@ test('live: the installed archvow speaks the plugin\'s contract and is the one i
 test('live: catalog --json outside a project is the recorded catalog (the init wizard\'s questions)', { skip }, async () => {
   const cli = new ArchvowCli(fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-live-none-')), settings, () => undefined, {}, false);
   const { data } = await cli.json<{ templates: { name: string; source?: string }[] }>(['catalog', '--json']);
-  for (const t of data.templates) {  // where archvow is installed here, as regenerate.py records it
-    if (t.source && /[\\/]archvow[\\/]packs[\\/]/.test(t.source)) t.source = `<archvow>/packs/${path.basename(t.source)}`;
-  }
+  portable(data.templates);
   assert.deepEqual(data, recorded('catalog.json'));
 });
 
@@ -103,6 +109,7 @@ for (const name of EXAMPLES) {
     assert.doesNotMatch(result.stderr, /Traceback/);
     // workspace (archvow 1.25): all of it in one answer, exactly as recorded; --since that digest: unchanged
     const { data: whole } = await cli.json<Record<string, unknown>>(['workspace', '--json']);
+    portable((whole.catalog as { templates?: { source?: string }[] } | undefined)?.templates);
     const digest = String(whole.digest);
     assert.match(digest, /^[0-9a-f]{8,}$/);
     assert.deepEqual({ ...whole, digest: '<digest>' }, recorded(name, 'workspace.json'));

@@ -1,5 +1,5 @@
 {
-  "contract": "1.2",
+  "contract": "1.3",
   "digest": "<digest>",
   "project": {
     "schema_version": 2,
@@ -10,7 +10,7 @@
     "containers": [
       {
         "id": "invoicing",
-        "template": "archvow/python-app@1.26.0",
+        "template": "archvow/python-app@1.27.0",
         "package": "invoicing",
         "path": "src/invoicing",
         "components": [
@@ -1016,10 +1016,10 @@
         {
           "key": "P1",
           "set": "P",
-          "title": "Personal data",
+          "title": "GDPR",
           "id": "retention",
           "rule": "GDPR003",
-          "question": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's records deleted by id?",
+          "question": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id?",
           "answer": "10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)",
           "by": "noreply@anthropic.com",
           "on": "2026-10-21T16:21:02.537432+00:00"
@@ -1027,7 +1027,7 @@
         {
           "key": "P2",
           "set": "P",
-          "title": "Personal data",
+          "title": "GDPR",
           "id": "location",
           "rule": "GDPR008",
           "question": "Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3?",
@@ -1148,7 +1148,7 @@
             {
               "kind": "question",
               "key": "P1",
-              "text": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's records deleted by id?",
+              "text": "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id?",
               "answer": "10 years (accounting law), then the file is deleted; one person's invoices are kept until then (legal obligation)",
               "done": true
             },
@@ -1292,10 +1292,10 @@
         {
           "key": "P1",
           "set": "P",
-          "title": "Personal data",
+          "title": "GDPR",
           "id": "purpose",
           "rule": "GDPR002",
-          "question": "Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send invoices to customers, for the finance team?",
+          "question": "Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
           "answer": "To record which customers paid their invoices, for the finance team",
           "by": "noreply@anthropic.com",
           "on": "2026-10-21T16:21:01.953151+00:00"
@@ -1303,7 +1303,7 @@
         {
           "key": "P2",
           "set": "P",
-          "title": "Personal data",
+          "title": "GDPR",
           "id": "legal_basis",
           "rule": "GDPR002",
           "question": "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?",
@@ -1417,7 +1417,7 @@
             {
               "kind": "question",
               "key": "P1",
-              "text": "Purpose: why does it process personal data (the fields of its spec card), and for whom - e.g. to send invoices to customers, for the finance team?",
+              "text": "Purpose: why does it process personal data (the columns or fields of its spec card), and for whom - e.g. to bill customers for their orders, for the finance team?",
               "answer": "To record which customers paid their invoices, for the finance team",
               "done": true
             },
@@ -1822,7 +1822,7 @@
       {
         "name": "archvow/fastapi-service",
         "pack": "archvow",
-        "version": "1.26.0",
+        "version": "1.27.0",
         "language": "python",
         "kind": "web-service",
         "style": "layered (common -> domain -> io -> services -> api)",
@@ -2023,6 +2023,8 @@
               "STYLE",
               "FASTAPI",
               "GDPR",
+              "GLBA",
+              "US-PRIVACY",
               "TST",
               "DORA",
               "all",
@@ -2349,12 +2351,12 @@
             "kinds": []
           }
         },
-        "source": "/tmp/av/lib/python3.13/site-packages/archvow/resources/archvow/templates/fastapi-service"
+        "source": "<archvow>/templates/fastapi-service"
       },
       {
         "name": "archvow/langgraph-agent",
         "pack": "archvow",
-        "version": "1.26.0",
+        "version": "1.27.0",
         "language": "python",
         "kind": "ai-application",
         "style": "layered (common -> domain -> tools -> agents -> app)",
@@ -2556,6 +2558,8 @@
               "AGENT",
               "FASTAPI",
               "GDPR",
+              "GLBA",
+              "US-PRIVACY",
               "TST",
               "DORA",
               "all",
@@ -2991,12 +2995,12 @@
             "kinds": []
           }
         },
-        "source": "/tmp/av/lib/python3.13/site-packages/archvow/resources/archvow/templates/langgraph-agent"
+        "source": "<archvow>/templates/langgraph-agent"
       },
       {
         "name": "archvow/pyspark-pipeline",
         "pack": "archvow",
-        "version": "1.26.0",
+        "version": "1.27.0",
         "language": "python",
         "kind": "data-pipeline",
         "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -3197,6 +3201,8 @@
               "STYLE",
               "SPARK",
               "GDPR",
+              "GLBA",
+              "US-PRIVACY",
               "TST",
               "DORA",
               "all",
@@ -3544,12 +3550,12 @@
             "kinds": []
           }
         },
-        "source": "/tmp/av/lib/python3.13/site-packages/archvow/resources/archvow/templates/pyspark-pipeline"
+        "source": "<archvow>/templates/pyspark-pipeline"
       },
       {
         "name": "archvow/python-app",
         "pack": "archvow",
-        "version": "1.26.0",
+        "version": "1.27.0",
         "language": "python",
         "kind": "application",
         "style": "layered (common -> domain -> io -> services -> entrypoints)",
@@ -3749,6 +3755,8 @@
               "ARCH",
               "STYLE",
               "GDPR",
+              "GLBA",
+              "US-PRIVACY",
               "TST",
               "DORA",
               "all",
@@ -4031,13 +4039,13 @@
             "kinds": []
           }
         },
-        "source": "/tmp/av/lib/python3.13/site-packages/archvow/resources/archvow/templates/python-app"
+        "source": "<archvow>/templates/python-app"
       }
     ],
     "packs": [
       {
         "name": "archvow",
-        "version": "1.26.0",
+        "version": "1.27.0",
         "description": "The templates, agents and languages archvow ships.",
         "archvow": "",
         "builtin": true,
@@ -4066,7 +4074,12 @@
           "roo",
           "windsurf"
         ],
-        "rule_families": []
+        "rule_families": [],
+        "regimes": [
+          "gdpr",
+          "glba",
+          "us-privacy"
+        ]
       }
     ],
     "agents": [
@@ -4504,6 +4517,72 @@
         "review": false,
         "seen": false,
         "unseen": ""
+      }
+    ],
+    "regimes": [
+      {
+        "id": "gdpr",
+        "name": "GDPR",
+        "pack": "archvow",
+        "prefix": "GDPR",
+        "letter": "P",
+        "default": true,
+        "title": "Personal data (GDPR / RGPD): purpose, legal basis, retention, location, recipients",
+        "law": "Regulation (EU) 2016/679 (General Data Protection Regulation)",
+        "checked": "2026-11-11",
+        "covers": [],
+        "rules": {
+          "GDPR002": "Personal data processed without a decided purpose and legal basis",
+          "GDPR003": "Personal data written without a decided retention and erasure",
+          "GDPR008": "Personal data stored or sent without a decided location, recipient and transfer safeguard"
+        },
+        "register": "PERSONAL_DATA.md"
+      },
+      {
+        "id": "glba",
+        "name": "GLBA",
+        "pack": "archvow",
+        "prefix": "GLBA",
+        "letter": "G",
+        "default": false,
+        "title": "GLBA (US financial institutions): nonpublic personal information shared only after notice and opt-out, encrypted, limited, disposed of, incidents reported",
+        "law": "Gramm-Leach-Bliley Act, Title V: the Privacy Rule (Regulation P, 12 CFR 1016); the Interagency Guidelines Establishing Information Security Standards and the Computer-Security Incident Notification Rule (banks); the FTC Safeguards Rule (16 CFR 314, other financial institutions)",
+        "checked": "2026-11-11",
+        "covers": [
+          "financial"
+        ],
+        "rules": {
+          "GLBA001": "Nonpublic personal information shared without a decided notice and opt-out",
+          "GLBA002": "Nonpublic personal information without decided access limits",
+          "GLBA003": "Nonpublic personal information stored without decided encryption at rest and in transit",
+          "GLBA004": "Nonpublic personal information stored without decided secure disposal",
+          "GLBA005": "Nonpublic personal information stored without a decided way to detect and report incidents",
+          "GLBA006": "Nonpublic personal information sent to a service provider without decided oversight"
+        },
+        "register": "NONPUBLIC_PERSONAL_INFORMATION.md"
+      },
+      {
+        "id": "us-privacy",
+        "name": "US-PRIVACY",
+        "pack": "archvow",
+        "prefix": "USP",
+        "letter": "U",
+        "default": false,
+        "title": "US state privacy laws (CCPA/CPRA and the other state laws, strictest common rule): notice, opt-outs, sensitive data, requests, assessments, minors",
+        "law": "California Consumer Privacy Act as amended by the CPRA and its regulations (11 CCR 7000 ff.), and the other state comprehensive privacy laws; COPPA (16 CFR 312) for children under 13",
+        "checked": "2026-11-11",
+        "covers": [],
+        "rules": {
+          "USP001": "Personal information collected without a decided notice at collection",
+          "USP002": "Sale, sharing or profiling not decided, or without an opt-out that honours universal signals",
+          "USP003": "Sensitive personal information used without decided consent and limits",
+          "USP004": "Data of minors used without decided age checks and parental consent",
+          "USP005": "High-risk processing without a decided risk assessment (or automated decision without notice and opt-out)",
+          "USP006": "Personal information stored without a decided way for consumer requests to reach it",
+          "USP007": "Personal information stored without a decided retention per category",
+          "USP008": "Personal information sent to a third party without a decided contract and opt-out check"
+        },
+        "register": "PERSONAL_INFORMATION.md"
       }
     ]
   },

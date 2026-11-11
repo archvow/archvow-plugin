@@ -696,7 +696,8 @@
   /** The project's packs (0.22.0): what each brings and its state, with Update / Remove, and Add a pack / New pack. */
   function packsView() {
     const packs = (S && S.packs) || [];
-    const brings = (p) => [['templates', t('templates', 'templates')], ['agents', t('agents', 'agents')], ['rule_families', t('rules', 'règles')]]
+    const brings = (p) => [['templates', t('templates', 'templates')], ['agents', t('agents', 'agents')], ['rule_families', t('rules', 'règles')],
+      ['regimes', t('privacy regimes', 'régimes de protection')]]
       .map(([key, label]) => list(p, key).length ? `${label}: ${list(p, key).map((x) => esc(String(x))).join(', ')}` : '').filter((x) => x).join(' · ');
     const rows = packs.map((p) => {
       const name = str(p, 'name');

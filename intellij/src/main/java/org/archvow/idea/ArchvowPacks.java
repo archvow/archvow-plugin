@@ -88,7 +88,8 @@ final class ArchvowPacks {
 
     private static String brings(JsonObject p, boolean fr) {
         StringBuilder out = new StringBuilder();
-        String[][] parts = {{"templates", fr ? "templates" : "templates"}, {"agents", "agents"}, {"rule_families", fr ? "règles" : "rules"}};
+        String[][] parts = {{"templates", fr ? "templates" : "templates"}, {"agents", "agents"}, {"rule_families", fr ? "règles" : "rules"},
+            {"regimes", fr ? "régimes de protection" : "privacy regimes"}};
         for (String[] part : parts) {
             if (!p.has(part[0]) || !p.get(part[0]).isJsonArray() || p.getAsJsonArray(part[0]).isEmpty()) continue;
             if (out.length() > 0) out.append(" · ");

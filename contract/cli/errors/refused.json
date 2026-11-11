@@ -8,6 +8,6 @@
     "--json"
   ],
   "exit": 2,
-  "stdout": "{\n  \"contract\": \"1.2\",\n  \"error\": {\n    \"type\": \"SpecError\",\n    \"message\": \"'invoices_cli' has no question 99 (it has 1..3; see archvow show invoices_cli)\",\n    \"hint\": null,\n    \"exit\": 2\n  }\n}\n",
-  "stderr": "archvow 00:00:00.000 info    start decision make <value> <value> <value> --json (archvow 1.26.0, Python <python>, <project>)\narchvow 00:00:00.000 info    spec loaded: 7 components (<ms>)\narchvow 00:00:00.000 info    agent gate: allowed\n✖ archvow: error: 'invoices_cli' has no question 99 (it has 1..3; see archvow show invoices_cli)\narchvow 00:00:00.000 info    done exit 2 (<ms>)\n"
+  "stdout": "{\n  \"contract\": \"1.3\",\n  \"error\": {\n    \"type\": \"SpecError\",\n    \"message\": \"'invoices_cli' has no question 99 (it has 1..3; see archvow show invoices_cli)\",\n    \"hint\": null,\n    \"exit\": 2\n  }\n}\n",
+  "stderr": "archvow 00:00:00.000 info    start decision make <value> <value> <value> --json (archvow 1.27.0, Python <python>, <project>)\narchvow 00:00:00.000 info    spec loaded: 7 components (<ms>)\narchvow 00:00:00.000 info    agent gate: allowed\n✖ archvow: error: 'invoices_cli' has no question 99 (it has 1..3; see archvow show invoices_cli)\narchvow 00:00:00.000 info    done exit 2 (<ms>)\n"
 }

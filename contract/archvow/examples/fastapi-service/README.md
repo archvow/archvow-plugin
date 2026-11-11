@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/fastapi-service@1.26.0`).
+(template `archvow/fastapi-service@1.27.0`).
 
 ## For developers
 
@@ -181,9 +181,9 @@ field in the response...): code written while a question is open fails the build
 
 Personal data (GDPR): every column of a model is classified - `archvow column set order_model
 email,phone personal` (`special` for health, religion, biometrics..., `none` otherwise); code
-with an unclassified column fails the build. A router that handles personal data then answers
-P1, P2 (purpose, legal basis) and a repository P1, P2 (retention, location):
-`archvow decision make <component> P1 "..."`. The result: `.archvow/spec.md` (Personal data).
+with an unclassified column fails the build. A router and a repository that handle personal data
+then answer the questions of each regime (GDPR: P1, P2...; `archvow show <component>` lists them):
+`archvow decision make <component> P1 "..."`. The result: each regime's register in `.archvow/spec.md`.
 
 **4. Say what must never happen, then commit the spec**
 
@@ -267,7 +267,7 @@ make run                                             # http://127.0.0.1:8000/doc
 | let the AI propose the risks of a component | in the chat: `/archvow-analyze order_model` |
 | build a big component one task at a time | `archvow show orders_router` lists its tasks T1, T2...; `archvow prompt orders_router` gives the next one; mark each test: `@pytest.mark.decision(3)` |
 | draw the spec from a brief (`briefs/`, Markdown; another folder: `archvow init orders_api --force -a briefs=...`) | in the chat: `/archvow-draft-spec briefs/orders.md`; after the brief changes (ARCH039): `archvow brief accept briefs/orders.md#payment` |
-| classify columns (GDPR) | `archvow column set order_model email,phone personal` |
+| classify columns (personal data) | `archvow column set order_model email,phone personal` |
 | say a step removes or pseudonymises them | `archvow column set create_order phone --removes` |
 | list what a release contains | `archvow changes --from v1.0.0 --markdown` |
 | adopt archvow on existing code | `archvow freeze` |

@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 1.26.0",
+ "archvow": "archvow 1.27.0",
  "messages": [
   {
    "code": "ACME001",
@@ -662,7 +662,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.26.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@1.27.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -761,6 +761,20 @@
    "code": "ARCH017",
    "severity": "error",
    "message": "'create_order' is implemented but has no integration test: tests/p3_services/test_create_order.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'customers_schema' is implemented but has no unit test: tests/p1_domain/test_customers_schema.py",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but has no integration test: tests/p2_io/test_customers_writer.py",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -1041,6 +1055,13 @@
    "code": "ARCH020",
    "severity": "error",
    "message": "cannot compare with base 'origin/main': 'origin/main' is not a branch of this repository (its remote 'origin' was never fetched here: git fetch origin). Choose one that exists: feature, main",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "column customers_schema.card_number no longer tagged financial",
    "file": ".archvow/spec.vow",
    "line": 0
   },
@@ -1588,6 +1609,20 @@
    "severity": "error",
    "message": "'config' is implemented but 1 decision(s) are still to make, e.g. 'What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
    "file": ".archvow/components/config/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
+   "file": ".archvow/components/customers_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
+   "file": ".archvow/components/customers_writer/spec.vow",
    "line": 0
   },
   {
@@ -2188,7 +2223,21 @@
   {
    "code": "ARCH035",
    "severity": "warning",
+   "message": "'customers_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show customers_reader",
+   "file": ".archvow/components/customers_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
    "message": "'customers_reader': safety question S4 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_reader",
+   "file": ".archvow/components/customers_reader/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show customers_reader",
    "file": ".archvow/components/customers_reader/spec.vow",
    "line": 0
   },
@@ -2204,6 +2253,27 @@
    "severity": "warning",
    "message": "'customers_schema': safety question S2 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_schema",
    "file": ".archvow/components/customers_schema/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show customers_writer",
+   "file": ".archvow/components/customers_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show customers_writer",
+   "file": ".archvow/components/customers_writer/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show customers_writer",
+   "file": ".archvow/components/customers_writer/spec.vow",
    "line": 0
   },
   {
@@ -3560,56 +3630,56 @@
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "clean_orders: its task is about 1,250 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
+   "message": "clean_orders: its task is about 1,251 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
    "file": ".archvow/components/clean_orders/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "config: its task is about 592 tokens, over 500 - split it into smaller components",
+   "message": "config: its task is about 594 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/config/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "daily_sales_job: its task is about 1,045 tokens, over 500 - split it into smaller components",
+   "message": "daily_sales_job: its task is about 1,046 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/daily_sales_job/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "enrich_orders: its task is about 1,223 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
+   "message": "enrich_orders: its task is about 1,224 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt enrich_orders --task 1",
    "file": ".archvow/components/enrich_orders/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "logging_setup: its task is about 652 tokens, over 500 - split it into smaller components",
+   "message": "logging_setup: its task is about 654 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/logging_setup/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "orders_clean_writer: its task is about 1,019 tokens, over 500 - split it into smaller components",
+   "message": "orders_clean_writer: its task is about 1,021 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/orders_clean_writer/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "orders_reader: its task is about 979 tokens, over 500 - split it into smaller components",
+   "message": "orders_reader: its task is about 980 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/orders_reader/spec.md",
    "line": 0
   },
   {
    "code": "ARCH044",
    "severity": "warning",
-   "message": "spark: its task is about 583 tokens, over 500 - split it into smaller components",
+   "message": "spark: its task is about 585 tokens, over 500 - split it into smaller components",
    "file": ".archvow/components/spark/spec.md",
    "line": 0
   },
@@ -3728,14 +3798,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 34ae7344: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 04d935c8: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 68ffe21a: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit c3dcb49b: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -3964,84 +4034,126 @@
    "line": 17
   },
   {
-   "code": "GDPR001",
+   "code": "GDPR003",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make customers_writer P1 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR003",
+   "severity": "error",
+   "message": "'orders_clean_writer' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make orders_clean_writer P1 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR008",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but P2 (GDPR) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make customers_writer P2 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR008",
+   "severity": "error",
+   "message": "'orders_clean_writer' is implemented but P2 (GDPR) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make orders_clean_writer P2 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GLBA003",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but G1 (GLBA) is not answered: Encryption: how is it encrypted at rest and in transit - or which compensating control the qualified individual (your CISO) approved in writing - e.g. AES-256 storage encryption with keys in the KMS; TLS 1.2 or later for every connection? -> archvow decision make customers_writer G1 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GLBA004",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but G2 (GLBA) is not answered: Disposal: how is it securely disposed of no later than two years after it was last used to serve the customer, unless a law or a documented business need requires keeping it - e.g. deleted two years after the account closes, except what the 5-year record-keeping law requires? -> archvow decision make customers_writer G2 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "GLBA005",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but G3 (GLBA) is not answered: Incidents: how is unauthorized access to it detected, and who tells the regulator in time - a bank's primary federal regulator within 36 hours of a notification incident; for another financial institution, the FTC within 30 days of an event involving 500 or more consumers - e.g. access alerts to the security team; incident plan IR-2 names who notifies? -> archvow decision make customers_writer G3 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "PRIV001",
    "severity": "error",
    "message": "column 'diagnosis' of orders_schema is not classified -> archvow column set orders_schema diagnosis personal|special|none",
    "file": "src/sales/p1_domain/orders_schema.py",
    "line": 15
   },
   {
-   "code": "GDPR001",
+   "code": "PRIV001",
    "severity": "error",
    "message": "column 'email' of orders_schema is not classified -> archvow column set orders_schema email personal|special|none",
    "file": "src/sales/p1_domain/orders_schema.py",
    "line": 14
   },
   {
-   "code": "GDPR001",
+   "code": "PRIV001",
    "severity": "error",
    "message": "column 'order_id' of orders_schema is not classified -> archvow column set orders_schema order_id personal|special|none",
    "file": "src/sales/p1_domain/orders_schema.py",
    "line": 13
   },
   {
-   "code": "GDPR003",
-   "severity": "error",
-   "message": "'orders_clean_writer' is implemented but P1 (Personal data) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make orders_clean_writer P1 \"...\"",
-   "file": ".archvow/spec.vow",
-   "line": 0
-  },
-  {
-   "code": "GDPR004",
+   "code": "PRIV002",
    "severity": "error",
    "message": ".show() prints rows of personal data (diagnosis, email, phone); remove it (count or check in a test instead)",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 19
   },
   {
-   "code": "GDPR004",
+   "code": "PRIV002",
    "severity": "error",
    "message": ".show() prints rows of personal data (diagnosis, phone); remove it (count or check in a test instead)",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 19
   },
   {
-   "code": "GDPR004",
+   "code": "PRIV002",
    "severity": "error",
    "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, email, phone)",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 20
   },
   {
-   "code": "GDPR004",
+   "code": "PRIV002",
    "severity": "error",
    "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, phone)",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 20
   },
   {
-   "code": "GDPR005",
+   "code": "PRIV003",
    "severity": "error",
-   "message": "'orders_clean_writer' writes special-category data (diagnosis) that no step pseudonymises -> archvow hazard add orders_clean_writer exposed critical \"special-category data is written in clear\", then archvow invariant add orders_clean_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+   "message": "'customers_writer' writes special (sensitive) data (diagnosis) that no step pseudonymises -> archvow hazard add customers_writer exposed critical \"special data is written in clear\", then archvow invariant add customers_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
    "file": ".archvow/spec.vow",
    "line": 0
   },
   {
-   "code": "GDPR006",
+   "code": "PRIV003",
+   "severity": "error",
+   "message": "'orders_clean_writer' writes special (sensitive) data (diagnosis) that no step pseudonymises -> archvow hazard add orders_clean_writer exposed critical \"special data is written in clear\", then archvow invariant add orders_clean_writer \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "PRIV004",
    "severity": "error",
    "message": "partitionBy('email'): personal values become folder names; partition by a non-personal column",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 22
   },
   {
-   "code": "GDPR008",
-   "severity": "error",
-   "message": "'orders_clean_writer' is implemented but P2 (Personal data) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make orders_clean_writer P2 \"...\"",
-   "file": ".archvow/spec.vow",
-   "line": 0
-  },
-  {
-   "code": "GDPR009",
+   "code": "PRIV006",
    "severity": "warning",
    "message": "column 'phone' is classified in the spec of orders_schema but not defined in its code (renamed?)",
    "file": "src/sales/p1_domain/orders_schema.py",
@@ -4199,6 +4311,20 @@
    "severity": "error",
    "message": "tests/data/extract.parquet: binary data in tests (a real extract?) - build the rows in the test, or keep a small CSV/JSON file of invented values",
    "file": "tests/data/extract.parquet",
+   "line": 0
+  },
+  {
+   "code": "USP006",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but U1 (US-PRIVACY) is not answered: Consumer requests: how does a request to access, delete, correct or port one consumer's data reach what it stores, and within what time (45 days in most states) - e.g. the privacy request job finds and deletes rows by consumer id within 30 days? -> archvow decision make customers_writer U1 \"...\"",
+   "file": ".archvow/spec.vow",
+   "line": 0
+  },
+  {
+   "code": "USP007",
+   "severity": "error",
+   "message": "'customers_writer' is implemented but U2 (US-PRIVACY) is not answered: Retention: how long is each category of personal information it stores kept, and how is it deleted then - e.g. order history 3 years after the account closes, then deleted? -> archvow decision make customers_writer U2 \"...\"",
+   "file": ".archvow/spec.vow",
    "line": 0
   }
  ]

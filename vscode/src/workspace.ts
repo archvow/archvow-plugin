@@ -92,7 +92,7 @@ export class ArchvowProject {
   private firstCommit = '';
   /** The archvow the plugin is tested with and installs ("1.26.0", contract/cli/version.txt). */
   readonly known: string;
-  /** The contract the plugin speaks ("1.2", contract/cli/contract.txt). */
+  /** The contract the plugin speaks ("1.3", contract/cli/contract.txt). */
   readonly contract: string;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
