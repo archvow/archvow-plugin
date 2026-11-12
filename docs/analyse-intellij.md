@@ -13,7 +13,7 @@ l'éditeur, alors que c'est ce qui rapproche le plus archvow des développeurs.
 
 | Problème | Correction |
 |---|---|
-| Deux plugins nommés « archvow » avec deux ids (`org.archvow.intellij`, `com.archvow.intellij`), deux Java (17 et 21), deux builds Gradle (plugin 2.0.1 et 2.19.0), deux icônes (celle du workspace n'était pas l'icône officielle #1A876B) | Un seul plugin, id `org.archvow.intellij`, un seul build (2.19.0, IntelliJ 2024.3.5, JDK 21), l'icône officielle partout. **Désinstaller l'ancien plugin vow avant d'installer le nouveau** : les deux déclarent le type de fichier `.vow`. |
+| Deux plugins nommés « archvow » avec deux ids (`org.archvow`, `com.archvow.intellij`), deux Java (17 et 21), deux builds Gradle (plugin 2.0.1 et 2.19.0), deux icônes (celle du workspace n'était pas l'icône officielle #1A876B) | Un seul plugin, id `org.archvow`, un seul build (2.19.0, IntelliJ 2024.3.5, JDK 21), l'icône officielle partout. **Désinstaller l'ancien plugin vow avant d'installer le nouveau** : les deux déclarent le type de fichier `.vow`. |
 | `gradle-wrapper.jar` absent : `./gradlew` ne marchait pas. À la place, un script Python téléchargeait Gradle depuis services.gradle.org, contre la règle « pas de sources externes » | Le wrapper complet du plugin vow. Le script Python est supprimé. |
 | stderr fusionné dans stdout (`redirectErrorStream(true)`) : un avertissement cassait le JSON. D'où le contournement « prendre du premier `{` au dernier `}` », qui peut lire un JSON faux sans rien dire | stdout et stderr sont lus séparément. Le JSON est lu sur stdout seulement. Les messages affichent les deux. |
 | Sortie coupée sans rien dire à 2 Mo | Limite de 20 Mo par flux, et un message quand elle est atteinte. |

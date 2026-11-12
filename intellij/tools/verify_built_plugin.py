@@ -16,7 +16,7 @@ from zipfile import BadZipFile, ZipFile
 from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_ID = "org.archvow.intellij"
+EXPECTED_ID = "org.archvow"
 EXPECTED_SINCE = 241
 EXPECTED_UNTIL_BRANCH = 262
 
