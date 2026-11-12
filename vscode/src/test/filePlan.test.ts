@@ -48,6 +48,9 @@ const SCENARIOS: [string, Record<string, string>, string][] = [
   ['component move', { component: 'compute_vat', feature: 'refunds' }, 'pyspark-pipeline'],
   ['component add', { type: 'reader', name: 'stores', description: 'x', feature: 'shared' }, 'pyspark-pipeline'],
   ['feature rename', { feature: 'vat_report', name: 'vat' }, 'pyspark-pipeline'],
+  ['doc', {}, 'pyspark-pipeline'],
+  ['doc', { feature: 'vat_report' }, 'pyspark-pipeline'],
+  ['feature remove', { feature: 'shared' }, 'fastapi-service'],
 ];
 
 test('init: wizard preview is the actual non-interactive command, even with overridden answers', () => {
@@ -65,7 +68,7 @@ test('init: wizard preview is the actual non-interactive command, even with over
 test('init: preview the primary guard-file tree, including --force behavior', () => {
   const rows = filePlan('init', { package: 'sales_pipeline' }, ctx('pyspark-pipeline'));
   assert.ok(rows.some((r) => r.path === '.archvow/project.vow'));
-  assert.ok(rows.some((r) => r.path === '.archvow/features/shared/'));
+  assert.ok(rows.some((r) => r.path === '.archvow/features/shared/shared.vow'));
   assert.ok(rows.some((r) => r.path === 'AGENTS.md'));
   assert.ok(rows.some((r) => r.path === 'README.md'));
   assert.ok(rows.every((r) => r.change === 'new'));
@@ -105,7 +108,23 @@ test('the other commands: what they update, remove or keep; a component\'s vow i
   assert.deepEqual(filePlan('feature add', SCENARIOS[24][1], p).map((r) => [r.change, r.path]), [['new', '.archvow/features/refunds/refunds.vow']]);
   assert.deepEqual(filePlan('component move', SCENARIOS[25][1], p).map((r) => [r.change, r.path]), [
     ['removed', '.archvow/features/vat_report/components/compute_vat.vow'], ['new', '.archvow/features/refunds/components/compute_vat.vow']]);
-  assert.deepEqual(filePlan('feature rename', SCENARIOS[27][1], p).map((r) => r.path), ['.archvow/features/vat_report/', '.archvow/features/vat/']);
+  // a feature renamed: its folder goes, its vow and each of its components' vows come under the new name (6 at most)
+  const renamed = filePlan('feature rename', SCENARIOS[27][1], p);
+  assert.deepEqual(renamed.slice(0, 3).map((r) => r.path), ['.archvow/features/vat_report/', '.archvow/features/vat/vat.vow',
+    '.archvow/features/vat/components/clean_orders.vow']);
+  assert.equal(renamed.length, 2 + 6, 'the six components of vat_report');
+  const many = filePlan('feature rename', { feature: 'orders', name: 'ordering' }, ctx('fastapi-service'));
+  assert.equal(many.length, 2 + 6, 'six at most');
+  assert.match(many[2].note, /and 1 more$/, 'the seventh is counted');
+  // doc: the project and each feature, or one feature; the status always
+  assert.deepEqual(filePlan('doc', {}, p).map((r) => r.path), ['.archvow/doc/project.md', '.archvow/doc/shared.md',
+    '.archvow/doc/vat_report.md', '.archvow/doc/status.md']);
+  assert.deepEqual(filePlan('doc', { feature: 'vat_report' }, p).map((r) => r.path), ['.archvow/doc/vat_report.md', '.archvow/doc/status.md']);
+  // the first component of a project makes its feature, named after the system
+  const bare = { ...p, spec: { ...p.spec, features: [{ name: 'shared' }] } as Json };
+  assert.deepEqual(filePlan('component add', SCENARIOS[0][1], bare).slice(0, 2).map((r) => r.path), ['.archvow/features/my_pipeline/my_pipeline.vow',
+    '.archvow/features/my_pipeline/components/orders_reader.vow']);
+  assert.equal(filePlan('component add', SCENARIOS[0][1], p)[0].path, '.archvow/features/vat_report/components/orders_reader.vow', 'an existing feature is not made again');
   assert.deepEqual(filePlan('example add', { component: 'compute_vat', name: 'vat-20' }, p).map((r) => r.path).pop(), 'tests/examples/compute_vat/vat-20/');
   assert.deepEqual(filePlan('pack new', { name: 'team', dir: '' }, p).map((r) => r.path), ['.archvow/packs/team/pack.yaml',
     '.archvow/packs/team/README.md', '.archvow/packs/team/examples/']);  // a pack of this project

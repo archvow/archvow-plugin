@@ -25,6 +25,11 @@ public final class FeatureViewRegression {
         check(html.contains("p4_api") && html.indexOf("p4_api") < html.indexOf("p1_domain"), "by layer, the entry points first");
         check(html.contains("Used by <a href='feature:shared'>shared</a>"), "the main of shared uses orders: " + html);
         check(html.contains("decision 3: what if the customer has no address?"), "what is open in it");
+        check(html.contains("Where it is") && html.contains("orders_router.vow") && html.contains("&nbsp;&nbsp;&nbsp;&nbsp;└──&nbsp;")
+            && html.contains("<a href='file:src/orders_api/p4_api/orders_router.py'>orders_router.py</a>"), "its files as a tree, the code a link");
+        check(ArchvowFilePlan.componentFiles(spec, "create_order", false).stream().map(ArchvowFilePlan.Row::path).toList().equals(java.util.List.of(
+            ".archvow/features/orders/components/create_order.vow", "src/orders_api/p3_services/create_order.py", "tests/p3_services/test_create_order.py")),
+            "where a component is: its vow, its code, its test");
         JsonObject shared = workspace.getAsJsonObject("features").getAsJsonObject("shared");
         String fr = ArchvowFeatureView.html(shared, spec, Map.of(), Map.of(), true);
         check(fr.contains("Composants, par couche") && fr.contains("Rien d'ouvert"), "in French");

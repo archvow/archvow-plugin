@@ -1,0 +1,268 @@
+{
+  "contract": "2.0",
+  "component": "order_totals",
+  "type": "transformation",
+  "layer": "p1_domain",
+  "known_columns": [],
+  "description": "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)",
+  "uses": [],
+  "used_by": [],
+  "evidence": [
+    {
+      "item": "R2",
+      "kind": "rule",
+      "key": "R2",
+      "tests": []
+    }
+  ],
+  "examples": [],
+  "rule_texts": {},
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
+      "answer": null,
+      "template": true,
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
+      "answer": null,
+      "template": true,
+      "suggested": null,
+      "proposed": null
+    },
+    {
+      "number": 3,
+      "question": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
+      "answer": null,
+      "template": true,
+      "suggested": null,
+      "choices": [
+        "No grouping",
+        "Group by (keys), with (aggregates)"
+      ],
+      "proposed": null
+    },
+    {
+      "number": 4,
+      "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+      "answer": null,
+      "template": true,
+      "suggested": null,
+      "choices": [
+        "No join",
+        "Join (dataset) on (keys), left join; no match: (what)"
+      ],
+      "proposed": null
+    },
+    {
+      "number": 5,
+      "question": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
+      "answer": null,
+      "template": true,
+      "suggested": "Return an empty DataFrame with the output schema",
+      "proposed": null
+    },
+    {
+      "number": 6,
+      "question": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
+      "answer": null,
+      "template": true,
+      "suggested": "Stop the job with an error naming the column",
+      "proposed": null
+    },
+    {
+      "number": 7,
+      "question": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
+      "answer": null,
+      "template": true,
+      "suggested": "Fail with an error naming the duplicated key",
+      "proposed": null
+    },
+    {
+      "number": 8,
+      "question": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
+      "answer": null,
+      "template": true,
+      "suggested": null,
+      "choices": [
+        "Keep them",
+        "Replace them by the nearest limit",
+        "Drop the row",
+        "Stop the job, naming the value"
+      ],
+      "proposed": null
+    },
+    {
+      "number": 9,
+      "question": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
+      "answer": null,
+      "template": true,
+      "suggested": "Drop them: select only the schema's columns",
+      "proposed": null
+    }
+  ],
+  "rules": [
+    {
+      "id": "R2",
+      "text": "Given an empty input, when it runs, then the output is empty",
+      "scope": "every transformation"
+    }
+  ],
+  "missing": [],
+  "columns": [],
+  "declares_columns": false,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "missing",
+      "question": "Input missing, empty or late: what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "an absent, empty or late input is processed as if it were complete",
+        "invariant": "an absent or empty input stops the job with a clear error"
+      }
+    },
+    {
+      "number": 2,
+      "guide_word": "more",
+      "question": "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
+        "invariant": "the output has at most one row per key"
+      }
+    },
+    {
+      "number": 3,
+      "guide_word": "less",
+      "question": "Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a valid row is silently dropped",
+        "invariant": "every valid input row appears in the output"
+      }
+    },
+    {
+      "number": 4,
+      "guide_word": "wrong",
+      "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "a null, negative or out-of-range value reaches the output",
+        "invariant": "every output value has its type and is within its allowed range"
+      }
+    },
+    {
+      "number": 5,
+      "guide_word": "exposed",
+      "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+      "status": "open",
+      "suggestion": {
+        "hazard": "personal or secret data is written where it must not be",
+        "invariant": "personal and secret columns never reach the output"
+      }
+    }
+  ],
+  "assumptions": [],
+  "tasks": [
+    {
+      "task": "T1",
+      "core": true,
+      "done": false,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "1",
+          "text": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "2",
+          "text": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "3",
+          "text": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "4",
+          "text": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+          "answer": null,
+          "done": false
+        }
+      ],
+      "summary": "the file and its public API, decisions 1-4"
+    },
+    {
+      "task": "T2",
+      "core": false,
+      "done": false,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "5",
+          "text": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "6",
+          "text": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "7",
+          "text": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "8",
+          "text": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "9",
+          "text": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "rule",
+          "key": "R2",
+          "text": "Given an empty input, when it runs, then the output is empty",
+          "answer": null,
+          "done": false
+        }
+      ],
+      "summary": "decisions 5-9, rule R2"
+    }
+  ],
+  "to_review": []
+}

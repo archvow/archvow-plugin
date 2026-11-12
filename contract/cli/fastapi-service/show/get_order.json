@@ -53,7 +53,7 @@
       "kind": "decision",
       "key": "4",
       "tests": [
-        "tests/p3_services/test_get_order.py::test_own_order_and_others"
+        "tests/p3_services/test_get_order.py::test_only_the_owner_gets_the_order"
       ]
     },
     {
@@ -63,11 +63,17 @@
       "tests": [
         "tests/p3_services/test_get_order.py::test_own_order_and_others"
       ]
+    },
+    {
+      "item": "get_order.INV1",
+      "kind": "invariant",
+      "key": "GET_ORDER.INV1",
+      "tests": []
     }
   ],
   "examples": [],
   "rule_texts": {},
-  "status": "tested",
+  "status": "verified",
   "decisions": [
     {
       "number": 1,
@@ -138,15 +144,16 @@
       "number": 1,
       "guide_word": "missing",
       "question": "A dependency down or slow, or the resource does not exist: what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a request fails badly when a dependency is down or the resource does not exist",
-        "invariant": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing (decision 2)",
-        "decision": {
-          "number": 2,
-          "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "get_order.H1",
+          "severity": "medium",
+          "description": "a request fails badly when a dependency is down or the resource does not exist",
+          "suggested": true,
+          "prevented_by": []
         }
-      }
+      ]
     },
     {
       "number": 2,
@@ -173,15 +180,24 @@
       "number": 5,
       "guide_word": "exposed",
       "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
-        "invariant": "The owner only; checked here (decision 4)",
-        "decision": {
-          "number": 4,
-          "answer": "The owner only; checked here"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "get_order.H2",
+          "severity": "critical",
+          "description": "a user sees or changes data that is not theirs, or a secret leaks",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "get_order.INV1",
+              "statement": "The owner only; checked here (decision 4)",
+              "verify": "property_test",
+              "from_decision": 4,
+              "tested": true
+            }
+          ]
         }
-      }
+      ]
     }
   ],
   "assumptions": [],

@@ -4,7 +4,7 @@
   "type": "entrypoint",
   "layer": "p4_entrypoints",
   "known_columns": [],
-  "description": "Command line: --input PATH (the input folder), --output PATH (the output folder)",
+  "description": "Command line: --input-path PATH (the input folder), --output-path PATH (the output folder)",
   "uses": [
     "my_pipeline_job"
   ],
@@ -29,22 +29,22 @@
   "decisions": [
     {
       "number": 1,
-      "question": "Invalid arguments: which exit code and message?",
+      "question": "Invalid arguments (e.g. --run-date 2026-13-01): which exit code and message?",
       "answer": "Exit code 2 with a usage message",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "Exit code 2 with the usage message (argparse)",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 2,
-      "question": "Which exit codes signal which failures to the scheduler?",
+      "question": "Which exit code for which problem, so the scheduler knows what happened (e.g. 0 ok, 1 error, 2 bad arguments, 3 input not ready)?",
       "answer": "0 success, 1 job failure, 2 invalid arguments",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "0 ok, 1 error, 2 bad arguments",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     }
   ],
@@ -64,15 +64,16 @@
       "number": 1,
       "guide_word": "wrong",
       "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a null, negative or out-of-range value reaches the output",
-        "invariant": "Exit code 2 with a usage message (decision 1)",
-        "decision": {
-          "number": 1,
-          "answer": "Exit code 2 with a usage message"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "my_pipeline_main.H1",
+          "severity": "medium",
+          "description": "a null, negative or out-of-range value reaches the output",
+          "suggested": true,
+          "prevented_by": []
         }
-      }
+      ]
     }
   ],
   "assumptions": [],
@@ -80,7 +81,7 @@
   "run": {
     "component": "my_pipeline_main",
     "ready": false,
-    "line": "Not ready to run yet: my_pipeline_main needs config (planned), logging_setup (planned), spark (planned), orders_schema (planned), orders_reader (planned), clean_orders (planned), compute_vat (planned), vat_writer (planned), my_pipeline_job (planned), my_pipeline_main (planned)"
+    "line": "Not ready to run yet: my_pipeline_main needs config (planned), logging_setup (planned), spark (planned), orders_schema (planned), orders_reader (planned), clean_orders (planned), compute_vat (planned), vat_schema (planned), vat_writer (planned), my_pipeline_job (planned), my_pipeline_main (planned)"
   },
   "to_review": []
 }

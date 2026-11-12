@@ -86,6 +86,20 @@ hazard H1
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
+hazard H2
+  guide_word wrong
+  severity high
+  never "invalid input is accepted and saved"
+  by architect@example.com
+  on 2026-11-11T18:54:14.994922+00:00
+
+hazard H3
+  guide_word repeated
+  severity low
+  never "a retried request is applied twice"
+  by architect@example.com
+  on 2026-11-11T18:54:15.231138+00:00
+
 # --- invariants
 invariant INV1
   always "a customer only ever reads their own orders"
@@ -93,6 +107,13 @@ invariant INV1
   verified_by property_test
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
+
+invariant INV2
+  prevents [H2]
+  verified_by example_test
+  from_decision 3
+  by architect@example.com
+  on 2026-11-11T18:54:15.009793+00:00
 
 # --- not applicable
 not_applicable more

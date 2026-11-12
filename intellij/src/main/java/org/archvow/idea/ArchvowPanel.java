@@ -116,6 +116,8 @@ final class ArchvowPanel extends JPanel {
     private Map<String, JsonObject> projectFeatures = new LinkedHashMap<>();
     private boolean groupByFeature = true;
     private ArchvowFeatureView featureView;
+    /** The Spec view's "Where it is" (0.24.1): the component's vow, code and test as a tree. */
+    private final ArchvowFilePlanView componentFilesView = new ArchvowFilePlanView();
     private String shownFeature = "";
     /** archvow/kinds.json: the kinds of each type for an archvow whose catalog has none (1.17). */
     private JsonObject bundledKinds;
@@ -4654,6 +4656,9 @@ final class ArchvowPanel extends JPanel {
         ArchvowVowViewer.display(vowDetails,
             ArchvowVowViewer.read(project.getBasePath(), ArchvowGrammar.str(data, "component")));
         readCard(ArchvowGrammar.str(data, "component"));
+        boolean frFiles = ArchvowI18n.isFrench(project);
+        componentFilesView.showRows(ArchvowFilePlan.componentFiles(manifest, ArchvowGrammar.str(data, "component"), frFiles), frFiles,
+            frFiles ? "Où il est" : "Where it is");
         cardDetails.setCaretPosition(0);
         assumptionDetails.setCaretPosition(0);
         rulesDetails.setCaretPosition(0);
@@ -5627,8 +5632,11 @@ final class ArchvowPanel extends JPanel {
             "en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)"));
         readOnly.setForeground(mutedTextColor());
         bar.add(readOnly);
+        JPanel top = new JPanel(new BorderLayout(0, 2));
+        top.add(bar, BorderLayout.NORTH);
+        top.add(componentFilesView, BorderLayout.CENTER);
         JPanel panel = new JPanel(new BorderLayout(0, 4));
-        panel.add(bar, BorderLayout.NORTH);
+        panel.add(top, BorderLayout.NORTH);
         panel.add(specCards, BorderLayout.CENTER);
         return panel;
     }

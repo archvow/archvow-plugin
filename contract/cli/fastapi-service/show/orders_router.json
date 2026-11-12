@@ -80,6 +80,12 @@
       ]
     },
     {
+      "item": "orders_router.INV2",
+      "kind": "invariant",
+      "key": "ORDERS_ROUTER.INV2",
+      "tests": []
+    },
+    {
       "item": "example US-001-another-customers-order",
       "kind": "example",
       "key": "US-001-ANOTHER-CUSTOMERS-ORDER",
@@ -244,29 +250,39 @@
       "number": 3,
       "guide_word": "wrong",
       "question": "Wrong input (invalid values, out of range, an illegal state change): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "invalid input is accepted and saved",
-        "invariant": "FastAPI's 422 (decision 3)",
-        "decision": {
-          "number": 3,
-          "answer": "FastAPI's 422"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "orders_router.H2",
+          "severity": "high",
+          "description": "invalid input is accepted and saved",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "orders_router.INV2",
+              "statement": "FastAPI's 422 (decision 3)",
+              "verify": "example_test",
+              "from_decision": 3,
+              "tested": true
+            }
+          ]
         }
-      }
+      ]
     },
     {
       "number": 4,
       "guide_word": "repeated",
       "question": "Sent twice (a client retries or submits twice): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a retried request is applied twice",
-        "invariant": "No list route; POST repeated: two orders (no idempotency key yet) (decision 5)",
-        "decision": {
-          "number": 5,
-          "answer": "No list route; POST repeated: two orders (no idempotency key yet)"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "orders_router.H3",
+          "severity": "low",
+          "description": "a retried request is applied twice",
+          "suggested": true,
+          "prevented_by": []
         }
-      }
+      ]
     }
   ],
   "assumptions": [],
@@ -334,6 +350,13 @@
           "done": true
         },
         {
+          "kind": "invariant",
+          "key": "orders_router.INV2",
+          "text": "FastAPI's 422 (decision 3)",
+          "answer": null,
+          "done": true
+        },
+        {
           "kind": "question",
           "key": "P1",
           "text": "Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. to bill customers for their orders, for the finance team?",
@@ -348,7 +371,7 @@
           "done": true
         }
       ],
-      "summary": "decisions P1, P2, orders_router.INV1"
+      "summary": "decisions P1, P2, orders_router.INV1, orders_router.INV2"
     }
   ],
   "to_review": []

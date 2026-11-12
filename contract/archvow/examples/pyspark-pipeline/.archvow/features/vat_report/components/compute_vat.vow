@@ -16,58 +16,58 @@ symbol compute_vat
 
 # --- decisions
 decision 1
-  question "Which rows does it keep (filter conditions), or all of them?"
+  question "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?"
   answer "All rows"
   by architect@example.com
-  on 2026-10-08T13:06:24.833535+00:00
+  on 2026-11-11T19:06:59.639864+00:00
 
 decision 2
-  question "Which output columns does it produce, and how is each one computed (type, nullable)?"
+  question "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?"
   answer "The input columns plus vat decimal(18,2) = amount * 0.2, not null"
   by architect@example.com
-  on 2026-10-08T13:06:24.885979+00:00
+  on 2026-11-11T19:06:59.880187+00:00
 
 decision 3
-  question "Does it group rows? By which keys, with which aggregates - or no grouping?"
+  question "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?"
   answer "No grouping"
   by architect@example.com
-  on 2026-10-08T13:06:24.936127+00:00
+  on 2026-11-11T19:07:00.099733+00:00
 
 decision 4
-  question "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")"
+  question "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")"
   answer "No join"
   by architect@example.com
-  on 2026-10-08T13:06:24.986387+00:00
+  on 2026-11-11T19:07:00.326719+00:00
 
 decision 5
-  question "Empty input: return an empty DataFrame with the output schema, or fail?"
+  question "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?"
   answer "Return an empty DataFrame with the output schema"
   by architect@example.com
-  on 2026-10-08T13:06:25.038557+00:00
+  on 2026-11-11T19:07:00.523733+00:00
 
 decision 6
-  question "Null values in key columns: drop, keep, or fail?"
+  question "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?"
   answer "Not possible here: clean_orders runs first"
   by architect@example.com
-  on 2026-10-08T13:06:25.122165+00:00
+  on 2026-11-11T19:07:00.760615+00:00
 
 decision 7
-  question "Duplicate keys in the input: keep first, keep last, aggregate, or fail?"
+  question "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?"
   answer "Not possible here: clean_orders runs first"
   by architect@example.com
-  on 2026-10-08T13:06:25.205767+00:00
+  on 2026-11-11T19:07:00.776642+00:00
 
 decision 8
-  question "Negative or out-of-range values: keep, clamp, drop, or fail?"
+  question "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?"
   answer "Not possible here: clean_orders runs first"
   by architect@example.com
-  on 2026-10-08T13:06:25.290202+00:00
+  on 2026-11-11T19:07:00.792858+00:00
 
 decision 9
-  question "Extra input columns not in the schema: drop silently or fail?"
+  question "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?"
   answer "Keep them unchanged"
   by architect@example.com
-  on 2026-10-08T13:06:25.374756+00:00
+  on 2026-11-11T19:07:01.036934+00:00
 
 assumptions []
 
@@ -81,7 +81,7 @@ example US-002-vat-20
     hash 7cd02699bae2
   fingerprint e46d7bdbc884
   by architect@example.com
-  on 2026-11-05T12:00:00+00:00
+  on 2026-11-11T19:07:06.314933+00:00
 
 # --- hazards
 hazard H1
@@ -89,7 +89,28 @@ hazard H1
   severity high
   never "vat is computed wrongly"
   by architect@example.com
-  on 2026-10-08T13:06:26.242983+00:00
+  on 2026-11-11T19:07:04.458604+00:00
+
+hazard H2
+  guide_word missing
+  severity medium
+  never "an absent, empty or late input is processed as if it were complete"
+  by architect@example.com
+  on 2026-11-11T19:07:10.437754+00:00
+
+hazard H3
+  guide_word more
+  severity low
+  never "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)"
+  by architect@example.com
+  on 2026-11-11T19:07:10.664971+00:00
+
+hazard H4
+  guide_word less
+  severity high
+  never "a valid row is silently dropped"
+  by architect@example.com
+  on 2026-11-11T19:07:10.934659+00:00
 
 # --- invariants
 invariant INV1
@@ -97,4 +118,17 @@ invariant INV1
   prevents [H1]
   verified_by property_test
   by architect@example.com
-  on 2026-10-08T13:06:26.312399+00:00
+  on 2026-11-11T19:07:04.673698+00:00
+
+invariant INV2
+  prevents [H4]
+  verified_by example_test
+  from_decision 1
+  by architect@example.com
+  on 2026-11-11T19:07:10.950748+00:00
+
+# --- not applicable
+not_applicable exposed
+  because "no personal data: every column of orders_schema is classified none"
+  by architect@example.com
+  on 2026-11-11T19:07:11.171117+00:00

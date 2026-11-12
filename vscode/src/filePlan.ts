@@ -114,6 +114,24 @@ export function defaultFeature(spec: Json | null): string {
   return '';
 }
 
+const MAX_EACH = 6;
+
+/**
+ * Whether an entry of the files table applies (its 4th item): `with:<field>` when the form fills that field,
+ * `without:<field>` when it does not, `new-feature` when component add makes a feature (the project has none yet).
+ */
+function holds(condition: string, name: string, values: Record<string, string>, ctx: PlanContext): boolean {
+  if (!condition) return true;
+  const [kind, field] = condition.split(':');
+  if (kind === 'with') return !!(values[field] ?? '').trim();
+  if (kind === 'without') return !(values[field] ?? '').trim();
+  if (kind === 'new-feature') {
+    const feature = (values.feature ?? '').trim() || (name === 'component add' ? defaultFeature(ctx.spec) : '');
+    return !!feature && !objects(ctx.spec, 'features').some((f) => str(f, 'name') === feature);
+  }
+  return true;
+}
+
 /** The rows of the Files block for a command and what its form holds now. */
 export function filePlan(name: string, values: Record<string, string>, ctx: PlanContext): FileRow[] {
   const table = ctx.forms && ctx.forms.files && typeof ctx.forms.files === 'object' ? (ctx.forms.files as Json)[name] : undefined;
@@ -128,6 +146,7 @@ export function filePlan(name: string, values: Record<string, string>, ctx: Plan
     let change = String(entry[0]) as Change;
     const pattern = String(entry[1] ?? '');
     let note = pick(entry[2]);
+    if (!holds(String(entry[3] ?? ''), name, values, ctx)) continue;
     let paths: string[];
     if (pattern === '{code}') {
       if (name === 'component add' && (values.file ?? '').trim()) {
@@ -156,9 +175,16 @@ export function filePlan(name: string, values: Record<string, string>, ctx: Plan
       if ((pattern.includes('{home}') && !home) || (pattern.includes('{feature}') && !feature)) continue;
       if (pattern.includes('{name}') && !(values.name ?? '').trim()) continue;
       if (pattern.includes('{pack}') && !(values.pack ?? '').trim()) continue;
-      paths = [pattern.replace('{new}', id).replace(/\{component\}/g, id).replace(/\{name\}/g, (values.name ?? '').trim())
-        .replace('{home}', home).replace('{feature}', feature)
-        .replace('{dir}', packFolder(values.dir, true)).replace('{pack}', packFolder(values.pack, false))];
+      const one = pattern.replace('{new}', id).replace(/\{component\}/g, id).replace(/\{name\}/g, (values.name ?? '').trim())
+        .replace(/\{home\}/g, home).replace(/\{feature\}/g, feature)
+        .replace('{dir}', packFolder(values.dir, true)).replace('{pack}', packFolder(values.pack, false));
+      // {member}: each component of the form's feature; {each_feature}: each feature of the project
+      const each = one.includes('{member}') ? componentsOf(ctx.spec).filter((x) => str(x.comp, 'feature') === feature).map((x) => str(x.comp, 'id'))
+        : one.includes('{each_feature}') ? objects(ctx.spec, 'features').map((f) => str(f, 'name')) : null;
+      paths = each === null ? [one] : each.slice(0, MAX_EACH).map((x) => one.replace('{member}', x).replace('{each_feature}', x));
+      if (each !== null && each.length > MAX_EACH) {
+        note = (note ? note + ' - ' : '') + (ctx.fr ? `et ${each.length - MAX_EACH} autres` : `and ${each.length - MAX_EACH} more`);
+      }
     }
     for (const p of paths) {
       const initForce = name === 'init' && values.force === 'true';

@@ -1,5 +1,6 @@
 """Creating an order saves a pending order of the customer."""
 
+from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
 
 import pytest
@@ -36,3 +37,13 @@ _amounts = st.decimals(min_value="0.01", max_value="1000000", places=2)
 def test_every_saved_order_has_an_amount_greater_than_zero(amount: Decimal) -> None:
     order = create_order("ivy", NewOrder(amount=amount))
     assert order.amount > 0 and get_order("ivy", order.id).amount > 0
+
+
+@pytest.mark.integration
+@pytest.mark.invariant("create_order.INV3")
+def test_orders_created_at_the_same_time_get_different_ids() -> None:
+    new = NewOrder(amount=Decimal("1"))
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        orders = list(pool.map(lambda _: create_order("jo", new), range(200)))
+    assert len({order.id for order in orders}) == len(orders)
+    assert all(get_order("jo", order.id) == order for order in orders)

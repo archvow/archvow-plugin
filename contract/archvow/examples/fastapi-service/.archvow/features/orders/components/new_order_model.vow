@@ -35,3 +35,25 @@ decision 3
 assumptions []
 columns
   amount none
+
+# --- hazards
+hazard H1
+  guide_word wrong
+  severity high
+  never "invalid input is accepted and saved"
+  by architect@example.com
+  on 2026-11-11T18:53:56.807810+00:00
+
+# --- invariants
+invariant INV1
+  prevents [H1]
+  verified_by example_test
+  from_decision 2
+  by architect@example.com
+  on 2026-11-11T18:53:56.826638+00:00
+
+# --- not applicable
+not_applicable exposed
+  because "Holds only the amount: no personal data, no secret"
+  by architect@example.com
+  on 2026-11-11T18:53:57.113153+00:00

@@ -50,8 +50,9 @@ test('question add: no number to give - archvow numbers it, and the form says wh
   assert.match(book('pyspark-pipeline', true)['question add'].question.notes!.clean_orders, new RegExp(`devient la question ${n + 1} de clean_orders`));
   const remove = b['question remove'].number;
   assert.equal(remove.by, 'component');
-  assert.deepEqual(values(remove, { component: 'clean_orders' }), (view.decisions as Json[]).map((d) => String(d.number)));
-  assert.match(choicesNow(remove, { component: 'clean_orders' })[0].label, /^1 — Which rows does it keep.*\(answered\)$/);
+  // only the questions a person added: the example's are all the template's (archvow 2.0.1)
+  assert.deepEqual(values(remove, { component: 'clean_orders' }),
+    (view.decisions as Json[]).filter((d) => !d.template).map((d) => String(d.number)));
   assert.deepEqual(values(remove, {}), [], 'nothing before the component is chosen');
 });
 
@@ -62,6 +63,7 @@ test('question remove: with archvow 1.18 (template: true on its questions), only
   (view.decisions as Json[]).push({ number: 9, question: 'Is the currency checked?', answer: null, template: false });
   const field = choiceBook(COMMANDS, { ...data, snapshots: { ...data.snapshots, clean_orders: view } })['question remove'].number;
   assert.deepEqual(values(field, { component: 'clean_orders' }), [...(view.decisions as Json[]).slice(2).map((d) => String(d.number))]);
+  assert.match(choicesNow(field, { component: 'clean_orders' }).at(-1)!.label, /^9 — Is the currency checked\?/);
   (view.decisions as Json[]).splice(2);
   const none = choiceBook(COMMANDS, { ...data, snapshots: { ...data.snapshots, clean_orders: view } })['question remove'].number;
   assert.deepEqual(values(none, { component: 'clean_orders' }), []);
@@ -116,7 +118,8 @@ test('the project\'s hazards, invariants, rules; rule edit fills the rule\'s tex
   const rule = choicesNow(b['rule edit'].id, {})[0];
   assert.deepEqual([rule.value, rule.fill], ['R1', { text: 'vat is rounded half-up to 2 decimals' }]);
   assert.equal(choicesNow(b['rule remove'].id, {})[0].fill, undefined);
-  assert.deepEqual(values(b['invariant add'].prevents, { component: 'clean_orders' }), ['clean_orders.H1']);
+  assert.deepEqual(values(b['invariant add'].prevents, { component: 'clean_orders' }),
+    (spec.hazards as Json[]).filter((h) => h.component === 'clean_orders').map((h) => String(h.id)));
   assert.match(b['dependency remove'].name.empty!, /No dependency declared/);
 });
 

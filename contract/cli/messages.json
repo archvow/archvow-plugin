@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 2.0.0",
+ "archvow": "archvow 2.0.1",
  "messages": [
   {
    "code": "ACME001",
@@ -648,7 +648,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.0.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.0.1: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -3595,14 +3595,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 1b353fc6: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 548c30f5: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 75bbecc2: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit 8b0cb428: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },

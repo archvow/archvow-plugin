@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "orders_api",
-      "template": "archvow/fastapi-service@2.0.0",
+      "template": "archvow/fastapi-service@2.0.1",
       "package": "orders_api",
       "path": "src/orders_api",
       "components": [
@@ -589,6 +589,96 @@
       "on": "2026-10-09T12:00:00+00:00"
     },
     {
+      "component": "create_order",
+      "id": "create_order.H2",
+      "guide_word": "repeated",
+      "severity": "low",
+      "description": "a retried request is applied twice",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:55.582923+00:00"
+    },
+    {
+      "component": "create_order",
+      "id": "create_order.H3",
+      "guide_word": "exposed",
+      "severity": "high",
+      "description": "a user sees or changes data that is not theirs, or a secret leaks",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:55.856176+00:00"
+    },
+    {
+      "component": "create_order",
+      "id": "create_order.H4",
+      "guide_word": "concurrent",
+      "severity": "high",
+      "description": "Two orders created at the same time get the same id, and one replaces the other",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:56.116105+00:00"
+    },
+    {
+      "component": "get_order",
+      "id": "get_order.H1",
+      "guide_word": "missing",
+      "severity": "medium",
+      "description": "a request fails badly when a dependency is down or the resource does not exist",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:56.340989+00:00"
+    },
+    {
+      "component": "get_order",
+      "id": "get_order.H2",
+      "guide_word": "exposed",
+      "severity": "critical",
+      "description": "a user sees or changes data that is not theirs, or a secret leaks",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:56.573876+00:00"
+    },
+    {
+      "component": "main",
+      "id": "main.H1",
+      "guide_word": "exposed",
+      "severity": "high",
+      "description": "An error answer shows a trace, a secret or a customer's data",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:15.495473+00:00"
+    },
+    {
+      "component": "new_order_model",
+      "id": "new_order_model.H1",
+      "guide_word": "wrong",
+      "severity": "high",
+      "description": "invalid input is accepted and saved",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:56.807810+00:00"
+    },
+    {
+      "component": "order_model",
+      "id": "order_model.H1",
+      "guide_word": "wrong",
+      "severity": "high",
+      "description": "invalid input is accepted and saved",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:57.341659+00:00"
+    },
+    {
+      "component": "orders_repository",
+      "id": "orders_repository.H1",
+      "guide_word": "concurrent",
+      "severity": "low",
+      "description": "two simultaneous changes overwrite each other",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:57.797551+00:00"
+    },
+    {
+      "component": "orders_repository",
+      "id": "orders_repository.H2",
+      "guide_word": "exposed",
+      "severity": "critical",
+      "description": "An order is returned for an id that is not its own",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:08.241830+00:00"
+    },
+    {
       "component": "orders_router",
       "id": "orders_router.H1",
       "guide_word": "exposed",
@@ -596,6 +686,24 @@
       "description": "A customer reads another customer's order",
       "by": "architect@example.com",
       "on": "2026-10-09T12:00:00+00:00"
+    },
+    {
+      "component": "orders_router",
+      "id": "orders_router.H2",
+      "guide_word": "wrong",
+      "severity": "high",
+      "description": "invalid input is accepted and saved",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:14.994922+00:00"
+    },
+    {
+      "component": "orders_router",
+      "id": "orders_router.H3",
+      "guide_word": "repeated",
+      "severity": "low",
+      "description": "a retried request is applied twice",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:15.231138+00:00"
     }
   ],
   "invariants": [
@@ -611,6 +719,87 @@
       "on": "2026-10-09T12:00:00+00:00"
     },
     {
+      "component": "create_order",
+      "id": "create_order.INV2",
+      "mitigates": [
+        "create_order.H3"
+      ],
+      "verify": "example_test",
+      "from_decision": 4,
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:55.872136+00:00",
+      "statement": "Any authenticated customer, for themselves; checked by the router (decision 4)"
+    },
+    {
+      "component": "create_order",
+      "id": "create_order.INV3",
+      "statement": "orders created at the same time all get different ids",
+      "mitigates": [
+        "create_order.H4"
+      ],
+      "verify": "example_test",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:02.294345+00:00"
+    },
+    {
+      "component": "get_order",
+      "id": "get_order.INV1",
+      "mitigates": [
+        "get_order.H2"
+      ],
+      "verify": "property_test",
+      "from_decision": 4,
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:56.586224+00:00",
+      "statement": "The owner only; checked here (decision 4)"
+    },
+    {
+      "component": "main",
+      "id": "main.INV1",
+      "statement": "a domain error answers only its status and {\"detail\": \"...\"}, without a trace or any order data",
+      "mitigates": [
+        "main.H1"
+      ],
+      "verify": "example_test",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:15.738040+00:00"
+    },
+    {
+      "component": "new_order_model",
+      "id": "new_order_model.INV1",
+      "mitigates": [
+        "new_order_model.H1"
+      ],
+      "verify": "example_test",
+      "from_decision": 2,
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:56.826638+00:00",
+      "statement": "amount > 0 with at most 2 decimals (decision 2)"
+    },
+    {
+      "component": "order_model",
+      "id": "order_model.INV1",
+      "mitigates": [
+        "order_model.H1"
+      ],
+      "verify": "example_test",
+      "from_decision": 2,
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:57.354302+00:00",
+      "statement": "amount >= 0 with 2 decimals; status pending, paid or cancelled (decision 2)"
+    },
+    {
+      "component": "orders_repository",
+      "id": "orders_repository.INV1",
+      "statement": "get(id) returns the order saved under that id, unchanged, or None",
+      "mitigates": [
+        "orders_repository.H2"
+      ],
+      "verify": "property_test",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:08.495821+00:00"
+    },
+    {
       "component": "orders_router",
       "id": "orders_router.INV1",
       "statement": "a customer only ever reads their own orders",
@@ -620,6 +809,18 @@
       "verify": "property_test",
       "by": "architect@example.com",
       "on": "2026-10-09T12:00:00+00:00"
+    },
+    {
+      "component": "orders_router",
+      "id": "orders_router.INV2",
+      "mitigates": [
+        "orders_router.H2"
+      ],
+      "verify": "example_test",
+      "from_decision": 3,
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:15.009793+00:00",
+      "statement": "FastAPI's 422 (decision 3)"
     }
   ],
   "dismissed": [
@@ -659,6 +860,13 @@
       "on": "2026-10-09T12:00:00+00:00"
     },
     {
+      "component": "new_order_model",
+      "guide_word": "exposed",
+      "rationale": "Holds only the amount: no personal data, no secret",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:57.113153+00:00"
+    },
+    {
       "component": "order_model",
       "guide_word": "exposed",
       "rationale": "orders hold no personal data beyond the customer id",
@@ -694,6 +902,13 @@
       "on": "2026-10-09T12:00:00+00:00"
     },
     {
+      "component": "orders_repository",
+      "guide_word": "more",
+      "rationale": "No list query: each call reads or saves one order",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:53:57.574620+00:00"
+    },
+    {
       "component": "orders_router",
       "guide_word": "more",
       "rationale": "No route returns a list; each answer is one order",
@@ -706,6 +921,13 @@
       "rationale": "Reads a request header only: it calls nothing that can be down",
       "by": "architect@example.com",
       "on": "2026-10-09T12:00:00+00:00"
+    },
+    {
+      "component": "get_current_user",
+      "guide_word": "exposed",
+      "rationale": "Gives the customer id to its own request only, logs nothing and reads no secret",
+      "by": "architect@example.com",
+      "on": "2026-11-11T18:54:08.735116+00:00"
     },
     {
       "component": "main",

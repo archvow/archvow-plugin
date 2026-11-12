@@ -4,7 +4,8 @@
 
 PY is the Python that has that archvow installed (default: python3); CMD the archvow command
 (default: PY -m archvow). Each example of archvow (examples/<name>) is copied to a temporary folder, so
-nothing in the archvow tree is written. Recorded:
+nothing in the archvow tree is written; pyspark-pipeline without its code, its next story started (SPEC_PHASE).
+Recorded:
   contract/vows/<name>/.archvow/**/*.vow   the vows archvow wrote (read by both .vow readers)
   contract/cli/<name>/<command>.json       what the CLI prints for the commands the plugins run
   contract/cli/commands.json               every command and its parameters (archvow's own parser)
@@ -45,6 +46,20 @@ from pathlib import Path
 
 CONTRACT = Path(__file__).resolve().parents[1]
 EXAMPLES = ("python-app", "fastapi-service", "pyspark-pipeline")
+# Recorded before its code, with the next story started (archvow 2.0.1 finished the examples: nothing is left to
+# do in them): its code and tests left out, its business examples kept, and these commands run - so the contract
+# keeps planned components, `next` rows, tasks, open decisions and safety questions, and warnings.
+SPEC_PHASE = {"pyspark-pipeline": [
+    ["component", "add", "transformation", "order_totals", "-s", "US-004",
+     "-d", "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)"]]}
+
+
+def without_code(project: Path) -> None:
+    """The project before its code: no src/, no tests but the business examples (tests/examples/)."""
+    shutil.rmtree(project / "src", ignore_errors=True)
+    for path in (project / "tests").iterdir() if (project / "tests").is_dir() else []:
+        if path.name != "examples":
+            shutil.rmtree(path) if path.is_dir() else path.unlink()
 
 
 def run(cmd, cwd, codes=(0, 1)):
@@ -102,6 +117,10 @@ def main():
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp) / name
             shutil.copytree(source / "examples" / name, project)
+            if name in SPEC_PHASE:
+                without_code(project)
+                for command in SPEC_PHASE[name]:
+                    subprocess.run([*archvow, *command], cwd=project, capture_output=True, check=True)
             vows = CONTRACT / "vows" / name
             shutil.rmtree(vows, ignore_errors=True)
             for vow in sorted((project / ".archvow").rglob("*.vow")):
@@ -110,6 +129,8 @@ def main():
                 shutil.copyfile(vow, target)
             out = cli / name
             shutil.rmtree(out, ignore_errors=True)
+            if name in SPEC_PHASE:  # how this record was made, for the live test that makes it again
+                write(out / "spec-phase.json", {"without_code": True, "commands": SPEC_PHASE[name]})
             spec = run([*archvow, "show", "--json"], project)
             write(out / "show.json", spec)
             write(out / "next.json", run([*archvow, "next", "--json"], project))

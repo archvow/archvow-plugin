@@ -16,58 +16,58 @@ symbol clean_orders
 
 # --- decisions
 decision 1
-  question "Which rows does it keep (filter conditions), or all of them?"
+  question "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?"
   answer "Rows where order_id is not null and amount >= 0"
   by architect@example.com
-  on 2026-10-08T13:06:24.289189+00:00
+  on 2026-11-11T19:06:57.511014+00:00
 
 decision 2
-  question "Which output columns does it produce, and how is each one computed (type, nullable)?"
+  question "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?"
   answer "The schema columns, unchanged"
   by architect@example.com
-  on 2026-10-08T13:06:24.343938+00:00
+  on 2026-11-11T19:06:57.730649+00:00
 
 decision 3
-  question "Does it group rows? By which keys, with which aggregates - or no grouping?"
+  question "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?"
   answer "No grouping"
   by architect@example.com
-  on 2026-10-08T13:06:24.412714+00:00
+  on 2026-11-11T19:06:57.982258+00:00
 
 decision 4
-  question "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")"
+  question "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")"
   answer "No join"
   by architect@example.com
-  on 2026-10-08T13:06:24.487443+00:00
+  on 2026-11-11T19:06:58.218911+00:00
 
 decision 5
-  question "Empty input: return an empty DataFrame with the output schema, or fail?"
+  question "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?"
   answer "Return an empty DataFrame with the output schema"
   by architect@example.com
-  on 2026-10-08T13:06:24.545560+00:00
+  on 2026-11-11T19:06:58.450589+00:00
 
 decision 6
-  question "Null values in key columns: drop, keep, or fail?"
+  question "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?"
   answer "Drop rows with a null order_id"
   by architect@example.com
-  on 2026-10-08T13:06:24.601449+00:00
+  on 2026-11-11T19:06:58.685578+00:00
 
 decision 7
-  question "Duplicate keys in the input: keep first, keep last, aggregate, or fail?"
+  question "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?"
   answer "Keep one row per order_id"
   by architect@example.com
-  on 2026-10-08T13:06:24.650108+00:00
+  on 2026-11-11T19:06:58.910478+00:00
 
 decision 8
-  question "Negative or out-of-range values: keep, clamp, drop, or fail?"
+  question "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?"
   answer "Drop rows where amount is negative"
   by architect@example.com
-  on 2026-10-08T13:06:24.700551+00:00
+  on 2026-11-11T19:06:59.145793+00:00
 
 decision 9
-  question "Extra input columns not in the schema: drop silently or fail?"
+  question "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?"
   answer "Drop them: output only the schema columns"
   by architect@example.com
-  on 2026-10-08T13:06:24.782343+00:00
+  on 2026-11-11T19:06:59.389243+00:00
 
 assumptions []
 
@@ -80,7 +80,7 @@ example US-002-negative-amount
     hash 6b25cb7402c7
   fingerprint 43a1e5b65fd8
   by architect@example.com
-  on 2026-11-05T12:00:00+00:00
+  on 2026-11-11T19:07:05.861344+00:00
 
 example US-002-zero-amount-kept
   ticket US-002
@@ -91,7 +91,7 @@ example US-002-zero-amount-kept
     hash 6b25cb7402c7
   fingerprint 93f7590e39ff
   by architect@example.com
-  on 2026-11-05T12:00:00+00:00
+  on 2026-11-11T19:07:06.082426+00:00
 
 # --- hazards
 hazard H1
@@ -99,12 +99,53 @@ hazard H1
   severity high
   never "A valid input row is dropped"
   by architect@example.com
-  on 2026-10-08T13:06:26.136877+00:00
+  on 2026-11-11T19:07:04.086804+00:00
+
+hazard H2
+  guide_word missing
+  severity medium
+  never "an absent, empty or late input is processed as if it were complete"
+  by architect@example.com
+  on 2026-11-11T19:07:09.433090+00:00
+
+hazard H3
+  guide_word more
+  severity high
+  never "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)"
+  by architect@example.com
+  on 2026-11-11T19:07:09.676864+00:00
+
+hazard H4
+  guide_word wrong
+  severity high
+  never "a null, negative or out-of-range value reaches the output"
+  by architect@example.com
+  on 2026-11-11T19:07:09.928251+00:00
 
 # --- invariants
 invariant INV1
-  always "every input row with an order_id and amount >= 0 appears in the output"
+  always "every order_id of an input row with amount >= 0 appears in the output"
   prevents [H1]
   verified_by property_test
   by architect@example.com
-  on 2026-10-08T13:06:26.187286+00:00
+  on 2026-11-11T19:07:04.275545+00:00
+
+invariant INV2
+  prevents [H3]
+  verified_by example_test
+  from_decision 7
+  by architect@example.com
+  on 2026-11-11T19:07:09.692746+00:00
+
+invariant INV3
+  prevents [H4]
+  verified_by example_test
+  from_decision 8
+  by architect@example.com
+  on 2026-11-11T19:07:09.944781+00:00
+
+# --- not applicable
+not_applicable exposed
+  because "no personal data: every column of orders_schema is classified none"
+  by architect@example.com
+  on 2026-11-11T19:07:10.193510+00:00

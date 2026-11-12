@@ -186,6 +186,20 @@ final class ArchvowFeatureView extends JPanel {
             }
             out.append("</table>");
         }
+        // where it is (0.24.1): its vow, its components' vows, their code and tests, as one tree
+        List<ArchvowFilePlan.Row> files = new ArrayList<>();
+        files.add(new ArchvowFilePlan.Row("here", ".archvow/features/" + name + "/" + name + ".vow", ""));
+        for (JsonObject c : comps)
+            for (ArchvowFilePlan.Row r : ArchvowFilePlan.componentFiles(spec, ArchvowGrammar.str(c, "id"), fr))
+                if (files.stream().noneMatch(x -> x.path().equals(r.path()))) files.add(r);
+        out.append(ArchvowHtml.heading(esc(fr ? "Où elle est" : "Where it is"), 1.05, "margin-top:12px"));
+        out.append("<div style='font-family:monospace'>");
+        for (ArchvowFilePlan.TreeLine l : ArchvowFilePlan.treeLines(files, false)) {
+            String shown = l.row() != null && !l.dir() && l.row().path().endsWith(".py") ? link("file", l.row().path(), l.name()) : esc(l.name());
+            out.append("<div><span style='color:#8c8c8c'>").append(esc(l.guide()).replace(" ", "&nbsp;")).append("</span>")
+                .append(l.dir() ? "<span style='color:#8c8c8c'>" + shown + "</span>" : shown).append("</div>");
+        }
+        out.append("</div>");
         // the map, as text: what it uses ← it ← what uses it
         out.append(ArchvowHtml.heading(esc(fr ? "Carte des fonctionnalités" : "Feature map"), 1.05, "margin-top:12px"));
         List<String> chain = new ArrayList<>();

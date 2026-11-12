@@ -16,21 +16,51 @@ symbol run_my_pipeline
 
 # --- decisions
 decision 1
-  question "One input is missing: skip the run, fail, or run with partial data?"
+  question "If one of its inputs is missing (e.g. the refunds file was not delivered): stop with an error, skip this run (nothing written), or continue without it?"
   answer "Fail"
   by architect@example.com
-  on 2026-10-08T13:06:25.742043+00:00
+  on 2026-11-11T19:07:02.918672+00:00
 
 decision 2
-  question "Retries: how many, and is a retry safe?"
+  question "If a run fails, is it retried automatically, how many times, and can a retry run after a half-finished run without duplicating data - e.g. 2 retries 10 minutes apart, the output is overwritten?"
   answer "No automatic retry; a re-run is safe (the writer overwrites)"
   by architect@example.com
-  on 2026-10-08T13:06:25.836475+00:00
+  on 2026-11-11T19:07:03.145824+00:00
 
 decision 3
-  question "Which run date / partition does the job process, and who decides it?"
+  question "Which date does one run process (e.g. yesterday's data), and where does that date come from: an argument from the scheduler, or computed by the job?"
   answer "No run date: the job processes the input it is given"
   by architect@example.com
-  on 2026-10-08T13:06:25.917216+00:00
+  on 2026-11-11T19:07:03.379962+00:00
 
 assumptions []
+
+# --- hazards
+hazard H1
+  guide_word missing
+  severity high
+  never "an absent, empty or late input is processed as if it were complete"
+  by architect@example.com
+  on 2026-11-11T19:07:11.958093+00:00
+
+hazard H2
+  guide_word repeated
+  severity medium
+  never "a re-run gives a different or duplicated result"
+  by architect@example.com
+  on 2026-11-11T19:07:12.208196+00:00
+
+hazard H3
+  guide_word stale
+  severity medium
+  never "old data is processed as if it were current"
+  by architect@example.com
+  on 2026-11-11T19:07:12.440400+00:00
+
+# --- invariants
+invariant INV1
+  prevents [H1]
+  verified_by example_test
+  from_decision 1
+  by architect@example.com
+  on 2026-11-11T19:07:11.975495+00:00

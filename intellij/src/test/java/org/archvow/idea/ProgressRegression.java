@@ -26,12 +26,13 @@ public final class ProgressRegression {
             JsonObject view = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
             List<ArchvowProgress.Part> parts = ArchvowProgress.parts(view, false);
             // archvow 1.21: the shipped project's two business examples (no test yet) count, as on the VS Code page
-            check(said(parts).equals("decisions 9/9+;safety 1/5-;tasks 0/3-;examples 0/2-;"), "clean_orders: " + said(parts));
-            check(ArchvowProgress.tooltip(parts).equals("Decisions made: 9/9 · Safety answered: 1/5 · Tasks done: 0/3 · Examples passing: 0/2"), "tooltip");
-            check(ArchvowProgress.tooltip(ArchvowProgress.parts(view, true)).startsWith("Décisions prises: 9/9 · Sûreté traitée: 1/5"), "tooltip FR");
+            check(said(parts).equals("decisions 9/9+;safety 5/5+;tasks 0/3-;examples 0/2-;"), "clean_orders: " + said(parts));
+            check(ArchvowProgress.tooltip(parts).equals("Decisions made: 9/9 · Safety answered: 5/5 · Tasks done: 0/3 · Examples passing: 0/2"), "tooltip");
+            check(ArchvowProgress.tooltip(ArchvowProgress.parts(view, true)).startsWith("Décisions prises: 9/9 · Sûreté traitée: 5/5"), "tooltip FR");
             String html = ArchvowProgress.html(view, false, false);
             check(html.contains("data-part='decisions'") && html.contains("width='100%' height='6' bgcolor='#388A34'"), "decisions complete green");
-            check(html.contains("width='20%' height='6' bgcolor='#D18616'"), "safety 1/5 amber at 20 %");
+            // archvow 2.0.1: every safety question of the example answered - green too, as decisions
+            check(html.split("width='100%' height='6' bgcolor='#388A34'", -1).length - 1 >= 2, "safety 5/5 complete green");
         } else {
             System.out.println("(contract not found from " + Path.of("").toAbsolutePath() + ": recorded component not read)");
         }

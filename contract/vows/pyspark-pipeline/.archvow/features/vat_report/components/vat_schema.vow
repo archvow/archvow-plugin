@@ -1,0 +1,58 @@
+vow 1 component vat_schema
+# archvow vow of vat_schema - what it must be and do; archvow check holds the code to it.
+# Read: archvow show vat_schema. Change: archvow specify vat_schema. Never edit by hand.
+name vat
+type schema
+layer p1_domain
+module my_pipeline.p1_domain.vat_schema
+ticket US-003
+description "Output orders with their VAT: order_id string, customer_id string, amount decimal(18,2), order_date date, vat decimal(18,2)"
+uses []
+
+# --- symbols
+symbol VAT_SCHEMA
+  kind constant
+  annotation T.StructType
+
+# --- decisions
+decision 1
+  question "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?"
+  answer "order_id, amount and vat are never null; customer_id may be null"
+  by architect@example.com
+  on 2026-11-11T19:07:07.022040+00:00
+
+decision 2
+  question "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?"
+  answer "None: the output holds no personal data"
+  by architect@example.com
+  on 2026-11-11T19:07:07.221374+00:00
+
+assumptions []
+columns
+  amount none
+  customer_id none
+  order_date none
+  order_id none
+  vat none
+
+# --- hazards
+hazard H1
+  guide_word wrong
+  severity high
+  never "a null, negative or out-of-range value reaches the output"
+  by architect@example.com
+  on 2026-11-11T19:07:07.940574+00:00
+
+# --- invariants
+invariant INV1
+  prevents [H1]
+  verified_by example_test
+  from_decision 1
+  by architect@example.com
+  on 2026-11-11T19:07:07.956788+00:00
+
+# --- not applicable
+not_applicable exposed
+  because "the output holds no personal data"
+  by architect@example.com
+  on 2026-11-11T19:07:07.705330+00:00

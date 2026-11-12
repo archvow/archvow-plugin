@@ -849,8 +849,13 @@
     },
     {
      "change": "new",
-     "path": ".archvow/features/shared/",
-     "note": "what every feature uses: the template's own components"
+     "path": ".archvow/features/shared/shared.vow",
+     "note": "what every feature uses: settings, logging, the app that plugs the features in"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/shared/components/",
+     "note": "the template's own components (settings, logging...)"
     },
     {
      "change": "new",
@@ -914,8 +919,13 @@
     },
     {
      "change": "new",
-     "path": ".archvow/features/shared/",
-     "note": "ce que chaque fonctionnalité utilise : les composants propres au template"
+     "path": ".archvow/features/shared/shared.vow",
+     "note": "ce que chaque fonctionnalité utilise : réglages, journalisation, l'app qui branche les fonctionnalités"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/shared/components/",
+     "note": "les composants propres au template (réglages, journalisation...)"
     },
     {
      "change": "new",
@@ -980,8 +990,13 @@
     },
     {
      "change": "updated",
-     "path": ".archvow/features/shared/",
-     "note": "what every feature uses: the template's own components"
+     "path": ".archvow/features/shared/shared.vow",
+     "note": "what every feature uses: settings, logging, the app that plugs the features in"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/features/shared/components/",
+     "note": "the template's own components (settings, logging...)"
     },
     {
      "change": "updated",
@@ -1046,8 +1061,13 @@
     },
     {
      "change": "updated",
-     "path": ".archvow/features/shared/",
-     "note": "ce que chaque fonctionnalité utilise : les composants propres au template"
+     "path": ".archvow/features/shared/shared.vow",
+     "note": "ce que chaque fonctionnalité utilise : réglages, journalisation, l'app qui branche les fonctionnalités"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/features/shared/components/",
+     "note": "les composants propres au template (réglages, journalisation...)"
     },
     {
      "change": "updated",
@@ -1108,7 +1128,7 @@
     {
      "change": "new",
      "path": ".archvow/features/refunds/refunds.vow",
-     "note": "what the product does in it; its components go to its components/"
+     "note": "what the product does in it; its components will go to its components/"
     }
    ]
   },
@@ -1124,7 +1144,7 @@
     {
      "change": "new",
      "path": ".archvow/features/refunds/refunds.vow",
-     "note": "ce que fait le produit dans celle-ci ; ses composants vont dans son components/"
+     "note": "ce que fait le produit dans celle-ci ; ses composants iront dans son components/"
     }
    ]
   },
@@ -1238,12 +1258,42 @@
     {
      "change": "removed",
      "path": ".archvow/features/vat_report/",
-     "note": "its folder, its components with it"
+     "note": "its folder, under its old name"
     },
     {
      "change": "new",
-     "path": ".archvow/features/vat/",
-     "note": "the same vows, under the new name"
+     "path": ".archvow/features/vat/vat.vow",
+     "note": "the same vow, under the new name"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/clean_orders.vow",
+     "note": "its components move with it: their ids, files and tests stay - and 2 more"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/compute_vat.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/order_totals.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/orders_schema.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/vat_schema.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/orders_reader.vow",
+     "note": ""
     }
    ]
   },
@@ -1259,12 +1309,168 @@
     {
      "change": "removed",
      "path": ".archvow/features/vat_report/",
-     "note": "son dossier, ses composants avec"
+     "note": "son dossier, sous son ancien nom"
     },
     {
      "change": "new",
-     "path": ".archvow/features/vat/",
-     "note": "les mêmes vows, sous le nouveau nom"
+     "path": ".archvow/features/vat/vat.vow",
+     "note": "le même vow, sous le nouveau nom"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/clean_orders.vow",
+     "note": "ses composants le suivent : leurs ids, fichiers et tests restent - et 2 autres"
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/compute_vat.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/order_totals.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/orders_schema.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/vat_schema.vow",
+     "note": ""
+    },
+    {
+     "change": "new",
+     "path": ".archvow/features/vat/components/orders_reader.vow",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "command": "doc",
+   "values": {},
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/doc/project.md",
+     "note": "the whole project on one page - the docs are ignored by Git, never read back"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/doc/shared.md",
+     "note": "one page per feature"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/doc/vat_report.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/doc/status.md",
+     "note": "what the code does today"
+    }
+   ]
+  },
+  {
+   "command": "doc",
+   "values": {},
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/doc/project.md",
+     "note": "tout le projet sur une page - les docs sont ignorées par Git, jamais relues"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/doc/shared.md",
+     "note": "une page par fonctionnalité"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/doc/vat_report.md",
+     "note": ""
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/doc/status.md",
+     "note": "ce que fait le code aujourd'hui"
+    }
+   ]
+  },
+  {
+   "command": "doc",
+   "values": {
+    "feature": "vat_report"
+   },
+   "example": "pyspark-pipeline",
+   "fr": false,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/doc/vat_report.md",
+     "note": "the feature's page; with a base, what the branch changed"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/doc/status.md",
+     "note": "what the code does today"
+    }
+   ]
+  },
+  {
+   "command": "doc",
+   "values": {
+    "feature": "vat_report"
+   },
+   "example": "pyspark-pipeline",
+   "fr": true,
+   "rows": [
+    {
+     "change": "updated",
+     "path": ".archvow/doc/vat_report.md",
+     "note": "la page de la fonctionnalité ; avec une base, ce que la branche a changé"
+    },
+    {
+     "change": "updated",
+     "path": ".archvow/doc/status.md",
+     "note": "ce que fait le code aujourd'hui"
+    }
+   ]
+  },
+  {
+   "command": "feature remove",
+   "values": {
+    "feature": "shared"
+   },
+   "example": "fastapi-service",
+   "fr": false,
+   "rows": [
+    {
+     "change": "removed",
+     "path": ".archvow/features/shared/shared.vow",
+     "note": "only an empty feature goes: move or remove its components first"
+    }
+   ]
+  },
+  {
+   "command": "feature remove",
+   "values": {
+    "feature": "shared"
+   },
+   "example": "fastapi-service",
+   "fr": true,
+   "rows": [
+    {
+     "change": "removed",
+     "path": ".archvow/features/shared/shared.vow",
+     "note": "seule une fonctionnalité vide part : déplacer ou retirer ses composants d'abord"
     }
    ]
   }

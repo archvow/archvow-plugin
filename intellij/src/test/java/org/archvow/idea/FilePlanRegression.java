@@ -110,13 +110,38 @@ public final class FilePlanRegression {
         System.out.println("OK: " + plans + " file plans identical to VS Code's, layers to add to, Save to a file, the first commit, icons, answer tables");
     }
 
-    /** Icons, grouping and theme-independent wording in the editor tab's native Files preview. */
+    private static String tree(List<ArchvowFilePlan.Row> rows, boolean compact) {
+        StringBuilder out = new StringBuilder();
+        for (ArchvowFilePlan.TreeLine l : ArchvowFilePlan.treeLines(rows, compact)) out.append(out.length() == 0 ? "" : "\n").append(l.guide()).append(l.name());
+        return out.toString();
+    }
+
+    /** The Files preview is a tree (0.24.1), line for line the one of VS Code (scripts/root-files-regression.js). */
     private static void filesView() {
+        List<ArchvowFilePlan.Row> init = List.of(
+            new ArchvowFilePlan.Row("new", ".archvow/project.vow", "project specification"),
+            new ArchvowFilePlan.Row("new", ".archvow/features/shared/shared.vow", "what every feature uses"),
+            new ArchvowFilePlan.Row("new", ".archvow/features/shared/components/", "the template's own components"),
+            new ArchvowFilePlan.Row("new", ".archvow/README.md", "architecture guide"),
+            new ArchvowFilePlan.Row("new", "AGENTS.md", "AI rules"),
+            new ArchvowFilePlan.Row("new", "README.md", "project instructions"));
+        check(tree(init, false).equals(String.join("\n", ".archvow/", "├── project.vow", "├── features/", "│   └── shared/",
+            "│       ├── shared.vow", "│       └── components/", "└── README.md", "AGENTS.md", "README.md")), "the init tree: " + tree(init, false));
+        check(tree(List.of(new ArchvowFilePlan.Row("removed", ".archvow/features/vat_report/components/compute_vat.vow", ""),
+                new ArchvowFilePlan.Row("new", ".archvow/features/refunds/components/compute_vat.vow", "")), false)
+            .equals(String.join("\n", ".archvow/", "└── features/", "    ├── vat_report/", "    │   └── components/", "    │       └── compute_vat.vow",
+                "    └── refunds/", "        └── components/", "            └── compute_vat.vow")), "a move, every level drawn");
+        check(tree(List.of(new ArchvowFilePlan.Row("new", "/srv/packs/acme/rules/", "")), false)
+            .equals(String.join("\n", "/srv/", "└── packs/", "    └── acme/", "        └── rules/")), "an absolute folder");
+        check(tree(List.of(new ArchvowFilePlan.Row("location", "src/sales/p2_io/orders_reader.py", "")), true)
+            .equals("src/sales/p2_io/\n└── orders_reader.py"), "a check's location, compact");
+        ArchvowFilePlan.TreeLine projectVow = ArchvowFilePlan.treeLines(init, false).get(1);
+        check(projectVow.noteGuide().equals("│   ") && projectVow.stem().isEmpty(), "a note keeps the guide of its folder");
+
         ArchvowFilePlanView view = new ArchvowFilePlanView();
         check(!view.isVisible(), "empty Files preview is hidden");
         view.showRows(List.of(
-            new ArchvowFilePlan.Row("updated", ".archvow/components/orders_reader/spec.vow", "what was recorded before becomes to review"),
-            new ArchvowFilePlan.Row("updated", ".archvow/components/orders_reader/spec.md", ""),
+            new ArchvowFilePlan.Row("updated", ".archvow/features/vat_report/components/orders_reader.vow", "what was recorded before becomes to review"),
             new ArchvowFilePlan.Row("new", ".archvow/", ""),
             new ArchvowFilePlan.Row("planned", "src/sales/readers/orders_reader.py", "written later")
         ), true);
@@ -125,13 +150,13 @@ public final class FilePlanRegression {
         collectLabels(view, labels);
         long folders = labels.stream().filter(l -> iconKind(l).equals("folder")).count();
         long documents = labels.stream().filter(l -> iconKind(l).equals("document")).count();
-        check(folders == 3, "only real folder groups and directory rows, no synthetic ./ group: " + folders);
-        check(documents == 3, "a document icon for each file row: " + documents);
-        check(labels.stream().filter(l -> l.getText().equals(".archvow/components/orders_reader/")).count() == 1,
-            "shared folder is shown once");
+        check(folders == 7, "every folder once - .archvow, features, vat_report, components, src, sales, readers: " + folders);
+        check(documents == 2, "a document icon for each file row: " + documents);
+        check(labels.stream().filter(l -> l.getText().equals("features/")).count() == 1, "a folder passed through is drawn once");
         check(labels.stream().anyMatch(l -> l.getText().equals("modifié")), "status localised in French");
         check(labels.stream().anyMatch(l -> l.getText().equals("orders_reader.py")), "planned files included");
-        JLabel filename = labels.stream().filter(l -> l.getText().equals("spec.vow")).findFirst()
+        check(labels.stream().anyMatch(l -> "archvow.tree-guide".equals(l.getName()) && l.getText().equals("            └── ")), "the guides are drawn");
+        JLabel filename = labels.stream().filter(l -> l.getText().equals("orders_reader.vow")).findFirst()
             .orElseThrow(() -> new AssertionError("Filename badge missing"));
         check(filename.getIcon() == null && filename.getBorder() != null
             && filename.getFont().getFamily().equals(java.awt.Font.MONOSPACED),
@@ -144,41 +169,28 @@ public final class FilePlanRegression {
         graphics.dispose();
         check((preview.getRGB(1, filename.getHeight() / 2) >>> 24) != 0,
             "Filename badge paints a visible background");
-        // Descriptions are wrapping text areas (ArchvowWrapLabel), not JLabels.
-        ArchvowWrapLabel note = java.util.Arrays.stream(view.getComponents())
-            .filter(ArchvowWrapLabel.class::isInstance)
-            .map(ArchvowWrapLabel.class::cast)
-            .filter(l -> l.getText().contains("what was recorded before becomes to review"))
+        java.util.List<ArchvowWrapLabel> notes = new java.util.ArrayList<>();
+        collectNotes(view, notes);
+        ArchvowWrapLabel note = notes.stream().filter(l -> l.getText().contains("what was recorded before becomes to review"))
             .findFirst().orElseThrow(() -> new AssertionError("Description note missing"));
-        check(note.getFont().getSize2D() == 10.5f,
-            "Description note uses hint-sized text: " + note.getFont().getSize2D());
-        // init: .archvow/ has indented children, while AGENTS.md and other root files
-        // have no synthetic "./" group and align with the .archvow/ folder itself.
-        view.showRows(List.of(
-            new ArchvowFilePlan.Row("new", ".archvow/spec.vow", "specification"),
-            new ArchvowFilePlan.Row("new", ".archvow/spec.md", "overview"),
-            new ArchvowFilePlan.Row("new", "AGENTS.md", "AI rules"),
-            new ArchvowFilePlan.Row("new", "README.md", "project guide")
-        ), false);
+        check(note.getFont().getSize2D() == 10.5f, "Description note uses hint-sized text: " + note.getFont().getSize2D());
+        check(note.getParent().getComponent(0) instanceof ArchvowFilePlanView.NoteLead lead && lead.guide.equals("                ")
+            && lead.stem.isEmpty(), "beside a note, the lines of the tree are painted over its whole height");
+        // init: root files have no guide and no synthetic "./" folder
+        view.showRows(init, false);
         labels.clear();
         collectLabels(view, labels);
         check(labels.stream().noneMatch(l -> "./".equals(l.getText())), "root folder ./ must be hidden");
-        check(labels.stream().filter(l -> ".archvow/".equals(l.getText())).count() == 1,
-            "the real .archvow/ folder must appear exactly once");
-        java.util.Map<String, Integer> leftInsets = new java.util.HashMap<>();
-        for (java.awt.Component child : view.getComponents()) {
-            if (!(child instanceof JPanel row)) continue;
-            for (java.awt.Component part : row.getComponents()) {
-                if (part instanceof JLabel label && List.of("spec.vow", "AGENTS.md", "README.md").contains(label.getText()))
-                    leftInsets.put(label.getText(), row.getBorder().getBorderInsets(row).left);
-            }
-        }
-        check(Integer.valueOf(14).equals(leftInsets.get("spec.vow")), "nested files are indented");
-        check(Integer.valueOf(0).equals(leftInsets.get("AGENTS.md"))
-            && Integer.valueOf(0).equals(leftInsets.get("README.md")),
-            "root files must align with .archvow/ (no nested indentation): " + leftInsets);
+        check(labels.stream().filter(l -> ".archvow/".equals(l.getText())).count() == 1, "the real .archvow/ folder must appear exactly once");
         view.showRows(List.of(), false);
         check(!view.isVisible() && view.getComponentCount() == 0, "Files preview clears when the form has no files");
+    }
+
+    private static void collectNotes(java.awt.Container root, java.util.List<ArchvowWrapLabel> out) {
+        for (java.awt.Component c : root.getComponents()) {
+            if (c instanceof ArchvowWrapLabel label) out.add(label);
+            if (c instanceof java.awt.Container child) collectNotes(child, out);
+        }
     }
 
     private static String iconKind(JLabel label) {

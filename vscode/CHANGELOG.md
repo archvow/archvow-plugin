@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.24.2 - 2026-11-11
+
+Built on archvow 2.0.1 (contract 2.0, unchanged: 0.24.2 works with archvow 2.0.0 too).
+
+- **The Packs card reads like the others.** On the Overview, "Open Packs →" sits on the right of the Packs card, on
+  the same line as its title and count, as "Open Components for details →" and "Open Checks →" do; it was under
+  the title, on its own line (VS Code; IntelliJ already drew it on the right).
+- **The contract recorded from archvow 2.0.1**, whose examples are finished (code and tests, every safety question
+  answered). The PySpark example is recorded without its code and with its next story started (`order_totals`, by
+  `component add`; `contract/cli/pyspark-pipeline/spec-phase.json` says how), so the contract still has planned
+  components, `next` rows, open decisions and safety questions; the live test makes that state again. The `.vow`
+  readers' contract was dumped again from the new samples.
+- Tests: VS Code `npm test` exits 0 - 160 passed with archvow 2.0.1 live and the .vsix built, 2 skipped (no IntelliJ
+  .zip). IntelliJ: the 62 plain regressions pass; the panels need `./gradlew check` (the IntelliJ platform).
+
+## 0.24.1 - 2026-11-11
+
+Built on archvow 2.0.0 (contract 2.0, unchanged).
+
+- **Files as a tree.** The Files preview of every form draws the files as a tree: each folder once, its children
+  under it with their connectors, the folders a path only passes through drawn too (`.archvow/` › `features/` ›
+  `orders/` › `components/` › `create_order.vow`), the root files (`AGENTS.md`, `README.md`...) beside `.archvow/`,
+  never under a `./`. The connectors run on beside a note on several lines. A check's location stays compact
+  (`src/sales/p2_io/` › `orders_reader.py`). VS Code and IntelliJ draw the same lines.
+- **Where it is.** A feature's page shows its vow, its components' vows, their code and tests as one tree; a
+  component's Spec view shows its vow, code and test.
+- **Richer previews**: `init` shows `shared/` with its vow and its components; `feature rename` the vow and each
+  component under the new name (six at most, "and N more"); `feature remove` the feature's vow; `doc` the project
+  page and each feature's, or one feature's, and the status; the first `component add` of a project the feature it
+  makes. The files table of forms.json gains `{member}`, `{each_feature}` and conditions (`with:`, `without:`,
+  `new-feature`).
+- Tests: VS Code `npm test` exits 0 - 160 passed with archvow 2.0.0 live and the .vsix built, 2 skipped (no IntelliJ
+  .zip), and the seven page regressions pass (root-files: the tree, line for line). IntelliJ: the 62 plain regressions
+  pass (`FilePlanRegression`: the same tree lines as VS Code, the line beside a note); build the panel with Gradle.
+
 ## 0.24.0 - 2026-11-11
 
 Built on archvow 2.0.0 (contract regenerated from the 2.0.0 wheel; contract 2.0, a new MAJOR).

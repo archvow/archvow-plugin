@@ -5,7 +5,7 @@ name logging_setup
 type foundation
 layer p0_common
 module my_pipeline.p0_common.logging_setup
-description "Configure la journalisation une fois, pour le point d'entrée (niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde -, jamais un secret, une ligne de données ni une donnée personnelle)."
+description "Configures logging once, for the entry point - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the config, one line per event on stderr - the cluster keeps it - with the run id and the run date, never a secret, a row or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs, Spark's too, must not write to a test's closed stream)."
 uses []
 
 # --- symbols
@@ -15,9 +15,9 @@ symbol setup_logging
 
 # --- decisions
 decision 1
-  question "(a question the template no longer asks: c1be6541bf31)"
+  question "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?"
   answer "stderr, one line per event: time, level, component, message"
   by architect@example.com
-  on 2026-11-02T00:56:44.374063+00:00
+  on 2026-11-11T19:06:55.222737+00:00
 
 assumptions []

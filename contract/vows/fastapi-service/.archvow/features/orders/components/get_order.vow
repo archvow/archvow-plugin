@@ -46,6 +46,29 @@ decision 5
 
 assumptions []
 
+# --- hazards
+hazard H1
+  guide_word missing
+  severity medium
+  never "a request fails badly when a dependency is down or the resource does not exist"
+  by architect@example.com
+  on 2026-11-11T18:53:56.340989+00:00
+
+hazard H2
+  guide_word exposed
+  severity critical
+  never "a user sees or changes data that is not theirs, or a secret leaks"
+  by architect@example.com
+  on 2026-11-11T18:53:56.573876+00:00
+
+# --- invariants
+invariant INV1
+  prevents [H2]
+  verified_by property_test
+  from_decision 4
+  by architect@example.com
+  on 2026-11-11T18:53:56.586224+00:00
+
 # --- not applicable
 not_applicable repeated
   because "Reads only: repeating it, stopping it halfway or running it twice at once changes nothing"

@@ -114,6 +114,20 @@ est demandé en Markdown et écrit dans ce fichier du projet, puis ouvert (`writ
 `archvow changes --from ... --markdown > CHANGES.md`. Le premier commit du dépôt (`git rev-list --max-parents=0
 HEAD`) est proposé en premier pour `--from`.
 
+**En arbre (0.24.1).** Le bloc Fichiers dessine les fichiers en arbre : chaque dossier une fois, ses enfants
+dessous, les dossiers qu'un chemin ne fait que traverser dessinés aussi (`.archvow/` › `features/` › `orders/` ›
+`components/` › `create_order.vow`), les fichiers racine (`AGENTS.md`) à côté de `.archvow/`, jamais sous un
+`./`. VS Code : `fileTree()` le construit, `filesBlock()` le dessine en listes imbriquées dont les traits sont en
+CSS, pour qu'ils continuent à côté d'une note sur plusieurs lignes ; IntelliJ : `ArchvowFilePlan.treeLines` et
+`ArchvowFilePlanView`, qui peint ces traits à côté d'une note (`NoteLead`). Les deux donnent les mêmes lignes
+(`fileTreeLines()`, `scripts/root-files-regression.js` et `FilePlanRegression`). L'emplacement d'un constat est
+compact (`src/sales/p2_io/` › `orders_reader.py`). La table `files` de forms.json nomme `{home}` (la
+fonctionnalité d'un composant), `{feature}`, `{member}` (chaque composant de cette fonctionnalité : `feature
+rename`) et `{each_feature}` (`doc`), et un 4e élément rend une entrée conditionnelle : `with:<champ>`,
+`without:<champ>`, `new-feature` (le premier `component add` d'un projet crée sa fonctionnalité). Le même arbre
+montre **où** est une fonctionnalité (sa page : ses vows, son code et ses tests) et un composant (sa vue Spec :
+`componentFiles()`, `ArchvowFilePlan.componentFiles`).
+
 ## Les skills IA (0.16.0)
 
 Après les groupes propres à archvow, Commandes a **Skills IA** (`aiSkillsGroup()`, un `SkillNode` dans l'arbre

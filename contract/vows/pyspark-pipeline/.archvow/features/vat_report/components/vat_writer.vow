@@ -3,11 +3,12 @@ vow 1 component vat_writer
 # Read: archvow show vat_writer. Change: archvow specify vat_writer. Never edit by hand.
 name vat
 type writer
+kind files
 layer p2_io
 module my_pipeline.p2_io.vat_writer
 ticket US-003
 description "Write the orders with their VAT as parquet"
-uses []
+uses [vat_schema]
 
 # --- symbols
 symbol write_vat
@@ -16,34 +17,34 @@ symbol write_vat
 
 # --- decisions
 decision 1
-  question "Output already exists: overwrite, append, or fail?"
+  question "Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?"
   answer "Overwrite"
   by architect@example.com
-  on 2026-10-08T13:06:25.528816+00:00
+  on 2026-11-11T19:07:01.748316+00:00
 
 decision 2
-  question "A failure mid-write: how is a partial output prevented or detected?"
+  question "If the job fails while writing (e.g. it stops after 3 of 10 files), how do readers avoid a half-written output: write to a temporary folder then rename, a _SUCCESS file, or a table transaction?"
   answer "Write to a temporary folder next to the output, then rename it"
   by architect@example.com
-  on 2026-10-08T13:06:25.580782+00:00
+  on 2026-11-11T19:07:01.977915+00:00
 
 decision 3
-  question "Re-running the same input: must the output be identical (idempotent)?"
+  question "If the job runs again on the same input (e.g. a re-run after a failure), must the output be exactly the same, with no duplicated rows?"
   answer "Yes: the same input gives the same output"
   by architect@example.com
-  on 2026-10-08T13:06:25.637628+00:00
+  on 2026-11-11T19:07:02.203667+00:00
 
 decision 4
-  question "Partitioning columns and file format?"
+  question "How is the output stored: which file format (parquet, csv...), and is it split into folders by a column (e.g. date=2026-10-12) or not?"
   answer "Parquet, not partitioned"
   by architect@example.com
-  on 2026-10-08T13:06:25.691110+00:00
+  on 2026-11-11T19:07:02.431744+00:00
 
 decision 5
-  question "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?"
-  answer "No table: parquet files at the output path"
+  question "Does an approved shared library already write these files (e.g. acme_io.write_parquet, listed in requirements.txt)? Then the code calls it - which function - instead of writing them with Spark."
+  answer "No: Spark writes them itself"
   by architect@example.com
-  on 2026-10-08T21:41:29.424434+00:00
+  on 2026-11-11T19:07:02.657617+00:00
 
 assumptions []
 
@@ -53,7 +54,14 @@ hazard H1
   severity critical
   never "Downstream reads a half-written output"
   by architect@example.com
-  on 2026-10-08T13:06:26.379916+00:00
+  on 2026-11-11T19:07:04.949885+00:00
+
+hazard H2
+  guide_word repeated
+  severity high
+  never "a re-run gives a different or duplicated result"
+  by architect@example.com
+  on 2026-11-11T19:07:11.410754+00:00
 
 # --- invariants
 invariant INV1
@@ -61,4 +69,17 @@ invariant INV1
   prevents [H1]
   verified_by runtime
   by architect@example.com
-  on 2026-10-08T13:06:26.451398+00:00
+  on 2026-11-11T19:07:05.137453+00:00
+
+invariant INV2
+  prevents [H2]
+  verified_by example_test
+  from_decision 3
+  by architect@example.com
+  on 2026-11-11T19:07:11.435294+00:00
+
+# --- not applicable
+not_applicable exposed
+  because "no personal data: every column of vat_schema is classified none"
+  by architect@example.com
+  on 2026-11-11T19:07:11.718454+00:00

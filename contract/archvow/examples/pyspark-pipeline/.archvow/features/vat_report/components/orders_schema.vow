@@ -16,16 +16,16 @@ symbol ORDERS_SCHEMA
 
 # --- decisions
 decision 1
-  question "Which columns are nullable, and which must never be null?"
+  question "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?"
   answer "order_id and amount are never null; customer_id may be null"
   by architect@example.com
-  on 2026-10-08T13:06:24.047585+00:00
+  on 2026-11-11T19:06:55.893812+00:00
 
 decision 2
-  question "Which columns hold personal data, and where may they flow?"
+  question "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?"
   answer "None: the input holds no personal data"
   by architect@example.com
-  on 2026-10-08T13:06:24.096826+00:00
+  on 2026-11-11T19:06:56.089632+00:00
 
 assumptions []
 columns
@@ -34,8 +34,24 @@ columns
   order_date none
   order_id none
 
+# --- hazards
+hazard H1
+  guide_word wrong
+  severity high
+  never "a null, negative or out-of-range value reaches the output"
+  by architect@example.com
+  on 2026-11-11T19:07:08.155355+00:00
+
+# --- invariants
+invariant INV1
+  prevents [H1]
+  verified_by example_test
+  from_decision 1
+  by architect@example.com
+  on 2026-11-11T19:07:08.171783+00:00
+
 # --- not applicable
 not_applicable exposed
   because "the input holds no personal data"
   by architect@example.com
-  on 2026-10-08T13:06:26.537197+00:00
+  on 2026-11-11T19:07:05.394290+00:00

@@ -1,0 +1,45 @@
+vow 1 component order_totals
+# archvow vow of order_totals - what it must be and do; archvow check holds the code to it.
+# Read: archvow show order_totals. Change: archvow specify order_totals. Never edit by hand.
+name order_totals
+type transformation
+layer p1_domain
+module my_pipeline.p1_domain.order_totals
+ticket US-004
+description "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)"
+uses []
+
+# --- symbols
+symbol order_totals
+  kind function
+  signature "(df: DataFrame) -> DataFrame"
+
+# --- decisions
+decision 1
+  template_question 6bc98494703d
+
+decision 2
+  template_question 74490ed79f85
+
+decision 3
+  template_question 8b934525bb52
+
+decision 4
+  template_question b9887189124d
+
+decision 5
+  template_question 19e8edf0a715
+
+decision 6
+  template_question c8c27b9acc25
+
+decision 7
+  template_question 42c8db639665
+
+decision 8
+  template_question 5da20c6663e2
+
+decision 9
+  template_question f36f828647fb
+
+assumptions []

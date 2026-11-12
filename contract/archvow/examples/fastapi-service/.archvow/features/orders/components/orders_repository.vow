@@ -49,6 +49,29 @@ answers
     by architect@example.com
     on 2026-10-12T00:46:56.757992+00:00
 
+# --- hazards
+hazard H1
+  guide_word concurrent
+  severity low
+  never "two simultaneous changes overwrite each other"
+  by architect@example.com
+  on 2026-11-11T18:53:57.797551+00:00
+
+hazard H2
+  guide_word exposed
+  severity critical
+  never "An order is returned for an id that is not its own"
+  by architect@example.com
+  on 2026-11-11T18:54:08.241830+00:00
+
+# --- invariants
+invariant INV1
+  always "get(id) returns the order saved under that id, unchanged, or None"
+  prevents [H2]
+  verified_by property_test
+  by architect@example.com
+  on 2026-11-11T18:54:08.495821+00:00
+
 # --- not applicable
 not_applicable missing
   because "In memory, in the process: no outside store to be down, one write per change, no cache or replica"
@@ -64,3 +87,8 @@ not_applicable stale
   because "In memory, in the process: no outside store to be down, one write per change, no cache or replica"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
+
+not_applicable more
+  because "No list query: each call reads or saves one order"
+  by architect@example.com
+  on 2026-11-11T18:53:57.574620+00:00

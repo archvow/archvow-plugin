@@ -97,7 +97,7 @@ test('the shipped examples come out as designed: a rule heading over its example
   const { exampleGroups, examplesView } = load(['exampleState', 'exampleGroups', 'examplesView', 'exampleTest', 'exampleDetail', 'exampleDiff'], ui);
   const view = read('cli', 'pyspark-pipeline', 'show', 'clean_orders.json');
   assert.deepEqual(exampleGroups(view).map((g: Json) => [g.rule, g.items.length]), [['clean_orders.INV1', 1], ['', 1]]);
-  assert.match(examplesView(view), /<b class="mono">clean_orders.INV1<\/b> <span class="muted small">every input row with an order_id and amount &gt;= 0 appears in the output<\/span>/);
+  assert.match(examplesView(view), /<b class="mono">clean_orders.INV1<\/b> <span class="muted small">every order_id of an input row with amount &gt;= 0 appears in the output<\/span>/);
 });
 
 test('the search: groups, places, the selected one\'s lines; a name found nowhere gives its close names', () => {

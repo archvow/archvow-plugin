@@ -39,6 +39,22 @@ columns
   id none
   status none
 
+# --- hazards
+hazard H1
+  guide_word wrong
+  severity high
+  never "invalid input is accepted and saved"
+  by architect@example.com
+  on 2026-11-11T18:53:57.341659+00:00
+
+# --- invariants
+invariant INV1
+  prevents [H1]
+  verified_by example_test
+  from_decision 2
+  by architect@example.com
+  on 2026-11-11T18:53:57.354302+00:00
+
 # --- not applicable
 not_applicable exposed
   because "orders hold no personal data beyond the customer id"

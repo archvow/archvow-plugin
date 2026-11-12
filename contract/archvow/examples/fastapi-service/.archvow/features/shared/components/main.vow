@@ -41,6 +41,22 @@ decision 4
 
 assumptions []
 
+# --- hazards
+hazard H1
+  guide_word exposed
+  severity high
+  never "An error answer shows a trace, a secret or a customer's data"
+  by architect@example.com
+  on 2026-11-11T18:54:15.495473+00:00
+
+# --- invariants
+invariant INV1
+  always "a domain error answers only its status and {\"detail\": \"...\"}, without a trace or any order data"
+  prevents [H1]
+  verified_by example_test
+  by architect@example.com
+  on 2026-11-11T18:54:15.738040+00:00
+
 # --- not applicable
 not_applicable missing
   because "Builds the app only: it calls nothing that can be down"

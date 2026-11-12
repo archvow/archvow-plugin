@@ -4,7 +4,7 @@
   "type": "foundation",
   "layer": "p0_common",
   "known_columns": [],
-  "description": "Single factory for SparkSession objects.",
+  "description": "Creates the SparkSession with the project's Spark settings (spark.* keys); with master local[*] it also sets spark.driver.bindAddress=127.0.0.1 and spark.driver.host=127.0.0.1, so Spark starts on a laptop (VPN, several networks).",
   "uses": [],
   "used_by": [],
   "evidence": [
@@ -21,12 +21,12 @@
   "decisions": [
     {
       "number": 1,
-      "question": "Which Spark settings must every session set (e.g. spark.sql.session.timeZone=UTC), or none?",
+      "question": "Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?",
       "answer": "spark.sql.session.timeZone=UTC, nothing else",
-      "template": false,
+      "template": true,
       "suggested": null,
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     }
   ],

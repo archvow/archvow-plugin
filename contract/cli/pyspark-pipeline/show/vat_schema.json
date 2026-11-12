@@ -1,0 +1,140 @@
+{
+  "contract": "2.0",
+  "component": "vat_schema",
+  "type": "schema",
+  "layer": "p1_domain",
+  "known_columns": [
+    {
+      "component": "vat_schema",
+      "columns": [
+        "amount",
+        "customer_id",
+        "order_date",
+        "order_id",
+        "vat"
+      ]
+    }
+  ],
+  "description": "Output orders with their VAT: order_id string, customer_id string, amount decimal(18,2), order_date date, vat decimal(18,2)",
+  "uses": [],
+  "used_by": [
+    "vat_writer"
+  ],
+  "evidence": [
+    {
+      "item": "decision 1",
+      "kind": "decision",
+      "key": "1",
+      "tests": []
+    },
+    {
+      "item": "decision 2",
+      "kind": "decision",
+      "key": "2",
+      "tests": []
+    },
+    {
+      "item": "vat_schema.INV1",
+      "kind": "invariant",
+      "key": "VAT_SCHEMA.INV1",
+      "tests": []
+    }
+  ],
+  "examples": [],
+  "rule_texts": {},
+  "status": "planned",
+  "decisions": [
+    {
+      "number": 1,
+      "question": "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?",
+      "answer": "order_id, amount and vat are never null; customer_id may be null",
+      "template": true,
+      "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-11-11",
+      "proposed": null
+    },
+    {
+      "number": 2,
+      "question": "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?",
+      "answer": "None: the output holds no personal data",
+      "template": true,
+      "suggested": null,
+      "by": "architect@example.com",
+      "on": "2026-11-11",
+      "proposed": null
+    }
+  ],
+  "rules": [],
+  "missing": [],
+  "columns": [
+    {
+      "name": "amount",
+      "class": "none",
+      "in_code": false
+    },
+    {
+      "name": "customer_id",
+      "class": "none",
+      "in_code": false
+    },
+    {
+      "name": "order_date",
+      "class": "none",
+      "in_code": false
+    },
+    {
+      "name": "order_id",
+      "class": "none",
+      "in_code": false
+    },
+    {
+      "name": "vat",
+      "class": "none",
+      "in_code": false
+    }
+  ],
+  "declares_columns": true,
+  "personal": {
+    "handles": {},
+    "writes": {},
+    "removed": [],
+    "pseudonymised": []
+  },
+  "questions": [],
+  "safety": [
+    {
+      "number": 1,
+      "guide_word": "wrong",
+      "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "vat_schema.H1",
+          "severity": "high",
+          "description": "a null, negative or out-of-range value reaches the output",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "vat_schema.INV1",
+              "statement": "order_id, amount and vat are never null; customer_id may be null (decision 1)",
+              "verify": "example_test",
+              "from_decision": 1,
+              "tested": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "guide_word": "exposed",
+      "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
+      "status": "answered",
+      "dismissed": "the output holds no personal data"
+    }
+  ],
+  "assumptions": [],
+  "tasks": [],
+  "to_review": []
+}

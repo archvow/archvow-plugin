@@ -14,3 +14,16 @@ def test_routes_under_v1() -> None:
     assert (
         TestClient(create_app()).get("/orders/1").status_code == 404
     )  # nothing outside /v1
+
+
+@pytest.mark.integration
+@pytest.mark.invariant("main.INV1")
+def test_a_domain_error_answers_only_its_detail() -> None:
+    client = TestClient(create_app())
+    created = client.post(
+        "/v1/orders", json={"amount": "7.25"}, headers={"X-Customer": "kim"}
+    ).json()
+    for customer, order_id in (("lou", created["id"]), ("kim", 10**9)):
+        answer = client.get(f"/v1/orders/{order_id}", headers={"X-Customer": customer})
+        assert answer.status_code == 404
+        assert answer.json() == {"detail": "Order not found"}

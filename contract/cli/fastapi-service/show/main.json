@@ -42,11 +42,19 @@
       "tests": [
         "tests/p4_api/test_main.py::test_routes_under_v1"
       ]
+    },
+    {
+      "item": "main.INV1",
+      "kind": "invariant",
+      "key": "MAIN.INV1",
+      "tests": [
+        "tests/p4_api/test_main.py::test_a_domain_error_answers_only_its_detail"
+      ]
     }
   ],
   "examples": [],
   "rule_texts": {},
-  "status": "tested",
+  "status": "verified",
   "decisions": [
     {
       "number": 1,
@@ -114,11 +122,23 @@
       "number": 2,
       "guide_word": "exposed",
       "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
-        "invariant": "a user only reads and changes their own data, and secrets never appear in a response or a log"
-      }
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "main.H1",
+          "severity": "high",
+          "description": "An error answer shows a trace, a secret or a customer's data",
+          "suggested": false,
+          "prevented_by": [
+            {
+              "id": "main.INV1",
+              "statement": "a domain error answers only its status and {\"detail\": \"...\"}, without a trace or any order data",
+              "verify": "example_test",
+              "tested": true
+            }
+          ]
+        }
+      ]
     }
   ],
   "assumptions": [],

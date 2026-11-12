@@ -54,6 +54,27 @@ hazard H1
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
+hazard H2
+  guide_word repeated
+  severity low
+  never "a retried request is applied twice"
+  by architect@example.com
+  on 2026-11-11T18:53:55.582923+00:00
+
+hazard H3
+  guide_word exposed
+  severity high
+  never "a user sees or changes data that is not theirs, or a secret leaks"
+  by architect@example.com
+  on 2026-11-11T18:53:55.856176+00:00
+
+hazard H4
+  guide_word concurrent
+  severity high
+  never "Two orders created at the same time get the same id, and one replaces the other"
+  by architect@example.com
+  on 2026-11-11T18:53:56.116105+00:00
+
 # --- invariants
 invariant INV1
   always "every saved order has an amount greater than zero"
@@ -61,6 +82,20 @@ invariant INV1
   verified_by property_test
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
+
+invariant INV2
+  prevents [H3]
+  verified_by example_test
+  from_decision 4
+  by architect@example.com
+  on 2026-11-11T18:53:55.872136+00:00
+
+invariant INV3
+  always "orders created at the same time all get different ids"
+  prevents [H4]
+  verified_by example_test
+  by architect@example.com
+  on 2026-11-11T18:54:02.294345+00:00
 
 # --- not applicable
 not_applicable missing

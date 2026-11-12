@@ -2,7 +2,7 @@
   "contract": "2.0",
   "name": "amount",
   "summary": "a column of new_order_model",
-  "total": 24,
+  "total": 28,
   "groups": [
     {
       "group": "spec",
@@ -19,7 +19,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/create_order.vow",
-          "line": 59,
+          "line": 80,
           "component": "create_order",
           "part": "invariant INV1 always",
           "text": "always \"every saved order has an amount greater than zero\""
@@ -55,6 +55,14 @@
           "component": "new_order_model",
           "part": "columns",
           "text": "amount none"
+        },
+        {
+          "group": "spec",
+          "file": ".archvow/features/orders/components/new_order_model.vow",
+          "line": 57,
+          "component": "new_order_model",
+          "part": "not_applicable exposed because",
+          "text": "because \"Holds only the amount: no personal data, no secret\""
         },
         {
           "group": "spec",
@@ -140,7 +148,7 @@
         {
           "group": "tests",
           "file": "tests/p2_io/test_orders_repository.py",
-          "line": 16,
+          "line": 18,
           "component": "orders_repository",
           "part": "test_store_and_find",
           "text": "id=repository.next_id(), customer=\"bob\", amount=Decimal(\"3\"), status=\"pending\"",
@@ -149,7 +157,7 @@
         {
           "group": "tests",
           "file": "tests/p3_services/test_create_order.py",
-          "line": 17,
+          "line": 18,
           "component": "create_order",
           "part": "test_a_pending_order_is_saved",
           "text": "order = create_order(\"carol\", NewOrder(amount=Decimal(\"12.50\")))",
@@ -158,7 +166,7 @@
         {
           "group": "tests",
           "file": "tests/p3_services/test_create_order.py",
-          "line": 25,
+          "line": 26,
           "component": "create_order",
           "part": "test_a_retry_is_a_new_order",
           "text": "new = NewOrder(amount=Decimal(\"1\"))",
@@ -167,7 +175,7 @@
         {
           "group": "tests",
           "file": "tests/p3_services/test_create_order.py",
-          "line": 35,
+          "line": 36,
           "component": "create_order",
           "part": "test_every_saved_order_has_an_amount_greater_than_zero",
           "text": "@given(amount=_amounts)",
@@ -175,12 +183,39 @@
         },
         {
           "group": "tests",
+          "file": "tests/p3_services/test_create_order.py",
+          "line": 45,
+          "component": "create_order",
+          "part": "test_orders_created_at_the_same_time_get_different_ids",
+          "text": "new = NewOrder(amount=Decimal(\"1\"))",
+          "marks": "create_order.INV3"
+        },
+        {
+          "group": "tests",
           "file": "tests/p3_services/test_get_order.py",
-          "line": 16,
+          "line": 18,
           "component": "get_order",
           "part": "test_own_order_and_others",
           "text": "order = create_order(\"erin\", NewOrder(amount=Decimal(\"2\")))",
-          "marks": "decision 1, decision 2, decision 3, decision 4, decision 5"
+          "marks": "decision 1, decision 2, decision 3, decision 5"
+        },
+        {
+          "group": "tests",
+          "file": "tests/p3_services/test_get_order.py",
+          "line": 34,
+          "component": "get_order",
+          "part": "test_only_the_owner_gets_the_order",
+          "text": "order = create_order(owner, NewOrder(amount=Decimal(\"5\")))",
+          "marks": "decision 4"
+        },
+        {
+          "group": "tests",
+          "file": "tests/p4_api/test_main.py",
+          "line": 24,
+          "component": "main",
+          "part": "test_a_domain_error_answers_only_its_detail",
+          "text": "\"/v1/orders\", json={\"amount\": \"7.25\"}, headers={\"X-Customer\": \"kim\"}",
+          "marks": "main.INV1"
         },
         {
           "group": "tests",

@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@2.0.0`).
+[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@2.0.1`).
 
 ## For developers
 
@@ -78,6 +78,7 @@ my-pipeline/
 ├── .gitlab/CODEOWNERS                  the architects approve the spec and the guards
 ├── .githooks/pre-commit                checks before every commit
 ├── entrypoint.sh                       run an entry point, the tables (--ddl), build (--package)
+├── Makefile                            the usual commands: make check, make test... (make help)
 ├── pyproject.toml                      the package, its version (the wheel), the test settings
 ├── README.md
 ├── requirements.txt                    development tools
@@ -156,7 +157,7 @@ archvow component add transformation clean_sales -d "Keep the rows with amount >
 archvow component add schema revenue -d "effective_date date not null, revenue double not null" -s US-001
 archvow component add writer revenue -d "Write the revenue per day as parquet, replacing the output" -u revenue_schema -s US-001
 archvow component add job my_pipeline -d "Read the sales, clean them, write the revenue" -u sales_reader,clean_sales,revenue_writer -s US-001
-archvow component add entrypoint my_pipeline -d "Command line: --input PATH (the sales folder), --output PATH (the revenue folder)" -u my_pipeline_job -s US-001
+archvow component add entrypoint my_pipeline -d "Command line: --input-path PATH (the sales folder), --output-path PATH (the revenue folder)" -u my_pipeline_job -s US-001
 archvow show sales_schema                # its decisions: nullable columns, personal data...
 ```
 

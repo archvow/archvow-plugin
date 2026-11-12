@@ -2,414 +2,8 @@
   "contract": "2.0",
   "ok": true,
   "errors": 0,
-  "warnings": 15,
-  "violations": [
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'create_order': safety question S2 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show create_order",
-      "file": ".archvow/features/orders/components/create_order.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "create_order"
-          },
-          "text": "archvow show create_order",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'create_order': safety question S4 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show create_order",
-      "file": ".archvow/features/orders/components/create_order.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "create_order"
-          },
-          "text": "archvow show create_order",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'create_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show create_order",
-      "file": ".archvow/features/orders/components/create_order.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "create_order"
-          },
-          "text": "archvow show create_order",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'get_order': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show get_order",
-      "file": ".archvow/features/orders/components/get_order.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "get_order"
-          },
-          "text": "archvow show get_order",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'get_order': safety question S5 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_order",
-      "file": ".archvow/features/orders/components/get_order.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "get_order"
-          },
-          "text": "archvow show get_order",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'new_order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show new_order_model",
-      "file": ".archvow/features/orders/components/new_order_model.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "new_order_model"
-          },
-          "text": "archvow show new_order_model",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'new_order_model': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show new_order_model",
-      "file": ".archvow/features/orders/components/new_order_model.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "new_order_model"
-          },
-          "text": "archvow show new_order_model",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'order_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show order_model",
-      "file": ".archvow/features/orders/components/order_model.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "order_model"
-          },
-          "text": "archvow show order_model",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_repository': safety question S2 not answered (more) - Too much (unbounded results, duplicated records, a flood of requests): what must never happen? -> archvow show orders_repository",
-      "file": ".archvow/features/orders/components/orders_repository.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_repository"
-          },
-          "text": "archvow show orders_repository",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_repository': safety question S5 not answered (concurrent) - Two requests change the same data at the same time (lost update, negative stock): what must never happen? -> archvow show orders_repository",
-      "file": ".archvow/features/orders/components/orders_repository.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_repository"
-          },
-          "text": "archvow show orders_repository",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_repository': safety question S6 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show orders_repository",
-      "file": ".archvow/features/orders/components/orders_repository.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_repository"
-          },
-          "text": "archvow show orders_repository",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_router': safety question S3 not answered (wrong) - Wrong input (invalid values, out of range, an illegal state change): what must never happen? -> archvow show orders_router",
-      "file": ".archvow/features/orders/components/orders_router.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_router"
-          },
-          "text": "archvow show orders_router",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_router': safety question S4 not answered (repeated) - Sent twice (a client retries or submits twice): what must never happen? -> archvow show orders_router",
-      "file": ".archvow/features/orders/components/orders_router.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_router"
-          },
-          "text": "archvow show orders_router",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'get_current_user': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show get_current_user",
-      "file": ".archvow/features/shared/components/get_current_user.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "get_current_user"
-          },
-          "text": "archvow show get_current_user",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'main': safety question S2 not answered (exposed) - Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen? -> archvow show main",
-      "file": ".archvow/features/shared/components/main.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "main"
-          },
-          "text": "archvow show main",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    }
-  ],
+  "warnings": 0,
+  "violations": [],
   "statuses": [
     {
       "container": "orders_api",
@@ -557,26 +151,26 @@
       "component": "new_order_model",
       "type": "model",
       "layer": "p1_domain",
-      "status": "tested",
+      "status": "verified",
       "tested": true,
-      "invariants_total": 0,
-      "invariants_verified": 0,
+      "invariants_total": 1,
+      "invariants_verified": 1,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 0
+      "hazards": 1
     },
     {
       "container": "orders_api",
       "component": "order_model",
       "type": "model",
       "layer": "p1_domain",
-      "status": "tested",
+      "status": "verified",
       "tested": true,
-      "invariants_total": 0,
-      "invariants_verified": 0,
+      "invariants_total": 1,
+      "invariants_verified": 1,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 0
+      "hazards": 1
     },
     {
       "container": "orders_api",
@@ -596,13 +190,13 @@
       "component": "orders_repository",
       "type": "repository",
       "layer": "p2_io",
-      "status": "tested",
+      "status": "verified",
       "tested": true,
-      "invariants_total": 0,
-      "invariants_verified": 0,
+      "invariants_total": 1,
+      "invariants_verified": 1,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 0
+      "hazards": 2
     },
     {
       "container": "orders_api",
@@ -611,42 +205,29 @@
       "layer": "p3_services",
       "status": "verified",
       "tested": true,
-      "invariants_total": 1,
-      "invariants_verified": 1,
+      "invariants_total": 3,
+      "invariants_verified": 3,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 1
+      "hazards": 4
     },
     {
       "container": "orders_api",
       "component": "get_order",
       "type": "service",
       "layer": "p3_services",
-      "status": "tested",
+      "status": "verified",
       "tested": true,
-      "invariants_total": 0,
-      "invariants_verified": 0,
+      "invariants_total": 1,
+      "invariants_verified": 1,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 0
+      "hazards": 2
     },
     {
       "container": "orders_api",
       "component": "main",
       "type": "app",
-      "layer": "p4_api",
-      "status": "tested",
-      "tested": true,
-      "invariants_total": 0,
-      "invariants_verified": 0,
-      "open_questions": 0,
-      "pending_assumptions": 0,
-      "hazards": 0
-    },
-    {
-      "container": "orders_api",
-      "component": "orders_router",
-      "type": "router",
       "layer": "p4_api",
       "status": "verified",
       "tested": true,
@@ -655,6 +236,19 @@
       "open_questions": 0,
       "pending_assumptions": 0,
       "hazards": 1
+    },
+    {
+      "container": "orders_api",
+      "component": "orders_router",
+      "type": "router",
+      "layer": "p4_api",
+      "status": "verified",
+      "tested": true,
+      "invariants_total": 2,
+      "invariants_verified": 2,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 3
     }
   ],
   "invariants": [
@@ -670,6 +264,83 @@
       "severity": "high"
     },
     {
+      "id": "create_order.INV2",
+      "component": "create_order",
+      "statement": "Any authenticated customer, for themselves; checked by the router (decision 4)",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p3_services/test_create_order.py::test_a_pending_order_is_saved"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "create_order.INV3",
+      "component": "create_order",
+      "statement": "orders created at the same time all get different ids",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p3_services/test_create_order.py::test_orders_created_at_the_same_time_get_different_ids"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "get_order.INV1",
+      "component": "get_order",
+      "statement": "The owner only; checked here (decision 4)",
+      "verify": "property_test",
+      "verified": true,
+      "evidence": [
+        "tests/p3_services/test_get_order.py::test_only_the_owner_gets_the_order"
+      ],
+      "severity": "critical"
+    },
+    {
+      "id": "main.INV1",
+      "component": "main",
+      "statement": "a domain error answers only its status and {\"detail\": \"...\"}, without a trace or any order data",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p4_api/test_main.py::test_a_domain_error_answers_only_its_detail"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "new_order_model.INV1",
+      "component": "new_order_model",
+      "statement": "amount > 0 with at most 2 decimals (decision 2)",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p1_domain/test_new_order_model.py::test_other_amounts_are_refused"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "order_model.INV1",
+      "component": "order_model",
+      "statement": "amount >= 0 with 2 decimals; status pending, paid or cancelled (decision 2)",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p1_domain/test_order_model.py::test_invalid_values_are_refused"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "orders_repository.INV1",
+      "component": "orders_repository",
+      "statement": "get(id) returns the order saved under that id, unchanged, or None",
+      "verify": "property_test",
+      "verified": true,
+      "evidence": [
+        "tests/p2_io/test_orders_repository.py::test_get_returns_the_order_saved_under_that_id"
+      ],
+      "severity": "critical"
+    },
+    {
       "id": "orders_router.INV1",
       "component": "orders_router",
       "statement": "a customer only ever reads their own orders",
@@ -679,16 +350,25 @@
         "tests/p4_api/test_orders_router.py::test_a_customer_only_reads_their_own_orders"
       ],
       "severity": "critical"
+    },
+    {
+      "id": "orders_router.INV2",
+      "component": "orders_router",
+      "statement": "FastAPI's 422 (decision 3)",
+      "verify": "example_test",
+      "verified": true,
+      "evidence": [
+        "tests/p4_api/test_orders_router.py::test_errors"
+      ],
+      "severity": "high"
     }
   ],
   "frozen": 0,
   "stale_frozen": [],
   "budget": null,
   "safety": {
-    "answered": 14,
+    "answered": 29,
     "total": 29
   },
-  "counts": {
-    "ARCH035": 15
-  }
+  "counts": {}
 }

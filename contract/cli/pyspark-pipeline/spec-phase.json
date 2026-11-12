@@ -1,0 +1,15 @@
+{
+  "without_code": true,
+  "commands": [
+    [
+      "component",
+      "add",
+      "transformation",
+      "order_totals",
+      "-s",
+      "US-004",
+      "-d",
+      "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)"
+    ]
+  ]
+}

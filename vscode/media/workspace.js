@@ -1013,8 +1013,16 @@
   <div class="progress-line"><div class="progress-track"><div class="progress-fill p${fill}"></div></div><span class="muted small">${esc(t(`${verified} of ${comps.length} components verified`, `${verified} composants vérifiés sur ${comps.length}`))}</span></div>
   ${uses.length || usedBy.length ? `<p class="links muted small">${uses.length ? `${esc(t('Uses', 'Utilise'))} ${pairs(f.uses)}` : ''}${uses.length && usedBy.length ? '  ·  ' : ''}${usedBy.length ? `${esc(t('Used by', 'Utilisée par'))} ${pairs(f.used_by)}` : ''}</p>` : ''}</div>
 <div class="row wrap actions">${actions}</div>
-<div class="feature-body"><section class="feature-main"><h3>${esc(t('Components, by layer', 'Composants, par couche'))}</h3>${table}</section>
+<div class="feature-body"><section class="feature-main"><h3>${esc(t('Components, by layer', 'Composants, par couche'))}</h3>${table}${featureFiles(name, comps)}</section>
 <aside class="feature-side">${map}${openCard}</aside></div>`;
+  }
+
+  /** A feature's files (0.24.1): its vow, its components' vows, their code and tests, as one tree. */
+  function featureFiles(name, comps) {
+    const rows = [{ change: 'here', path: `.archvow/features/${name}/${name}.vow`, note: '' }];
+    for (const c of comps) rows.push(...componentFiles(str(c, 'id')).map((r) => ({ ...r, note: '' })));
+    const unique = rows.filter((r, i) => rows.findIndex((x) => x.path === r.path) === i);
+    return `<h3 class="feature-files-head">${esc(t('Where it is', 'Où elle est'))}</h3><div class="feature-files">${filesBlock(unique, t('Its vows, its code and its tests', 'Ses vows, son code et ses tests'))}</div>`;
   }
 
   const VIEWS = () => [t('Decisions', 'Décisions'), 'Questions', t('Safety', 'Sécurité'), t('Assumptions', 'Hypothèses'), t('Rules', 'Règles'), t('Tasks', 'Tâches'), 'Spec', t('Other', 'Autres'), t('Examples', 'Exemples')];
@@ -1289,6 +1297,22 @@
   function answerHead(text, state, good) {
     const tone = typeof good === 'string' ? good : good ? 'good' : 'warn';
     return `<div class="answer-head"><span>${esc(text)}</span>${state ? ` <b class="tone-${tone}">${esc(state)}</b>` : ''}</div>`;
+  }
+
+  /** Where a component is (0.24.1), as archvow says it: its vow in its feature, its code, its test - rows of the Files tree. */
+  function componentFiles(id) {
+    for (const c of list(S && S.spec, 'containers')) {
+      const comp = list(c, 'components').find((x) => str(x, 'id') === id);
+      if (!comp) continue;
+      const module = str(comp, 'module');
+      const group = str(comp, 'group') ? str(comp, 'group') + '/' : '';
+      return [
+        str(comp, 'feature') ? { change: 'here', path: `.archvow/features/${str(comp, 'feature')}/components/${id}.vow`, note: t('its vow: the spec', 'son vow : la spec') } : null,
+        module ? { change: 'here', path: `${str(c, 'path')}/${module.split('.').slice(1).join('/')}.py`, note: t('its code', 'son code') } : null,
+        { change: 'here', path: `tests/${str(comp, 'layer')}/${group}test_${id}.py`, note: t('its test', 'son test') },
+      ].filter(Boolean);
+    }
+    return [];
   }
 
   /** The feature the component is in, a link to its page (0.24.0). */
@@ -1999,18 +2023,19 @@
     const file = part === 'vow' ? `.archvow/features/${str(entry, 'feature') || '…'}/components/${ui.component}.vow` : `archvow prompt ${ui.component}`;
     const bar = `<div class="row wrap">${toggle}<span class="muted small"><code>${esc(file)}</code> - ${esc(t('read only: change it with the commands (Edit spec, + Question, + Rule...)', 'en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)'))}</span>
   ${part === 'vow' ? btn(t('Open in the editor', "Ouvrir dans l'éditeur"), 'openVowFile', '', false, 'secondary') : btn(t('Copy', 'Copier'), 'aiPrompt', '', false, 'secondary')}${btn(t('Project vow', 'Vow du projet'), 'openProjectVow', '', false, 'secondary')}</div>`;
+    const where = filesBlock(componentFiles(ui.component), t('Where it is', 'Où il est'));
     if (part === 'card') {
       const card = ui.cards[ui.component] || '';
-      return bar + (card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('archvow prompt gave nothing for this component.', "archvow prompt n'a rien donné pour ce composant."))}</p>`);
+      return bar + where + (card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('archvow prompt gave nothing for this component.', "archvow prompt n'a rien donné pour ce composant."))}</p>`);
     }
-    if (!text) return bar + `<p class="muted">${esc(t('No vow for this component.', 'Pas de vow pour ce composant.'))}</p>`;
+    if (!text) return bar + where + `<p class="muted">${esc(t('No vow for this component.', 'Pas de vow pour ce composant.'))}</p>`;
     const lines = text.split('\n').map((line) => {
       const m = /^(\s*)("(?:[^"\\]|\\.)*"|[A-Za-z_][A-Za-z0-9_./-]*)(.*)$/.exec(line);
       if (line.trimStart().startsWith('#') || !m) return `<span class="${line.trimStart().startsWith('#') ? 'comment' : ''}">${esc(line)}</span>`;
       const depth = Math.min(3, Math.floor(m[1].length / 2));
       return `${esc(m[1])}<span class="key${depth}">${esc(m[2])}</span>${esc(m[3])}`;
     });
-    return bar + `<pre class="vow">${lines.join('\n')}</pre>`;
+    return bar + where + `<pre class="vow">${lines.join('\n')}</pre>`;
   }
 
   /** Component and project issues have distinct destinations; check violations stay in Check & Gates. */
@@ -2454,35 +2479,81 @@
   }
 
   /** The files the command writes (filePlan.ts): a small tree per folder, then the code it plans. */
-  function filesBlock(rows) {
+  /**
+   * The files a command writes, as a tree (0.24.1): each folder once, its children under it, the folders a path
+   * passes through drawn too (.archvow/ › features/ › orders/ › components/ › clean_orders.vow), root files (AGENTS.md)
+   * beside .archvow/, never under a "./". `compact` (a check's location): a chain of folders that only lead to the
+   * next one is one line (src/sales/p2_io/). IntelliJ builds the same tree (ArchvowFilePlan.treeLines).
+   */
+  function fileTree(rows, compact) {
+    const root = { children: new Map() };
+    for (const r of rows) {
+      const path = String(r.path || '');
+      const isDir = path.endsWith('/');
+      let segs = path.replace(/\/+$/, '').split('/');
+      if (segs[0] === '' && segs.length > 1) segs = ['/' + segs[1], ...segs.slice(2)];  // an absolute path: /srv/
+      let cur = root;
+      segs.forEach((seg, i) => {
+        const last = i === segs.length - 1;
+        const dir = !last || isDir;
+        const key = seg + (dir ? '/' : '');
+        if (!cur.children.has(key)) cur.children.set(key, { name: key, dir, row: null, children: new Map() });
+        cur = cur.children.get(key);
+        if (last) cur.row = r;
+      });
+    }
+    if (compact) {
+      const squash = (node) => {
+        for (const [key, child] of [...node.children]) {
+          let c = child;
+          while (c.dir && !c.row && c.children.size === 1 && [...c.children.values()][0].dir) {
+            const only = [...c.children.values()][0];
+            c = { name: c.name + only.name, dir: true, row: only.row, children: only.children };
+          }
+          node.children.set(key, c);
+          squash(c);
+        }
+      };
+      squash(root);
+    }
+    return root;
+  }
+
+  /** The tree as text lines with ├── └── │ guides: what the IntelliJ preview draws, line for line (the regressions). */
+  function fileTreeLines(rows, compact) {
+    const lines = [];
+    const walk = (node, prefix, depth) => {
+      const kids = [...node.children.values()];
+      kids.forEach((k, i) => {
+        const last = i === kids.length - 1;
+        lines.push({ guide: depth === 0 ? '' : prefix + (last ? '└── ' : '├── '), name: k.name, dir: k.dir, row: k.row });
+        walk(k, depth === 0 ? '' : prefix + (last ? '    ' : '│   '), depth + 1);
+      });
+    };
+    walk(fileTree(rows, compact), '', 0);
+    return lines;
+  }
+
+  function filesBlock(rows, heading) {
     if (!Array.isArray(rows) || !rows.length) return '';
     const word = { new: t('new', 'nouveau'), updated: t('updated', 'modifié'), removed: t('removed', 'retiré'), kept: t('kept', 'gardé'), planned: t('planned', 'prévu') };
-    const part = (items) => {
-      let html = '';
-      let folder = null;
-      for (const r of items) {
-        const path = String(r.path || '');
-        const isDir = path.endsWith('/');
-        const cut = isDir ? path.slice(0, -1).lastIndexOf('/') : path.lastIndexOf('/');
-        const dir = cut >= 0 ? path.slice(0, cut + 1) : '';
-        const leaf = cut >= 0 ? path.slice(cut + 1) : path;
-        if (dir !== folder) {
-          if (folder !== null) html += '</ul>';
-          // Root files are siblings of the folder groups; do not render a "./" group.
-          if (dir) html += `<div class="file-dir">${icon('folder')}<span>${esc(dir)}</span></div>`;
-          html += `<ul class="file-list${dir ? '' : ' root-files'}">`;
-          folder = dir;
-        }
-        const locationOnly = r.change === 'location';
-        const status = locationOnly ? '' : `<span class="badge ${esc(r.change)}">${esc(word[r.change] || r.change)}</span>`;
-        const line = locationOnly && Number(r.line) > 0 ? `<span class="muted small">${esc(t('line', 'ligne'))} ${Number(r.line)}</span>` : '';
-        html += `<li class="file-row change-${esc(r.change)}">${icon(isDir ? 'folder' : 'document')}<code>${esc(leaf)}</code>${status}${line}${r.note ? `<div class="muted small file-note">${esc(r.note)}</div>` : ''}</li>`;
-      }
-      return html + (folder !== null ? '</ul>' : '');
+    // nested lists: the connectors are drawn by CSS (.file-tree li::before / ::after), so they run on beside a note
+    // that wraps over several lines
+    const item = (k) => {
+      const r = k.row;
+      const change = r ? String(r.change || '') : 'folder';
+      const locationOnly = change === 'location';
+      const status = r && word[change] ? `<span class="badge ${esc(change)}">${esc(word[change])}</span>` : '';
+      const line = locationOnly && Number(r.line) > 0 ? `<span class="muted small">${esc(t('line', 'ligne'))} ${Number(r.line)}</span>` : '';
+      const head = `<div class="file-row change-${esc(change)}${r ? '' : ' file-dir'}">${icon(k.dir ? 'folder' : 'document')}${r ? `<code>${esc(k.name)}</code>` : `<span>${esc(k.name)}</span>`}${status}${line}</div>`;
+      const note = r && r.note && !locationOnly ? `<div class="file-note muted small">${esc(r.note)}</div>` : '';
+      const kids = [...k.children.values()];
+      return `<li>${head}${note}${kids.length ? `<ul>${kids.map(item).join('')}</ul>` : ''}</li>`;
     };
+    const part = (items) => `<ul class="file-tree">${[...fileTree(items, items.every((r) => r.change === 'location')).children.values()].map(item).join('')}</ul>`;
     const now = rows.filter((r) => r.change !== 'planned');
     const later = rows.filter((r) => r.change === 'planned');
-    return (now.length ? `<div class="muted small files-head">${esc(t('Files', 'Fichiers'))}</div>${part(now)}` : '')
+    return (now.length ? `<div class="muted small files-head">${esc(heading || t('Files', 'Fichiers'))}</div>${part(now)}` : '')
       + (later.length ? `<div class="muted small files-head">${esc(t('Planned - written later by the AI or a developer (archvow never writes code)', "Prévus - écrits plus tard par l'IA ou un développeur (archvow n'écrit jamais de code)"))}</div>${part(later)}` : '');
   }
 

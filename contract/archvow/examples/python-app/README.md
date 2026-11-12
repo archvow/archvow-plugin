@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/python-app@2.0.0`).
+(template `archvow/python-app@2.0.1`).
 
 ## For developers
 
@@ -83,6 +83,7 @@ invoicing/
 ├── .gitlab-ci.yml                      CI: guards and tests
 ├── .gitlab/CODEOWNERS                  the architects approve the spec and the guards
 ├── .githooks/pre-commit                checks before every commit
+├── Makefile                            make check, make test, make run... (make help)
 ├── pyproject.toml                      the package, what it needs at run time, pytest and mypy settings
 ├── README.md
 ├── requirements.txt                    development tools
@@ -289,7 +290,7 @@ without it fails the build. Its task says which kind and what to cover.
 ```bash
 pytest -m "not integration"                # fast feedback while coding
 pytest                                     # everything
-make check                                 # ruff, mypy, archvow check, specs up to date
+make check                                 # ruff, mypy, archvow check
 ```
 
 A rule that must hold for every input is best proven with a property test: Hypothesis generates

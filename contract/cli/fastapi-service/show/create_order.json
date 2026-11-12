@@ -77,6 +77,20 @@
       "tests": [
         "tests/p3_services/test_create_order.py::test_every_saved_order_has_an_amount_greater_than_zero"
       ]
+    },
+    {
+      "item": "create_order.INV2",
+      "kind": "invariant",
+      "key": "CREATE_ORDER.INV2",
+      "tests": []
+    },
+    {
+      "item": "create_order.INV3",
+      "kind": "invariant",
+      "key": "CREATE_ORDER.INV3",
+      "tests": [
+        "tests/p3_services/test_create_order.py::test_orders_created_at_the_same_time_get_different_ids"
+      ]
     }
   ],
   "examples": [],
@@ -159,15 +173,16 @@
       "number": 2,
       "guide_word": "repeated",
       "question": "Sent twice (a client retries or submits twice): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a retried request is applied twice",
-        "invariant": "Two orders: a retry is a new order (customers cancel the extra one) (decision 3)",
-        "decision": {
-          "number": 3,
-          "answer": "Two orders: a retry is a new order (customers cancel the extra one)"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "create_order.H2",
+          "severity": "low",
+          "description": "a retried request is applied twice",
+          "suggested": true,
+          "prevented_by": []
         }
-      }
+      ]
     },
     {
       "number": 3,
@@ -180,28 +195,122 @@
       "number": 4,
       "guide_word": "concurrent",
       "question": "Two requests change the same data at the same time (lost update, negative stock): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "two simultaneous changes overwrite each other",
-        "invariant": "concurrent changes to the same record never lose an update"
-      }
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "create_order.H4",
+          "severity": "high",
+          "description": "Two orders created at the same time get the same id, and one replaces the other",
+          "suggested": false,
+          "prevented_by": [
+            {
+              "id": "create_order.INV3",
+              "statement": "orders created at the same time all get different ids",
+              "verify": "example_test",
+              "tested": true
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 5,
       "guide_word": "exposed",
       "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
-        "invariant": "Any authenticated customer, for themselves; checked by the router (decision 4)",
-        "decision": {
-          "number": 4,
-          "answer": "Any authenticated customer, for themselves; checked by the router"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "create_order.H3",
+          "severity": "high",
+          "description": "a user sees or changes data that is not theirs, or a secret leaks",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "create_order.INV2",
+              "statement": "Any authenticated customer, for themselves; checked by the router (decision 4)",
+              "verify": "example_test",
+              "from_decision": 4,
+              "tested": true
+            }
+          ]
         }
-      }
+      ]
     }
   ],
   "assumptions": [],
-  "tasks": [],
+  "tasks": [
+    {
+      "task": "T1",
+      "core": true,
+      "done": true,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "1",
+          "text": "What does it do, step by step (read, check, change, save, call)?",
+          "answer": "Build a pending order with the next id, save it, return it",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "2",
+          "text": "Something it needs does not exist: which domain error?",
+          "answer": "Not applicable: it needs nothing that may be missing",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "3",
+          "text": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
+          "answer": "Two orders: a retry is a new order (customers cancel the extra one)",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "4",
+          "text": "Who may perform it, and is that checked here or in the router?",
+          "answer": "Any authenticated customer, for themselves; checked by the router",
+          "done": true
+        },
+        {
+          "kind": "decision",
+          "key": "5",
+          "text": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
+          "answer": "One save, nothing else to undo",
+          "done": true
+        }
+      ],
+      "summary": "the file and its public API, decisions 1-5"
+    },
+    {
+      "task": "T2",
+      "core": false,
+      "done": true,
+      "items": [
+        {
+          "kind": "invariant",
+          "key": "create_order.INV1",
+          "text": "every saved order has an amount greater than zero",
+          "answer": null,
+          "done": true
+        },
+        {
+          "kind": "invariant",
+          "key": "create_order.INV2",
+          "text": "Any authenticated customer, for themselves; checked by the router (decision 4)",
+          "answer": null,
+          "done": true
+        },
+        {
+          "kind": "invariant",
+          "key": "create_order.INV3",
+          "text": "orders created at the same time all get different ids",
+          "answer": null,
+          "done": true
+        }
+      ],
+      "summary": "create_order.INV1, create_order.INV2, create_order.INV3"
+    }
+  ],
   "to_review": []
 }

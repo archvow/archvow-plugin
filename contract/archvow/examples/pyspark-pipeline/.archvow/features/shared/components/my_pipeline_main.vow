@@ -6,7 +6,7 @@ type entrypoint
 layer p4_entrypoints
 module my_pipeline.p4_entrypoints.my_pipeline_main
 ticket US-003
-description "Command line: --input PATH (the input folder), --output PATH (the output folder)"
+description "Command line: --input-path PATH (the input folder), --output-path PATH (the output folder)"
 uses [my_pipeline_job]
 
 # --- symbols
@@ -16,15 +16,23 @@ symbol main
 
 # --- decisions
 decision 1
-  question "Invalid arguments: which exit code and message?"
+  question "Invalid arguments (e.g. --run-date 2026-13-01): which exit code and message?"
   answer "Exit code 2 with a usage message"
   by architect@example.com
-  on 2026-10-08T13:06:25.985654+00:00
+  on 2026-11-11T19:07:03.587374+00:00
 
 decision 2
-  question "Which exit codes signal which failures to the scheduler?"
+  question "Which exit code for which problem, so the scheduler knows what happened (e.g. 0 ok, 1 error, 2 bad arguments, 3 input not ready)?"
   answer "0 success, 1 job failure, 2 invalid arguments"
   by architect@example.com
-  on 2026-10-08T13:06:26.064705+00:00
+  on 2026-11-11T19:07:03.845914+00:00
 
 assumptions []
+
+# --- hazards
+hazard H1
+  guide_word wrong
+  severity medium
+  never "a null, negative or out-of-range value reaches the output"
+  by architect@example.com
+  on 2026-11-11T19:07:12.668332+00:00

@@ -137,7 +137,7 @@ test('the items as cards on the left, the selected one answered on the right (0.
     number: String(r.number), title: r.question, open: !r.answer, answer: r.answer || '', by: r.answer ? `${r.by} · ${r.on}` : '' }));
   assert.match(html, /<li class="item-card  done" data-a="sel" data-kind="decision" data-key="D1">/);
   assert.match(html, /<div class="card-a" title="Fail with a clear error: a missing input is an operations problem">Fail with a clear error: a missing input is an operations problem<\/div>/);
-  assert.match(html, /<div class="card-by muted">architect@example\.com · 2026-10-08<\/div>/);
+  assert.match(html, /<div class="card-by muted">architect@example\.com · 2026-11-11<\/div>/);
   assert.match(html, /<li class="item-card selected open" data-a="sel" data-kind="decision" data-key="D3">/);
   assert.match(html, /<div class="card-open">● Open<\/div>/);
   // the four views whose items are answered are split; the answer heading says what is answered
@@ -195,14 +195,15 @@ test('a component shows its progress in one bar (show --json), as IntelliJ\'s Ar
   const parts = progress(view).map((p: { key: string; done: number; total: number; complete: boolean }) => [p.key, p.done, p.total, p.complete]);
   assert.deepEqual(parts, [
     ['decisions', 9, 9, true],
-    ['safety', 1, 5, false],
+    ['safety', 5, 5, true],  // archvow 2.0.1: every safety question of the example answered
     ['tasks', 0, 3, false],
     ['examples', 0, 2, false],  // archvow 1.21: the shipped project's two examples, no test yet
   ]);
   const html = progressBar(view);
-  assert.match(html, /title="Decisions made: 9\/9 · Safety answered: 1\/5 · Tasks done: 0\/3 · Examples passing: 0\/2"/);
+  assert.match(html, /title="Decisions made: 9\/9 · Safety answered: 5\/5 · Tasks done: 0\/3 · Examples passing: 0\/2"/);
   assert.match(html, /progress-part complete" data-part="decisions"[\s\S]*progress-fill p100/);
-  assert.match(html, /progress-part partial" data-part="safety"[\s\S]*?progress-fill p20"/);
+  assert.match(html, /progress-part complete" data-part="safety"[\s\S]*?progress-fill p100"/);
+  assert.match(html, /progress-part partial" data-part="tasks"[\s\S]*?progress-fill p0"/);
   // examples count when the component has some; a part with nothing to count is left out
   // archvow 1.21: an example counts once its test passes (the test's verdict, result), files unchanged
   const examples = progress({ decisions: [{ answer: null }, { answer: 'yes' }], safety: [], examples: [
@@ -245,10 +246,12 @@ test('UX v4: VS Code hover, responsive toolbar, and Checks overview row', () => 
   assert.match(page, /return filesBlock\(\[\{ path: file, change: 'location'/,
     'check diagnostics reuse the command form Files tree rather than hand-drawn icons');
   assert.match(page, /icon\('folder'\)/);
-  assert.match(page, /icon\(isDir \? 'folder' : 'document'\)/);
+  assert.match(page, /icon\(k\.dir \? 'folder' : 'document'\)/, 'one renderer draws folders and files of the tree');
   assert.match(page, /class="card checks-summary"/);
   assert.match(page, /data-a="openChecks"/);
   assert.doesNotMatch(page, /class="checks-badges"/, 'diagnostic counters live in the Checks card');
+  assert.match(css, /\.checks-summary, \.packs-summary \{ display: flex; align-items: center; justify-content: space-between;/,
+    'the Packs card is one row like Architecture and Checks: its link on the right, not under the title');
 });
 
 

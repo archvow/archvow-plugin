@@ -4,79 +4,103 @@
     "type": "foundation",
     "readiness": "ready",
     "invariants": 0,
-    "tokens": 526
+    "tokens": 572
   },
   {
     "component": "logging_setup",
     "type": "foundation",
     "readiness": "ready",
     "invariants": 0,
-    "tokens": 528
+    "tokens": 622
   },
   {
     "component": "spark",
     "type": "foundation",
     "readiness": "ready",
     "invariants": 0,
-    "tokens": 490
+    "tokens": 552
   },
   {
     "component": "clean_orders",
     "type": "transformation",
     "readiness": "ready - task 1 of 3",
-    "invariants": 1,
+    "invariants": 3,
     "tasks": {
       "total": 3,
       "done": 0,
       "next": "T1"
     },
-    "tokens": 1756
+    "tokens": 1977
   },
   {
     "component": "compute_vat",
     "type": "transformation",
     "readiness": "ready - task 1 of 3",
-    "invariants": 1,
+    "invariants": 2,
     "tasks": {
       "total": 3,
       "done": 0,
       "next": "T1"
     },
-    "tokens": 1579
+    "tokens": 1731
+  },
+  {
+    "component": "order_totals",
+    "type": "transformation",
+    "readiness": "blocked: 9 decisions to make",
+    "invariants": 0,
+    "tasks": {
+      "total": 2,
+      "done": 0,
+      "next": "T1"
+    },
+    "tokens": 1287
   },
   {
     "component": "orders_schema",
     "type": "schema",
     "readiness": "ready",
-    "invariants": 0,
-    "tokens": 792
+    "invariants": 1,
+    "tokens": 861
+  },
+  {
+    "component": "vat_schema",
+    "type": "schema",
+    "readiness": "ready",
+    "invariants": 1,
+    "tokens": 868
   },
   {
     "component": "orders_reader",
     "type": "reader",
     "readiness": "waiting for orders_schema",
-    "invariants": 0,
-    "tokens": 808
+    "invariants": 2,
+    "tokens": 1013
   },
   {
     "component": "vat_writer",
     "type": "writer",
-    "readiness": "ready",
-    "invariants": 1,
-    "tokens": 900
+    "readiness": "waiting for vat_schema",
+    "invariants": 2,
+    "tasks": {
+      "total": 2,
+      "done": 0,
+      "next": "T1"
+    },
+    "tokens": 1058
   },
   {
     "component": "my_pipeline_job",
     "type": "job",
     "readiness": "waiting for orders_reader, clean_orders, compute_vat, vat_writer",
-    "invariants": 0,
-    "tokens": 963
+    "invariants": 1,
+    "tokens": 1096
   },
   {
     "component": "my_pipeline_main",
     "type": "entrypoint",
     "readiness": "waiting for my_pipeline_job",
     "invariants": 0,
-    "tokens": 789
+    "tokens": 780
   }
 ]

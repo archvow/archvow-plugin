@@ -107,6 +107,19 @@ signature), which the AI or a developer will write. `changes` and `diff` have a 
 file of the project, then opened (`writeReport()`) - the preview shows `archvow changes --from ... --markdown >
 CHANGES.md`. The repository's first commit (`git rev-list --max-parents=0 HEAD`) is offered first for `--from`.
 
+**As a tree (0.24.1).** The Files block draws the files as a tree: each folder once, its children under it, the
+folders a path only passes through drawn too (`.archvow/` › `features/` › `orders/` › `components/` ›
+`create_order.vow`), the root files (`AGENTS.md`) beside `.archvow/`, never under a `./`. VS Code: `fileTree()`
+builds it, `filesBlock()` draws it as nested lists whose connectors are CSS, so they run on beside a note on
+several lines; IntelliJ: `ArchvowFilePlan.treeLines` and `ArchvowFilePlanView`, which paints those lines beside a
+note (`NoteLead`). Both give the same lines (`fileTreeLines()`, `scripts/root-files-regression.js` and
+`FilePlanRegression`). A check's location is compact (`src/sales/p2_io/` › `orders_reader.py`). The files table
+of forms.json names `{home}` (the feature a component is in), `{feature}`, `{member}` (each component of that
+feature: `feature rename`) and `{each_feature}` (`doc`), and a 4th item makes an entry conditional:
+`with:<field>`, `without:<field>`, `new-feature` (the first `component add` of a project makes its feature). The
+same tree shows **where** a feature is (its page: its vows, code and tests) and a component (its Spec view:
+`componentFiles()`, `ArchvowFilePlan.componentFiles`).
+
 ## The AI skills (0.16.0)
 
 After archvow's own groups, Commands has **AI skills** (`aiSkillsGroup()`, a `SkillNode` in IntelliJ's tree): the

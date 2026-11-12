@@ -65,9 +65,27 @@
       "tests": []
     },
     {
+      "item": "R2",
+      "kind": "rule",
+      "key": "R2",
+      "tests": []
+    },
+    {
       "item": "clean_orders.INV1",
       "kind": "invariant",
       "key": "CLEAN_ORDERS.INV1",
+      "tests": []
+    },
+    {
+      "item": "clean_orders.INV2",
+      "kind": "invariant",
+      "key": "CLEAN_ORDERS.INV2",
+      "tests": []
+    },
+    {
+      "item": "clean_orders.INV3",
+      "kind": "invariant",
+      "key": "CLEAN_ORDERS.INV3",
       "tests": []
     },
     {
@@ -109,7 +127,7 @@
       ],
       "scenario": "Feature: clean the orders\n  Scenario: an order with a negative amount is dropped\n    Given the orders A1 (5.00) and A2 (-3.00)\n    When clean_orders runs\n    Then only A1 is kept",
       "by": "architect@example.com",
-      "on": "2026-11-05"
+      "on": "2026-11-11"
     },
     {
       "name": "US-002-zero-amount-kept",
@@ -137,106 +155,126 @@
       ],
       "scenario": "Feature: clean the orders\n  Rule: clean_orders.INV1\n    Scenario: an order of 0.00 is kept\n      Given the orders A1 (5.00) and A3 (0.00, a free sample)\n      When clean_orders runs\n      Then A1 and A3 are both kept",
       "by": "architect@example.com",
-      "on": "2026-11-05"
+      "on": "2026-11-11"
     }
   ],
   "rule_texts": {
-    "clean_orders.INV1": "every input row with an order_id and amount >= 0 appears in the output"
+    "clean_orders.INV1": "every order_id of an input row with amount >= 0 appears in the output"
   },
   "status": "planned",
   "decisions": [
     {
       "number": 1,
-      "question": "Which rows does it keep (filter conditions), or all of them?",
+      "question": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
       "answer": "Rows where order_id is not null and amount >= 0",
-      "template": false,
+      "template": true,
       "suggested": null,
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 2,
-      "question": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+      "question": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
       "answer": "The schema columns, unchanged",
-      "template": false,
+      "template": true,
       "suggested": null,
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 3,
-      "question": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+      "question": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
       "answer": "No grouping",
-      "template": false,
+      "template": true,
       "suggested": null,
+      "choices": [
+        "No grouping",
+        "Group by (keys), with (aggregates)"
+      ],
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 4,
-      "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+      "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
       "answer": "No join",
-      "template": false,
+      "template": true,
       "suggested": null,
+      "choices": [
+        "No join",
+        "Join (dataset) on (keys), left join; no match: (what)"
+      ],
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 5,
-      "question": "Empty input: return an empty DataFrame with the output schema, or fail?",
+      "question": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
       "answer": "Return an empty DataFrame with the output schema",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "Return an empty DataFrame with the output schema",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 6,
-      "question": "Null values in key columns: drop, keep, or fail?",
+      "question": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
       "answer": "Drop rows with a null order_id",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "Stop the job with an error naming the column",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 7,
-      "question": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+      "question": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
       "answer": "Keep one row per order_id",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "Fail with an error naming the duplicated key",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 8,
-      "question": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+      "question": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
       "answer": "Drop rows where amount is negative",
-      "template": false,
+      "template": true,
       "suggested": null,
+      "choices": [
+        "Keep them",
+        "Replace them by the nearest limit",
+        "Drop the row",
+        "Stop the job, naming the value"
+      ],
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 9,
-      "question": "Extra input columns not in the schema: drop silently or fail?",
+      "question": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
       "answer": "Drop them: output only the schema columns",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "Drop them: select only the schema's columns",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     }
   ],
-  "rules": [],
+  "rules": [
+    {
+      "id": "R2",
+      "text": "Given an empty input, when it runs, then the output is empty",
+      "scope": "every transformation"
+    }
+  ],
   "missing": [],
   "columns": [],
   "declares_columns": false,
@@ -252,29 +290,39 @@
       "number": 1,
       "guide_word": "missing",
       "question": "Input missing, empty or late: what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "an absent, empty or late input is processed as if it were complete",
-        "invariant": "Return an empty DataFrame with the output schema (decision 5)",
-        "decision": {
-          "number": 5,
-          "answer": "Return an empty DataFrame with the output schema"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "clean_orders.H2",
+          "severity": "medium",
+          "description": "an absent, empty or late input is processed as if it were complete",
+          "suggested": true,
+          "prevented_by": []
         }
-      }
+      ]
     },
     {
       "number": 2,
       "guide_word": "more",
       "question": "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
-        "invariant": "Keep one row per order_id (decision 7)",
-        "decision": {
-          "number": 7,
-          "answer": "Keep one row per order_id"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "clean_orders.H3",
+          "severity": "high",
+          "description": "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "clean_orders.INV2",
+              "statement": "Keep one row per order_id (decision 7)",
+              "verify": "example_test",
+              "from_decision": 7,
+              "tested": false
+            }
+          ]
         }
-      }
+      ]
     },
     {
       "number": 3,
@@ -290,7 +338,7 @@
           "prevented_by": [
             {
               "id": "clean_orders.INV1",
-              "statement": "every input row with an order_id and amount >= 0 appears in the output",
+              "statement": "every order_id of an input row with amount >= 0 appears in the output",
               "verify": "property_test",
               "tested": false
             }
@@ -302,25 +350,31 @@
       "number": 4,
       "guide_word": "wrong",
       "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a null, negative or out-of-range value reaches the output",
-        "invariant": "Drop rows where amount is negative (decision 8)",
-        "decision": {
-          "number": 8,
-          "answer": "Drop rows where amount is negative"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "clean_orders.H4",
+          "severity": "high",
+          "description": "a null, negative or out-of-range value reaches the output",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "clean_orders.INV3",
+              "statement": "Drop rows where amount is negative (decision 8)",
+              "verify": "example_test",
+              "from_decision": 8,
+              "tested": false
+            }
+          ]
         }
-      }
+      ]
     },
     {
       "number": 5,
       "guide_word": "exposed",
       "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "personal or secret data is written where it must not be",
-        "invariant": "personal and secret columns never reach the output"
-      }
+      "status": "answered",
+      "dismissed": "no personal data: every column of orders_schema is classified none"
     }
   ],
   "assumptions": [],
@@ -333,28 +387,28 @@
         {
           "kind": "decision",
           "key": "1",
-          "text": "Which rows does it keep (filter conditions), or all of them?",
+          "text": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
           "answer": "Rows where order_id is not null and amount >= 0",
           "done": false
         },
         {
           "kind": "decision",
           "key": "2",
-          "text": "Which output columns does it produce, and how is each one computed (type, nullable)?",
+          "text": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
           "answer": "The schema columns, unchanged",
           "done": false
         },
         {
           "kind": "decision",
           "key": "3",
-          "text": "Does it group rows? By which keys, with which aggregates - or no grouping?",
+          "text": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
           "answer": "No grouping",
           "done": false
         },
         {
           "kind": "decision",
           "key": "4",
-          "text": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
+          "text": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
           "answer": "No join",
           "done": false
         }
@@ -369,40 +423,47 @@
         {
           "kind": "decision",
           "key": "5",
-          "text": "Empty input: return an empty DataFrame with the output schema, or fail?",
+          "text": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
           "answer": "Return an empty DataFrame with the output schema",
           "done": false
         },
         {
           "kind": "decision",
           "key": "6",
-          "text": "Null values in key columns: drop, keep, or fail?",
+          "text": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
           "answer": "Drop rows with a null order_id",
           "done": false
         },
         {
           "kind": "decision",
           "key": "7",
-          "text": "Duplicate keys in the input: keep first, keep last, aggregate, or fail?",
+          "text": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
           "answer": "Keep one row per order_id",
           "done": false
         },
         {
           "kind": "decision",
           "key": "8",
-          "text": "Negative or out-of-range values: keep, clamp, drop, or fail?",
+          "text": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
           "answer": "Drop rows where amount is negative",
           "done": false
         },
         {
           "kind": "decision",
           "key": "9",
-          "text": "Extra input columns not in the schema: drop silently or fail?",
+          "text": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
           "answer": "Drop them: output only the schema columns",
+          "done": false
+        },
+        {
+          "kind": "rule",
+          "key": "R2",
+          "text": "Given an empty input, when it runs, then the output is empty",
+          "answer": null,
           "done": false
         }
       ],
-      "summary": "decisions 5-9"
+      "summary": "decisions 5-9, rule R2"
     },
     {
       "task": "T3",
@@ -426,12 +487,26 @@
         {
           "kind": "invariant",
           "key": "clean_orders.INV1",
-          "text": "every input row with an order_id and amount >= 0 appears in the output",
+          "text": "every order_id of an input row with amount >= 0 appears in the output",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "invariant",
+          "key": "clean_orders.INV2",
+          "text": "Keep one row per order_id (decision 7)",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "invariant",
+          "key": "clean_orders.INV3",
+          "text": "Drop rows where amount is negative (decision 8)",
           "answer": null,
           "done": false
         }
       ],
-      "summary": "examples US-002-negative-amount, US-002-zero-amount-kept, clean_orders.INV1"
+      "summary": "examples US-002-negative-amount, US-002-zero-amount-kept, clean_orders.INV1, clean_orders.INV2, clean_orders.INV3"
     }
   ],
   "to_review": []

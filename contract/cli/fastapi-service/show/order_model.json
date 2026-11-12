@@ -46,11 +46,17 @@
       "tests": [
         "tests/p1_domain/test_order_model.py::test_a_valid_order"
       ]
+    },
+    {
+      "item": "order_model.INV1",
+      "kind": "invariant",
+      "key": "ORDER_MODEL.INV1",
+      "tests": []
     }
   ],
   "examples": [],
   "rule_texts": {},
-  "status": "tested",
+  "status": "verified",
   "decisions": [
     {
       "number": 1,
@@ -122,15 +128,24 @@
       "number": 1,
       "guide_word": "wrong",
       "question": "Wrong input (invalid values, out of range, an illegal state change): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "invalid input is accepted and saved",
-        "invariant": "amount >= 0 with 2 decimals; status pending, paid or cancelled (decision 2)",
-        "decision": {
-          "number": 2,
-          "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "order_model.H1",
+          "severity": "high",
+          "description": "invalid input is accepted and saved",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "order_model.INV1",
+              "statement": "amount >= 0 with 2 decimals; status pending, paid or cancelled (decision 2)",
+              "verify": "example_test",
+              "from_decision": 2,
+              "tested": true
+            }
+          ]
         }
-      }
+      ]
     },
     {
       "number": 2,

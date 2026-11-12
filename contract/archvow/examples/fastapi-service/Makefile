@@ -11,11 +11,10 @@ help:  ## list the commands
 install:  ## install the service and the development tools
 	$(PYTHON) -m pip install -r requirements.txt
 
-check:  ## what the Git hook runs: ruff, archvow check, specs up to date
+check:  ## what the Git hook runs: ruff, archvow check
 	ruff check .
 	ruff format --check .
 	archvow check
-	archvow docs --check
 
 test:  ## every test, with coverage and the reports CI keeps
 	$(PYTHON) -m pytest --cov=src --cov-report=term-missing --cov-report=xml --junitxml=test-results.xml

@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/fastapi-service@2.0.0`).
+(template `archvow/fastapi-service@2.0.1`).
 
 ## For developers
 
@@ -82,6 +82,7 @@ orders-api/
 ├── .gitlab-ci.yml                      CI: guards and tests
 ├── .gitlab/CODEOWNERS                  the architects approve the spec and the guards
 ├── .githooks/pre-commit                checks before every commit
+├── Makefile                            make run, make check, make test... (make help)
 ├── pyproject.toml                      the package, what it needs at run time, the test settings
 ├── README.md
 ├── requirements.txt                    development tools

@@ -2,10 +2,24 @@
   "contract": "2.0",
   "component": "vat_writer",
   "type": "writer",
+  "kind": "files",
   "layer": "p2_io",
-  "known_columns": [],
+  "known_columns": [
+    {
+      "component": "vat_schema",
+      "columns": [
+        "amount",
+        "customer_id",
+        "order_date",
+        "order_id",
+        "vat"
+      ]
+    }
+  ],
   "description": "Write the orders with their VAT as parquet",
-  "uses": [],
+  "uses": [
+    "vat_schema"
+  ],
   "used_by": [
     "my_pipeline_job"
   ],
@@ -45,6 +59,12 @@
       "kind": "invariant",
       "key": "VAT_WRITER.INV1",
       "tests": []
+    },
+    {
+      "item": "vat_writer.INV2",
+      "kind": "invariant",
+      "key": "VAT_WRITER.INV2",
+      "tests": []
     }
   ],
   "examples": [],
@@ -53,59 +73,76 @@
   "decisions": [
     {
       "number": 1,
-      "question": "Output already exists: overwrite, append, or fail?",
+      "question": "Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?",
       "answer": "Overwrite",
-      "template": false,
+      "template": true,
       "suggested": null,
+      "choices": [
+        "Overwrite",
+        "Append",
+        "Fail"
+      ],
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 2,
-      "question": "A failure mid-write: how is a partial output prevented or detected?",
+      "question": "If the job fails while writing (e.g. it stops after 3 of 10 files), how do readers avoid a half-written output: write to a temporary folder then rename, a _SUCCESS file, or a table transaction?",
       "answer": "Write to a temporary folder next to the output, then rename it",
-      "template": false,
+      "template": true,
       "suggested": null,
+      "choices": [
+        "Temporary folder, then rename",
+        "A _SUCCESS file readers wait for",
+        "One transaction (table format)"
+      ],
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 3,
-      "question": "Re-running the same input: must the output be identical (idempotent)?",
+      "question": "If the job runs again on the same input (e.g. a re-run after a failure), must the output be exactly the same, with no duplicated rows?",
       "answer": "Yes: the same input gives the same output",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "Yes: the same output, no duplicated rows",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 4,
-      "question": "Partitioning columns and file format?",
+      "question": "How is the output stored: which file format (parquet, csv...), and is it split into folders by a column (e.g. date=2026-10-12) or not?",
       "answer": "Parquet, not partitioned",
-      "template": false,
+      "template": true,
       "suggested": null,
+      "choices": [
+        "Parquet, not split",
+        "Parquet, split by the run date",
+        "CSV with a header, not split"
+      ],
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 5,
-      "question": "Does it write a table? Which one, created by which script ddl/NNN_<table>.sql (tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`; the job never creates them) - or files at a path, no table?",
-      "answer": "No table: parquet files at the output path",
-      "template": false,
+      "question": "Does an approved shared library already write these files (e.g. acme_io.write_parquet, listed in requirements.txt)? Then the code calls it - which function - instead of writing them with Spark.",
+      "answer": "No: Spark writes them itself",
+      "template": true,
       "suggested": null,
+      "choices": [
+        "No: Spark writes it itself",
+        "Yes: it calls the library's function (name it)"
+      ],
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     }
   ],
   "rules": [],
-  "missing": [
-    "schema"
-  ],
+  "missing": [],
   "columns": [],
   "declares_columns": false,
   "personal": {
@@ -142,28 +179,100 @@
       "number": 2,
       "guide_word": "repeated",
       "question": "Run twice (a re-run or a retry): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a re-run gives a different or duplicated result",
-        "invariant": "Yes: the same input gives the same output (decision 3)",
-        "decision": {
-          "number": 3,
-          "answer": "Yes: the same input gives the same output"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "vat_writer.H2",
+          "severity": "high",
+          "description": "a re-run gives a different or duplicated result",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "vat_writer.INV2",
+              "statement": "Yes: the same input gives the same output (decision 3)",
+              "verify": "example_test",
+              "from_decision": 3,
+              "tested": false
+            }
+          ]
         }
-      }
+      ]
     },
     {
       "number": 3,
       "guide_word": "exposed",
       "question": "Data exposed (personal or secret data written where it must not be): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "personal or secret data is written where it must not be",
-        "invariant": "personal and secret columns never reach the output"
-      }
+      "status": "answered",
+      "dismissed": "no personal data: every column of vat_schema is classified none"
     }
   ],
   "assumptions": [],
-  "tasks": [],
+  "tasks": [
+    {
+      "task": "T1",
+      "core": true,
+      "done": false,
+      "items": [
+        {
+          "kind": "decision",
+          "key": "1",
+          "text": "Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?",
+          "answer": "Overwrite",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "2",
+          "text": "If the job fails while writing (e.g. it stops after 3 of 10 files), how do readers avoid a half-written output: write to a temporary folder then rename, a _SUCCESS file, or a table transaction?",
+          "answer": "Write to a temporary folder next to the output, then rename it",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "3",
+          "text": "If the job runs again on the same input (e.g. a re-run after a failure), must the output be exactly the same, with no duplicated rows?",
+          "answer": "Yes: the same input gives the same output",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "4",
+          "text": "How is the output stored: which file format (parquet, csv...), and is it split into folders by a column (e.g. date=2026-10-12) or not?",
+          "answer": "Parquet, not partitioned",
+          "done": false
+        },
+        {
+          "kind": "decision",
+          "key": "5",
+          "text": "Does an approved shared library already write these files (e.g. acme_io.write_parquet, listed in requirements.txt)? Then the code calls it - which function - instead of writing them with Spark.",
+          "answer": "No: Spark writes them itself",
+          "done": false
+        }
+      ],
+      "summary": "the file and its public API, decisions 1-5"
+    },
+    {
+      "task": "T2",
+      "core": false,
+      "done": false,
+      "items": [
+        {
+          "kind": "invariant",
+          "key": "vat_writer.INV1",
+          "text": "the output folder is complete or absent",
+          "answer": null,
+          "done": false
+        },
+        {
+          "kind": "invariant",
+          "key": "vat_writer.INV2",
+          "text": "Yes: the same input gives the same output (decision 3)",
+          "answer": null,
+          "done": false
+        }
+      ],
+      "summary": "vat_writer.INV1, vat_writer.INV2"
+    }
+  ],
   "to_review": []
 }

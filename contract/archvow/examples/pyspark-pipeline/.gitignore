@@ -1,5 +1,5 @@
-# archvow: local status report, depends on the code (regenerate: archvow docs)
-.archvow/status.md
+# archvow: the spec to read and the local status (archvow doc writes them; never committed)
+.archvow/doc/
 
 # Python
 __pycache__/
@@ -35,7 +35,3 @@ derby.log
 
 # archvow: what each business example's test really gave at its last run (local)
 tests/examples/*/*/actual/
-
-# --- added by archvow init ---
-# archvow: the spec to read and the local status (archvow doc writes them; never committed)
-.archvow/doc/

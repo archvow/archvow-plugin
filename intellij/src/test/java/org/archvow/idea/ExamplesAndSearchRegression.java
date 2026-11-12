@@ -41,7 +41,7 @@ public final class ExamplesAndSearchRegression {
         JsonObject clean = JsonParser.parseString(read(contract.resolve("cli/pyspark-pipeline/show/clean_orders.json"))).getAsJsonObject();
         check(new ArrayList<>(ArchvowExamples.groups(clean).keySet()).equals(List.of("clean_orders.INV1", "")), "groups " + ArchvowExamples.groups(clean).keySet());
         ArchvowItemCards.Card card = ArchvowExamples.card(clean, ArchvowExamples.ordered(clean).get(0), false);
-        check(card.number().equals("○") && card.open() && card.by().startsWith("clean_orders.INV1 - every input row"), "card " + card);
+        check(card.number().equals("○") && card.open() && card.by().startsWith("clean_orders.INV1 - every order_id of an input row"), "card " + card);
         check(ArchvowExamples.testFile(failing, "US-001-pay-a-sent-invoice").equals("tests/p4_entrypoints/test_invoices_cli.py"), "test file");
         // the detail: the files side by side, the differences marked, what to do
         String detail = ArchvowExamples.detailHtml(failing, ArchvowGrammar.objects(failing, "examples").get(0), false);

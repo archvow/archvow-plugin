@@ -10,7 +10,7 @@ les plugins doivent suivre**. Il est enregistré depuis une vraie CLI archvow, j
 
 | Dossier ou fichier | Quoi | Écrit par | Lu par |
 |---|---|---|---|
-| `contract/cli/version.txt` | `archvow --version` (aujourd'hui `archvow 2.0.0`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()` : l'archvow avec lequel le plugin est testé et qu'il installe |
+| `contract/cli/version.txt` | `archvow --version` (aujourd'hui `archvow 2.0.1`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()` : l'archvow avec lequel le plugin est testé et qu'il installe |
 | `contract/cli/contract.txt` (0.20.0) | le numéro de contrat de `archvow version --json` (MAJEURE.MINEURE, aujourd'hui `1.1` : 1.0 plus `workspace`) | `regenerate.py` | `ArchvowVersion.CONTRACT`, `contractWarning()` : le contrat que le plugin parle |
 | `contract/cli/errors/` (0.20.0) | trois commandes qui échouent, telles que les plugins les reçoivent (`ARCHVOW_LOG=info`) : `no-spec`, `refused` (l'enveloppe d'erreur sur stdout, le message et les lignes de journal d'archvow sur stderr), `usage` (un refus d'argparse : pas d'enveloppe) | `regenerate.py` (`errors()`) | `cli.test.ts`, `OutputRegression` |
 | `contract/cli/commands.json` | chaque commande et ses paramètres, tirés du parseur argparse d'archvow | `contract/tools/export_grammar.py` | `ArchvowGrammar`, `vscode/src/grammar.ts` : les formulaires de Commands |
@@ -74,14 +74,14 @@ Ce qu'il faut ensuite regarder dans le diff :
 
 ## La version d'archvow et le contrat (0.20.0)
 
-archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "2.0", "archvow": "2.0.0",
+archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "2.0", "archvow": "2.0.1",
 ...}`, et chaque objet `--json` commence par `"contract"`. `ArchvowVersion.warning` et `contractWarning()`
 le comparent à `contract.txt` : même MAJEURE et une MINEURE au moins celle du plugin, rien ; une plus
 ancienne, ou un archvow qui ne dit pas de contrat (avant 1.23 : il n'a pas de commande `version`, son
 `--version` donne le numéro), « plus ancien : mets archvow à jour » ; une MAJEURE plus récente, « plus
 récent : mets le plugin à jour ». Une version d'archvow qui garde le contrat ne demande donc pas de
 nouvelle version du plugin, et archvow ne garde toujours pas de compatibilité ascendante : c'est le numéro
-de contrat qui le dit. L'installation met exactement l'archvow testé (`archvow==2.0.0`).
+de contrat qui le dit. L'installation met exactement l'archvow testé (`archvow==2.0.1`).
 
 Le contrat 1.1 (archvow 1.25, plugin 0.21.0) ajoute `archvow workspace --json` : ce que les plugins
 chargent, en un seul processus (`readWorkspace()` dans `model.ts`, `WorkspaceAnswer` dans IntelliJ, tous

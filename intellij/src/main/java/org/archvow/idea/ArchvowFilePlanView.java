@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Native Swing equivalent of VS Code's filesBlock: a folder icon on each directory,
- * a document/folder icon on each item, its change status and optional note.
+ * Native Swing equivalent of VS Code's filesBlock (0.24.1): the files as a tree - each folder once, its children
+ * under it with ├── └── │ guides ({@link ArchvowFilePlan#treeLines}), a document/folder icon on each item, its
+ * change status and optional note.
  * The drawings come from the shared icons.json (via ArchvowTreeIcons), so their
  * stroke and colour follow IntelliJ's active light or dark theme.
  */
@@ -32,57 +33,60 @@ final class ArchvowFilePlanView extends JPanel {
     }
 
     void showRows(List<ArchvowFilePlan.Row> rows, boolean fr) {
+        showRows(rows, fr, null);
+    }
+
+    /** {@code heading}: the title over the files (null: "Files"). */
+    void showRows(List<ArchvowFilePlan.Row> rows, boolean fr, String title) {
         removeAll();
         for (boolean planned : new boolean[]{false, true}) {
             List<ArchvowFilePlan.Row> part = new ArrayList<>();
             for (ArchvowFilePlan.Row row : rows)
                 if ("planned".equals(row.change()) == planned) part.add(row);
             if (part.isEmpty()) continue;
-            String heading = planned
+            String text = planned
                 ? (fr ? "Prévus - écrits plus tard par l'IA ou un développeur (archvow n'écrit jamais de code)"
                       : "Planned - written later by the AI or a developer (archvow never writes code)")
-                : (fr ? "Fichiers" : "Files");
-            ArchvowWrapLabel head = wrapped(heading, muted(), false);
+                : title != null ? title : (fr ? "Fichiers" : "Files");
+            ArchvowWrapLabel head = wrapped(text, muted(), false);
             head.setBorder(BorderFactory.createEmptyBorder(6, 0, 2, 0));
             add(head);
-            String folder = null;
-            for (ArchvowFilePlan.Row row : part) {
-                String path = row.path();
-                boolean isDir = path.endsWith("/");
-                int cut = isDir ? path.substring(0, path.length() - 1).lastIndexOf('/') : path.lastIndexOf('/');
-                String dir = cut >= 0 ? path.substring(0, cut + 1) : "";
-                String leaf = cut >= 0 ? path.substring(cut + 1) : path;
-                if (!dir.equals(folder)) {
-                    // Root files live beside folders, not inside a synthetic "./" directory.
-                    if (!dir.isEmpty()) add(folderLine(dir));
-                    folder = dir;
-                }
+            boolean compact = part.stream().allMatch(r -> "location".equals(r.change()));
+            for (ArchvowFilePlan.TreeLine line : ArchvowFilePlan.treeLines(part, compact)) {
+                ArchvowFilePlan.Row row = line.row();
                 JPanel file = new JPanel();
                 file.setLayout(new BoxLayout(file, BoxLayout.X_AXIS));
                 file.setOpaque(false);
                 file.setAlignmentX(LEFT_ALIGNMENT);
-                file.setBorder(BorderFactory.createEmptyBorder(1, dir.isEmpty() ? 0 : 14, 0, 0));
+                file.setBorder(BorderFactory.createEmptyBorder(1, 0, 0, 0));
+                file.add(guide(line.guide()));
                 // VS Code renders file names as code chips, distinct from the muted description below.
                 // Keep the icon OUTSIDE the chip, as in its filesBlock tree.
-                JLabel icon = iconLabel(isDir ? "folder" : "document", "", false);
+                JLabel icon = iconLabel(line.dir() ? "folder" : "document", row == null ? line.name() : "", false);
+                if (row == null) icon.setForeground(muted());  // a folder only passed through: no badge
                 file.add(icon);
                 file.add(Box.createHorizontalStrut(5));
-                JLabel name = fileName(leaf);
-                file.add(name);
-                file.add(Box.createHorizontalStrut(5));
-                String statusText = "location".equals(row.change()) ? row.note()
-                    : (fr ? FR : EN).getOrDefault(row.change(), row.change());
-                if (!statusText.isBlank()) {
-                    JLabel status = new JLabel(statusText);
-                    status.putClientProperty("html.disable", Boolean.TRUE);
-                    status.setForeground(changeColor(row.change()));
-                    file.add(status);
+                if (row != null) {
+                    file.add(fileName(line.name()));
+                    file.add(Box.createHorizontalStrut(5));
+                    String statusText = "location".equals(row.change()) ? row.note()
+                        : (fr ? FR : EN).getOrDefault(row.change(), "");  // "here": a file that exists, no badge
+                    if (!statusText.isBlank()) {
+                        JLabel status = new JLabel(statusText);
+                        status.putClientProperty("html.disable", Boolean.TRUE);
+                        status.setForeground(changeColor(row.change()));
+                        file.add(status);
+                    }
                 }
                 file.add(Box.createHorizontalGlue());
                 add(file);
-                if (!"location".equals(row.change()) && !row.note().isBlank()) {
-                    ArchvowWrapLabel note = wrapped(row.note(), muted(), true);
-                    note.setBorder(BorderFactory.createEmptyBorder(1, dir.isEmpty() ? 24 : 38, 2, 0));
+                if (row != null && !"location".equals(row.change()) && !row.note().isBlank()) {
+                    JPanel note = new JPanel(new BorderLayout());
+                    note.setOpaque(false);
+                    note.setAlignmentX(LEFT_ALIGNMENT);
+                    note.add(new NoteLead(line.noteGuide(), line.stem(), ArchvowTreeIcons.icon("folder", null).getIconWidth() + 11), BorderLayout.WEST);
+                    note.add(wrapped(row.note(), muted(), true), BorderLayout.CENTER);
+                    note.setBorder(BorderFactory.createEmptyBorder(0, 0, 2, 0));
                     add(note);
                 }
             }
@@ -92,15 +96,51 @@ final class ArchvowFilePlanView extends JPanel {
         repaint();
     }
 
-    private static JPanel folderLine(String path) {
-        JPanel line = new JPanel(new BorderLayout());
-        line.setOpaque(false);
-        line.setAlignmentX(LEFT_ALIGNMENT);
-        line.setBorder(BorderFactory.createEmptyBorder(1, 0, 0, 0));
-        JLabel label = iconLabel("folder", path, false);
+    /**
+     * Beside a note: the vertical lines of the tree (each "│" of its guide, and of its stem when the item has
+     * children) painted over the note's whole height, so they run on when the note wraps over several lines.
+     */
+    static final class NoteLead extends JComponent {
+        final String guide;
+        final String stem;
+        private final int stemWidth;
+
+        NoteLead(String guide, String stem, int stemWidth) {
+            this.guide = guide;
+            this.stem = stem;
+            this.stemWidth = stemWidth;
+            setFont(new Font(Font.MONOSPACED, Font.PLAIN, UIManager.getFont("Label.font") == null ? 12 : UIManager.getFont("Label.font").getSize()));
+            setOpaque(false);
+        }
+
+        private int cell() { return getFontMetrics(getFont()).charWidth('m'); }
+
+        @Override public Dimension getPreferredSize() {
+            return new Dimension(cell() * guide.length() + stemWidth, getFontMetrics(getFont()).getHeight());
+        }
+
+        @Override protected void paintComponent(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            try {
+                g.setColor(muted());
+                int cell = cell();
+                for (int i = 0; i < guide.length(); i++)
+                    if (guide.charAt(i) == '│') g.drawLine(i * cell + cell / 2, 0, i * cell + cell / 2, getHeight());
+                if (!stem.isEmpty()) g.drawLine(guide.length() * cell + cell / 2, 0, guide.length() * cell + cell / 2, getHeight());
+            } finally {
+                g.dispose();
+            }
+        }
+    }
+
+    /** The ├── └── │ guide of a line, in a monospaced muted font so the columns line up. */
+    private static JLabel guide(String text) {
+        JLabel label = new JLabel(text);
+        label.putClientProperty("html.disable", Boolean.TRUE);
+        label.setFont(new Font(Font.MONOSPACED, Font.PLAIN, label.getFont().getSize()));
         label.setForeground(muted());
-        line.add(label, BorderLayout.WEST);
-        return line;
+        label.setName("archvow.tree-guide");
+        return label;
     }
 
     private static JLabel iconLabel(String kind, String text, boolean code) {

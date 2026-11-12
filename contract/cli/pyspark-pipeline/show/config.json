@@ -4,7 +4,7 @@
   "type": "foundation",
   "layer": "p0_common",
   "known_columns": [],
-  "description": "Immutable job configuration passed from entry points to jobs.",
+  "description": "The job's own parameters (paths, run date, options), given by the entry point to the job.",
   "uses": [],
   "used_by": [],
   "evidence": [
@@ -27,22 +27,22 @@
   "decisions": [
     {
       "number": 1,
-      "question": "Which fields does JobConfig hold (name: type, required or default value)?",
-      "answer": "input_path: str and output_path: str, both required; a frozen dataclass",
-      "template": false,
+      "question": "The job's parameters, name: type = default separated by commas (no default = required) - e.g. input_path: str, run_date: date, output_format: str = \"parquet\" - or none?",
+      "answer": "input_path: str, output_path: str",
+      "template": true,
       "suggested": null,
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 2,
-      "question": "What happens when a value is missing or invalid (which exception, raised where)?",
+      "question": "What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?",
       "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "ConfigError naming the value, raised when JobConfig is built; the entry point exits with code 2",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     }
   ],

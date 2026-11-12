@@ -149,6 +149,112 @@ final class ArchvowFilePlan {
         return "";
     }
 
+    /** One line of the Files tree: its guide (├── └── │), its name (a folder ends with /), the row it shows (null:
+     *  a folder only passed through), and for its note the guide below it and the stem ("│" when it has children). */
+    record TreeLine(String guide, String name, boolean dir, Row row, String noteGuide, String stem) { }
+
+    private static final class TreeNode {
+        final String name;
+        final boolean dir;
+        Row row;
+        final LinkedHashMap<String, TreeNode> children = new LinkedHashMap<>();
+        TreeNode(String name, boolean dir) { this.name = name; this.dir = dir; }
+    }
+
+    /**
+     * The files as a tree (0.24.1), as workspace.js's fileTreeLines(): each folder once, its children under it, the
+     * folders a path passes through drawn too, root files beside .archvow/. {@code compact} (a check's location): a
+     * chain of folders that only lead to the next one is one line.
+     */
+    static List<TreeLine> treeLines(List<Row> rows, boolean compact) {
+        TreeNode root = new TreeNode("", true);
+        for (Row r : rows) {
+            String path = r.path();
+            boolean isDir = path.endsWith("/");
+            List<String> segs = new ArrayList<>(List.of(path.replaceAll("/+$", "").split("/", -1)));
+            if (segs.size() > 1 && segs.get(0).isEmpty()) { segs.set(1, "/" + segs.get(1)); segs.remove(0); }
+            TreeNode cur = root;
+            for (int i = 0; i < segs.size(); i++) {
+                boolean last = i == segs.size() - 1;
+                boolean dir = !last || isDir;
+                String key = segs.get(i) + (dir ? "/" : "");
+                TreeNode next = cur.children.get(key);
+                if (next == null) { next = new TreeNode(key, dir); cur.children.put(key, next); }
+                cur = next;
+                if (last) cur.row = r;
+            }
+        }
+        if (compact) squash(root);
+        List<TreeLine> out = new ArrayList<>();
+        walk(root, "", 0, out);
+        return out;
+    }
+
+    private static void squash(TreeNode node) {
+        for (Map.Entry<String, TreeNode> e : new ArrayList<>(node.children.entrySet())) {
+            TreeNode c = e.getValue();
+            while (c.dir && c.row == null && c.children.size() == 1 && c.children.values().iterator().next().dir) {
+                TreeNode only = c.children.values().iterator().next();
+                TreeNode merged = new TreeNode(c.name + only.name, true);
+                merged.row = only.row;
+                merged.children.putAll(only.children);
+                c = merged;
+            }
+            node.children.put(e.getKey(), c);
+            squash(c);
+        }
+    }
+
+    private static void walk(TreeNode node, String prefix, int depth, List<TreeLine> out) {
+        List<TreeNode> kids = new ArrayList<>(node.children.values());
+        for (int i = 0; i < kids.size(); i++) {
+            TreeNode k = kids.get(i);
+            boolean last = i == kids.size() - 1;
+            String guide = depth == 0 ? "" : prefix + (last ? "└── " : "├── ");
+            String below = depth == 0 ? "" : prefix + (last ? "    " : "│   ");
+            out.add(new TreeLine(guide, k.name, k.dir, k.row, below, k.children.isEmpty() ? "" : "│"));
+            walk(k, below, depth + 1, out);
+        }
+    }
+
+    /** Where a component is (0.24.1), as archvow says it: its vow in its feature, its code, its test - rows "here" (no
+     *  badge) of the Files tree. As workspace.js's componentFiles(). */
+    static List<Row> componentFiles(JsonObject spec, String id, boolean fr) {
+        List<Row> rows = new ArrayList<>();
+        for (Placed p : components(spec)) {
+            if (!str(p.comp(), "id").equals(id)) continue;
+            String feature = str(p.comp(), "feature");
+            if (!feature.isEmpty()) rows.add(new Row("here", ".archvow/features/" + feature + "/components/" + id + ".vow", fr ? "son vow : la spec" : "its vow: the spec"));
+            String code = sourcePath(p.container(), p.comp());
+            if (!code.isEmpty()) rows.add(new Row("here", code, fr ? "son code" : "its code"));
+            rows.add(new Row("here", testPath(p.comp()), fr ? "son test" : "its test"));
+            break;
+        }
+        return rows;
+    }
+
+    private static final int MAX_EACH = 6;
+
+    /** Whether an entry of the files table applies (its 4th item): {@code with:<field>}, {@code without:<field>},
+     *  {@code new-feature} (component add makes a feature: the project has none yet). As filePlan.ts's holds(). */
+    private static boolean holds(String condition, String name, Map<String, String> values, JsonObject spec) {
+        if (condition.isEmpty()) return true;
+        String[] parts = condition.split(":", 2);
+        String field = parts.length > 1 ? parts[1] : "";
+        return switch (parts[0]) {
+            case "with" -> !value(values, field).isEmpty();
+            case "without" -> value(values, field).isEmpty();
+            case "new-feature" -> {
+                String feature = !value(values, "feature").isEmpty() ? value(values, "feature")
+                    : "component add".equals(name) ? defaultFeature(spec) : "";
+                boolean known = false;
+                for (JsonObject f : objects(spec, "features")) if (str(f, "name").equals(feature)) known = true;
+                yield !feature.isEmpty() && !known;
+            }
+            default -> true;
+        };
+    }
+
     /** The rows of the Files block for a command and what its form holds now. */
     static List<Row> plan(String name, Map<String, String> values, JsonObject spec, JsonObject catalog, JsonObject forms,
                           boolean fr, boolean outputExists) {
@@ -165,6 +271,8 @@ final class ArchvowFilePlan {
             JsonArray entry = raw.getAsJsonArray();
             String change = entry.get(0).getAsString();
             String pattern = entry.size() > 1 && !entry.get(1).isJsonNull() ? entry.get(1).getAsString() : "";
+            String condition = entry.size() > 3 && entry.get(3).isJsonPrimitive() ? entry.get(3).getAsString() : "";
+            if (!holds(condition, name, values, spec)) continue;
             String note = "";
             if (entry.size() > 2 && entry.get(2).isJsonArray()) {
                 JsonArray pair = entry.get(2).getAsJsonArray();
@@ -197,10 +305,27 @@ final class ArchvowFilePlan {
                 if ((pattern.contains("{home}") && home.isEmpty()) || (pattern.contains("{feature}") && feature.isEmpty())) continue;
                 if (pattern.contains("{name}") && value(values, "name").isEmpty()) continue;
                 if (pattern.contains("{pack}") && value(values, "pack").isEmpty()) continue;
-                paths.add(pattern.replace("{new}", id).replace("{component}", id).replace("{name}", value(values, "name"))
+                String one = pattern.replace("{new}", id).replace("{component}", id).replace("{name}", value(values, "name"))
                     .replace("{home}", home).replace("{feature}", feature)
                     .replace("{dir}", packFolder(value(values, "dir"), true))
-                    .replace("{pack}", packFolder(value(values, "pack"), false)));
+                    .replace("{pack}", packFolder(value(values, "pack"), false));
+                // {member}: each component of the form's feature; {each_feature}: each feature of the project
+                List<String> each = null;
+                if (one.contains("{member}")) {
+                    each = new ArrayList<>();
+                    for (Placed p : components(spec)) if (str(p.comp(), "feature").equals(feature)) each.add(str(p.comp(), "id"));
+                } else if (one.contains("{each_feature}")) {
+                    each = new ArrayList<>();
+                    for (JsonObject f : objects(spec, "features")) each.add(str(f, "name"));
+                }
+                if (each == null) paths.add(one);
+                else {
+                    for (String x : each.subList(0, Math.min(MAX_EACH, each.size()))) paths.add(one.replace("{member}", x).replace("{each_feature}", x));
+                    if (each.size() > MAX_EACH) {
+                        int more = each.size() - MAX_EACH;
+                        note = (note.isEmpty() ? "" : note + " - ") + (fr ? "et " + more + " autres" : "and " + more + " more");
+                    }
+                }
             }
             for (String p : paths) {
                 String action = "init".equals(name) && "true".equals(values.get("force"))

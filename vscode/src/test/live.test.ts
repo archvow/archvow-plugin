@@ -43,11 +43,24 @@ function portable(templates: { source?: string }[] | undefined): void {
   }
 }
 
-/** An example of archvow's source, code included, copied to a new folder (as regenerate.py does). */
-function example(name: string): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), `archvow-exact-${name}-`));
-  fs.cpSync(path.join(SOURCE, 'examples', name), path.join(root, name), { recursive: true });
-  return path.join(root, name);
+/** An example of archvow's source, copied to a new folder as regenerate.py records it: code included, or - with a
+ * spec-phase.json (archvow 2.0.1's finished pyspark example) - without its code and with the same commands run. */
+async function example(name: string): Promise<string> {
+  const root = path.join(fs.mkdtempSync(path.join(os.tmpdir(), `archvow-exact-${name}-`)), name);
+  fs.cpSync(path.join(SOURCE, 'examples', name), root, { recursive: true });
+  const phase = path.join(CONTRACT, 'cli', name, 'spec-phase.json');
+  if (fs.existsSync(phase)) {
+    fs.rmSync(path.join(root, 'src'), { recursive: true, force: true });
+    for (const entry of fs.readdirSync(path.join(root, 'tests'))) {
+      if (entry !== 'examples') fs.rmSync(path.join(root, 'tests', entry), { recursive: true, force: true });
+    }
+    const cli = new ArchvowCli(root, settings);
+    for (const command of (JSON.parse(fs.readFileSync(phase, 'utf8')) as { commands: string[][] }).commands) {
+      const result = await cli.run(command);
+      assert.equal(result.exitCode, 0, `${command.join(' ')}: ${result.stderr}`);
+    }
+  }
+  return root;
 }
 
 /** A project made of an example's vows only (the code is not in the contract), in a new folder. */
@@ -96,7 +109,7 @@ test('live: catalog --json outside a project is the recorded catalog (the init w
 
 for (const name of EXAMPLES) {
   test(`live: ${name}, with its code: show, show <component>, next and check are exactly the contract`, { skip: skipExact }, async () => {
-    const cli = new ArchvowCli(example(name), settings);
+    const cli = new ArchvowCli(await example(name), settings);
     const { data: spec } = await cli.json<Spec>(['show', '--json']);
     assert.deepEqual(spec, recorded(name, 'show.json'));
     for (const id of spec.containers.flatMap((c) => c.components.map((x) => x.id))) {

@@ -32,6 +32,12 @@
       "kind": "decision",
       "key": "3",
       "tests": []
+    },
+    {
+      "item": "my_pipeline_job.INV1",
+      "kind": "invariant",
+      "key": "MY_PIPELINE_JOB.INV1",
+      "tests": []
     }
   ],
   "examples": [],
@@ -40,32 +46,36 @@
   "decisions": [
     {
       "number": 1,
-      "question": "One input is missing: skip the run, fail, or run with partial data?",
+      "question": "If one of its inputs is missing (e.g. the refunds file was not delivered): stop with an error, skip this run (nothing written), or continue without it?",
       "answer": "Fail",
-      "template": false,
-      "suggested": null,
+      "template": true,
+      "suggested": "Stop with an error naming the missing input",
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 2,
-      "question": "Retries: how many, and is a retry safe?",
+      "question": "If a run fails, is it retried automatically, how many times, and can a retry run after a half-finished run without duplicating data - e.g. 2 retries 10 minutes apart, the output is overwritten?",
       "answer": "No automatic retry; a re-run is safe (the writer overwrites)",
-      "template": false,
+      "template": true,
       "suggested": null,
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 3,
-      "question": "Which run date / partition does the job process, and who decides it?",
+      "question": "Which date does one run process (e.g. yesterday's data), and where does that date come from: an argument from the scheduler, or computed by the job?",
       "answer": "No run date: the job processes the input it is given",
-      "template": false,
+      "template": true,
       "suggested": null,
+      "choices": [
+        "The --run-date argument from the scheduler",
+        "Yesterday, computed by the job"
+      ],
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     }
   ],
@@ -85,43 +95,54 @@
       "number": 1,
       "guide_word": "missing",
       "question": "Input missing, empty or late: what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "an absent, empty or late input is processed as if it were complete",
-        "invariant": "Fail (decision 1)",
-        "decision": {
-          "number": 1,
-          "answer": "Fail"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "my_pipeline_job.H1",
+          "severity": "high",
+          "description": "an absent, empty or late input is processed as if it were complete",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "my_pipeline_job.INV1",
+              "statement": "Fail (decision 1)",
+              "verify": "example_test",
+              "from_decision": 1,
+              "tested": false
+            }
+          ]
         }
-      }
+      ]
     },
     {
       "number": 2,
       "guide_word": "repeated",
       "question": "Run twice (a re-run or a retry): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a re-run gives a different or duplicated result",
-        "invariant": "No automatic retry; a re-run is safe (the writer overwrites) (decision 2)",
-        "decision": {
-          "number": 2,
-          "answer": "No automatic retry; a re-run is safe (the writer overwrites)"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "my_pipeline_job.H2",
+          "severity": "medium",
+          "description": "a re-run gives a different or duplicated result",
+          "suggested": true,
+          "prevented_by": []
         }
-      }
+      ]
     },
     {
       "number": 3,
       "guide_word": "stale",
       "question": "Old data treated as today's (the job reads the wrong date): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "old data is processed as if it were current",
-        "invariant": "No run date: the job processes the input it is given (decision 3)",
-        "decision": {
-          "number": 3,
-          "answer": "No run date: the job processes the input it is given"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "my_pipeline_job.H3",
+          "severity": "medium",
+          "description": "old data is processed as if it were current",
+          "suggested": true,
+          "prevented_by": []
         }
-      }
+      ]
     }
   ],
   "assumptions": [],

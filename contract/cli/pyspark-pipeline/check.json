@@ -2,13 +2,13 @@
   "contract": "2.0",
   "ok": true,
   "errors": 0,
-  "warnings": 20,
+  "warnings": 5,
   "violations": [
     {
       "code": "ARCH035",
       "severity": "warning",
-      "message": "'my_pipeline_main': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show my_pipeline_main",
-      "file": ".archvow/features/shared/components/my_pipeline_main.vow",
+      "message": "'order_totals': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show order_totals",
+      "file": ".archvow/features/vat_report/components/order_totals.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -22,9 +22,9 @@
         "command": {
           "name": "show",
           "values": {
-            "component": "my_pipeline_main"
+            "component": "order_totals"
           },
-          "text": "archvow show my_pipeline_main",
+          "text": "archvow show order_totals",
           "missing": [],
           "readOnly": true
         },
@@ -34,8 +34,8 @@
     {
       "code": "ARCH035",
       "severity": "warning",
-      "message": "'clean_orders': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show clean_orders",
-      "file": ".archvow/features/vat_report/components/clean_orders.vow",
+      "message": "'order_totals': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show order_totals",
+      "file": ".archvow/features/vat_report/components/order_totals.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -49,9 +49,9 @@
         "command": {
           "name": "show",
           "values": {
-            "component": "clean_orders"
+            "component": "order_totals"
           },
-          "text": "archvow show clean_orders",
+          "text": "archvow show order_totals",
           "missing": [],
           "readOnly": true
         },
@@ -61,8 +61,8 @@
     {
       "code": "ARCH035",
       "severity": "warning",
-      "message": "'clean_orders': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show clean_orders",
-      "file": ".archvow/features/vat_report/components/clean_orders.vow",
+      "message": "'order_totals': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show order_totals",
+      "file": ".archvow/features/vat_report/components/order_totals.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -76,9 +76,9 @@
         "command": {
           "name": "show",
           "values": {
-            "component": "clean_orders"
+            "component": "order_totals"
           },
-          "text": "archvow show clean_orders",
+          "text": "archvow show order_totals",
           "missing": [],
           "readOnly": true
         },
@@ -88,8 +88,8 @@
     {
       "code": "ARCH035",
       "severity": "warning",
-      "message": "'clean_orders': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show clean_orders",
-      "file": ".archvow/features/vat_report/components/clean_orders.vow",
+      "message": "'order_totals': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show order_totals",
+      "file": ".archvow/features/vat_report/components/order_totals.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -103,9 +103,9 @@
         "command": {
           "name": "show",
           "values": {
-            "component": "clean_orders"
+            "component": "order_totals"
           },
-          "text": "archvow show clean_orders",
+          "text": "archvow show order_totals",
           "missing": [],
           "readOnly": true
         },
@@ -115,8 +115,8 @@
     {
       "code": "ARCH035",
       "severity": "warning",
-      "message": "'clean_orders': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show clean_orders",
-      "file": ".archvow/features/vat_report/components/clean_orders.vow",
+      "message": "'order_totals': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show order_totals",
+      "file": ".archvow/features/vat_report/components/order_totals.vow",
       "line": 0,
       "col": 0,
       "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -130,419 +130,11 @@
         "command": {
           "name": "show",
           "values": {
-            "component": "clean_orders"
+            "component": "order_totals"
           },
-          "text": "archvow show clean_orders",
+          "text": "archvow show order_totals",
           "missing": [],
           "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'compute_vat': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show compute_vat",
-      "file": ".archvow/features/vat_report/components/compute_vat.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "compute_vat"
-          },
-          "text": "archvow show compute_vat",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'compute_vat': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show compute_vat",
-      "file": ".archvow/features/vat_report/components/compute_vat.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "compute_vat"
-          },
-          "text": "archvow show compute_vat",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'compute_vat': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show compute_vat",
-      "file": ".archvow/features/vat_report/components/compute_vat.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "compute_vat"
-          },
-          "text": "archvow show compute_vat",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'compute_vat': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show compute_vat",
-      "file": ".archvow/features/vat_report/components/compute_vat.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "compute_vat"
-          },
-          "text": "archvow show compute_vat",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'my_pipeline_job': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show my_pipeline_job",
-      "file": ".archvow/features/vat_report/components/my_pipeline_job.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "my_pipeline_job"
-          },
-          "text": "archvow show my_pipeline_job",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'my_pipeline_job': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show my_pipeline_job",
-      "file": ".archvow/features/vat_report/components/my_pipeline_job.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "my_pipeline_job"
-          },
-          "text": "archvow show my_pipeline_job",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'my_pipeline_job': safety question S3 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show my_pipeline_job",
-      "file": ".archvow/features/vat_report/components/my_pipeline_job.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "my_pipeline_job"
-          },
-          "text": "archvow show my_pipeline_job",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show orders_reader",
-      "file": ".archvow/features/vat_report/components/orders_reader.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_reader"
-          },
-          "text": "archvow show orders_reader",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show orders_reader",
-      "file": ".archvow/features/vat_report/components/orders_reader.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_reader"
-          },
-          "text": "archvow show orders_reader",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show orders_reader",
-      "file": ".archvow/features/vat_report/components/orders_reader.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_reader"
-          },
-          "text": "archvow show orders_reader",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show orders_reader",
-      "file": ".archvow/features/vat_report/components/orders_reader.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_reader"
-          },
-          "text": "archvow show orders_reader",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'orders_schema': safety question S1 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show orders_schema",
-      "file": ".archvow/features/vat_report/components/orders_schema.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "orders_schema"
-          },
-          "text": "archvow show orders_schema",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'vat_writer': safety question S2 not answered (repeated) - Run twice (a re-run or a retry): what must never happen? -> archvow show vat_writer",
-      "file": ".archvow/features/vat_report/components/vat_writer.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "vat_writer"
-          },
-          "text": "archvow show vat_writer",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH035",
-      "severity": "warning",
-      "message": "'vat_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show vat_writer",
-      "file": ".archvow/features/vat_report/components/vat_writer.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Safety question of a component not answered (no hazard, no dismissal)",
-      "guide": {
-        "language": "en",
-        "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
-        "fix": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "show",
-          "values": {
-            "component": "vat_writer"
-          },
-          "text": "archvow show vat_writer",
-          "missing": [],
-          "readOnly": true
-        },
-        "file": null
-      }
-    },
-    {
-      "code": "ARCH019",
-      "severity": "warning",
-      "message": "'vat_writer' uses no schema: the columns it works on are written nowhere -> archvow component add schema <name> -d \"...\", then archvow component edit vat_writer -u <name>_schema",
-      "file": ".archvow/project.vow",
-      "line": 0,
-      "col": 0,
-      "title": "Component without the data contract its type works on (a reader without its schema)",
-      "guide": {
-        "language": "en",
-        "meaning": "a component works on columns written nowhere: a reader or writer without its schema, a repository without its model",
-        "fix": "`archvow component add schema <name> -d \"...\"`, then `archvow component edit <component> -u <name>_schema`",
-        "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
-        "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
-        "then": "Then run archvow check again: the finding disappears once it is fixed.",
-        "command": {
-          "name": "component add",
-          "values": {
-            "type": "schema"
-          },
-          "text": "archvow component add schema <name> -d \"...\"",
-          "missing": [
-            "name",
-            "description"
-          ],
-          "readOnly": false
         },
         "file": null
       }
@@ -586,8 +178,22 @@
     },
     {
       "container": "my_pipeline",
+      "component": "order_totals",
+      "symbol": "order_totals",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
       "component": "orders_schema",
       "symbol": "ORDERS_SCHEMA",
+      "status": "planned",
+      "reason": ""
+    },
+    {
+      "container": "my_pipeline",
+      "component": "vat_schema",
+      "symbol": "VAT_SCHEMA",
       "status": "planned",
       "reason": ""
     },
@@ -669,11 +275,11 @@
       "layer": "p1_domain",
       "status": "planned",
       "tested": false,
-      "invariants_total": 1,
+      "invariants_total": 3,
       "invariants_verified": 0,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 1
+      "hazards": 4
     },
     {
       "container": "my_pipeline",
@@ -682,11 +288,24 @@
       "layer": "p1_domain",
       "status": "planned",
       "tested": false,
-      "invariants_total": 1,
+      "invariants_total": 2,
       "invariants_verified": 0,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 1
+      "hazards": 4
+    },
+    {
+      "container": "my_pipeline",
+      "component": "order_totals",
+      "type": "transformation",
+      "layer": "p1_domain",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 0,
+      "invariants_verified": 0,
+      "open_questions": 9,
+      "pending_assumptions": 0,
+      "hazards": 0
     },
     {
       "container": "my_pipeline",
@@ -695,30 +314,17 @@
       "layer": "p1_domain",
       "status": "planned",
       "tested": false,
-      "invariants_total": 0,
+      "invariants_total": 1,
       "invariants_verified": 0,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 0
+      "hazards": 1
     },
     {
       "container": "my_pipeline",
-      "component": "orders_reader",
-      "type": "reader",
-      "layer": "p2_io",
-      "status": "planned",
-      "tested": false,
-      "invariants_total": 0,
-      "invariants_verified": 0,
-      "open_questions": 0,
-      "pending_assumptions": 0,
-      "hazards": 0
-    },
-    {
-      "container": "my_pipeline",
-      "component": "vat_writer",
-      "type": "writer",
-      "layer": "p2_io",
+      "component": "vat_schema",
+      "type": "schema",
+      "layer": "p1_domain",
       "status": "planned",
       "tested": false,
       "invariants_total": 1,
@@ -729,16 +335,42 @@
     },
     {
       "container": "my_pipeline",
+      "component": "orders_reader",
+      "type": "reader",
+      "layer": "p2_io",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 2,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 3
+    },
+    {
+      "container": "my_pipeline",
+      "component": "vat_writer",
+      "type": "writer",
+      "layer": "p2_io",
+      "status": "planned",
+      "tested": false,
+      "invariants_total": 2,
+      "invariants_verified": 0,
+      "open_questions": 0,
+      "pending_assumptions": 0,
+      "hazards": 2
+    },
+    {
+      "container": "my_pipeline",
       "component": "my_pipeline_job",
       "type": "job",
       "layer": "p3_jobs",
       "status": "planned",
       "tested": false,
-      "invariants_total": 0,
+      "invariants_total": 1,
       "invariants_verified": 0,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 0
+      "hazards": 3
     },
     {
       "container": "my_pipeline",
@@ -751,15 +383,33 @@
       "invariants_verified": 0,
       "open_questions": 0,
       "pending_assumptions": 0,
-      "hazards": 0
+      "hazards": 1
     }
   ],
   "invariants": [
     {
       "id": "clean_orders.INV1",
       "component": "clean_orders",
-      "statement": "every input row with an order_id and amount >= 0 appears in the output",
+      "statement": "every order_id of an input row with amount >= 0 appears in the output",
       "verify": "property_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "clean_orders.INV2",
+      "component": "clean_orders",
+      "statement": "Keep one row per order_id (decision 7)",
+      "verify": "example_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "clean_orders.INV3",
+      "component": "clean_orders",
+      "statement": "Drop rows where amount is negative (decision 8)",
+      "verify": "example_test",
       "verified": false,
       "evidence": [],
       "severity": "high"
@@ -774,6 +424,60 @@
       "severity": "high"
     },
     {
+      "id": "compute_vat.INV2",
+      "component": "compute_vat",
+      "statement": "All rows (decision 1)",
+      "verify": "example_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "my_pipeline_job.INV1",
+      "component": "my_pipeline_job",
+      "statement": "Fail (decision 1)",
+      "verify": "example_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "orders_reader.INV1",
+      "component": "orders_reader",
+      "statement": "Fail with a clear error: a missing input is an operations problem (decision 1)",
+      "verify": "example_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "orders_reader.INV2",
+      "component": "orders_reader",
+      "statement": "Fail the job (FAILFAST): a malformed file must be fixed upstream (decision 2)",
+      "verify": "example_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "orders_schema.INV1",
+      "component": "orders_schema",
+      "statement": "order_id and amount are never null; customer_id may be null (decision 1)",
+      "verify": "example_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
+      "id": "vat_schema.INV1",
+      "component": "vat_schema",
+      "statement": "order_id, amount and vat are never null; customer_id may be null (decision 1)",
+      "verify": "example_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
+    },
+    {
       "id": "vat_writer.INV1",
       "component": "vat_writer",
       "statement": "the output folder is complete or absent",
@@ -781,17 +485,25 @@
       "verified": false,
       "evidence": [],
       "severity": "critical"
+    },
+    {
+      "id": "vat_writer.INV2",
+      "component": "vat_writer",
+      "statement": "Yes: the same input gives the same output (decision 3)",
+      "verify": "example_test",
+      "verified": false,
+      "evidence": [],
+      "severity": "high"
     }
   ],
   "frozen": 0,
   "stale_frozen": [],
   "budget": null,
   "safety": {
-    "answered": 4,
-    "total": 23
+    "answered": 25,
+    "total": 30
   },
   "counts": {
-    "ARCH035": 19,
-    "ARCH019": 1
+    "ARCH035": 5
   }
 }

@@ -73,11 +73,8 @@
       "number": 2,
       "guide_word": "exposed",
       "question": "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a user sees or changes data that is not theirs, or a secret leaks",
-        "invariant": "a user only reads and changes their own data, and secrets never appear in a response or a log"
-      }
+      "status": "answered",
+      "dismissed": "Gives the customer id to its own request only, logs nothing and reads no secret"
     }
   ],
   "assumptions": [],

@@ -11,12 +11,11 @@ help:  ## list the commands
 install:  ## install the package (editable) and the development tools
 	$(PYTHON) -m pip install -r requirements.txt
 
-check:  ## what the Git hook runs, plus the type checks: ruff, mypy, archvow check, specs up to date
+check:  ## what the Git hook runs, plus the type checks: ruff, mypy, archvow check
 	ruff check .
 	ruff format --check .
 	@if [ -d src/invoicing ]; then $(PYTHON) -m mypy; else echo "mypy: no code yet"; fi
 	archvow check
-	archvow docs --check
 
 typecheck:  ## the type checks only (mypy, settings in pyproject.toml)
 	@if [ -d src/invoicing ]; then $(PYTHON) -m mypy; else echo "mypy: no code yet"; fi

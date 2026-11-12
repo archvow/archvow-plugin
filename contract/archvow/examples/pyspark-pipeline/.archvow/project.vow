@@ -10,7 +10,7 @@ system
 
 # --- containers
 container my_pipeline
-  template archvow/pyspark-pipeline@2.0.0
+  template archvow/pyspark-pipeline@2.0.1
   package my_pipeline
   path src/my_pipeline
 
@@ -18,6 +18,9 @@ rules {}
 language en
 ai_tools [claude-code]
 dependencies []
+compliance [gdpr, tst]
+mode strict
+families [all]
 init_answers
   language en
   python_version "3.11"
@@ -44,8 +47,11 @@ rule R1
   scope
     components [compute_vat]
   by architect@example.com
-  on 2026-10-08T13:06:25.458727+00:00
+  on 2026-11-11T19:07:01.262858+00:00
 
-compliance [gdpr, tst]
-mode strict
-families [all]
+rule R2
+  text "Given an empty input, when it runs, then the output is empty"
+  scope
+    type transformation
+  by architect@example.com
+  on 2026-11-11T19:07:01.516139+00:00

@@ -31,6 +31,12 @@
       "kind": "decision",
       "key": "2",
       "tests": []
+    },
+    {
+      "item": "orders_schema.INV1",
+      "kind": "invariant",
+      "key": "ORDERS_SCHEMA.INV1",
+      "tests": []
     }
   ],
   "examples": [],
@@ -39,22 +45,22 @@
   "decisions": [
     {
       "number": 1,
-      "question": "Which columns are nullable, and which must never be null?",
+      "question": "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?",
       "answer": "order_id and amount are never null; customer_id may be null",
-      "template": false,
+      "template": true,
       "suggested": null,
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     },
     {
       "number": 2,
-      "question": "Which columns hold personal data, and where may they flow?",
+      "question": "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?",
       "answer": "None: the input holds no personal data",
-      "template": false,
+      "template": true,
       "suggested": null,
       "by": "architect@example.com",
-      "on": "2026-10-08",
+      "on": "2026-11-11",
       "proposed": null
     }
   ],
@@ -95,15 +101,24 @@
       "number": 1,
       "guide_word": "wrong",
       "question": "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?",
-      "status": "open",
-      "suggestion": {
-        "hazard": "a null, negative or out-of-range value reaches the output",
-        "invariant": "order_id and amount are never null; customer_id may be null (decision 1)",
-        "decision": {
-          "number": 1,
-          "answer": "order_id and amount are never null; customer_id may be null"
+      "status": "answered",
+      "hazards": [
+        {
+          "id": "orders_schema.H1",
+          "severity": "high",
+          "description": "a null, negative or out-of-range value reaches the output",
+          "suggested": true,
+          "prevented_by": [
+            {
+              "id": "orders_schema.INV1",
+              "statement": "order_id and amount are never null; customer_id may be null (decision 1)",
+              "verify": "example_test",
+              "from_decision": 1,
+              "tested": false
+            }
+          ]
         }
-      }
+      ]
     },
     {
       "number": 2,

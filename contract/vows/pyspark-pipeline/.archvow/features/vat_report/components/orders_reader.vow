@@ -3,6 +3,7 @@ vow 1 component orders_reader
 # Read: archvow show orders_reader. Change: archvow specify orders_reader. Never edit by hand.
 name orders
 type reader
+kind files
 layer p2_io
 module my_pipeline.p2_io.orders_reader
 ticket US-001
@@ -16,21 +17,70 @@ symbol read_orders
 
 # --- decisions
 decision 1
-  question "The path does not exist or is empty: fail or return an empty DataFrame?"
+  question "The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?"
   answer "Fail with a clear error: a missing input is an operations problem"
   by architect@example.com
-  on 2026-10-08T13:06:24.141832+00:00
+  on 2026-11-11T19:06:56.526320+00:00
 
 decision 2
-  question "Records not matching the schema: fail, drop, or quarantine?"
+  question "Rows that do not match the schema (wrong type, missing column) - e.g. amount = \"abc\": stop the job, drop them, or set them aside in a reject file (where)?"
   answer "Fail the job (FAILFAST): a malformed file must be fixed upstream"
   by architect@example.com
-  on 2026-10-08T13:06:24.189462+00:00
+  on 2026-11-11T19:06:56.749135+00:00
 
 decision 3
-  question "Which partitions / dates are read, and what if the latest one is missing?"
+  question "On each run, what does it read: everything at the path, or only one date (e.g. the folder date=2026-10-12)? If that date's data is not there yet: fail, wait, or read the previous date?"
   answer "Everything under the given path, no partitions"
   by architect@example.com
-  on 2026-10-08T13:06:24.237829+00:00
+  on 2026-11-11T19:06:57.015876+00:00
+
+decision 4
+  question "Does an approved shared library already read these files (e.g. acme_io.read_csv, listed in requirements.txt)? Then the code calls it - which function - instead of reading them with Spark."
+  answer "No: Spark reads it itself"
+  by architect@example.com
+  on 2026-11-11T19:06:57.244572+00:00
 
 assumptions []
+
+# --- hazards
+hazard H1
+  guide_word missing
+  severity high
+  never "an absent, empty or late input is processed as if it were complete"
+  by architect@example.com
+  on 2026-11-11T19:07:08.397973+00:00
+
+hazard H2
+  guide_word wrong
+  severity high
+  never "a null, negative or out-of-range value reaches the output"
+  by architect@example.com
+  on 2026-11-11T19:07:08.875814+00:00
+
+hazard H3
+  guide_word stale
+  severity medium
+  never "old data is processed as if it were current"
+  by architect@example.com
+  on 2026-11-11T19:07:09.163482+00:00
+
+# --- invariants
+invariant INV1
+  prevents [H1]
+  verified_by example_test
+  from_decision 1
+  by architect@example.com
+  on 2026-11-11T19:07:08.412944+00:00
+
+invariant INV2
+  prevents [H2]
+  verified_by example_test
+  from_decision 2
+  by architect@example.com
+  on 2026-11-11T19:07:08.892119+00:00
+
+# --- not applicable
+not_applicable more
+  because "a file delivered twice gives duplicate order_ids, which clean_orders removes (its decision 7)"
+  by architect@example.com
+  on 2026-11-11T19:07:08.627844+00:00
