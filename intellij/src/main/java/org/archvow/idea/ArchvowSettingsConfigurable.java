@@ -229,7 +229,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         command.setText(s.executable);
         python.setText(s.python);
         timeout.setText(Integer.toString(s.timeoutSeconds));
-        languageMode.setSelectedItem(s.languageMode == null || s.languageMode.isBlank() ? "IDE" : s.languageMode);
+        languageMode.setSelectedItem(s.languageMode == null || s.languageMode.isBlank() ? "EN" : s.languageMode);
         useProjectInterpreter.setSelected(s.useProjectInterpreter);
         installFrom.setText(s.installFrom == null ? "" : s.installFrom);
     }

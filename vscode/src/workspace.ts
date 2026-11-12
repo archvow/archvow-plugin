@@ -209,7 +209,7 @@ export class ArchvowProject {
   private interpreterWatched = false;
 
   private languageMode(): string {
-    return vscode.workspace.getConfiguration('archvow').get<string>('language', 'auto');
+    return vscode.workspace.getConfiguration('archvow').get<string>('language', 'en')  /* English by default (0.25.1), as archvow */;
   }
 
   private french(): boolean {
@@ -703,7 +703,7 @@ export class ArchvowProject {
     switch (m.type) {
       case 'ready': {
         const init = { type: 'init', commands: this.commands, catalog: this.bundledCatalog, knownVersion: this.known, forms: this.forms, icons: this.icons,
-          types: componentTypes(this.bundledCatalog),
+          types: componentTypes(this.bundledCatalog), tmpdir: os.tmpdir(),  // where `archvow try` copies by default (0.25.1)
           rules: { en: fs.readFileSync(path.join(this.resources, 'rules.md'), 'utf8'), fr: fs.readFileSync(path.join(this.resources, 'rules.fr.md'), 'utf8') } };
         const state = { type: 'state', state: this.state };
         if (from === 'nav') {
@@ -1355,12 +1355,11 @@ export class ArchvowProject {
   }
 
   /** A file a diagnostic names, only inside the project. */
-  /** The example `archvow try` copied (2.1): its spec, opened read from the scratch folder archvow made - only
-   *  there (`archvow-try-...` under the temporary folder), never anywhere a message could name. */
+  /** The example `archvow try` copied (2.1): its spec, opened from the folder archvow printed - a new temporary one,
+   *  or the --dir chosen (0.25.1). Only a `.archvow/project.vow` there, nothing else a message could name. */
   private async openTryCopy(folder: string): Promise<void> {
     const spec = path.join(folder, '.archvow', 'project.vow');
-    const scratch = path.basename(path.dirname(folder)).startsWith('archvow-try-');
-    if (!folder || !scratch || !fs.existsSync(spec)) {
+    if (!folder || !path.isAbsolute(folder) || !fs.existsSync(spec)) {
       void vscode.window.showWarningMessage(tr(this.state.fr, 'The example copy is gone: run Try again.', "La copie de l'exemple n'est plus là : relance l'essai."));
       return;
     }

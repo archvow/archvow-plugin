@@ -52,6 +52,16 @@ public final class ResultFormatterRegression {
         for (String part : List.of("archvow caught both changes, before any review", "all checks green", "new module, one import added",
                 "Ran Check: 2 errors", "src/my_pipeline/p1_domain/helpers.py", "ARCH005 · clean_orders.py:35", "move the code to the right layer"))
             if (!tried.contains(part)) throw new AssertionError("try: " + part);
+        // init (0.25.1): the banner's drawing goes; made, needs attention, next - as formatter.ts's initReport
+        String initOutput = "▀█████      █████▀\n ▀█████    █████▀\n  ▀█████▄▄█████▀\n    ████▀▀████       archvow 2.1.0 - archvow/python-app\n     ██    ██\n\n✔ archvow initialised: 20 files, mode strict, language en  (no source folders created)\n✔ Git repository created (branch main)\n! Code Owners: @me - only one: add a second person when you can\n! AI auto-approval: these assistants read their permissions outside the project; each developer adds the safe commands once:\n  copilot: VS Code: user setting chat.tools.terminal.autoApprove\n  edits: src/, tests/\n\nNext: archvow next        Git host and CI settings to make once: archvow doctor\n";
+        ArchvowResultFormatter.InitReport initReport = ArchvowResultFormatter.initReport(initOutput);
+        if (!initReport.version().equals("archvow 2.1.0 - archvow/python-app") || initReport.done().size() != 2 || initReport.attention().size() != 2
+                || initReport.attention().get(1).size() != 3 || !initReport.next().equals(List.of("archvow next", "Git host and CI settings to make once: archvow doctor"))
+                || !initReport.other().isEmpty())
+            throw new AssertionError("init initReport: " + initReport);
+        String initHtml = ArchvowResultFormatter.render("init", 0, initOutput, false, "archvow init", false, false);
+        if (initHtml.matches("(?s).*[\\u2580-\\u259F].*") || !initHtml.contains("Needs attention") || !initHtml.contains("archvow doctor"))
+            throw new AssertionError("init result: " + initHtml);
         String audit = ArchvowResultFormatter.render("audit", 0,
             "[{\"kind\":\"decision\",\"ref\":\"R1\",\"text\":\"Accept? -> yes\",\"flags\":[\"review\"]}]",
             false, "archvow audit --json", false, false);

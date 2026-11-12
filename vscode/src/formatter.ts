@@ -119,10 +119,7 @@ export function renderResult(label: string, exitCode: number, stdout: string, st
     }
   }
   if (!reported && key === 'init' && parsed === null && exitCode === 0 && !cancelled) {
-    out.heading(tr(fr, 'Project initialized', 'Projet initialisé'), 'good');
-    out.section(tr(fr, 'archvow response', "Réponse d'archvow"));
-    raw.split(/\r?\n/).filter((l) => l.trim()).slice(0, 66).forEach((line) =>
-      out.paragraph(line.trim(), line.includes('Next') || line.includes('Étape') ? 'blue' : line.includes('warn') || line.includes('Review') ? 'warn' : undefined));
+    initResult(out, initReport(raw), fr);
     reported = true;
   }
   if (!reported) {
@@ -304,6 +301,62 @@ function catalog(out: Out, data: Json, fr: boolean): void {
   out.paragraph(tr(fr, 'To answer a template\'s questions, open Commands → init.', "Pour répondre aux questions d'un modèle, ouvre Commandes → init."), 'muted');
 }
 
+export interface InitReport {
+  /** "archvow 2.1.0 - archvow/python-app": the banner's words, without its drawing. */
+  version: string;
+  /** The ✔ lines: what init made. */
+  done: string[];
+  /** The ! lines, each with the indented lines under it. */
+  attention: { text: string; details: string[] }[];
+  /** "Next: archvow next" and what follows it on the line (archvow doctor). */
+  next: string[];
+  /** Any other line, kept as it is. */
+  other: string[];
+}
+
+/** What `archvow init` printed (0.25.1), read line by line: the banner's drawing (block characters) goes, its
+ *  version line stays; ✔ made, ! needs attention (with its indented lines), Next. As ArchvowResultFormatter.initReport. */
+export function initReport(raw: string): InitReport {
+  const report: InitReport = { version: '', done: [], attention: [], next: [], other: [] };
+  for (const line of raw.split(/\r?\n/)) {
+    const words = line.replace(/[\u2580-\u259F]/g, '').trim();
+    if (!words) continue;
+    if (words !== line.trim() && !report.version) { report.version = words; continue; }  // the banner's line
+    if (words.startsWith('✔')) report.done.push(words.replace(/^✔\s*/, ''));
+    else if (words.startsWith('!')) report.attention.push({ text: words.replace(/^!\s*/, ''), details: [] });
+    else if (/^Next:/.test(words)) report.next = words.replace(/^Next:\s*/, '').split(/\s{2,}/).filter((w) => w);
+    else if (/^\s/.test(line) && report.attention.length) report.attention[report.attention.length - 1].details.push(words);
+    else report.other.push(words);
+  }
+  return report;
+}
+
+function initResult(out: Out, r: InitReport, fr: boolean): void {
+  out.heading(tr(fr, 'Project initialized', 'Projet initialisé'), 'good');
+  if (r.version) out.paragraph(r.version, 'muted');
+  if (r.done.length) {
+    out.section(tr(fr, 'Done', 'Fait'));
+    out.html += '<ul class="init-done">' + r.done.map((d) => `<li><span class="tone-good" aria-hidden="true">✔</span> ${esc(d)}</li>`).join('') + '</ul>';
+  }
+  if (r.attention.length) {
+    out.section(tr(fr, 'Needs attention', 'À regarder'));
+    for (const a of r.attention) {
+      const [title, ...rest] = a.text.split(/:\s+/);
+      out.card(rest.length ? title : a.text, rest.join(': '), 'warn', [],
+        a.details.length ? '<pre class="init-details">' + a.details.map(esc).join('\n') + '</pre>' : '');
+    }
+  }
+  for (const line of r.other) out.paragraph(line);
+  if (r.next.length) {
+    out.section(tr(fr, 'Next', 'Ensuite'));
+    out.html += '<div class="result-entry-details">' + r.next.map((n) => {
+      const command = /archvow [a-z-]+/.exec(n);
+      const label = command ? n.replace(command[0], '').replace(/:\s*$/, '').trim() : '';
+      return `<div class="field result-detail"><span class="key">${esc(label || tr(fr, 'Now', 'Maintenant'))}</span><span class="result-detail-value"><code>${esc(command ? command[0] : n)}</code></span></div>`;
+    }).join('') + '</div>';
+  }
+}
+
 /** `archvow try --json` (2.1): a finished example copied to a scratch folder, the change an AI often makes, and
  *  what check says - each finding with its rule in words and what to do. */
 function tryResult(out: Out, r: Json, fr: boolean): void {
@@ -313,6 +366,9 @@ function tryResult(out: Out, r: Json, fr: boolean): void {
     : tr(fr, 'archvow try', 'archvow try'), errors > 0 ? 'good' : 'warn');
   out.paragraph(tr(fr, 'On a copy of the finished example, in a scratch folder. Your repository was not touched.',
     "Sur une copie de l'exemple fini, dans un dossier jetable. Ton dépôt n'a pas été touché."), 'muted');
+  // where it is, first (0.25.1): the folder archvow made, to open or delete
+  out.html += `<div class="result-entry-details try-folder"><div class="field result-detail"><span class="key">${esc(tr(fr, 'Copied to', 'Copié dans'))}</span>`
+    + `<span class="result-detail-value"><code>${esc(str(r, 'folder'))}</code></span></div></div>`;
   const changes = objects(r, 'changes');
   out.html += '<ol class="try-steps">'
     + `<li><b>${esc(tr(fr, 'Copied the example', "Copié l'exemple"))}</b><span>${esc(str(r, 'example'))} · ${esc(num(before, 'errors') + num(before, 'warnings') === 0

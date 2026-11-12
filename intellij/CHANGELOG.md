@@ -2,6 +2,27 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.25.1 - 2026-11-12
+
+Built on archvow 2.1.1 (contract 2.1, unchanged: `try`'s help as the IDEs show it). Fixes from the first use of
+0.25.0 in IntelliJ.
+
+- **English by default**, as archvow: the language setting starts on English (VS Code `archvow.language`: `en`;
+  IntelliJ: EN). Follow the IDE and Français are still there.
+- **IntelliJ, the Overview's cards are flush left**: the Packs row was centred and pushed the Architecture and
+  Checks cards to the right. Their links are plain text links (a JButton was padded and centred by the IDE's
+  look); Enter or Space opens them. More keeps its arrow.
+- **IntelliJ, the Overview scrolls**: the warning, First steps, the commands and the cards scroll together when
+  they are taller than the tool window; the language and settings stay at the bottom.
+- **The result of init reads as the others** (both IDEs): the banner's drawing goes (its block characters drew
+  white boxes), its version line stays; then Done (✔), Needs attention (each ! line, with its indented lines),
+  and Next (`archvow next`, `archvow doctor`). `initReport()` in formatter.ts, `ArchvowResultFormatter.initReport`.
+- **Try says where the example goes**: the form shows "Copied to …" as the fields change (the chosen folder, or
+  a new `archvow-try-…` folder in the temporary folder), the folder field has Browse…, and the result starts
+  with the folder and "Read the example's spec" (IntelliJ too). A chosen folder is accepted.
+- **IntelliJ, four choices show four buttons**: the buttons of a field wrap to the next line instead of hiding
+  the last one (`archvow try`'s langgraph-agent).
+
 ## 0.25.0 - 2026-11-12
 
 Built on archvow 2.1.0 (contract 2.1: `next` rows say their `suggested` answers, `workspace --json` its

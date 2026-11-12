@@ -65,6 +65,17 @@ final class ArchvowOverview {
         return fr ? n + " des " + total + " décision" + s : n + " of the " + total + " decision" + s;
     }
 
+    /** Where archvow try copies the example (0.25.1), as the VS Code form's tryWhere(): <folder>/<example>, else a new
+     *  folder in the temporary folder (its exact name, archvow-try-…, is in the result). */
+    static String tryWhere(String example, String dir, String tmpdir, boolean fr) {
+        String name = example == null || example.isBlank() ? "pyspark-pipeline" : example.trim();
+        String chosen = dir == null ? "" : dir.trim().replaceAll("[\\\\/]+$", "");
+        String base = chosen.isEmpty() ? (tmpdir == null ? "" : tmpdir.trim().replaceAll("[\\\\/]+$", "")) : chosen;
+        String sep = base.contains("\\") ? "\\" : "/";
+        if (base.isEmpty()) return fr ? "un nouveau dossier temporaire, puis " + name : "a new temporary folder, then " + name;
+        return chosen.isEmpty() ? base + sep + "archvow-try-…" + sep + name : chosen + sep + name;
+    }
+
     /** "45 of 70 items done" and the bar's share: the Architecture card's own items, never the check findings. */
     static int percent(int done, int total) {
         return total <= 0 ? 0 : Math.round(done * 100f / total);

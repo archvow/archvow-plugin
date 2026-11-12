@@ -62,17 +62,43 @@ final class ArchvowOverviewCards {
         return area;
     }
 
-    static JButton link(String text, Runnable run) {
-        JButton b = new JButton(text);
-        b.setForeground(link());
-        b.setContentAreaFilled(false);
-        b.setBorderPainted(false);
-        b.setFocusPainted(false);
-        b.setMargin(new Insets(0, 0, 0, 0));
-        b.setBorder(BorderFactory.createEmptyBorder());
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        b.addActionListener(e -> run.run());
-        return b;
+    /** A link: plain text in the accent colour, flush with the card's edge (0.25.1: a JButton was padded and centred
+     *  by the IDE's button look), focusable, Enter or Space does it, underlined under the mouse or the focus. */
+    static final class Link extends JLabel {
+        private final Runnable run;
+        Link(String text, Runnable run) {
+            super(text);
+            this.run = run;
+            setForeground(link());
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setFocusable(true);
+            setAlignmentX(0f);
+            getAccessibleContext().setAccessibleName(text);
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) { click(); }
+                @Override public void mouseEntered(java.awt.event.MouseEvent e) { underline(true); }
+                @Override public void mouseExited(java.awt.event.MouseEvent e) { underline(isFocusOwner()); }
+            });
+            addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override public void focusGained(java.awt.event.FocusEvent e) { underline(true); }
+                @Override public void focusLost(java.awt.event.FocusEvent e) { underline(false); }
+            });
+            addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override public void keyPressed(java.awt.event.KeyEvent e) {
+                    if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER || e.getKeyCode() == java.awt.event.KeyEvent.VK_SPACE) click();
+                }
+            });
+        }
+        void click() { run.run(); }
+        private void underline(boolean on) {
+            java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
+            attributes.put(java.awt.font.TextAttribute.UNDERLINE, on ? java.awt.font.TextAttribute.UNDERLINE_ON : -1);
+            setFont(getFont().deriveFont(attributes));
+        }
+    }
+
+    static Link link(String text, Runnable run) {
+        return new Link(text, run);
     }
 
     /** A filled button: `main` the blue one that does the current step. */
@@ -110,6 +136,21 @@ final class ArchvowOverviewCards {
     }
 
     static Component gap(int h) { return Box.createVerticalStrut(h); }
+
+    /** The Overview's content in its scroll pane (0.25.1): as wide as the view, so the sentences wrap and the cards
+     *  keep their width; taller than the view, it scrolls. */
+    static final class Page extends JPanel implements Scrollable {
+        Page(LayoutManager layout) { super(layout); }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 16; }
+        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) {
+            return Math.max(16, (orientation == SwingConstants.VERTICAL ? visible.height : visible.width) - 32);
+        }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() {
+            return getParent() instanceof JViewport view && view.getHeight() > getPreferredSize().height;
+        }
+    }
 
     /** A row of a card: as wide as the card, as tall as its content at that width (a wrapped sentence grows it). */
     static final class Line extends JPanel {
@@ -189,7 +230,7 @@ final class ArchvowOverviewCards {
         card.add(gap(10));
         card.add(wrapped(t(fr, "Each step is read from the spec and Git, on this machine. The card goes once the five are done.",
             "Chaque étape est lue dans la spec et Git, sur cette machine. La carte part une fois les cinq faites."), muted(), 12f));
-        JButton tryIt = link(t(fr, "Try archvow on an example first", "Essayer archvow sur un exemple d'abord"), actions::tryExample);
+        Link tryIt = link(t(fr, "Try archvow on an example first", "Essayer archvow sur un exemple d'abord"), actions::tryExample);
         tryIt.setAlignmentX(0f);
         card.add(tryIt);
         return card;
@@ -258,7 +299,7 @@ final class ArchvowOverviewCards {
         links.add(link(t(fr, "Done items (" + done + ")", "Éléments faits (" + done + ")"), () -> actions.openItems(1)));
         if (projectItems > 0) {
             links.add(Box.createHorizontalStrut(16));
-            JButton project = link(t(fr, "Project items (" + projectItems + ")", "Éléments projet (" + projectItems + ")"), actions::openProjectItems);
+            Link project = link(t(fr, "Project items (" + projectItems + ")", "Éléments projet (" + projectItems + ")"), actions::openProjectItems);
             project.setToolTipText(t(fr, "Project-wide items, not attributed to components", "Éléments du projet non attribués aux composants"));
             links.add(project);
         }
@@ -278,7 +319,7 @@ final class ArchvowOverviewCards {
     /** Checks: the totals and, when there is one, the first finding - its rule in words, where, Open file. */
     static JPanel checks(int errors, int warnings, ArchvowOverview.Finding first, boolean fr, Actions actions) {
         JPanel card = card(border(), 1, null);
-        JButton open = link(t(fr, "Open Checks →", "Voir les contrôles →"), actions::openChecks);
+        Link open = link(t(fr, "Open Checks →", "Voir les contrôles →"), actions::openChecks);
         if (first == null) {
             JPanel words = new JPanel();
             words.setOpaque(false);
@@ -348,6 +389,7 @@ final class ArchvowOverviewCards {
         String moreLabel = t(fr, "More project commands", "Autres commandes du projet");
         JButton moreButton = new JButton(t(fr, "More", "Plus"));
         moreButton.setIcon(ArchvowUiIcons.iconFor(moreButton, "down"));
+        moreButton.putClientProperty(ArchvowUiIcons.NO_ICON, true);  // keep the arrow: "More" would get the dots
         moreButton.setHorizontalTextPosition(SwingConstants.LEFT);
         moreButton.setIconTextGap(6);
         moreButton.setFocusPainted(false);

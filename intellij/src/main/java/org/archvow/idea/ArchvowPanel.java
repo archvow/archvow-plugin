@@ -189,6 +189,8 @@ final class ArchvowPanel extends JPanel {
     private JPanel welcomeTry;
     private JComponent welcomeAdopt, welcomeFoot;
     private final JEditorPane welcomeResult = htmlPane();
+    /** In archvow try's form (0.25.1): where the example will be copied, as the fields say. */
+    private final JLabel tryWhere = new JLabel();
     private JScrollPane welcomeResultScroll;
     /** "missing", "version" or "" (archvow speaks the plugin's contract). */
     private String installReason = "";
@@ -207,10 +209,16 @@ final class ArchvowPanel extends JPanel {
             if (!brief.isBlank()) openBrief(brief);
         });
         // under a result where archvow names the init --force that adds a briefs folder: open that form, prefilled
-        for (JEditorPane result : List.of(overviewResult, commandResult, componentResult, quickResult)) {
+        for (JEditorPane result : List.of(overviewResult, commandResult, componentResult, quickResult, welcomeResult)) {
             ArchvowHtmlFileIcons.install(result);
             result.addHyperlinkListener(event -> {
                 if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
+                // under archvow try's result (0.25.1): the copy's spec, only where archvow wrote one
+                String tried = ArchvowResultFormatter.tryFolder(event.getDescription());
+                if (!tried.isBlank()) {
+                    openTryCopy(tried);  // a method: this initializer runs before the constructor sets `project`
+                    return;
+                }
                 ArchvowBriefs.AddFolder add = ArchvowBriefs.initOf(event.getDescription());
                 if (add != null) openCommand("init", add.values());
                 // Overview › Packs: Update / Remove / Check / Add a pack / New pack / See the change open their form
@@ -503,7 +511,7 @@ final class ArchvowPanel extends JPanel {
 
     private void loadSettingsUiState() {
         String mode = ArchvowSettings.get(project).getState().languageMode;
-        languageMode.setSelectedItem(mode == null || mode.isBlank() ? "IDE" : mode);
+        languageMode.setSelectedItem(mode == null || mode.isBlank() ? "EN" : mode);
         languageMode.addActionListener(e -> {
             if (syncingLanguage) return;
             ArchvowSettings.get(project).getState().languageMode = String.valueOf(languageMode.getSelectedItem());
@@ -1494,7 +1502,6 @@ final class ArchvowPanel extends JPanel {
         overviewResultCard = inlineResultCard(overviewResult, () -> overviewResultCard.setVisible(false));
         actionsAndOutput.add(overviewResultCard, BorderLayout.SOUTH);
         top.add(actionsAndOutput, BorderLayout.SOUTH);
-        page.add(top, BorderLayout.NORTH);
 
         summaryCard = createCard(overviewSummary, ArchvowI18n.text(project, "Architecture", "Architecture"));
         checkCard = createCard(scroll(diagnostics), ArchvowI18n.text(project, "Check & Gates", "Contrôles et validations"));
@@ -1535,11 +1542,23 @@ final class ArchvowPanel extends JPanel {
             overviewRows.add(holder);
             overviewRows.add(Box.createVerticalStrut(12));
         }
-        overviewRows.add(overviewSummaryRow("Packs", overviewPacksCounts,
-            ArchvowI18n.text(project, "Open Packs →", "Voir les packs →"), this::openPacks));
+        JPanel packs = overviewSummaryRow("Packs", overviewPacksCounts,
+            ArchvowI18n.text(project, "Open Packs →", "Voir les packs →"), this::openPacks);
+        packs.setAlignmentX(0f);  // 0.25.1: every row on the same left edge (a row at 0.5 pushed the cards right)
+        overviewRows.add(packs);
+        // 0.25.1: the warning, First steps, the commands and the cards scroll together when they are taller than
+        // the tool window; the language and settings stay at the bottom
+        ArchvowOverviewCards.Page content = new ArchvowOverviewCards.Page(new BorderLayout(0, 8));
+        content.add(top, BorderLayout.NORTH);
         overviewCenter.add(overviewRows, BorderLayout.NORTH);
-
-        page.add(overviewCenter, BorderLayout.CENTER);
+        content.add(overviewCenter, BorderLayout.CENTER);
+        JScrollPane scrolled = new JScrollPane(content, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrolled.setBorder(BorderFactory.createEmptyBorder());
+        scrolled.getVerticalScrollBar().setUnitIncrement(16);
+        scrolled.setOpaque(false);
+        scrolled.getViewport().setOpaque(false);
+        page.add(scrolled, BorderLayout.CENTER);
         page.add(settingsHintPanel(), BorderLayout.SOUTH);
         return page;
     }
@@ -3060,6 +3079,8 @@ final class ArchvowPanel extends JPanel {
         boolean fr = ArchvowI18n.isFrench(project);
         formPreview.setText(ArchvowForms.commandLine(command, values, fr,
             "init".equals(command.label) && initQuestions != null ? initQuestions.answers() : List.of()));
+        if ("try".equals(command.label)) tryWhere.setText((fr ? "Copié dans  " : "Copied to  ")
+            + ArchvowOverview.tryWhere(values.get("example"), values.get("dir"), System.getProperty("java.io.tmpdir"), fr));
         // the files it writes: what is new, updated, removed, and the code a new component plans
         String output = ArchvowForms.output(command, values);
         boolean exists = !output.isEmpty() && project.getBasePath() != null && new File(project.getBasePath(), output).exists();
@@ -3123,7 +3144,7 @@ final class ArchvowPanel extends JPanel {
     void languageChanged() {
         String mode = ArchvowSettings.get(project).getState().languageMode;
         syncingLanguage = true;
-        try { languageMode.setSelectedItem(mode == null || mode.isBlank() ? "IDE" : mode); }
+        try { languageMode.setSelectedItem(mode == null || mode.isBlank() ? "EN" : mode); }
         finally { syncingLanguage = false; }
         refreshStaticTexts();
         updateOverview();
@@ -3347,8 +3368,14 @@ final class ArchvowPanel extends JPanel {
                     "  ·  Example: US-001 or a ticket reference from your backlog (optional; do not enter a .vow path).",
                     "  ·  Exemple : US-001 ou une référence de ticket (facultatif ; pas un chemin .vow).");
             if (!helpText.isBlank()) under.add(formHint(helpText, true));
+            if ("try".equals(name) && "example".equals(param.name)) {
+                tryWhere.setFont(new Font(Font.MONOSPACED, Font.PLAIN, tryWhere.getFont().getSize()));
+                tryWhere.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+                tryWhere.setAlignmentX(0f);
+                under.add(tryWhere);
+            }
             if (under.getComponentCount() > 0) cell.add(under, BorderLayout.SOUTH);
-            if ("init".equals(name) && "dir".equals(param.name) && control instanceof JTextField pathField) {
+            if (("init".equals(name) || "try".equals(name)) && "dir".equals(param.name) && control instanceof JTextField pathField) {
                 JButton browse = button(ArchvowI18n.text(project, "Browse…", "Parcourir…"), () -> {
                     JFileChooser chooser = new JFileChooser();
                     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -5658,6 +5685,12 @@ final class ArchvowPanel extends JPanel {
                 new File(root, parent + "/" + selectedComponent.id + ".py")),
             "Code not found / Code introuvable pour " + selectedComponent.id + "\nModule : " + module);
     }
+    /** The spec of the example archvow try copied (0.25.1): only a .archvow/project.vow in the folder it printed. */
+    private void openTryCopy(String folder) {
+        showFirstFile(List.of(new File(folder, ".archvow/project.vow")), ArchvowI18n.text(project,
+            "The example copy is gone: run Try again.", "La copie de l'exemple n'est plus là : relance l'essai."));
+    }
+
     private void showFirstFile(List<File> candidates, String fallback) {
         for (File file : candidates) {
             if (!file.isFile()) continue;

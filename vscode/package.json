@@ -2,7 +2,7 @@
   "name": "archvow",
   "displayName": "archvow",
   "description": "Spec-driven development with AI: manage architecture specs, decisions and checks, prepare AI coding prompts, and review changes with ArchVow.",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "publisher": "archvow",
   "license": "UNLICENSED",
   "private": true,
@@ -299,7 +299,7 @@
             "English",
             "Français"
           ],
-          "default": "auto",
+          "default": "en",
           "description": "The language of the workspace (archvow's own messages stay as archvow prints them)."
         }
       }

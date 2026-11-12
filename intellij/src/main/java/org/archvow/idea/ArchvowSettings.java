@@ -14,7 +14,7 @@ public final class ArchvowSettings implements PersistentStateComponent<ArchvowSe
         public String executable = "archvow";
         public String python = "";
         public int timeoutSeconds = 180;
-        public String languageMode = "IDE";
+        public String languageMode = "EN";  // English by default (0.25.1), as archvow
         /** archvow is looked for in the IDE's Python interpreter for the project first (0.11.2). */
         public boolean useProjectInterpreter = true;
         /** Where "Install archvow" takes it from (0.12.0): "" = pip's own configuration, an index URL, a wheel file or folder. */

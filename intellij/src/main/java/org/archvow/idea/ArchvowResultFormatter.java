@@ -260,6 +260,15 @@ final class ArchvowResultFormatter {
         }
     }
 
+    /** The link under a try result that opens the copy's spec (0.25.1); the panel opens it only in a folder holding a spec. */
+    static final String TRY_SPEC = "archvow-try-spec:";
+
+    /** The folder a {@link #TRY_SPEC} link names, or "". */
+    static String tryFolder(String link) {
+        if (link == null || !link.startsWith(TRY_SPEC)) return "";
+        return java.net.URLDecoder.decode(link.substring(TRY_SPEC.length()), java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     /** archvow try --json (2.1): the example copied, the change an AI often makes, what check says - as formatter.ts. */
     private static void tryResult(StringBuilder out, JsonObject r, Palette p, boolean fr) {
         int errors = intValue(r, "errors");
@@ -268,6 +277,11 @@ final class ArchvowResultFormatter {
             : "archvow try", errors > 0 ? p.good : p.warn);
         paragraph(out, tr(fr, "On a copy of the finished example, in a scratch folder. Your repository was not touched.",
             "Sur une copie de l'exemple fini, dans un dossier jetable. Ton dépôt n'a pas été touché."), p.muted);
+        // where it is, first (0.25.1): the folder archvow made, and its spec one click away
+        StringBuilder copied = new StringBuilder();
+        field(copied, p, tr(fr, "Copied to", "Copié dans"), str(r, "folder"));
+        out.append(copied).append("<p><a href='").append(TRY_SPEC).append(java.net.URLEncoder.encode(str(r, "folder"), java.nio.charset.StandardCharsets.UTF_8))
+            .append("'>").append(esc(tr(fr, "Read the example's spec", "Lire la spec de l'exemple"))).append("</a></p>");
         JsonArray changes = array(r, "changes");
         List<String> what = new java.util.ArrayList<>();
         for (JsonElement c : changes) if (c.isJsonObject()) what.add(str(c.getAsJsonObject(), "change"));
@@ -395,20 +409,69 @@ final class ArchvowResultFormatter {
             "Pour répondre aux questions d'un modèle, ouvre Commandes → init."), p.muted);
     }
 
+    /** What archvow init printed (0.25.1), as formatter.ts's initReport: the banner's words without its drawing,
+     *  the ✔ lines, the ! lines with the indented lines under them, Next, and any other line. */
+    record InitReport(String version, List<String> done, List<List<String>> attention, List<String> next, List<String> other) {}
+
+    static InitReport initReport(String output) {
+        String version = "";
+        List<String> done = new java.util.ArrayList<>();
+        List<List<String>> attention = new java.util.ArrayList<>();
+        List<String> next = new java.util.ArrayList<>();
+        List<String> other = new java.util.ArrayList<>();
+        for (String line : output.split("\\R")) {
+            String words = line.replaceAll("[\\u2580-\\u259F]", "").trim();
+            if (words.isEmpty()) continue;
+            if (!words.equals(line.trim()) && version.isEmpty()) { version = words; continue; }  // the banner's line
+            if (words.startsWith("✔")) done.add(words.replaceFirst("^✔\\s*", ""));
+            else if (words.startsWith("!")) attention.add(new java.util.ArrayList<>(List.of(words.replaceFirst("^!\\s*", ""))));
+            else if (words.startsWith("Next:")) {
+                next.clear();
+                for (String part : words.replaceFirst("^Next:\\s*", "").split("\\s{2,}")) if (!part.isBlank()) next.add(part);
+            } else if (Character.isWhitespace(line.charAt(0)) && !attention.isEmpty()) attention.get(attention.size() - 1).add(words);
+            else other.add(words);
+        }
+        return new InitReport(version, done, attention, next, other);
+    }
+
     private static void init(StringBuilder out, String output, Palette p, boolean fr) {
         heading(out, p, tr(fr, "Project initialized", "Projet initialisé"), p.good);
         if (output.isBlank()) {
             empty(out, p, tr(fr, "No output returned.", "Aucune sortie renvoyée."));
             return;
         }
-        section(out, p, tr(fr,"Archvow response", "Réponse d'Archvow"));
-        int lines = 0;
-        for (String line : output.split("\\R")) {
-            if (line.isBlank()) continue;
-            if (lines++ > 65) { paragraph(out, tr(fr,"More in Raw output", "Suite dans Sortie brute"), p.muted); break; }
-            String color = line.contains("Next") || line.contains("Étape") ? p.blue
-                : line.contains("warn") || line.contains("Review") ? p.warn : p.foreground;
-            paragraph(out, line.trim(), color);
+        InitReport r = initReport(output);
+        if (!r.version().isEmpty()) paragraph(out, r.version(), p.muted);
+        if (!r.done().isEmpty()) {
+            section(out, p, tr(fr, "Done", "Fait"));
+            for (String d : r.done()) out.append("<div style='margin:0 0 6px 0'><span style='color:").append(p.good)
+                .append("'>✔</span> ").append(esc(d)).append("</div>");
+        }
+        if (!r.attention().isEmpty()) {
+            section(out, p, tr(fr, "Needs attention", "À regarder"));
+            for (List<String> a : r.attention()) {
+                String text = a.get(0);
+                String[] parts = text.split(":\\s+", 2);
+                StringBuilder details = new StringBuilder();
+                if (a.size() > 1) {
+                    details.append("<pre style='white-space:pre-wrap;color:").append(p.muted).append("'>");
+                    for (String d : a.subList(1, a.size())) details.append(esc(d)).append("\n");
+                    details.append("</pre>");
+                }
+                card(out, p, parts.length > 1 ? parts[0] : text, parts.length > 1 ? parts[1] : "", p.warn, details.toString());
+            }
+        }
+        for (String line : r.other()) paragraph(out, line, p.foreground);
+        if (!r.next().isEmpty()) {
+            section(out, p, tr(fr, "Next", "Ensuite"));
+            StringBuilder fields = new StringBuilder();
+            for (String n : r.next()) {
+                java.util.regex.Matcher command = java.util.regex.Pattern.compile("archvow [a-z-]+").matcher(n);
+                boolean found = command.find();
+                String label = found ? n.replace(command.group(), "").replaceFirst(":\\s*$", "").trim() : "";
+                field(fields, p, label.isEmpty() ? tr(fr, "Now", "Maintenant") : label, found ? command.group() : n);
+            }
+            out.append(fields);
         }
     }
 

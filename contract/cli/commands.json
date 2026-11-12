@@ -2885,7 +2885,7 @@
             "python-app",
             "langgraph-agent"
           ],
-          "help": "the finished example to copy (default: %(default)s)",
+          "help": "the finished example to copy (pyspark-pipeline if none is named)",
           "hidden": false,
           "metavar": "example"
         },
@@ -2900,7 +2900,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "where to copy it (default: a new temporary folder)",
+          "help": "the folder to copy it into, as <folder>/<example> (default: a new temporary folder; the path is printed)",
           "hidden": false,
           "metavar": "FOLDER"
         }

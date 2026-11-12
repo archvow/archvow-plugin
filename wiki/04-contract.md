@@ -75,14 +75,14 @@ Ce qu'il faut ensuite regarder dans le diff :
 
 ## La version d'archvow et le contrat (0.20.0)
 
-archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "2.1", "archvow": "2.1.0",
+archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "2.1", "archvow": "2.1.1",
 ...}`, et chaque objet `--json` commence par `"contract"`. `ArchvowVersion.warning` et `contractWarning()`
 le comparent à `contract.txt` : même MAJEURE et une MINEURE au moins celle du plugin, rien ; une plus
 ancienne, ou un archvow qui ne dit pas de contrat (avant 1.23 : il n'a pas de commande `version`, son
 `--version` donne le numéro), « plus ancien : mets archvow à jour » ; une MAJEURE plus récente, « plus
 récent : mets le plugin à jour ». Une version d'archvow qui garde le contrat ne demande donc pas de
 nouvelle version du plugin, et archvow ne garde toujours pas de compatibilité ascendante : c'est le numéro
-de contrat qui le dit. L'installation met exactement l'archvow testé (`archvow==2.1.0`).
+de contrat qui le dit. L'installation met exactement l'archvow testé (`archvow==2.1.1`).
 
 Le contrat 1.1 (archvow 1.25, plugin 0.21.0) ajoute `archvow workspace --json` : ce que les plugins
 chargent, en un seul processus (`readWorkspace()` dans `model.ts`, `WorkspaceAnswer` dans IntelliJ, tous

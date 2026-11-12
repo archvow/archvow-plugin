@@ -34,7 +34,7 @@ const cases = [
   ['catalog', 0, data({ templates: [{ name: 'python-app', description: 'Python', version: '1', kind: 'app' }] }), '', ['python-app']],
   ['show', 0, data({ name: 'system', properties: { values: [1, 2] } }), '', ['system', 'properties']],
   ['status', 0, data([{ name: 'one', state: 'pending' }, { name: 'two', state: 'resolved' }]), '', ['pending', 'resolved']],
-  ['init', 0, 'Created .archvow/\nNext: create a component', '', ['Created .archvow/', 'Next: create a component']],
+  ['init', 0, 'Created .archvow/\nNext: create a component', '', ['Created .archvow/', 'create a component', 'class="result-section">Next<']],
   ['prompt', 0, 'Inspect <script>alert(1)</script>', '', ['&lt;script&gt;']],
   ['show', 1, '', 'No module named archvow', ['not installed', 'Exit code: 1']],
   ['changes', 0, 'Output from an ordinary command', '', ['Output from an ordinary command']],

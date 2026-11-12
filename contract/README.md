@@ -28,4 +28,4 @@ python3 contract/tools/harvest_messages.py ../archvow --python ../archvow/.venv/
 git diff contract/                                         # review: this is what changed for the plugins
 ```
 
-Recorded from archvow 2.1.0.
+Recorded from archvow 2.1.1.

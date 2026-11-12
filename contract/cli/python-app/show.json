@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "invoicing",
-      "template": "archvow/python-app@2.1.0",
+      "template": "archvow/python-app@2.1.1",
       "package": "invoicing",
       "path": "src/invoicing",
       "components": [

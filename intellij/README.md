@@ -30,8 +30,8 @@ with version 0.4.x) before installing this one: both declare the `.vow` file typ
 
 The archvow CLI must be installed (`archvow --version` in a terminal). The plugin runs it in the project
 folder, never through a shell, one command at a time. When archvow does not start, or does not
-speak the plugin's contract, the welcome card (or the version notification) offers **Install archvow 2.1.0**: it shows
-`<python> -m pip install archvow==2.1.0` - the project's `.venv` (or `venv`) first, then the IDE's
+speak the plugin's contract, the welcome card (or the version notification) offers **Install archvow 2.1.1**: it shows
+`<python> -m pip install archvow==2.1.1` - the project's `.venv` (or `venv`) first, then the IDE's
 interpreter, then the Python of the settings, never a bare `python` - and runs it only after **Confirm
 and run**, no shell; on success the settings keep that Python. Nothing is installed at startup.
 
@@ -116,6 +116,6 @@ time-out, cancel), `ArchvowGrammar` reads the command grammar (`src/main/resourc
 exported from archvow's own parser by `tools/export_cli.py`), `ArchvowPanel` is the workspace, the
 `Archvow*View` classes are its views. `src/main/resources/META-INF/plugin.xml` registers both parts.
 
-The plugin has its own version (0.25.0); it reads `.vow` format 1, speaks archvow's contract 2.1
+The plugin has its own version (0.25.1); it reads `.vow` format 1, speaks archvow's contract 2.1
 (`../contract/cli/contract.txt`) and is tested with the archvow CLI 2.0.1 (`../contract/cli/version.txt`); the
 workspace says when the installed archvow does not speak that contract.

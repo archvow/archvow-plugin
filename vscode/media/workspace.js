@@ -176,7 +176,7 @@
     const m = event.data;
     switch (m.type) {
       case 'init':
-        I = { commands: m.commands || [], catalog: m.catalog, knownVersion: m.knownVersion, rules: m.rules || { en: '', fr: '' }, types: m.types || {}, forms: m.forms || {}, icons: m.icons || {} };
+        I = { commands: m.commands || [], catalog: m.catalog, knownVersion: m.knownVersion, rules: m.rules || { en: '', fr: '' }, types: m.types || {}, forms: m.forms || {}, icons: m.icons || {}, tmpdir: m.tmpdir || '' };
         ICONS.clear();
         break;
       case 'state':
@@ -2326,6 +2326,17 @@
     return `<div class="segmented" role="radiogroup">${p.choices.map((c) => `<button type="button" role="radio" aria-checked="${c === value}" class="${c === value ? 'on' : 'secondary'}" data-a="segment" ${attrs({ name: p.name, value: c === value && !p.required ? '' : c })}>${esc(c)}</button>`).join('')}</div>`;
   }
 
+  /** Where `archvow try` copies the example (0.25.1): <folder>/<example>, else a new folder in the temporary folder
+   *  (its exact name, archvow-try-…, is in the result). */
+  function tryWhere() {
+    const example = ui.form.example || 'pyspark-pipeline';
+    const dir = String(ui.form.dir || '').trim().replace(/[\\/]+$/, '');
+    const base = dir || String(I.tmpdir || '').replace(/[\\/]+$/, '');
+    const sep = base.includes('\\') ? '\\' : '/';
+    if (!base) return t(`a new temporary folder, then ${example}`, `un nouveau dossier temporaire, puis ${example}`);
+    return dir ? dir + sep + example : base + sep + 'archvow-try-…' + sep + example;
+  }
+
   function fieldRow(name, p) {
     const value = ui.form[p.name] || '';
     const id = 'f-' + p.name;
@@ -2352,7 +2363,8 @@
       control += `<div class="muted small">${esc(def ? `${value} — ${def.description}${def.hint ? ' | ' + t('Name', 'Nom') + ': ' + def.hint : ''}${def.pattern ? ' | name_pattern: ' + def.pattern : ''}`
         : t('Choose a type: its name rule and its kinds follow.', 'Choisis un type : sa règle de nom et ses sortes suivent.'))}</div>`;
     }
-    if (name === 'init' && p.name === 'dir') control = `<div class="row">${control}${btn(t('Browse…', 'Parcourir…'), 'browse', attrs({ field: 'dir' }), false, 'secondary')}</div>`;
+    if ((name === 'init' || name === 'try') && p.name === 'dir') control = `<div class="row">${control}${btn(t('Browse…', 'Parcourir…'), 'browse', attrs({ field: 'dir' }), false, 'secondary')}</div>`;
+    if (name === 'try' && p.name === 'example') control += `<div class="try-where"><span class="muted small">${esc(t('Copied to', 'Copié dans'))}</span> <code id="try-where">${esc(tryWhere())}</code></div>`;
     let help = pair((formEntry(name).hints || {})[p.name]) || (p.boolean ? '' : p.help);
     if (field && field.note && field.kind !== 'note') help += (help ? '  ·  ' : '') + field.note;
     if (help === '==SUPPRESS==') help = '';  // an older grammar: archvow's hidden marker is not a help text
@@ -2545,7 +2557,7 @@
     // affect only the visible form fields, never the command submitted.
     return `<div class="form-head"><h3>${esc(title)}</h3><div class="muted small"><code>archvow ${esc(name)}</code> - ${esc(command.description)}${extra ? ' ' + esc(extra) : ''}</div>${ui.formHelp ? `<pre class="help">${esc(ui.formHelp)}</pre>` : ''}</div>
   <div class="form-grid guided-command-layout${ui.confirm && ui.confirm.target === 'command' ? ' has-confirm' : ''}"><div class="form guided-command-column">${nav}<div class="guided-command-fields" data-scroll="command-fields"><section class="guided-panel">${counter}${fields}</section></div>${formAlerts()}
-  <div class="row end guided-actions">${previous}${next}${btn(t('Cancel', 'Annuler'), 'cancelForm', '', false, 'secondary')}${btn(verb, 'runForm')}</div></div>${pane}${confirmation('command')}</div>${resultCard('command')}`;
+  <div class="row end guided-actions">${previous}${next}${btn(t('Cancel', 'Annuler'), 'cancelForm', '', false, 'secondary')}${btn(verb, 'runForm')}</div></div>${pane}${confirmation('command')}</div>${resultCard('command')}${tryFollowUp('command', false)}`;
   }
 
   /** The files the command writes (filePlan.ts): a small tree per folder, then the code it plans. */
@@ -3423,6 +3435,7 @@
       }
       case 'form':
         ui.form[e.dataset.name] = e.value;
+        if (ui.command === 'try' && document.getElementById('try-where')) document.getElementById('try-where').textContent = tryWhere();
         askPreview();
         refreshCommandStepIndicators();
         if (['component', 'question', 'number', 'type', 'extends'].includes(e.dataset.name)

@@ -12,7 +12,7 @@ final class ArchvowI18n {
     }
 
     static boolean isFrench(Project project) {
-        String mode = "IDE";
+        String mode = "EN";  // English by default (0.25.1), as archvow
         if (project != null) {
             ArchvowSettings.Values values = ArchvowSettings.get(project).getState();
             if (values != null && values.languageMode != null && !values.languageMode.isBlank()) mode = values.languageMode;

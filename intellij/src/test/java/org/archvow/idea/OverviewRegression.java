@@ -62,6 +62,7 @@ public final class OverviewRegression {
 
     static void press(java.awt.Component c, String text) {
         if (c instanceof javax.swing.AbstractButton b && text.equals(b.getText())) { b.doClick(); return; }
+        if (c instanceof ArchvowOverviewCards.Link l && text.equals(l.getText())) { l.click(); return; }
         if (c instanceof java.awt.Container k) for (java.awt.Component child : k.getComponents()) press(child, text);
     }
 
@@ -143,6 +144,10 @@ public final class OverviewRegression {
             check(texts(bar).contains("Next") && texts(bar).contains("Check") && texts(bar).contains("More"), "toolbar: " + texts(bar));
         });
         check(clicked.equals(List.of("step build", "try", "items 0", "project", "file src/x/p1_domain/compute_vat.py:16")), "actions: " + clicked);
+        // try's form says where the example goes (0.25.1)
+        check(ArchvowOverview.tryWhere("", "", "/tmp", false).equals("/tmp/archvow-try-…/pyspark-pipeline"), "try: the temporary folder");
+        check(ArchvowOverview.tryWhere("python-app", "/home/me/demo/", "/tmp", false).equals("/home/me/demo/python-app"), "try: the chosen folder");
+        check(ArchvowOverview.tryWhere("python-app", "", "C:\\Temp", false).equals("C:\\Temp\\archvow-try-…\\python-app"), "try: Windows");
         System.out.println("OverviewRegression OK");
     }
 }

@@ -6,7 +6,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { esc, renderResult } from '../formatter';
+import { esc, initReport, renderResult } from '../formatter';
 import { Command, findCommand, inline, isMutating, needsFullCard, planForm, prefill, promptCommand, taskNumber } from '../grammar';
 import { componentTypes, derive, readiness, ruleExplanation } from '../projectState';
 import { architectureRows, buildWork, issueFix, Json, needsFeatureBranch, objects, otherCategory, str, viewForItem } from '../workItems';
@@ -163,6 +163,21 @@ test('the formatter reads check, next and prompt as people read them; text from 
     'Ran Check: 2 errors', 'src/my_pipeline/p1_domain/helpers.py', 'Module not declared in the spec', 'ARCH005 · clean_orders.py:35',
     'move the code to the right layer']) assert.ok(tried.includes(esc(part)), part);
 });
+
+test('init: the banner\'s drawing goes, made / needs attention / next are read (0.25.1)', () => {
+  const r = initReport(INIT_OUTPUT);
+  assert.equal(r.version, 'archvow 2.1.0 - archvow/python-app');
+  assert.deepEqual(r.done, ['archvow initialised: 20 files, mode strict, language en  (no source folders created)', 'Git repository created (branch main)']);
+  assert.deepEqual(r.attention.map((a) => [a.text.slice(0, 11), a.details.length]), [['Code Owners', 0], ['AI auto-app', 2]]);
+  assert.deepEqual(r.next, ['archvow next', 'Git host and CI settings to make once: archvow doctor']);
+  assert.deepEqual(r.other, []);
+  const html = renderResult('init', 0, INIT_OUTPUT, '', false, false);
+  assert.doesNotMatch(html, /[\u2580-\u259F]/, 'no block characters: they draw as white boxes');
+  for (const part of ['Project initialized', 'Done', 'Needs attention', 'Code Owners', 'Next', '<code>archvow doctor</code>']) assert.ok(html.includes(part), part);
+});
+
+/** What `archvow init my_app -t python-app` printed (archvow 2.1.0), shortened. */
+const INIT_OUTPUT = "▀█████      █████▀\n ▀█████    █████▀\n  ▀█████▄▄█████▀\n    ████▀▀████       archvow 2.1.0 - archvow/python-app\n     ██    ██\n\n✔ archvow initialised: 20 files, mode strict, language en  (no source folders created)\n✔ Git repository created (branch main)\n! Code Owners: @me - only one: add a second person when you can\n! AI auto-approval: these assistants read their permissions outside the project; each developer adds the safe commands once:\n  copilot: VS Code: user setting chat.tools.terminal.autoApprove\n  edits: src/, tests/\n\nNext: archvow next        Git host and CI settings to make once: archvow doctor\n";
 
 /** What `archvow try pyspark-pipeline --json` printed (archvow 2.1.0), shortened. */
 const TRIED = { example: 'pyspark-pipeline', folder: '/tmp/archvow-try-x/pyspark-pipeline', before: { errors: 0, warnings: 0 },
