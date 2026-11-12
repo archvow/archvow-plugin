@@ -673,7 +673,7 @@ Built on archvow 1.17 (the contract regenerated from it). The same functions as 
 ## 0.5.0 - 2026-10-25
 
 - One plugin: the archvow workspace (former archvow-intellij 0.4.5.16.11) and the `.vow` language
-  (former vow-plugin-intellij 0.4.2). Id `org.archvow.intellij`; uninstall the former vow plugin
+  (former vow-plugin-intellij 0.4.2). Id `org.archvow`; uninstall the former vow plugin
   (`com.archvow.intellij`) first. Packages `org.archvow.idea` and `org.archvow.vow`.
 - Built with the IntelliJ Platform Gradle Plugin 2.19.0 against IntelliJ IDEA 2024.3.5 (installs in
   2024.3 and later), JDK 21; the Gradle wrapper is complete (no Python bootstrap).
