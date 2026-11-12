@@ -46,16 +46,18 @@ for (const v of [nav, editor]) {
   v.message({ type: 'init', commands, forms, icons, catalog: null, types: {}, rules: {} });
   v.message({ type: 'state', state });
 }
-// Toolbar icons and hover labels remain available in the sidebar.
-const actions = [...nav.app.innerHTML.matchAll(/class="project-action" data-a="([^"]+)"[^>]*data-tooltip="([^"]+)"/g)];
-assert.equal(actions.length, 9, 'every project action has a visible hover label');
-assert.ok(actions.some(([, action, label]) => action === 'openBriefCommands' && label === 'Briefs'));
-assert.ok(actions.some(([, action, label]) => action === 'budget' && label === 'Budget / Next'));
-assert.match(css, /:hover, :focus-visible\)\:\:after/);
-assert.match(css, /\.project-action-bar \.action-more \{ display: none; \}/);
-assert.match(css, /@container project-actions \(max-width: 396px\)/);
-assert.match(css, /@container project-actions \(max-width: 353px\)/);
-assert.match(css, /@container project-actions \(max-width: 52px\)/);
+// The toolbar (0.25.0): Next and Check named; More opens the six others, each with its icon and name.
+const named = [...nav.app.innerHTML.matchAll(/class="project-action labelled" data-a="([^"]+)"[^>]*title="([^"]+)">/g)];
+assert.deepEqual(named.map(([, , label]) => label), ['Next', 'Check'], 'Next and Check named on the toolbar');
+assert.match(nav.app.innerHTML, /class="project-action labelled more-control" data-a="projectMore"[^>]*aria-haspopup="menu"/);
+nav.click('projectMore');
+const more = [...nav.app.innerHTML.matchAll(/role="menuitem" class="overflow-action" data-a="([^"]+)"[^>]*title="([^"]+)"><svg/g)];
+assert.deepEqual(more.map(([, , label]) => label), ['Doctor', 'Audit', 'Briefs', 'Budget / Next', 'Diff', 'AI review'], 'More holds the six others, each with its icon');
+assert.ok(!more.some(([, action]) => action === 'openProjectVow'), 'no Project vow button on the Overview');
+assert.ok(more.some(([, action, label]) => action === 'openBriefCommands' && label === 'Briefs'));
+assert.ok(more.some(([, action, label]) => action === 'budget' && label === 'Budget / Next'));
+nav.click('projectMore');
+assert.doesNotMatch(css, /action-slot/);
 // Open Briefs is a navigation -> host -> shared editor flow, not a replacement Overview page.
 nav.click('openBriefCommands');
 assert.equal(nav.posted.at(-1).type, 'openBriefs');

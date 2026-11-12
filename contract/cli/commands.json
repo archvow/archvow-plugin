@@ -2866,6 +2866,48 @@
     },
     {
       "path": [
+        "try"
+      ],
+      "description": "See archvow catch a mistake on a finished example, in a scratch folder.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "example",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [
+            "pyspark-pipeline",
+            "fastapi-service",
+            "python-app",
+            "langgraph-agent"
+          ],
+          "help": "the finished example to copy (default: %(default)s)",
+          "hidden": false,
+          "metavar": "example"
+        },
+        {
+          "name": "dir",
+          "flags": [
+            "--dir"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "where to copy it (default: a new temporary folder)",
+          "hidden": false,
+          "metavar": "FOLDER"
+        }
+      ]
+    },
+    {
+      "path": [
         "pack",
         "new"
       ],

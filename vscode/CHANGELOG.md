@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.25.0 - 2026-11-12
+
+Built on archvow 2.1.0 (contract 2.1: `next` rows say their `suggested` answers, `workspace --json` its
+`first_steps`, and the new command `try`). The plugin needs archvow 2.1 or later.
+
+The Overview as designed with the onboarding proposals, the same in VS Code and IntelliJ.
+Nothing was removed: every command and list is where it was, or one click away in More.
+
+- **Next and Check named on the toolbar; More holds the others** - Doctor, Audit, Briefs, Budget / Next, Diff and
+  AI review, each with its icon. The eight icon buttons and their breakpoints are gone.
+- **First steps**, for a new project: answer the foundations, add a feature, add its first component and answer
+  its decisions, build it then Check, commit. archvow reads each from the spec, the check and Git (`first_steps`);
+  the plugin only shows them, so both IDEs show the same card. The current step has its button (Specify, Add
+  feature, Add component, Check); "Try archvow on an example first" runs `archvow try`. The card goes once the
+  five are done - the examples, finished, never show it.
+- **Architecture counts its own items**: "Items done 45 of 70", a bar, "25 open: decisions, questions and tasks.
+  Check findings count in Checks.", then Open items, Done items and, when there are some, Project items. The
+  Project status strip is gone: its counters are these links.
+- **Checks shows the first finding**: its rule in words, `ARCH005 · compute_vat.py:16`, and Open file.
+- **Every finding leads with its rule's title** - in the Checks list and in Check's result.
+- **Next's result counts the suggested answers**: "Suggested answers: 4 of the 9 decisions" (`specify` offers them;
+  a person confirms each).
+- **The welcome screen** keeps Initialize, Configure Python and Retry, says how to adopt code already there, and
+  offers "Not sure yet? See it catch a mistake": `archvow try <example>` copies a finished example to a scratch
+  folder, makes the change an AI often makes and shows what Check says. Its result reads as the design shows
+  (what was copied, the change, what caught it); "Read the example's spec" opens the copy's vow. `try` is
+  read-only for the project: no confirmation.
+- `contract/overview/expected.json`: what both IDEs read of the examples (first steps, first finding, suggested
+  answers) - `UPDATE_OVERVIEW=1 npm test` writes it, IntelliJ's `OverviewRegression` must read the same.
+- The contract recorded from archvow 2.1.0 (its wheel, examples, messages and the `.vow` readers' dump).
+- Tests: VS Code `npm test` exits 0 - 164 passed with archvow 2.1.0 live and the .vsix built, 2 skipped (no IntelliJ
+  .zip). IntelliJ: the 63 plain regressions pass (`OverviewRegression` new); the panels need `./gradlew check` (the
+  IntelliJ platform).
+
+## 0.24.3 - 2026-11-11
+
+Built on archvow 2.0.1 (contract 2.0, unchanged).
+
+- **No Project vow button on the Overview.** The toolbar keeps the commands (Next, Check, Doctor, Audit, Briefs,
+  Budget / Next, Diff, AI review): the project's vow is read through them and the pages, and changed with
+  `archvow` commands, not opened to edit by hand. It stays one click away where it is read - a component's
+  spec (IntelliJ) and the Next items that point at it. The VS Code toolbar's breakpoints follow (eight buttons).
+
 ## 0.24.2 - 2026-11-11
 
 Built on archvow 2.0.1 (contract 2.0, unchanged: 0.24.2 works with archvow 2.0.0 too).

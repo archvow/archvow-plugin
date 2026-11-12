@@ -692,51 +692,6 @@ button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--v
    The first icon moves only once all 9 cannot fit; More is absent at full width. */
 .project-action-container { container: project-actions / inline-size; width: 100%; min-width: 0; position: relative; z-index: 2; }
 .project-action-bar { width: max-content; max-width: 100%; flex-wrap: nowrap; box-sizing: border-box; }
-.project-action-slot { display: inline-flex; border-right: 1px solid var(--vscode-panel-border); }
-.project-action-slot .project-action { border-right: 0; min-width: 42px; box-sizing: border-box; }
-.project-action-bar .action-more { display: none; }
-.project-action-bar .action-more .project-action { min-width: 42px; box-sizing: border-box; }
-.project-more-menu { min-width: 175px; }
-.project-more-menu .overflow-action { display: none; align-items: center; gap: 8px; }
-.project-more-menu .overflow-action .ico { width: 15px; height: 15px; }
-.project-more-menu button:hover:not([disabled]) { color: var(--vscode-foreground); background: var(--vscode-list-hoverBackground, rgba(127,127,127,.25)); }
-@container project-actions (max-width: 396px) {
- .project-action-bar .action-more { display: inline-flex; }
- .project-action-slot.action-slot-8 { display: none; }
- .project-more-menu .overflow-action-8 { display: flex; }
-}
-@container project-actions (max-width: 353px) {
- .project-action-slot.action-slot-7 { display: none; }
- .project-more-menu .overflow-action-7 { display: flex; }
-}
-@container project-actions (max-width: 310px) {
- .project-action-slot.action-slot-6 { display: none; }
- .project-more-menu .overflow-action-6 { display: flex; }
-}
-@container project-actions (max-width: 267px) {
- .project-action-slot.action-slot-5 { display: none; }
- .project-more-menu .overflow-action-5 { display: flex; }
-}
-@container project-actions (max-width: 224px) {
- .project-action-slot.action-slot-4 { display: none; }
- .project-more-menu .overflow-action-4 { display: flex; }
-}
-@container project-actions (max-width: 181px) {
- .project-action-slot.action-slot-3 { display: none; }
- .project-more-menu .overflow-action-3 { display: flex; }
-}
-@container project-actions (max-width: 138px) {
- .project-action-slot.action-slot-2 { display: none; }
- .project-more-menu .overflow-action-2 { display: flex; }
-}
-@container project-actions (max-width: 95px) {
- .project-action-slot.action-slot-1 { display: none; }
- .project-more-menu .overflow-action-1 { display: flex; }
-}
-@container project-actions (max-width: 52px) {
- .project-action-slot.action-slot-0 { display: none; }
- .project-more-menu .overflow-action-0 { display: flex; }
-}
 /* VS Code webviews do not always show a native title tooltip. The visible
    tooltip also appears on keyboard focus and never captures pointer events. */
 .project-action[data-tooltip], .top button.icon[data-tooltip] { position: relative; }
@@ -933,3 +888,54 @@ span.chip-feature.current { border-color: var(--archvow); color: var(--vscode-fo
 ul.plain-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
 .progress-line .progress-fill { background: var(--vscode-charts-orange, #d18616); }
 .progress-line .progress-fill.p100 { background: var(--vscode-charts-green, #388a34); }
+
+/* 0.25.0: the Overview as designed - Next and Check named, More holding the rest; First steps; the
+   Architecture card's own items; the Checks card's first finding. The IntelliJ plugin draws the same. */
+.project-action-bar { gap: 8px; padding: 0; border: 0; margin: 10px 0; flex-wrap: wrap; }
+.project-action.labelled { gap: 8px; height: 32px; padding: 0 14px; border: 0; border-radius: 4px; background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); }
+.project-action.labelled:hover:not([disabled]) { background: var(--vscode-button-secondaryHoverBackground); }
+.project-action.labelled .ico { width: 14px; height: 14px; }
+.project-action.labelled .chevron { width: 12px; height: 12px; }
+.action-more { position: relative; display: inline-flex; }
+.project-more-menu { left: 0; right: auto; top: calc(100% + 6px); min-width: 200px; padding: 4px; }
+.project-more-menu .overflow-action { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 12px; }
+.first-steps { border: 2px solid var(--vscode-charts-yellow, #e9c46a); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;
+  background: color-mix(in srgb, var(--vscode-charts-yellow, #e9c46a) 7%, transparent); }
+.first-steps h3, .architecture-card h3, .checks-card h3 { margin: 0; }
+.first-steps ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.first-step { display: flex; gap: 12px; align-items: flex-start; }
+.first-step .step-mark { flex: none; width: 22px; height: 22px; border-radius: 11px; border: 1px solid var(--vscode-descriptionForeground); color: var(--vscode-descriptionForeground);
+  display: flex; align-items: center; justify-content: center; font-size: 12px; box-sizing: border-box; }
+.first-step.now .step-mark { border: 2px solid var(--vscode-charts-yellow, #e9c46a); color: var(--vscode-charts-yellow, #e9c46a); font-weight: 700; }
+.first-step.done .step-mark { border-color: var(--vscode-testing-iconPassed, #89d185); color: var(--vscode-testing-iconPassed, #89d185); }
+.first-step .step-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.first-step .step-title { font-weight: 600; }
+.first-step.done .step-title { color: var(--vscode-descriptionForeground); font-weight: 400; }
+.first-step .step-detail { color: var(--vscode-descriptionForeground); font-size: 12px; line-height: 1.4; }
+.first-step > button { flex: none; align-self: center; }
+.first-steps-foot { padding-top: 10px; margin: 0; border-top: 1px solid var(--vscode-panel-border); line-height: 1.4; }
+.first-steps-foot .link, .architecture-card .link, .checks-card .link { background: transparent; color: var(--vscode-textLink-foreground); padding: 0; }
+.architecture-card, .checks-card { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.architecture-card p, .checks-card p { margin: 0; }
+.items-done { display: flex; justify-content: space-between; }
+.items-bar { height: 6px; border-radius: 3px; background: var(--vscode-button-secondaryBackground); overflow: hidden; }
+.items-bar > div { height: 6px; border-radius: 3px; background: var(--vscode-charts-yellow, #e9c46a); }
+.item-links { gap: 16px; flex-wrap: wrap; }
+.first-finding { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 6px;
+  background: var(--vscode-editorWidget-background, rgba(127,127,127,.12)); }
+.first-finding-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.first-finding-text .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.check-list li { display: flex; flex-direction: column; gap: 4px; }
+.check-list .check-title { font-weight: 600; }
+.welcome { display: flex; flex-direction: column; gap: 14px; }
+.welcome > h2 { margin: 4px 0 0; }
+.try-card .try-row { gap: 8px; align-items: center; flex-wrap: nowrap; }
+.try-card select { flex: 1; min-width: 0; }
+.try-steps { margin: 6px 0 12px; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+.try-steps li span { display: block; color: var(--vscode-descriptionForeground); font-size: 12px; }
+.try-change { white-space: pre; overflow-x: auto; padding: 10px 12px; border-radius: 6px; background: var(--vscode-editorWidget-background, rgba(127,127,127,.12)); }
+.try-follow { margin-top: 10px; }
+.checks-totals .tone-bad { font-weight: 600; }
+/* The design's accent on the Overview's links (dark themes), as IntelliJ's ArchvowOverviewCards.link(); a light
+   theme keeps its link colour, readable on white. */
+body.vscode-dark .overview .card .link, body.vscode-high-contrast .overview .card .link { color: var(--vscode-charts-yellow, #e9c46a); }

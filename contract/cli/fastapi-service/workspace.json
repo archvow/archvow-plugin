@@ -1,5 +1,5 @@
 {
-  "contract": "2.0",
+  "contract": "2.1",
   "digest": "<digest>",
   "project": {
     "schema_version": 2,
@@ -10,7 +10,7 @@
     "containers": [
       {
         "id": "orders_api",
-        "template": "archvow/fastapi-service@2.0.1",
+        "template": "archvow/fastapi-service@2.1.0",
         "package": "orders_api",
         "path": "src/orders_api",
         "components": [
@@ -3378,7 +3378,7 @@
       {
         "name": "archvow/fastapi-service",
         "pack": "archvow",
-        "version": "2.0.1",
+        "version": "2.1.0",
         "language": "python",
         "kind": "web-service",
         "style": "layered (common -> domain -> io -> services -> api)",
@@ -3391,10 +3391,10 @@
             "id": "language",
             "ask": true,
             "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
-            "default": "fr",
+            "default": "en",
             "choices": [
-              "fr",
-              "en"
+              "en",
+              "fr"
             ],
             "required": false,
             "multiple": false
@@ -3912,7 +3912,7 @@
       {
         "name": "archvow/langgraph-agent",
         "pack": "archvow",
-        "version": "2.0.1",
+        "version": "2.1.0",
         "language": "python",
         "kind": "ai-application",
         "style": "layered (common -> domain -> tools -> agents -> app)",
@@ -3925,10 +3925,10 @@
             "id": "language",
             "ask": true,
             "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
-            "default": "fr",
+            "default": "en",
             "choices": [
-              "fr",
-              "en"
+              "en",
+              "fr"
             ],
             "required": false,
             "multiple": false
@@ -4556,7 +4556,7 @@
       {
         "name": "archvow/pyspark-pipeline",
         "pack": "archvow",
-        "version": "2.0.1",
+        "version": "2.1.0",
         "language": "python",
         "kind": "data-pipeline",
         "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -4569,10 +4569,10 @@
             "id": "language",
             "ask": true,
             "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
-            "default": "fr",
+            "default": "en",
             "choices": [
-              "fr",
-              "en"
+              "en",
+              "fr"
             ],
             "required": false,
             "multiple": false
@@ -5111,7 +5111,7 @@
       {
         "name": "archvow/python-app",
         "pack": "archvow",
-        "version": "2.0.1",
+        "version": "2.1.0",
         "language": "python",
         "kind": "application",
         "style": "layered (common -> domain -> io -> services -> entrypoints)",
@@ -5124,10 +5124,10 @@
             "id": "language",
             "ask": true,
             "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
-            "default": "fr",
+            "default": "en",
             "choices": [
-              "fr",
-              "en"
+              "en",
+              "fr"
             ],
             "required": false,
             "multiple": false
@@ -5601,7 +5601,7 @@
     "packs": [
       {
         "name": "archvow",
-        "version": "2.0.1",
+        "version": "2.1.0",
         "description": "The templates, agents and languages archvow ships.",
         "archvow": "",
         "builtin": true,
@@ -6168,5 +6168,42 @@
       }
     ]
   },
-  "packs": []
+  "packs": [],
+  "first_steps": [
+    {
+      "step": "foundations",
+      "title": "Answer the foundations",
+      "detail": "Their decisions are made",
+      "command": "archvow specify",
+      "done": true
+    },
+    {
+      "step": "feature",
+      "title": "Add a feature",
+      "detail": "What the product does",
+      "command": "archvow feature add <name> -d \"what the product does\"",
+      "done": true
+    },
+    {
+      "step": "component",
+      "title": "Add its first component and answer its decisions",
+      "detail": "Next then shows it ready to build",
+      "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders",
+      "done": true
+    },
+    {
+      "step": "build",
+      "title": "Build it, then Check",
+      "detail": "Its code and tests, checked against the spec",
+      "command": "archvow check",
+      "done": true
+    },
+    {
+      "step": "commit",
+      "title": "Commit",
+      "detail": "The hooks run the same checks as CI; then open a merge request",
+      "command": "git add -A && git commit",
+      "done": false
+    }
+  ]
 }

@@ -80,7 +80,7 @@ test('the CLI contract: the same MAJOR and a MINOR at least the plugin\'s; older
   const tested = knownVersion(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'));
   const wanted = fs.readFileSync(path.join(CLI, 'contract.txt'), 'utf8').trim();
   assert.match(tested, /^\d+\.\d+\.\d+$/);
-  assert.deepEqual(parseContract(wanted), [2, 0]);  // 2.0: archvow 2.0's features
+  assert.deepEqual(parseContract(wanted), [2, 1]);  // 2.1: next's suggested answers, workspace's first steps, try
   assert.equal(parseContract('1.0.0'), null);
   assert.equal(contractWarning({ version: tested, contract: wanted }, wanted, tested), null);
   assert.equal(contractWarning({ version: '1.24.3', contract: '1.4' }, '1.0', tested), null, 'a later minor contract');
@@ -88,7 +88,7 @@ test('the CLI contract: the same MAJOR and a MINOR at least the plugin\'s; older
   assert.match(contractWarning({ version: '1.22.0', contract: '' }, '1.0', tested) ?? '', new RegExp(`1\\.22\\.0 is older .*archvow ${tested.replace(/\./g, '\\.')}.*update archvow`));
   assert.match(contractWarning({ version: '2.0.0', contract: '2.0' }, '1.0', tested) ?? '', /newer.*contract 2\.0.*update the plugin/);
   assert.match(contractWarning({ version: '1.22.0', contract: '' }, '1.0', tested, true) ?? '', /plus ancien.*mets archvow à jour/);
-  assert.match(contractWarning({ version: '2.1.0', contract: '2.1' }, '1.0', tested, true) ?? '', /plus récent.*mets le plugin à jour/);
+  assert.match(contractWarning({ version: '3.0.0', contract: '3.0' }, '1.0', tested, true) ?? '', /plus récent.*mets le plugin à jour/);
   assert.match(contractWarning({ version: '', contract: '' }, wanted, tested) ?? '', /installed/);
   assert.match(contractWarning(null, wanted, tested, true) ?? '', /installé/);
 });

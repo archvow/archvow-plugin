@@ -3298,7 +3298,7 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.0.1: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.1.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
    "meaning": "The project was set up with the template an older version; the archvow installed here brings a newer one. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of an older version.",
@@ -3322,7 +3322,7 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.0.1: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.1.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
    "meaning": "Le projet a été créé avec the template an older version ; l'archvow installé ici apporte a newer one. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de an older version.",
@@ -3603,6 +3603,42 @@
    "command": null,
    "file": {
     "path": "scripts/hack.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH015",
+  "message": "src/sales/__init__.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
+  "guide": {
+   "code": "ARCH015",
+   "meaning": "a Python file outside the architecture (no layer, not an allowed path)",
+   "todo": "make it a component, move it under `tests/`, or `archvow freeze` legacy code",
+   "who": "Whoever writes the code: you, or the AI with your review.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": {
+    "path": "src/sales/__init__.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH015",
+  "message": "src/sales/__init__.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
+  "guide": {
+   "code": "ARCH015",
+   "meaning": "un fichier Python hors de l'architecture (aucune couche, chemin non autorisé)",
+   "todo": "en faire un composant, le déplacer sous `tests/`, ou geler l'existant avec `archvow freeze`",
+   "who": "Celui qui écrit le code : vous, ou l'IA sous votre relecture.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/__init__.py",
     "line": 0
    }
   }
@@ -21488,43 +21524,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 548c30f5: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
-   "todo": "Redo the commit with the hooks on: git reset --soft HEAD~1, then git commit. If the hooks never run on your machine: git config core.hooksPath .githooks.",
-   "who": "You, who made the commit.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then push again: CI checks the branch again.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "ARCH053",
-  "message": "commit 548c30f5: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
-   "todo": "Refaites le commit avec les hooks : git reset --soft HEAD~1, puis git commit. Si les hooks ne tournent jamais sur votre poste : git config core.hooksPath .githooks.",
-   "who": "Vous, qui avez fait le commit.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "ARCH053",
-  "message": "commit 8b0cb428: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 40624ad7: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
@@ -21542,7 +21542,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit 8b0cb428: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit 40624ad7: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
@@ -21550,6 +21550,42 @@
    "who": "Vous, puis les architectes.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH053",
+  "message": "commit 4f4bbfbc: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
+   "todo": "Redo the commit with the hooks on: git reset --soft HEAD~1, then git commit. If the hooks never run on your machine: git config core.hooksPath .githooks.",
+   "who": "You, who made the commit.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then push again: CI checks the branch again.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH053",
+  "message": "commit 4f4bbfbc: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
+   "todo": "Refaites le commit avec les hooks : git reset --soft HEAD~1, puis git commit. Si les hooks ne tournent jamais sur votre poste : git config core.hooksPath .githooks.",
+   "who": "Vous, qui avez fait le commit.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",
@@ -22501,7 +22537,7 @@
    "command": null,
    "file": {
     "path": ".gitlab-ci.yml",
-    "line": 60
+    "line": 61
    }
   }
  },
@@ -22519,7 +22555,7 @@
    "command": null,
    "file": {
     "path": ".gitlab-ci.yml",
-    "line": 60
+    "line": 61
    }
   }
  },

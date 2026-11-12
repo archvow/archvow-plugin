@@ -57,7 +57,7 @@ final class ArchvowPanel extends JPanel {
     private static final Set<String> LONG_TEXT = Set.of("description", "answer", "rationale", "statement", "question", "text", "words");
     private static final Set<String> DESTRUCTIVE = Set.of("component remove", "question remove", "rule remove", "hazard remove", "invariant remove",
             "example remove");
-    private static final Set<String> READ_ONLY = Set.of("show", "catalog", "next", "check", "audit", "doctor", "changes", "diff", "prompt", "doc");
+    private static final Set<String> READ_ONLY = Set.of("show", "catalog", "next", "check", "audit", "doctor", "changes", "diff", "prompt", "doc", "try");  // try: a scratch folder only (2.1)
     private static final Pattern QUOTED_COMPONENT = Pattern.compile("'([^']+)'");
 
     /** An AI skill in the Commands tree (0.16.0): opens its launch form. */
@@ -112,6 +112,12 @@ final class ArchvowPanel extends JPanel {
     private JsonObject projectCatalog;
     /** The project's packs, as workspace --json gives them (archvow 1.26; Overview › Packs). */
     private com.google.gson.JsonArray projectPacks = new com.google.gson.JsonArray();
+    /** The first steps of a new project, as workspace --json gives them (archvow 2.1; the Overview's card). */
+    private com.google.gson.JsonArray firstStepsJson = new com.google.gson.JsonArray();
+    /** The Overview's cards (0.25.0, ArchvowOverviewCards): rebuilt on each refresh. */
+    private final JPanel firstStepsHolder = new JPanel(new BorderLayout());
+    private final JPanel architectureHolder = new JPanel(new BorderLayout());
+    private final JPanel checksHolder = new JPanel(new BorderLayout());
     /** Contract 2.0 (0.24.0): each feature, as show <feature> --json; the Components tab groups by feature or by layer. */
     private Map<String, JsonObject> projectFeatures = new LinkedHashMap<>();
     private boolean groupByFeature = true;
@@ -179,6 +185,11 @@ final class ArchvowPanel extends JPanel {
     private JButton welcomeInstall;
     private final JLabel welcomeInstallCommand = new JLabel();
     private final ArchvowConfirmPanel welcomeConfirmation = new ArchvowConfirmPanel();
+    /** 0.25.0: a folder without archvow offers to try it on an example first; its result shows under it. */
+    private JPanel welcomeTry;
+    private JComponent welcomeAdopt, welcomeFoot;
+    private final JEditorPane welcomeResult = htmlPane();
+    private JScrollPane welcomeResultScroll;
     /** "missing", "version" or "" (archvow speaks the plugin's contract). */
     private String installReason = "";
     private boolean installing;
@@ -375,8 +386,6 @@ final class ArchvowPanel extends JPanel {
     private final ArchvowNavigationTabs narrowOverviewTabs = new ArchvowNavigationTabs();
     private JPanel summaryCard, checkCard;
     /** Overview cards are always visible, even when their detailed editor views are closed. */
-    private final JLabel overviewArchitectureCounts = new JLabel("—");
-    private final JLabel overviewChecksCounts = new JLabel("—");
     private final JLabel overviewPacksCounts = new JLabel("—");
     private JComponent quickCard;
     private JComponent componentOtherCard;
@@ -386,13 +395,10 @@ final class ArchvowPanel extends JPanel {
     private JPanel actionsHeading;
     private final java.util.List<Runnable> languageRefreshers = new ArrayList<>();
     private JLabel brandTitle, languageLabel;
-    private JPanel quickCountPanel;
     private final JButton quickPrimary = new JButton();
     private final JButton quickSecondary = new JButton();
     private final JButton componentOtherPrimary = new JButton();
     private final JButton componentOtherSecondary = new JButton();
-    private final JButton pendingBadge = new JButton();
-    private final JButton resolvedBadge = new JButton();
     private final JLabel logoLabel = new JLabel();
     private final JComboBox<String> languageMode = new JComboBox<>(ArchvowI18n.modes());
     private final JButton openSettingsButton = new JButton();
@@ -890,6 +896,7 @@ final class ArchvowPanel extends JPanel {
         componentSnapshots.putAll(source.componentSnapshots);
         projectCatalog = source.projectCatalog;
         projectPacks = source.projectPacks;
+        firstStepsJson = source.firstStepsJson;
         projectFeatures = source.projectFeatures;
         gitRefs = source.gitRefs;
         firstCommit = source.firstCommit;
@@ -1205,16 +1212,27 @@ final class ArchvowPanel extends JPanel {
     }
 
 
+    /** The examples `archvow try` copies (2.1): value, label - as VS Code's TRY_EXAMPLES. */
+    private static final List<String[]> TRY_EXAMPLES = List.of(new String[] {"pyspark-pipeline", "PySpark pipeline"},
+        new String[] {"fastapi-service", "FastAPI service"}, new String[] {"python-app", "Python app"},
+        new String[] {"langgraph-agent", "LangGraph agent"});
+
     private JPanel buildWelcomeView() {
         JPanel container = new JPanel(new GridBagLayout());
-        JPanel card = new JPanel(new BorderLayout(12, 14));
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(borderColor()),
-            BorderFactory.createEmptyBorder(20, 24, 20, 24)));
+        JPanel column = new JPanel();
+        column.setOpaque(false);
+        column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
         JLabel title = new JLabel(ArchvowI18n.text(project,"Archvow · Getting started","Archvow · Démarrage"));
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 19f));
-        card.add(title, BorderLayout.NORTH);
-        welcomeText.setPreferredSize(new Dimension(480, 110));
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 17f));
+        title.setAlignmentX(0f);
+        column.add(title);
+        column.add(Box.createVerticalStrut(14));
+        JPanel card = new JPanel(new BorderLayout(12, 10));
+        card.setAlignmentX(0f);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(borderColor(), 1, true),
+            BorderFactory.createEmptyBorder(14, 16, 14, 16)));
+        welcomeText.setPreferredSize(new Dimension(420, 100));
         card.add(welcomeText, BorderLayout.CENTER);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         welcomeInit = button(ArchvowI18n.text(project,"Initialize Archvow","Initialiser Archvow"), () -> {
@@ -1231,16 +1249,82 @@ final class ArchvowPanel extends JPanel {
         actions.add(welcomeInstall, 0);
         welcomeInstallCommand.setFont(new Font(Font.MONOSPACED, Font.PLAIN, welcomeInstallCommand.getFont().getSize()));
         welcomeInstallCommand.setVisible(false);
-        JPanel south = new JPanel(new BorderLayout(0, 8));
-        south.add(welcomeInstallCommand, BorderLayout.NORTH);
-        south.add(actions, BorderLayout.CENTER);
-        south.add(welcomeConfirmation, BorderLayout.SOUTH);
+        JPanel south = new JPanel();
+        south.setLayout(new BoxLayout(south, BoxLayout.Y_AXIS));
+        for (JComponent part : List.<JComponent>of(welcomeInstallCommand, actions)) {
+            part.setAlignmentX(0f);
+            south.add(part);
+            south.add(Box.createVerticalStrut(8));
+        }
+        welcomeAdopt = ArchvowOverviewCards.wrapped(ArchvowI18n.text(project,
+            "Code already here? In Initialize, choose Adopt: your modules become components where they are, and Check then shows what the code does that no spec says.",
+            "Du code déjà là ? Dans Initialiser, choisis Adopter : tes modules deviennent des composants là où ils sont, et Contrôler montre ensuite ce que le code fait sans qu'aucune spec ne le dise."),
+            ArchvowOverviewCards.muted(), 12f);
+        south.add(welcomeAdopt);
+        welcomeConfirmation.setAlignmentX(0f);
+        south.add(welcomeConfirmation);
         card.add(south, BorderLayout.SOUTH);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        column.add(card);
+        column.add(Box.createVerticalStrut(14));
+        welcomeTry = buildTryCard();
+        column.add(welcomeTry);
+        welcomeResult.setVisible(true);
+        welcomeResultScroll = scroll(welcomeResult);
+        welcomeResultScroll.setPreferredSize(new Dimension(420, 260));
+        welcomeResultScroll.setAlignmentX(0f);
+        welcomeResultScroll.setVisible(false);
+        column.add(Box.createVerticalStrut(10));
+        column.add(welcomeResultScroll);
+        column.add(Box.createVerticalStrut(14));
+        welcomeFoot = ArchvowOverviewCards.wrapped(ArchvowI18n.text(project,
+            "After Initialize, the Overview shows the first steps. Developers and reviewers who clone a project with archvow start from its README.",
+            "Après Initialiser, la Vue d'ensemble montre les premiers pas. Les développeurs et relecteurs qui clonent un projet avec archvow partent de son README."),
+            ArchvowOverviewCards.muted(), 12f);
+        column.add(welcomeFoot);
         GridBagConstraints gc = new GridBagConstraints();
         gc.weightx = 1; gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(15, 15, 15, 15);
-        container.add(card, gc);
+        container.add(column, gc);
         return container;
+    }
+
+    /** "Not sure yet? See it catch a mistake" (0.25.0): archvow try on an example, in a scratch folder. */
+    private JPanel buildTryCard() {
+        JPanel card = ArchvowOverviewCards.card(borderColor(), 1, ArchvowOverviewCards.dark() ? new Color(38, 38, 43) : new Color(248, 248, 250));
+        card.add(ArchvowOverviewCards.label(ArchvowI18n.text(project, "Not sure yet? See it catch a mistake", "Pas encore sûr ? Regarde-le attraper une erreur"),
+            ArchvowOverviewCards.text(), Font.BOLD, 14f));
+        card.add(Box.createVerticalStrut(10));
+        card.add(ArchvowOverviewCards.wrapped(ArchvowI18n.text(project, "On a finished example, in a scratch folder: nothing in this folder changes.",
+            "Sur un exemple fini, dans un dossier jetable : rien ne change dans ce dossier."), ArchvowOverviewCards.text(), 13f));
+        card.add(Box.createVerticalStrut(10));
+        JPanel row = new JPanel(new BorderLayout(8, 0));
+        row.setOpaque(false);
+        row.setAlignmentX(0f);
+        row.add(ArchvowOverviewCards.label(ArchvowI18n.text(project, "Example", "Exemple"), ArchvowOverviewCards.muted(), Font.PLAIN, 13f), BorderLayout.WEST);
+        JComboBox<String> example = new JComboBox<>(TRY_EXAMPLES.stream().map(e -> e[1]).toArray(String[]::new));
+        row.add(example, BorderLayout.CENTER);
+        row.add(button(ArchvowI18n.text(project, "Try it", "L'essayer"),
+            () -> runTry(TRY_EXAMPLES.get(Math.max(0, example.getSelectedIndex()))[0])), BorderLayout.EAST);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+        card.add(row);
+        return card;
+    }
+
+    /** archvow try (2.1): on the welcome screen its result shows under the Try card; in a project, as any command. */
+    private void runTry(String example) {
+        List<String> args = List.of("try", example, "--json");
+        ArchvowProjectReadiness.Status status = ArchvowProjectReadiness.inspect(project.getBasePath());
+        if (status.ready()) {
+            executeDirect("try", args, null, false);
+            return;
+        }
+        if (status.root().isBlank() || !new File(status.root()).isDirectory()) return;
+        welcomeResultScroll.setVisible(true);
+        welcomeResult.setText(htmlMessage("<b>⏳ " + escape(ArchvowI18n.text(project, "Running", "Exécution"))
+            + "</b> · " + escape("archvow " + String.join(" ", args))));
+        revalidate();
+        cli.executeAction("try", args, null, result -> storeCommandResult(welcomeResult, "try", result));
     }
 
     private void showWelcome(ArchvowProjectReadiness.Status status, String customError) {
@@ -1261,8 +1345,8 @@ final class ArchvowPanel extends JPanel {
             case NOT_INITIALIZED -> {
                 title = ArchvowI18n.text(project, "Archvow not initialized", "Archvow non initialisé");
                 detail = ArchvowI18n.text(project,
-                    "This folder does not contain .archvow/project.vow. Initialize Archvow to begin or open an initialized project. A project of archvow 1.x (.archvow/spec.vow) is converted once with archvow 2.0's tools/convert_to_2.py.",
-                    "Ce dossier ne contient pas .archvow/project.vow. Initialise Archvow ou ouvre un projet existant. Un projet archvow 1.x (.archvow/spec.vow) se convertit une fois avec tools/convert_to_2.py d'archvow 2.0.");
+                    "This folder does not contain .archvow/project.vow. Initialize Archvow to begin, or open an initialized project.",
+                    "Ce dossier ne contient pas .archvow/project.vow. Initialise Archvow pour commencer, ou ouvre un projet déjà initialisé.");
             }
             case SPEC_INACCESSIBLE -> {
                 title = ArchvowI18n.text(project, "Specification unavailable", "Spécification inaccessible");
@@ -1288,6 +1372,8 @@ final class ArchvowPanel extends JPanel {
             + "</p><p><small>" + escape(status.root()) + "</small></p>" + extra + "</body></html>");
         welcomeText.setCaretPosition(0);
         welcomeInit.setEnabled(status.canInitialize());
+        boolean fresh = status.state() == ArchvowProjectReadiness.State.NOT_INITIALIZED;
+        for (JComponent part : List.<JComponent>of(welcomeTry, welcomeAdopt, welcomeFoot)) part.setVisible(fresh);
         showInstallCard(status);
         collapseExpandedResult();
         rootLayout.show(rootCards, "welcome");
@@ -1388,13 +1474,15 @@ final class ArchvowPanel extends JPanel {
         page.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         JPanel top = new JPanel(new BorderLayout(0, 4));
         JPanel overviewHeading = new JPanel(new BorderLayout(0, 5));
-        overviewHeading.add(buildOverviewStatusStrip(), BorderLayout.NORTH);
         featureBranchWarning.setOpaque(true);
         featureBranchWarning.setBorder(BorderFactory.createEmptyBorder(9, 12, 9, 12));
         featureBranchWarning.setBackground(darkTheme() ? new Color(81, 60, 25) : new Color(255, 245, 218));
         featureBranchWarning.setForeground(darkTheme() ? new Color(255, 205, 125) : new Color(137, 90, 22));
         featureBranchWarning.setVisible(false);
-        overviewHeading.add(featureBranchWarning, BorderLayout.SOUTH);
+        overviewHeading.add(featureBranchWarning, BorderLayout.NORTH);
+        firstStepsHolder.setOpaque(false);
+        firstStepsHolder.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
+        overviewHeading.add(firstStepsHolder, BorderLayout.SOUTH);
         briefFolders.setForeground(new Color(107, 114, 128));
         briefFolders.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
         briefFolders.setToolTipText(ArchvowI18n.text(project, "An architect changes them: archvow init <package> --force -a briefs=...",
@@ -1440,15 +1528,14 @@ final class ArchvowPanel extends JPanel {
         JPanel overviewRows = new JPanel();
         overviewRows.setOpaque(false);
         overviewRows.setLayout(new BoxLayout(overviewRows, BoxLayout.Y_AXIS));
-        overviewRows.add(overviewSummaryRow("Architecture", "boxes", overviewArchitectureCounts,
-            ArchvowI18n.text(project, "Open Components for details →", "Voir les composants en détail →"),
-            () -> tabs.setSelectedIndex(1)));
-        overviewRows.add(Box.createVerticalStrut(6));
-        overviewRows.add(overviewSummaryRow(ArchvowI18n.text(project, "Checks", "Contrôles"), "shield",
-            overviewChecksCounts, ArchvowI18n.text(project, "Open Checks →", "Voir les contrôles →"),
-            this::runFullCheck));
-        overviewRows.add(Box.createVerticalStrut(6));
-        overviewRows.add(overviewSummaryRow("Packs", "layout", overviewPacksCounts,
+        // 0.25.0: Architecture counts its own items, Checks shows the first finding (ArchvowOverviewCards)
+        for (JPanel holder : List.of(architectureHolder, checksHolder)) {
+            holder.setOpaque(false);
+            holder.setAlignmentX(0f);
+            overviewRows.add(holder);
+            overviewRows.add(Box.createVerticalStrut(12));
+        }
+        overviewRows.add(overviewSummaryRow("Packs", overviewPacksCounts,
             ArchvowI18n.text(project, "Open Packs →", "Voir les packs →"), this::openPacks));
         overviewCenter.add(overviewRows, BorderLayout.NORTH);
 
@@ -1457,32 +1544,12 @@ final class ArchvowPanel extends JPanel {
         return page;
     }
 
-    /** A true capsule border rather than the square Mac/JetBrains button chrome. */
-    private static final class OutlinePillBorder extends javax.swing.border.AbstractBorder {
-        private final Color color;
-        OutlinePillBorder(Color color) { this.color = color; }
-        @Override public Insets getBorderInsets(Component component) { return new Insets(3, 12, 3, 12); }
-        @Override public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
-            Graphics2D ink = (Graphics2D) g.create();
-            try {
-                ink.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                ink.setColor(color);
-                ink.setStroke(new BasicStroke(1.4f));
-                ink.drawRoundRect(x + 1, y + 1, Math.max(0, w - 3), Math.max(0, h - 3),
-                    Math.max(0, h - 3), Math.max(0, h - 3));
-            } finally { ink.dispose(); }
-        }
-    }
-
-    /** Two actual navigable summary cards (not an extra set of tabs). */
-    private JPanel overviewSummaryRow(String title, String iconKind, JLabel counts, String linkText, Runnable open) {
+    /** The Packs card (0.25.0: no icon, as the Architecture and Checks cards of ArchvowOverviewCards). */
+    private JPanel overviewSummaryRow(String title, JLabel counts, String linkText, Runnable open) {
         JPanel card = new JPanel(new BorderLayout(10, 0));
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(borderColor(), 1, true),
             BorderFactory.createEmptyBorder(10, 12, 10, 12)));
-        JLabel icon = new JLabel(ArchvowUiIcons.iconFor(card, iconKind));
-        icon.setToolTipText(title);
-        card.add(icon, BorderLayout.WEST);
         JPanel copy = new JPanel();
         copy.setOpaque(false);
         copy.setLayout(new BoxLayout(copy, BoxLayout.Y_AXIS));
@@ -1506,7 +1573,7 @@ final class ArchvowPanel extends JPanel {
         java.awt.event.MouseAdapter activateRow = new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) { open.run(); }
         };
-        for (Component target : List.of(card, copy, heading, counts, icon)) {
+        for (Component target : List.of(card, copy, heading, counts)) {
             target.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             target.addMouseListener(activateRow);
         }
@@ -1529,129 +1596,32 @@ final class ArchvowPanel extends JPanel {
         logoLabel.setIcon(loadLogoIcon(width < 510 ? 32 : 48, width < 510 ? 32 : 48));
         if (languageLabel != null) languageLabel.setVisible(!detail);
         languageMode.setVisible(!detail);
-        if (quickCountPanel != null) quickCountPanel.setVisible(true);
         revalidate();
         repaint();
     }
 
-    /** Compact status shortcuts; item counts open component-filtered work lists. */
-    private JPanel buildOverviewStatusStrip() {
-        JPanel bar = new JPanel(new BorderLayout(8, 0));
-        bar.setBorder(BorderFactory.createEmptyBorder(3, 6, 3, 6));
-        JLabel title = translated(new JLabel(), "Project status", "État du projet");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 13f));
-        bar.add(title, BorderLayout.WEST);
-        JPanel counts = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        quickCountPanel = counts;
-        pendingBadge.setToolTipText(ArchvowI18n.text(project,
-            "See open items by component", "Voir les éléments ouverts par composant"));
-        resolvedBadge.setToolTipText(ArchvowI18n.text(project,
-            "See completed items by component", "Voir les éléments traités par composant"));
-        pendingBadge.addActionListener(e -> openQuickList(0));
-        resolvedBadge.addActionListener(e -> openQuickList(1));
-        for (JButton badge : List.of(pendingBadge, resolvedBadge)) {
-            badge.setFocusPainted(false);
-            badge.setOpaque(false);
-            badge.setContentAreaFilled(false);
-            badge.setBorderPainted(true);
-            badge.setFont(badge.getFont().deriveFont(Font.PLAIN, 12f));
-            badge.setForeground(ArchvowStatusPalette.statusColor(badge == pendingBadge));
-            badge.setMargin(new Insets(0, 0, 0, 0));
-            badge.setBorder(new OutlinePillBorder(badge == pendingBadge
-                ? (darkTheme() ? new Color(255, 153, 98) : new Color(190, 106, 30))
-                : (darkTheme() ? new Color(158, 221, 111) : new Color(26, 132, 68))));
-        }
-        counts.add(pendingBadge);
-        counts.add(resolvedBadge);
-        bar.add(counts, BorderLayout.EAST);
-        // a narrow tool window: the counters go under the title rather than over it
-        bar.addComponentListener(new ComponentAdapter() {
-            @Override public void componentResized(ComponentEvent e) {
-                Insets in = bar.getInsets();
-                boolean fits = bar.getWidth() - in.left - in.right >= title.getPreferredSize().width + 8 + counts.getPreferredSize().width;
-                Object where = ((BorderLayout) bar.getLayout()).getConstraints(counts);
-                Object wanted = fits ? BorderLayout.EAST : BorderLayout.SOUTH;
-                if (wanted.equals(where)) return;
-                bar.remove(counts);
-                ((FlowLayout) counts.getLayout()).setAlignment(fits ? FlowLayout.RIGHT : FlowLayout.LEFT);
-                bar.add(counts, wanted);
-                bar.revalidate();
-            }
-        });
-        return bar;
-    }
-
+    /** The project's commands (0.25.0): Next and Check named, More with the others - as VS Code's projectToolbar(). */
     private JPanel buildToolbar() {
-        // Native buttons stay visible until their real preferred widths exceed available space.
-        // Only buttons that no longer fit move into the More menu.
         JPanel bar = new JPanel(new BorderLayout(8, 4));
-        ArchvowOverflowBar commands = new ArchvowOverflowBar(ArchvowI18n.text(project, "More ▾", "Plus ▾"));
-        commands.setSeparated(true);
-        commands.setAlwaysShowMore(false);
-        commands.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(borderColor(), 1, true),
-            BorderFactory.createEmptyBorder(3, 3, 3, 3)));
-        commands.addAction(overviewIconAction("arrow", "Next", () ->
-            executeDirect("next", List.of("next", "--json"), null, false)));
-        // There is only one Check in Overview: the complete project validation.
-        commands.addAction(overviewIconAction("check", "Check", this::runFullCheck));
-        commands.addAction(overviewIconAction("health", "Doctor", () ->
-            executeDirect("doctor", List.of("doctor", "--json"), null, false)));
-        commands.addAction(overviewIconAction("search", "Audit", () ->
-            executeDirect("audit", List.of("audit", "--json"), null, false)));
-        commands.addAction(overviewIconAction("document", ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
-        commands.addAction(overviewIconAction("folder", ArchvowI18n.text(project, "Briefs", "Briefs"),
-            this::openBriefsDetails));
-        // Advanced commands are real actions too: only send them to More when space runs out.
-        commands.addAction(overviewIconAction("list", "Budget / Next", () -> {
-            String ref = askBase(ArchvowI18n.text(project, "Compare this branch's change with:", "Comparer le changement de cette branche avec :"));
-            if (ref != null) executeDirect("next --base", List.of("next", "--base", ref, "--json"), null, false);
-        }));
-        commands.addAction(overviewIconAction("compare", "Diff", () ->
-            openCommand("diff", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
-        commands.addAction(overviewIconAction("spark", "AI review", () ->
-            openCommand("review", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
+        bar.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
+        List<ArchvowOverviewCards.MenuCommand> more = List.of(
+            new ArchvowOverviewCards.MenuCommand("health", "Doctor", () -> executeDirect("doctor", List.of("doctor", "--json"), null, false)),
+            new ArchvowOverviewCards.MenuCommand("search", "Audit", () -> executeDirect("audit", List.of("audit", "--json"), null, false)),
+            new ArchvowOverviewCards.MenuCommand("folder", ArchvowI18n.text(project, "Briefs", "Briefs"), this::openBriefsDetails),
+            new ArchvowOverviewCards.MenuCommand("list", "Budget / Next", () -> {
+                String ref = askBase(ArchvowI18n.text(project, "Compare this branch's change with:", "Comparer le changement de cette branche avec :"));
+                if (ref != null) executeDirect("next --base", List.of("next", "--base", ref, "--json"), null, false);
+            }),
+            new ArchvowOverviewCards.MenuCommand("compare", "Diff", () ->
+                openCommand("diff", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))),
+            new ArchvowOverviewCards.MenuCommand("spark", "AI review", () ->
+                openCommand("review", branch.getText().isBlank() ? Map.of() : Map.of("base", branch.getText().trim()))));
+        bar.add(ArchvowOverviewCards.toolbar(() -> executeDirect("next", List.of("next", "--json"), null, false),
+            this::runFullCheck, more, ArchvowI18n.isFrench(project), null), BorderLayout.CENTER);
         gitBranchLabel.setToolTipText(ArchvowI18n.text(project, "Current Git branch", "Branche Git courante"));
-        bar.add(commands, BorderLayout.CENTER);
-        // Always show the current branch below the actions, including in a narrow
-        // tool window. The full branch remains accessible in its tooltip.
         gitBranchLabel.setForeground(mutedTextColor());
         gitBranchLabel.setBorder(BorderFactory.createEmptyBorder(3, 5, 2, 5));
-        // Git comparison settings remain available through Diff/Review forms, not the Overview.
         return bar;
-    }
-
-    /** Compact, accessible icon command; the tooltip preserves its full command name. */
-    private JButton overviewIconAction(String kind, String label, Runnable action) {
-        JButton result = overviewAction("", action);
-        ArchvowUiIcons.explicit(result, kind);
-        result.setText("");
-        result.setToolTipText(label);
-        result.getAccessibleContext().setAccessibleName(label);
-        result.setPreferredSize(new Dimension(37, 31));
-        result.setMargin(new Insets(4, 8, 4, 8));
-        return result;
-    }
-
-    /** Keep the IDE's native button UI but omit the high-contrast focus rectangle.
-     * The black/gold rectangles in certain Look & Feels were focus painting,
-     * not the command's status. Keyboard navigation remains available. */
-    private JButton overviewAction(String label, Runnable action) {
-        // Recalculate contrast whenever the IDE Look & Feel changes. Do not force a
-        // background: the native painter owns hover, border and enabled/disabled states.
-        JButton button = new JButton(label) {
-            @Override public void updateUI() {
-                super.updateUI();
-                setFocusPainted(false);
-                setForeground(darkTheme() ? new Color(225, 231, 240) : new Color(34, 43, 55));
-            }
-        };
-        button.addActionListener(e -> action.run());
-        button.setFocusPainted(false);
-        button.setMargin(new Insets(4, 10, 4, 10));
-        // The compact ↻ symbol is already a visual icon; keep it single.
-        ArchvowUiIcons.decorate(button);
-        return button;
     }
 
     private void chooseComparisonBase() {
@@ -4483,6 +4453,7 @@ final class ArchvowPanel extends JPanel {
             // the project's catalog: its template's types and kinds, its own templates (component add, pack template)
             if (ArchvowInitCatalog.hasTemplates(answer.catalog)) projectCatalog = answer.catalog;
             projectPacks = answer.packs;  // archvow 1.26: the project's packs
+            firstStepsJson = answer.firstSteps;  // archvow 2.1: the first steps of a new project
             projectFeatures = answer.features;  // archvow 2.0: each feature
             componentSnapshots.clear();
             componentSnapshots.putAll(answer.snapshots);
@@ -5730,24 +5701,76 @@ final class ArchvowPanel extends JPanel {
         componentsTree.repaint();
         overviewSummary.showData(manifest, check, componentSnapshots, pendingByComponent,
             pendingModel.size(), resolvedModel.size(), ArchvowI18n.isFrench(project));
-        int componentCount = 0;
-        for (JsonObject container : ArchvowGrammar.objects(manifest, "containers"))
-            componentCount += ArchvowGrammar.objects(container, "components").size();
         boolean fr = ArchvowI18n.isFrench(project);
-        overviewArchitectureCounts.setText(componentCount + (fr ? " composants · " : " components · ")
-            + pendingModel.size() + (fr ? " en attente · " : " pending · ")
-            + resolvedModel.size() + (fr ? " traités" : " resolved"));
-        int errors = ArchvowGrammar.number(check, "errors");
-        int warnings = ArchvowGrammar.number(check, "warnings");
-        overviewChecksCounts.setText(errors + (fr ? " erreurs · " : " errors · ")
-            + warnings + (fr ? " avertissements" : " warnings"));
-        overviewChecksCounts.setForeground(errors > 0 ? ArchvowStatusPalette.statusColor(true) : mutedTextColor());
         overviewPacksCounts.setText(ArchvowPacks.summary(projectPacks, fr));
         overviewPacksCounts.setForeground(ArchvowPacks.changed(projectPacks) > 0 ? ArchvowStatusPalette.statusColor(true) : mutedTextColor());
         diagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
         detailDiagnostics.showData(check, checkFailure, ArchvowI18n.isFrench(project));
         refreshOverviewTabTitles();
         refreshComponentOtherModels();
+        refreshOverviewCards();
+    }
+
+    /** The Overview's cards (0.25.0): First steps, Architecture's own items, Checks' first finding. */
+    private void refreshOverviewCards() {
+        boolean fr = ArchvowI18n.isFrench(project);
+        int open = 0;
+        for (int i = 0; i < pendingModel.size(); i++) if (ownItem(pendingModel.get(i))) open++;
+        int done = 0;
+        for (int i = 0; i < resolvedModel.size(); i++) if (ownItem(resolvedModel.get(i))) done++;
+        int projectItems = 0;
+        for (int i = 0; i < otherPendingModel.size(); i++) {
+            QuickItem item = otherPendingModel.get(i);
+            if (item.componentId.isBlank() && ownItem(item)) projectItems++;
+        }
+        int components = 0;
+        for (JsonObject container : ArchvowGrammar.objects(manifest, "containers"))
+            components += ArchvowGrammar.objects(container, "components").size();
+        ArchvowOverview.FirstSteps steps = ArchvowOverview.firstSteps(firstStepsJson);
+        ArchvowOverviewCards.Actions actions = overviewActions();
+        JPanel first = ArchvowOverviewCards.firstSteps(steps, fr, actions);
+        firstStepsHolder.removeAll();
+        if (first != null) firstStepsHolder.add(first, BorderLayout.CENTER);
+        firstStepsHolder.setVisible(first != null);
+        architectureHolder.removeAll();
+        architectureHolder.add(ArchvowOverviewCards.architecture(components, done, open, projectItems, first != null, fr, actions), BorderLayout.CENTER);
+        checksHolder.removeAll();
+        checksHolder.add(ArchvowOverviewCards.checks(ArchvowGrammar.number(check, "errors"), ArchvowGrammar.number(check, "warnings"),
+            ArchvowOverview.firstFinding(check), fr, actions), BorderLayout.CENTER);
+        for (JPanel holder : List.of(firstStepsHolder, architectureHolder, checksHolder)) {
+            holder.revalidate();
+            holder.repaint();
+        }
+    }
+
+    /** An item of the components' own work - a decision, a question, a task - not a check finding. */
+    private static boolean ownItem(QuickItem item) {
+        return item.guide == null && !"open-diagnostics".equals(item.commandLabel);
+    }
+
+    private ArchvowOverviewCards.Actions overviewActions() {
+        return new ArchvowOverviewCards.Actions() {
+            @Override public void openComponents() { tabs.setSelectedIndex(1); }
+            @Override public void openItems(int list) { openQuickList(list); }
+            @Override public void openProjectItems() { openProjectWork(); }
+            @Override public void openChecks() { runFullCheck(); }
+            @Override public void openFile(String path, int line) { openViolationFile(path, line); }
+            @Override public void step(ArchvowOverview.FirstStep step) {
+                if (step.command().startsWith("archvow specify ")) {
+                    openCommand("specify", Map.of("component", step.command().substring("archvow specify ".length()).trim()));
+                    return;
+                }
+                switch (step.step()) {
+                    case "feature" -> openCommand("feature add", Map.of());
+                    case "component" -> openCommand("component add", Map.of());
+                    case "build" -> runFullCheck();
+                    default -> { }
+                }
+            }
+            @Override public void tryExample() {
+                executeDirect("try", List.of("try", "pyspark-pipeline", "--json"), null, false);
+            }
+        };
     }
 
     private void refreshOverviewTabTitles() {
@@ -6037,12 +6060,6 @@ final class ArchvowPanel extends JPanel {
         componentsTree.putClientProperty("archvow.resolvedCounts", Map.copyOf(resolvedByComponent));
         componentsTree.repaint();
         updateComponentPendingExplanation();
-        pendingBadge.setText(pendingModel.size() + " " + ArchvowI18n.text(project, "pending", "en attente"));
-        resolvedBadge.setText(resolvedModel.size() + " " + ArchvowI18n.text(project, "resolved", "traités"));
-        pendingBadge.setBackground(darkTheme() ? new Color(77, 56, 40) : new Color(255, 242, 226));
-        pendingBadge.setForeground(darkTheme() ? new Color(255, 193, 114) : new Color(156, 89, 18));
-        resolvedBadge.setBackground(darkTheme() ? new Color(40, 69, 54) : new Color(231, 248, 237));
-        resolvedBadge.setForeground(darkTheme() ? new Color(121, 224, 158) : new Color(23, 121, 68));
     }
 
     /** Explain why the component total can exceed the Rules & data count. */
@@ -6469,6 +6486,31 @@ final class ArchvowPanel extends JPanel {
             if (list.getModel().getSize() > 0) {
                 list.setSelectedIndex(0);
                 list.ensureIndexIsVisible(0);
+            }
+        }
+    }
+
+    /** Overview › Architecture › Project items: the Other view, on the first project-wide item (0.25.0). */
+    private void openProjectWork() {
+        if (role == Role.NAVIGATION) {
+            ArchvowPanel detail = ArchvowEditorTab.panel(project);
+            tabs.setSelectedIndex(1);
+            if (detail == null) return;
+            detail.openProjectWork();
+            detail.afterSelectionChange();
+            return;
+        }
+        showWorkspace();
+        tabs.setSelectedIndex(1);
+        setComponentFilter("all");
+        selectComponentView(7);
+        quickTabs.setSelectedIndex(0);
+        for (int i = 0; i < otherPendingModel.size(); i++) {
+            QuickItem item = otherPendingModel.get(i);
+            if (item.componentId.isBlank() && ownItem(item)) {
+                otherPendingList.setSelectedIndex(i);
+                otherPendingList.ensureIndexIsVisible(i);
+                return;
             }
         }
     }

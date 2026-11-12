@@ -194,7 +194,7 @@ final class ArchvowGuidance {
     }
 
     /** First words of the commands that change nothing (the panel's READ_ONLY, VS Code's grammar.ts). */
-    static final Set<String> READ_ONLY = Set.of("show", "catalog", "next", "check", "audit", "doctor", "changes", "diff", "prompt");
+    static final Set<String> READ_ONLY = Set.of("show", "catalog", "next", "check", "audit", "doctor", "changes", "diff", "prompt", "doc", "try");
 
     // ------------------------------------------------------------------ who does it
 

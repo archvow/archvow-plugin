@@ -110,6 +110,9 @@ export function renderResult(label: string, exitCode: number, stdout: string, st
     } else if (key.startsWith('next') && (Array.isArray(parsed) || isObject(parsed))) {
       next(out, parsed as Json[] | Json, fr);
       reported = true;
+    } else if (key === 'try' && isObject(parsed) && 'changes' in parsed) {
+      tryResult(out, parsed, fr);
+      reported = true;
     } else if (key === 'catalog' && isObject(parsed)) {
       catalog(out, parsed, fr);
       reported = true;
@@ -164,7 +167,9 @@ function check(out: Out, report: Json, fr: boolean, label: string): void {
     const error = str(v, 'severity').toLowerCase() === 'error';
     const status = error ? tr(fr, 'ERROR', 'ERREUR') : tr(fr, 'WARNING', 'AVERTISSEMENT');
     const file = str(v, 'file');
-    out.card(str(v, 'code') ? str(v, 'code') + ' · ' + status : status, str(v, 'message'), error ? 'bad' : 'warn', [],
+    const code = str(v, 'code') ? str(v, 'code') + ' · ' + status : status;
+    // the rule in words first (archvow 2.1), then its code
+    out.card(str(v, 'title') || code, str(v, 'title') ? code + ' — ' + str(v, 'message') : str(v, 'message'), error ? 'bad' : 'warn', [],
       file ? locationHtml(file, num(v, 'line')) : '');
   });
   if (violations.length > 35) out.more(violations.length - 35, fr);
@@ -253,11 +258,20 @@ function next(out: Out, json: Json[] | Json, fr: boolean): void {
     if ('started' in c) fields.push([tr(fr, 'Started', 'Démarré'), str(c, 'started')]);
     for (const note of Array.isArray(c.notes) ? c.notes : []) fields.push([tr(fr, 'Attention', 'Attention'), asText(note)]);
     if ('tokens' in c) fields.push([tr(fr, 'Spec size', 'Taille de la spec'), str(c, 'tokens') + ' tokens']);
+    if ('suggested' in c) fields.push([tr(fr, 'Suggested answers', 'Réponses suggérées'), suggested(num(c, 'suggested'), readiness, fr)]);
     if (level.startsWith('blocked')) fields.push([tr(fr, 'Suggested command', 'Commande suggérée'), 'archvow specify ' + str(c, 'component')]);
     out.card(str(c, 'component') + ' · ' + readiness, str(c, 'type'), level.startsWith('ready') ? 'good' : level.startsWith('blocked') ? 'warn' : 'blue', fields);
   });
   if (components.length > 45) out.more(components.length - 45, fr);
   if (isObject(budgetInfo)) budget(out, budgetInfo, fr);
+}
+
+/** "4 of the 9 decisions" (contract 2.1: `suggested`, what `specify` offers an answer for; a person confirms each). */
+export function suggested(n: number, readiness: string, fr: boolean): string {
+  if (n <= 0) return tr(fr, 'none', 'aucune');
+  const m = /(\d+) decisions? to (make|propose)/.exec(readiness);
+  const total = m ? Number(m[1]) : n;
+  return tr(fr, `${n} of the ${total} decision${total === 1 ? '' : 's'}`, `${n} des ${total} décision${total === 1 ? '' : 's'}`);
 }
 
 function budget(out: Out, b: Json, fr: boolean): void {
@@ -288,6 +302,39 @@ function catalog(out: Out, data: Json, fr: boolean): void {
     [tr(fr, 'Component types', 'Types de composants'), isObject(t.component_types) ? Object.keys(t.component_types).join(', ') : ''],
     [tr(fr, 'Initialization questions', "Questions d'initialisation"), String(objects(t, 'questions').length)]]));
   out.paragraph(tr(fr, 'To answer a template\'s questions, open Commands → init.', "Pour répondre aux questions d'un modèle, ouvre Commandes → init."), 'muted');
+}
+
+/** `archvow try --json` (2.1): a finished example copied to a scratch folder, the change an AI often makes, and
+ *  what check says - each finding with its rule in words and what to do. */
+function tryResult(out: Out, r: Json, fr: boolean): void {
+  const errors = num(r, 'errors');
+  const before = isObject(r.before) ? r.before : {};
+  out.heading(errors > 0 ? tr(fr, 'archvow caught both changes, before any review', 'archvow a attrapé les deux changements, avant toute relecture')
+    : tr(fr, 'archvow try', 'archvow try'), errors > 0 ? 'good' : 'warn');
+  out.paragraph(tr(fr, 'On a copy of the finished example, in a scratch folder. Your repository was not touched.',
+    "Sur une copie de l'exemple fini, dans un dossier jetable. Ton dépôt n'a pas été touché."), 'muted');
+  const changes = objects(r, 'changes');
+  out.html += '<ol class="try-steps">'
+    + `<li><b>${esc(tr(fr, 'Copied the example', "Copié l'exemple"))}</b><span>${esc(str(r, 'example'))} · ${esc(num(before, 'errors') + num(before, 'warnings') === 0
+      ? tr(fr, 'all checks green', 'tous les contrôles au vert') : tr(fr, `${num(before, 'errors')} errors before`, `${num(before, 'errors')} erreurs avant`))}</span></li>`
+    + `<li><b>${esc(tr(fr, 'Made a change an AI often makes', 'Fait un changement que fait souvent une IA'))}</b><span>${esc(changes.map((c) => str(c, 'change')).join(', '))}</span></li>`
+    + `<li><b>${esc(tr(fr, `Ran Check: ${errors} error${errors === 1 ? '' : 's'}`, `Lancé Check : ${errors} erreur${errors === 1 ? '' : 's'}`))}</b><span>${esc(tr(fr, 'The commit and CI would stop here', "Le commit et la CI s'arrêteraient ici"))}</span></li></ol>`;
+  out.section(tr(fr, 'The change', 'Le changement'));
+  out.html += '<pre class="try-change">' + changes.map((c) => esc(str(c, 'file')) + `   (${esc(str(c, 'change'))})
+`
+    + (Array.isArray(c.lines) ? c.lines : []).map((l: unknown) => '+     ' + esc(String(l))).join('\n')).join('\n') + '</pre>';
+  out.paragraph(tr(fr, 'Both look harmless. Neither is in the spec: one module nobody decided on, and a shortcut across layers.',
+    "Les deux ont l'air inoffensifs. Aucun n'est dans la spec : un module que personne n'a décidé, et un raccourci entre couches."));
+  out.section(tr(fr, 'What caught it', "Ce qui l'a attrapé"));
+  for (const v of objects(r, 'violations')) {
+    const file = str(v, 'file');
+    const name = file.split('/').pop() ?? '';
+    const where = str(v, 'code') + (name ? ' · ' + name + (num(v, 'line') ? ':' + num(v, 'line') : '') : '');
+    const fix = isObject(v.guide) ? str(v.guide, 'fix') : '';
+    out.card(str(v, 'title') || str(v, 'code'), where, str(v, 'severity') === 'error' ? 'bad' : 'warn',
+      fix ? [[tr(fr, 'What to do', 'Que faire'), fix]] : []);
+  }
+  out.paragraph(tr(fr, `The copy stays in ${str(r, 'folder')}: read the example's spec there.`, `La copie reste dans ${str(r, 'folder')} : lis-y la spec de l'exemple.`), 'muted');
 }
 
 // no heading of its own: the card around it already says "Command result" (it said it twice, 0.12.1)

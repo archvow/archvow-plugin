@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@2.0.1`).
+[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@2.1.0`).
 
 ## For developers
 
@@ -213,16 +213,16 @@ archvow next
 
 ```
   component                    type            status
-✖ config                       foundation      blocked: 2 decisions to make  -> archvow specify config
-✖ logging_setup                foundation      blocked: 1 decision to make  -> archvow specify logging_setup
+✖ config                       foundation      blocked: 2 decisions to make (1 suggested)  -> archvow specify config
+✖ logging_setup                foundation      blocked: 1 decision to make (1 suggested)  -> archvow specify logging_setup
 ✖ spark                        foundation      blocked: 1 decision to make  -> archvow specify spark
-✖ clean_sales                  transformation  blocked: 9 decisions to make  -> archvow specify clean_sales
+✖ clean_sales                  transformation  blocked: 9 decisions to make (4 suggested)  -> archvow specify clean_sales
 ✖ revenue_schema               schema          blocked: 2 decisions to make  -> archvow specify revenue_schema
 ✖ sales_schema                 schema          blocked: 2 decisions to make  -> archvow specify sales_schema
-✖ revenue_writer               writer          blocked: 5 decisions to make  -> archvow specify revenue_writer
-✖ sales_reader                 reader          blocked: 3 decisions to make  -> archvow specify sales_reader
-✖ my_pipeline_job              job             blocked: 3 decisions to make  -> archvow specify my_pipeline_job
-✖ my_pipeline_main             entrypoint      blocked: 2 decisions to make  -> archvow specify my_pipeline_main
+✖ revenue_writer               writer          blocked: 5 decisions to make (1 suggested)  -> archvow specify revenue_writer
+✖ sales_reader                 reader          blocked: 3 decisions to make (2 suggested)  -> archvow specify sales_reader
+✖ my_pipeline_job              job             blocked: 3 decisions to make (1 suggested)  -> archvow specify my_pipeline_job
+✖ my_pipeline_main             entrypoint      blocked: 2 decisions to make (2 suggested)  -> archvow specify my_pipeline_main
 
 Safety: 1 of 20 questions answered  -> archvow specify
 

@@ -1,5 +1,5 @@
 {
-  "contract": "2.0",
+  "contract": "2.1",
   "name": "InvoiceNotFoundError",
   "summary": "a class of invoice_not_found_error",
   "total": 12,

@@ -1,0 +1,153 @@
+[
+ {
+  "example": "fastapi-service",
+  "firstSteps": {
+   "steps": [
+    {
+     "step": "foundations",
+     "title": "Answer the foundations",
+     "detail": "Their decisions are made",
+     "command": "archvow specify",
+     "done": true
+    },
+    {
+     "step": "feature",
+     "title": "Add a feature",
+     "detail": "What the product does",
+     "command": "archvow feature add <name> -d \"what the product does\"",
+     "done": true
+    },
+    {
+     "step": "component",
+     "title": "Add its first component and answer its decisions",
+     "detail": "Next then shows it ready to build",
+     "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders",
+     "done": true
+    },
+    {
+     "step": "build",
+     "title": "Build it, then Check",
+     "detail": "Its code and tests, checked against the spec",
+     "command": "archvow check",
+     "done": true
+    },
+    {
+     "step": "commit",
+     "title": "Commit",
+     "detail": "The hooks run the same checks as CI; then open a merge request",
+     "command": "git add -A && git commit",
+     "done": false
+    }
+   ],
+   "done": 4,
+   "current": 4
+  },
+  "firstFinding": null,
+  "suggested": []
+ },
+ {
+  "example": "pyspark-pipeline",
+  "firstSteps": {
+   "steps": [
+    {
+     "step": "foundations",
+     "title": "Answer the foundations",
+     "detail": "Their decisions are made",
+     "command": "archvow specify",
+     "done": true
+    },
+    {
+     "step": "feature",
+     "title": "Add a feature",
+     "detail": "What the product does",
+     "command": "archvow feature add <name> -d \"what the product does\"",
+     "done": true
+    },
+    {
+     "step": "component",
+     "title": "Add its first component and answer its decisions",
+     "detail": "Next then shows it ready to build",
+     "command": "archvow specify order_totals",
+     "done": true
+    },
+    {
+     "step": "build",
+     "title": "Build it, then Check",
+     "detail": "Its code and tests, checked against the spec",
+     "command": "archvow check",
+     "done": false
+    },
+    {
+     "step": "commit",
+     "title": "Commit",
+     "detail": "The hooks run the same checks as CI; then open a merge request",
+     "command": "git add -A && git commit",
+     "done": false
+    }
+   ],
+   "done": 3,
+   "current": 3
+  },
+  "firstFinding": {
+   "title": "Safety question of a component not answered (no hazard, no dismissal)",
+   "code": "ARCH035",
+   "severity": "warning",
+   "file": ".archvow/features/vat_report/components/order_totals.vow",
+   "line": 0,
+   "where": "ARCH035 · order_totals.vow"
+  },
+  "suggested": [
+   {
+    "component": "order_totals",
+    "en": "4 of the 9 decisions",
+    "fr": "4 des 9 décisions"
+   }
+  ]
+ },
+ {
+  "example": "python-app",
+  "firstSteps": {
+   "steps": [
+    {
+     "step": "foundations",
+     "title": "Answer the foundations",
+     "detail": "Their decisions are made",
+     "command": "archvow specify",
+     "done": true
+    },
+    {
+     "step": "feature",
+     "title": "Add a feature",
+     "detail": "What the product does",
+     "command": "archvow feature add <name> -d \"what the product does\"",
+     "done": true
+    },
+    {
+     "step": "component",
+     "title": "Add its first component and answer its decisions",
+     "detail": "Next then shows it ready to build",
+     "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices",
+     "done": true
+    },
+    {
+     "step": "build",
+     "title": "Build it, then Check",
+     "detail": "Its code and tests, checked against the spec",
+     "command": "archvow check",
+     "done": true
+    },
+    {
+     "step": "commit",
+     "title": "Commit",
+     "detail": "The hooks run the same checks as CI; then open a merge request",
+     "command": "git add -A && git commit",
+     "done": false
+    }
+   ],
+   "done": 4,
+   "current": 4
+  },
+  "firstFinding": null,
+  "suggested": []
+ }
+]

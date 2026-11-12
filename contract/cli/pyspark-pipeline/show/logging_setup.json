@@ -1,5 +1,5 @@
 {
-  "contract": "2.0",
+  "contract": "2.1",
   "component": "logging_setup",
   "type": "foundation",
   "layer": "p0_common",

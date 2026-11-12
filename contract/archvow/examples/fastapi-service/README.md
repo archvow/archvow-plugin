@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/fastapi-service@2.0.1`).
+(template `archvow/fastapi-service@2.1.0`).
 
 ## For developers
 
@@ -205,12 +205,12 @@ archvow next
 
 ```
   component                    type            status
-✖ logging_setup                foundation      blocked: 1 decision to make  -> archvow specify logging_setup
+✖ logging_setup                foundation      blocked: 1 decision to make (1 suggested)  -> archvow specify logging_setup
 ✖ settings                     foundation      blocked: 2 decisions to make  -> archvow specify settings
 ✖ order_model                  model           blocked: 2 decisions to make  -> archvow specify order_model
-✖ create_order                 service         blocked: 5 decisions to make  -> archvow specify create_order
-✖ orders_router                router          blocked: 5 decisions to make  -> archvow specify orders_router
-✖ main                         app             blocked: 4 decisions to make  -> archvow specify main
+✖ create_order                 service         blocked: 5 decisions to make (1 suggested)  -> archvow specify create_order
+✖ orders_router                router          blocked: 5 decisions to make (1 suggested)  -> archvow specify orders_router
+✖ main                         app             blocked: 4 decisions to make (2 suggested)  -> archvow specify main
 
 Safety: 1 of 13 questions answered  -> archvow specify
 

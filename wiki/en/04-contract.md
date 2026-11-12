@@ -29,6 +29,7 @@ from a real archvow CLI, never written by hand.
 | `contract/vows/<example>/.archvow/**/*.vow` | the vows archvow wrote on its examples | `regenerate.py` | both `.vow` readers (`CoreTests`, `vscode/src/test/vowReader.test.ts`) |
 | `contract/archvow/` | the archvow the plugins are tested with: the wheel of `contract/cli/version.txt`, archvow's three examples with their code, `docs/rules*.md` | `contract/tools/take_archvow.sh` | `regenerate.py` (CI job `contract`), `vscode/src/test/live.test.ts` |
 | `contract/cli/messages.json` | every check message archvow's own test suite makes archvow 1.26 print | `contract/tools/harvest_messages.py` (runs archvow's tests with a hook) | `vscode/src/test/guidance.test.ts`, `GuidanceRegression` |
+| `contract/overview/expected.json` | what the Overview's cards read of each example's `workspace.json` (0.25.0): first steps, first finding, suggested answers | `UPDATE_OVERVIEW=1 npm test` | `OverviewRegression`: `ArchvowOverview` must read exactly the same |
 | `contract/guidance/expected.json` | what `guidance.ts` says on each of those messages, in English and French | `UPDATE_GUIDANCE=1 npm test` | `GuidanceRegression`: `ArchvowGuidance` must say exactly the same |
 | `contract/cli/kinds.json` | the kinds of each component type (`component add -k`), for an archvow whose catalog does not list them (1.17; archvow 1.18 gives them in `catalog --json`) | `contract/tools/export_kinds.py` (by `regenerate.py`) | `choices.ts`, `ArchvowChoices`: the `--kind` list |
 | `contract/choices/expected.json` | what each command form offers (`choiceBook()`) on the three examples, in English and French, and the comparison base on a few repositories | `UPDATE_CHOICES=1 npm test` | `ChoicesRegression`: `ArchvowChoices` must offer exactly the same |
@@ -73,13 +74,13 @@ What to look for in the diff:
 
 ## The archvow version and the contract (0.20.0)
 
-archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "2.0", "archvow": "2.0.1",
+archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "2.1", "archvow": "2.1.0",
 ...}`, and every `--json` object starts with `"contract"`. `ArchvowVersion.warning` and `contractWarning()`
 compare it with `contract.txt`: the same MAJOR and a MINOR at least the plugin's, nothing; an older one, or
 an archvow that says no contract (before 1.23: it has no `version` command, its `--version` gives the
 number), "older: update archvow"; a later MAJOR, "newer: update the plugin". So an archvow release that
 keeps the contract needs no plugin release, while archvow still keeps no backward compatibility: the
-contract number is what tells. Install puts the tested archvow exactly (`archvow==2.0.1`).
+contract number is what tells. Install puts the tested archvow exactly (`archvow==2.1.0`).
 
 Contract 1.1 (archvow 1.25, plugin 0.21.0) adds `archvow workspace --json`: what the plugins load, in one
 process (`readWorkspace()` in `model.ts`, `WorkspaceAnswer` in IntelliJ, both tested on

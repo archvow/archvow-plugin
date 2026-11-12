@@ -46,8 +46,8 @@ A tool window or a sidebar is often narrow. The rules:
 |---|---|---|
 | the tool window's header | the project's name is cut, never under the buttons; the language is at the bottom of Overview | `buildHeader` (the name in the centre of a `BorderLayout`) |
 | the branch advice | over several lines | `ArchvowWrapLabel` |
-| "Project status" and its counters | the counters go under the title | `buildOverviewStatusStrip` |
-| the action bar | what does not fit goes into More ▾ | `ArchvowOverflowBar` |
+| the Overview's cards (0.25.0) | a sentence wraps; a card is as tall as its content | `ArchvowOverviewCards.Line`, `wrapped` |
+| the commands bar | Next, Check and More ▾ always | `ArchvowOverviewCards.toolbar` |
 | a component's views | what does not fit goes into More ▾ | `ArchvowCompactViews` |
 | the architecture table | Component, State, Pending stay; the other columns go | `ArchvowArchitectureView.columnWidths`, `@media` rules |
 | a component | the answer panel goes under the cards | `ArchvowSplitView.SIDE_BY_SIDE`, `.split` |

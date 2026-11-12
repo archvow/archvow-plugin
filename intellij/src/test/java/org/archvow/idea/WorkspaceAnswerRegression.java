@@ -59,6 +59,8 @@ public final class WorkspaceAnswerRegression {
             check(ArchvowInitCatalog.hasTemplates(answer.catalog), example + ": catalog");
             check(answer.packs != null && answer.packs.equals(JsonParser.parseString(text(folder.resolve("workspace.json")))
                 .getAsJsonObject().get("packs")), example + ": packs");
+            check(answer.firstSteps.equals(JsonParser.parseString(text(folder.resolve("workspace.json")))
+                .getAsJsonObject().get("first_steps")) && answer.firstSteps.size() == 5, example + ": first steps (contract 2.1)");
             read++;
         }
         WorkspaceAnswer same = WorkspaceAnswer.read("{\"contract\": \"1.2\", \"unchanged\": true, \"digest\": \"4f2a\"}");

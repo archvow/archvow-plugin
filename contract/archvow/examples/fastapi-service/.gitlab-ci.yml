@@ -10,7 +10,7 @@ variables:
   GIT_DEPTH: "0"  # `archvow check --base` needs the target branch history
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   # Where CI installs archvow from (Settings > CI/CD > Variables can override it).
-  ARCHVOW_PIP_SPEC: "archvow==2.0.1"           # pinned: upgrade deliberately
+  ARCHVOW_PIP_SPEC: "archvow==2.1.0"           # pinned: upgrade deliberately
 
 workflow:  # gitflow: merge requests, then main and develop after each merge
   rules:
@@ -49,6 +49,7 @@ guards-not-weakened:
       FLAGS="--accept-weakening"; fi
     - archvow diff --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --markdown | tee spec-diff.md
     - archvow doc --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"   # the spec to read, changes marked
+    - echo "The spec to read, changes marked - in the merge request, Spec changes (spec-diff.md, .archvow/doc/)"
     - archvow check --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" $FLAGS
   artifacts:
     when: always

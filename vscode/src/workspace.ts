@@ -23,6 +23,7 @@ import { componentVow, docPage, PROJECT_VOW } from './layout';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
 import { componentView, contractWarning, knownVersion, parseVersion, problemsOf, readWorkspace } from './model';
+import { overview, Overview } from './overview';
 import { RunLog } from './runlog';
 import { moduleFiles } from './vow/links';
 import { architectureRows, buildWork, Json, objects, str, Work } from './workItems';
@@ -74,6 +75,10 @@ export interface State {
   features: Record<string, Json>;
   /** The project's approved AI tools (init answer ai_tools): where a skill's request goes. */
   aiTools: string[];
+  /** archvow's first steps (`workspace --json` first_steps, contract 2.1). */
+  firstSteps: Json[];
+  /** What the Overview's cards show (overview.ts, 0.25.0): first steps, own items, first finding. */
+  overview: Overview;
 }
 
 type Target = 'overview' | 'component' | 'command' | 'quick' | 'decision' | 'question' | 'safety' | 'data';
@@ -218,7 +223,8 @@ export class ArchvowProject {
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
       refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
-      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, packs: [], features: {}, aiTools: [],
+      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, packs: [], features: {}, aiTools: [], firstSteps: [],
+      overview: overview(buildWork(null, null, '', {}, false), null, []),
     };
   }
 
@@ -300,6 +306,7 @@ export class ArchvowProject {
     s.briefStatus = answer.briefStatus;
     s.packs = answer.packs;
     s.features = answer.features;
+    s.firstSteps = answer.firstSteps;
     // the project's catalog: its template's types and kinds, and the project's own templates (component add, pack template)
     if (answer.catalog !== null && objects(answer.catalog, 'templates').length > 0) this.projectCatalog = answer.catalog;
     this.setCheck(answer.check, '');
@@ -327,6 +334,7 @@ export class ArchvowProject {
     s.work = buildWork(s.spec, s.check, s.checkFailure, s.snapshots, s.fr,
       fs.readFileSync(path.join(this.resources, s.fr ? 'rules.fr.md' : 'rules.md'), 'utf8'), this.commands);
     s.rows = architectureRows(s.spec, s.check, s.snapshots, s.work.pendingByComponent);
+    s.overview = overview(s.work, s.check, s.firstSteps);
     s.derived = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, derive(view)]));
     s.ai = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, aiView(view, s.launched[id] ?? [])]));
     this.recomputeChoices();
@@ -817,6 +825,8 @@ export class ArchvowProject {
         return this.openRule(String(m.code));
       case 'openFile':
         return this.openProjectFile(String(m.file), Number(m.line) || 0);
+      case 'openTryCopy':
+        return this.openTryCopy(String(m.folder ?? ''));
       case 'search':
         return this.search(String(m.name ?? ''));
       case 'openBrief': {
@@ -1345,6 +1355,18 @@ export class ArchvowProject {
   }
 
   /** A file a diagnostic names, only inside the project. */
+  /** The example `archvow try` copied (2.1): its spec, opened read from the scratch folder archvow made - only
+   *  there (`archvow-try-...` under the temporary folder), never anywhere a message could name. */
+  private async openTryCopy(folder: string): Promise<void> {
+    const spec = path.join(folder, '.archvow', 'project.vow');
+    const scratch = path.basename(path.dirname(folder)).startsWith('archvow-try-');
+    if (!folder || !scratch || !fs.existsSync(spec)) {
+      void vscode.window.showWarningMessage(tr(this.state.fr, 'The example copy is gone: run Try again.', "La copie de l'exemple n'est plus là : relance l'essai."));
+      return;
+    }
+    await vscode.window.showTextDocument(vscode.Uri.file(spec), { preview: true });
+  }
+
   private async openProjectFile(relative: string, line: number): Promise<void> {
     const file = path.resolve(this.root, relative);
     if (!relative || !file.startsWith(this.root + path.sep) || !fs.existsSync(file)) {

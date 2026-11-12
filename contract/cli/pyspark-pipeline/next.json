@@ -49,6 +49,7 @@
     "type": "transformation",
     "readiness": "blocked: 9 decisions to make",
     "invariants": 0,
+    "suggested": 4,
     "tasks": {
       "total": 2,
       "done": 0,

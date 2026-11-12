@@ -5,6 +5,9 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.resolve(__dirname, '../media/workspace.js'), 'utf8');
+// what the extension computes for the Overview's cards (0.25.0): the same function, compiled
+const { overview } = require('../out/overview.js');
+const withOverview = (state) => Object.assign(state, { overview: overview(state.work, state.check, state.firstSteps || []) });
 const mockState = {
   fr: false, languageMode: 'en', project: { name: 'sales-pipeline', root: '/tmp/sales-pipeline' },
   readiness: 'READY', loading: '', spec: { containers: [{ id: 'p1', components: [{ id: 'orders_reader' }] }] },
@@ -40,20 +43,22 @@ function webview(role) {
     handlers.click({ target: { closest: () => ({ dataset: { a: action, ...dataset } }) }, preventDefault: () => {} });
   };
   message({ type: 'init', commands: [], rules: { en: '', fr: '' } });
-  message({ type: 'state', state: mockState });
+  message({ type: 'state', state: withOverview(structuredClone(mockState)) });
   return { app, posted, message, click };
 }
 const nav = webview('nav');
-// Overview now has a concise project status and a Components shortcut, rather than
-// duplicating the component and diagnostic lists that have their own destinations.
+// Overview (0.25.0): the Architecture card counts its own items (Open items), the Checks card the findings,
+// rather than duplicating the component and diagnostic lists that have their own destinations.
 const pendingCount = (html) => {
   assert.doesNotMatch(html, /<nav class="tabs sub">/, 'no duplicate Overview sub-tabs');
   assert.match(html, /data-a="openComponents"/, 'one shortcut to Components');
-  const total = html.match(/<button class="badge pending"[^>]*>(\d+) pending<\/button>/);
-  assert.ok(total, 'Overview shows the deduplicated pending work total');
+  const total = html.match(/data-a="quickList" data-i="0">Open items \((\d+)\)<\/button>/);
+  assert.ok(total, 'the Architecture card shows its open items');
   return Number(total[1]);
 };
-assert.equal(pendingCount(nav.app.innerHTML), 1, 'a check violation contributes once to project status');
+assert.equal(pendingCount(nav.app.innerHTML), 0, 'a check violation counts in Checks, not in Architecture');
+assert.match(nav.app.innerHTML, /1 errors<\/span> · <span class="tone-warn">1 warnings/, 'the Checks card counts it');
+assert.match(nav.app.innerHTML, /First finding/);
 assert.doesNotMatch(nav.app.innerHTML, /class="check-detail"/, 'sidebar must not render diagnostic details');
 const editor = webview('editor');
 // Checks still open in the editor when invoked through a quick list / diagnostic;
@@ -72,9 +77,9 @@ const projectState = structuredClone(mockState);
 projectState.work.pending.push({ kind: 'QUESTION', component: '', command: 'open-project-vow', preset: {},
   title: 'Project-wide decision', detail: 'Approve project settings', pending: true });
 projectState.work.otherPending.push(projectState.work.pending.at(-1));
-nav.message({ type: 'state', state: projectState });
-assert.equal(pendingCount(nav.app.innerHTML), 2, 'project work contributes to the single Overview pending count');
-assert.match(nav.app.innerHTML, /project items/);
+nav.message({ type: 'state', state: withOverview(projectState) });
+assert.equal(pendingCount(nav.app.innerHTML), 1, 'project work is the architecture\'s own work');
+assert.match(nav.app.innerHTML, /Project items \(1\)/);
 nav.click('projectWork');
 const projectMessage = nav.posted.findLast((m) => m.type === 'showProjectWork');
 assert.ok(projectMessage, 'project badge opens project items in the editor');
@@ -101,9 +106,9 @@ mixed.work.pending = [
   { kind: 'ERROR', component: '', source: 'check', command: 'open-diagnostics', preset: {}, title: 'ARCH040', pending: true },
   { kind: 'WARNING', component: '', source: 'check', command: 'open-file', preset: {}, title: 'ARCH053', pending: true },
 ];
-nav.message({ type: 'state', state: mixed });
-assert.equal(pendingCount(nav.app.innerHTML), 5, 'deduplicated project work includes architecture and checks');
-assert.match(nav.app.innerHTML, /5 pending/);
+nav.message({ type: 'state', state: withOverview(mixed) });
+assert.equal(pendingCount(nav.app.innerHTML), 2, 'the decision and the safety question; the three check items count in Checks');
+assert.match(nav.app.innerHTML, /2 open: decisions, questions and tasks\. Check findings count in Checks\./);
 console.log('VS Code checks layout: summary-only Overview and editor diagnostic detail: OK');
 
 // A file is named by its actual type, never the ambiguous "Open file".

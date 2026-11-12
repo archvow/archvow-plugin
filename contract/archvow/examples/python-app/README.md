@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/python-app@2.0.1`).
+(template `archvow/python-app@2.1.0`).
 
 ## For developers
 
@@ -206,10 +206,10 @@ archvow next
 ```
   component                    type            status
 ✖ config                       foundation      blocked: 2 decisions to make  -> archvow specify config
-✖ logging_setup                foundation      blocked: 1 decision to make  -> archvow specify logging_setup
-✖ invoice_model                model           blocked: 3 decisions to make  -> archvow specify invoice_model
-✖ send_invoice                 service         blocked: 4 decisions to make  -> archvow specify send_invoice
-✖ invoices_cli                 cli             blocked: 3 decisions to make  -> archvow specify invoices_cli
+✖ logging_setup                foundation      blocked: 1 decision to make (1 suggested)  -> archvow specify logging_setup
+✖ invoice_model                model           blocked: 3 decisions to make (1 suggested)  -> archvow specify invoice_model
+✖ send_invoice                 service         blocked: 4 decisions to make (1 suggested)  -> archvow specify send_invoice
+✖ invoices_cli                 cli             blocked: 3 decisions to make (2 suggested)  -> archvow specify invoices_cli
 
 Safety: 1 of 9 questions answered  -> archvow specify
 

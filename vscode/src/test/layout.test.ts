@@ -158,7 +158,7 @@ test('the items as cards on the left, the selected one answered on the right (0.
 
 test('Overview is a summary only; the Components browser owns the full status + pending inventory', () => {
   assert.match(page, /function architectureView\(\)/);
-  assert.match(page, /class="card architecture-summary"/);
+  assert.match(page, /class="card architecture-card"/);
   assert.match(page, /data-a="openComponents"/);
   assert.doesNotMatch(page, /<table class="arch"><thead>/, 'Overview no longer contains the component table');
   assert.match(page, /class="component-state \$\{esc\(stateTone\(state\)\)\}"/, 'component rows show their own status');
@@ -217,26 +217,35 @@ test('a component shows its progress in one bar (show --json), as IntelliJ\'s Ar
 });
 
 
-test('UX v4: VS Code hover, responsive toolbar, and Checks overview row', () => {
+test('the Overview as designed (0.25.0): Next and Check named, More with the rest, the cards of the design', () => {
   const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
   assert.match(css, /\.project-action:hover:not\(\[disabled\]\)/);
   assert.match(css, /\.project-action:focus-visible/);
   assert.match(css, /\.project-action-container \{ container: project-actions \/ inline-size/);
-  // Nine 42px actions plus separators and the bar chrome take 397px.
-  // The More menu appears only when that width is no longer available;
-  // subsequent breakpoints remove one action at a time, without leaving gaps.
-  assert.match(css, /\.project-action-bar \.action-more \{ display: none; \}/);
-  for (const [width, index] of [[396, 8], [353, 7], [310, 6], [267, 5], [224, 4], [181, 3], [138, 2], [95, 1], [52, 0]]) {
-    assert.match(css, new RegExp(`@container project-actions \\(max-width: ${width}px\\)`));
-    assert.match(css, new RegExp(`\\.project-action-slot\\.action-slot-${index} \\{ display: none; \\}`));
-    assert.match(css, new RegExp(`\\.project-more-menu \\.overflow-action-${index} \\{ display: flex; \\}`));
-  }
+  // the toolbar: Next and Check with their names, More with the six others, each with its icon; no slots that
+  // hide one at a time any more (0.24.x), and no Project vow button (the vow is read, never edited by hand)
+  const toolbar = page.match(/function projectToolbar\(\) \{[\s\S]*?\n  \}/);
+  assert.ok(toolbar, 'projectToolbar() is in the page');
+  assert.match(toolbar[0], /\['next', 'Next', 'run'[\s\S]*\['check', 'Check', 'run'/);
+  for (const name of ["'Doctor'", "t\\('Briefs', 'Briefs'\\)", "'Budget / Next'", "'Diff'", "'AI review'", "'Audit'"])
+    assert.match(toolbar[0], new RegExp(name));
+  assert.match(toolbar[0], /t\('More', 'Plus'\)/);
+  assert.doesNotMatch(css, /action-slot/);
+  assert.doesNotMatch(page, /\['document', t\('Project vow'/, 'the Overview toolbar has no Project vow button');
+  assert.doesNotMatch(page, /t\('Project status', 'État du projet'\)/, 'no Project status strip: the cards say it');
   assert.match(page, /class="project-action-container"/);
-  assert.match(page, /class="project-action-slot action-slot-\$\{index\}"/);
   assert.match(page, /\['folder', t\('Briefs', 'Briefs'\), 'openBriefCommands'/,
     'Briefs uses a real folder icon and opens the editor browser');
   assert.match(page, /\['propose', 'AI review', 'openCommand', attrs\(\{ command: 'review'/,
     'AI review has a distinct icon and retains the review command');
+  // the cards: First steps before the toolbar, then Architecture, Checks, Packs
+  const overview = page.match(/function overviewTab\(\) \{[\s\S]*?\n  \}/);
+  assert.ok(overview);
+  const order = ['firstStepsCard()', 'projectToolbar()', 'architectureView()', 'checksCard()', 'packsSummary()'].map((f) => overview[0].indexOf(f));
+  assert.ok(order.every((at, i) => at > 0 && (i === 0 || at > order[i - 1])), 'First steps, toolbar, Architecture, Checks, Packs');
+  assert.match(page, /First finding', 'Premier constat'/);
+  assert.match(page, /Check findings count in Checks\./);
+  assert.match(page, /Try archvow on an example first/);
   assert.match(page, /openBriefCommands: \(\) =>/);
   assert.match(page, /post\(\{ type: 'openBriefs' \}\)/);
   assert.match(host, /case 'openBriefs':\s*\/\/ Briefs are browsed in the shared editor tab,[\s\S]*?this\.toEditor\(\{ type: 'briefs' \}\)/);
@@ -248,6 +257,7 @@ test('UX v4: VS Code hover, responsive toolbar, and Checks overview row', () => 
   assert.match(page, /icon\('folder'\)/);
   assert.match(page, /icon\(k\.dir \? 'folder' : 'document'\)/, 'one renderer draws folders and files of the tree');
   assert.match(page, /class="card checks-summary"/);
+  assert.match(page, /class="card checks-card"/);
   assert.match(page, /data-a="openChecks"/);
   assert.doesNotMatch(page, /class="checks-badges"/, 'diagnostic counters live in the Checks card');
   assert.match(css, /\.checks-summary, \.packs-summary \{ display: flex; align-items: center; justify-content: space-between;/,

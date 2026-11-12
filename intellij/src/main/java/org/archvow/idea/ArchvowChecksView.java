@@ -65,7 +65,7 @@ final class ArchvowChecksView extends JPanel {
         add(top, BorderLayout.NORTH);
 
         list.setCellRenderer(new DiagnosticRenderer());
-        list.setFixedCellHeight(65);
+        list.setFixedCellHeight(-1);  // 0.25.0: a row with its rule's title is a line taller
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) showSelected(); });
         list.addMouseListener(new MouseAdapter() {
@@ -258,18 +258,27 @@ final class ArchvowChecksView extends JPanel {
     }
     private static Color errorColor() { return isDark() ? new Color(248,153,160) : new Color(179,37,57); }
     private static Color successColor() { return isDark() ? new Color(113,222,164) : new Color(24,125,77); }
+    /** A row (0.25.0): the rule in words first (archvow 2.1's title), then its code and severity, then the message. */
     private static class DiagnosticRenderer extends JPanel implements ListCellRenderer<Diagnostic> {
+        private final JLabel title = new JLabel();
         private final JLabel header = new JLabel();
         private final JLabel summary = new JLabel();
         DiagnosticRenderer() {
-            super(new BorderLayout(0,4));
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setBorder(new EmptyBorder(7,10,7,10));
-            header.setFont(header.getFont().deriveFont(Font.BOLD, 13f));
-            add(header, BorderLayout.NORTH);
-            add(summary, BorderLayout.SOUTH);
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 13f));
+            header.setFont(header.getFont().deriveFont(Font.BOLD, 12f));
+            for (JLabel part : new JLabel[] {title, header, summary}) {
+                part.setAlignmentX(0f);
+                add(part);
+                add(Box.createVerticalStrut(3));
+            }
         }
         @Override public Component getListCellRendererComponent(JList<? extends Diagnostic> list, Diagnostic row,
                 int index, boolean selected, boolean focus) {
+            String rule = row.source() == null ? "" : ArchvowGrammar.str(row.source(), "title");
+            title.setText(rule);
+            title.setVisible(!rule.isBlank());
             header.setText((row.code().isBlank() ? "CHECK" : row.code()) + "  ·  " +
                 ("warning".equalsIgnoreCase(row.severity()) ? "WARNING" : "ERROR"));
             String message = row.message().replace('\n', ' ');
@@ -277,10 +286,12 @@ final class ArchvowChecksView extends JPanel {
             Color base = UIManager.getColor("List.background");
             if (base == null) base = Color.WHITE;
             setBackground(selected ? list.getSelectionBackground() : base);
+            Color text = UIManager.getColor("Label.foreground");
+            title.setForeground(selected ? list.getSelectionForeground() : text);
             header.setForeground(selected ? list.getSelectionForeground()
                 : ("warning".equalsIgnoreCase(row.severity()) ?
                     (isDark() ? new Color(248,193,114) : new Color(158,104,27)) : errorColor()));
-            summary.setForeground(selected ? list.getSelectionForeground() : UIManager.getColor("Label.foreground"));
+            summary.setForeground(selected ? list.getSelectionForeground() : text);
             return this;
         }
     }

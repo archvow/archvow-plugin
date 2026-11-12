@@ -44,10 +44,12 @@ public final class UiPolishRegression {
 
     public static void main(String[] args) throws Exception {
         String panel = Files.readString(Path.of("src/main/java/org/archvow/idea/ArchvowPanel.java"));
-        require(panel.contains("overviewIconAction(\"folder\", ArchvowI18n.text(project, \"Briefs\""),
+        // 0.25.0: the commands of More, each with its icon (ArchvowOverviewCards.toolbar)
+        require(panel.contains("new ArchvowOverviewCards.MenuCommand(\"folder\", ArchvowI18n.text(project, \"Briefs\""),
             "Briefs must use the supported folder icon, not the fallback circle");
-        require(panel.contains("overviewIconAction(\"spark\", \"AI review\""),
+        require(panel.contains("new ArchvowOverviewCards.MenuCommand(\"spark\", \"AI review\""),
             "AI review must use the supported spark icon, not the fallback circle");
+        require(!panel.contains("\"Project status\", \"État du projet\""), "no Project status strip: the cards say it");
         require(panel.contains("backButton.setText(\"← Briefs\")"),
             "AI skill editor needs a Back to Briefs button");
         SwingUtilities.invokeAndWait(() -> {

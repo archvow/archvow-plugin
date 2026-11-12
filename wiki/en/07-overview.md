@@ -14,50 +14,63 @@ only, without starting Python for a project that is not an archvow project:
 |---|---|
 | `NO_PROJECT` | "Open a folder" |
 | `ROOT_MISSING` | the project folder cannot be found |
-| `NOT_INITIALIZED` | no `.archvow/project.vow`: **Initialize Archvow** (the `init` wizard, page [Commands](/en/09-commands)) |
+| `NOT_INITIALIZED` | no `.archvow/project.vow`: **Initialize Archvow** (the `init` wizard, page [Commands](/en/09-commands)), how to adopt code already there, and (0.25.0) **Not sure yet? See it catch a mistake**: `archvow try <example>` on a finished example in a scratch folder, its result under the card, then *Set up archvow in this repository* or *Read the example's spec* |
 | `SPEC_INACCESSIBLE` | `project.vow` empty or unreadable |
 | `READY` | the workspace; if the CLI fails all the same, its message, with Configure Python and Retry |
 
-## The "Project status" strip
+## The top of Overview (0.25.0)
 
-Two counters: **pending** and **resolved**. They count the work items the plugins build from what
-archvow said: decisions and questions without an answer, safety questions open or without an invariant,
-assumptions to review, columns to classify, tasks, and the `check` diagnostics tied to a component.
-IntelliJ: `rebuildQuickModels`; VS Code: `buildWork()` in `vscode/src/workItems.ts`, which follows the
-same rule (and says so in its comments).
+From the top, the same in both IDEs (VS Code: `overviewTab()` in `vscode/media/workspace.js`; IntelliJ:
+`overviewPanel()`, the cards of `ArchvowOverviewCards`): the branch advice, **First steps** (for a new
+project), the commands bar, **Architecture**, **Checks**, **Packs**. The "Project status" strip (pending,
+resolved) is gone in 0.25.0: its counters are the Architecture card's links.
 
-A click on a counter opens, in the tab, the first component that has such work, on the right view and
-item (`openQuickList`); if there is only project work, the *Other / Project* view.
+On `main`, `master`, `develop` or `development`, an advice: create a feature branch (`ArchvowBranchAdvice`,
+`needsFeatureBranch()`). It is advice, nothing more: the branch policy belongs to the repository and the CI.
 
-Under the strip, on `main`, `master`, `develop` or `development`, an advice: create a feature branch
-(`ArchvowBranchAdvice`, `needsFeatureBranch()`). It is advice, nothing more: the branch policy belongs
-to the repository and the CI. It wraps over several lines in a narrow window (`ArchvowWrapLabel`).
+## First steps (0.25.0, archvow 2.1)
 
-Then the project's **brief folders** (archvow 1.17's init answer `briefs`: where `--from` may draw from)
-and how many `.md` / `.txt` files they hold: `ArchvowBriefs.foldersLine` (IntelliJ), `briefFolders()`
-(VS Code). An architect changes them with `archvow init <package> --force -a briefs=...`.
+Five steps archvow reads from the spec, the check and Git (`workspace --json` "first_steps", contract 2.1;
+`views/first_steps.py` in archvow): answer the foundations, add a feature, add its first component and answer
+its decisions, build it then Check, commit. The plugin computes nothing: it shows "N of 5 done", the first step
+not done with its button (Specify, Add feature, Add component, Check; none for Commit) and the link "Try archvow
+on an example first" (`archvow try`). The card goes once the five are done: the examples, finished, never show
+it. Reading: `firstSteps()` in `vscode/src/overview.ts`, `ArchvowOverview.firstSteps`; both read the examples
+the same (`contract/overview/expected.json`, `OverviewRegression`).
 
-## The action bar
+## The commands bar
 
 | Button | Command | Where the result goes |
 |---|---|---|
-| ↻ | reads the project again | - |
-| Check | `check --json` | the tab; and Check & Gates is updated |
 | Next | `next --json` | the tab |
-| Full check | `check --complete --json` | the tab |
-| Doctor | `doctor --json` | the tab |
-| Audit | `audit --json` | the tab |
-| Project vow | opens `.archvow/project.vow` | an ordinary editor tab |
-| Budget / Next | `next --base <Base> --json` | the tab |
-| Diff, Review | the `diff` / `review` form, `--base` already filled | the tab |
+| Check | `check --complete --json` | the tab; and Check & Gates is updated |
+| More ▾ › Doctor | `doctor --json` | the tab |
+| More ▾ › Audit | `audit --json` | the tab |
+| More ▾ › Briefs | the briefs browser | the tab |
+| More ▾ › Budget / Next | `next --base <Base> --json` | the tab |
+| More ▾ › Diff, AI review | the `diff` / `review` form, `--base` already filled | the tab |
 
-In IntelliJ, the buttons that do not fit go into **More ▾** (`ArchvowOverflowBar`: it measures the
-buttons' real width, no fixed threshold). The **Base** field is used by Budget, Diff and
+Next and Check are named; **More ▾** opens the six others, each with its icon (`projectToolbar()`;
+`ArchvowOverviewCards.toolbar`). ↻ (read the project again) is in the header. The **project's vow** has no
+button (0.24.3): it is read through the commands and the pages. The **Base** is used by Budget, Diff and
 Review: the best branch that exists here (`bestBase`: `develop` on a Git flow feature branch, otherwise what
 `origin/HEAD` names, then `origin/main`, `main`, `master`...), until a person chooses one in the list of the
-repository's branches and tags (`git for-each-ref`, `refNames`). It was a fixed `origin/main`, which a
-repository without that remote does not have. A base that does not exist is refused before anything runs,
-with the branches that do (`missingRef`, `refProblem`) - no more Git's "Not a valid object name".
+repository's branches and tags (`git for-each-ref`, `refNames`). A base that does not exist is refused before
+anything runs, with the branches that do (`missingRef`, `refProblem`).
+
+## The Architecture and Checks cards (0.25.0)
+
+**Architecture** counts its own items - decisions, questions, safety questions, assumptions, columns, tasks:
+"Items done 45 of 70", a bar, "25 open: decisions, questions and tasks. Check findings count in Checks." (except
+while First steps is there), then **Open items**, **Done items** and, when there are some, **Project items**:
+the first component with such work, on the right view and item (`openQuickList`), or the *Other / Project*
+view. The items come from `buildWork()` (`vscode/src/workItems.ts`) and `rebuildQuickModels` (IntelliJ);
+`check` findings do not count there (`overview()` in `vscode/src/overview.ts`, `ownItem` in `ArchvowPanel`).
+
+**Checks** gives the errors and warnings, then the **first finding**: its rule in words (the `title` of `check
+--json`), `ARCH005 · compute_vat.py:16`, and the button that opens the file, named by what it is (Open source,
+Open vow, Show configuration folder: `checkFileLabel`, `ArchvowCheckActions.fileLabel`). Without a finding, one
+line: the totals and "Open Checks →".
 
 ## Results
 
@@ -88,7 +101,8 @@ A double click (IntelliJ) or a click (VS Code) opens the component in the tab.
 
 `ArchvowChecksView` (VS Code: `checksView()`): PASSED or FAILED, the errors and warnings, the count per
 rule when there are several (`counts` of `check --json`, "By rule: ARCH012 1 · ARCH053 1"), then the
-list of diagnostics. The chosen diagnostic shows its message, its file, and **its rule's explanation**,
+list of diagnostics, each row led by its rule in words (archvow 2.1's `title`), then its code and severity, then the
+message (0.25.0). The chosen diagnostic shows its message, its file, and **its rule's explanation**,
 taken from `contract/cli/rules.md` (`ArchvowRuleDocs`, `ruleExplanation()`). View rule opens the checks
 reference; Open file goes to the line.
 
@@ -98,8 +112,8 @@ A third sub-tab beside Architecture and Check & Gates, from archvow 1.20's `brie
 architecture; an older archvow has no such command: the tab says so). Each brief file, section by section: ✓
 used (the items drawn from it), ○ not used yet with **Draft with AI…** (the draft-spec launch form, the section
 filled in), ! changed since with **Review…** (opens the section) and **Accept change…** (the `brief accept`
-form). Its count is the sections not used plus the ones changed; the "Brief folders" line of the status strip
-links to it. **Add a briefs folder (architect)…** opens the init form prefilled. VS Code: `briefsView()`,
+form). Its count is the sections not used plus the ones changed; More ▾ › Briefs
+opens it. **Add a briefs folder (architect)…** opens the init form prefilled. VS Code: `briefsView()`,
 `briefsDue()`; IntelliJ: `ArchvowBriefs.statusHtml`, `ArchvowBriefs.due`, links `DRAFT_LINK`, `ACCEPT_LINK`.
 
 ## Packs (0.22.0)

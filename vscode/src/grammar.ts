@@ -40,7 +40,7 @@ export const DESTRUCTIVE = new Set(['component remove', 'question remove', 'rule
   'example remove']);
 /** First words of the commands that change nothing (`doc` writes only .archvow/doc/, ignored by Git and never read
  *  back: nothing to confirm). */
-export const READ_ONLY = new Set(['show', 'catalog', 'next', 'check', 'audit', 'doctor', 'changes', 'diff', 'prompt', 'doc']);
+export const READ_ONLY = new Set(['show', 'catalog', 'next', 'check', 'audit', 'doctor', 'changes', 'diff', 'prompt', 'doc', 'try']);  // try: a scratch folder only (2.1)
 
 export function findCommand(commands: Command[], name: string): Command | undefined {
   return commands.find((c) => label(c) === name);

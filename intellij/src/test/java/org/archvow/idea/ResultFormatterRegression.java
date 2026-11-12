@@ -1,5 +1,7 @@
 package org.archvow.idea;
 
+import java.util.List;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -31,6 +33,25 @@ public final class ResultFormatterRegression {
         if (!next.contains("config") || !next.contains("&#9679;") || !next.contains("659 tokens")
             || !next.contains("ARCHVOW &#183; RESULT"))
             throw new AssertionError("Next result card lost its status, token details or icon");
+        // archvow 2.1: the rule in words first; next counts the suggested answers; try reads as the design shows
+        String titled = ArchvowResultFormatter.render("check", 1, "{\"ok\":false,\"errors\":1,\"warnings\":0,\"violations\":[{\"code\":\"ARCH005\","
+            + "\"severity\":\"error\",\"title\":\"Illegal dependency between layers\",\"message\":\"may not import\",\"file\":\"a.py\",\"line\":3}]}",
+            false, "archvow check --json", false, false);
+        if (titled.indexOf("Illegal dependency between layers") < 0 || titled.indexOf("Illegal dependency between layers") > titled.indexOf("ARCH005 · ERROR"))
+            throw new AssertionError("a finding leads with its rule's title");
+        String offered = ArchvowResultFormatter.render("next", 0,
+            "[{\"component\":\"clean_sales\",\"readiness\":\"blocked: 9 decisions to make\",\"suggested\":4}]", false, "archvow next --json", false, false);
+        if (!offered.contains("Suggested answers") || !offered.contains("4 of the 9 decisions"))
+            throw new AssertionError("next counts the suggested answers");
+        String tried = ArchvowResultFormatter.render("try", 1, "{\"example\":\"pyspark-pipeline\",\"folder\":\"/tmp/archvow-try-x/pyspark-pipeline\","
+            + "\"before\":{\"errors\":0,\"warnings\":0},\"changes\":[{\"file\":\"src/my_pipeline/p1_domain/helpers.py\",\"change\":\"new module\",\"lines\":[\"def rounded(value: float) -> float: ...\"]},"
+            + "{\"file\":\"src/my_pipeline/p1_domain/clean_orders.py\",\"change\":\"one import added\",\"lines\":[\"import my_pipeline.p2_io.orders_reader\"]}],\"errors\":2,"
+            + "\"violations\":[{\"code\":\"ARCH005\",\"severity\":\"error\",\"title\":\"Illegal dependency between layers\",\"message\":\"m\","
+            + "\"file\":\"src/my_pipeline/p1_domain/clean_orders.py\",\"line\":35,\"guide\":{\"fix\":\"move the code to the right layer\"}}]}",
+            false, "archvow try --json", false, false);
+        for (String part : List.of("archvow caught both changes, before any review", "all checks green", "new module, one import added",
+                "Ran Check: 2 errors", "src/my_pipeline/p1_domain/helpers.py", "ARCH005 · clean_orders.py:35", "move the code to the right layer"))
+            if (!tried.contains(part)) throw new AssertionError("try: " + part);
         String audit = ArchvowResultFormatter.render("audit", 0,
             "[{\"kind\":\"decision\",\"ref\":\"R1\",\"text\":\"Accept? -> yes\",\"flags\":[\"review\"]}]",
             false, "archvow audit --json", false, false);

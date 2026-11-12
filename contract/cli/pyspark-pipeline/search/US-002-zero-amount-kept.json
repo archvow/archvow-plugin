@@ -1,5 +1,5 @@
 {
-  "contract": "2.0",
+  "contract": "2.1",
   "name": "US-002-zero-amount-kept",
   "summary": "a business example of clean_orders",
   "total": 2,

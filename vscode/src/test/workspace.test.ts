@@ -6,7 +6,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { renderResult } from '../formatter';
+import { esc, renderResult } from '../formatter';
 import { Command, findCommand, inline, isMutating, needsFullCard, planForm, prefill, promptCommand, taskNumber } from '../grammar';
 import { componentTypes, derive, readiness, ruleExplanation } from '../projectState';
 import { architectureRows, buildWork, issueFix, Json, needsFeatureBranch, objects, otherCategory, str, viewForItem } from '../workItems';
@@ -23,11 +23,11 @@ const EXAMPLES = ['fastapi-service', 'pyspark-pipeline', 'python-app'];
 const snapshots = (example: string): Record<string, Json> => Object.fromEntries(
   fs.readdirSync(path.join(CLI, example, 'show')).map((f) => [f.replace(/\.json$/, ''), read(example, 'show', f)]));
 
-test('the grammar is archvow 2.0\'s, with every command the workspace offers', () => {
-  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /2\.0\./);
+test('the grammar is archvow 2.1\'s, with every command the workspace offers', () => {
+  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /2\.1\./);
   for (const name of ['init', 'check', 'next', 'show', 'decision make', 'decision propose', 'decision accept', 'question add',
     'question accept', 'hazard add', 'hazard dismiss', 'hazard edit', 'hazard accept', 'rule accept', 'brief show', 'invariant add', 'invariant edit', 'invariant remove', 'component accept', 'assumption accept', 'rule add', 'column set', 'prompt', 'doctor', 'audit', 'diff', 'review', 'version', 'workspace', 'pack new', 'pack template', 'pack agent', 'pack rule', 'pack add',
-    'pack update', 'pack remove', 'pack check', 'feature add', 'feature rename', 'feature remove', 'component move', 'doc']) {
+    'pack update', 'pack remove', 'pack check', 'feature add', 'feature rename', 'feature remove', 'component move', 'doc', 'try']) {
     command(name);
   }
 });
@@ -58,6 +58,7 @@ test('a form becomes the command line archvow expects (the IntelliJ submitForm r
   const prompt = run('prompt', { component: 'x', task: 'T2' });
   assert.ok(prompt.kind === 'run' && prompt.args.join(' ') === 'prompt x --task 2');
   assert.equal(isMutating(command('doc'), ['doc', 'orders']), false, 'doc writes only the ignored .archvow/doc/');
+  assert.equal(isMutating(command('try'), ['try', 'python-app', '--json']), false, 'try writes only a scratch folder (2.1)');
   assert.equal(isMutating(command('feature add'), ['feature', 'add', 'orders', '-d', 'x']), true);
   const moved = run('component move', { component: 'clean_orders', feature: 'refunds' });
   assert.ok(moved.kind === 'run' && moved.mutating && moved.args.join(' ') === 'component move clean_orders refunds --json');
@@ -149,7 +150,29 @@ test('the formatter reads check, next and prompt as people read them; text from 
   const prompt = renderResult('prompt', 0, '# Task <script>alert(1)</script>', '', false, false);
   assert.ok(!prompt.includes('<script>') && prompt.includes('&lt;script&gt;'));
   assert.ok(renderResult('show', 1, '', 'No module named archvow', false, false).includes('not installed'));
+  // archvow 2.1: a finding leads with its rule in words; next counts the suggested answers
+  const titled = renderResult('check', 1, JSON.stringify({ ok: false, errors: 1, warnings: 0, violations: [{ code: 'ARCH005', severity: 'error',
+    title: 'Illegal dependency between layers', message: "layer 'p1' may not import from 'p2'", file: 'a.py', line: 3 }] }), '', false, false);
+  assert.ok(titled.indexOf('Illegal dependency between layers') < titled.indexOf('ARCH005 · ERROR'));
+  const offered = renderResult('next', 0, JSON.stringify([{ component: 'clean_sales', type: 'transformation',
+    readiness: 'blocked: 9 decisions to make', suggested: 4 }]), '', false, false);
+  assert.match(offered, /Suggested answers[\s\S]*4 of the 9 decisions/);
+  // archvow try --json: what was copied, the change, what caught it
+  const tried = renderResult('try', 1, JSON.stringify(TRIED), '', false, false);
+  for (const part of ['archvow caught both changes, before any review', 'all checks green', 'new module, one import added',
+    'Ran Check: 2 errors', 'src/my_pipeline/p1_domain/helpers.py', 'Module not declared in the spec', 'ARCH005 · clean_orders.py:35',
+    'move the code to the right layer']) assert.ok(tried.includes(esc(part)), part);
 });
+
+/** What `archvow try pyspark-pipeline --json` printed (archvow 2.1.0), shortened. */
+const TRIED = { example: 'pyspark-pipeline', folder: '/tmp/archvow-try-x/pyspark-pipeline', before: { errors: 0, warnings: 0 },
+  changes: [{ file: 'src/my_pipeline/p1_domain/helpers.py', change: 'new module', lines: ['def rounded(value: float) -> float: ...'] },
+    { file: 'src/my_pipeline/p1_domain/clean_orders.py', change: 'one import added', lines: ['import my_pipeline.p2_io.orders_reader'] }],
+  errors: 2, violations: [
+    { code: 'ARCH005', severity: 'error', title: 'Illegal dependency between layers', message: "layer 'p1_domain' may not import from 'p2_io'",
+      file: 'src/my_pipeline/p1_domain/clean_orders.py', line: 35, guide: { fix: 'move the code to the right layer' } },
+    { code: 'ARCH001', severity: 'error', title: 'Module not declared in the spec', message: 'my_pipeline.p1_domain.helpers is not declared',
+      file: 'src/my_pipeline/p1_domain/helpers.py', line: 0, guide: { fix: '`archvow component add` the component' } }] };
 
 test('where the project stands, the catalog\'s component types, the meaning of a code', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-ready-'));

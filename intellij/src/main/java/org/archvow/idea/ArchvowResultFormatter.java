@@ -54,6 +54,9 @@ final class ArchvowResultFormatter {
             } else if (key.startsWith("next") && (parsed.isJsonArray() || parsed.isJsonObject())) {
                 next(out, parsed, p, french);
                 reported = true;
+            } else if (key.equals("try") && parsed.isJsonObject() && parsed.getAsJsonObject().has("changes")) {
+                tryResult(out, parsed.getAsJsonObject(), p, french);
+                reported = true;
             } else if (key.equals("catalog") && parsed.isJsonObject()) {
                 catalog(out, parsed.getAsJsonObject(), p, french);
                 reported = true;
@@ -148,8 +151,11 @@ final class ArchvowResultFormatter {
             String code = str(v, "code");
             String file = str(v, "file");
             String status = "error".equalsIgnoreCase(severity) ? tr(fr, "ERROR", "ERREUR") : tr(fr, "WARNING", "AVERTISSEMENT");
-            String title = (code.isBlank() ? status : code + " · " + status);
-            String content = str(v, "message");
+            String coded = (code.isBlank() ? status : code + " · " + status);
+            // the rule in words first (archvow 2.1), then its code - as formatter.ts
+            String rule = str(v, "title");
+            String title = rule.isBlank() ? coded : rule;
+            String content = rule.isBlank() ? str(v, "message") : coded + " — " + str(v, "message");
             StringBuilder details = new StringBuilder();
             if (!file.isBlank()) locationField(details, file, intValue(v, "line"), fr);
             card(out, p, title, content, "error".equalsIgnoreCase(severity) ? p.bad : p.warn, details.toString());
@@ -254,6 +260,54 @@ final class ArchvowResultFormatter {
         }
     }
 
+    /** archvow try --json (2.1): the example copied, the change an AI often makes, what check says - as formatter.ts. */
+    private static void tryResult(StringBuilder out, JsonObject r, Palette p, boolean fr) {
+        int errors = intValue(r, "errors");
+        JsonObject before = obj(r, "before");
+        heading(out, p, errors > 0 ? tr(fr, "archvow caught both changes, before any review", "archvow a attrapé les deux changements, avant toute relecture")
+            : "archvow try", errors > 0 ? p.good : p.warn);
+        paragraph(out, tr(fr, "On a copy of the finished example, in a scratch folder. Your repository was not touched.",
+            "Sur une copie de l'exemple fini, dans un dossier jetable. Ton dépôt n'a pas été touché."), p.muted);
+        JsonArray changes = array(r, "changes");
+        List<String> what = new java.util.ArrayList<>();
+        for (JsonElement c : changes) if (c.isJsonObject()) what.add(str(c.getAsJsonObject(), "change"));
+        int was = intValue(before, "errors") + intValue(before, "warnings");
+        StringBuilder steps = new StringBuilder();
+        field(steps, p, tr(fr, "Copied the example", "Copié l'exemple"), str(r, "example") + " · "
+            + (was == 0 ? tr(fr, "all checks green", "tous les contrôles au vert") : intValue(before, "errors") + tr(fr, " errors before", " erreurs avant")));
+        field(steps, p, tr(fr, "Made a change an AI often makes", "Fait un changement que fait souvent une IA"), String.join(", ", what));
+        field(steps, p, tr(fr, "Ran Check: " + errors + " error" + (errors == 1 ? "" : "s"), "Lancé Check : " + errors + " erreur" + (errors == 1 ? "" : "s")),
+            tr(fr, "The commit and CI would stop here", "Le commit et la CI s'arrêteraient ici"));
+        out.append(steps).append(spacer(10));
+        section(out, p, tr(fr, "The change", "Le changement"));
+        StringBuilder diff = new StringBuilder();
+        for (JsonElement c : changes) {
+            if (!c.isJsonObject()) continue;
+            JsonObject change = c.getAsJsonObject();
+            diff.append(esc(str(change, "file"))).append("   (").append(esc(str(change, "change"))).append(")\n");
+            for (JsonElement line : array(change, "lines")) diff.append("+     ").append(esc(asText(line))).append("\n");
+        }
+        out.append("<pre>").append(diff).append("</pre>");
+        paragraph(out, tr(fr, "Both look harmless. Neither is in the spec: one module nobody decided on, and a shortcut across layers.",
+            "Les deux ont l'air inoffensifs. Aucun n'est dans la spec : un module que personne n'a décidé, et un raccourci entre couches."), p.foreground);
+        section(out, p, tr(fr, "What caught it", "Ce qui l'a attrapé"));
+        for (JsonElement el : array(r, "violations")) {
+            if (!el.isJsonObject()) continue;
+            JsonObject v = el.getAsJsonObject();
+            String file = str(v, "file").replace('\\', '/');
+            String name = file.substring(file.lastIndexOf('/') + 1);
+            int line = intValue(v, "line");
+            String where = str(v, "code") + (name.isBlank() ? "" : " · " + name + (line > 0 ? ":" + line : ""));
+            JsonObject guide = obj(v, "guide");
+            StringBuilder extra = new StringBuilder();
+            field(extra, p, tr(fr, "What to do", "Que faire"), str(guide, "fix"));
+            String title = str(v, "title");
+            card(out, p, title.isBlank() ? str(v, "code") : title, where, "error".equalsIgnoreCase(str(v, "severity")) ? p.bad : p.warn, extra.toString());
+        }
+        paragraph(out, tr(fr, "The copy stays in " + str(r, "folder") + ": read the example's spec there.",
+            "La copie reste dans " + str(r, "folder") + " : lis-y la spec de l'exemple."), p.muted);
+    }
+
     private static void next(StringBuilder out, JsonElement json, Palette p, boolean fr) {
         JsonArray components = json.isJsonArray() ? json.getAsJsonArray() : array(json.getAsJsonObject(), "components");
         JsonObject budget = json.isJsonObject() ? obj(json.getAsJsonObject(), "budget") : null;
@@ -284,6 +338,8 @@ final class ArchvowResultFormatter {
             for (JsonElement note : array(component, "notes")) field(extra, p,
                 tr(fr, "Attention", "Attention"), asText(note));
             if (component.has("tokens")) field(extra, p, tr(fr, "Spec size", "Taille de la spec"), str(component, "tokens") + " tokens");
+            if (component.has("suggested")) field(extra, p, tr(fr, "Suggested answers", "Réponses suggérées"),
+                ArchvowOverview.suggested(intValue(component, "suggested"), readiness, fr));
             if (level.startsWith("blocked")) field(extra, p, tr(fr, "Suggested command", "Commande suggérée"),
                 "archvow specify " + str(component, "component"));
             card(out, p, str(component, "component") + " · " + readiness,

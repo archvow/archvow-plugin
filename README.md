@@ -10,13 +10,13 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.24.2.zip, dist/archvow-0.24.2.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.25.0.zip, dist/archvow-0.25.0.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) runs both plugins' tests, regenerates the contract with the
-archvow kept in `contract/archvow/` (the 2.0.1 wheel, its examples and rules) and requires it unchanged,
+archvow kept in `contract/archvow/` (the 2.1.0 wheel, its examples and rules) and requires it unchanged,
 runs the VS Code tests against that archvow, then opens the built `.vsix` and `.zip` as the IDEs do. The
 page [Tests](wiki/en/13-tests.md) says what each job checks.
 
@@ -62,13 +62,13 @@ Publisher setup, GitHub secrets, channel-specific versioning, and retry behavior
   least the plugin's is accepted, so an archvow release that keeps the contract needs no plugin release.
 - **No outside source at run time.** Neither plugin downloads anything on its own; for a team, the `.zip`
   and the `.vsix` go to an internal plugin repository (JetBrains `updatePlugins.xml`, a self-hosted Open
-  VSX) or a share. When archvow is missing or does not speak the contract, **Install archvow 2.0.1** shows the pip
+  VSX) or a share. When archvow is missing or does not speak the contract, **Install archvow 2.1.0** shows the pip
   command (into the project's venv, from pip's own configuration, your company's index or a wheel: the
   setting *Install archvow from*) and runs it only after **Confirm and run** - never at startup.
 
 ## Versions
 
-Both plugins have the same version (0.24.2), their own, not archvow's. They read `.vow` format 1, speak
-archvow's contract 2.0 (`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI
-2.0.1 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
+Both plugins have the same version (0.25.0), their own, not archvow's. They read `.vow` format 1, speak
+archvow's contract 2.1 (`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI
+2.1.0 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
 installed archvow does not speak that contract (archvow keeps no backward compatibility).

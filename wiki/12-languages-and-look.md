@@ -50,8 +50,8 @@ Une fenêtre d'outils ou une barre latérale est souvent étroite. Les règles :
 |---|---|---|
 | l'en-tête de la fenêtre d'outils | le nom du projet se coupe, jamais sous les boutons ; la langue est en bas d'Overview | `buildHeader` (le nom au centre d'un `BorderLayout`) |
 | le conseil de branche | sur plusieurs lignes | `ArchvowWrapLabel` |
-| « État du projet » et ses compteurs | les compteurs passent sous le titre | `buildOverviewStatusStrip` |
-| la barre d'actions | ce qui ne tient pas passe dans Plus ▾ | `ArchvowOverflowBar` |
+| les cartes d'Overview (0.25.0) | une phrase passe à la ligne ; une carte a la hauteur de son contenu | `ArchvowOverviewCards.Line`, `wrapped` |
+| la barre des commandes | Next, Check et Plus ▾ toujours | `ArchvowOverviewCards.toolbar` |
 | les vues d'un composant | ce qui ne tient pas passe dans Plus ▾ | `ArchvowCompactViews` |
 | le tableau d'architecture | Composant, État, En attente restent ; les autres colonnes partent | `ArchvowArchitectureView.columnWidths`, règles `@media` |
 | un composant | le panneau de réponse passe sous les cartes | `ArchvowSplitView.SIDE_BY_SIDE`, `.split` |

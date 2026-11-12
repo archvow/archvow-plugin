@@ -64,6 +64,7 @@
     "package": ["Package", "Paquet"],
     "template": ["Template", "Modèle"],
     "dir": ["Folder", "Dossier"],
+    "example": ["Example", "Exemple"],
     "src": ["Source folder", "Dossier des sources"],
     "force": ["Again (--force)", "À nouveau (--force)"],
     "no_git": ["Without Git", "Sans Git"],
@@ -101,7 +102,7 @@
     "good": ["A good example", "Un bon exemple"]
   },
   "command_groups": [
-    {"id": "project", "label": ["Project & checks", "Projet et contrôles"], "prefixes": ["init", "catalog", "show", "specify", "prompt", "next", "check", "review", "version", "freeze", "audit", "changes", "diff", "doctor", "completion", "doc", "workspace"]}, {"id": "packs", "label": ["Packs", "Packs"], "prefixes": ["pack"]},
+    {"id": "project", "label": ["Project & checks", "Projet et contrôles"], "prefixes": ["init", "catalog", "show", "specify", "prompt", "next", "check", "review", "version", "freeze", "audit", "changes", "diff", "doctor", "completion", "doc", "workspace", "try"]}, {"id": "packs", "label": ["Packs", "Packs"], "prefixes": ["pack"]},
     {"id": "components", "label": ["Features & components", "Fonctionnalités et composants"], "prefixes": ["feature", "component"]},
     {"id": "decisions", "label": ["Decisions", "Décisions"], "prefixes": ["decision"]},
     {"id": "questions", "label": ["Questions", "Questions"], "prefixes": ["question"]},
@@ -223,7 +224,8 @@
     "review": {"title": ["AI review", "Relecture IA"], "verb": ["Review", "Relire"], "does": ["The approved reviewer reads the change and reports.", "Le relecteur approuvé lit le changement et rend compte."]},
     "changes": {"title": ["What a release contains", "Ce que contient une version"], "verb": ["Show", "Afficher"], "does": ["Reads only. With Save to a file: writes the report there (archvow changes ... --markdown > CHANGES.md).", "Lit seulement. Avec Enregistrer dans un fichier : y écrit le rapport (archvow changes ... --markdown > CHANGES.md)."], "hints": {"start": ["the previous release (a tag or a commit); the first commit: everything", "la version précédente (un tag ou un commit) ; le premier commit : tout"], "output": ["e.g. CHANGES.md: the report is written to this file of the project (replaced), then opened; empty: shown here", "par ex. CHANGES.md : le rapport est écrit dans ce fichier du projet (remplacé), puis ouvert ; vide : affiché ici"]}},
     "diff": {"title": ["Spec changes", "Changements de spec"], "verb": ["Show", "Afficher"], "does": ["Reads only. With Save to a file: writes the report there, for the merge request.", "Lit seulement. Avec Enregistrer dans un fichier : y écrit le rapport, pour la merge request."], "hints": {"output": ["e.g. SPEC-CHANGES.md for the merge request: written to this file (replaced), then opened; empty: shown here", "par ex. SPEC-CHANGES.md pour la merge request : écrit dans ce fichier (remplacé), puis ouvert ; vide : affiché ici"]}},
-    "doc": {"title": ["Docs to read", "Docs à lire"], "verb": ["Write the docs", "Écrire les docs"], "does": ["Writes .archvow/doc/ from the vows - the project, each feature, the status; ignored by Git. With a base: what the branch changed.", "Écrit .archvow/doc/ à partir des vows - le projet, chaque fonctionnalité, l'état ; ignoré par Git. Avec une base : ce que la branche a changé."], "essential": ["feature", "base"]}
+    "doc": {"title": ["Docs to read", "Docs à lire"], "verb": ["Write the docs", "Écrire les docs"], "does": ["Writes .archvow/doc/ from the vows - the project, each feature, the status; ignored by Git. With a base: what the branch changed.", "Écrit .archvow/doc/ à partir des vows - le projet, chaque fonctionnalité, l'état ; ignoré par Git. Avec une base : ce que la branche a changé."], "essential": ["feature", "base"]},
+    "try": {"labels": {"dir": ["Scratch folder (empty: a new temporary one)", "Dossier jetable (vide : un nouveau dossier temporaire)"]}, "title": ["Try archvow on an example", "Essayer archvow sur un exemple"], "verb": ["Try it", "L'essayer"], "does": ["Copies a finished example into a scratch folder, makes a change an AI often makes there, and runs check: nothing in this repository changes.", "Copie un exemple fini dans un dossier jetable, y fait un changement que fait souvent une IA, et lance check : rien ne change dans ce dépôt."], "essential": ["example"]}
   },
   "ai_skills": {
     "about": "The AI skills archvow generates (.agents/skills, and .claude/skills for Claude Code): one plain name each, what it reads, what it may add, what the person decides, and the request sent to the assistant. Both plugins show them the same way: the 'All AI skills' menu of a component, the launch form, the 'AI skills' group of Commands. {component}, {brief}, {max}, {base} are filled from the form.",

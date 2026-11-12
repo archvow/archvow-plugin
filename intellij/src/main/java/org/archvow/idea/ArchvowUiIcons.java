@@ -146,6 +146,7 @@ final class ArchvowUiIcons {
                     case "dots" -> { g.fillOval(2, 6, 2, 2); g.fillOval(6, 6, 2, 2); g.fillOval(10, 6, 2, 2); }
                     case "settings" -> { circle(g, 1, 1, 12); circle(g, 5.2, 5.2, 3.6); }
                     case "health" -> { line(g, 7, 2, 7, 12); line(g, 2, 7, 12, 7); }
+                    case "down" -> { line(g, 3, 5, 7, 9); line(g, 7, 9, 11, 5); }  // More's menu (0.25.0)
                     default -> circle(g, 2, 2, 10);
                 }
             } finally { g.dispose(); }

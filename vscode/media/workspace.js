@@ -14,7 +14,7 @@
   let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {}, icons: {} };
   /** What the person chose on the page. */
   const ui = {
-    tab: 'overview', overSub: 'architecture', packsOpen: false, forceWorkspace: false, filterMenu: false, projectMore: false,
+    tab: 'overview', overSub: 'architecture', packsOpen: false, tryExample: 'pyspark-pipeline', forceWorkspace: false, filterMenu: false, projectMore: false,
     /** The editor tab: 'empty', 'feature', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
@@ -454,30 +454,56 @@
     if (ui.mode === 'skill') return `<section class="detail-only">${skillForm()}</section>`;
     if (ui.mode === 'search') return `<section class="detail-only">${searchView(ui.search)}</section>`;
     if (ui.mode === 'result') {
-      const body = confirmation('overview') + resultCard('overview');
+      const body = confirmation('overview') + resultCard('overview') + tryFollowUp('overview', false);
       return `<section class="detail-only">${body || `<p class="muted">${esc(t('No result. Run a command from Overview in the Archvow sidebar.', "Aucun résultat. Lance une commande depuis la Vue d'ensemble du panneau Archvow."))}</p>`}</section>`;
     }
     return `<section class="detail-only empty"><p class="muted">${esc(t('Choose a component or a command in the Archvow sidebar: it opens here, in this one tab.',
       'Choisis un composant ou une commande dans le panneau Archvow : il s\'ouvre ici, dans cet unique onglet.'))}</p></section>`;
   }
 
+  /** The examples `archvow try` copies (2.1): value, label. */
+  const TRY_EXAMPLES = [['pyspark-pipeline', 'PySpark pipeline'], ['fastapi-service', 'FastAPI service'], ['python-app', 'Python app'], ['langgraph-agent', 'LangGraph agent']];
+
   function welcomeView() {
     const texts = {
       NO_PROJECT: [t('No project', 'Aucun projet'), t('Open a folder to use Archvow.', 'Ouvre un dossier pour utiliser Archvow.')],
       ROOT_MISSING: [t('Project directory unavailable', 'Dossier projet inaccessible'), t('The project directory is not accessible.', 'Le dossier du projet est introuvable ou inaccessible.')],
-      NOT_INITIALIZED: [t('Archvow not initialized', 'Archvow non initialisé'), t('This folder does not contain .archvow/project.vow. Initialize Archvow to begin or open an initialized project. A project of archvow 1.x (.archvow/spec.vow) is converted once with archvow 2.0\'s tools/convert_to_2.py.',
-        'Ce dossier ne contient pas .archvow/project.vow. Initialise Archvow ou ouvre un projet existant. Un projet archvow 1.x (.archvow/spec.vow) se convertit une fois avec tools/convert_to_2.py d\'archvow 2.0.')],
+      NOT_INITIALIZED: [t('Archvow not initialized', 'Archvow non initialisé'), t('This folder does not contain .archvow/project.vow. Initialize Archvow to begin, or open an initialized project.',
+        'Ce dossier ne contient pas .archvow/project.vow. Initialise Archvow pour commencer, ou ouvre un projet déjà initialisé.')],
       SPEC_INACCESSIBLE: [t('Specification unavailable', 'Spécification inaccessible'), t('.archvow/project.vow is not readable.', ".archvow/project.vow n'est pas lisible.")],
     };
     const [title, detail] = texts[S.readiness] || [t('Archvow needs attention', 'Configuration Archvow à vérifier'),
       t('The project is initialized, but Archvow could not load it.', "Le projet est initialisé, mais Archvow n'a pas pu le charger.")];
-    return `<section class="welcome card"><h2>${esc(t('Archvow · Getting started', 'Archvow · Démarrage'))}</h2>
-  <h3>${esc(title)}</h3><p>${esc(detail)}</p><p class="muted">${esc(S.project.root)}</p>
+    const fresh = S.readiness === 'NOT_INITIALIZED';
+    const tryCard = fresh ? `<section class="card try-card" aria-label="${esc(t('Try archvow first', "Essayer archvow d'abord"))}"><h3>${esc(t('Not sure yet? See it catch a mistake', 'Pas encore sûr ? Regarde-le attraper une erreur'))}</h3>
+    <p>${esc(t('On a finished example, in a scratch folder: nothing in this folder changes.', 'Sur un exemple fini, dans un dossier jetable : rien ne change dans ce dossier.'))}</p>
+    <div class="row try-row"><label for="try-example" class="muted">${esc(t('Example', 'Exemple'))}</label>
+    <select id="try-example" data-change="tryExample">${TRY_EXAMPLES.map(([v, l]) => `<option value="${v}" ${ui.tryExample === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>
+    ${btn(t('Try it', "L'essayer"), 'tryExample', '', false, 'secondary')}</div></section>` : '';
+    return `<section class="welcome"><h2>${esc(t('Archvow · Getting started', 'Archvow · Démarrage'))}</h2>
+  <section class="card"><h3>${esc(title)}</h3><p>${esc(detail)}</p><p class="mono small muted">${esc(S.project.root)}</p>
   ${S.welcomeError ? `<pre class="error">${esc(S.welcomeError)}</pre>` : ''}
   ${installCard()}
-  <div class="row">${btn(t('Initialize Archvow', 'Initialiser Archvow'), 'init', '', S.readiness !== 'NOT_INITIALIZED')}
-  ${btn(t('Configure Python', 'Configurer Python'), 'settings')}${btn(t('Retry', 'Réessayer'), 'refresh')}</div>
-  ${confirmation('welcome')}${resultCard('welcome')}</section>`;
+  <div class="row wrap">${btn(t('Initialize Archvow', 'Initialiser Archvow'), 'init', '', !fresh)}
+  ${btn(t('Configure Python', 'Configurer Python'), 'settings', '', false, 'secondary')}${btn(t('Retry', 'Réessayer'), 'refresh', '', false, 'secondary')}</div>
+  ${fresh ? `<p class="muted small">${t('Code already here? In Initialize, choose <b>Adopt</b>: your modules become components where they are, and Check then shows what the code does that no spec says.',
+    'Du code déjà là ? Dans Initialiser, choisis <b>Adopter</b> : tes modules deviennent des composants là où ils sont, et Contrôler montre ensuite ce que le code fait sans qu\'aucune spec ne le dise.')}</p>` : ''}
+  ${confirmation('welcome')}</section>
+  ${tryCard}
+  ${resultCard('welcome')}${tryFollowUp('welcome', fresh)}
+  ${fresh ? `<p class="muted small">${esc(t('After Initialize, the Overview shows the first steps. Developers and reviewers who clone a project with archvow start from its README.',
+    "Après Initialiser, la Vue d'ensemble montre les premiers pas. Les développeurs et relecteurs qui clonent un projet avec archvow partent de son README."))}</p>` : ''}</section>`;
+  }
+
+  /** Under a `try` result (2.1): set archvow up here (only where it is not yet), or read the example's spec. */
+  function tryFollowUp(target, fresh) {
+    const r = ui.results[target];
+    if (!r || r.running || r.label !== 'try') return '';
+    let folder = '';
+    const found = /"folder":\s*("(?:[^"\\]|\\.)*")/.exec(r.raw || '');  // stderr may follow the JSON
+    try { folder = found ? String(JSON.parse(found[1])) : ''; } catch { folder = ''; }
+    return `<div class="row wrap try-follow">${fresh ? btn(t('Set up archvow in this repository', 'Installer archvow dans ce dépôt'), 'init') : ''}
+      ${folder ? btn(t("Read the example's spec", "Lire la spec de l'exemple"), 'openTryCopy', attrs({ folder }), false, 'secondary') : ''}</div>`;
   }
 
   /** Install archvow (0.12.0): when it cannot start, or does not speak the plugin's contract. Nothing runs
@@ -640,55 +666,71 @@
   <div class="row wrap">${btn(t('✓ Accept brief…', '✓ Accepter un brief…'), 'openCommand', attrs({ command: 'brief accept' }), false, 'secondary small')}${btn(t('Add a briefs folder (architect)…', 'Ajouter un dossier de briefs (architecte)…'), 'addFolder', attrs({ package: pkg, answer: 'briefs=' + folders.join(',') + ',' }), false, 'secondary small')}</div></div>`;
   }
 
-  function overviewTab() {
-    if (ui.packsOpen) return packsView();  // Overview › Packs, in the same tab (0.22.0)
-    const work = S.work;
-    const branchWarning = needsFeatureBranch(S.branch) ? `<div class="warning" title="${esc(t('Advice only. Archvow does not automatically change Git branches.',
-      'Conseil uniquement. Archvow ne change pas automatiquement de branche Git.'))}">${esc(t(`⚠ You are on ${S.branch}. For development, create a feature branch (e.g. feature/my-change) first.`,
-      `⚠ Branche ${S.branch} : crée une branche de fonctionnalité (ex. feature/ma-modification) avant de développer.`))}</div>` : '';
-    // Keep actual command handlers in one place; a responsive toolbar moves actions into More.
-    // The visible data-tooltip and accessible name work on hover and keyboard focus.
-    const projectAction = (kind, label, action, extra = '', index = 0) =>
-      `<span class="project-action-slot action-slot-${index}"><button class="project-action" data-a="${action}" ${extra} title="${esc(label)}" data-tooltip="${esc(label)}" aria-label="${esc(label)}">${icon(kind) || ({ next: '➜', check: '✓', health: '✚', search: '⌕', document: '▤', briefs: '▤' }[kind] || '◦')}</button></span>`;
-    const overflowItem = (kind, label, action, extra, index) =>
-      `<button class="overflow-action overflow-action-${index}" data-a="${action}" ${extra} title="${esc(label)}">${icon(kind)}<span>${esc(label)}</span></button>`;
-    const actions = [
-      ['next', 'Next', 'run', attrs({ label: 'next', args: 'next --json', target: 'overview' })],
-      ['check', 'Check', 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' })],
-      ['health', 'Doctor', 'run', attrs({ label: 'doctor', args: 'doctor --json', target: 'overview' })],
-      ['search', 'Audit', 'run', attrs({ label: 'audit', args: 'audit --json', target: 'overview' })],
-      ['document', t('Project vow', 'Vow du projet'), 'openProjectVow', ''],
+  /** The project's commands (0.25.0): Next and Check named, the others in More - the same in IntelliJ. */
+  function projectToolbar() {
+    const run = (label, args) => attrs({ label, args, target: 'overview' });
+    const main = [
+      ['next', 'Next', 'run', run('next', 'next --json')],
+      ['check', 'Check', 'run', run('full check', 'check --complete --json')],
+    ];
+    const more = [
+      ['health', 'Doctor', 'run', run('doctor', 'doctor --json')],
+      ['search', 'Audit', 'run', run('audit', 'audit --json')],
       ['folder', t('Briefs', 'Briefs'), 'openBriefCommands', ''],
       ['list', 'Budget / Next', 'budget', ''],
       ['compare', 'Diff', 'openCommand', attrs({ command: 'diff', field: 'base' })],
       ['propose', 'AI review', 'openCommand', attrs({ command: 'review', field: 'base' })],
     ];
-    const toolbar = actions.map(([kind, label, action, extra], index) => projectAction(kind, label, action, extra, index)).join('')
-      + `<span class="action-more"><button class="project-action more-control" data-a="projectMore" title="${esc(t('More project commands', 'Autres commandes du projet'))}" data-tooltip="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-label="${esc(t('More project commands', 'Autres commandes du projet'))}" aria-haspopup="menu" aria-expanded="${!!ui.projectMore}">${icon('other') || '⋯'}</button>${ui.projectMore ? `<div class="project-more-menu" role="menu">${actions.map(([kind, label, action, extra], index) => overflowItem(kind, label, action, extra, index)).join('')}</div>` : ''}</span>`;
-    const sub = architectureView();
-    const issues = list(S.check, 'violations');
-    const failedChecks = S.check && S.check.errors != null ? Number(S.check.errors) || 0
-      : issues.filter((v) => str(v, 'severity').toLowerCase() === 'error').length;
-    const warnedChecks = S.check && S.check.warnings != null ? Number(S.check.warnings) || 0
-      : issues.filter((v) => str(v, 'severity').toLowerCase() === 'warning').length;
-    const projectPending = S.work.otherPending.filter(isProjectOther).length;
-    // Partition the actual pending work, not the number of components or raw check violations.
-    // Some checks (e.g. ARCH030) are already represented by a safety item.
-    const checksPending = work.pending.filter((item) => item.source === 'check' || item.command === 'open-diagnostics').length;
-    const architecturePending = work.pending.length - checksPending;
+    const moreLabel = t('More project commands', 'Autres commandes du projet');
+    const chevron = '<svg class="ico chevron" viewBox="0 0 14 14" aria-hidden="true"><path d="m3 5 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return `<div class="project-action-bar" role="toolbar" aria-label="${esc(t('Project commands', 'Commandes du projet'))}">`
+      + main.map(([kind, label, action, extra]) => `<button class="project-action labelled" data-a="${action}" ${extra} title="${esc(label)}">${icon(kind)}<span>${esc(label)}</span></button>`).join('')
+      + `<span class="action-more"><button class="project-action labelled more-control" data-a="projectMore" title="${esc(moreLabel)}" aria-label="${esc(moreLabel)}" aria-haspopup="menu" aria-expanded="${!!ui.projectMore}"><span>${esc(t('More', 'Plus'))}</span>${chevron}</button>`
+      + (ui.projectMore ? `<div class="project-more-menu" role="menu" aria-label="${esc(moreLabel)}">${more.map(([kind, label, action, extra]) =>
+        `<button role="menuitem" class="overflow-action" data-a="${action}" ${extra} title="${esc(label)}">${icon(kind)}<span>${esc(label)}</span></button>`).join('')}</div>` : '')
+      + '</span></div>';
+  }
+
+  /** First steps (0.25.0): archvow's five steps for a new project (workspace --json first_steps), read from the
+   *  spec, the check and Git; the card goes once they are done. The current step has the button that does it. */
+  function firstStepsCard() {
+    const f = S.overview && S.overview.firstSteps;
+    if (!f) return '';
+    const button = (step) => {
+      const specify = /^archvow specify (\S+)$/.exec(step.command);
+      if (specify) return btn(t('Specify', 'Spécifier'), 'openCommand', attrs({ command: 'specify', component: specify[1] }));
+      if (step.step === 'feature') return btn(t('Add feature', 'Ajouter une feature'), 'addFeature', '');
+      if (step.step === 'component') return btn(t('Add component', 'Ajouter un composant'), 'addComponent', '');
+      if (step.step === 'build') return btn('Check', 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' }));
+      return '';
+    };
+    const steps = f.steps.map((step, i) => {
+      const now = i === f.current;
+      const mark = step.done ? '✓' : String(i + 1);
+      return `<li class="first-step${now ? ' now' : ''}${step.done ? ' done' : ''}"><span class="step-mark" aria-hidden="true">${mark}</span>
+        <div class="step-text"><span class="step-title">${esc(step.title)}</span><span class="step-detail" title="${esc(step.command)}">${esc(step.detail)}</span></div>
+        ${now ? button(step) : ''}</li>`;
+    }).join('');
+    return `<section class="card first-steps" aria-label="${esc(t('First steps', 'Premiers pas'))}"><div class="card-head"><h3>${esc(t('First steps', 'Premiers pas'))}</h3>
+      <span class="muted">${esc(t(`${f.done} of ${f.steps.length} done`, `${f.done} sur ${f.steps.length} faits`))}</span></div>
+      <ol>${steps}</ol>
+      <p class="first-steps-foot muted small">${esc(t('Each step is read from the spec and Git, on this machine. The card goes once the five are done.',
+        'Chaque étape est lue dans la spec et Git, sur cette machine. La carte part une fois les cinq faites.'))}
+        <button class="link" data-a="openTry">${esc(t('Try archvow on an example first', "Essayer archvow sur un exemple d'abord"))}</button></p></section>`;
+  }
+
+  function overviewTab() {
+    if (ui.packsOpen) return packsView();  // Overview › Packs, in the same tab (0.22.0)
+    const branchWarning = needsFeatureBranch(S.branch) ? `<div class="warning" title="${esc(t('Advice only. Archvow does not automatically change Git branches.',
+      'Conseil uniquement. Archvow ne change pas automatiquement de branche Git.'))}">${esc(t(`⚠ You are on ${S.branch}. For development, create a feature branch (e.g. feature/my-change) first.`,
+      `⚠ Branche ${S.branch} : crée une branche de fonctionnalité (ex. feature/ma-modification) avant de développer.`))}</div>` : '';
     return `<section class="overview">
-  <div class="strip"><b>${esc(t('Project status', 'État du projet'))}</b><span class="row">
-    <button class="badge pending" data-a="quickList" data-i="0" title="${esc(t('See open items by component', 'Voir les éléments ouverts par composant'))}">${work.pending.length} ${esc(t('pending', 'en attente'))}</button>
-    <button class="badge resolved" data-a="quickList" data-i="1" title="${esc(t('See completed items by component', 'Voir les éléments traités par composant'))}">${work.resolved.length} ${esc(t('resolved', 'traités'))}</button>
-    ${projectPending ? `<button class="badge project" data-a="projectWork" title="${esc(t('Project-wide items, not attributed to components', 'Éléments du projet non attribués aux composants'))}">${projectPending} ${esc(t('project items', 'éléments projet'))}</button>` : ''}</span></div>
   ${branchWarning}
   ${S.install && S.install.reason === 'version' ? installCard() + confirmation('welcome') + resultCard('welcome') : ''}
-  <div class="project-action-container"><div class="project-action-bar" role="toolbar" aria-label="${esc(t('Project commands', 'Commandes du projet'))}">${toolbar}</div></div>
-  ${sub}
-  <div class="card checks-summary" data-a="openChecks" title="${esc(t('Open project diagnostics', 'Afficher les diagnostics du projet'))}"><div class="checks-summary-info">${icon('shield') || '✓'}<div>
-    <h3>${esc(t('Checks', 'Contrôles'))}</h3>
-    <p class="muted small"><span class="${failedChecks ? 'tone-bad' : ''}">${failedChecks} ${esc(t('errors', 'erreurs'))}</span> · <span class="${warnedChecks ? 'tone-warn' : ''}">${warnedChecks} ${esc(t('warnings', 'avertissements'))}</span></p></div></div>
-    <button class="link" data-a="openChecks" title="${esc(t('Open project diagnostics', 'Afficher les diagnostics du projet'))}">${esc(t('Open Checks', 'Voir les contrôles'))} →</button></div>
+  ${firstStepsCard()}
+  <div class="project-action-container">${projectToolbar()}</div>
+  ${architectureView()}
+  ${checksCard()}
   ${packsSummary()}
   <footer class="hint"><label>${esc(t('Language', 'Langue'))} <select data-change="language">${[['auto', t('Follow VS Code', 'Suivre VS Code')], ['en', 'English'], ['fr', 'Français']]
     .map(([v, l]) => `<option value="${v}" ${S.languageMode === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
@@ -697,13 +739,28 @@
 </section>`;
   }
 
+  /** Overview › Checks (0.25.0): the totals and the first finding - its rule in words, where, Open file. */
+  function checksCard() {
+    const o = S.overview || {};
+    const totals = `<span class="${o.errors ? 'tone-bad' : 'tone-good'}">${Number(o.errors) || 0} ${esc(t('errors', 'erreurs'))}</span> · <span class="${o.warnings ? 'tone-warn' : (o.errors ? '' : 'tone-good')}">${Number(o.warnings) || 0} ${esc(t('warnings', 'avertissements'))}</span>`;
+    const open = `<button class="link" data-a="openChecks">${esc(t('Open Checks', 'Voir les contrôles'))} →</button>`;
+    const f = o.firstFinding;
+    if (!f) return `<div class="card checks-summary" data-a="openChecks" title="${esc(t('Open project diagnostics', 'Afficher les diagnostics du projet'))}"><div class="checks-summary-info"><div>
+    <h3>${esc(t('Checks', 'Contrôles'))}</h3><p class="small">${totals}</p></div></div>${open}</div>`;
+    return `<section class="card checks-card" aria-label="${esc(t('Checks', 'Contrôles'))}"><div class="card-head"><h3>${esc(t('Checks', 'Contrôles'))}</h3>${open}</div>
+    <p class="checks-totals">${totals}</p>
+    <div class="first-finding"><div class="first-finding-text"><span class="muted small">${esc(t('First finding', 'Premier constat'))}</span>
+      <b>${esc(f.title)}</b><span class="mono small muted">${esc(f.where)}</span></div>
+      ${f.file ? btn(checkFileLabel(f.file), 'openFile', attrs({ file: f.file, line: f.line }), false, 'secondary') : btn(t('Open Checks', 'Voir les contrôles'), 'openChecks', '', false, 'secondary')}</div></section>`;
+  }
+
   /** Overview › Packs (0.22.0): one row, as Architecture and Checks - how many packs, the copies changed by hand. */
   function packsSummary() {
     const packs = (S && S.packs) || [];
     const changed = packs.filter((p) => str(p, 'state') === 'changed').length;
     const line = `${packs.length} ${esc(t(packs.length === 1 ? 'pack' : 'packs', packs.length === 1 ? 'pack' : 'packs'))}`
       + (changed ? ` · <span class="tone-warn">${changed} ${esc(t('changed by hand', 'modifiés à la main'))}</span>` : '');
-    return `<div class="card packs-summary" data-a="openPacks" title="${esc(t('Open Packs', 'Voir les packs'))}"><div class="checks-summary-info">${icon('template') || '▤'}<div>
+    return `<div class="card packs-summary" data-a="openPacks" title="${esc(t('Open Packs', 'Voir les packs'))}"><div class="checks-summary-info"><div>
     <h3>${esc(t('Packs', 'Packs'))}</h3>
     <p class="muted small">${line}</p></div></div>
     <button class="link" data-a="openPacks">${esc(t('Open Packs', 'Voir les packs'))} →</button></div>`;
@@ -738,13 +795,25 @@
       <button class="link" data-a="closePacks">← ${esc(t('Overview', 'Vue d\'ensemble'))}</button></section>`;
   }
 
+  /** Overview › Architecture (0.25.0): its own items only - decisions, questions and tasks; check findings are
+   *  counted in Checks. */
   function architectureView() {
     if (!S.spec) return `<div class="card"><h3>${esc(t('Architecture unavailable', 'Architecture indisponible'))}</h3></div>`;
-    const count = S.rows.length;
-    return `<div class="card architecture-summary" data-a="openComponents" title="${esc(t('Open Components for details', 'Voir les composants en détail'))}"><div class="architecture-summary-info">${icon('system') || '▧'}<div>
-      <h3>${esc(t('Architecture', 'Architecture'))}</h3>
-      <p class="muted small">${count} ${esc(t('components', 'composants'))} · ${S.work.pending.length} ${esc(t('pending', 'en attente'))} · ${S.work.resolved.length} ${esc(t('resolved', 'traités'))}</p></div></div>
-      <button class="link" data-a="openComponents">${esc(t('Open Components for details', 'Voir les composants en détail'))} →</button></div>`;
+    const o = S.overview || {};
+    const total = Number(o.itemsTotal) || 0;
+    const done = Number(o.itemsDone) || 0;
+    const pct = total ? Math.round(done * 100 / total) : 0;
+    const label = t(`${done} of ${total} items done`, `${done} éléments faits sur ${total}`);
+    return `<section class="card architecture-card" aria-label="${esc(t('Architecture', 'Architecture'))}"><div class="card-head"><h3>${esc(t('Architecture', 'Architecture'))}</h3>
+      <button class="link" data-a="openComponents">${esc(t('Open Components for details', 'Voir les composants en détail'))} →</button></div>
+      <p class="arch-count">${S.rows.length} ${esc(t('components', 'composants'))}</p>
+      <div class="items-done"><span>${esc(t('Items done', 'Éléments faits'))}</span><b>${esc(t(`${done} of ${total}`, `${done} sur ${total}`))}</b></div>
+      <div class="items-bar" role="img" aria-label="${esc(label)}">${pct ? `<div style="width:${pct}%"></div>` : ''}</div>
+      ${o.itemsOpen && !o.firstSteps ? `<p class="muted small">${esc(t(`${o.itemsOpen} open: decisions, questions and tasks. Check findings count in Checks.`,
+        `${o.itemsOpen} ouverts : décisions, questions et tâches. Les constats des contrôles comptent dans Contrôles.`))}</p>` : ''}
+      <div class="row item-links"><button class="link" data-a="quickList" data-i="0">${esc(t(`Open items (${o.itemsOpen || 0})`, `Éléments ouverts (${o.itemsOpen || 0})`))}</button>
+      <button class="link" data-a="quickList" data-i="1">${esc(t(`Done items (${done})`, `Éléments faits (${done})`))}</button>
+      ${o.projectItems ? `<button class="link" data-a="projectWork" title="${esc(t('Project-wide items, not attributed to components', 'Éléments du projet non attribués aux composants'))}">${esc(t(`Project items (${o.projectItems})`, `Éléments projet (${o.projectItems})`))}</button>` : ''}</div></section>`;
   }
 
   /** The colour of a state, as in IntelliJ's table: done green, drift or missing amber. */
@@ -798,7 +867,8 @@
         ${rules ? `<p class="by-rule">${esc(rules)}</p>` : ''}`;
     if (ui.checkSel >= items.length) ui.checkSel = 0;
     const rows = items.map((v, i) => `<li class="${i === ui.checkSel ? 'selected' : ''} sev-${esc(str(v, 'severity'))}" data-a="checkSel" data-i="${i}" title="${esc(str(v, 'message'))}">
-      <b>${esc(str(v, 'code'))}</b> <span class="chip ${str(v, 'severity') === 'error' ? 'bad' : 'warn'}">${esc(str(v, 'severity'))}</span> ${esc(short(str(v, 'message'), inEditor ? 180 : 120))}</li>`).join('');
+      ${str(v, 'title') ? `<span class="check-title">${esc(str(v, 'title'))}</span>` : ''}<span class="check-code"><b>${esc(str(v, 'code'))}</b> <span class="chip ${str(v, 'severity') === 'error' ? 'bad' : 'warn'}">${esc(str(v, 'severity'))}</span></span>
+      <span class="check-row-message">${esc(short(str(v, 'message'), inEditor ? 180 : 120))}</span></li>`).join('');
     const listPart = `<ul class="list check-list" data-scroll="checks">${rows || `<li class="muted empty">${esc(t('No detailed diagnostics.', 'Aucun diagnostic détaillé.'))}</li>`}</ul>`;
     const title = `<div class="card-head"><h3>${esc(t('Check & Gates', 'Contrôles et validations'))}</h3>${btn(t('Check reference', 'Référence des contrôles'), 'openChecksReference', '', false, 'secondary')}</div>`;
     if (!inEditor) return `<div class="card checks-summary">${title}${totals}
@@ -3067,6 +3137,13 @@
     openCode: () => { if (ui.component) post({ type: 'openCode', component: ui.component }); },
     aiPrompt: () => { ui.aiMenu = false; if (ui.component) post({ type: 'run', label: 'prompt', args: ['prompt', ui.component], target: 'component' }); },
     addRule: () => post({ type: 'openCommand', command: 'rule add', values: ui.component ? { words: ui.component + '\n' } : {}, selected: ui.component }),
+    tryExample: () => {
+      const select = document.getElementById('try-example');
+      ui.tryExample = select ? select.value : 'pyspark-pipeline';
+      post({ type: 'run', label: 'try', args: ['try', ui.tryExample, '--json'], target: 'welcome' });
+    },
+    openTryCopy: (e) => post({ type: 'openTryCopy', folder: e.dataset.folder }),
+    openTry: () => post({ type: 'run', label: 'try', args: ['try', 'pyspark-pipeline', '--json'], target: 'overview' }),
     openCommand: (e) => {
       const values = {};
       if (e.dataset.component) values.component = e.dataset.component;
@@ -3418,6 +3495,7 @@
     const e = event.target;
     switch (e.dataset.change) {
       case 'language': post({ type: 'language', mode: e.value }); return;
+      case 'tryExample': ui.tryExample = e.value; return;
       case 'severity': ui.severity[e.dataset.key] = e.value; return;
       case 'form':
         ui.form[e.dataset.name] = e.value;
