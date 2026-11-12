@@ -116,6 +116,6 @@ time-out, cancel), `ArchvowGrammar` reads the command grammar (`src/main/resourc
 exported from archvow's own parser by `tools/export_cli.py`), `ArchvowPanel` is the workspace, the
 `Archvow*View` classes are its views. `src/main/resources/META-INF/plugin.xml` registers both parts.
 
-The plugin has its own version (0.25.1); it reads `.vow` format 1, speaks archvow's contract 2.1
+The plugin has its own version (0.25.2); it reads `.vow` format 1, speaks archvow's contract 2.1
 (`../contract/cli/contract.txt`) and is tested with the archvow CLI 2.0.1 (`../contract/cli/version.txt`); the
 workspace says when the installed archvow does not speak that contract.

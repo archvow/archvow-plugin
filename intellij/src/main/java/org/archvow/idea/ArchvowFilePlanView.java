@@ -96,6 +96,22 @@ final class ArchvowFilePlanView extends JPanel {
         repaint();
     }
 
+    /** One level of the tree, in pixels (0.25.1: a monospaced "│   " took ~32 px a level; VS Code's tree takes 23). */
+    static final int LEVEL = 18;
+    /** Where a level's line runs: under the middle of the icon of the folder above. */
+    static final int LINE = 8;
+
+    /** Paints a guide's levels ("│   ", "├── ", "└── ", "    ") as lines, {@link #LEVEL} pixels each. */
+    static void paintGuide(Graphics2D g, String guide, int height, int mid) {
+        for (int level = 0; level * 4 < guide.length(); level++) {
+            char c = guide.charAt(level * 4);
+            int x = level * LEVEL + LINE;
+            if (c == '│' || c == '├') g.drawLine(x, 0, x, height);
+            if (c == '└') g.drawLine(x, 0, x, mid);
+            if (c == '├' || c == '└') g.drawLine(x, mid, level * LEVEL + LEVEL - 3, mid);
+        }
+    }
+
     /**
      * Beside a note: the vertical lines of the tree (each "│" of its guide, and of its stem when the item has
      * children) painted over the note's whole height, so they run on when the note wraps over several lines.
@@ -113,31 +129,48 @@ final class ArchvowFilePlanView extends JPanel {
             setOpaque(false);
         }
 
-        private int cell() { return getFontMetrics(getFont()).charWidth('m'); }
-
         @Override public Dimension getPreferredSize() {
-            return new Dimension(cell() * guide.length() + stemWidth, getFontMetrics(getFont()).getHeight());
+            return new Dimension(guide.length() / 4 * LEVEL + stemWidth, getFontMetrics(getFont()).getHeight());
         }
 
         @Override protected void paintComponent(Graphics graphics) {
             Graphics2D g = (Graphics2D) graphics.create();
             try {
                 g.setColor(muted());
-                int cell = cell();
-                for (int i = 0; i < guide.length(); i++)
-                    if (guide.charAt(i) == '│') g.drawLine(i * cell + cell / 2, 0, i * cell + cell / 2, getHeight());
-                if (!stem.isEmpty()) g.drawLine(guide.length() * cell + cell / 2, 0, guide.length() * cell + cell / 2, getHeight());
+                StringBuilder lines = new StringBuilder();
+                for (int i = 0; i < guide.length(); i += 4) lines.append(guide.charAt(i) == '│' ? "│   " : "    ");
+                paintGuide(g, lines.toString(), getHeight(), 0);
+                if (!stem.isEmpty()) {
+                    int x = guide.length() / 4 * LEVEL + LINE;
+                    g.drawLine(x, 0, x, getHeight());
+                }
             } finally {
                 g.dispose();
             }
         }
     }
 
-    /** The ├── └── │ guide of a line, in a monospaced muted font so the columns line up. */
+    /** The ├── └── │ guide of a line, drawn as lines {@link #LEVEL} pixels a level (its text stays, for the
+     *  regressions and screen readers). */
     private static JLabel guide(String text) {
-        JLabel label = new JLabel(text);
+        JLabel label = new JLabel(text) {
+            @Override public Dimension getPreferredSize() {
+                Dimension d = super.getPreferredSize();
+                return new Dimension(getText().length() / 4 * LEVEL, d.height);
+            }
+            @Override public Dimension getMaximumSize() { return getPreferredSize(); }
+            @Override public Dimension getMinimumSize() { return getPreferredSize(); }
+            @Override protected void paintComponent(Graphics graphics) {
+                Graphics2D g = (Graphics2D) graphics.create();
+                try {
+                    g.setColor(muted());
+                    paintGuide(g, getText(), getHeight(), getHeight() / 2);
+                } finally {
+                    g.dispose();
+                }
+            }
+        };
         label.putClientProperty("html.disable", Boolean.TRUE);
-        label.setFont(new Font(Font.MONOSPACED, Font.PLAIN, label.getFont().getSize()));
         label.setForeground(muted());
         label.setName("archvow.tree-guide");
         return label;

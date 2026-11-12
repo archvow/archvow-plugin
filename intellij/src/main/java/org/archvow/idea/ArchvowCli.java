@@ -132,8 +132,7 @@ final class ArchvowCli {
      * {@code --version}, remembered until the settings or the IDE's interpreter change.
      */
     private ArchvowProcessCommand.Candidate choose(ArchvowSettings.Values opts, String root) throws IOException {
-        List<ArchvowProcessCommand.Candidate> candidates = ArchvowProcessCommand.candidates(opts.useProjectInterpreter,
-            opts.useProjectInterpreter ? ArchvowInterpreter.projectPython(project) : "", opts.executable, opts.python);
+        List<ArchvowProcessCommand.Candidate> candidates = candidates(project, opts, root);
         String signature = candidates.toString();
         synchronized (CHOSEN) {
             String[] known = CHOSEN.get(project);
@@ -147,6 +146,15 @@ final class ArchvowCli {
         return probe.chosen();
     }
 
+    /** Where archvow is looked for, in order (ArchvowProcessCommand): also used by the settings' Test. */
+    static List<ArchvowProcessCommand.Candidate> candidates(Project project, ArchvowSettings.Values opts, String root) {
+        boolean windows = ArchvowWsl.windows();
+        return ArchvowProcessCommand.candidates(opts.useProjectInterpreter,
+            opts.useProjectInterpreter ? ArchvowInterpreter.projectPython(project) : "", opts.executable, opts.python,
+            ArchvowProcessCommand.found(root, opts.useProjectInterpreter ? ArchvowInterpreter.idePythons() : List.of(),
+                System.getProperty("user.home", ""), windows, path -> new File(path).canExecute()));
+    }
+
     /** What trying the candidates gave: the first that answered (or null), and a line per candidate tried. */
     record Probe(ArchvowProcessCommand.Candidate chosen, String report) {}
 
@@ -158,6 +166,9 @@ final class ArchvowCli {
             String where = switch (c.source()) {
                 case "ide" -> french ? "interpréteur Python de l'IDE" : "the IDE's Python interpreter";
                 case "python" -> french ? "Python des réglages Archvow" : "the Python of Archvow settings";
+                case "venv" -> french ? "environnement virtuel du dossier" : "the folder's virtual environment";
+                case "sdk" -> french ? "un autre interpréteur Python de l'IDE" : "another Python interpreter of the IDE";
+                case "found" -> french ? "archvow là où pip ou pipx l'installent" : "archvow where pip or pipx install it";
                 default -> french ? "exécutable des réglages Archvow" : "the executable of Archvow settings";
             };
             String said;
@@ -224,8 +235,10 @@ final class ArchvowCli {
             ArchvowProcessCommand.Candidate chosen = choose(opts, null);
             argv = ArchvowProcessCommand.buildWithoutProject(chosen.executable(), chosen.python(), arguments);
         } else {
-            String root = project.getBasePath();
-            if (root == null) throw new IllegalStateException("Aucun dossier racine pour ce projet IntelliJ");
+            String base = project.getBasePath();
+            if (base == null) throw new IllegalStateException("Aucun dossier racine pour ce projet IntelliJ");
+            // init --dir <an existing folder> runs there (0.25.1), as in a terminal: its .venv counts
+            String root = ArchvowProcessCommand.workingFolder(arguments, base, path -> new File(path).isDirectory());
             workingDirectory = new File(root);
             if (!workingDirectory.isDirectory())
                 throw new IllegalStateException("Le dossier du projet n'existe pas : " + root);

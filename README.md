@@ -10,7 +10,7 @@ archvow's IDE plugins, in one repository, apart from archvow itself (archvow nev
 | `wiki/` | how the plugins are built, for whoever maintains them: every file, every flow, and why (French; English in `wiki/en/`), checked against the code by `npm test` | - |
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.25.1.zip, dist/archvow-0.25.1.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.25.2.zip, dist/archvow-0.25.2.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -68,7 +68,7 @@ Publisher setup, GitHub secrets, channel-specific versioning, and retry behavior
 
 ## Versions
 
-Both plugins have the same version (0.25.1), their own, not archvow's. They read `.vow` format 1, speak
+Both plugins have the same version (0.25.2), their own, not archvow's. They read `.vow` format 1, speak
 archvow's contract 2.1 (`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI
 2.1.1 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
 installed archvow does not speak that contract (archvow keeps no backward compatibility).

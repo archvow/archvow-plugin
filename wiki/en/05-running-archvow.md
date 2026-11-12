@@ -65,13 +65,20 @@ per session.
 1. **The IDE's Python interpreter for the project**: `<python> -m archvow`.
    - IntelliJ / PyCharm: the project's Python SDK, otherwise a module's (`ArchvowInterpreter.projectPython`,
      through `ProjectRootManager` and `ModuleRootManager`, without depending on the Python plugin: the
-     SDK type is recognised by its name).
+     SDK type is recognised by its name); with none of them, the IDE's only Python interpreter when it
+     knows one only (0.25.2).
    - VS Code: the interpreter of the Python extension (`ms-python.python`,
      `environments.getActiveEnvironmentPath`), read again when it changes.
    - Setting *Use the project's Python interpreter first* / `archvow.useProjectInterpreter`, on by
      default.
 2. **The Python of the settings** (Settings > Tools > Archvow / `archvow.python`): `<python> -m archvow`.
-3. **The executable of the settings** (`archvow` by default, looked for in the IDE's PATH).
+3. **The folder's virtual environment** (0.25.2): `.venv` or `venv` of the project - for `init --dir` in
+   IntelliJ, of that folder, where the command then runs.
+4. **The executable of the settings** (`archvow` by default, looked for in the IDE's PATH).
+5. **What else exists** (0.25.2, `ArchvowProcessCommand.found`, `foundCandidates()`): IntelliJ's other Python
+   interpreters, then archvow where pip and pipx put it - `~/.local/bin`, `/opt/homebrew/bin`,
+   `/usr/local/bin`, pyenv's shims. An IDE started from the Dock or a desktop menu does not see the shell's
+   PATH: `archvow` alone is often not found there.
 
 `ArchvowProcessCommand.candidates` and `candidates()` make the list; `ArchvowCli.probe` and
 `ArchvowCli.choose` (VS Code: the `choose` method of `ArchvowCli` in `cli.ts`) go through it. When none

@@ -51,13 +51,60 @@ final class ArchvowProcessCommand {
     }
 
     static List<Candidate> candidates(boolean useIde, String idePython, String executable, String python) {
+        return candidates(useIde, idePython, executable, python, List.of());
+    }
+
+    /**
+     * As above, then (0.25.1) {@code found}: the project's .venv, the IDE's other Python interpreters, archvow where
+     * pip and pipx put it ({@link #found}) - an IDE started from the Dock does not see the shell's PATH.
+     */
+    static List<Candidate> candidates(boolean useIde, String idePython, String executable, String python, List<Candidate> found) {
         List<Candidate> out = new ArrayList<>();
         if (useIde && idePython != null && !idePython.isBlank()) out.add(new Candidate("ide", "", idePython.trim()));
         if (python != null && !python.isBlank() && out.stream().noneMatch(c -> c.python().equals(python.trim())))
             out.add(new Candidate("python", "", python.trim()));
         String exe = executable == null || executable.isBlank() ? "archvow" : executable.trim();
+        for (Candidate c : found)
+            if ("venv".equals(c.source()) && out.stream().noneMatch(o -> o.program().equals(c.program()))) out.add(c);
         out.add(new Candidate("executable", exe, ""));
+        for (Candidate c : found)
+            if (!"venv".equals(c.source()) && out.stream().noneMatch(o -> o.program().equals(c.program()))) out.add(c);
         return out;
+    }
+
+    /** Where else archvow may be (0.25.1), only what exists: the Pythons of {@code root}'s .venv or venv, the IDE's
+     *  Python interpreters, and the archvow executable in ~/.local/bin (pip --user, pipx), /opt/homebrew/bin,
+     *  /usr/local/bin and pyenv's shims. */
+    static List<Candidate> found(String root, List<String> idePythons, String home, boolean windows,
+                                 java.util.function.Predicate<String> exists) {
+        List<Candidate> out = new ArrayList<>();
+        if (root != null && !root.isBlank())
+            for (String venv : ArchvowInstall.venvPythons(root, windows)) if (exists.test(venv)) out.add(new Candidate("venv", "", venv));
+        for (String sdk : idePythons) if (sdk != null && !sdk.isBlank()) out.add(new Candidate("sdk", "", sdk.trim()));
+        List<String> places = new ArrayList<>();
+        if (windows) {
+            String appData = System.getenv("APPDATA");
+            if (appData != null) places.add(appData + "\\Python\\Scripts\\archvow.exe");
+            if (home != null && !home.isBlank()) places.add(home + "\\.local\\bin\\archvow.exe");
+        } else {
+            if (home != null && !home.isBlank()) { places.add(home + "/.local/bin/archvow"); places.add(home + "/.pyenv/shims/archvow"); }
+            places.add("/opt/homebrew/bin/archvow");
+            places.add("/usr/local/bin/archvow");
+        }
+        for (String place : places) if (exists.test(place)) out.add(new Candidate("found", place, ""));
+        return out;
+    }
+
+    /**
+     * The folder archvow runs in (0.25.1): the project's, except for {@code init --dir <folder>} when that folder
+     * exists - the command then runs there, and its .venv is looked at, as one would in a terminal.
+     */
+    static String workingFolder(List<String> arguments, String projectRoot, java.util.function.Predicate<String> isDirectory) {
+        if (arguments.isEmpty() || !"init".equals(arguments.get(0))) return projectRoot;
+        int at = arguments.indexOf("--dir");
+        if (at < 0 || at + 1 >= arguments.size()) return projectRoot;
+        String dir = arguments.get(at + 1).trim();
+        return !dir.isEmpty() && isDirectory.test(dir) ? dir : projectRoot;
     }
 
     private static List<String> buildInternal(String executableSetting, String pythonSetting,

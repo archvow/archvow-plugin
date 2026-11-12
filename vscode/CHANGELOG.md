@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.25.2 - 2026-11-12
+
+Built on archvow 2.1.1 (contract 2.1). Fixes from IntelliJ on macOS.
+
+- **archvow is found where it is** (both IDEs): after the IDE's interpreter and the settings, the folder's `.venv`
+  (or `venv`), then archvow where pip and pipx put it (`~/.local/bin`, `/opt/homebrew/bin`, `/usr/local/bin`,
+  pyenv's shims) - an IDE started from the Dock does not see the shell's PATH. IntelliJ also tries the IDE's other
+  Python interpreters, and, when the project has none set but the IDE knows one Python only, uses it (to run and
+  to install archvow). "Not found" lists each place tried.
+- **IntelliJ, `init` with a Folder runs in that folder** when it exists, as in a terminal: its `.venv` counts, and
+  the error no longer names the IDE's project folder.
+- **IntelliJ, the IDE's own file chooser** for Browse… (init, try), Python and Install from: native on macOS and in
+  the IDE's theme. A Swing chooser drew its macOS look over a dark IDE (headers twice, files greyed).
+- **IntelliJ, the Files tree is narrower**: 18 pixels a level, drawn as lines, as VS Code's (a monospaced `│   `
+  took about 32).
+- 0.25.1's fix: the link to the example's spec is opened from a method (`project` was read before it was set).
+- Tests: VS Code `npm test` 165 passed with archvow 2.1.1 live and the .vsix built, 2 skipped; IntelliJ's 64 plain
+  regressions pass (`FindArchvowRegression` new); the panels need `./gradlew check`.
+
 ## 0.25.1 - 2026-11-12
 
 Built on archvow 2.1.1 (contract 2.1, unchanged: `try`'s help as the IDEs show it). Fixes from the first use of

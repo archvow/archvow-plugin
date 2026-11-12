@@ -65,13 +65,20 @@ changent pas : une seule sonde par session.
 1. **L'interpréteur Python de l'IDE pour le projet** : `<python> -m archvow`.
    - IntelliJ / PyCharm : le SDK Python du projet, sinon celui d'un module (`ArchvowInterpreter.projectPython`,
      par `ProjectRootManager` et `ModuleRootManager`, sans dépendre du plugin Python : le type de SDK
-     est reconnu à son nom).
+     est reconnu à son nom) ; sans aucun, le seul interpréteur Python de l'IDE quand il n'en connaît
+     qu'un (0.25.2).
    - VS Code : l'interpréteur de l'extension Python (`ms-python.python`,
      `environments.getActiveEnvironmentPath`), relu quand il change.
    - Réglage *Use the project's Python interpreter first* / `archvow.useProjectInterpreter`, actif
      par défaut.
 2. **Le Python des réglages** (Settings > Tools > Archvow / `archvow.python`) : `<python> -m archvow`.
-3. **L'exécutable des réglages** (`archvow` par défaut, cherché dans le PATH de l'IDE).
+3. **L'environnement virtuel du dossier** (0.25.2) : `.venv` ou `venv` du projet - pour `init --dir` dans
+   IntelliJ, de ce dossier, où la commande tourne alors.
+4. **L'exécutable des réglages** (`archvow` par défaut, cherché dans le PATH de l'IDE).
+5. **Ce qui existe d'autre** (0.25.2, `ArchvowProcessCommand.found`, `foundCandidates()`) : les autres
+   interpréteurs Python d'IntelliJ, puis archvow là où pip et pipx l'installent - `~/.local/bin`,
+   `/opt/homebrew/bin`, `/usr/local/bin`, les shims de pyenv. Un IDE lancé depuis le Dock ou un menu ne voit
+   pas le PATH du shell : `archvow` seul y est souvent introuvable.
 
 `ArchvowProcessCommand.candidates` et `candidates()` font la liste ; `ArchvowCli.probe` et
 `ArchvowCli.choose` (VS Code : la méthode `choose` d'`ArchvowCli` dans `cli.ts`) la parcourent. Quand

@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { ArchvowCli, candidates, commandLine, display, errorOf, failure, linuxPath, splitLog, wslArgument, wslParse, wslenv } from '../cli';
+import { ArchvowCli, candidates, commandLine, foundCandidates, display, errorOf, failure, linuxPath, splitLog, wslArgument, wslParse, wslenv } from '../cli';
 
 function fakeArchvow(): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-fake-'));
@@ -96,6 +96,14 @@ test("the search order: VS Code's interpreter, archvow.python, archvow.executabl
   assert.deepEqual(candidates({ executable: '', python: '/p2', timeoutSeconds: 1, interpreter: '/p1' }).map((c) => c.source), ['ide', 'python', 'executable']);
   assert.deepEqual(candidates({ executable: '', python: '/p2', timeoutSeconds: 1, interpreter: '/p1', useProjectInterpreter: false }).map((c) => c.source), ['python', 'executable']);
   assert.equal(candidates({ executable: '', python: '', timeoutSeconds: 1 })[0].executable, 'archvow');
+  // 0.25.2: the folder's .venv, then archvow where pip and pipx put it - only what exists (as IntelliJ's FindArchvowRegression)
+  const there = new Set(['/work/p/.venv/bin/python', '/Users/me/.local/bin/archvow', '/opt/homebrew/bin/archvow']);
+  const found = foundCandidates('/work/p', '/Users/me', false, (p) => there.has(p));
+  assert.deepEqual(found.map((c) => c.source), ['venv', 'found', 'found']);
+  assert.deepEqual(candidates({ executable: '', python: '/p2', timeoutSeconds: 1, interpreter: '/p1' }, found).map((c) => c.source),
+    ['ide', 'python', 'venv', 'executable', 'found', 'found']);
+  assert.deepEqual(foundCandidates('C:\\work\\p', 'C:\\Users\\me', true, (p) => p === 'C:\\work\\p\\.venv\\Scripts\\python.exe').map((c) => c.python),
+    ['C:\\work\\p\\.venv\\Scripts\\python.exe']);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-order-'));
   const without = path.join(dir, 'python-without');
   fs.writeFileSync(without, '#!/bin/sh\necho "No module named archvow" >&2\nexit 1\n');

@@ -1,6 +1,7 @@
 // Runs the archvow CLI: no shell, in the project folder, one command at a time (the next one waits),
 // stdout and stderr apart, stopped after the time-out. The extension never writes a vow itself.
 import { spawn } from 'node:child_process';
+import * as fs from 'node:fs';
 import * as os from 'node:os';
 
 export interface CliSettings {
@@ -71,16 +72,38 @@ export function wslenv(previous: string | undefined): string {
   return names.join(':');
 }
 
-/** Where archvow is looked for, in order: VS Code's interpreter, archvow.python, archvow.executable. */
-export interface Candidate { source: 'ide' | 'python' | 'executable'; executable: string; python: string }
+/** Where archvow is looked for, in order: VS Code's interpreter, archvow.python, the folder's .venv (0.25.2),
+ *  archvow.executable, then archvow where pip and pipx put it (0.25.2) - as IntelliJ's ArchvowProcessCommand. */
+export interface Candidate { source: 'ide' | 'python' | 'venv' | 'executable' | 'found'; executable: string; python: string }
 
-export function candidates(settings: CliSettings): Candidate[] {
+export function candidates(settings: CliSettings, found: Candidate[] = []): Candidate[] {
   const out: Candidate[] = [];
   const ide = (settings.interpreter || '').trim();
   const python = settings.python.trim();
+  const program = (c: Candidate): string => c.python || c.executable;
   if (settings.useProjectInterpreter !== false && ide) out.push({ source: 'ide', executable: '', python: ide });
   if (python && !out.some((c) => c.python === python)) out.push({ source: 'python', executable: '', python });
+  for (const c of found) if (c.source === 'venv' && !out.some((o) => program(o) === program(c))) out.push(c);
   out.push({ source: 'executable', executable: settings.executable.trim() || 'archvow', python: '' });
+  for (const c of found) if (c.source !== 'venv' && !out.some((o) => program(o) === program(c))) out.push(c);
+  return out;
+}
+
+/** Only what exists: the Pythons of the folder's .venv or venv, and the archvow executable in ~/.local/bin (pip
+ *  --user, pipx), /opt/homebrew/bin, /usr/local/bin and pyenv's shims - an editor started from the Dock or a
+ *  desktop menu may not see the shell's PATH. */
+export function foundCandidates(root: string, home: string, windows: boolean, exists: (p: string) => boolean): Candidate[] {
+  const out: Candidate[] = [];
+  const sep = windows ? '\\' : '/';
+  const base = root.replace(/[\\/]+$/, '');
+  if (base) {
+    const venvs = windows ? ['.venv', 'venv'].map((n) => [base, n, 'Scripts', 'python.exe'].join(sep)) : [];
+    for (const v of [...venvs, ...['.venv', 'venv'].map((n) => [base, n, 'bin', 'python'].join(sep))]) if (exists(v)) out.push({ source: 'venv', executable: '', python: v });
+  }
+  const places = windows
+    ? [process.env.APPDATA ? `${process.env.APPDATA}\\Python\\Scripts\\archvow.exe` : '', home ? `${home}\\.local\\bin\\archvow.exe` : '']
+    : [home ? `${home}/.local/bin/archvow` : '', home ? `${home}/.pyenv/shims/archvow` : '', '/opt/homebrew/bin/archvow', '/usr/local/bin/archvow'];
+  for (const p of places) if (p && exists(p)) out.push({ source: 'found', executable: p, python: '' });
   return out;
 }
 
@@ -218,7 +241,9 @@ export class ArchvowCli {
 
   /** The first candidate that answers `--version` (remembered while the settings stay the same), or null. */
   private async choose(settings: CliSettings): Promise<Candidate | null> {
-    const list = candidates(settings);
+    const list = candidates(settings, this.inProject ? foundCandidates(this.root, os.homedir(), this.windows, (p) => {
+      try { fs.accessSync(p, fs.constants.X_OK); return true; } catch { return false; }
+    }) : []);
     const signature = JSON.stringify(list);
     if (this.chosen?.signature === signature) return this.chosen.candidate;
     const lines: string[] = [];
@@ -233,7 +258,8 @@ export class ArchvowCli {
       }
       const said = probe.startError ?? (probe.timedOut ? `no answer within ${wait} s`
         : `exit ${probe.exitCode}${(probe.stderr || probe.stdout).trim() ? ': ' + (probe.stderr || probe.stdout).trim().split('\n').pop() : ''}`);
-      const where = c.source === 'ide' ? "VS Code's Python interpreter" : c.source === 'python' ? 'archvow.python' : 'archvow.executable';
+      const where = { ide: "VS Code's Python interpreter", python: 'archvow.python', venv: "the folder's virtual environment",
+        executable: 'archvow.executable', found: 'archvow where pip or pipx install it' }[c.source];
       lines.push(`- ${where} (${c.python || c.executable}): ${said}`);
     }
     this.notFound = `archvow not found. Tried, in order:\n${lines.join('\n')}\n`

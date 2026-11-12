@@ -127,20 +127,14 @@ public final class ArchvowSettingsConfigurable implements Configurable {
     }
 
     private void choosePython() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if (!python.getText().isBlank()) chooser.setSelectedFile(new File(python.getText().trim()));
-        if (chooser.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
-            python.setText(chooser.getSelectedFile().getAbsolutePath());
-        }
+        String chosen = ArchvowChooser.choose(project, ArchvowChooser.Kind.FILE, "Python", python.getText());
+        if (chosen != null) python.setText(chosen);
     }
 
     private void chooseWheels() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        if (chooser.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
-            installFrom.setText(chooser.getSelectedFile().getAbsolutePath());
-        }
+        String chosen = ArchvowChooser.choose(project, ArchvowChooser.Kind.FILE_OR_FOLDER, "Install archvow from / Installer archvow depuis",
+            installFrom.getText());
+        if (chosen != null) installFrom.setText(chosen);
     }
 
     private void explainPythonField() {
@@ -167,7 +161,9 @@ public final class ArchvowSettingsConfigurable implements Configurable {
                     if (root == null || !new File(root).isDirectory())
                         return "IntelliJ project folder not found / Dossier projet introuvable: " + root;
                     var candidates = ArchvowProcessCommand.candidates(useIde,
-                        useIde ? ArchvowInterpreter.projectPython(project) : "", configuredExecutable, configuredPython);
+                        useIde ? ArchvowInterpreter.projectPython(project) : "", configuredExecutable, configuredPython,
+                        ArchvowProcessCommand.found(root, useIde ? ArchvowInterpreter.idePythons() : List.of(),
+                            System.getProperty("user.home", ""), ArchvowWsl.windows(), path -> new File(path).canExecute()));
                     ArchvowCli.Probe probe = ArchvowCli.probe(candidates, root, ArchvowI18n.isFrench(project));
                     if (probe.chosen() == null) return probe.report();
                     List<String> argv = ArchvowProcessCommand.build(probe.chosen().executable(), probe.chosen().python(),

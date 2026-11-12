@@ -3377,16 +3377,10 @@ final class ArchvowPanel extends JPanel {
             if (under.getComponentCount() > 0) cell.add(under, BorderLayout.SOUTH);
             if (("init".equals(name) || "try".equals(name)) && "dir".equals(param.name) && control instanceof JTextField pathField) {
                 JButton browse = button(ArchvowI18n.text(project, "Browse…", "Parcourir…"), () -> {
-                    JFileChooser chooser = new JFileChooser();
-                    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                    chooser.setDialogTitle(ArchvowI18n.text(project,
-                        "Choose destination folder", "Choisir le dossier de destination"));
-                    String existing = pathField.getText().trim();
-                    File home = new File(existing.isBlank() ? System.getProperty("user.home") : existing);
-                    if (home.isDirectory()) chooser.setCurrentDirectory(home);
-                    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                        pathField.setText(chooser.getSelectedFile().getAbsolutePath());
-                    }
+                    // the IDE's chooser (0.25.1): native and in the IDE's theme, never Swing's over a dark IDE
+                    String chosen = ArchvowChooser.choose(project, ArchvowChooser.Kind.FOLDER, ArchvowI18n.text(project,
+                        "Choose destination folder", "Choisir le dossier de destination"), pathField.getText());
+                    if (chosen != null) pathField.setText(chosen);
                 });
                 JPanel pathPicker = new JPanel(new BorderLayout(5, 0));
                 pathPicker.add(control, BorderLayout.CENTER);

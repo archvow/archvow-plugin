@@ -33,10 +33,28 @@ final class ArchvowInterpreter {
                     Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
                     if (python(moduleSdk)) return home(moduleSdk);
                 }
-                return "";
+                // 0.25.1: no SDK on the project (a folder just opened), but the IDE knows one Python only: that one
+                java.util.List<String> known = new java.util.ArrayList<>();
+                for (Sdk any : com.intellij.openapi.projectRoots.ProjectJdkTable.getInstance().getAllJdks())
+                    if (python(any)) known.add(home(any));
+                return known.size() == 1 ? known.get(0) : "";
             });
         } catch (Throwable unavailable) {
             return "";
+        }
+    }
+
+    /** Every Python interpreter the IDE knows (Settings > Python Interpreter's list), their homes. Never throws. */
+    static java.util.List<String> idePythons() {
+        try {
+            return ApplicationManager.getApplication().runReadAction((com.intellij.openapi.util.Computable<java.util.List<String>>) () -> {
+                java.util.List<String> out = new java.util.ArrayList<>();
+                for (Sdk sdk : com.intellij.openapi.projectRoots.ProjectJdkTable.getInstance().getAllJdks())
+                    if (python(sdk)) out.add(home(sdk));
+                return out;
+            });
+        } catch (Throwable unavailable) {
+            return java.util.List.of();
         }
     }
 
