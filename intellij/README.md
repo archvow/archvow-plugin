@@ -10,7 +10,7 @@ later. It has two parts:
   `.archvow/features/<feature>/<feature>.vow`, `.archvow/features/<feature>/components/<component>.vow` and
   each feature's `proposals.vow`.
 
-It replaces the two former plugins, `archvow-intellij` (the workspace, id `org.archvow.intellij`) and
+It replaces the two former plugins, `archvow-intellij` (the workspace, id `org.archvow`) and
 `vow-plugin-intellij` (the language, id `com.archvow.intellij`). The id is the workspace's, so an installed
 workspace updates in place. **Uninstall the former vow plugin** (Settings > Plugins > archvow, the one
 with version 0.4.x) before installing this one: both declare the `.vow` file type.

@@ -49,7 +49,7 @@ CI signing/publishing secrets. No extra publisher account is required.
    `vscode/package-lock.json` (`@vscode/vsce` 4.1.0, the first release with `--oidc`; it needs Node 22) with
    `npx --no-install vsce ...`: nothing is downloaded at publish time.
 2. [Upload the first IntelliJ plugin version manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html)
-   to the JetBrains Marketplace under the existing plugin ID `org.archvow.intellij`. Automatic
+   to the JetBrains Marketplace under the existing plugin ID `org.archvow`. Automatic
    `publishPlugin` updates only work **after** that first manual upload. If 0.19.0 was never
    published, manually upload it first, or coordinate the initial version with the automated
    version used by the workflow.

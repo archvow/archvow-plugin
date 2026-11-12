@@ -143,7 +143,7 @@ test('plugin.xml: every class it names is in the source, every file it names is 
   const resources = [...xml.matchAll(/(?:icon|file)="\/?([^"]+\.(?:svg|xml|png))"/g)].map((m) => m[1]);
   for (const file of resources) assert.ok(exists('intellij', 'src', 'main', 'resources', file), file);
   for (const icon of ['pluginIcon.svg', 'pluginIcon_dark.svg']) assert.ok(exists('intellij', 'src', 'main', 'resources', 'META-INF', icon));
-  assert.match(xml, /<id>org\.archvow\.intellij<\/id>/);
+  assert.match(xml, /<id>org\.archvow<\/id>/);
   assert.match(GRADLE.sinceBuild ?? '', /^\d{3}$/);
 });
 
