@@ -3,7 +3,8 @@
 #   ./build.sh            check + build IntelliJ and VS Code (what CI runs)
 #   ./build.sh intellij   IntelliJ only
 #   ./build.sh vscode     VS Code only
-#   ./build.sh sign       sign the IntelliJ plugin and verify the signature - local only, asks the passphrase.
+#   ./build.sh sign       sign the IntelliJ plugin, verify the signature, copy the -signed.zip to dist/ -
+#                         local only, asks the passphrase.
 #                         Key files: JETBRAINS_PRIVATE_KEY_FILE (default jetbrains_private_key_secret.pem) and
 #                         JETBRAINS_CERTIFICATE_CHAIN_FILE (default jetbrains_certificate_chain_secret.crt).
 set -euo pipefail
@@ -18,6 +19,7 @@ mkdir -p dist
 if [[ "$what" == all || "$what" == intellij ]]; then
   (cd intellij && ./gradlew --quiet check buildPlugin)
   # The unsigned plugin only: a signed zip left by `./build.sh sign` must not end up in dist/.
+  find dist -maxdepth 1 -name 'archvow-intellij-*.zip' ! -name '*-signed.zip' -delete
   find intellij/build/distributions -name 'archvow-intellij-*.zip' ! -name '*-signed.zip' -exec cp {} dist/ \;
 fi
 
@@ -70,8 +72,9 @@ if [[ "$what" == sign ]]; then
     ./gradlew --no-daemon --console=plain verifyPluginSignature)
   unset PRIVATE_KEY CERTIFICATE_CHAIN PRIVATE_KEY_PASSWORD
 
-  ls -l intellij/build/distributions/*-signed.zip
-  exit 0
+  # Replace any signed zip of an earlier version, then copy this one.
+  rm -f dist/archvow-intellij-*-signed.zip
+  cp intellij/build/distributions/archvow-intellij-*-signed.zip dist/
 fi
 
 ls -l dist
