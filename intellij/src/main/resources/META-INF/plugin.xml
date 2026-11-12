@@ -3,7 +3,7 @@
        checks; every change goes through the archvow CLI) and the .vow language (highlighting by depth,
        errors, folding, structure, links). The id is the workspace's former id, so an installed
        workspace updates in place; the former vow plugin (com.archvow.intellij) must be uninstalled. -->
-  <id>org.archvow.intellij</id>
+  <id>org.archvow</id>
   <name>archvow</name>
   <vendor>archvow</vendor>
   <description><![CDATA[
