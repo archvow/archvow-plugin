@@ -24,6 +24,7 @@ if [[ "$what" == all || "$what" == intellij ]]; then
 fi
 
 if [[ "$what" == all || "$what" == vscode ]]; then
+  rm -f dist/archvow-*.vsix
   (cd vscode && npm ci --no-audit --no-fund && npm test && npm run package)
 fi
 
