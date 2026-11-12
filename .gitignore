@@ -12,3 +12,4 @@ node_modules/
 vscode/out/
 *.vsix
 __pycache__/
+jetbrains*
