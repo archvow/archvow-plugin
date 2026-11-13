@@ -7,41 +7,91 @@
   <name>archvow</name>
   <vendor>archvow</vendor>
   <description><![CDATA[
-    <p><b>Spec-driven development (SDD) with AI: architecture specifications, decisions and checks in your IDE.</b></p>
-    <p>ArchVow connects IntelliJ IDEA and other JetBrains IDEs to the <b>ArchVow CLI</b>.
-       Keep component specifications, architecture decisions, open questions and safety rules
-       visible while developing with AI. Prepare structured prompts for your AI coding assistant,
-       review suggested items and check changes against the architecture.</p>
+    <p><b>Spec-driven development (SDD) for AI-assisted coding: architecture specifications, decisions and checks in your IDE.</b></p>
+    <p>An AI assistant writes code fast - and decides things nobody asked it to decide. <b>ArchVow</b> keeps your
+       project's architecture as specifications: what each component must do, the decisions a person makes, what must
+       never happen and the invariants that prevent it. It checks the code against them, locally and in CI, before
+       any review.</p>
+    <p>This plugin brings the <b>ArchVow CLI</b> into IntelliJ IDEA, PyCharm and the other JetBrains IDEs: a visual
+       workspace for your features, components, open decisions and checks, every ArchVow command as a guided form,
+       and structured prompts for your AI assistant. The CLI stays the single source of truth: the plugin reads what
+       it says and runs its commands - only after you confirm them.</p>
 
-    <h3>Explore your architecture</h3>
+    <h3>Highlights</h3>
     <ul>
-      <li><b>Overview:</b> View architecture status, pending and resolved items, and quick actions
-          such as Check, Next, Doctor and Audit.</li>
-      <li><b>Components:</b> Explore component specs, decisions, questions, safety, assumptions,
-          rules and tasks. Navigate to related components, briefs and code.</li>
-      <li><b>Commands:</b> Run ArchVow CLI commands through guided forms. Review the exact command
-          and its result inside your IDE.</li>
-      <li><b>AI skills:</b> Prepare prompts to draft from briefs, find missing questions or risks,
-          implement components and review changes. Copy them to your preferred AI assistant,
-          then review proposed items before keeping them.</li>
+      <li><b>See where the project stands:</b> the Overview shows what is done, what is open and what Check found,
+          with the first finding in plain words and a button to its file.</li>
+      <li><b>Start in minutes:</b> try ArchVow on a finished example first, then initialize your repository (or adopt
+          the code already there) with a guided wizard that shows every file it will write.</li>
+      <li><b>Decide what matters:</b> decisions, open questions, hazards and invariants per component, with the
+          template's suggested answers ready to confirm.</li>
+      <li><b>Work with any AI assistant:</b> copy a structured request (implement, review, find risks...) for the
+          assistant your project approved; what the AI proposes waits for a person to keep it.</li>
+      <li><b>Edit <code>.vow</code> files</b> with highlighting, errors as you type, folding, Structure view and
+          navigation.</li>
     </ul>
-    <p>Components, commands and results open in one reusable editor tab.</p>
 
-    <h3>AI-assisted development guided by specifications</h3>
-    <p>Keep architectural decisions, unanswered questions and safety rules alongside the code
-       an AI assistant helps you write. ArchVow prepares AI instructions; it does not run an
-       AI model itself.</p>
+    <h3>Get started</h3>
+    <ol>
+      <li><b>Install the ArchVow CLI 2.1.1</b> in your project's Python 3.11+ environment, from your package index or a
+          wheel: <code>python -m pip install archvow==2.1.1</code>. The plugin can show and run that command for you -
+          only after <b>Confirm and run</b>.</li>
+      <li><b>Not sure yet?</b> Open the <b>Archvow</b> tool window and use <b>Try it</b>: ArchVow copies a finished
+          example to a scratch folder, makes a change an AI often makes - a module nobody decided on, a shortcut
+          across layers - and shows what Check catches. Nothing in your project changes.</li>
+      <li><b>Initialize ArchVow</b> in your repository (also from the Welcome screen): choose a template (Python app,
+          FastAPI service, PySpark pipeline, LangGraph agent...), answer a few questions, review the files it will
+          write, then confirm. Code already there? Choose <b>Adopt</b>: your modules become components where they
+          are.</li>
+      <li><b>Follow the First steps</b> on the Overview: answer the foundations, add a feature, add its first
+          component and answer its decisions, build it and run Check, commit. The card goes once the five are
+          done.</li>
+    </ol>
 
-    <h3>Edit .vow files</h3>
-    <p>Syntax highlighting, inline errors and warnings, folding, Structure view, comments and
-       navigation to referenced components, hazards and Python modules. Vow code blocks in Markdown
-       are supported too.</p>
+    <h3>The workspace</h3>
+    <p>The <b>Archvow</b> tool window (left; <i>Tools &gt; Show Archvow</i>) chooses; what you choose opens in
+       <b>one reusable editor tab</b>.</p>
+    <ul>
+      <li><b>Overview:</b> First steps for a new project; <b>Next</b> (what to build now, with the suggested answers)
+          and <b>Check</b>; under <b>More</b>, Doctor, Audit, Briefs, Budget / Next, Diff and AI review; the
+          <b>Architecture</b> card (items done, open and done items), the <b>Checks</b> card (errors, warnings and the
+          first finding: its rule in words, its file and line) and the project's <b>Packs</b>.</li>
+      <li><b>Features:</b> what the product does, feature by feature or by layer. A feature's page: how far it is, the
+          features it uses and that use it, its components by layer and what is open, with Add component, Open
+          feature doc, Copy AI prompt, Next steps and Rename.</li>
+      <li><b>A component:</b> its decisions, questions, safety (hazards and invariants), assumptions, rules, columns,
+          tasks and spec - the items as cards, the answer panel beside them, opened on the first open item.</li>
+      <li><b>Commands:</b> every ArchVow command as a guided form built from the CLI's own parser, the exact command
+          line, and its result laid out. Commands that change the project ask you to <b>Confirm and run</b>.</li>
+      <li><b>AI skills:</b> Draft from a brief, Find missing questions, Find risks, Implement, Review changes. A
+          launch form says what the AI reads, may add and what you still decide. What the AI adds is marked
+          <b>To review</b> until a person keeps it or removes it.</li>
+      <li><b>Show Archvow for This File</b> (right-click in an editor or on its tab): the component that owns the
+          file, with what it uses and what uses it.</li>
+    </ul>
 
-    <h3>Stay in control</h3>
-    <p>The ArchVow CLI is the source of truth. Changes run through CLI commands only after you review
-       the command and select <b>Confirm and run</b>. AI-suggested items remain available for review.</p>
-    <p><b>Get started:</b> Install the ArchVow CLI, open a project, then open the ArchVow tool window.
-       You can also initialize a new ArchVow project from the IDE.</p>
+    <h3>The .vow language</h3>
+    <p>Highlighting with one colour per depth (<i>Settings &gt; Editor &gt; Color Scheme &gt; Vow</i>), errors and
+       warnings as you read, folding, the Structure view, comments, and Ctrl/Cmd+click to the components, hazards
+       and Python modules a vow refers to. <code>```vow</code> blocks in Markdown are highlighted too.</p>
+
+    <h3>Changes stay under your control</h3>
+    <ul>
+      <li>The plugin <b>never edits architecture files itself</b>: every change is an ArchVow CLI command, shown in
+          full, that runs after <b>Confirm and run</b>.</li>
+      <li>It <b>prepares AI instructions; it runs no AI model</b> and sends nothing anywhere.</li>
+      <li>Nothing is downloaded or installed at startup.</li>
+    </ul>
+
+    <h3>How the plugin finds ArchVow</h3>
+    <p>In this order, the first that answers <code>--version</code> runs the commands: the project's Python
+       interpreter, the Python of <i>Settings &gt; Tools &gt; Archvow</i>, the folder's <code>.venv</code>, the archvow
+       executable, the IDE's other Python interpreters, then archvow where pip and pipx install it
+       (<code>~/.local/bin</code>, <code>/opt/homebrew/bin</code>, <code>/usr/local/bin</code>). On Windows, a Python in
+       WSL works. <b>Test</b> in the settings shows which one answered, or what each said.</p>
+
+    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; the ArchVow CLI 2.1.1 (contract 2.1) in Python 3.11+.
+       <b>Languages:</b> English (default) and French. The same workspace exists for VS Code.</p>
   ]]></description>
 
   <depends>com.intellij.modules.platform</depends>
