@@ -24,10 +24,28 @@ class ReleaseVersionTests(unittest.TestCase):
         git('config', 'user.email', 'ci@example.invalid')
         git('config', 'user.name', 'ArchVow CI')
         (self.root / 'anchor').write_text('archvow 0.19.0\n')
-        git('add', 'anchor')
+        self.choose('0.19.0')
+        git('add', 'anchor', 'vscode/package.json')
         git('commit', '-qm', 'version anchor')
         release.BASE_COMMIT = git('rev-parse', 'HEAD')
         git('commit', '--allow-empty', '-qm', 'release 0.19.1')
+
+    def choose(self, version):
+        """The version people set: vscode/package.json."""
+        (self.root / 'vscode').mkdir(exist_ok=True)
+        (self.root / 'vscode/package.json').write_text('{\n  "version": "%s",\n  "name": "archvow"\n}\n' % version)
+
+    def test_major_minor_is_the_one_people_chose(self):
+        # 0.25.2 set by hand: CI publishes 0.25.x above it, never 0.19.x below it
+        for _ in range(18):
+            self.git('commit', '--allow-empty', '-qm', 'work')
+        self.choose('0.25.2')
+        self.git('commit', '-qam', '0.25.2')
+        self.assertEqual(release.release_version('stable', self.root), '0.25.39')
+        self.assertEqual(release.release_version('beta', self.root), '0.25.40')
+        self.choose('0.25.90')  # a patch above what the history gives: refused, never published backwards
+        with self.assertRaises(SystemExit):
+            release.release_version('stable', self.root)
 
     def test_distinct_versions(self):
         self.assertEqual(release.release_version('stable', self.root), '0.19.1')
@@ -51,7 +69,7 @@ class ReleaseVersionTests(unittest.TestCase):
 
     def test_apply_versions_for_beta_without_suffix(self):
         for d in ['vscode', 'intellij', 'contract/cli']:
-            (self.root / d).mkdir(parents=True)
+            (self.root / d).mkdir(parents=True, exist_ok=True)
         (self.root / 'vscode/package-lock.json').write_text(
             '{\n  "version": "0.19.1",\n  "packages": {\n    "": {\n      "version": "0.19.1",\n      "dummy": true\n    }\n  }\n}\n')
         (self.root / 'vscode/package.json').write_text(

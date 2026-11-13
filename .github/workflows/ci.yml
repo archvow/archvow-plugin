@@ -141,7 +141,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # release number depends on full ancestry from 0.19.0
+          fetch-depth: 0  # the patch depends on full ancestry from 0.19.0; MAJOR.MINOR comes from vscode/package.json
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - uses: actions/setup-node@v4
