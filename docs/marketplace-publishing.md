@@ -76,17 +76,26 @@ CI signing/publishing secrets. No extra publisher account is required.
 
 ## Versions
 
-The source release in this bundle is **0.19.2**. Both marketplaces require a unique numeric
-`major.minor.patch` version for each upload. VS Code does **not** support a `-beta` prerelease
-suffix for Marketplace extension versions. The release script computes versions from Git
-ancestry, reserving **odd patch versions for stable** and **even patch versions for beta**:
+Both marketplaces require a unique numeric `major.minor.patch` version for each upload, and an
+update only reaches the people who installed the extension when it is **higher** than theirs. VS Code
+does **not** support a `-beta` prerelease suffix for Marketplace extension versions.
 
-| Commits after ArchVow 0.19.0 | Stable (`main`) | Beta (`beta`) |
-|---:|---:|---:|
-| 1 | `0.19.1` (existing release) | `0.19.2` |
-| 2 | `0.19.3` | `0.19.4` |
-| 3 | `0.19.5` | `0.19.6` |
-| 4 | `0.19.7` | `0.19.8` |
+**MAJOR.MINOR is the one people choose**, in `vscode/package.json` (with `intellij/gradle.properties`, the
+README and the changelogs): a release that changes what the plugins do raises it (0.24 -> 0.25). **The patch
+is computed** from Git ancestry, odd for stable and even for beta:
+
+| Commits after the anchor (ArchVow 0.19.0) | `vscode/package.json` | Stable (`main`) | Beta (`beta`) |
+|---:|---:|---:|---:|
+| 1 | 0.19.0 | `0.19.1` (existing release) | `0.19.2` |
+| 2 | 0.19.0 | `0.19.3` | `0.19.4` |
+| 19 | 0.25.2 | `0.25.37` | `0.25.38` |
+| 20 | 0.25.2 | `0.25.39` | `0.25.40` |
+
+The script refuses (and nothing is published) when the computed version is not above the one in
+`vscode/package.json`: until 0.25.2 MAJOR.MINOR was fixed at 0.19, and CI published **0.19.37** after a
+0.25.2 uploaded by hand - a version below it, which no 0.25.2 user is offered as an update. Keep the
+patch of `vscode/package.json` small (the commit count from the anchor is always higher after a few
+releases); upload nothing by hand once CI publishes.
 
 The count is **all commits reachable from the current release commit since the original
 0.19.0 anchor** (`f87b75a522f019d58db4bed21270b88b079184f5`), not just first-parent

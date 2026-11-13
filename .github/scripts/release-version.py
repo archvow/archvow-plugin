@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Prepare matching ArchVow IDE package versions in an ephemeral CI checkout.
 
-The version is deterministic for the history reachable from a stable or beta
-commit since ArchVow 0.19.0. Distinct odd (stable) and even (beta) patch
-versions prevent channel collisions. No tags or GitHub write credentials are needed.
+MAJOR.MINOR is the one people chose: `vscode/package.json` at the commit released (0.25.2 -> 0.25). The patch is
+deterministic for the history reachable from that commit since the anchor (ArchVow 0.19.0): odd for stable, even
+for beta, so the channels never collide and a stable merge of beta history is higher than that beta. A computed
+version never goes below the one in package.json: CI refuses rather than publish backwards (it published 0.19.37
+after a 0.25.2 when MAJOR.MINOR was fixed at 0.19). No tags or GitHub write credentials are needed.
 """
 from __future__ import annotations
 
@@ -16,7 +18,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE_COMMIT = 'f87b75a522f019d58db4bed21270b88b079184f5'
-BASE_MAJOR_MINOR = '0.19'
+
+
+def chosen_version(root: Path = ROOT) -> str:
+    """The version people set in vscode/package.json (gradle.properties and the README follow it)."""
+    return json.loads((root / 'vscode/package.json').read_text(encoding='utf-8'))['version']
+
+
+def numbers(version: str) -> tuple[int, ...]:
+    return tuple(int(n) for n in version.split('.'))
 
 
 def release_version(channel: str = 'stable', root: Path = ROOT) -> str:
@@ -40,7 +50,14 @@ def release_version(channel: str = 'stable', root: Path = ROOT) -> str:
     # Existing published 0.19.1 on main remains unchanged. For any given commit
     # count, stable and beta must not reuse the same Marketplace version.
     patch = 2 * count - (1 if channel == 'stable' else 0)
-    return f'{BASE_MAJOR_MINOR}.{patch}'
+    chosen = chosen_version(root)
+    major, minor = chosen.split('.')[:2]
+    version = f'{major}.{minor}.{patch}'
+    if numbers(version) <= numbers(chosen):
+        raise SystemExit(f'The computed version {version} is not above {chosen} (vscode/package.json): '
+                         'the Marketplaces would get a version below the one people chose. Lower the patch of '
+                         'vscode/package.json, or move the anchor (docs/marketplace-publishing.md, Versions).')
+    return version
 
 
 def rewrite_once(path: Path, pattern: str, replacement: str) -> None:
