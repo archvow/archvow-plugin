@@ -79,7 +79,8 @@
     <ul>
       <li>The plugin <b>never edits architecture files itself</b>: every change is an ArchVow CLI command, shown in
           full, that runs after <b>Confirm and run</b>.</li>
-      <li>It <b>prepares AI instructions; it runs no AI model</b> and sends nothing anywhere.</li>
+      <li>It <b>prepares AI instructions; it runs no AI model</b> and sends nothing anywhere. Only an error report
+          you choose to send from the IDE goes to JetBrains Marketplace.</li>
       <li>Nothing is downloaded or installed at startup.</li>
     </ul>
 
@@ -126,6 +127,9 @@
     <fileIconProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>
     <projectConfigurable instance="org.archvow.idea.ArchvowSettingsConfigurable" id="org.archvow.settings"
                          parentId="tools" displayName="Archvow"/>
+    <!-- exceptions and freezes the IDE attributes to the plugin: with the user's consent, sent to the plugin's
+         Exceptions and Freezes tabs on JetBrains Marketplace (since 2023.3) -->
+    <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
   </extensions>
 
   <actions>

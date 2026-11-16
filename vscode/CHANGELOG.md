@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.25.3 - 2026-11-16
+
+Built on archvow 2.1.1 (contract 2.1). IntelliJ only (see intellij/CHANGELOG.md): the JetBrains Marketplace
+verifier's warnings fixed and error reports to JetBrains Marketplace; nothing changes in VS Code.
+
 ## 0.25.2 - 2026-11-12
 
 Built on archvow 2.1.1 (contract 2.1). Fixes from IntelliJ on macOS.

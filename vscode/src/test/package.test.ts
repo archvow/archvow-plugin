@@ -91,7 +91,13 @@ test('intellij zip: the plugin jar, its plugin.xml with this version, and the cl
   const since = /^sinceBuild=(\d+)/m.exec(fs.readFileSync(path.join(ROOT, 'intellij', 'gradle.properties'), 'utf8'))?.[1];
   assert.match(xml, new RegExp(`<idea-version since-build="${since}"`));
   const classes = [...xml.matchAll(/(?:implementationClass|implementation|class|factoryClass|instance)="([\w.]+)"/g)].map((m) => m[1]);
-  for (const name of classes) assert.ok(jar.has(`${name.replace(/\./g, '/')}.class`), name);
+  // The plugin's own classes are in its jar; the platform's (the Marketplace error report submitter) are in the IDE.
+  const PLATFORM = new Set(['com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter']);
+  for (const name of classes) {
+    if (PLATFORM.has(name)) continue;
+    assert.ok(name.startsWith('org.archvow.'), `${name}: not the plugin's class (add it to PLATFORM if it is the IDE's)`);
+    assert.ok(jar.has(`${name.replace(/\./g, '/')}.class`), name);
+  }
   for (const icon of ['META-INF/pluginIcon.svg', 'META-INF/pluginIcon_dark.svg']) assert.ok(jar.has(icon), icon);
 });
 
