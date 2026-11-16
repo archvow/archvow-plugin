@@ -42,7 +42,7 @@ English by default, French as a setting. Every change runs an archvow command, a
 ## Build and test
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.25.2.zip, dist/archvow-0.25.2.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.25.3.zip, dist/archvow-0.25.3.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -113,7 +113,7 @@ both together.
 
 ## Versions
 
-Both plugins have the same version (0.25.2), their own, not archvow's. They read `.vow` format 1, speak
+Both plugins have the same version (0.25.3), their own, not archvow's. They read `.vow` format 1, speak
 archvow's contract 2.1 (`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI
 2.1.1 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
 installed archvow does not speak that contract (archvow keeps no backward compatibility). What changed:

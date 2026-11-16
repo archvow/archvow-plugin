@@ -139,7 +139,15 @@ test('plugin.xml: every class it names is in the source, every file it names is 
   const java = path.join(ROOT, 'intellij', 'src', 'main', 'java');
   const classes = [...xml.matchAll(/(?:implementationClass|implementation|class|factoryClass|instance)="([\w.]+)"/g)].map((m) => m[1]);
   assert.ok(classes.length >= 15, `only ${classes.length} classes found`);
-  for (const name of classes) assert.ok(fs.existsSync(path.join(java, ...name.split('.')) + '.java'), name);
+  // The plugin's own classes are in its source; the platform's (the Marketplace error report submitter) are the IDE's.
+  const PLATFORM = new Set(['com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter']);
+  for (const name of classes) {
+    if (PLATFORM.has(name)) continue;
+    assert.ok(name.startsWith('org.archvow.'), `${name}: not the plugin's class (add it to PLATFORM if it is the IDE's)`);
+    assert.ok(fs.existsSync(path.join(java, ...name.split('.')) + '.java'), name);
+  }
+  // exceptions and freezes in the plugin reach its JetBrains Marketplace page (the user consents to each report)
+  assert.match(xml, /<errorHandler implementation="com\.intellij\.diagnostic\.JetBrainsMarketplaceErrorReportSubmitter"\/>/);
   const resources = [...xml.matchAll(/(?:icon|file)="\/?([^"]+\.(?:svg|xml|png))"/g)].map((m) => m[1]);
   for (const file of resources) assert.ok(exists('intellij', 'src', 'main', 'resources', file), file);
   for (const icon of ['pluginIcon.svg', 'pluginIcon_dark.svg']) assert.ok(exists('intellij', 'src', 'main', 'resources', 'META-INF', icon));

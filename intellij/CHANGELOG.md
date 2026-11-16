@@ -2,6 +2,19 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.25.3 - 2026-11-16
+
+Built on archvow 2.1.1 (contract 2.1). Fixes from the JetBrains Marketplace compatibility verification (IntelliJ
+IDEA 2024.3 to 2026.3).
+
+- **No deprecated API for the keyword colours**: the four depth keys (`VOW_KEY_0`..`3`) are created without default
+  attributes (`createTextAttributesKey(String, TextAttributes)` is deprecated); their colours were already in the
+  bundled Default and Darcula schemes, so nothing changes on screen in those schemes and the ones based on them.
+- **No override-only API call**: Initialize Archvow… on the Welcome screen runs IntelliJ's Open action through
+  `ActionManager.tryToExecute` instead of calling its `actionPerformed`.
+- **Error reports**: exceptions and freezes in the plugin can be sent, with the user's consent, to the plugin's
+  page on JetBrains Marketplace (`JetBrainsMarketplaceErrorReportSubmitter`).
+
 ## 0.25.2 - 2026-11-12
 
 Built on archvow 2.1.1 (contract 2.1). Fixes from IntelliJ on macOS.

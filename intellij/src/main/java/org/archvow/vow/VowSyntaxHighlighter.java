@@ -5,12 +5,8 @@ import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.ui.JBColor;
-import java.awt.Color;
-import java.awt.Font;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,11 +25,16 @@ public final class VowSyntaxHighlighter extends SyntaxHighlighterBase {
      * Their colours are the plugin's own in every colour scheme (light or dark), not borrowed from another
      * language element: a scheme colours "instance field" or "label" as it likes (violet in many), which
      * hid the rule. A scheme can still set them: Settings > Editor > Color Scheme > Vow > Keyword.
+     * The keys have no fallback: their colours (light / dark) are in colorSchemes/VowDefault.xml and
+     * VowDarcula.xml, registered as additionalTextAttributes in plugin.xml and inherited by every scheme based
+     * on Default or Darcula. 0: teal bold / yellow bold; 1: burnt orange / soft green; 2: steel blue / blue;
+     * 3+: olive / pink. (Default colours set in code need the deprecated createTextAttributesKey(String,
+     * TextAttributes).)
      */
-    public static final TextAttributesKey KEY_0 = depth("VOW_KEY_0", 0x00627A, 0xFFC66D, true);
-    public static final TextAttributesKey KEY_1 = depth("VOW_KEY_1", 0xB3541E, 0x8FC78A, false);
-    public static final TextAttributesKey KEY_2 = depth("VOW_KEY_2", 0x4A6EA9, 0x56A8F5, false);
-    public static final TextAttributesKey KEY_3 = depth("VOW_KEY_3", 0x6E6E2D, 0xC77DBB, false);
+    public static final TextAttributesKey KEY_0 = createTextAttributesKey("VOW_KEY_0");
+    public static final TextAttributesKey KEY_1 = createTextAttributesKey("VOW_KEY_1");
+    public static final TextAttributesKey KEY_2 = createTextAttributesKey("VOW_KEY_2");
+    public static final TextAttributesKey KEY_3 = createTextAttributesKey("VOW_KEY_3");
     public static final TextAttributesKey STRING =
             createTextAttributesKey("VOW_STRING", DefaultLanguageHighlighterColors.STRING);
     public static final TextAttributesKey NUMBER =
@@ -87,14 +88,6 @@ public final class VowSyntaxHighlighter extends SyntaxHighlighterBase {
         BY_KIND.put(VowTokenKind.COMMENT, COMMENT);
         BY_KIND.put(VowTokenKind.BAD, BAD);
         BY_KIND.forEach((kind, key) -> BY_TYPE.put(VowTokenTypes.of(kind), pack(key)));
-    }
-
-    /** A keyword colour of its own: {@code light} in light themes, {@code dark} in dark ones. */
-    @SuppressWarnings("deprecation")  // the key's own default colour, not a fallback to another key
-    private static TextAttributesKey depth(String name, int light, int dark, boolean bold) {
-        TextAttributes attributes = new TextAttributes(new JBColor(new Color(light), new Color(dark)), null, null, null,
-                bold ? Font.BOLD : Font.PLAIN);
-        return TextAttributesKey.createTextAttributesKey(name, attributes);
     }
 
     @Override
