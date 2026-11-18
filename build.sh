@@ -29,6 +29,7 @@ if [[ "$what" == all || "$what" == vscode ]]; then
 fi
 
 if [[ "$what" == sign ]]; then
+  export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
   key_file="${JETBRAINS_PRIVATE_KEY_FILE:-jetbrains_private_key_secret.pem}"
   chain_file="${JETBRAINS_CERTIFICATE_CHAIN_FILE:-jetbrains_certificate_chain_secret.crt}"
   for f in "$key_file" "$chain_file"; do
