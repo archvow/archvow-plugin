@@ -124,3 +124,15 @@ editor.click('smartRemove', { key: 'd:schema:1', row: '1' });
 assert.equal((editor.app.innerHTML.match(/data-a="smartRemove"/g) || []).length, 1, 'the bin removes its row');
 assert.equal(editor.posted.filter(m => m.type === 'inline').length, 0, 'smart helper must never save automatically');
 console.log('Generic command groups, docs, uses and schema helper: OK');
+
+// archvow 2.5 (0.26.0): a feature an AI agent added waits for a person to accept it
+const page = make('editor');
+page.message({ type: 'state', state: { ...state, features: { refunds: { feature: 'refunds', description: 'Refunds', origin: 'ai',
+  created_by: 'claude-code', components: [], uses: {}, used_by: {} }, orders: { feature: 'orders', description: 'Orders',
+  components: [], uses: {}, used_by: {} } } } });
+page.message({ type: 'feature', feature: 'refunds' });
+assert.match(page.app.innerHTML, /added by claude-code: a person accepts it \(ARCH043 until then\)/);
+assert.match(page.app.innerHTML, /data-command="feature accept"[^>]*data-feature="refunds"|data-feature="refunds"[^>]*data-command="feature accept"/);
+page.message({ type: 'feature', feature: 'orders' });
+assert.doesNotMatch(page.app.innerHTML, /feature accept|ARCH043/, 'a person\'s feature: nothing to accept');
+console.log('A feature an AI agent added: OK');

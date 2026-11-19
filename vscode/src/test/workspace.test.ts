@@ -27,7 +27,7 @@ test('the grammar is archvow 2.6\'s, with every command the workspace offers', (
   assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /2\.6\./);
   for (const name of ['init', 'check', 'next', 'show', 'decision make', 'decision propose', 'decision accept', 'question add',
     'question accept', 'hazard add', 'hazard dismiss', 'hazard edit', 'hazard accept', 'rule accept', 'brief show', 'invariant add', 'invariant edit', 'invariant remove', 'component accept', 'assumption accept', 'rule add', 'column set', 'prompt', 'doctor', 'audit', 'diff', 'review', 'version', 'workspace', 'pack new', 'pack template', 'pack agent', 'pack rule', 'pack add',
-    'pack update', 'pack remove', 'pack check', 'feature add', 'feature rename', 'feature remove', 'component move', 'doc', 'try']) {
+    'pack update', 'pack remove', 'pack check', 'feature add', 'feature accept', 'feature rename', 'feature remove', 'component move', 'doc', 'try']) {
     command(name);
   }
 });
@@ -60,6 +60,8 @@ test('a form becomes the command line archvow expects (the IntelliJ submitForm r
   assert.equal(isMutating(command('doc'), ['doc', 'orders']), false, 'doc writes only the ignored .archvow/doc/');
   assert.equal(isMutating(command('try'), ['try', 'python-app', '--json']), false, 'try writes only a scratch folder (2.1)');
   assert.equal(isMutating(command('feature add'), ['feature', 'add', 'orders', '-d', 'x']), true);
+  const accepted = run('feature accept', { feature: 'refunds' });  // archvow 2.5: a person accepts what an agent added
+  assert.ok(accepted.kind === 'run' && accepted.mutating && accepted.args.join(' ') === 'feature accept refunds --json');
   const moved = run('component move', { component: 'clean_orders', feature: 'refunds' });
   assert.ok(moved.kind === 'run' && moved.mutating && moved.args.join(' ') === 'component move clean_orders refunds --json');
 });

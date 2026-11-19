@@ -192,6 +192,14 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
       const p = param.name;
       let field: Field | undefined;
       if (p === 'component' && name !== 'component add') field = componentField(name);
+      else if (p === 'feature' && name === 'feature accept') {
+        // contract 2.3: only a feature an AI agent added (origin ai) waits for a person to accept it
+        field = { kind: 'select', choices: features.filter((f) => str(f, 'origin') === 'ai')
+          .map((f) => item(str(f, 'name'), str(f, 'description') + tr(fr, ` (added by ${str(f, 'created_by') || 'an AI agent'})`,
+            ` (ajoutée par ${str(f, 'created_by') || 'un agent IA'})`))),
+          empty: tr(fr, 'No feature waits: no AI agent added one, or a person accepted each.',
+            "Aucune fonctionnalité n'attend : aucun agent IA n'en a ajouté, ou une personne a accepté chacune.") };
+      }
       else if (p === 'feature') {
         // contract 2.0: the project's features; shared is never renamed nor removed
         const own = name === 'feature rename' || name === 'feature remove';

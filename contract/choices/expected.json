@@ -18,17 +18,8 @@
     "feature accept": {
      "feature": {
       "kind": "select",
-      "choices": [
-       {
-        "value": "invoices",
-        "label": "invoices — Marks invoices paid, from the command line"
-       },
-       {
-        "value": "shared",
-        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
-       }
-      ],
-      "empty": "No feature yet: add one with feature add."
+      "choices": [],
+      "empty": "No feature waits: no AI agent added one, or a person accepted each."
      }
     },
     "feature rename": {
@@ -2049,17 +2040,8 @@
     "feature accept": {
      "feature": {
       "kind": "select",
-      "choices": [
-       {
-        "value": "invoices",
-        "label": "invoices — Marks invoices paid, from the command line"
-       },
-       {
-        "value": "shared",
-        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
-       }
-      ],
-      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+      "choices": [],
+      "empty": "Aucune fonctionnalité n'attend : aucun agent IA n'en a ajouté, ou une personne a accepté chacune."
      }
     },
     "feature rename": {
@@ -4080,17 +4062,8 @@
     "feature accept": {
      "feature": {
       "kind": "select",
-      "choices": [
-       {
-        "value": "orders",
-        "label": "orders — Orders"
-       },
-       {
-        "value": "shared",
-        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
-       }
-      ],
-      "empty": "No feature yet: add one with feature add."
+      "choices": [],
+      "empty": "No feature waits: no AI agent added one, or a person accepted each."
      }
     },
     "feature rename": {
@@ -7256,17 +7229,8 @@
     "feature accept": {
      "feature": {
       "kind": "select",
-      "choices": [
-       {
-        "value": "orders",
-        "label": "orders — Orders"
-       },
-       {
-        "value": "shared",
-        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
-       }
-      ],
-      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+      "choices": [],
+      "empty": "Aucune fonctionnalité n'attend : aucun agent IA n'en a ajouté, ou une personne a accepté chacune."
      }
     },
     "feature rename": {
@@ -10432,17 +10396,8 @@
     "feature accept": {
      "feature": {
       "kind": "select",
-      "choices": [
-       {
-        "value": "shared",
-        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
-       },
-       {
-        "value": "vat_report",
-        "label": "vat_report — The orders with their VAT, every night"
-       }
-      ],
-      "empty": "No feature yet: add one with feature add."
+      "choices": [],
+      "empty": "No feature waits: no AI agent added one, or a person accepted each."
      }
     },
     "feature rename": {
@@ -13890,17 +13845,8 @@
     "feature accept": {
      "feature": {
       "kind": "select",
-      "choices": [
-       {
-        "value": "shared",
-        "label": "shared — What every feature uses: settings, logging, the app or job that plugs the features in"
-       },
-       {
-        "value": "vat_report",
-        "label": "vat_report — The orders with their VAT, every night"
-       }
-      ],
-      "empty": "Aucune fonctionnalité : en ajouter une avec feature add."
+      "choices": [],
+      "empty": "Aucune fonctionnalité n'attend : aucun agent IA n'en a ajouté, ou une personne a accepté chacune."
      }
     },
     "feature rename": {

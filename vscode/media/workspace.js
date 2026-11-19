@@ -1037,7 +1037,11 @@
       `${featureLink(other)} <span class="muted">(${esc((ps || []).map((x) => `${str(x, 'component')} → ${str(x, 'uses')}`).join(', '))})</span>`).join(' · ');
     const uses = Object.keys(f.uses || {});
     const usedBy = Object.keys(f.used_by || {});
+    // contract 2.3: a feature an AI agent added waits for a person to accept it (ARCH043 until then)
+    const byAi = str(f, 'origin') === 'ai';
+    const addedBy = str(f, 'created_by') || t('an AI agent', 'un agent IA');
     const meta = [`${comps.length} ${t(comps.length === 1 ? 'component' : 'components', comps.length === 1 ? 'composant' : 'composants')}`,
+      byAi ? `<span class="to-review">${esc(t(`added by ${addedBy}: a person accepts it (ARCH043 until then)`, `ajoutée par ${addedBy} : une personne l'accepte (ARCH043 jusque-là)`))}</span>` : '',
       str(f, 'brief') ? `brief <button class="link" data-a="openFile" data-file="${esc(str(f, 'brief'))}" data-line="0">${esc(str(f, 'brief'))}</button>` : '',
       tickets.length ? `${esc(t('tickets', 'tickets'))} ${esc(tickets.join(', '))}` : ''].filter(Boolean).join(' · ');
     // 10 % steps (no inline style in the page), never full when not complete, never empty when started
@@ -1048,6 +1052,7 @@
       btn(t('Open feature doc', 'Ouvrir la doc'), 'featureDoc', attrs({ id: name }) + ` title="${esc(t(`archvow doc ${name}: its page, written into .archvow/doc/ (ignored by Git)`, `archvow doc ${name} : sa page, écrite dans .archvow/doc/ (ignoré par Git)`))}"`, false, 'secondary'),
       btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name}: the feature in a few lines, then the task of its next component`, `archvow prompt --feature ${name} : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant`))}"`, false, 'secondary'),
       btn(t('Next steps', 'Prochaines étapes'), 'run', attrs({ label: `next --feature ${name}`, args: `next --feature ${name} --json`, target: 'overview' }), false, 'secondary'),
+      byAi ? btn(t('Accept…', 'Accepter…'), 'openCommand', attrs({ command: 'feature accept', feature: name }) + ` title="${esc(t(`archvow feature accept ${name}: a person takes it as the team's`, `archvow feature accept ${name} : une personne la prend comme celle de l'équipe`))}"`, false, 'secondary') : '',
       shared ? '' : btn(t('Rename…', 'Renommer…'), 'openCommand', attrs({ command: 'feature rename', feature: name }), false, 'link quiet'),
       shared || comps.length ? '' : btn(t('Remove…', 'Retirer…'), 'openCommand', attrs({ command: 'feature remove', feature: name }), false, 'link quiet'),
     ].join('');

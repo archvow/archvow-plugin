@@ -11,6 +11,9 @@ changed from 2.2 to 2.6.
   installed archvow of contract 2.1 to 2.3 is said to be older (update archvow); 2.4 and later minors are
   accepted. The grammar knows `feature accept`; every check message archvow 2.6.0's own tests print (789, 100
   codes; were 587 and 81) has its guidance, in English and in French.
+- **A feature an AI agent added waits for a person** (archvow 2.5's `feature accept`): its page says who added it
+  and that ARCH043 reports it until a person accepts it, with **Accept…**; the `feature accept` form lists only
+  the features an agent added, each with who added it ("No feature waits" when none does).
 
 ## 0.25.3 - 2026-11-16
 
