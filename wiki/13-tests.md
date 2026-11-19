@@ -14,7 +14,7 @@ Gradle les lance avec `JavaExec` (`intellij/build.gradle.kts`). La tâche `test`
 | Tâche | Classe | Ce qu'elle vérifie |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | le lecteur `.vow` sur chaque vow de `contract/vows` : le scanner couvre tout le texte, redémarre à n'importe quel jeton, une couleur par profondeur ; des vows cassés exprès donnent les bons problèmes |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 52 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 61 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
 | `contractDump` (pas dans `check`) | `DumpContract` | écrit `contract/vow-reader/expected.json`, la référence du lecteur TypeScript |
 
 Le panneau lui-même (`ArchvowPanel`) a besoin d'un IntelliJ qui tourne ; c'est pourquoi **la logique
@@ -36,6 +36,7 @@ nom de ce qu'elle protège :
 | `SkillFormRegression` | le formulaire de lancement d'un skill (`ArchvowSkillForm`) : la demande, Copier grisé sans brief, « Pas encore » ; Vue d'ensemble › Briefs (`ArchvowBriefs.statusHtml`) ; les étiquettes d'origine des cartes et le filtre Tout / Ouverts / À relire |
 | `LoadChainRegression` | le chargement du projet est un seul appel `workspace --json` (0.21.0), sans autre commande lancée dedans, et l'ancienne chaîne de six commandes a disparu : ArchvowCli refuse une commande lancée à côté d'une autre (0.16.0 : plus de compteurs) |
 | `WorkspaceAnswerRegression` | `WorkspaceAnswer` sur le `workspace.json` du contrat (0.21.0) : chaque partie égale ce qu'affichent seuls show, show <id>, next et check, briefs, catalogue et packs (0.22.0) présents ; `unchanged`, l'enveloppe d'erreur et une partie manquante bien distingués |
+| `FeatureViewRegression` | la page d'une fonctionnalité (`ArchvowFeatureView`, 0.24.0 ; lancée depuis 0.26.0) : en-tête, carte, composants par couche, ce qui est ouvert ; une fonctionnalité ajoutée par un agent IA dit qui l'a ajoutée et propose Accepter… (EN et FR) |
 | `PacksRegression` | la ligne Packs de la vue d'ensemble (0.22.0) : le compte des packs et de ceux modifiés à la main, la liste (ce que chacun apporte, sa source, ARCH060), ce qu'ouvre chaque lien (`pack update/remove/check`, son nom rempli ; `pack add`, `pack new`, `diff`), commandes qui existent dans la grammaire |
 | `RunLogRegression` | le journal de session (0.19.0), comme `runlog.test.ts` : une action en entier avec la réponse d'archvow, un rafraîchissement en une ligne, `check` qui sort avec 1 n'est pas un échec, un échec dit ce qu'archvow a dit, les appels lents marqués, le texte pour le support (mots d'une personne cachés), le composant qu'une action touche |
 | `ListFilterRegression` | la ligne sous les vues (`ArchvowListFilter`), une vue finie dit où est le travail, l'ouvert suivant après un enregistrement, les liens, les quatre actions calmes |

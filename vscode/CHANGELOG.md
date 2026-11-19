@@ -16,6 +16,10 @@ changed from 2.2 to 2.6.
   root): "a folder, from the project's root", "an installed package", or "an absolute path: true on this machine
   only" for one an earlier archvow recorded, which **Update** rewrites. The `pack add` form says what is recorded.
 
+Tested: 166 of 168 VS Code tests pass with archvow 2.6.0 run live and the .vsix built (the 2 others need the
+IntelliJ zip). IntelliJ: the 59 plain regressions of WorkspaceTests that do not need the IntelliJ Platform pass
+(3 do), and its Java code compiles without it; run `./gradlew check buildPlugin` before publishing.
+
 ## 0.25.3 - 2026-11-16
 
 Built on archvow 2.1.1 (contract 2.1). IntelliJ only (see intellij/CHANGELOG.md): the JetBrains Marketplace

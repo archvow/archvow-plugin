@@ -14,7 +14,7 @@ runs them with `JavaExec` (`intellij/build.gradle.kts`). Gradle's `test` task is
 | Task | Class | What it checks |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | the `.vow` reader on every vow of `contract/vows`: the scanner covers all the text, restarts at any token, one colour per depth; vows broken on purpose give the right problems |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 52 regression classes: everything that does not need a running IntelliJ |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 61 regression classes: everything that does not need a running IntelliJ |
 | `contractDump` (not in `check`) | `DumpContract` | writes `contract/vow-reader/expected.json`, the TypeScript reader's reference |
 
 The panel itself (`ArchvowPanel`) needs a running IntelliJ; that is why **the logic is taken out into
@@ -40,6 +40,7 @@ what it protects:
 | `SkillFormRegression` | the launch form of a skill (`ArchvowSkillForm`): the request, Copy disabled without a brief, "Not yet"; Overview › Briefs (`ArchvowBriefs.statusHtml`); the cards' origin tags and the All / Open / To review filter |
 | `LoadChainRegression` | the project's load is one `workspace --json` call (0.21.0), with no other command started inside it, and the old six-command chain gone: ArchvowCli refuses a command started beside another (0.16.0: no counts) |
 | `WorkspaceAnswerRegression` | `WorkspaceAnswer` on the contract's `workspace.json` (0.21.0): each part equals what show, show <id>, next and check print alone, briefs, catalog and packs (0.22.0) present; `unchanged`, the error envelope and a missing part told apart |
+| `FeatureViewRegression` | a feature's page (`ArchvowFeatureView`, 0.24.0; run since 0.26.0): head, map, components by layer, what is open; a feature an AI agent added says who added it and offers Accept… (EN and FR) |
 | `PacksRegression` | the overview's Packs row (0.22.0): the count of packs and of those changed by hand, the list (what each brings, its source, ARCH060), what each link opens (`pack update/remove/check`, its name filled in; `pack add`, `pack new`, `diff`), commands that exist in the grammar |
 | `RunLogRegression` | the session log (0.19.0), like `runlog.test.ts`: an action in full with archvow's answer, a refresh in one line, `check` exiting 1 is not a failure, a failure says what archvow said, slow calls marked, the support text (a person's words hidden), the component an action touches |
 | `ListFilterRegression` | the line under the views (`ArchvowListFilter`), a done view says where the work is, the next open item after a save, the links, the four quiet actions |
