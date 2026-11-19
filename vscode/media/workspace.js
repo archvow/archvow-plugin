@@ -766,6 +766,17 @@
     <button class="link" data-a="openPacks">${esc(t('Open Packs', 'Voir les packs'))} →</button></div>`;
   }
 
+  /** Where a pack came from, as archvow 2.6 records it: a folder by its path from the project's root (the same in
+   *  every clone laid out alike), an installed package by its name; an absolute path is an earlier archvow's, which
+   *  its next Update rewrites. */
+  function packSource(source) {
+    if (!source) return t('Source: unknown', 'Source : inconnue');
+    if (/^(\/|[A-Za-z]:[\\/]|\\\\)/.test(source)) return t(`Source: ${source} (an absolute path: true on this machine only; Update records it from the project's root)`,
+      `Source : ${source} (un chemin absolu : vrai sur cette machine seulement ; Mettre à jour l'enregistre depuis la racine du projet)`);
+    if (/[\\/]/.test(source) || source.startsWith('.')) return t(`Source: ${source} (a folder, from the project's root)`, `Source : ${source} (un dossier, depuis la racine du projet)`);
+    return t(`Source: ${source} (an installed package)`, `Source : ${source} (un paquet installé)`);
+  }
+
   /** The project's packs (0.22.0): what each brings and its state, with Update / Remove, and Add a pack / New pack. */
   function packsView() {
     const packs = (S && S.packs) || [];
@@ -779,7 +790,7 @@
         <span class="${changed ? 'tone-warn' : 'tone-good'}">${esc(changed ? t('changed by hand', 'modifié à la main') : t('as added', 'tel qu\'ajouté'))}</span></div>
         <p class="muted small">${esc(str(p, 'description'))}</p>
         <p class="small">${brings(p) || esc(t('Nothing yet.', 'Rien pour l\'instant.'))}</p>
-        <p class="muted small">${esc(t('Source', 'Source'))}: ${esc(str(p, 'source'))}</p>
+        <p class="muted small">${esc(packSource(str(p, 'source')))}</p>
         ${changed ? `<p class="small tone-warn">${esc(str(p, 'why'))} (ARCH060)</p>` : ''}
         <span class="row wrap">${btn(t('Update', 'Mettre à jour'), 'openCommand', attrs({ command: 'pack update', packname: name }), false, 'secondary')}
         ${btn(t('Remove', 'Retirer'), 'openCommand', attrs({ command: 'pack remove', packname: name }), false, 'secondary')}

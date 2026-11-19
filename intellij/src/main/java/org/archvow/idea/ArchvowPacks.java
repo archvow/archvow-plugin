@@ -55,7 +55,7 @@ final class ArchvowPacks {
             if (!str(p, "description").isEmpty()) html.append("<p>").append(escape(str(p, "description"))).append("</p>");
             String brings = brings(p, fr);
             html.append("<p>").append(escape(brings.isEmpty() ? (fr ? "Rien pour l'instant." : "Nothing yet.") : brings)).append("</p>");
-            html.append("<p><small>").append(escape((fr ? "Source : " : "Source: ") + str(p, "source"))).append("</small></p>");
+            html.append("<p><small>").append(escape(source(str(p, "source"), fr))).append("</small></p>");
             if (changed) html.append("<p><font color='#b26b00'>").append(escape(str(p, "why"))).append(" (ARCH060)</font></p>");
             html.append("<p>").append(link("update", name, fr ? "Mettre à jour" : "Update")).append(" · ")
                 .append(link("remove", name, fr ? "Retirer" : "Remove")).append(" · ")
@@ -64,6 +64,19 @@ final class ArchvowPacks {
             html.append("</p>");
         }
         return html.toString();
+    }
+
+    /** Where a pack came from, as archvow 2.6 records it: a folder by its path from the project's root (the same in
+     *  every clone laid out alike), an installed package by its name; an absolute path is an earlier archvow's, which
+     *  its next Update rewrites. As VS Code's packSource. */
+    static String source(String source, boolean fr) {
+        if (source == null || source.isEmpty()) return fr ? "Source : inconnue" : "Source: unknown";
+        if (source.matches("^(/|[A-Za-z]:[\\\\/]|\\\\\\\\).*")) return fr
+            ? "Source : " + source + " (un chemin absolu : vrai sur cette machine seulement ; Mettre à jour l'enregistre depuis la racine du projet)"
+            : "Source: " + source + " (an absolute path: true on this machine only; Update records it from the project's root)";
+        if (source.contains("/") || source.contains("\\") || source.startsWith(".")) return fr
+            ? "Source : " + source + " (un dossier, depuis la racine du projet)" : "Source: " + source + " (a folder, from the project's root)";
+        return fr ? "Source : " + source + " (un paquet installé)" : "Source: " + source + " (an installed package)";
     }
 
     /** What a link of the list opens: the command and its prefilled values; null when it is not one of them. */

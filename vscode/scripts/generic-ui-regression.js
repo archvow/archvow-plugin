@@ -136,3 +136,15 @@ assert.match(page.app.innerHTML, /data-command="feature accept"[^>]*data-feature
 page.message({ type: 'feature', feature: 'orders' });
 assert.doesNotMatch(page.app.innerHTML, /feature accept|ARCH043/, 'a person\'s feature: nothing to accept');
 console.log('A feature an AI agent added: OK');
+
+// archvow 2.6 records a pack folder by its path from the project's root (0.26.0): the Packs list says what a source is
+const packs = make('nav');
+packs.message({ type: 'state', state: { ...state, packs: [
+  { name: 'acme', version: '1.0.0', description: '', source: '../company-packs/acme', state: 'ok', why: '' },
+  { name: 'bank', version: '0.1.0', description: '', source: 'bank_packs', state: 'ok', why: '' },
+  { name: 'old', version: '0.1.0', description: '', source: '/home/alice/packs/old', state: 'ok', why: '' }] } });
+packs.click('openPacks');
+assert.match(packs.app.innerHTML, /Source: \.\.\/company-packs\/acme \(a folder, from the project&#39;s root\)|Source: \.\.\/company-packs\/acme \(a folder, from the project's root\)/);
+assert.match(packs.app.innerHTML, /Source: bank_packs \(an installed package\)/);
+assert.match(packs.app.innerHTML, /\/home\/alice\/packs\/old \(an absolute path: true on this machine only/);
+console.log('Packs sources: OK');
