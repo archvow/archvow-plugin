@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.26.0 - 2026-11-18
+
+Built on archvow 2.6.0 (contract 2.4; 0.25 was built on 2.1.1, contract 2.1). Both IDEs follow what archvow
+changed from 2.2 to 2.6.
+
+- **archvow 2.6.0 is the archvow both IDEs install and are tested with** (`contract/`, regenerated from it): an
+  installed archvow of contract 2.1 to 2.3 is said to be older (update archvow); 2.4 and later minors are
+  accepted. The grammar knows `feature accept`; every check message archvow 2.6.0's own tests print (789, 100
+  codes; were 587 and 81) has its guidance, in English and in French.
+
 ## 0.25.3 - 2026-11-16
 
 Built on archvow 2.1.1 (contract 2.1). IntelliJ only (see intellij/CHANGELOG.md): the JetBrains Marketplace

@@ -25,8 +25,8 @@ confirm them.
 
 ## Get started
 
-1. **Install the ArchVow CLI 2.1.1** in your project's Python 3.11+ environment, from your package index or a wheel:
-   `python -m pip install archvow==2.1.1`. Check it with `archvow --version`.
+1. **Install the ArchVow CLI 2.6.0** in your project's Python 3.11+ environment, from your package index or a wheel:
+   `python -m pip install archvow==2.6.0`. Check it with `archvow --version`.
    The extension can also show and run that command for you - only after **Confirm and run**.
 2. **Not sure yet?** Open any folder, open **ArchVow** in the Activity Bar, and use **Try it**: ArchVow copies a
    finished example to a scratch folder (the form shows where), makes a change an AI often makes - a module nobody
@@ -143,7 +143,7 @@ Show the archvow log, Copy the archvow log for support.
 ## Requirements
 
 - VS Code 1.90 or later.
-- The ArchVow CLI 2.1.1 (contract 2.1) in a Python 3.11+ environment. The extension says when the installed
+- The ArchVow CLI 2.6.0 (contract 2.4) in a Python 3.11+ environment. The extension says when the installed
   ArchVow does not speak its contract, rather than misreading it.
 - Optional: the Python extension, to use the project's interpreter.
 
