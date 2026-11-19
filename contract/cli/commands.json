@@ -109,7 +109,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "in a folder that is already a project: rewrite the generated files from the template (AGENTS.md, CI, hooks...). A committed spec is always kept; to start over, git rm -r .archvow and commit",
+          "help": "in a folder that is already a project: rewrite the generated files from the template (AGENTS.md, CI, hooks...). The spec is always kept, committed or not; to start over, remove .archvow (git rm -r .archvow and commit)",
           "hidden": false,
           "metavar": "force"
         },
@@ -219,6 +219,29 @@
           "help": "the brief people wrote for it (briefs/orders.md)",
           "hidden": false,
           "metavar": "FILE"
+        }
+      ]
+    },
+    {
+      "path": [
+        "feature",
+        "accept"
+      ],
+      "description": "Accept a feature an AI agent added (ARCH043 until then).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "feature",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the feature (archvow show lists them)",
+          "hidden": false,
+          "metavar": "feature"
         }
       ]
     },

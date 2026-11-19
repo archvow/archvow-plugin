@@ -15,6 +15,13 @@
    "example": "python-app",
    "fr": false,
    "book": {
+    "feature accept": {
+     "feature": {
+      "kind": "select",
+      "choices": [],
+      "empty": "No feature waits: no AI agent added one, or a person accepted each."
+     }
+    },
     "feature rename": {
      "feature": {
       "kind": "select",
@@ -2030,6 +2037,13 @@
    "example": "python-app",
    "fr": true,
    "book": {
+    "feature accept": {
+     "feature": {
+      "kind": "select",
+      "choices": [],
+      "empty": "Aucune fonctionnalité n'attend : aucun agent IA n'en a ajouté, ou une personne a accepté chacune."
+     }
+    },
     "feature rename": {
      "feature": {
       "kind": "select",
@@ -4045,6 +4059,13 @@
    "example": "fastapi-service",
    "fr": false,
    "book": {
+    "feature accept": {
+     "feature": {
+      "kind": "select",
+      "choices": [],
+      "empty": "No feature waits: no AI agent added one, or a person accepted each."
+     }
+    },
     "feature rename": {
      "feature": {
       "kind": "select",
@@ -7205,6 +7226,13 @@
    "example": "fastapi-service",
    "fr": true,
    "book": {
+    "feature accept": {
+     "feature": {
+      "kind": "select",
+      "choices": [],
+      "empty": "Aucune fonctionnalité n'attend : aucun agent IA n'en a ajouté, ou une personne a accepté chacune."
+     }
+    },
     "feature rename": {
      "feature": {
       "kind": "select",
@@ -10365,6 +10393,13 @@
    "example": "pyspark-pipeline",
    "fr": false,
    "book": {
+    "feature accept": {
+     "feature": {
+      "kind": "select",
+      "choices": [],
+      "empty": "No feature waits: no AI agent added one, or a person accepted each."
+     }
+    },
     "feature rename": {
      "feature": {
       "kind": "select",
@@ -13807,6 +13842,13 @@
    "example": "pyspark-pipeline",
    "fr": true,
    "book": {
+    "feature accept": {
+     "feature": {
+      "kind": "select",
+      "choices": [],
+      "empty": "Aucune fonctionnalité n'attend : aucun agent IA n'en a ajouté, ou une personne a accepté chacune."
+     }
+    },
     "feature rename": {
      "feature": {
       "kind": "select",

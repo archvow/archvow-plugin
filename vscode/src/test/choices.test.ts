@@ -100,6 +100,22 @@ test('component add: only the types of the project\'s template; a reader or a wr
   assert.ok(values(book('fastapi-service')['component add'].type, {}).includes('router'));
 });
 
+test('feature accept: only the features an AI agent added, with who added them; none waiting says so (contract 2.3)', () => {
+  const base = input('python-app');
+  const spec: Json = { ...(base.spec ?? {}), features: [...((base.spec?.features as Json[] | undefined) ?? []),
+    { name: 'refunds', description: 'Refund a paid invoice', origin: 'ai', created_by: 'claude-code' },
+    { name: 'reports', description: 'Monthly reports', accepted: { by: 'marc', on: '2026-11-18' } }] };
+  for (const fr of [false, true]) {
+    const field = choiceBook(COMMANDS, { ...base, spec, fr })['feature accept'].feature;
+    assert.deepEqual(values(field, {}), ['refunds']);
+    assert.match(choicesNow(field, {})[0].label, fr ? /ajoutée par claude-code/ : /added by claude-code/);
+  }
+  const none = book('python-app')['feature accept'].feature;
+  assert.deepEqual(values(none, {}), []);
+  assert.match(none.empty ?? '', /No feature waits/);
+  assert.ok(values(book('python-app')['feature rename'].feature, {}).length > 0, 'the other feature forms still list every feature');
+});
+
 test('the kinds of archvow 1.18\'s catalog come first; kinds.json only for an archvow whose catalog has none', () => {
   const data = input('pyspark-pipeline');
   const catalog = JSON.parse(JSON.stringify(data.catalog)) as Json;

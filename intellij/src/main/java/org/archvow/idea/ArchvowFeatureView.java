@@ -25,7 +25,7 @@ final class ArchvowFeatureView extends JPanel {
         void showComponent(String id);
         void showFeature(String name);
         void openFile(String relative);
-        /** A command form, prefilled: component add (feature), feature rename, feature remove. */
+        /** A command form, prefilled: component add (feature), feature accept, rename, remove. */
         void openCommand(String command, Map<String, String> values);
         void openDoc(String feature);
         void copyPrompt(String feature);
@@ -38,6 +38,7 @@ final class ArchvowFeatureView extends JPanel {
     private final JButton doc = new JButton("Open feature doc");
     private final JButton prompt = new JButton("Copy AI prompt");
     private final JButton next = new JButton("Next steps");
+    private final JButton accept = new JButton("Accept…");
     private final JButton rename = new JButton("Rename…");
     private final JButton remove = new JButton("Remove…");
     private String feature = "";
@@ -67,10 +68,11 @@ final class ArchvowFeatureView extends JPanel {
         doc.addActionListener(e -> actions.openDoc(feature));
         prompt.addActionListener(e -> actions.copyPrompt(feature));
         next.addActionListener(e -> actions.nextSteps(feature));
+        accept.addActionListener(e -> actions.openCommand("feature accept", Map.of("feature", feature)));
         rename.addActionListener(e -> actions.openCommand("feature rename", Map.of("feature", feature)));
         remove.addActionListener(e -> actions.openCommand("feature remove", Map.of("feature", feature)));
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
-        for (JButton b : List.of(add, doc, prompt, next, rename, remove)) buttons.add(b);
+        for (JButton b : List.of(add, doc, prompt, next, accept, rename, remove)) buttons.add(b);
         add(buttons, BorderLayout.NORTH);
         add(new JScrollPane(page), BorderLayout.CENTER);
     }
@@ -86,6 +88,10 @@ final class ArchvowFeatureView extends JPanel {
         prompt.setToolTipText(french ? "archvow prompt --feature " + feature + " : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant"
             : "archvow prompt --feature " + feature + ": the feature in a few lines, then the task of its next component");
         next.setText(french ? "Prochaines étapes" : "Next steps");
+        accept.setText(french ? "Accepter…" : "Accept…");
+        accept.setToolTipText(french ? "archvow feature accept " + feature + " : une personne la prend comme celle de l'équipe"
+            : "archvow feature accept " + feature + ": a person takes it as the team's");
+        accept.setVisible(addedByAi(view));
         rename.setText(french ? "Renommer…" : "Rename…");
         remove.setText(french ? "Retirer…" : "Remove…");
         boolean shared = "shared".equals(feature);
@@ -93,6 +99,11 @@ final class ArchvowFeatureView extends JPanel {
         remove.setVisible(!shared && components(view).isEmpty());
         page.setText(html(view, spec, pending, openItems, french));
         page.setCaretPosition(0);
+    }
+
+    /** Contract 2.3: a feature an AI agent added waits for a person to accept it (ARCH043 until then). */
+    static boolean addedByAi(JsonObject view) {
+        return view != null && "ai".equals(ArchvowGrammar.str(view, "origin"));
     }
 
     private static List<JsonObject> components(JsonObject view) {
@@ -143,6 +154,12 @@ final class ArchvowFeatureView extends JPanel {
         List<String> meta = new ArrayList<>();
         meta.add(comps.size() + (fr ? (comps.size() == 1 ? " composant" : " composants") : (comps.size() == 1 ? " component" : " components")));
         String brief = ArchvowGrammar.str(view, "brief");
+        if (addedByAi(view)) {
+            String by = ArchvowGrammar.str(view, "created_by");
+            by = by.isEmpty() ? (fr ? "un agent IA" : "an AI agent") : by;
+            meta.add("<span style='color:#d29922'>" + esc(fr ? "ajoutée par " + by + " : une personne l'accepte (ARCH043 jusque-là)"
+                : "added by " + by + ": a person accepts it (ARCH043 until then)") + "</span>");
+        }
         if (!brief.isEmpty()) meta.add("brief " + link("file", brief, brief));
         if (!tickets.isEmpty()) meta.add("tickets " + esc(String.join(", ", tickets)));
         out.append("<p style='color:#8c8c8c'>").append(String.join(" · ", meta)).append("</p>");

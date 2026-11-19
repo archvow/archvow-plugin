@@ -125,7 +125,8 @@ celles qui ont changé ; Plus ▾ › Briefs l'ouvre. **Ajouter un dossier de br
 
 Une troisième ligne sous Architecture et Contrôles, depuis `packs` de `workspace --json` d'archvow 1.26 (lu avec
 le reste, sans appel de plus) : « 2 packs · 1 modifié à la main ». **Voir les packs →** liste chaque pack de
-`.archvow/packs/` : sa version, ce qu'il apporte (templates, agents, règles, régimes de protection), sa source, et s'il est tel
+`.archvow/packs/` : sa version, ce qu'il apporte (templates, agents, règles, régimes de protection), sa source (un dossier par son chemin
+depuis la racine du projet, un paquet installé, ou le chemin absolu d'un archvow antérieur ; 0.26.0), et s'il est tel
 qu'ajouté ou modifié à la main (ARCH060, avec ce qui diffère). Chacun a **Mettre à jour**, **Retirer** et
 **Vérifier** (les formulaires de `pack update`, `pack remove`, `pack check`, son nom rempli) ; un pack modifié
 a aussi **Voir le changement** (`diff`). En haut, **Ajouter un pack** et **Nouveau pack** (`pack add`, `pack
