@@ -766,6 +766,17 @@
     <button class="link" data-a="openPacks">${esc(t('Open Packs', 'Voir les packs'))} →</button></div>`;
   }
 
+  /** Where a pack came from, as archvow 2.6 records it: a folder by its path from the project's root (the same in
+   *  every clone laid out alike), an installed package by its name; an absolute path is an earlier archvow's, which
+   *  its next Update rewrites. */
+  function packSource(source) {
+    if (!source) return t('Source: unknown', 'Source : inconnue');
+    if (/^(\/|[A-Za-z]:[\\/]|\\\\)/.test(source)) return t(`Source: ${source} (an absolute path: true on this machine only; Update records it from the project's root)`,
+      `Source : ${source} (un chemin absolu : vrai sur cette machine seulement ; Mettre à jour l'enregistre depuis la racine du projet)`);
+    if (/[\\/]/.test(source) || source.startsWith('.')) return t(`Source: ${source} (a folder, from the project's root)`, `Source : ${source} (un dossier, depuis la racine du projet)`);
+    return t(`Source: ${source} (an installed package)`, `Source : ${source} (un paquet installé)`);
+  }
+
   /** The project's packs (0.22.0): what each brings and its state, with Update / Remove, and Add a pack / New pack. */
   function packsView() {
     const packs = (S && S.packs) || [];
@@ -779,7 +790,7 @@
         <span class="${changed ? 'tone-warn' : 'tone-good'}">${esc(changed ? t('changed by hand', 'modifié à la main') : t('as added', 'tel qu\'ajouté'))}</span></div>
         <p class="muted small">${esc(str(p, 'description'))}</p>
         <p class="small">${brings(p) || esc(t('Nothing yet.', 'Rien pour l\'instant.'))}</p>
-        <p class="muted small">${esc(t('Source', 'Source'))}: ${esc(str(p, 'source'))}</p>
+        <p class="muted small">${esc(packSource(str(p, 'source')))}</p>
         ${changed ? `<p class="small tone-warn">${esc(str(p, 'why'))} (ARCH060)</p>` : ''}
         <span class="row wrap">${btn(t('Update', 'Mettre à jour'), 'openCommand', attrs({ command: 'pack update', packname: name }), false, 'secondary')}
         ${btn(t('Remove', 'Retirer'), 'openCommand', attrs({ command: 'pack remove', packname: name }), false, 'secondary')}
@@ -1037,7 +1048,11 @@
       `${featureLink(other)} <span class="muted">(${esc((ps || []).map((x) => `${str(x, 'component')} → ${str(x, 'uses')}`).join(', '))})</span>`).join(' · ');
     const uses = Object.keys(f.uses || {});
     const usedBy = Object.keys(f.used_by || {});
+    // contract 2.3: a feature an AI agent added waits for a person to accept it (ARCH043 until then)
+    const byAi = str(f, 'origin') === 'ai';
+    const addedBy = str(f, 'created_by') || t('an AI agent', 'un agent IA');
     const meta = [`${comps.length} ${t(comps.length === 1 ? 'component' : 'components', comps.length === 1 ? 'composant' : 'composants')}`,
+      byAi ? `<span class="to-review">${esc(t(`added by ${addedBy}: a person accepts it (ARCH043 until then)`, `ajoutée par ${addedBy} : une personne l'accepte (ARCH043 jusque-là)`))}</span>` : '',
       str(f, 'brief') ? `brief <button class="link" data-a="openFile" data-file="${esc(str(f, 'brief'))}" data-line="0">${esc(str(f, 'brief'))}</button>` : '',
       tickets.length ? `${esc(t('tickets', 'tickets'))} ${esc(tickets.join(', '))}` : ''].filter(Boolean).join(' · ');
     // 10 % steps (no inline style in the page), never full when not complete, never empty when started
@@ -1048,6 +1063,7 @@
       btn(t('Open feature doc', 'Ouvrir la doc'), 'featureDoc', attrs({ id: name }) + ` title="${esc(t(`archvow doc ${name}: its page, written into .archvow/doc/ (ignored by Git)`, `archvow doc ${name} : sa page, écrite dans .archvow/doc/ (ignoré par Git)`))}"`, false, 'secondary'),
       btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name}: the feature in a few lines, then the task of its next component`, `archvow prompt --feature ${name} : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant`))}"`, false, 'secondary'),
       btn(t('Next steps', 'Prochaines étapes'), 'run', attrs({ label: `next --feature ${name}`, args: `next --feature ${name} --json`, target: 'overview' }), false, 'secondary'),
+      byAi ? btn(t('Accept…', 'Accepter…'), 'openCommand', attrs({ command: 'feature accept', feature: name }) + ` title="${esc(t(`archvow feature accept ${name}: a person takes it as the team's`, `archvow feature accept ${name} : une personne la prend comme celle de l'équipe`))}"`, false, 'secondary') : '',
       shared ? '' : btn(t('Rename…', 'Renommer…'), 'openCommand', attrs({ command: 'feature rename', feature: name }), false, 'link quiet'),
       shared || comps.length ? '' : btn(t('Remove…', 'Retirer…'), 'openCommand', attrs({ command: 'feature remove', feature: name }), false, 'link quiet'),
     ].join('');

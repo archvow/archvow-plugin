@@ -24,3 +24,9 @@ ide:
  # Build vscode : requires node
 vs:
 	cd vscode && npm install && npm run package
+
+build:
+	./build.sh
+
+buildsign:
+	./build.sh sign

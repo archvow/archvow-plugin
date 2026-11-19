@@ -35,6 +35,15 @@ public final class FeatureViewRegression {
         check(fr.contains("Composants, par couche") && fr.contains("Rien d'ouvert"), "in French");
         check(fr.contains("Utilise <a href='feature:orders'>orders</a>"), "shared's entry point uses orders");
         check(ArchvowFeatureView.html(null, spec, Map.of(), Map.of(), false).contains("Choose a feature"), "no feature chosen");
-        System.out.println("OK: a feature's page - head, map, components by layer, what is open (EN and FR)");
+        // contract 2.3: a feature an AI agent added says so, and waits for a person to accept it (feature accept)
+        check(!ArchvowFeatureView.addedByAi(orders) && !html.contains("ARCH043"), "a person's feature: nothing to accept");
+        JsonObject refunds = orders.deepCopy();
+        refunds.addProperty("feature", "refunds");
+        refunds.addProperty("origin", "ai");
+        refunds.addProperty("created_by", "claude-code");
+        check(ArchvowFeatureView.addedByAi(refunds), "an AI agent's feature: Accept… shows");
+        check(ArchvowFeatureView.html(refunds, spec, Map.of(), Map.of(), false).contains("added by claude-code: a person accepts it (ARCH043 until then)"), "who added it");
+        check(ArchvowFeatureView.html(refunds, spec, Map.of(), Map.of(), true).contains("ajoutée par claude-code : une personne l'accepte"), "who added it, in French");
+        System.out.println("OK: a feature's page - head, map, components by layer, what is open, an AI agent's to accept (EN and FR)");
     }
 }

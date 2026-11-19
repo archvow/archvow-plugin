@@ -20,10 +20,10 @@ public final class PacksRegression {
         JsonArray packs = JsonParser.parseString("""
             [{"name": "acme", "version": "1.2.0", "description": "ACME's templates", "archvow": ">=1.26", "builtin": false,
               "templates": ["acme-service"], "agents": ["acme-bot"], "rule_families": ["naming"],
-              "source": "/home/me/packs/acme", "state": "ok", "why": ""},
+              "source": "../company-packs/acme", "state": "ok", "why": ""},
              {"name": "bank", "version": "0.1.0", "description": "", "archvow": "", "builtin": false,
               "templates": [], "agents": [], "rule_families": [],
-              "source": "git@example.invalid:bank/pack.git", "state": "changed", "why": "rules/naming.yaml differs"}]
+              "source": "bank_packs", "state": "changed", "why": "rules/naming.yaml differs"}]
             """).getAsJsonArray();
         check(ArchvowPacks.changed(packs) == 1, "changed");
         check("2 packs · 1 changed by hand".equals(ArchvowPacks.summary(packs, false)), ArchvowPacks.summary(packs, false));
@@ -33,12 +33,18 @@ public final class PacksRegression {
 
         String html = ArchvowPacks.html(packs, false);
         for (String part : new String[] {"acme", "1.2.0", "ACME&#39;s templates", "templates: acme-service", "agents: acme-bot",
-                "rules: naming", "Source: /home/me/packs/acme", "Nothing yet.", "rules/naming.yaml differs (ARCH060)",
+                "rules: naming", "Source: ../company-packs/acme (a folder, from the project&#39;s root)",
+                "Source: bank_packs (an installed package)", "Nothing yet.", "rules/naming.yaml differs (ARCH060)",
                 "archvow-pack:update:acme", "archvow-pack:remove:bank", "archvow-pack:check:acme", "archvow-pack:diff",
                 "archvow-pack:add", "archvow-pack:new", "changed by hand", "as added"})
             check(html.contains(part), "the list lacks " + part);
         check(html.indexOf("archvow-pack:diff") > html.indexOf("bank"), "See the change only for the changed pack");
         check(ArchvowPacks.html(new JsonArray(), true).contains("Aucun pack dans ce projet"), "empty, French");
+        // archvow 2.6 records a folder by its path from the project's root; an absolute one is an earlier archvow's
+        check(ArchvowPacks.source("/home/alice/company-packs/acme", false).contains("an absolute path: true on this machine only"), "absolute");
+        check(ArchvowPacks.source("C:\\packs\\acme", true).contains("un chemin absolu"), "absolute, Windows, French");
+        check(ArchvowPacks.source(".archvow/packs/acme", true).equals("Source : .archvow/packs/acme (un dossier, depuis la racine du projet)"), "inside");
+        check(ArchvowPacks.source("", false).equals("Source: unknown"), "none");
 
         check(ArchvowPacks.command("archvow-pack:update:acme").equals(Map.entry("pack update", Map.of("name", "acme"))), "update");
         check(ArchvowPacks.command("archvow-pack:remove:bank").equals(Map.entry("pack remove", Map.of("name", "bank"))), "remove");

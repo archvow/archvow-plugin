@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 2.1.1",
+ "archvow": "archvow 2.6.0",
  "messages": [
   {
    "code": "ACME001",
@@ -7,6 +7,13 @@
    "message": "No direct use of the old billing API: import legacy_billing -> use acme_billing.client",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 11
+  },
+  {
+   "code": "ACME001",
+   "severity": "error",
+   "message": "No old billing API: import legacy_billing",
+   "file": "src/sales/build/steps.py",
+   "line": 2
   },
   {
    "code": "ACME002",
@@ -81,6 +88,41 @@
   {
    "code": "ARCH001",
    "severity": "error",
+   "message": "batch.steps is not declared and sits in no layer: map it in `layer_paths` (archvow init batch --force --adopt proposes it), then archvow component add <type> <name> --file src/batch/steps.py",
+   "file": "src/batch/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "batch.steps is not declared and sits in no layer: map it in `layer_paths` (archvow init sales --force --adopt proposes it), then archvow component add <type> <name> --file src/batch/steps.py",
+   "file": "src/batch/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "invoicing.p1_domain.helpers is not declared; add it with `archvow component add`",
+   "file": "src/invoicing/p1_domain/helpers.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.build.steps is not declared and sits in no layer: map it in `layer_paths` (archvow init sales --force --adopt proposes it), then archvow component add <type> <name> --file src/sales/build/steps.py",
+   "file": "src/sales/build/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.legacy.billing_rules is not declared; add it with `archvow component add`",
+   "file": "src/sales/legacy/billing_rules.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
    "message": "sales.p1_domain.clean_orders is not declared; add it with `archvow component add`",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
@@ -116,6 +158,27 @@
   {
    "code": "ARCH001",
    "severity": "error",
+   "message": "sales.p1_domain.long_steps is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/long_steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.other is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/other.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.p1_domain.quiet is not declared; add it with `archvow component add`",
+   "file": "src/sales/p1_domain/quiet.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
    "message": "sales.p1_domain.returns.clean_returns is not declared; add it with `archvow component add`",
    "file": "src/sales/p1_domain/returns/clean_returns.py",
    "line": 0
@@ -133,6 +196,34 @@
    "message": "sales.p2_transformations.clean_orders is not declared and sits in no layer: map it in `layer_paths` (archvow init sales --force --adopt proposes it), then archvow component add <type> <name> --file src/sales/p2_transformations/clean_orders.py",
    "file": "src/sales/p2_transformations/clean_orders.py",
    "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.steps is not declared and sits in no layer: map it in `layer_paths` (archvow init batch --force --adopt proposes it), then archvow component add <type> <name> --file src/sales/steps.py",
+   "file": "src/sales/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.steps is not declared and sits in no layer: map it in `layer_paths` (archvow init sales --force --adopt proposes it), then archvow component add <type> <name> --file src/sales/steps.py",
+   "file": "src/sales/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "sales.stray is not declared and sits in no layer: map it in `layer_paths` (archvow init sales --force --adopt proposes it), then archvow component add <type> <name> --file src/sales/stray.py",
+   "file": "src/sales/stray.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'find' is not declared in component 'bill_customer' (make it private with a leading underscore or declare it)",
+   "file": "src/shop/p3_services/bill_customer.py",
+   "line": 14
   },
   {
    "code": "ARCH002",
@@ -161,6 +252,216 @@
    "message": "'sneaky' is not declared in component 'spark' (make it private with a leading underscore or declare it)",
    "file": "src/sales/p0_common/spark.py",
    "line": 18
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x0' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 3
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x1' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 5
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x10' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 23
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x11' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 25
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x12' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 27
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x13' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 29
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x14' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 31
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x15' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 33
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x16' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 35
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x17' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 37
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x18' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 39
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x19' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 41
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x2' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 7
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x20' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 43
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x21' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 45
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x22' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 47
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x23' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 49
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x24' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 51
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x25' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 53
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x26' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 55
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x27' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 57
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x28' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 59
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x29' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 61
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x3' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 9
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x4' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 11
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x5' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 13
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x6' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 15
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x7' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 17
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x8' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 19
+  },
+  {
+   "code": "ARCH002",
+   "severity": "error",
+   "message": "'x9' defined in a package __init__; put it in a declared component",
+   "file": "src/demo/__init__.py",
+   "line": 21
   },
   {
    "code": "ARCH002",
@@ -201,8 +502,8 @@
    "code": "ARCH005",
    "severity": "error",
    "message": "layer 'p1_domain' may not import from 'p2_io' (allowed: p0_common)",
-   "file": "src/sales/p1_domain/clean_orders.py",
-   "line": 14
+   "file": "src/invoicing/p1_domain/invoice_model.py",
+   "line": 39
   },
   {
    "code": "ARCH005",
@@ -627,6 +928,13 @@
   {
    "code": "ARCH009",
    "severity": "error",
+   "message": "compliance names 'hipaa', a regime archvow cannot find or read: its questions and rules do not run - add the pack that holds it, fix its file, or take the name out (archvow init <package> --force -a rules=...)",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
    "message": "container 'acoss_pipeline': unknown template 'acme/acme-pyspark' (available: archvow/fastapi-service, archvow/langgraph-agent, archvow/pyspark-pipeline, archvow/python-app, archvow/python-base). A company template comes in a pack that lives in the project: archvow pack add <the folder of pack acme>, then commit .archvow/packs/",
    "file": ".archvow/project.vow",
    "line": 0
@@ -634,8 +942,85 @@
   {
    "code": "ARCH009",
    "severity": "error",
+   "message": "pack acme: <tmp>: ACME001: target '(' is not a valid regular expression (missing ), unterminated subpattern at position 0)",
+   "file": ".archvow/packs/acme/pack.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
    "message": "pack acme: <tmp>: ACME008: give its target (what the kind looks for)",
    "file": ".archvow/packs/acme/pack.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "pack acme: <tmp>: cannot be read (while parsing a flow sequence\n  in \"<unicode string>\", line 1, column 7\ndid not find expected ',' or ']'\n  in \"<unicode string>\", line 2, column 1)",
+   "file": ".archvow/packs/acme/pack.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "pack acme: <tmp>: skills '../escaped' leaves the project: give a folder inside it (.acme/skills)",
+   "file": ".archvow/packs/acme/pack.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "rules: ARCH030: severity 'Error' is none of error, warning, off - archvow ignores it",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "rules: ARCH030: severity 'disabled' is none of error, warning, off - archvow ignores it",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "rules: ARCH030: severity 'info' is none of error, warning, off - archvow ignores it",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "rules: ARCH030: severity 'none' is none of error, warning, off - archvow ignores it",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "rules: ARCH03O is no rule of this project - archvow ignores it",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "rules: STY001 is not a mapping ('off'): write STY001: {severity: off} - archvow ignores it",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "rules: STY001: severity 'eror' is none of error, warning, off - archvow ignores it",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "template acme/acme-pyspark: rules: ARCH001: severity 'info' is none of error, warning, off - archvow ignores it",
+   "file": ".archvow/packs/acme/templates/acme-pyspark/template.yaml",
    "line": 0
   },
   {
@@ -648,7 +1033,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.1.1: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -658,6 +1043,13 @@
    "message": "cannot be parsed: the file is not UTF-8 (byte 303) - save it as UTF-8",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
+  },
+  {
+   "code": "ARCH013",
+   "severity": "error",
+   "message": "syntax error: invalid syntax",
+   "file": "src/demo/__init__.py",
+   "line": 1
   },
   {
    "code": "ARCH013",
@@ -697,6 +1089,27 @@
   {
    "code": "ARCH015",
    "severity": "error",
+   "message": "build/steps.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
+   "file": "build/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH015",
+   "severity": "error",
+   "message": "dist/steps.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
+   "file": "dist/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH015",
+   "severity": "error",
+   "message": "env/steps.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
+   "file": "env/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH015",
+   "severity": "error",
    "message": "scripts/hack.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
    "file": "scripts/hack.py",
    "line": 0
@@ -706,6 +1119,13 @@
    "severity": "error",
    "message": "src/sales/__init__.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
    "file": "src/sales/__init__.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH015",
+   "severity": "error",
+   "message": "venv/steps.py is outside the architecture; move it into a component or list its folder in `allowed_paths` (architect review)",
+   "file": "venv/steps.py",
    "line": 0
   },
   {
@@ -739,6 +1159,20 @@
   {
    "code": "ARCH017",
    "severity": "error",
+   "message": "'bank_client' is implemented but has no integration test: tests/p2_io/test_bank_client.py",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but has no integration test: tests/p3_services/test_bill_customer.py",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
    "message": "'clean_orders' is implemented but has no unit test: tests/p1_domain/test_clean_orders.py",
    "file": ".archvow/project.vow",
    "line": 0
@@ -754,6 +1188,20 @@
    "code": "ARCH017",
    "severity": "error",
    "message": "'create_order' is implemented but has no integration test: tests/p3_services/test_create_order.py",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'customer_model' is implemented but has no unit test: tests/p1_domain/test_customer_model.py",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
+   "message": "'customers_repository' is implemented but has no integration test: tests/p2_io/test_customers_repository.py",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -823,6 +1271,13 @@
   {
    "code": "ARCH017",
    "severity": "error",
+   "message": "'shop_cli' is implemented but has no unit test: tests/p4_entrypoints/test_shop_cli.py",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH017",
+   "severity": "error",
    "message": "'user_repository' is implemented but has no integration test: tests/p2_io/test_user_repository.py",
    "file": ".archvow/project.vow",
    "line": 0
@@ -872,6 +1327,20 @@
   {
    "code": "ARCH018",
    "severity": "error",
+   "message": "no file header: copy it from its task (archvow prompt bank_client, section 'File header')",
+   "file": "src/shop/p2_io/bank_client.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "no file header: copy it from its task (archvow prompt bill_customer, section 'File header')",
+   "file": "src/shop/p3_services/bill_customer.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
    "message": "no file header: copy it from its task (archvow prompt clean_orders, section 'File header')",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 1
@@ -879,8 +1348,43 @@
   {
    "code": "ARCH018",
    "severity": "error",
+   "message": "no file header: copy it from its task (archvow prompt config, section 'File header')",
+   "file": "src/shop/p0_common/config.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "no file header: copy it from its task (archvow prompt customer_model, section 'File header')",
+   "file": "src/shop/p1_domain/customer_model.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "no file header: copy it from its task (archvow prompt customers_repository, section 'File header')",
+   "file": "src/shop/p2_io/customers_repository.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "no file header: copy it from its task (archvow prompt logging_setup, section 'File header')",
+   "file": "src/shop/p0_common/logging_setup.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
    "message": "no file header: copy it from its task (archvow prompt order_not_found_error, section 'File header')",
    "file": "src/api/p1_domain/order_not_found_error.py",
+   "line": 1
+  },
+  {
+   "code": "ARCH018",
+   "severity": "error",
+   "message": "no file header: copy it from its task (archvow prompt shop_cli, section 'File header')",
+   "file": "src/shop/p4_entrypoints/shop_cli.py",
    "line": 1
   },
   {
@@ -1040,6 +1544,13 @@
   {
    "code": "ARCH020",
    "severity": "error",
+   "message": "column clean_orders.email taken out of the spec, was personal",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
    "message": "column customers_schema.card_number no longer tagged financial",
    "file": ".archvow/project.vow",
    "line": 0
@@ -1125,6 +1636,41 @@
    "code": "ARCH020",
    "severity": "error",
    "message": "mode loosened from guided to free (the AI decides more on its own)",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "pack acme changed from 1.0.0 (aaaaaaaaaaaa) to 1.0.0 (cccccccccccc): its rules and templates may say less",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "pack beta removed (its rules, regimes and agent profiles no longer apply)",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "project rule R1 narrowed from clean_orders, keep_paid to clean_orders",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "project rule R1 removed ('Given an order, then its amount is never negative')",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "project rule R1 reworded from 'Given an order, then its amount is never negative' to 'Given an order, then its amount may be anything'",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -1250,6 +1796,62 @@
   {
    "code": "ARCH020",
    "severity": "error",
+   "message": "rule ARCH022: max_added_lines relaxed from 1000 to 9000",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule ARCH022: max_deleted_lines relaxed from 300 to 9000",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule ARCH022: max_files relaxed from 30 to 300",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule ARCH022: max_files relaxed from default to 1",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule ARCH030 lowered from error to info",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule ARCH030 lowered from error to none",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule ARCH030 lowered from error to off",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule ARCH030 lowered from error to warning",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
    "message": "rule SPK014 lowered from warning to off",
    "file": ".archvow/project.vow",
    "line": 0
@@ -1258,6 +1860,48 @@
    "code": "ARCH020",
    "severity": "warning",
    "message": "rule SPK014 lowered from warning to off (accepted)",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule STY001: max_lines relaxed from 100 to 250",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule STY001: max_lines relaxed from 250 to 900",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule STY004: max_percent relaxed from 30 to 90",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule STY004: min_code_lines relaxed from 20 to 100",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule TST003: max_kb relaxed from 200 to 9000",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule TST003: max_rows relaxed from 1000 to 1000000",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -1297,6 +1941,27 @@
    "line": 14
   },
   {
+   "code": "ARCH021",
+   "severity": "warning",
+   "message": "new suppression: import os  # noqa: F401",
+   "file": "src/sales/p1_domain/quiet.py",
+   "line": 2
+  },
+  {
+   "code": "ARCH022",
+   "severity": "error",
+   "message": "change too big to review: files 4 > 1. Split it into smaller merge requests (or the architects accept it)",
+   "file": ".",
+   "line": 0
+  },
+  {
+   "code": "ARCH023",
+   "severity": "error",
+   "message": "'legacy_billing' is not an approved dependency. An architect approves it: archvow init batch --force -a dependencies=legacy_billing",
+   "file": "src/batch/steps.py",
+   "line": 2
+  },
+  {
    "code": "ARCH023",
    "severity": "error",
    "message": "'legacy_billing' is not an approved dependency. An architect approves it: archvow init sales --force -a dependencies=legacy_billing",
@@ -1327,6 +1992,62 @@
   {
    "code": "ARCH024",
    "severity": "error",
+   "message": "'approvedless-a' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=approvedless-a",
+   "file": "pyproject.toml",
+   "line": 4
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'blackhole' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=blackhole",
+   "file": "requirements-dev.txt",
+   "line": 1
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'docs-f' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=docs-f",
+   "file": "pyproject.toml",
+   "line": 18
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'grouped-b' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=grouped-b",
+   "file": "pyproject.toml",
+   "line": 7
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'leftpad' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=leftpad",
+   "file": "requirements/base.txt",
+   "line": 1
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'leftpad-unapproved' is not an approved package: an architect approves it - archvow init demo --force -a dependencies=leftpad-unapproved",
+   "file": "requirements.txt",
+   "line": 10
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'linted-c' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=linted-c",
+   "file": "pyproject.toml",
+   "line": 8
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'old-dev-e' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=old-dev-e",
+   "file": "pyproject.toml",
+   "line": 15
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
    "message": "'pandas' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=pandas",
    "file": "requirements.txt",
    "line": 1
@@ -1334,9 +2055,37 @@
   {
    "code": "ARCH024",
    "severity": "error",
+   "message": "'pdm-h' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=pdm-h",
+   "file": "pyproject.toml",
+   "line": 24
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'poetry-d' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=poetry-d",
+   "file": "pyproject.toml",
+   "line": 12
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
    "message": "'requests' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=requests",
    "file": "requirements.txt",
    "line": 12
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'rightpad' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=rightpad",
+   "file": "requirements/extra.txt",
+   "line": 1
+  },
+  {
+   "code": "ARCH024",
+   "severity": "error",
+   "message": "'uv-g' is not an approved package: an architect approves it - archvow init sales --force -a dependencies=uv-g",
+   "file": "pyproject.toml",
+   "line": 21
   },
   {
    "code": "ARCH030",
@@ -1460,6 +2209,20 @@
   {
    "code": "ARCH033",
    "severity": "error",
+   "message": "'bank_client' is implemented but 3 decision(s) are still to make, e.g. 'How long does it wait for an answer before giving up (in seconds) - e.g. 10?' - the code made a silent choice -> archvow show bank_client, then archvow decision make bank_client <number> \"...\"",
+   "file": ".archvow/features/shop/components/bank_client.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but 4 decision(s) are still to make, e.g. 'What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?' - the code made a silent choice -> archvow show bill_customer, then archvow decision make bill_customer <number> \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
    "message": "'clean_orders' is implemented but 8 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
    "file": ".archvow/features/sales/components/clean_orders.vow",
    "line": 0
@@ -1488,6 +2251,27 @@
   {
    "code": "ARCH033",
    "severity": "error",
+   "message": "'config' is implemented but 2 decision(s) are still to make, e.g. 'Settings, name: type = default separated by commas (no default = required) - e.g. data_dir: str, log_level: str = \"INFO\" - or none?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
+   "file": ".archvow/features/shared/components/config.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'customer_model' is implemented but 4 decision(s) are still to make, e.g. 'Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?' - the code made a silent choice -> archvow show customer_model, then archvow decision make customer_model <number> \"...\"",
+   "file": ".archvow/features/shop/components/customer_model.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'customers_repository' is implemented but 4 decision(s) are still to make, e.g. 'Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?' - the code made a silent choice -> archvow show customers_repository, then archvow decision make customers_repository <number> \"...\"",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
    "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
    "file": ".archvow/features/sales/components/customers_schema.vow",
    "line": 0
@@ -1511,6 +2295,13 @@
    "severity": "error",
    "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
    "file": ".archvow/features/sales/components/enrich_orders.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?' - the code made a silent choice -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
+   "file": ".archvow/features/shared/components/logging_setup.vow",
    "line": 0
   },
   {
@@ -1546,6 +2337,13 @@
    "severity": "error",
    "message": "'orders_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show orders_schema, then archvow decision make orders_schema <number> \"...\"",
    "file": ".archvow/features/sales/components/orders_schema.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'shop_cli' is implemented but 3 decision(s) are still to make, e.g. 'Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?' - the code made a silent choice -> archvow show shop_cli, then archvow decision make shop_cli <number> \"...\"",
+   "file": ".archvow/features/shop/components/shop_cli.vow",
    "line": 0
   },
   {
@@ -1693,6 +2491,97 @@
    "severity": "warning",
    "message": "'assistant_graph': safety question S3 not answered (partial) - À moitié fait (un index à moitié écrit, une action à moitié faite) : qu'est-ce qui ne doit jamais arriver ? -> archvow show assistant_graph",
    "file": ".archvow/features/assistant/components/assistant_graph.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bank_client': safety question S1 not answered (missing) - Something missing (an input, a file, a setting, a dependency down): what must never happen? -> archvow show bank_client",
+   "file": ".archvow/features/shop/components/bank_client.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bank_client': safety question S2 not answered (wrong) - Wrong input (invalid values, out of range, a wrong format): what must never happen? -> archvow show bank_client",
+   "file": ".archvow/features/shop/components/bank_client.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bank_client': safety question S3 not answered (repeated) - Done twice (run twice, retried, the same input twice): what must never happen? -> archvow show bank_client",
+   "file": ".archvow/features/shop/components/bank_client.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_customer': safety question S1 not answered (missing) - Something missing (an input, a file, a setting, a dependency down): what must never happen? -> archvow show bill_customer",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_customer': safety question S2 not answered (repeated) - Done twice (run twice, retried, the same input twice): what must never happen? -> archvow show bill_customer",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_customer': safety question S3 not answered (partial) - Half done (a file half written, a change saved here and not there, a crash in the middle): what must never happen? -> archvow show bill_customer",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_customer': safety question S4 not answered (concurrent) - Two runs at the same time (two processes, two users): what must never happen? -> archvow show bill_customer",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_customer': safety question S5 not answered (exposed) - Data exposed (secrets or personal data in a log, an output, an error message): what must never happen? -> archvow show bill_customer",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_orders': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show bill_orders",
+   "file": ".archvow/features/billing/components/bill_orders.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_orders': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show bill_orders",
+   "file": ".archvow/features/billing/components/bill_orders.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_orders': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show bill_orders",
+   "file": ".archvow/features/billing/components/bill_orders.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_orders': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show bill_orders",
+   "file": ".archvow/features/billing/components/bill_orders.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'bill_orders': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show bill_orders",
+   "file": ".archvow/features/billing/components/bill_orders.vow",
    "line": 0
   },
   {
@@ -1992,6 +2881,41 @@
   {
    "code": "ARCH035",
    "severity": "warning",
+   "message": "'count_rows': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show count_rows",
+   "file": ".archvow/features/shared/components/count_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'count_rows': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show count_rows",
+   "file": ".archvow/features/shared/components/count_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'count_rows': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show count_rows",
+   "file": ".archvow/features/shared/components/count_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'count_rows': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show count_rows",
+   "file": ".archvow/features/shared/components/count_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'count_rows': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show count_rows",
+   "file": ".archvow/features/shared/components/count_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
    "message": "'create_order': safety question S1 not answered (missing) - A dependency down or slow, or the resource does not exist: what must never happen? -> archvow show create_order",
    "file": ".archvow/features/orders_api/components/create_order.vow",
    "line": 0
@@ -2062,6 +2986,20 @@
   {
    "code": "ARCH035",
    "severity": "warning",
+   "message": "'customer_model': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, a wrong format): what must never happen? -> archvow show customer_model",
+   "file": ".archvow/features/shop/components/customer_model.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customer_model': safety question S2 not answered (exposed) - Data exposed (secrets or personal data in a log, an output, an error message): what must never happen? -> archvow show customer_model",
+   "file": ".archvow/features/shop/components/customer_model.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
    "message": "'customers_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show customers_reader",
    "file": ".archvow/features/sales/components/customers_reader.vow",
    "line": 0
@@ -2099,6 +3037,48 @@
    "severity": "warning",
    "message": "'customers_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show customers_reader",
    "file": ".archvow/features/sales/components/customers_reader.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_repository': safety question S1 not answered (missing) - Something missing (an input, a file, a setting, a dependency down): what must never happen? -> archvow show customers_repository",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_repository': safety question S2 not answered (more) - Too much (duplicates, an unbounded list, a huge file): what must never happen? -> archvow show customers_repository",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_repository': safety question S3 not answered (partial) - Half done (a file half written, a change saved here and not there, a crash in the middle): what must never happen? -> archvow show customers_repository",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_repository': safety question S4 not answered (stale) - Old data used as current (a cache, an old file): what must never happen? -> archvow show customers_repository",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_repository': safety question S5 not answered (concurrent) - Two runs at the same time (two processes, two users): what must never happen? -> archvow show customers_repository",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'customers_repository': safety question S6 not answered (exposed) - Data exposed (secrets or personal data in a log, an output, an error message): what must never happen? -> archvow show customers_repository",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
    "line": 0
   },
   {
@@ -2372,6 +3352,41 @@
    "severity": "warning",
    "message": "'invoices_cli': safety question S2 not answered (exposed) - Données exposées (secrets ou données personnelles dans un journal, une sortie, un message d'erreur) : qu'est-ce qui ne doit jamais arriver ? -> archvow show invoices_cli",
    "file": ".archvow/features/invoicing/components/invoices_cli.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'keep_paid': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show keep_paid",
+   "file": ".archvow/features/sales/components/keep_paid.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'keep_paid': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show keep_paid",
+   "file": ".archvow/features/sales/components/keep_paid.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'keep_paid': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show keep_paid",
+   "file": ".archvow/features/sales/components/keep_paid.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'keep_paid': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show keep_paid",
+   "file": ".archvow/features/sales/components/keep_paid.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'keep_paid': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show keep_paid",
+   "file": ".archvow/features/sales/components/keep_paid.vow",
    "line": 0
   },
   {
@@ -3070,6 +4085,55 @@
   {
    "code": "ARCH035",
    "severity": "warning",
+   "message": "'shop_cli': safety question S1 not answered (wrong) - Wrong input (invalid values, out of range, a wrong format): what must never happen? -> archvow show shop_cli",
+   "file": ".archvow/features/shop/components/shop_cli.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'shop_cli': safety question S2 not answered (exposed) - Data exposed (secrets or personal data in a log, an output, an error message): what must never happen? -> archvow show shop_cli",
+   "file": ".archvow/features/shop/components/shop_cli.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'tidy_rows': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show tidy_rows",
+   "file": ".archvow/features/shared/components/tidy_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'tidy_rows': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show tidy_rows",
+   "file": ".archvow/features/shared/components/tidy_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'tidy_rows': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show tidy_rows",
+   "file": ".archvow/features/shared/components/tidy_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'tidy_rows': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show tidy_rows",
+   "file": ".archvow/features/shared/components/tidy_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'tidy_rows': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show tidy_rows",
+   "file": ".archvow/features/shared/components/tidy_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
    "message": "'totals_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show totals_writer",
    "file": ".archvow/features/sales/components/totals_writer.vow",
    "line": 0
@@ -3142,6 +4206,20 @@
    "severity": "warning",
    "message": "'vat_writer': safety question S3 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show vat_writer",
    "file": ".archvow/features/vat_report/components/vat_writer.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH036",
+   "severity": "error",
+   "message": "dismissal of no_such_component missing: no reason given",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH036",
+   "severity": "error",
+   "message": "dismissal of no_such_component missing: unknown component 'no_such_component'",
+   "file": ".archvow/project.vow",
    "line": 0
   },
   {
@@ -3432,6 +4510,13 @@
    "line": 0
   },
   {
+   "code": "ARCH043",
+   "severity": "warning",
+   "message": "the feature 'orders' was added by the AI (claude-code), not accepted by a person yet -> a person checks it (archvow show), then archvow feature accept orders (or feature remove orders)",
+   "file": ".archvow/features/orders/orders.vow",
+   "line": 0
+  },
+  {
    "code": "ARCH044",
    "severity": "warning",
    "message": "clean_orders: its task is about 1,215 tokens, over 500 - split it into smaller components, or give the AI one task at a time: archvow prompt clean_orders --task 1",
@@ -3574,6 +4659,20 @@
   {
    "code": "ARCH050",
    "severity": "error",
+   "message": ".archvow/.project.vow.k3j9x_2a.tmp: a write of archvow that was stopped left it (the file it wrote is whole) - delete it",
+   "file": ".archvow/.project.vow.k3j9x_2a.tmp",
+   "line": 0
+  },
+  {
+   "code": "ARCH050",
+   "severity": "error",
+   "message": ".archvow/.project.vow.saving: a save of archvow that was stopped left it - the next archvow command that changes the spec finishes the save or removes it; never commit it",
+   "file": ".archvow/.project.vow.saving",
+   "line": 0
+  },
+  {
+   "code": "ARCH050",
+   "severity": "error",
    "message": ".archvow/features/sales/ has no sales.vow: the feature lost its vow - restore it (git checkout -- .archvow/features/sales/sales.vow) or archvow feature add sales",
    "file": ".archvow/features/sales",
    "line": 0
@@ -3600,16 +4699,23 @@
    "line": 0
   },
   {
+   "code": "ARCH050",
+   "severity": "error",
+   "message": ".archvow/notes.txt: archvow does not write it, so CODEOWNERS gives it to nobody - move it out of .archvow/ (only archvow's own files live there)",
+   "file": ".archvow/notes.txt",
+   "line": 0
+  },
+  {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 647b41bb: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 4225ad6a: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit c3248cb2: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit c86badc2: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -3644,7 +4750,7 @@
   {
    "code": "ARCH055",
    "severity": "error",
-   "message": "example FATTRIB-012-negative-amount of clean_orders: the files in tests/examples/clean_orders/FATTRIB-012-negative-amount/ changed since noreply@anthropic.com recorded them -> put them back (git checkout -- tests/examples/clean_orders/FATTRIB-012-negative-amount), or a person checks them with the business team and runs archvow example add clean_orders FATTRIB-012-negative-amount",
+   "message": "example FATTRIB-012-negative-amount of clean_orders: the files in tests/examples/clean_orders/FATTRIB-012-negative-amount/ changed since root recorded them -> put them back (git checkout -- tests/examples/clean_orders/FATTRIB-012-negative-amount), or a person checks them with the business team and runs archvow example add clean_orders FATTRIB-012-negative-amount",
    "file": ".archvow/features/sales/components/clean_orders.vow",
    "line": 0
   },
@@ -3721,7 +4827,21 @@
   {
    "code": "ARCH060",
    "severity": "error",
+   "message": "pack acme: copied into .archvow/packs/ but not recorded in project.vow (not added with `archvow pack add`) - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
+   "file": ".archvow/packs/acme",
+   "line": 0
+  },
+  {
+   "code": "ARCH060",
+   "severity": "error",
    "message": "pack acme: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
+   "file": ".archvow/packs/acme",
+   "line": 0
+  },
+  {
+   "code": "ARCH060",
+   "severity": "error",
+   "message": "pack acme: recorded in project.vow, but its copy .archvow/packs/acme/ is missing - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
    "file": ".archvow/packs/acme",
    "line": 0
   },
@@ -3733,10 +4853,59 @@
    "line": 0
   },
   {
+   "code": "ARCH061",
+   "severity": "error",
+   "message": "features in a loop: billing -> orders -> billing (bill_orders uses clean_orders) - keep one direction: move what both need to shared (archvow component move clean_orders shared), or merge the two features",
+   "file": ".archvow/features/billing/components/bill_orders.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH062",
+   "severity": "error",
+   "message": "'tidy_rows' (shared) uses 'clean_orders' of the feature orders: only an entry point of shared (the app, a job - nothing uses it) plugs the features in -> archvow component move tidy_rows orders",
+   "file": ".archvow/features/shared/components/tidy_rows.vow",
+   "line": 0
+  },
+  {
+   "code": "DORA001",
+   "severity": "error",
+   "message": "'bank_client' has no ticket -> archvow component edit bank_client -s <ticket>",
+   "file": ".archvow/features/shop/components/bank_client.vow",
+   "line": 0
+  },
+  {
+   "code": "DORA001",
+   "severity": "error",
+   "message": "'bill_customer' has no ticket -> archvow component edit bill_customer -s <ticket>",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
    "code": "DORA001",
    "severity": "error",
    "message": "'clean_orders' has no ticket -> archvow component edit clean_orders -s <ticket>",
    "file": ".archvow/features/sales/components/clean_orders.vow",
+   "line": 0
+  },
+  {
+   "code": "DORA001",
+   "severity": "error",
+   "message": "'customer_model' has no ticket -> archvow component edit customer_model -s <ticket>",
+   "file": ".archvow/features/shop/components/customer_model.vow",
+   "line": 0
+  },
+  {
+   "code": "DORA001",
+   "severity": "error",
+   "message": "'customers_repository' has no ticket -> archvow component edit customers_repository -s <ticket>",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "DORA001",
+   "severity": "error",
+   "message": "'shop_cli' has no ticket -> archvow component edit shop_cli -s <ticket>",
+   "file": ".archvow/features/shop/components/shop_cli.vow",
    "line": 0
   },
   {
@@ -3773,6 +4942,20 @@
    "message": "test_unique tests an invariant and can be skipped (pytest.mark.skip(reason='slow')) - it must always run",
    "file": "tests/p1_domain/test_clean_orders.py",
    "line": 8
+  },
+  {
+   "code": "DORA005",
+   "severity": "error",
+   "message": "'shop_cli' is implemented but O1 (DORA) is not answered: Failure detection: how is a failure or a late run noticed (exit code, health check, alert), and who is alerted - e.g. the health check fails -> the on-call team is alerted? -> archvow decision make shop_cli O1 \"...\"",
+   "file": ".archvow/features/shop/components/shop_cli.vow",
+   "line": 0
+  },
+  {
+   "code": "DORA005",
+   "severity": "error",
+   "message": "'shop_cli' is implemented but O2 (DORA) is not answered: Recovery: how is it restored or run again after a failure, how long may it be down at most (RTO), and how much recent data may be lost at most (RPO) - e.g. 4 hours, the last day? -> archvow decision make shop_cli O2 \"...\"",
+   "file": ".archvow/features/shop/components/shop_cli.vow",
+   "line": 0
   },
   {
    "code": "DORA006",
@@ -3824,6 +5007,34 @@
    "line": 17
   },
   {
+   "code": "GDPR002",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but P1 (GDPR) is not answered: Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. to bill customers for their orders, for the finance team? -> archvow decision make bill_customer P1 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR002",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but P2 (GDPR) is not answered: Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing? -> archvow decision make bill_customer P2 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR002",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but P3 (GDPR) is not answered: Special categories (GDPR art. 9): which condition allows processing them (explicit consent, employment or social security law, health care...) - e.g. explicit consent for health data? -> archvow decision make bill_customer P3 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR003",
+   "severity": "error",
+   "message": "'customers_repository' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make customers_repository P1 \"...\"",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
    "code": "GDPR003",
    "severity": "error",
    "message": "'customers_writer' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make customers_writer P1 \"...\"",
@@ -3835,6 +5046,20 @@
    "severity": "error",
    "message": "'orders_clean_writer' is implemented but P1 (GDPR) is not answered: Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id? -> archvow decision make orders_clean_writer P1 \"...\"",
    "file": ".archvow/features/sales/components/orders_clean_writer.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR008",
+   "severity": "error",
+   "message": "'bank_client' is implemented but P1 (GDPR) is not answered: Recipient: which third party receives the personal data, where (country or region), and under which contract (art. 28) and safeguard (art. 46) - e.g. a payment provider in the EU, under its data processing agreement? -> archvow decision make bank_client P1 \"...\"",
+   "file": ".archvow/features/shop/components/bank_client.vow",
+   "line": 0
+  },
+  {
+   "code": "GDPR008",
+   "severity": "error",
+   "message": "'customers_repository' is implemented but P2 (GDPR) is not answered: Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3? -> archvow decision make customers_repository P2 \"...\"",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
    "line": 0
   },
   {
@@ -3852,10 +5077,38 @@
    "line": 0
   },
   {
+   "code": "GLBA001",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but G1 (GLBA) is not answered: Privacy notice and opt-out: is this nonpublic personal information shared with nonaffiliated third parties outside the Privacy Rule's exceptions (service providers, processing the customer's transaction, legal duties) - if so, where is the customer told and how does their opt-out reach this component first - e.g. not shared outside the exceptions? -> archvow decision make bill_customer G1 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "GLBA002",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but G2 (GLBA) is not answered: Access: who may read this information (people and services), how is access limited to those who need it, and do people sign in with multi-factor authentication - e.g. the payments service account and the fraud team only, through access policy AP-4; MFA for every person? -> archvow decision make bill_customer G2 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "GLBA003",
+   "severity": "error",
+   "message": "'customers_repository' is implemented but G1 (GLBA) is not answered: Encryption: how is it encrypted at rest and in transit - or which compensating control the qualified individual (your CISO) approved in writing - e.g. AES-256 storage encryption with keys in the KMS; TLS 1.2 or later for every connection? -> archvow decision make customers_repository G1 \"...\"",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
    "code": "GLBA003",
    "severity": "error",
    "message": "'customers_writer' is implemented but G1 (GLBA) is not answered: Encryption: how is it encrypted at rest and in transit - or which compensating control the qualified individual (your CISO) approved in writing - e.g. AES-256 storage encryption with keys in the KMS; TLS 1.2 or later for every connection? -> archvow decision make customers_writer G1 \"...\"",
    "file": ".archvow/features/sales/components/customers_writer.vow",
+   "line": 0
+  },
+  {
+   "code": "GLBA004",
+   "severity": "error",
+   "message": "'customers_repository' is implemented but G2 (GLBA) is not answered: Disposal: how is it securely disposed of no later than two years after it was last used to serve the customer, unless a law or a documented business need requires keeping it - e.g. deleted two years after the account closes, except what the 5-year record-keeping law requires? -> archvow decision make customers_repository G2 \"...\"",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
    "line": 0
   },
   {
@@ -3868,8 +5121,22 @@
   {
    "code": "GLBA005",
    "severity": "error",
+   "message": "'customers_repository' is implemented but G3 (GLBA) is not answered: Incidents: how is unauthorized access to it detected, and who tells the regulator in time - a bank's primary federal regulator within 36 hours of a notification incident; for another financial institution, the FTC within 30 days of an event involving 500 or more consumers - e.g. access alerts to the security team; incident plan IR-2 names who notifies? -> archvow decision make customers_repository G3 \"...\"",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "GLBA005",
+   "severity": "error",
    "message": "'customers_writer' is implemented but G3 (GLBA) is not answered: Incidents: how is unauthorized access to it detected, and who tells the regulator in time - a bank's primary federal regulator within 36 hours of a notification incident; for another financial institution, the FTC within 30 days of an event involving 500 or more consumers - e.g. access alerts to the security team; incident plan IR-2 names who notifies? -> archvow decision make customers_writer G3 \"...\"",
    "file": ".archvow/features/sales/components/customers_writer.vow",
+   "line": 0
+  },
+  {
+   "code": "GLBA006",
+   "severity": "error",
+   "message": "'bank_client' is implemented but G1 (GLBA) is not answered: Service provider: which provider receives it, was it chosen able to protect it, does its contract require the safeguards, and how often is it assessed - e.g. the card processor, contract with a security clause, assessed every year (in the DORA third-party register when DORA is on)? -> archvow decision make bank_client G1 \"...\"",
+   "file": ".archvow/features/shop/components/bank_client.vow",
    "line": 0
   },
   {
@@ -3910,6 +5177,13 @@
   {
    "code": "PRIV002",
    "severity": "error",
+   "message": ".show() prints rows of personal data (email, phone); remove it (count or check in a test instead)",
+   "file": "code.py",
+   "line": 8
+  },
+  {
+   "code": "PRIV002",
+   "severity": "error",
    "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, email, phone)",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 20
@@ -3920,6 +5194,34 @@
    "message": "personal data collected and printed or logged; log counts, never rows (diagnosis, phone)",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 20
+  },
+  {
+   "code": "PRIV002",
+   "severity": "error",
+   "message": "the personal field 'email' logged; log an id or a count, never the value",
+   "file": "code.py",
+   "line": 5
+  },
+  {
+   "code": "PRIV002",
+   "severity": "error",
+   "message": "the personal field 'phone' logged; log an id or a count, never the value",
+   "file": "code.py",
+   "line": 5
+  },
+  {
+   "code": "PRIV003",
+   "severity": "error",
+   "message": "'bank_client' writes special (sensitive) data (diagnosis) that no step pseudonymises -> archvow hazard add bank_client exposed critical \"special data is written in clear\", then archvow invariant add bank_client \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "PRIV003",
+   "severity": "error",
+   "message": "'customers_repository' writes special (sensitive) data (diagnosis) that no step pseudonymises -> archvow hazard add customers_repository exposed critical \"special data is written in clear\", then archvow invariant add customers_repository \"diagnosis are pseudonymised or encrypted before the write\" (or archvow column set <step> diagnosis --pseudonymises)",
+   "file": ".archvow/project.vow",
+   "line": 0
   },
   {
    "code": "PRIV003",
@@ -3941,6 +5243,34 @@
    "message": "partitionBy('email'): personal values become folder names; partition by a non-personal column",
    "file": "src/sales/p2_io/orders_clean_writer.py",
    "line": 22
+  },
+  {
+   "code": "PRIV005",
+   "severity": "error",
+   "message": "'/customers/{email}': email is personal data in the URL (access logs keep it); use an id, or send it in the body",
+   "file": "src/shop/p3_services/bill_customer.py",
+   "line": 13
+  },
+  {
+   "code": "PRIV006",
+   "severity": "warning",
+   "message": "column 'diagnosis' is classified in the spec of customer_model but not defined in its code (renamed?)",
+   "file": "src/shop/p1_domain/customer_model.py",
+   "line": 0
+  },
+  {
+   "code": "PRIV006",
+   "severity": "warning",
+   "message": "column 'email' is classified in the spec of customer_model but not defined in its code (renamed?)",
+   "file": "src/shop/p1_domain/customer_model.py",
+   "line": 0
+  },
+  {
+   "code": "PRIV006",
+   "severity": "warning",
+   "message": "column 'iban' is classified in the spec of customer_model but not defined in its code (renamed?)",
+   "file": "src/shop/p1_domain/customer_model.py",
+   "line": 0
   },
   {
    "code": "PRIV006",
@@ -4004,6 +5334,27 @@
    "message": "Row is not a type: use `from pyspark.sql import Row`",
    "file": "src/sales/p1_domain/labels.py",
    "line": 20
+  },
+  {
+   "code": "STY001",
+   "severity": "warning",
+   "message": "267 lines (max 250); split the module",
+   "file": "src/sales/p1_domain/long_steps.py",
+   "line": 1
+  },
+  {
+   "code": "STY002",
+   "severity": "warning",
+   "message": "'steps' is 262 lines (max 70, docstring and signature not counted)",
+   "file": "src/sales/p1_domain/long_steps.py",
+   "line": 4
+  },
+  {
+   "code": "STY004",
+   "severity": "warning",
+   "message": "30 comment lines for 31 lines of code (max 30%); rename, extract a function or move the explanation into the docstring",
+   "file": "src/demo/__init__.py",
+   "line": 1
   },
   {
    "code": "TST001",
@@ -4104,6 +5455,48 @@
    "line": 0
   },
   {
+   "code": "USP001",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but U1 (US-PRIVACY) is not answered: Notice at collection: which categories of personal information does it use, for which purposes, and where is the consumer told before or when they are collected - e.g. contact details and order history, to fulfil orders; the privacy notice linked from the sign-up form? -> archvow decision make bill_customer U1 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "USP002",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but U2 (US-PRIVACY) is not answered: Sale, sharing and profiling: is any of this personal information sold, shared for targeted (cross-context behavioural) advertising, or used for profiling with legal or similar effects - and if so, how does a consumer's opt-out, including a Global Privacy Control signal, reach this component before it acts - e.g. none of it is sold, shared or profiled? -> archvow decision make bill_customer U2 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "USP003",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but U3 (US-PRIVACY) is not answered: Sensitive personal information (the special columns: health, biometrics, precise location, racial or ethnic origin, religion, sexual orientation, government ids, account credentials...): for which purpose only, where is the consumer's opt-in consent recorded before processing, and how is a request to limit its use honoured - it is never sold - e.g. explicit consent at sign-up, stored with its date; used only to provide the service? -> archvow decision make bill_customer U3 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "USP004",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but U4 (US-PRIVACY) is not answered: Minors: how does it know a consumer is under 18, how is it ensured their data is never sold nor used for targeted advertising, and where is a parent's verifiable consent recorded for a child under 13 (COPPA) - e.g. age asked at sign-up; under-18 accounts excluded from every ad audience; no account under 13? -> archvow decision make bill_customer U4 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "USP005",
+   "severity": "error",
+   "message": "'bill_customer' is implemented but U5 (US-PRIVACY) is not answered: High-risk processing: does it sell or share personal information, process sensitive data, profile, train an automated decision technology, or make or substantially support significant decisions (credit, employment, housing, education, health care) - if so, where is the risk assessment done before processing, and for an automated significant decision the notice before use and the way to opt out or appeal - e.g. none of these; or assessment RA-12 of 2026-03, decision reviewed by a person on appeal? -> archvow decision make bill_customer U5 \"...\"",
+   "file": ".archvow/features/shop/components/bill_customer.vow",
+   "line": 0
+  },
+  {
+   "code": "USP006",
+   "severity": "error",
+   "message": "'customers_repository' is implemented but U1 (US-PRIVACY) is not answered: Consumer requests: how does a request to access, delete, correct or port one consumer's data reach what it stores, and within what time (45 days in most states) - e.g. the privacy request job finds and deletes rows by consumer id within 30 days? -> archvow decision make customers_repository U1 \"...\"",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
    "code": "USP006",
    "severity": "error",
    "message": "'customers_writer' is implemented but U1 (US-PRIVACY) is not answered: Consumer requests: how does a request to access, delete, correct or port one consumer's data reach what it stores, and within what time (45 days in most states) - e.g. the privacy request job finds and deletes rows by consumer id within 30 days? -> archvow decision make customers_writer U1 \"...\"",
@@ -4113,8 +5506,22 @@
   {
    "code": "USP007",
    "severity": "error",
+   "message": "'customers_repository' is implemented but U2 (US-PRIVACY) is not answered: Retention: how long is each category of personal information it stores kept, and how is it deleted then - e.g. order history 3 years after the account closes, then deleted? -> archvow decision make customers_repository U2 \"...\"",
+   "file": ".archvow/features/shop/components/customers_repository.vow",
+   "line": 0
+  },
+  {
+   "code": "USP007",
+   "severity": "error",
    "message": "'customers_writer' is implemented but U2 (US-PRIVACY) is not answered: Retention: how long is each category of personal information it stores kept, and how is it deleted then - e.g. order history 3 years after the account closes, then deleted? -> archvow decision make customers_writer U2 \"...\"",
    "file": ".archvow/features/sales/components/customers_writer.vow",
+   "line": 0
+  },
+  {
+   "code": "USP008",
+   "severity": "error",
+   "message": "'bank_client' is implemented but U1 (US-PRIVACY) is not answered: Recipient: which third party receives the personal information, is it a service provider or contractor under a written contract that limits its use (else it is a sale or sharing), and is a consumer's opt-out checked before sending - e.g. a payment processor, as a service provider under contract; nothing sent for advertising? -> archvow decision make bank_client U1 \"...\"",
+   "file": ".archvow/features/shop/components/bank_client.vow",
    "line": 0
   }
  ]

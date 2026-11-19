@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.26.0 - 2026-11-18
+
+Built on archvow 2.6.0 (contract 2.4; 0.25 was built on 2.1.1, contract 2.1). Both IDEs follow what archvow
+changed from 2.2 to 2.6.
+
+- **archvow 2.6.0 is the archvow both IDEs install and are tested with** (`contract/`, regenerated from it): an
+  installed archvow of contract 2.1 to 2.3 is said to be older (update archvow); 2.4 and later minors are
+  accepted. The grammar knows `feature accept`; every check message archvow 2.6.0's own tests print (789, 100
+  codes; were 587 and 81) has its guidance, in English and in French.
+- **A feature an AI agent added waits for a person** (archvow 2.5's `feature accept`): its page says who added it
+  and that ARCH043 reports it until a person accepts it, with **Accept…**; the `feature accept` form lists only
+  the features an agent added, each with who added it ("No feature waits" when none does).
+- **Packs: where each came from, in words** (archvow 2.6 records a pack folder by its path from the project's
+  root): "a folder, from the project's root", "an installed package", or "an absolute path: true on this machine
+  only" for one an earlier archvow recorded, which **Update** rewrites. The `pack add` form says what is recorded.
+
+Tested: 166 of 168 VS Code tests pass with archvow 2.6.0 run live and the .vsix built (the 2 others need the
+IntelliJ zip). IntelliJ: the 59 plain regressions of WorkspaceTests that do not need the IntelliJ Platform pass
+(3 do), and its Java code compiles without it; run `./gradlew check buildPlugin` before publishing.
+
 ## 0.25.3 - 2026-11-16
 
 Built on archvow 2.1.1 (contract 2.1). IntelliJ only (see intellij/CHANGELOG.md): the JetBrains Marketplace

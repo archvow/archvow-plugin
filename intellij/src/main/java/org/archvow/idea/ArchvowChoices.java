@@ -270,6 +270,16 @@ final class ArchvowChoices {
                         choices.add(item(id, str(c, "type"), fill));
                     }
                     field = select(choices, tr(fr, "No component yet: add one with component add.", "Aucun composant : en ajouter un avec component add."));
+                } else if ("feature".equals(p) && "feature accept".equals(name)) {
+                    // contract 2.3: only a feature an AI agent added (origin ai) waits for a person to accept it
+                    List<Choice> choices = new ArrayList<>();
+                    for (JsonObject f : features) if ("ai".equals(str(f, "origin"))) {
+                        String by = str(f, "created_by");
+                        choices.add(item(str(f, "name"), str(f, "description") + tr(fr, " (added by " + (by.isEmpty() ? "an AI agent" : by) + ")",
+                            " (ajoutée par " + (by.isEmpty() ? "un agent IA" : by) + ")"), null));
+                    }
+                    field = select(choices, tr(fr, "No feature waits: no AI agent added one, or a person accepted each.",
+                        "Aucune fonctionnalité n'attend : aucun agent IA n'en a ajouté, ou une personne a accepté chacune."));
                 } else if ("feature".equals(p)) {
                     // contract 2.0: the project's features; shared is never renamed nor removed
                     boolean own = "feature rename".equals(name) || "feature remove".equals(name);

@@ -33,8 +33,8 @@
 
     <h3>Get started</h3>
     <ol>
-      <li><b>Install the ArchVow CLI 2.1.1</b> in your project's Python 3.11+ environment, from your package index or a
-          wheel: <code>python -m pip install archvow==2.1.1</code>. The plugin can show and run that command for you -
+      <li><b>Install the ArchVow CLI 2.6.0</b> in your project's Python 3.11+ environment, from your package index or a
+          wheel: <code>python -m pip install archvow==2.6.0</code>. The plugin can show and run that command for you -
           only after <b>Confirm and run</b>.</li>
       <li><b>Not sure yet?</b> Open the <b>Archvow</b> tool window and use <b>Try it</b>: ArchVow copies a finished
           example to a scratch folder, makes a change an AI often makes - a module nobody decided on, a shortcut
@@ -91,7 +91,7 @@
        (<code>~/.local/bin</code>, <code>/opt/homebrew/bin</code>, <code>/usr/local/bin</code>). On Windows, a Python in
        WSL works. <b>Test</b> in the settings shows which one answered, or what each said.</p>
 
-    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; the ArchVow CLI 2.1.1 (contract 2.1) in Python 3.11+.
+    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; the ArchVow CLI 2.6.0 (contract 2.4) in Python 3.11+.
        <b>Languages:</b> English (default) and French. The same workspace exists for VS Code.</p>
   ]]></description>
 

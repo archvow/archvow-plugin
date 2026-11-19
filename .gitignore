@@ -13,3 +13,5 @@ vscode/out/
 *.vsix
 __pycache__/
 jetbrains*
+patches
+certs

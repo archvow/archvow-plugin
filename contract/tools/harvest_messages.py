@@ -66,7 +66,7 @@ def main() -> None:
     raw = Path(tempfile.mkstemp(suffix=".jsonl")[1])
     try:
         env = {**os.environ, "ARCHVOW_PLUGIN_HARVEST": str(raw)}
-        run = subprocess.run([args.python, "-m", "pytest", "-q", "-p", "no:cacheprovider", "-x"], cwd=args.source, env=env)
+        run = subprocess.run([args.python, "-m", "pytest", "-q", "-p", "no:cacheprovider", "-x", *(["-n", os.environ["HARVEST_WORKERS"]] if os.environ.get("HARVEST_WORKERS") else [])], cwd=args.source, env=env)
         if run.returncode != 0:
             sys.exit("archvow's tests failed: the messages would be incomplete")
     finally:
