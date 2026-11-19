@@ -30,8 +30,8 @@ fi
 
 if [[ "$what" == sign ]]; then
   export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
-  key_file="${JETBRAINS_PRIVATE_KEY_FILE:-jetbrains_private_key_secret.pem}"
-  chain_file="${JETBRAINS_CERTIFICATE_CHAIN_FILE:-jetbrains_certificate_chain_secret.crt}"
+  key_file="${JETBRAINS_PRIVATE_KEY_FILE:-certs/jetbrains_private_key_secret.pem}"
+  chain_file="${JETBRAINS_CERTIFICATE_CHAIN_FILE:-certs/jetbrains_certificate_chain_secret.crt}"
   for f in "$key_file" "$chain_file"; do
     if [[ ! -f "$f" ]]; then
       echo "error: $f not found (set JETBRAINS_PRIVATE_KEY_FILE / JETBRAINS_CERTIFICATE_CHAIN_FILE)" >&2
