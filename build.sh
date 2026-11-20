@@ -29,7 +29,13 @@ if [[ "$what" == all || "$what" == vscode ]]; then
 fi
 
 if [[ "$what" == sign ]]; then
-  export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+  # A JDK of the person's own (JAVA_HOME), else Homebrew's on a Mac, else what PATH gives (0.26.1: it was always
+  # Homebrew's, which no Linux or Windows machine has)
+  if [[ -z "${JAVA_HOME:-}" && -d /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ]]; then
+    export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+  elif [[ -z "${JAVA_HOME:-}" && -d /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home ]]; then
+    export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+  fi
   key_file="${JETBRAINS_PRIVATE_KEY_FILE:-certs/jetbrains_private_key_secret.pem}"
   chain_file="${JETBRAINS_CERTIFICATE_CHAIN_FILE:-certs/jetbrains_certificate_chain_secret.crt}"
   for f in "$key_file" "$chain_file"; do

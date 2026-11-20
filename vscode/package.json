@@ -4,7 +4,7 @@
   "description": "Spec-driven development with AI: manage architecture specs, decisions and checks, prepare AI coding prompts, and review changes with ArchVow.",
   "version": "0.26.0",
   "publisher": "archvow",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "private": true,
   "icon": "media/archvow.png",
   "engines": {
