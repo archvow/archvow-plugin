@@ -42,7 +42,7 @@ English by default, French as a setting. Every change runs an archvow command, a
 ## Build and test
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.26.0.zip, dist/archvow-0.26.0.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-0.26.1.zip, dist/archvow-0.26.1.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -60,7 +60,7 @@ When archvow changes, the contract is recorded again from its wheel: [contract/R
 ## Continuous integration and publishing
 
 GitHub Actions (`.github/workflows/ci.yml`) runs both plugins' tests, regenerates the contract with the
-archvow kept in `contract/archvow/` (the 2.6.0 wheel, its examples and rules) and requires it unchanged,
+archvow kept in `contract/archvow/` (the 2.6.1 wheel, its examples and rules) and requires it unchanged,
 runs the VS Code tests against that archvow, then opens the built `.vsix` and `.zip` as the IDEs do. The
 page [Tests](wiki/en/13-tests.md) says what each job checks.
 
@@ -107,14 +107,14 @@ both together.
 - **No outside source at run time.** Neither plugin downloads anything on its own, runs no AI model and sends
   nothing anywhere; for a team, the `.zip` and the `.vsix` go to an internal plugin repository (JetBrains
   `updatePlugins.xml`, a self-hosted Open VSX) or a share. When archvow is missing or does not speak the
-  contract, **Install archvow 2.6.0** shows the pip command (into the project's venv, from pip's own
+  contract, **Install archvow 2.6.1** shows the pip command (into the project's venv, from pip's own
   configuration, your company's index or a wheel: the setting *Install archvow from*) and runs it only after
   **Confirm and run** - never at startup.
 
 ## Versions
 
-Both plugins have the same version (0.26.0), their own, not archvow's. They read `.vow` format 1, speak
+Both plugins have the same version (0.26.1), their own, not archvow's. They read `.vow` format 1, speak
 archvow's contract 2.4 (`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI
-2.6.0 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
+2.6.1 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
 installed archvow does not speak that contract (archvow keeps no backward compatibility). What changed:
 [VS Code](vscode/CHANGELOG.md), [IntelliJ](intellij/CHANGELOG.md).
