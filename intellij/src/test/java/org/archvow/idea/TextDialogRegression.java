@@ -22,10 +22,10 @@ public final class TextDialogRegression {
     }
 
     public static void main(String[] args) {
-        List<String> argv = List.of("/Library/Frameworks/Python.framework/Versions/3.12/bin/python3", "-m", "archvow",
+        List<String> argv = List.of("/Library/Frameworks/Python.framework/Versions/3.12/bin/python3", "-P", "-m", "archvow",
             "--root", "/Users/marc/PycharmProjects/acoss pipeline2", "--version");
         String command = ArchvowTextDialog.commandLine(argv);
-        check(command.equals("/Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -m archvow --root "
+        check(command.equals("/Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -P -m archvow --root "
             + "\"/Users/marc/PycharmProjects/acoss pipeline2\" --version"), command);
         check(ArchvowTextDialog.commandLine(List.of("wsl.exe", "--exec", "C:\\x y")).equals("wsl.exe --exec \"C:\\\\x y\""),
             ArchvowTextDialog.commandLine(List.of("wsl.exe", "--exec", "C:\\x y")));

@@ -138,7 +138,7 @@ final class ArchvowProcessCommand {
                 throw new IllegalArgumentException("WSL cannot reach the project folder / WSL n'atteint pas le dossier du projet : " + root);
             ArrayList<String> inner = new ArrayList<>();
             inner.add(wsl.path());
-            if (pythonMode) { inner.add("-m"); inner.add("archvow"); }
+            if (pythonMode) { inner.add("-P"); inner.add("-m"); inner.add("archvow"); }
             if (linuxRoot != null) { inner.add("--root"); inner.add(linuxRoot); }
             for (String argument : arguments) inner.add(ArchvowWsl.argument(argument));
             return List.copyOf(ArchvowWsl.command(wsl.distro(), linuxRoot, inner));
@@ -147,6 +147,9 @@ final class ArchvowProcessCommand {
         ArrayList<String> argv = new ArrayList<>();
         argv.add(program);
         if (pythonMode) {
+            // -P (Python 3.11+, as archvow needs; 0.26.1): the project folder, where archvow runs, is not put first on
+            // sys.path - a folder or file named archvow in the project can never run in archvow's place
+            argv.add("-P");
             argv.add("-m");
             argv.add("archvow");
         }

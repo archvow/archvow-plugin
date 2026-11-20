@@ -1,5 +1,6 @@
 // The CLI runner, with a fake archvow: stdout and stderr apart, one command at a time, the time-out.
 import * as assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -29,7 +30,7 @@ const settings = (executable: string, timeoutSeconds = 30) => () => ({ executabl
 test('the command line: archvow, or <python> -m archvow', () => {
   assert.deepEqual(commandLine({ executable: 'archvow', python: '', timeoutSeconds: 1 }, ['next']), { program: 'archvow', args: ['next'] });
   assert.deepEqual(commandLine({ executable: 'archvow', python: ' /venv/bin/python3 ', timeoutSeconds: 1 }, ['next']),
-    { program: '/venv/bin/python3', args: ['-m', 'archvow', 'next'] });
+    { program: '/venv/bin/python3', args: ['-P', '-m', 'archvow', 'next'] });
   assert.equal(display(['decision', 'make', 'c', '1', 'Keep the rows']), 'archvow decision make c 1 "Keep the rows"');
 });
 
@@ -83,12 +84,12 @@ test('archvow in WSL, VS Code on Windows: wsl.exe with Linux paths, no shell (0.
   const settings = { executable: 'archvow', python: '\\\\wsl.localhost\\Ubuntu\\home\\marc\\.venv\\bin\\python3', timeoutSeconds: 1 };
   assert.deepEqual(commandLine(settings, ['check', '--json'], '\\\\wsl.localhost\\Ubuntu\\home\\marc\\acoss_pipeline2', true), {
     program: 'wsl.exe',
-    args: ['-d', 'Ubuntu', '--cd', '/home/marc/acoss_pipeline2', '--exec', '/home/marc/.venv/bin/python3', '-m', 'archvow', 'check', '--json'] });
+    args: ['-d', 'Ubuntu', '--cd', '/home/marc/acoss_pipeline2', '--exec', '/home/marc/.venv/bin/python3', '-P', '-m', 'archvow', 'check', '--json'] });
   assert.deepEqual(commandLine({ ...settings, python: '/home/marc/.venv/bin/python3' }, ['next'], 'C:\\work\\p', true).args,
-    ['--cd', '/mnt/c/work/p', '--exec', '/home/marc/.venv/bin/python3', '-m', 'archvow', 'next'], 'a Linux path: the default distribution');
+    ['--cd', '/mnt/c/work/p', '--exec', '/home/marc/.venv/bin/python3', '-P', '-m', 'archvow', 'next'], 'a Linux path: the default distribution');
   assert.deepEqual(commandLine(settings, ['catalog', '--json'], null, true).args.slice(0, 4), ['-d', 'Ubuntu', '--cd', '~']);
   assert.deepEqual(commandLine({ ...settings, python: '/venv/bin/python3' }, ['next'], '/work/p', false),
-    { program: '/venv/bin/python3', args: ['-m', 'archvow', 'next'] }, 'Linux / macOS: unchanged');
+    { program: '/venv/bin/python3', args: ['-P', '-m', 'archvow', 'next'] }, 'Linux / macOS: unchanged');
   assert.equal(wslenv('PATH/l'), 'PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG');
 });
 
@@ -178,4 +179,20 @@ process.exitCode = 2;
   assert.deepEqual(result.log, ['archvow 10:00:00.001 info    start show <value> --json (info)']);
   assert.equal(result.error?.message, 'no spec');
   await assert.rejects(cli.json(['show', 'x', '--json']), /show x --json failed \(exit 2\): no spec/);
+});
+
+test('a folder named archvow in the project never runs in archvow\'s place (-P, 0.26.1)', (t) => {
+  // review of 0.26.0: `<python> -m archvow`, run in the project folder, put that folder first on sys.path - a
+  // repository holding archvow/__main__.py ran its own code each time the extension called archvow
+  const python = ['python3', 'python'].find((p) => spawnSync(p, ['-P', '-c', 'pass']).status === 0);
+  if (!python) { t.skip('no Python 3.11+ on the PATH'); return; }
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-shadow-'));
+  fs.mkdirSync(path.join(project, 'archvow'));
+  const marker = path.join(project, 'ran');
+  fs.writeFileSync(path.join(project, 'archvow', '__init__.py'), '');
+  fs.writeFileSync(path.join(project, 'archvow', '__main__.py'), `open(${JSON.stringify(marker)}, 'w').write('ran')\n`);
+  const line = commandLine({ executable: '', python, timeoutSeconds: 30 }, ['--version'], project, false);
+  spawnSync(line.program, line.args, { cwd: project });
+  assert.equal(fs.existsSync(marker), false, 'the project\'s archvow/__main__.py ran');
+  fs.rmSync(project, { recursive: true, force: true });
 });

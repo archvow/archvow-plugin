@@ -1436,6 +1436,8 @@ final class ArchvowPanel extends JPanel {
             + "</b> · " + escape(ArchvowInstall.display(job))));
         new SwingWorker<String[], Void>() {
             @Override protected String[] doInBackground() {
+                if (!ArchvowTrust.trusted(project))  // safe mode: pip runs the project's Python - nothing runs (0.26.1)
+                    return new String[] {"1", ArchvowTrust.message(ArchvowI18n.isFrench(project))};
                 try {
                     ProcessBuilder builder = new ProcessBuilder(job).redirectErrorStream(true)
                         .directory(new File(ArchvowInstall.workingFolder(job, root)));

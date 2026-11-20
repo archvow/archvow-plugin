@@ -78,14 +78,15 @@ final class ArchvowInstall {
     }
 
     /** pip's arguments for one source. */
+    /** -P (0.26.1): a folder named pip in the project, where pip runs, is never run instead. As VS Code's pipArgs. */
     static List<String> pipArgs(String version, Source source) {
         String wanted = requirement(version);
         return switch (source.kind()) {
-            case INDEX -> List.of("-m", "pip", "install", "--index-url", source.value(), wanted);
+            case INDEX -> List.of("-P", "-m", "pip", "install", "--index-url", source.value(), wanted);
             case WHEEL -> source.value().toLowerCase(Locale.ROOT).endsWith(".whl")
-                ? List.of("-m", "pip", "install", source.value())
-                : List.of("-m", "pip", "install", "--no-index", "--find-links", source.value(), wanted);
-            case PIP -> List.of("-m", "pip", "install", wanted);
+                ? List.of("-P", "-m", "pip", "install", source.value())
+                : List.of("-P", "-m", "pip", "install", "--no-index", "--find-links", source.value(), wanted);
+            case PIP -> List.of("-P", "-m", "pip", "install", wanted);
         };
     }
 
