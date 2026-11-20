@@ -14,7 +14,7 @@ Gradle les lance avec `JavaExec` (`intellij/build.gradle.kts`). La tâche `test`
 | Tâche | Classe | Ce qu'elle vérifie |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | le lecteur `.vow` sur chaque vow de `contract/vows` : le scanner couvre tout le texte, redémarre à n'importe quel jeton, une couleur par profondeur ; des vows cassés exprès donnent les bons problèmes |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 61 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 62 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
 | `contractDump` (pas dans `check`) | `DumpContract` | écrit `contract/vow-reader/expected.json`, la référence du lecteur TypeScript |
 
 Le panneau lui-même (`ArchvowPanel`) a besoin d'un IntelliJ qui tourne ; c'est pourquoi **la logique
@@ -27,6 +27,7 @@ nom de ce qu'elle protège :
 | `SplitViewRegression`, `AnswerEditorRegression` | les cartes et le panneau de réponse, le premier élément ouvert, « Rien à afficher. » |
 | `ArchitectureViewRegression` | Composant, État, En attente toujours visibles à toute largeur |
 | `CommandPrefillRegression`, `InlineCommandRegression`, `LaunchCommandRegression` | ce qu'un formulaire reçoit, la ligne de commande exacte |
+| `TrustRegression` | rien ne tourne dans un projet non approuvé (mode sans échec, 0.26.1) : chaque processus archvow, Test et Installer demande `ArchvowTrust` d'abord ; `-P` sur chaque ligne de commande Python |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, les chemins `\\wsl.localhost\...` |
 | `TextDialogRegression` | la taille d'un dialogue, Copier la commande |
 | `TextSizeRegression` | aucun `px` ni `<h1>`-`<h6>` dans le HTML affiché, le conseil de branche sur plusieurs lignes |

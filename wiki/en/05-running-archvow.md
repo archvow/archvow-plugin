@@ -62,7 +62,13 @@ In this order; **the first that answers `archvow --version`** (code 0 and "archv
 the commands. The choice is kept while the settings and the IDE's interpreter stay the same: one probe
 per session.
 
-1. **The IDE's Python interpreter for the project**: `<python> -m archvow`.
+Since 0.26.1, nothing runs in a project that is not trusted: VS Code's Restricted Mode (as before), and
+IntelliJ's safe mode ("Preview in Safe Mode": `ArchvowTrust`, asked before every archvow, Test and Install
+process). Python always runs with `-P` (`<python> -P -m archvow`, `<python> -P -m pip`): the folder archvow
+runs in - the project's root - is never first on `sys.path`, so a file or folder of the repository named
+`archvow` or `pip` never runs in its place (Python 3.11+, as archvow needs).
+
+1. **The IDE's Python interpreter for the project**: `<python> -P -m archvow`.
    - IntelliJ / PyCharm: the project's Python SDK, otherwise a module's (`ArchvowInterpreter.projectPython`,
      through `ProjectRootManager` and `ModuleRootManager`, without depending on the Python plugin: the
      SDK type is recognised by its name); with none of them, the IDE's only Python interpreter when it
@@ -71,7 +77,7 @@ per session.
      `environments.getActiveEnvironmentPath`), read again when it changes.
    - Setting *Use the project's Python interpreter first* / `archvow.useProjectInterpreter`, on by
      default.
-2. **The Python of the settings** (Settings > Tools > Archvow / `archvow.python`): `<python> -m archvow`.
+2. **The Python of the settings** (Settings > Tools > Archvow / `archvow.python`): `<python> -P -m archvow`.
 3. **The folder's virtual environment** (0.25.2): `.venv` or `venv` of the project - for `init --dir` in
    IntelliJ, of that folder, where the command then runs.
 4. **The executable of the settings** (`archvow` by default, looked for in the IDE's PATH).
@@ -124,13 +130,13 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 ## Installing archvow (0.12.0)
 
 When archvow does not start, or does not speak the plugin's contract (0.20.0, page [The contract](/en/04-contract)), the plugins offer
-**Install archvow 2.6.0**; nothing is installed at startup or without a click. `ArchvowInstall`
+**Install archvow 2.6.1**; nothing is installed at startup or without a click. `ArchvowInstall`
 (IntelliJ) and `vscode/src/install.ts` (VS Code) hold the same rules:
 
 | Question | Answer |
 |---|---|
 | Into which Python? | the project's `.venv`, then `venv` (`venvPythons()`), then the IDE's interpreter, then the Python of the settings; a bare `python` is never chosen for the person (`installPython()`, `ArchvowInstall.python`): no Python found, the card says **Configure Python** |
-| Which version? | `archvow==2.6.0` (`requirement()`): exactly the archvow the plugins are tested with (0.20.0); once installed, any archvow of the contract is accepted |
+| Which version? | `archvow==2.6.1` (`requirement()`): exactly the archvow the plugins are tested with (0.20.0); once installed, any archvow of the contract is accepted |
 | From where? | the setting *Install archvow from* / `archvow.installFrom` (`installSource()`): empty = pip's own configuration (pip.conf, `PIP_INDEX_URL`), an http(s) URL = `--index-url`, a `.whl` file, or a folder of wheels = `--no-index --find-links` (`pipArgs()`) |
 | How? | the command is shown (`displayCommand()`), then run only after **Confirm and run**: no shell, in the project folder, 10 minutes at most, `PIP_DISABLE_PIP_VERSION_CHECK=1`; a Python in WSL through `wsl.exe`, as archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Afterwards? | success: the settings keep that Python, the version is probed again, the workspace reloads; failure: pip's output, nothing saved |
