@@ -41,7 +41,7 @@ public final class LaunchCommandRegression {
         // Arguments: <python> <root with an archvow/__main__.py>; none: python3 and a synthetic module.
         String python = args.length > 0 ? args[0] : "python3";
         String root = args.length > 1 ? args[1] : syntheticArchvow();
-        List<String> expected = List.of("python3", "-m", "archvow", "--root", root, "check", "--json");
+        List<String> expected = List.of("python3", "-P", "-m", "archvow", "--root", root, "check", "--json");
         equal(expected, ArchvowProcessCommand.build("archvow", "python3 -m archvow", root,
             List.of("check", "--json")), "legacy Python field");
         equal(expected, ArchvowProcessCommand.build("python3 -m archvow", "", root,
@@ -50,7 +50,7 @@ public final class LaunchCommandRegression {
             List.of("check", "--json")), "quoted executable");
         equal(List.of("archvow", "--root", root, "check"),
             ArchvowProcessCommand.build("archvow", "", root, List.of("check")), "native executable");
-        equal(List.of("/tmp/My Venv/bin/python3", "-m", "archvow", "--root", root),
+        equal(List.of("/tmp/My Venv/bin/python3", "-P", "-m", "archvow", "--root", root),
             ArchvowProcessCommand.build("archvow", "/tmp/My Venv/bin/python3", root, List.of()),
             "unquoted executable path with spaces");
         assertThrows(() -> ArchvowProcessCommand.build("archvow", "python3 -m another", root, List.of()));

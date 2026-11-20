@@ -160,6 +160,8 @@ public final class ArchvowSettingsConfigurable implements Configurable {
                 try {
                     if (root == null || !new File(root).isDirectory())
                         return "IntelliJ project folder not found / Dossier projet introuvable: " + root;
+                    if (!ArchvowTrust.trusted(project))  // safe mode: the Test runs nothing either (0.26.1)
+                        return ArchvowTrust.message(ArchvowI18n.isFrench(project));
                     var candidates = ArchvowProcessCommand.candidates(useIde,
                         useIde ? ArchvowInterpreter.projectPython(project) : "", configuredExecutable, configuredPython,
                         ArchvowProcessCommand.found(root, useIde ? ArchvowInterpreter.idePythons() : List.of(),

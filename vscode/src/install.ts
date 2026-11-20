@@ -56,16 +56,16 @@ export function requirement(version: string): string {
   return `archvow==${version}`;
 }
 
-/** pip's arguments for one source. */
+/** pip's arguments for one source; -P: a folder named pip in the project, where pip runs, is never run instead (0.26.1). */
 export function pipArgs(version: string, source: InstallSource): string[] {
   const wanted = requirement(version);
-  if (source.kind === 'index') return ['-m', 'pip', 'install', '--index-url', source.value, wanted];
+  if (source.kind === 'index') return ['-P', '-m', 'pip', 'install', '--index-url', source.value, wanted];
   if (source.kind === 'wheel') {
     return source.value.toLowerCase().endsWith('.whl')
-      ? ['-m', 'pip', 'install', source.value]
-      : ['-m', 'pip', 'install', '--no-index', '--find-links', source.value, wanted];
+      ? ['-P', '-m', 'pip', 'install', source.value]
+      : ['-P', '-m', 'pip', 'install', '--no-index', '--find-links', source.value, wanted];
   }
-  return ['-m', 'pip', 'install', wanted];
+  return ['-P', '-m', 'pip', 'install', wanted];
 }
 
 /** The program and arguments that install archvow; a Python in WSL runs through wsl.exe, as archvow does. */
