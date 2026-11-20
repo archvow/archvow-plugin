@@ -5,7 +5,7 @@ import java.util.List;
 /** Archvow catalog is independent of IDE projects and uses the installed CLI. */
 public final class GlobalCatalogRegression {
     public static void main(String[] args) {
-        List<String> expected = List.of("python3", "-m", "archvow", "catalog", "--json");
+        List<String> expected = List.of("python3", "-P", "-m", "archvow", "catalog", "--json");
         List<String> global = ArchvowProcessCommand.buildWithoutProject(
             "archvow", "python3", List.of("catalog", "--json"));
         if (!expected.equals(global)) throw new AssertionError(global);

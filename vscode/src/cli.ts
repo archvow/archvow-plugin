@@ -7,7 +7,7 @@ import * as os from 'node:os';
 export interface CliSettings {
   /** The archvow command: a name on the PATH or a path. */
   executable: string;
-  /** A Python with archvow installed: `<python> -m archvow` (wins over executable). */
+  /** A Python with archvow installed: `<python> -P -m archvow` (wins over executable). */
   python: string;
   timeoutSeconds: number;
   /** The Python interpreter VS Code uses for the project (the Python extension's), looked at first (0.11.2). */
@@ -19,7 +19,7 @@ export interface CliSettings {
 // ---------------------------------------------------------------- archvow in WSL, VS Code on Windows
 // As the IntelliJ plugin (ArchvowWsl): a Linux program cannot start through its Windows path
 // (\\wsl.localhost\Ubuntu\home\...\python3); it runs through wsl.exe with Linux paths, no shell:
-// wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m archvow ...
+// wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -P -m archvow ...
 
 /** A program or a folder inside WSL: its distribution ('' = the default one) and its Linux path. */
 export interface WslTarget { distro: string; path: string }
@@ -195,7 +195,9 @@ export function commandLine(settings: CliSettings, args: string[], root: string 
   windows = process.platform === 'win32'): { program: string; args: string[] } {
   const python = settings.python.trim();
   const program = python !== '' ? python : settings.executable.trim() || 'archvow';
-  const module = python !== '' ? ['-m', 'archvow'] : [];
+  // -P (Python 3.11+, as archvow needs): the project folder - where archvow runs - is not put first on sys.path, so a
+  // folder or file named archvow in the project can never run in archvow's place (0.26.1)
+  const module = python !== '' ? ['-P', '-m', 'archvow'] : [];
   const wsl = wslProgram(program, windows);
   if (wsl) {
     const folder = root === null ? '~' : linuxPath(root);

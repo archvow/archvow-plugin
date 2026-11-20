@@ -105,7 +105,7 @@ final class ArchvowCli {
     }
 
     private String describeFailure(Exception ex) {
-        if (ex instanceof NotFound) return ex.getMessage();
+        if (ex instanceof NotFound || ex instanceof ArchvowTrust.Untrusted) return ex.getMessage();
         if (ex instanceof IOException) {
             return ArchvowI18n.text(project, "Archvow could not start: " + ex.getMessage()
                     + "\nIn Settings > Tools > Archvow, give only the Python executable (e.g. /path/venv/bin/python3, "
@@ -222,6 +222,7 @@ final class ArchvowCli {
 
     private Result invoke(List<String> arguments, String stdin, ProgressIndicator indicator,
                           boolean globalCatalog, String templateDirectory) throws Exception {
+        ArchvowTrust.require(project);  // safe mode: no process at all (0.26.1)
         ArchvowSettings.Values opts = ArchvowSettings.get(project).getState();
         File workingDirectory;
         List<String> argv;

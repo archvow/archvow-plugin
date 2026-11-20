@@ -21,6 +21,7 @@ repositories {
 dependencies {
     intellijPlatform {
         intellijIdeaCommunity(providers.gradleProperty("platformVersion").get())
+        pluginVerifier()  // ./gradlew verifyPlugin (CI job intellij-verify): resolved only when that task runs
     }
 }
 
@@ -40,6 +41,13 @@ intellijPlatform {
     publishing {
         channels = if (providers.environmentVariable("ARCHVOW_MARKETPLACE_CHANNEL").orNull == "beta")
             listOf("beta") else listOf("default")
+    }
+    // The IntelliJ Plugin Verifier against the IDE releases JetBrains recommends for sinceBuild..untilBuild (0.26.1):
+    // untilBuild is open, so a removed or internal API of a newer IDE is caught before a team installs the plugin.
+    pluginVerification {
+        ides {
+            recommended()
+        }
     }
     pluginConfiguration {
         ideaVersion {

@@ -2,6 +2,22 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 0.26.1 - 2026-11-20
+
+Built on archvow 2.6.1 (contract 2.4, unchanged: 2.6.1 prints what 2.6.0 printed, but the version). Security and
+release fixes from the review of 0.26.0.
+
+- **Nothing runs in a project you have not trusted.** A project opened in safe mode ("Preview in Safe Mode") starts no archvow, Test or Install process (`ArchvowTrust`, `TrustedProjects.isTrusted`): 0.26.0 ran archvow as soon as an archvow project opened - with the project's `.venv` Python among the candidates - and never asked. The panel says why; after "Trust project", Refresh runs as before.
+- **Python runs with `-P`** (`<python> -P -m archvow`, `<python> -P -m pip`): archvow and pip run in the project's
+  root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code
+  each time the plugin called archvow (reproduced). Python 3.11 or later, as archvow itself needs; an older Python
+  found first is passed over for the next candidate.
+- **archvow 2.6.1 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 789
+  check messages, 100 codes, harvested from its suite, which now passes as delivered).
+- `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
+  `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin
+  Verifier on the recommended IDE releases (`intellij-verify`) before publishing.
+
 ## 0.26.0 - 2026-11-18
 
 Built on archvow 2.6.0 (contract 2.4; 0.25 was built on 2.1.1, contract 2.1). Both IDEs follow what archvow

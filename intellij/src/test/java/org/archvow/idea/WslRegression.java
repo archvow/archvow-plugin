@@ -44,16 +44,16 @@ public final class WslRegression {
         String python = "\\\\wsl.localhost\\Ubuntu\\home\\marc\\.venv\\bin\\python3";
         String root = "//wsl.localhost/Ubuntu/home/marc/acoss_pipeline2";
         equal(List.of("wsl.exe", "-d", "Ubuntu", "--cd", "/home/marc/acoss_pipeline2", "--exec", "/home/marc/.venv/bin/python3",
-                "-m", "archvow", "--root", "/home/marc/acoss_pipeline2", "check", "--json"),
+                "-P", "-m", "archvow", "--root", "/home/marc/acoss_pipeline2", "check", "--json"),
             ArchvowProcessCommand.build("archvow", python, root, List.of("check", "--json"), true), "WSL Python, WSL project");
         equal(List.of("wsl.exe", "-d", "Ubuntu", "--cd", "/mnt/c/work/p", "--exec", "/home/marc/.venv/bin/python3",
-                "-m", "archvow", "--root", "/mnt/c/work/p", "check", "--test-report", "/mnt/c/work/p/out.xml"),
+                "-P", "-m", "archvow", "--root", "/mnt/c/work/p", "check", "--test-report", "/mnt/c/work/p/out.xml"),
             ArchvowProcessCommand.build("archvow", python + " -m archvow", "C:\\work\\p",
                 List.of("check", "--test-report", "C:\\work\\p\\out.xml"), true), "WSL Python, Windows project, legacy field");
         equal(List.of("wsl.exe", "-d", "Ubuntu", "--cd", "/home/marc/p", "--exec", "/home/marc/.local/bin/archvow", "--root", "/home/marc/p", "next"),
             ArchvowProcessCommand.build("wsl://Ubuntu/home/marc/.local/bin/archvow", "", "//wsl$/Ubuntu/home/marc/p", List.of("next"), true),
             "an archvow executable in WSL");
-        equal(List.of("/venv/bin/python3", "-m", "archvow", "--root", "/work/p", "next"),
+        equal(List.of("/venv/bin/python3", "-P", "-m", "archvow", "--root", "/work/p", "next"),
             ArchvowProcessCommand.build("archvow", "/venv/bin/python3", "/work/p", List.of("next"), false), "Linux / macOS: unchanged");
         equal("PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG", ArchvowWsl.wslenv("PATH/l"), "WSLENV keeps what was shared");
         equal("NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG", ArchvowWsl.wslenv("NO_COLOR"), "WSLENV once each");
@@ -99,7 +99,7 @@ public final class WslRegression {
         Process process = builder.start();
         String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).strip();
         equal(0, process.waitFor(), "exit");
-        equal("-m archvow --root " + project + " check --json", out, "what archvow got");
+        equal("-P -m archvow --root " + project + " check --json", out, "what archvow got");
         equal(true, builder.environment().get("WSLENV").contains("NO_COLOR"), "NO_COLOR handed to WSL");
         System.out.println("OK: WSL paths, the command through wsl.exe, the search order and the first answer");
     }
