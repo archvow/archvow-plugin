@@ -14,7 +14,7 @@ Gradle les lance avec `JavaExec` (`intellij/build.gradle.kts`). La tâche `test`
 | Tâche | Classe | Ce qu'elle vérifie |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | le lecteur `.vow` sur chaque vow de `contract/vows` : le scanner couvre tout le texte, redémarre à n'importe quel jeton, une couleur par profondeur ; des vows cassés exprès donnent les bons problèmes |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 63 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 67 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
 | `contractDump` (pas dans `check`) | `DumpContract` | écrit `contract/vow-reader/expected.json`, la référence du lecteur TypeScript |
 
 Le panneau lui-même (`ArchvowPanel`) a besoin d'un IntelliJ qui tourne ; c'est pourquoi **la logique
@@ -29,6 +29,10 @@ nom de ce qu'elle protège :
 | `CommandPrefillRegression`, `InlineCommandRegression`, `LaunchCommandRegression` | ce qu'un formulaire reçoit, la ligne de commande exacte |
 | `TrustRegression` | rien ne tourne dans un projet non approuvé (mode sans échec, 0.26.1) : chaque processus archvow, Test et Installer demande `ArchvowTrust` d'abord ; `-P` sur chaque ligne de commande Python |
 | `TryItRegression` | « L'essayer » montre son résultat (0.26.1) : la page d'accueil défile, et la zone du résultat garde ses 260 px dans une fenêtre étroite, basse ou large (22 px avant : le GridBagLayout donnait à chaque partie sa taille minimale) |
+| `FindArchvowRegression` | Où archvow est cherché : un Python choisi dans les réglages d'abord (0.26.1), puis l'interpréteur de l'IDE, le .venv du dossier, l'exécutable, puis ce qui existe d'autre ; `init --dir` tourne dans ce dossier |
+| `PythonsRegression` | Les Python de Settings > Tools > Archvow (0.26.1) : où ils sont cherchés, chacun une fois (un venv reste le sien), la sonde relue, ceux qui ont archvow d'abord, chaque ligne dans une langue |
+| `SettingsTextRegression` | Une langue à la fois (0.26.1) : chaque texte de Settings > Tools > Archvow dans une langue, et aucun texte du plugin ne met l'anglais et le français côte à côte |
+| `InitTargetRegression` | Après init (0.26.1) : un autre dossier (`--dir`) s'ouvre comme projet de l'IDE ; PyCharm Home (PyCharmMiscProject) n'est jamais initialisé lui-même, le dossier d'un nouveau projet suit son paquet |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, les chemins `\\wsl.localhost\...` |
 | `TextDialogRegression` | la taille d'un dialogue, Copier la commande |
 | `TextSizeRegression` | aucun `px` ni `<h1>`-`<h6>` dans le HTML affiché, le conseil de branche sur plusieurs lignes |

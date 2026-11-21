@@ -14,6 +14,16 @@ release fixes from the review of 0.26.0.
   check messages, 100 codes, harvested from its suite, which now passes as delivered). 2.6.2 fixes a false
   ARCH020: a first rule parameter set stricter than its default (a lower ARCH022 budget) is no longer reported
   as a weakened guard.
+- **Choose the Python from a list, and see which one runs.** **Configure Python** (the command *Choose the Python
+  that runs archvow*) lists the Pythons of this computer - the project's interpreter, its `.venv`, the Python
+  extension's environments, python.org, Homebrew, the system's, pyenv, conda, the PATH - each with its version and
+  the archvow it has, those with archvow first; *Automatic* stays the default. The welcome page says what runs:
+  `archvow 2.6.2 with /usr/local/bin/python3.12 — the project's Python interpreter`. `archvow.python`, when set,
+  now comes before the project's interpreter: a Python the person chose is the one that runs (`pythons.ts`).
+- **Init into another folder opens it.** `init` with a Folder (`--dir`) other than the workspace's offers to open
+  that folder here or in a new window: it is the new project (`initTarget.ts`).
+- **One language at a time.** The few texts that said everything twice ("Review signature / Vérifier la
+  signature", "Answer / Réponse", the safety previews) are in the chosen language; a test keeps it so.
 - **"Try it" shows its result where you clicked.** On the welcome page of a folder without archvow, the sidebar's Try it ran `archvow try` but sent the running state and the result to the editor tab only: the sidebar never changed, and in the editor tab the result sat under the cards, below the fold - nothing seemed to happen. The result now shows under the Try card in the sidebar as well, and scrolls into view wherever it shows (`scripts/try-it-regression.js`).
 - `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
   `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin

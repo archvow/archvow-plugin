@@ -95,6 +95,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerWebviewViewProvider(VIEW, provider, { webviewOptions: { retainContextWhenHidden: true } }),
     vscode.commands.registerCommand('archvow.open', () => withProject((p) => p.show())),
     vscode.commands.registerCommand('archvow.initialize', initialize),
+    vscode.commands.registerCommand('archvow.choosePython', () => withProject((p) => p.choosePython())),
     vscode.commands.registerCommand('archvow.refresh', () => withProject((p) => p.refresh(true))),
     vscode.commands.registerCommand('archvow.check', () => withProject((p) => p.runCheck())),
     vscode.commands.registerCommand('archvow.openComponent', (arg?: unknown) => withProject(async (p) => {

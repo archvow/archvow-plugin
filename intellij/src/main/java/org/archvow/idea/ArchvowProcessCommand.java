@@ -30,7 +30,7 @@ final class ArchvowProcessCommand {
     static List<String> build(String executableSetting, String pythonSetting,
                               String root, List<String> arguments, boolean windows) {
         if (root == null || root.isBlank())
-            throw new IllegalArgumentException("No project folder / Aucun dossier racine pour ce projet.");
+            throw new IllegalArgumentException("No project folder.");
         return buildInternal(executableSetting, pythonSetting, root, arguments, windows);
     }
 
@@ -41,9 +41,9 @@ final class ArchvowProcessCommand {
     }
 
     /**
-     * Where archvow is looked for, in this order (0.11.2): the IDE's Python interpreter for the project
-     * (Settings > Project > Python Interpreter) when {@code useIde}, then the Python of Settings > Tools >
-     * Archvow, then its archvow executable ("archvow" on the PATH). The first that answers
+     * Where archvow is looked for, in this order: the Python chosen in Settings > Tools > Archvow (0.26.1: a Python
+     * the person chose comes first), then the IDE's Python interpreter for the project (Settings > Project > Python
+     * Interpreter) when {@code useIde}, then the archvow executable ("archvow" on the PATH). The first that answers
      * {@code --version} runs the commands ({@link ArchvowCli}).
      */
     record Candidate(String source, String executable, String python) {
@@ -60,9 +60,9 @@ final class ArchvowProcessCommand {
      */
     static List<Candidate> candidates(boolean useIde, String idePython, String executable, String python, List<Candidate> found) {
         List<Candidate> out = new ArrayList<>();
-        if (useIde && idePython != null && !idePython.isBlank()) out.add(new Candidate("ide", "", idePython.trim()));
-        if (python != null && !python.isBlank() && out.stream().noneMatch(c -> c.python().equals(python.trim())))
-            out.add(new Candidate("python", "", python.trim()));
+        if (python != null && !python.isBlank()) out.add(new Candidate("python", "", python.trim()));
+        if (useIde && idePython != null && !idePython.isBlank() && out.stream().noneMatch(c -> c.python().equals(idePython.trim())))
+            out.add(new Candidate("ide", "", idePython.trim()));
         String exe = executable == null || executable.isBlank() ? "archvow" : executable.trim();
         for (Candidate c : found)
             if ("venv".equals(c.source()) && out.stream().noneMatch(o -> o.program().equals(c.program()))) out.add(c);
@@ -114,7 +114,7 @@ final class ArchvowProcessCommand {
         boolean pythonMode = !python.isEmpty();
         String provided = pythonMode ? python : executable;
         if (provided.isEmpty())
-            throw new IllegalArgumentException("Configure un executable Archvow ou un interpreteur Python.");
+            throw new IllegalArgumentException("No Python and no archvow executable to run.");
 
         Matcher module = PYTHON_MODULE.matcher(provided);
         if (module.matches()) {
@@ -123,19 +123,19 @@ final class ArchvowProcessCommand {
             pythonMode = true;
         } else if (provided.matches("(?s).*\\s+-m\\s+.*")) {
             throw new IllegalArgumentException(
-                "Utilise seulement le chemin de Python, ou 'python3 -m archvow' (sans autres arguments).");
+                "Give only the path of a Python (or 'python3 -m archvow', with no other arguments).");
         }
 
         String program = stripWrappingQuotes(provided);
         if (program.isBlank())
-            throw new IllegalArgumentException("Le chemin de l'executable Python est vide.");
+            throw new IllegalArgumentException("The path of the Python is empty.");
 
         ArchvowWsl.Target wsl = ArchvowWsl.program(program, windows);
         if (wsl != null) {
             // archvow in WSL: wsl.exe runs the Linux program in the project folder, as Linux paths
             String linuxRoot = root == null ? null : ArchvowWsl.linuxPath(root);
             if (root != null && linuxRoot == null)
-                throw new IllegalArgumentException("WSL cannot reach the project folder / WSL n'atteint pas le dossier du projet : " + root);
+                throw new IllegalArgumentException("WSL cannot reach the project folder: " + root);
             ArrayList<String> inner = new ArrayList<>();
             inner.add(wsl.path());
             if (pythonMode) { inner.add("-P"); inner.add("-m"); inner.add("archvow"); }

@@ -14,7 +14,7 @@ runs them with `JavaExec` (`intellij/build.gradle.kts`). Gradle's `test` task is
 | Task | Class | What it checks |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | the `.vow` reader on every vow of `contract/vows`: the scanner covers all the text, restarts at any token, one colour per depth; vows broken on purpose give the right problems |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 63 regression classes: everything that does not need a running IntelliJ |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 67 regression classes: everything that does not need a running IntelliJ |
 | `contractDump` (not in `check`) | `DumpContract` | writes `contract/vow-reader/expected.json`, the TypeScript reader's reference |
 
 The panel itself (`ArchvowPanel`) needs a running IntelliJ; that is why **the logic is taken out into
@@ -29,6 +29,10 @@ what it protects:
 | `CommandPrefillRegression`, `InlineCommandRegression`, `LaunchCommandRegression` | what a form receives, the exact command line |
 | `TrustRegression` | nothing runs in an untrusted project (safe mode, 0.26.1): every archvow, Test and Install process asks `ArchvowTrust` first; `-P` on every Python command line |
 | `TryItRegression` | "Try it" shows its result (0.26.1): the welcome page scrolls, and the result area keeps its 260 px in a narrow, a short and a wide tool window (22 px before: the GridBagLayout gave each part its minimum size) |
+| `FindArchvowRegression` | Where archvow is looked for: a Python chosen in the settings first (0.26.1), then the IDE's interpreter, the folder's .venv, the executable, then what else exists; `init --dir` runs in that folder |
+| `PythonsRegression` | The Pythons of Settings > Tools > Archvow (0.26.1): where they are looked for, each once (a venv stays its own), the probe read back, those with archvow first, each line in one language |
+| `SettingsTextRegression` | One language at a time (0.26.1): every text of Settings > Tools > Archvow in one language, and no text of the plugin puts English and French side by side |
+| `InitTargetRegression` | After init (0.26.1): another folder (`--dir`) opens as the IDE's project; PyCharm Home (PyCharmMiscProject) is never initialized itself, a new project's folder follows its package |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, the `\\wsl.localhost\...` paths |
 | `TextDialogRegression` | a dialog's size, Copy command |
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |

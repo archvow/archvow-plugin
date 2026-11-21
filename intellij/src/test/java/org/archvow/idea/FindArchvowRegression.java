@@ -18,7 +18,8 @@ public final class FindArchvowRegression {
         java.util.Set<String> there = java.util.Set.of("/work/p/.venv/bin/python", "/Users/me/.local/bin/archvow", "/opt/homebrew/bin/archvow");
         var found = ArchvowProcessCommand.found("/work/p", List.of("/usr/local/bin/python3.12"), "/Users/me", false, there::contains);
         equal(List.of("venv", "sdk", "found", "found"), found.stream().map(ArchvowProcessCommand.Candidate::source).toList(), "found: what exists");
-        equal(List.of("ide", "python", "venv", "executable", "sdk", "found", "found"),
+        // 0.26.1: a Python the person chose comes first, then the IDE's interpreter
+        equal(List.of("python", "ide", "venv", "executable", "sdk", "found", "found"),
             ArchvowProcessCommand.candidates(true, python, "archvow", "/usr/bin/python3", found).stream()
                 .map(ArchvowProcessCommand.Candidate::source).toList(), "the order with what was found");
         equal(List.of("ide", "venv", "executable", "found", "found"),

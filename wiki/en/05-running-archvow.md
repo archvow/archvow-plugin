@@ -68,7 +68,10 @@ process). Python always runs with `-P` (`<python> -P -m archvow`, `<python> -P -
 runs in - the project's root - is never first on `sys.path`, so a file or folder of the repository named
 `archvow` or `pip` never runs in its place (Python 3.11+, as archvow needs).
 
-1. **The IDE's Python interpreter for the project**: `<python> -P -m archvow`.
+1. **The Python chosen for archvow** (Settings > Tools > Archvow / `archvow.python`): `<python> -P -m archvow`.
+   Since 0.26.1 it comes first: a Python the person chose is the one that runs. Empty: *Automatic*, the
+   steps below.
+2. **The IDE's Python interpreter for the project**: `<python> -P -m archvow`.
    - IntelliJ / PyCharm: the project's Python SDK, otherwise a module's (`ArchvowInterpreter.projectPython`,
      through `ProjectRootManager` and `ModuleRootManager`, without depending on the Python plugin: the
      SDK type is recognised by its name); with none of them, the IDE's only Python interpreter when it
@@ -77,7 +80,6 @@ runs in - the project's root - is never first on `sys.path`, so a file or folder
      `environments.getActiveEnvironmentPath`), read again when it changes.
    - Setting *Use the project's Python interpreter first* / `archvow.useProjectInterpreter`, on by
      default.
-2. **The Python of the settings** (Settings > Tools > Archvow / `archvow.python`): `<python> -P -m archvow`.
 3. **The folder's virtual environment** (0.25.2): `.venv` or `venv` of the project - for `init --dir` in
    IntelliJ, of that folder, where the command then runs.
 4. **The executable of the settings** (`archvow` by default, looked for in the IDE's PATH).
@@ -91,7 +93,21 @@ runs in - the project's root - is never first on `sys.path`, so a file or folder
 answers, the message says what each one answered ("No module named archvow", "not found"...) instead
 of an error without context.
 
-Why the IDE's interpreter first: on macOS, an IDE started from the Dock does not have the terminal's
+### Choosing the Python (0.26.1)
+
+Nobody has to type a path. Settings > Tools > Archvow (IntelliJ) and **Configure Python** (VS Code: the
+command *Choose the Python that runs archvow*) list the Pythons of this computer - the project's interpreter,
+its `.venv`, the IDE's interpreters (VS Code: the Python extension's environments), python.org, Homebrew, the
+system's, pyenv, conda and the PATH - each once, with its version and the archvow it has (`ArchvowPythons`,
+`pythons.ts`: each runs a few lines of Python from an empty folder, only in a trusted project). Those with
+archvow come first; a Python older than 3.11 says it is too old. *Automatic* keeps the order above.
+
+What runs is said where a developer starts: the top of the settings page (**Runs**: `archvow 2.6.2 with
+/usr/local/bin/python3.12 — the project's Python interpreter`, with **Test**) and the welcome page of the
+Archvow window, the same line. Settings > Tools > Archvow is in one language, the one chosen on it (English
+by default, as archvow).
+
+Why the IDE's interpreter first in Automatic: on macOS, an IDE started from the Dock does not have the terminal's
 PATH, so `archvow` is often not on it; the project's Python is known to the IDE.
 
 ## The Python field, and `python3 -m archvow`

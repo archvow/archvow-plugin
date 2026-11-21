@@ -136,7 +136,7 @@ test('the pyspark example has work to do: decisions or safety questions pending,
 
 test('a diagnostic with a documented fix prefills a form, never runs it', () => {
   assert.deepEqual(issueFix('ARCH004', 'archvow component edit clean_orders --signature "(df: DataFrame) -> DataFrame"', ''),
-    { command: 'component edit', values: { component: 'clean_orders', signature: '(df: DataFrame) -> DataFrame' }, label: 'Review signature / Vérifier la signature' });
+    { command: 'component edit', values: { component: 'clean_orders', signature: '(df: DataFrame) -> DataFrame' }, label: 'Review signature' });
   assert.equal(issueFix('ARCH002', 'anything', 'x'), null);
   assert.ok(needsFeatureBranch('develop') && !needsFeatureBranch('feature/US-1-x'));
 });

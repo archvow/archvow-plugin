@@ -16,6 +16,23 @@ release fixes from the review of 0.26.0.
   check messages, 100 codes, harvested from its suite, which now passes as delivered). 2.6.2 fixes a false
   ARCH020: a first rule parameter set stricter than its default (a lower ARCH022 budget) is no longer reported
   as a weakened guard.
+- **Settings > Tools > Archvow in one language** - the one chosen on the page, English by default as archvow -
+  instead of every text twice, "English / Français"; the language list switches the page at once. The other
+  texts that said everything twice (the fix labels, "Answer / Réponse", the safety previews) follow the chosen
+  language too, and `SettingsTextRegression` keeps it so.
+- **Choose the Python from a list, and see which one runs.** The Python field is a list of the Pythons of this
+  computer - the project's interpreter, its `.venv`, the IDE's interpreters, python.org, Homebrew, the system's,
+  pyenv, conda, the PATH - each with its version and the archvow it has, those with archvow first (as the IDE's
+  own interpreter list); *Automatic (recommended)* stays the default, and says its order. **Runs**, at the top of
+  the page and on the Archvow window's welcome page, says what runs: `archvow 2.6.2 with
+  /usr/local/bin/python3.12 — the project's Python interpreter`. A Python chosen here now comes before the
+  project's interpreter (`ArchvowPythons`, `PythonsRegression`).
+- **Initialize opens the new project.** From PyCharm Home (the non-modal welcome screen, a project kept in
+  PyCharmMiscProject), Initialize no longer initializes PyCharm Home itself: it asks for the new project's
+  Folder - filled from the package, under the IDE's projects folder - and once archvow made it, the IDE opens it,
+  with the Archvow window. From any project, an init into another Folder opens that folder (this window or a new
+  one, as the IDE's setting says); an init of the project itself shows its new files in the Project view at once
+  (`ArchvowInitTarget`, `InitTargetRegression`).
 - **"Try it" shows its result.** The welcome page was a GridBagLayout that gives every part its minimum size as soon as the tool window is narrower than the parts (420 px) or shorter than their sum: Try it's result area shrank to its scroll bar, and nothing seemed to happen. The welcome page now scrolls, lays its parts out from the top at their own height, and brings the result into view when it starts and when it arrives (`TryItRegression`: 260 px in a narrow, a short and a wide tool window; 22 px before).
 - `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
   `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin

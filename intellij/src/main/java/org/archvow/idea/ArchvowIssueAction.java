@@ -16,26 +16,29 @@ final class ArchvowIssueAction {
         while (matches.find()) if (known.contains(matches.group(1))) return matches.group(1);
         return "";
     }
-    static Fix fix(String code, String message, String component) {
+    static Fix fix(String code, String message, String component) { return fix(code, message, component, false); }
+
+    /** The fix, its label in one language (0.26.1). */
+    static Fix fix(String code, String message, String component, boolean fr) {
         String text = message == null ? "" : message;
         if ("ARCH019".equalsIgnoreCase(code) && !component.isBlank())
-            return new Fix("component add", Map.of("type", "schema"), "Create schema / Créer un schéma");
+            return new Fix("component add", Map.of("type", "schema"), (fr ? "Créer un schéma" : "Create schema"));
         if ("ARCH004".equalsIgnoreCase(code)) {
             Matcher m = SIGNATURE.matcher(text);
             if (m.find()) return new Fix("component edit", Map.of("component", m.group(1), "signature", m.group(2)),
-                "Review signature / Vérifier la signature");
+                (fr ? "Vérifier la signature" : "Review signature"));
         }
         if ("ARCH039".equalsIgnoreCase(code)) {
             // drawn from a folder no longer declared: the architect adds it; a brief changed: accept it once reviewed
             ArchvowBriefs.AddFolder folder = ArchvowBriefs.addFolder(text);
-            if (folder != null) return new Fix("init", folder.values(), "Add this folder (architect) / Ajouter ce dossier (architecte)");
+            if (folder != null) return new Fix("init", folder.values(), (fr ? "Ajouter ce dossier (architecte)" : "Add this folder (architect)"));
             String ref = ArchvowBriefs.acceptRef(text);
-            if (!ref.isEmpty()) return new Fix("brief accept", Map.of("brief", ref), "Accept (reviewed) / Accepter (relue)");
+            if (!ref.isEmpty()) return new Fix("brief accept", Map.of("brief", ref), (fr ? "Accepter (relue)" : "Accept (reviewed)"));
         }
         if ("ARCH030".equalsIgnoreCase(code)) {
             Matcher m = INVARIANT.matcher(text);
             if (m.find()) return new Fix("invariant add", Map.of("component", m.group(1), "prevents", m.group(2)),
-                "Add invariant / Ajouter un invariant");
+                (fr ? "Ajouter un invariant" : "Add invariant"));
         }
         return null;
     }

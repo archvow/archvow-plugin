@@ -467,6 +467,19 @@
   /** The examples `archvow try` copies (2.1): value, label. */
   const TRY_EXAMPLES = [['pyspark-pipeline', 'PySpark pipeline'], ['fastapi-service', 'FastAPI service'], ['python-app', 'Python app'], ['langgraph-agent', 'LangGraph agent']];
 
+  /** Which archvow runs, and why (0.26.1): the first thing a developer needs to trust what the buttons do. */
+  function runsLine() {
+    const r = S.runs || {};
+    if (!r.program) return '';
+    const where = { python: t('the Python chosen for archvow (archvow.python)', 'le Python choisi pour archvow (archvow.python)'),
+      ide: t("the project's Python interpreter", "l'interpréteur Python du projet"), venv: t("the project's .venv", 'le .venv du projet'),
+      found: t('where pip or pipx installed it', "là où pip ou pipx l'a installé") }[r.source]
+      || t('the archvow executable (archvow.executable)', "l'exécutable archvow (archvow.executable)");
+    const what = r.version ? `archvow ${r.version}` : 'archvow';
+    return `<p class="small muted runs">${esc(t(`${what} with ${r.program} — ${where}. To choose another Python: Configure Python.`,
+      `${what} avec ${r.program} — ${where}. Pour choisir un autre Python : Configurer Python.`))}</p>`;
+  }
+
   function welcomeView() {
     const texts = {
       NO_PROJECT: [t('No project', 'Aucun projet'), t('Open a folder to use Archvow.', 'Ouvre un dossier pour utiliser Archvow.')],
@@ -485,6 +498,7 @@
     ${btn(t('Try it', "L'essayer"), 'tryExample', '', false, 'secondary')}</div></section>` : '';
     return `<section class="welcome"><h2>${esc(t('Archvow · Getting started', 'Archvow · Démarrage'))}</h2>
   <section class="card"><h3>${esc(title)}</h3><p>${esc(detail)}</p><p class="mono small muted">${esc(S.project.root)}</p>
+  ${runsLine()}
   ${S.welcomeError ? `<pre class="error">${esc(S.welcomeError)}</pre>` : ''}
   ${installCard()}
   <div class="row wrap">${btn(t('Initialize Archvow', 'Initialiser Archvow'), 'init', '', !fresh)}

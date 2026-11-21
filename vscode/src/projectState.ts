@@ -33,10 +33,10 @@ export interface Derived {
 }
 
 /** What the views of a component show, from `archvow show <component> --json` (same rules as IntelliJ). */
-export function derive(view: Json): Derived {
+export function derive(view: Json, fr = false): Derived {
   return {
     counts: viewCounts(view),
-    safety: objects(view, 'safety').map((q) => ({ status: safety.status(q), unprotected: safety.unprotectedHazard(q), preview: safety.preview(q) })),
+    safety: objects(view, 'safety').map((q) => ({ status: safety.status(q), unprotected: safety.unprotectedHazard(q), preview: safety.preview(q, fr) })),
     data: dataItems(view),
   };
 }

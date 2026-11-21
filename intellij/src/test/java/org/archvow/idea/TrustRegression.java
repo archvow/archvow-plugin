@@ -42,6 +42,11 @@ public final class TrustRegression {
         String settings = Files.readString(sources.resolve("ArchvowSettingsConfigurable.java"));
         check(before(settings, "private void testInterpreter(", "ArchvowCli.probe(").contains("ArchvowTrust.trusted(project)"),
             "the settings' Test runs the project's Python before asking whether the project is trusted");
+        // 0.26.1: the list of Pythons runs each one (the project's .venv among them) only in a trusted project
+        check(before(settings, "private void discover(", "ArchvowPythons.probe(").contains("ArchvowTrust.trusted(project)"),
+            "the settings' Python list runs the project's Python before asking whether the project is trusted");
+        check(before(settings, "private void whichRuns(", "ArchvowCli.probe(").contains("ArchvowTrust.trusted(project)"),
+            "the settings' 'Runs' line runs the project's Python before asking whether the project is trusted");
         String panel = Files.readString(sources.resolve("ArchvowPanel.java"));
         check(before(panel, "private void runInstall(", "new ProcessBuilder(job)").contains("ArchvowTrust.trusted(project)"),
             "Install runs pip with the project's Python before asking whether the project is trusted");
@@ -55,7 +60,7 @@ public final class TrustRegression {
                 String name = file.getFileName().toString();
                 int allowed = switch (name) {
                     case "ArchvowCli.java", "ArchvowPanel.java" -> 2;
-                    case "ArchvowSettingsConfigurable.java" -> 1;
+                    case "ArchvowSettingsConfigurable.java", "ArchvowPythons.java" -> 1;
                     default -> 0;
                 };
                 check(count == allowed, name + " starts " + count + " process(es), " + allowed + " reviewed for trust");

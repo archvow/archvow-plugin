@@ -60,6 +60,9 @@ final class ArchvowCli {
     /** The program archvow runs with (a Python, or the archvow executable), once found: for the session log. */
     String program() { return program; }
     private volatile String program = "";
+    /** Where that program was found (ArchvowProcessCommand.Candidate.source): shown on the welcome page (0.26.1). */
+    String source() { return source; }
+    private volatile String source = "";
 
     /** A read the workspace does itself (show, check, next...): one line of a refresh in the session log. */
     void execute(String label, List<String> arguments, String stdin, Consumer<Result> finished) {
@@ -137,12 +140,13 @@ final class ArchvowCli {
         synchronized (CHOSEN) {
             String[] known = CHOSEN.get(project);
             if (known != null && known[0].equals(signature))
-                for (ArchvowProcessCommand.Candidate c : candidates) if (c.toString().equals(known[1])) { program = c.program(); return c; }
+                for (ArchvowProcessCommand.Candidate c : candidates) if (c.toString().equals(known[1])) { program = c.program(); source = c.source(); return c; }
         }
         Probe probe = probe(candidates, root, ArchvowI18n.isFrench(project));
         if (probe.chosen() == null) throw new NotFound(probe.report());
         synchronized (CHOSEN) { CHOSEN.put(project, new String[] {signature, probe.chosen().toString()}); }
         program = probe.chosen().program();
+        source = probe.chosen().source();
         return probe.chosen();
     }
 

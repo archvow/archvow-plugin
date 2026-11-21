@@ -48,18 +48,18 @@ export const safety = {
   suggestedHazard: (q: Json | null): string => str(q?.suggestion ?? null, 'hazard'),
   suggestedInvariant: (q: Json | null): string => str(q?.suggestion ?? null, 'invariant'),
   /** The suggestion and the hazards with what prevents them, as plain lines. */
-  preview(question: Json): string {
+  preview(question: Json, fr = false): string {
     let text = '';
     const hazard = safety.suggestedHazard(question);
     const invariant = safety.suggestedInvariant(question);
-    if (hazard) text += 'Suggested hazard / Hazard suggéré: ' + hazard + '\n';
-    if (invariant) text += 'Suggested invariant / Invariant suggéré: ' + invariant + '\n';
+    if (hazard) text += tr(fr, 'Suggested hazard: ', 'Hazard suggéré : ') + hazard + '\n';
+    if (invariant) text += tr(fr, 'Suggested invariant: ', 'Invariant suggéré : ') + invariant + '\n';
     for (const h of objects(question, 'hazards')) {
       text += `Hazard ${str(h, 'id')} (${str(h, 'severity')}) — ${str(h, 'description')}\n`;
       const protections = objects(h, 'prevented_by');
       for (const i of protections) {
         text += `  ↳ Invariant ${str(i, 'id')}: ${str(i, 'statement')}`;
-        if (i.tested === false) text += ' [test not verified / test non vérifié]';
+        if (i.tested === false) text += tr(fr, ' [test not verified]', ' [test non vérifié]');
         text += '\n';
       }
       if (protections.length === 0 && safety.requiresInvariant(h)) text += '  ⚠ ARCH030 — invariant required / invariant obligatoire\n';
@@ -115,24 +115,24 @@ export function quotedComponent(message: string, known: Iterable<string>): strin
 }
 
 /** The documented fixes a diagnostic gives (never run: they prefill a form). */
-export function issueFix(code: string, message: string, component: string): Fix | null {
+export function issueFix(code: string, message: string, component: string, fr = false): Fix | null {
   const text = message ?? '';
   const c = code.toUpperCase();
-  if (c === 'ARCH019' && component) return { command: 'component add', values: { type: 'schema' }, label: 'Create schema / Créer un schéma' };
+  if (c === 'ARCH019' && component) return { command: 'component add', values: { type: 'schema' }, label: tr(fr, 'Create schema', 'Créer un schéma') };
   if (c === 'ARCH004') {
     const m = /archvow\s+component\s+edit\s+([A-Za-z_][A-Za-z0-9_.-]*)\s+--signature\s+"([^"]+)"/.exec(text);
-    if (m) return { command: 'component edit', values: { component: m[1], signature: m[2] }, label: 'Review signature / Vérifier la signature' };
+    if (m) return { command: 'component edit', values: { component: m[1], signature: m[2] }, label: tr(fr, 'Review signature', 'Vérifier la signature') };
   }
   if (c === 'ARCH039') {
     // drawn from a folder no longer declared: the architect adds it; a brief changed: accept it once reviewed
     const folder = addFolder(text);
-    if (folder) return { command: 'init', values: { package: folder.package, force: 'true', answer: folder.answer }, label: 'Add this folder (architect) / Ajouter ce dossier (architecte)' };
+    if (folder) return { command: 'init', values: { package: folder.package, force: 'true', answer: folder.answer }, label: tr(fr, 'Add this folder (architect)', 'Ajouter ce dossier (architecte)') };
     const m = /archvow\s+brief\s+accept\s+(\S+)/.exec(text);
-    if (m) return { command: 'brief accept', values: { brief: m[1] }, label: 'Accept (reviewed) / Accepter (relue)' };
+    if (m) return { command: 'brief accept', values: { brief: m[1] }, label: tr(fr, 'Accept (reviewed)', 'Accepter (relue)') };
   }
   if (c === 'ARCH030') {
     const m = /archvow\s+invariant\s+add\s+([A-Za-z_][A-Za-z0-9_.-]*)\s+"[^"]*"\s+--prevents\s+([A-Za-z_][A-Za-z0-9_.-]*)/.exec(text);
-    if (m) return { command: 'invariant add', values: { component: m[1], prevents: m[2] }, label: 'Add invariant / Ajouter un invariant' };
+    if (m) return { command: 'invariant add', values: { component: m[1], prevents: m[2] }, label: tr(fr, 'Add invariant', 'Ajouter un invariant') };
   }
   return null;
 }
@@ -228,7 +228,7 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
     const file = str(violation, 'file');
     let referenced = str(violation, 'component');
     if (!(referenced in snapshots)) referenced = quotedComponent(description, known);
-    const fix = issueFix(code, description, referenced);
+    const fix = issueFix(code, description, referenced, fr);
     if (code === 'ARCH030' && fix && referenced) {
       // already an item of the component's safety view
       const covered = objects(snapshots[referenced], 'safety').some((q) => safety.unprotectedHazard(q) !== '');
@@ -260,7 +260,7 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
           : answer !== '' || state === 'resolved' || state === 'answered';
       add({ kind: closed ? 'RESOLVED' : 'QUESTION',
         title: tr(fr, 'Project', 'Projet') + ' · ' + category + ' · ' + short(title, 65),
-        detail: title + (answer ? '\nAnswer / Réponse: ' + answer : ''), component: '', pending: !closed,
+        detail: title + (answer ? '\n' + tr(fr, 'Answer: ', 'Réponse : ') + answer : ''), component: '', pending: !closed,
         action: tr(fr, 'Open project specification', 'Ouvrir la spécification du projet'), command: 'open-project-vow', preset: {} });
     }
   }
@@ -281,7 +281,7 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
       const suggested = proposed !== '';
       add({ kind: pending ? (suggested ? 'SUGGESTION' : 'DECISION') : 'RESOLVED',
         title: `${id} · D${number} ${short(question, 60)}`,
-        detail: question + '\n' + (pending ? (suggested ? 'Proposal / Proposition: ' + proposed : 'Suggested / Suggéré: ' + str(d, 'suggested')) : 'Answer / Réponse: ' + answer),
+        detail: question + '\n' + (pending ? (suggested ? tr(fr, 'Proposal: ', 'Proposition : ') + proposed : tr(fr, 'Suggested: ', 'Suggéré : ') + str(d, 'suggested')) : tr(fr, 'Answer: ', 'Réponse : ') + answer),
         component: id, pending,
         action: pending ? (suggested ? tr(fr, 'Accept proposal', 'Accepter la proposition') : tr(fr, 'Answer', 'Répondre')) : open,
         command: !pending ? 'component-show' : suggested ? 'decision accept' : 'decision make',
@@ -293,7 +293,7 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
       const text = str(q, 'question');
       const pending = str(q, 'answer') === '';
       add({ kind: pending ? 'QUESTION' : 'RESOLVED', title: `${id} · ${key} ${short(text, 60)}`,
-        detail: text + '\n' + (pending ? '' : 'Answer / Réponse: ' + str(q, 'answer')), component: id, pending,
+        detail: text + '\n' + (pending ? '' : tr(fr, 'Answer: ', 'Réponse : ') + str(q, 'answer')), component: id, pending,
         action: pending ? tr(fr, 'Answer', 'Répondre') : open, command: pending ? 'decision make' : 'component-show',
         preset: pending ? { component: id, question: key, view: 'question' } : { view: 'question', question: key } });
     }
@@ -306,7 +306,7 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
       const preset: Record<string, string> = { component: id, guide_word: word, view: 'safety' };
       if (missing) preset.prevents = missing;
       add({ kind: pending ? 'QUESTION' : 'RESOLVED', title: `${id} · ${word} ${short(question, 60)}`,
-        detail: question + '\n' + safety.preview(s), component: id, pending,
+        detail: question + '\n' + safety.preview(s, fr), component: id, pending,
         action: pending ? (missing ? tr(fr, 'Add required invariant', "Ajouter l'invariant requis") : tr(fr, 'Review hazard', 'Examiner le hazard')) : open,
         command: pending ? (missing ? 'invariant add' : 'hazard add') : 'component-show', preset });
     }
