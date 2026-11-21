@@ -14,6 +14,8 @@
   let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {}, icons: {} };
   /** What the person chose on the page. */
   const ui = {
+    /** What is typed in "another assistant" of each AI-assistant question (0.26.1), by kind and question. */
+    agentOther: {},
     tab: 'overview', overSub: 'architecture', packsOpen: false, tryExample: 'pyspark-pipeline', reveal: '', forceWorkspace: false, filterMenu: false, projectMore: false,
     /** The editor tab: 'empty', 'feature', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
@@ -2744,9 +2746,69 @@
     }
   }
 
+  /** An agent's name, as archvow takes it (agents.NAME_RE): lowercase letters and digits, words joined by - or _. */
+  const AGENT_NAME = /^[a-z][a-z0-9]*([_-][a-z0-9]+)*$/;
+
+  /** The list after adding one: `none` alone, or the assistants without `none`; each once. */
+  function agentsWith(current, name) {
+    if (name === 'none') return ['none'];
+    const rest = current.filter((x) => x !== 'none' && x !== name);
+    return [...rest, name];
+  }
+
+  /**
+   * The AI assistants of a question that names agents (`suggestions`, 0.26.1): the chosen ones as chips, a list of
+   * the assistants archvow knows, and a box for any other name - archvow takes any agent name, so nothing is closed.
+   */
+  function agentPicker(q, value, kind) {
+    const id = str(q, 'id');
+    const known = q.suggestions.map(String);
+    const picked = value.split(',').map((x) => x.trim()).filter((x) => x);
+    const named = (n) => (n === 'none' ? t('none (no AI assistant)', "aucun (pas d'assistant IA)") : n);
+    const data = `data-kind="${kind}" data-id="${esc(id)}"`;
+    const chips = picked.map((n) => {
+      const own = known.includes(n);
+      const note = own ? t('Known to archvow: it writes this assistant\'s own files.', 'Connu d\'archvow : il écrit les fichiers propres à cet assistant.')
+        : t(`Not known to archvow: ${n} gets the standard files (AGENTS.md, .agents/skills); archvow recognises it when it runs with AI_AGENT=${n}.`,
+          `Inconnu d'archvow : ${n} reçoit les fichiers standard (AGENTS.md, .agents/skills) ; archvow le reconnaît quand il tourne avec AI_AGENT=${n}.`);
+      return `<span class="chip ${own ? 'blue' : 'warn'}" title="${esc(note)}">${esc(named(n))} <button class="link" data-a="agentRemove" ${data} data-name="${esc(n)}" aria-label="${esc(t('Remove ', 'Retirer ') + n)}">×</button></span>`;
+    }).join('');
+    const offered = known.filter((n) => !picked.includes(n));
+    const typed = ui.agentOther[kind + ':' + id] || '';
+    const bad = typed.trim() !== '' && !AGENT_NAME.test(typed.trim().toLowerCase());
+    return `<div class="chips agents">${chips || `<span class="muted small">${esc(t('None chosen yet', 'Aucun choisi pour l\'instant'))}</span>`}</div>
+  <div class="row wrap"><select data-change="agentAdd" ${data} aria-label="${esc(t('Add an assistant archvow knows', 'Ajouter un assistant connu d\'archvow'))}"><option value="">${esc(t('Add an assistant…', 'Ajouter un assistant…'))}</option>${offered.map((n) => `<option value="${esc(n)}">${esc(named(n))}</option>`).join('')}</select>
+  <input class="${bad ? 'invalid' : ''}" data-input="agentOther" ${data} data-keep="agent-${kind}-${esc(id)}" value="${esc(typed)}" placeholder="${esc(t('or another one, e.g. my-agent', 'ou un autre, ex. mon-agent'))}">${btn(t('Add', 'Ajouter'), 'agentOther', data, false, 'secondary')}</div>
+  ${bad ? `<div class="error small">${esc(t('A name is lowercase letters and digits, words joined by - or _ (my-agent).', 'Un nom : lettres minuscules et chiffres, mots reliés par - ou _ (mon-agent).'))}</div>` : ''}
+  <div class="muted small">${esc(t('The list holds the assistants archvow knows: it writes their own files. Any other name works too: it gets the standard files (AGENTS.md, .agents/skills), and archvow recognises it when it runs with AI_AGENT=<name>.',
+    "La liste contient les assistants qu'archvow connaît : il écrit leurs fichiers propres. Tout autre nom marche aussi : il reçoit les fichiers standard (AGENTS.md, .agents/skills), et archvow le reconnaît quand il tourne avec AI_AGENT=<nom>."))}</div>`;
+  }
+
+  /** The answer of a question, as it stands: what was chosen, or its default (init and pack template). */
+  function answerOf(kind, id) {
+    if (kind === 'tpl') {
+      const q = list(baseTemplate(), 'questions').find((x) => str(x, 'id') === id);
+      return id in ui.tplAnswers ? ui.tplAnswers[id] : str(q, 'default');
+    }
+    const template = templates().find((x) => str(x, 'name') === ui.initTemplate);
+    const q = template && list(template, 'questions').find((x) => str(x, 'id') === id);
+    return id in ui.initAnswers ? ui.initAnswers[id] : str(q, 'default');
+  }
+
+  function setAnswer(kind, id, value) {
+    if (kind === 'tpl') ui.tplAnswers[id] = value;
+    else { ui.initAnswers[id] = value; ui.initTouched[id] = true; }
+  }
+
+  function addAgent(kind, id, name) {
+    const current = answerOf(kind, id).split(',').map((x) => x.trim()).filter((x) => x);
+    setAnswer(kind, id, agentsWith(current, name).join(','));
+  }
+
   /** A question of a template as a field: its choices only, several of them, or text (checked against its format). */
   function questionControl(q, value, kind) {
     const id = str(q, 'id');
+    if (q.multiple === true && Array.isArray(q.suggestions) && q.suggestions.length) return agentPicker(q, value, kind);
     const choices = Array.isArray(q.choices) ? q.choices.map(String) : [];
     if (q.multiple === true && choices.length) {
       const picked = new Set(value.split(',').map((x) => x.trim()));
@@ -3059,6 +3121,20 @@
   }
 
   const actions = {
+    agentRemove: (e) => {
+      const current = answerOf(e.dataset.kind, e.dataset.id).split(',').map((x) => x.trim()).filter((x) => x);
+      setAnswer(e.dataset.kind, e.dataset.id, current.filter((x) => x !== e.dataset.name).join(','));
+    },
+    agentOther: (e) => {
+      const key = e.dataset.kind + ':' + e.dataset.id;
+      const name = (ui.agentOther[key] || '').trim().toLowerCase();
+      if (!AGENT_NAME.test(name)) {
+        post({ type: 'message', text: t('A name is lowercase letters and digits, words joined by - or _ (my-agent).', 'Un nom : lettres minuscules et chiffres, mots reliés par - ou _ (mon-agent).') });
+        return;
+      }
+      addAgent(e.dataset.kind, e.dataset.id, name);
+      ui.agentOther[key] = '';
+    },
     tab: (e) => { ui.tab = e.dataset.tab; ui.filterMenu = false; ui.projectMore = false; },
     openComponents: () => { ui.tab = 'components'; ui.filter = 'all'; },
     openBriefCommands: () => {
@@ -3427,6 +3503,12 @@
 
   document.body.addEventListener('keydown', (event) => {
     const e = event.target;
+    if (e && e.dataset && e.dataset.input === 'agentOther' && event.key === 'Enter') {
+      event.preventDefault();
+      actions.agentOther(e);
+      render();
+      return;
+    }
     if (e && e.dataset && e.dataset.input === 'find' && event.key === 'Enter') {
       ui.findText = e.value;
       actions.find(e);
@@ -3436,6 +3518,14 @@
   document.body.addEventListener('input', (event) => {
     const e = event.target;
     switch (e.dataset.input) {
+      case 'agentOther': {
+        const key = e.dataset.kind + ':' + e.dataset.id;
+        const was = (ui.agentOther[key] || '').trim() !== '' && !AGENT_NAME.test((ui.agentOther[key] || '').trim().toLowerCase());
+        ui.agentOther[key] = e.value;
+        const bad = e.value.trim() !== '' && !AGENT_NAME.test(e.value.trim().toLowerCase());
+        if (bad !== was) render();  // the hint appears or goes; typing is kept (data-keep)
+        return;
+      }
       case 'find':
         ui.findText = e.value;
         return;
@@ -3582,6 +3672,9 @@
         render();
         return;
       }
+      case 'agentAdd':
+        if (e.value) { addAgent(e.dataset.kind, e.dataset.id, e.value); render(); }
+        return;
       case 'initTemplate':
         ui.initTemplate = e.value;
         ui.form.template = e.value;

@@ -20,6 +20,11 @@ release fixes from the review of 0.26.0.
   instead of every text twice, "English / Français"; the language list switches the page at once. The other
   texts that said everything twice (the fix labels, "Answer / Réponse", the safety previews) follow the chosen
   language too, and `SettingsTextRegression` keeps it so.
+- **AI assistants picked from a list, or added by name.** In init and pack template (ai_tools, reviewers), the
+  assistants are no longer typed "comma-separated": each chosen one is a chip, **Add an assistant…** lists those
+  archvow knows (the catalog's suggestions: archvow's 16 agents, and a pack's own), and a box adds any other name -
+  archvow takes any agent name and gives an unknown one the standard AGENTS.md and .agents/skills, as its chip says.
+  `none` stays alone; a wrong name is refused with the rule (`ArchvowAgentPicker`, `AgentPickerRegression`).
 - **Choose the Python from a list, and see which one runs.** The Python field is a list of the Pythons of this
   computer - the project's interpreter, its `.venv`, the IDE's interpreters, python.org, Homebrew, the system's,
   pyenv, conda, the PATH - each with its version and the archvow it has, those with archvow first (as the IDE's

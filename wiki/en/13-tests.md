@@ -14,7 +14,7 @@ runs them with `JavaExec` (`intellij/build.gradle.kts`). Gradle's `test` task is
 | Task | Class | What it checks |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | the `.vow` reader on every vow of `contract/vows`: the scanner covers all the text, restarts at any token, one colour per depth; vows broken on purpose give the right problems |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 67 regression classes: everything that does not need a running IntelliJ |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 68 regression classes: everything that does not need a running IntelliJ |
 | `contractDump` (not in `check`) | `DumpContract` | writes `contract/vow-reader/expected.json`, the TypeScript reader's reference |
 
 The panel itself (`ArchvowPanel`) needs a running IntelliJ; that is why **the logic is taken out into
@@ -33,6 +33,7 @@ what it protects:
 | `PythonsRegression` | The Pythons of Settings > Tools > Archvow (0.26.1): where they are looked for, each once (a venv stays its own), the probe read back, those with archvow first, each line in one language |
 | `SettingsTextRegression` | One language at a time (0.26.1): every text of Settings > Tools > Archvow in one language, and no text of the plugin puts English and French side by side |
 | `InitTargetRegression` | After init (0.26.1): another folder (`--dir`) opens as the IDE's project; PyCharm Home (PyCharmMiscProject) is never initialized itself, a new project's folder follows its package |
+| `AgentPickerRegression` | The AI assistants of init (0.26.1): picked from the agents archvow knows, any other added by name (archvow's rule), `none` alone, each change the form's |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, the `\\wsl.localhost\...` paths |
 | `TextDialogRegression` | a dialog's size, Copy command |
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |

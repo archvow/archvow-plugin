@@ -14,6 +14,11 @@ release fixes from the review of 0.26.0.
   check messages, 100 codes, harvested from its suite, which now passes as delivered). 2.6.2 fixes a false
   ARCH020: a first rule parameter set stricter than its default (a lower ARCH022 budget) is no longer reported
   as a weakened guard.
+- **AI assistants picked from a list, or added by name.** In init (ai_tools, reviewers), the assistants are no longer
+  typed "comma-separated": each chosen one is a chip, **Add an assistant…** lists those archvow knows (the catalog's
+  suggestions: archvow's 16 agents, and a pack's own), and a box adds any other name - archvow takes any agent name
+  and gives an unknown one the standard AGENTS.md and .agents/skills, as its chip says. `none` stays alone; a wrong
+  name is refused with the rule (`agent-picker-regression.js`). archvow itself is unchanged.
 - **Choose the Python from a list, and see which one runs.** **Configure Python** (the command *Choose the Python
   that runs archvow*) lists the Pythons of this computer - the project's interpreter, its `.venv`, the Python
   extension's environments, python.org, Homebrew, the system's, pyenv, conda, the PATH - each with its version and
