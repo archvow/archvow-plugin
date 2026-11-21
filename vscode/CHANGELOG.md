@@ -2,18 +2,23 @@
 
 ## 0.26.1 - 2026-11-20
 
-Built on archvow 2.6.2 (contract 2.4, unchanged: 2.6.2 prints what 2.6.0 printed, but the version). Security and
-release fixes from the review of 0.26.0.
+Built on archvow 2.7.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to
+be older, with Install archvow 2.7.0). Security and release fixes from the review of 0.26.0.
 
 - **Nothing runs in a project you have not trusted.** As before, archvow runs only in a trusted workspace (Restricted Mode: the `.vow` language only).
 - **Python runs with `-P`** (`<python> -P -m archvow`, `<python> -P -m pip`): archvow and pip run in the project's
   root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code
   each time the plugin called archvow (reproduced). Python 3.11 or later, as archvow itself needs; an older Python
   found first is passed over for the next candidate.
-- **archvow 2.6.2 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 790
-  check messages, 100 codes, harvested from its suite, which now passes as delivered). 2.6.2 fixes a false
-  ARCH020: a first rule parameter set stricter than its default (a lower ARCH022 budget) is no longer reported
-  as a weakened guard.
+- **archvow 2.7.0 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 791
+  check messages, 100 codes, harvested from its suite, which now passes as delivered). Since 2.6.2, a first rule
+  parameter set stricter than its default (a lower ARCH022 budget) is no longer reported as a weakened guard
+  (ARCH020).
+- **An error pasted in Find is shown as an error.** `archvow show "<the error>"` (archvow 2.7.0): what went wrong,
+  the template's known errors it matches - each pack rule kept with that error (`pack rule --error`), with its fix
+  and why - then where it broke, with the lines around it, **Open at line** and **Show <component>**, and where the
+  lesson goes once it is fixed. A traceback pasted in the one-line field keeps its lines apart
+  (`pasted-error-regression.js`; contract `cli/python-app/pasted-error.json`).
 - **AI assistants picked from a list, or added by name.** In init (ai_tools, reviewers), the assistants are no longer
   typed "comma-separated": each chosen one is a chip, **Add an assistant…** lists those archvow knows (the catalog's
   suggestions: archvow's 16 agents, and a pack's own), and a box adds any other name - archvow takes any agent name
@@ -23,7 +28,7 @@ release fixes from the review of 0.26.0.
   that runs archvow*) lists the Pythons of this computer - the project's interpreter, its `.venv`, the Python
   extension's environments, python.org, Homebrew, the system's, pyenv, conda, the PATH - each with its version and
   the archvow it has, those with archvow first; *Automatic* stays the default. The welcome page says what runs:
-  `archvow 2.6.2 with /usr/local/bin/python3.12 — the project's Python interpreter`. `archvow.python`, when set,
+  `archvow 2.7.0 with /usr/local/bin/python3.12 — the project's Python interpreter`. `archvow.python`, when set,
   now comes before the project's interpreter: a Python the person chose is the one that runs (`pythons.ts`).
 - **Init into another folder opens it.** `init` with a Folder (`--dir`) other than the workspace's offers to open
   that folder here or in a new window: it is the new project (`initTarget.ts`).

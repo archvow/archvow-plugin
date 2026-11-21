@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/fastapi-service@2.6.2`).
+(template `archvow/fastapi-service@2.7.0`).
 
 ## For developers
 

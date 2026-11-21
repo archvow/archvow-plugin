@@ -734,8 +734,8 @@ final class ArchvowPanel extends JPanel {
         if (role == Role.NAVIGATION) {
             findField.setColumns(10);
             findField.setToolTipText(ArchvowI18n.text(project,
-                "Find a function, column, ticket or example (Enter to search)",
-                "Rechercher une fonction, une colonne, un ticket ou un exemple (Entrée pour chercher)"));
+                "Find a function, column, ticket or example - or paste an error (Enter to search)",
+                "Rechercher une fonction, une colonne, un ticket ou un exemple - ou coller une erreur (Entrée pour chercher)"));
             findField.addActionListener(e -> showSearch(findField.getText()));
             // A magnifier INSIDE the search field, not a second Find button.
             JPanel searchBox = new JPanel(new BorderLayout(5, 0));
@@ -987,10 +987,10 @@ final class ArchvowPanel extends JPanel {
                 return;
             }
             String id = ArchvowGrammar.str(data, "component");
-            if (!id.isBlank() && !data.has("groups")) { showComponent(id); return; }
+            if (!id.isBlank() && !data.has("groups") && !ArchvowSearch.isError(data)) { showComponent(id); return; }
             backComponent = null;
             showWorkspace();
-            searchName = wanted;
+            searchName = ArchvowSearch.isError(data) ? ArchvowGrammar.str(data.getAsJsonObject("error"), "error") : wanted;
             searchView.show(data, wanted, project.getBasePath(), ArchvowI18n.isFrench(project));
             showDetailHome("search");
             tabs.setSelectedIndex(0);
@@ -1064,8 +1064,8 @@ final class ArchvowPanel extends JPanel {
         find.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
         JLabel label = translated(new JLabel(), "Find in the project", "Chercher dans le projet");
         label.setForeground(new Color(125, 131, 140));
-        findField.setToolTipText(ArchvowI18n.text(project, "A name: a function, a column, a ticket, an example (archvow show <name>)",
-            "Un nom : une fonction, une colonne, un ticket, un exemple (archvow show <nom>)"));
+        findField.setToolTipText(ArchvowI18n.text(project, "A name: a function, a column, a ticket, an example (archvow show <name>) - or an error, pasted",
+            "Un nom : une fonction, une colonne, un ticket, un exemple (archvow show <nom>) - ou une erreur, collée"));
         findField.addActionListener(e -> showSearch(findField.getText()));
         JButton go = button(ArchvowI18n.text(project, "Find", "Chercher"), () -> showSearch(findField.getText()));
         languageRefreshers.add(() -> go.setText(ArchvowI18n.text(project, "Find", "Chercher")));

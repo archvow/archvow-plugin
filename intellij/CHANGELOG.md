@@ -4,18 +4,23 @@ The plugin joins two former plugins in 0.5.0; their own histories follow.
 
 ## 0.26.1 - 2026-11-20
 
-Built on archvow 2.6.2 (contract 2.4, unchanged: 2.6.2 prints what 2.6.0 printed, but the version). Security and
-release fixes from the review of 0.26.0.
+Built on archvow 2.7.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to
+be older, with Install archvow 2.7.0). Security and release fixes from the review of 0.26.0.
 
 - **Nothing runs in a project you have not trusted.** A project opened in safe mode ("Preview in Safe Mode") starts no archvow, Test or Install process (`ArchvowTrust`, `TrustedProjects.isTrusted`): 0.26.0 ran archvow as soon as an archvow project opened - with the project's `.venv` Python among the candidates - and never asked. The panel says why; after "Trust project", Refresh runs as before.
 - **Python runs with `-P`** (`<python> -P -m archvow`, `<python> -P -m pip`): archvow and pip run in the project's
   root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code
   each time the plugin called archvow (reproduced). Python 3.11 or later, as archvow itself needs; an older Python
   found first is passed over for the next candidate.
-- **archvow 2.6.2 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 790
-  check messages, 100 codes, harvested from its suite, which now passes as delivered). 2.6.2 fixes a false
-  ARCH020: a first rule parameter set stricter than its default (a lower ARCH022 budget) is no longer reported
-  as a weakened guard.
+- **archvow 2.7.0 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 791
+  check messages, 100 codes, harvested from its suite, which now passes as delivered). Since 2.6.2, a first rule
+  parameter set stricter than its default (a lower ARCH022 budget) is no longer reported as a weakened guard
+  (ARCH020).
+- **An error pasted in Find is shown as an error.** `archvow show "<the error>"` (archvow 2.7.0): what went wrong,
+  the template's known errors it matches - each pack rule kept with that error (`pack rule --error`), with its fix
+  and why - then where it broke, with the lines around it, **Open at line** and **Show <component>**, and where the
+  lesson goes once it is fixed. Before, it was a search found nowhere, or the component alone (its known errors
+  lost) (`ArchvowSearch.errorHtml`, `PastedErrorRegression`; contract `cli/python-app/pasted-error.json`).
 - **Settings > Tools > Archvow in one language** - the one chosen on the page, English by default as archvow -
   instead of every text twice, "English / Français"; the language list switches the page at once. The other
   texts that said everything twice (the fix labels, "Answer / Réponse", the safety previews) follow the chosen
@@ -30,7 +35,7 @@ release fixes from the review of 0.26.0.
   computer - the project's interpreter, its `.venv`, the IDE's interpreters, python.org, Homebrew, the system's,
   pyenv, conda, the PATH - each with its version and the archvow it has, those with archvow first (as the IDE's
   own interpreter list); *Automatic (recommended)* stays the default, and says its order. **Runs**, at the top of
-  the page and on the Archvow window's welcome page, says what runs: `archvow 2.6.2 with
+  the page and on the Archvow window's welcome page, says what runs: `archvow 2.7.0 with
   /usr/local/bin/python3.12 — the project's Python interpreter`. A Python chosen here now comes before the
   project's interpreter (`ArchvowPythons`, `PythonsRegression`).
 - **Initialize opens the new project.** From PyCharm Home (the non-modal welcome screen, a project kept in

@@ -563,7 +563,7 @@
   /** The sidebar's find field (0.18.0): a name - a function, a column, a ticket, an example - and Enter runs
    *  archvow show <name> --json; the result opens in the editor tab. */
   function findBox() {
-    const searchTitle = t('Find in the project (Enter to search)', 'Chercher dans le projet (Entrée pour chercher)');
+    const searchTitle = t('Find in the project - a name, or a pasted error (Enter to search)', 'Chercher dans le projet - un nom, ou une erreur collée (Entrée pour chercher)');
     const filterTitle = t('Filter components', 'Filtrer les composants');
     const filters = [['all', t('All', 'Tous')], ['pending', t('Pending', 'En attente')], ['resolved', t('Resolved', 'Traités')]];
     return `<div class="top-search" role="search"><div class="search-field">${icon('search') || '⌕'}<input id="find" aria-label="${esc(searchTitle)}" data-input="find" data-keep="find" value="${esc(ui.findText)}" placeholder="${esc(t('Search…', 'Rechercher…'))}" title="${esc(searchTitle)}"></div>
@@ -583,6 +583,7 @@
   /** archvow show <name> --json: groups left (with counts, a click filters), the places in the middle, the
    *  selected one's lines right; a name found nowhere gives its close names. As IntelliJ's search panel. */
   function searchView(result) {
+    if (result && typeof result.error === 'object' && result.error !== null) return pastedErrorView(result);
     if (!result) return `<p class="muted">${esc(t('Type a name in the find field of the Archvow sidebar.', 'Tape un nom dans le champ de recherche du panneau Archvow.'))}</p>`;
     const name = str(result, 'name');
     const total = Number(result.total) || 0;
@@ -619,6 +620,37 @@
     return `<div class="search-head"><h2 class="mono">${esc(name)}</h2><span class="muted">${esc(t(`found in ${total} place${total === 1 ? '' : 's'}`, `trouvé à ${total} endroit${total === 1 ? '' : 's'}`))}${str(result, 'summary') ? ' · ' + esc(str(result, 'summary')) : ''}</span>
   <p class="muted small">${esc(t(`archvow show ${name} --json · whole words only`, `archvow show ${name} --json · mots entiers seulement`))}</p></div>
   <div class="search-grid"><nav class="search-groups">${nav}</nav><ul class="search-hits" data-scroll="search-hits">${rows}</ul><aside class="search-preview">${preview}</aside></div>`;
+  }
+
+  /**
+   * A pasted error (archvow show "<the error>" --json, archvow 2.7.0): what went wrong, the template's known errors it
+   * matches - each pack rule with its fix and why - then where it broke, the lines around it, and where its lesson
+   * goes once it is fixed. As IntelliJ's ArchvowSearch.errorHtml.
+   */
+  function pastedErrorView(result) {
+    const error = result.error;
+    const known = list(error, 'known');
+    const file = str(result, 'file');
+    const line = Number(result.line) || 0;
+    const component = str(result, 'component');
+    const symbol = result.symbol && typeof result.symbol === 'object' ? str(result.symbol, 'name') : '';
+    const around = Array.isArray(result.around) ? result.around : [];
+    const rules = known.map((k) => `<div class="alert ${str(k, 'severity') === 'warning' ? 'warn' : 'bad'}"><b>${esc(str(k, 'code'))}</b> ${esc(str(k, 'message'))}
+  <span class="muted small">${esc(t("(a known error: a rule of the template's pack)", '(une erreur connue : une règle du pack du template)'))}</span>
+  ${str(k, 'fix') ? `<div>${esc(t('Fix: ', 'Correction : '))}${esc(str(k, 'fix'))}</div>` : ''}${str(k, 'why') ? `<div class="muted">${esc(t('Why: ', 'Pourquoi : '))}${esc(str(k, 'why'))}</div>` : ''}</div>`).join('');
+    const where = !file
+      ? `<p class="muted">${esc(t('No file of this project in it: once you know where it broke, archvow show <file>:<line>.', "Aucun fichier de ce projet dedans : quand tu sais où ça a cassé, archvow show <fichier>:<ligne>."))}</p>`
+      : `<h3>${esc(t('Where it broke', 'Où ça a cassé'))}</h3><p class="mono small hit-where">${esc(file + (line ? ':' + line : ''))}</p>
+  <p>${esc(component ? t(`code of ${component}`, `code de ${component}`) + (symbol ? t(`, inside ${symbol}`, `, dans ${symbol}`) : '') : str(result, 'hint'))}</p>
+  ${around.length ? `<pre class="plain around">${around.map((l) => `<span class="${Number(l.n) === line ? 'here' : ''}">${esc(String(l.n).padStart(4))}  ${esc(str(l, 'text'))}</span>`).join('\n')}</pre>` : ''}
+  <div class="row wrap">${btn(line ? t(`Open at line ${line}`, `Ouvrir à la ligne ${line}`) : t('Open', 'Ouvrir'), 'openFile', attrs({ file, line }))}
+  ${component ? btn(t(`Show ${component}`, `Afficher ${component}`), 'pick', attrs({ id: component }), false, 'secondary') : ''}</div>`;
+    return `<div class="card pasted-error"><div class="answer-head"><span>${esc(t('Error', 'Erreur'))}</span></div>
+  <h2 class="mono">${esc(str(error, 'error'))}</h2>
+  ${rules || `<p class="muted">${esc(t("Not a known error of this project's template.", 'Pas une erreur connue du template de ce projet.'))}</p>`}
+  ${where}
+  <p class="muted small">${esc(t('Fixed? Record the lesson where it reaches: the component\'s decision or rule, a pack rule with this error (--error), or the template\'s troubleshooting page. The AI says which at the end of "Fix a bug".',
+    "Corrigé ? Enregistre la leçon où elle porte : la décision ou la règle du composant, une règle de pack avec cette erreur (--error), ou la page de dépannage du template. L'IA le dit à la fin de « Corrige un bug »."))}</p></div>`;
   }
 
   // ---------------------------------------------------------------- shared: result card, confirmation
@@ -2746,6 +2778,11 @@
     }
   }
 
+  /** Several lines on one: each line's words kept apart by one space. */
+  function joinLines(text) {
+    return text.split(/\r?\n/).map((line) => line.trim()).filter((line) => line).join(' ');
+  }
+
   /** An agent's name, as archvow takes it (agents.NAME_RE): lowercase letters and digits, words joined by - or _. */
   const AGENT_NAME = /^[a-z][a-z0-9]*([_-][a-z0-9]+)*$/;
 
@@ -3513,6 +3550,18 @@
       ui.findText = e.value;
       actions.find(e);
     }
+  });
+
+  // A traceback pasted in the find field (2.7.0): an input drops its line breaks and glues the lines together
+  // ("in mark_paidValueError: ..."); a space keeps each line's words apart, so archvow still reads the error.
+  document.body.addEventListener('paste', (event) => {
+    const e = event.target;
+    if (!e || e.id !== 'find' || !event.clipboardData) return;
+    const text = event.clipboardData.getData('text');
+    if (!/[\r\n]/.test(text)) return;
+    event.preventDefault();
+    e.setRangeText(joinLines(text), e.selectionStart, e.selectionEnd, 'end');
+    ui.findText = e.value;
   });
 
   document.body.addEventListener('input', (event) => {

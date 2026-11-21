@@ -598,6 +598,13 @@ export class ArchvowProject {
       void vscode.window.showWarningMessage(failure(result) || tr(this.state.fr, 'archvow found nothing to show.', "archvow n'a rien trouvé à montrer."));
       return;
     }
+    const pasted = typeof view.error === 'object' && view.error !== null && !Array.isArray(view.error);
+    if (pasted) {
+      // a pasted error (archvow 2.7.0, contract 2.5): its known errors and where it broke, on one page
+      view.around = this.around(str(view, 'file'), Number(view.line) || 0);
+      this.toEditor({ type: 'search', name: str(view.error as Json, 'error') || wanted, result: view });
+      return;
+    }
     if (str(view, 'component') && !Array.isArray(view.groups)) {
       this.show(str(view, 'component'));
       return;

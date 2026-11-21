@@ -14,7 +14,7 @@ Gradle les lance avec `JavaExec` (`intellij/build.gradle.kts`). La tâche `test`
 | Tâche | Classe | Ce qu'elle vérifie |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | le lecteur `.vow` sur chaque vow de `contract/vows` : le scanner couvre tout le texte, redémarre à n'importe quel jeton, une couleur par profondeur ; des vows cassés exprès donnent les bons problèmes |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 68 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 69 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
 | `contractDump` (pas dans `check`) | `DumpContract` | écrit `contract/vow-reader/expected.json`, la référence du lecteur TypeScript |
 
 Le panneau lui-même (`ArchvowPanel`) a besoin d'un IntelliJ qui tourne ; c'est pourquoi **la logique
@@ -34,6 +34,7 @@ nom de ce qu'elle protège :
 | `SettingsTextRegression` | Une langue à la fois (0.26.1) : chaque texte de Settings > Tools > Archvow dans une langue, et aucun texte du plugin ne met l'anglais et le français côte à côte |
 | `InitTargetRegression` | Après init (0.26.1) : un autre dossier (`--dir`) s'ouvre comme projet de l'IDE ; PyCharm Home (PyCharmMiscProject) n'est jamais initialisé lui-même, le dossier d'un nouveau projet suit son paquet |
 | `AgentPickerRegression` | Les assistants IA d'init (0.26.1) : choisis parmi les agents qu'archvow connaît, tout autre ajouté par son nom (la règle d'archvow), `none` seul, chaque changement celui du formulaire |
+| `PastedErrorRegression` | Une erreur collée dans Chercher (archvow 2.7.0) : montrée comme une erreur depuis la vraie sortie d'archvow - erreurs connues avec correction et raison, où ça a cassé, boutons qui y vont - jamais comme une recherche introuvable |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, les chemins `\\wsl.localhost\...` |
 | `TextDialogRegression` | la taille d'un dialogue, Copier la commande |
 | `TextSizeRegression` | aucun `px` ni `<h1>`-`<h6>` dans le HTML affiché, le conseil de branche sur plusieurs lignes |

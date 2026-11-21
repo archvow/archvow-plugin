@@ -1,1 +1,1 @@
-archvow 2.6.2
+archvow 2.7.0

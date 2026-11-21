@@ -85,6 +85,73 @@ final class ArchvowSearch {
     }
 
     /** Two lines before the hit, the hit, two after: "  12  text" (none for a folder, a missing file or line 0). */
+    /** A pasted error (archvow 2.7.0, contract 2.5): archvow show "<the error>" --json has an "error" object. */
+    static boolean isError(JsonObject data) {
+        return data != null && data.has("error") && data.get("error").isJsonObject();
+    }
+
+    /** Where a pasted error broke, as a hit (group "error"): its file, line and component; null when it names no file
+     *  of the project. */
+    static Hit errorPlace(JsonObject data) {
+        if (!isError(data) || ArchvowGrammar.str(data, "file").isBlank()) return null;
+        JsonObject symbol = data.has("symbol") && data.get("symbol").isJsonObject() ? data.getAsJsonObject("symbol") : null;
+        return new Hit("error", ArchvowGrammar.str(data, "file"), (int) ArchvowGrammar.number(data, "line"),
+            ArchvowGrammar.str(data, "component"), symbol == null ? "" : ArchvowGrammar.str(symbol, "name"), "", "", "", "");
+    }
+
+    /**
+     * A pasted error's page (2.7.0): what went wrong, the template's known errors it matches - each pack rule with
+     * its fix and why - then where it broke, with the lines around it, and where its lesson goes once it is fixed.
+     */
+    static String errorHtml(JsonObject data, List<String[]> around, boolean french) {
+        JsonObject error = data.getAsJsonObject("error");
+        StringBuilder out = new StringBuilder(ArchvowHtml.body(null, null));
+        out.append(ArchvowHtml.heading(ArchvowExamples.esc(ArchvowGrammar.str(error, "error")), 1.1, "margin-top:2px"));
+        List<JsonObject> known = new ArrayList<>();
+        if (error.has("known") && error.get("known").isJsonArray())
+            for (var k : error.getAsJsonArray("known")) if (k.isJsonObject()) known.add(k.getAsJsonObject());
+        if (known.isEmpty()) out.append("<p style='color:gray'>").append(french
+            ? "Pas une erreur connue du template de ce projet." : "Not a known error of this project's template.").append("</p>");
+        for (JsonObject k : known) {
+            String color = "warning".equals(ArchvowGrammar.str(k, "severity")) ? "#b0761a" : "#cf222e";
+            out.append("<div style='margin:6px 0'><b style='color:").append(color).append("'>")
+                .append(ArchvowExamples.esc(ArchvowGrammar.str(k, "code"))).append("</b> ")
+                .append(ArchvowExamples.esc(ArchvowGrammar.str(k, "message")))
+                .append(" <span style='color:gray'>").append(french ? "(une erreur connue : une règle du pack du template)"
+                    : "(a known error: a rule of the template's pack)").append("</span>");
+            if (!ArchvowGrammar.str(k, "fix").isBlank()) out.append("<br>").append(french ? "Correction : " : "Fix: ")
+                .append(ArchvowExamples.esc(ArchvowGrammar.str(k, "fix")));
+            if (!ArchvowGrammar.str(k, "why").isBlank()) out.append("<br><span style='color:gray'>").append(french ? "Pourquoi : " : "Why: ")
+                .append(ArchvowExamples.esc(ArchvowGrammar.str(k, "why"))).append("</span>");
+            out.append("</div>");
+        }
+        Hit place = errorPlace(data);
+        if (place == null) {
+            out.append("<p style='color:gray'>").append(french
+                ? "Aucun fichier de ce projet dedans : quand tu sais où ça a cassé, archvow show &lt;fichier&gt;:&lt;ligne&gt;."
+                : "No file of this project in it: once you know where it broke, archvow show &lt;file&gt;:&lt;line&gt;.").append("</p>");
+        } else {
+            out.append(ArchvowHtml.heading(french ? "Où ça a cassé" : "Where it broke", 1.0, "margin-top:10px"));
+            out.append("<div style='font-family:monospace; color:#2e5aac'>").append(ArchvowExamples.esc(place.where())).append("</div>");
+            String owner = place.component().isBlank() ? ArchvowGrammar.str(data, "hint")
+                : (french ? "code de " : "code of ") + place.component() + (place.part().isBlank() ? "" : ", " + (french ? "dans " : "inside ") + place.part());
+            out.append("<p>").append(ArchvowExamples.esc(owner)).append("</p>");
+            if (!around.isEmpty()) {
+                out.append("<pre>");
+                for (String[] line : around) {
+                    boolean here = line[0].equals(Integer.toString(place.line()));
+                    out.append(here ? "<b>" : "").append(String.format("%4s  ", line[0])).append(ArchvowExamples.esc(line[1])).append(here ? "</b>" : "").append("\n");
+                }
+                out.append("</pre>");
+            }
+        }
+        out.append("<p style='color:gray; ").append(ArchvowHtml.size(.85)).append("'>").append(french
+            ? "Corrigé ? Enregistre la leçon où elle porte : la décision ou la règle du composant, une règle de pack avec cette erreur (--error), ou la page de dépannage du template. L'IA le dit à la fin de « Corrige un bug »."
+            : "Fixed? Record the lesson where it reaches: the component's decision or rule, a pack rule with this error (--error), or the template's troubleshooting page. The AI says which at the end of \"Fix a bug\".")
+            .append("</p>");
+        return out.append("</body></html>").toString();
+    }
+
     static List<String[]> around(String base, Hit hit) {
         List<String[]> out = new ArrayList<>();
         if (base == null || hit.line() <= 0 || !hit.openable()) return out;

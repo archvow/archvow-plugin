@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 2.6.2",
+ "archvow": "archvow 2.7.0",
  "messages": [
   {
    "code": "ACME001",
@@ -483,6 +483,13 @@
    "message": "'get_settings' of component 'settings' is still a placeholder (only pass, ..., a docstring or raise NotImplementedError): implement it",
    "file": "src/api/p0_common/settings.py",
    "line": 18
+  },
+  {
+   "code": "ARCH004",
+   "severity": "error",
+   "message": "'clean_orders' signature is (df), the spec says (df: DataFrame) -> DataFrame -> write the spec's signature, or a person changes the spec: archvow component edit clean_orders --signature \"(df)\"",
+   "file": "src/sales/p1_domain/clean_orders.py",
+   "line": 12
   },
   {
    "code": "ARCH004",
@@ -1033,7 +1040,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.2: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.7.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -4715,14 +4722,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 2f871d40: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit bbdabebf: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit df5f0c5a: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit d3255488: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },

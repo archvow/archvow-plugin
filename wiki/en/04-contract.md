@@ -22,6 +22,7 @@ from a real archvow CLI, never written by hand.
 | `contract/forms/file-plans.expected.json` | what `filePlan()` gives on 21 examples in English and in French, the layers to add a component to, the lines of Save to a file | `UPDATE_FILE_PLANS=1 npm test` | `FilePlanRegression`: `ArchvowFilePlan` must give exactly the same |
 | `contract/forms/examples.expected.json` | each example's state (passing, failing, no test) as the page says it, in English and in French | `UPDATE_EXAMPLES=1 npm test` | `ExamplesAndSearchRegression`: `ArchvowExamples.state` must say the same |
 | `contract/cli/python-app/examples/` (`passing.json`, `failing.json`, `no-test.json`), `contract/cli/<example>/search/<name>.json` | `show invoices_cli --json` with a passing, a failing and an untested example; `show <name> --json` on names found and one found nowhere (`mark_payd`) | `regenerate.py` (`examples()`, `SEARCHES`) | `examples.test.ts`, `ExamplesAndSearchRegression` |
+| `contract/cli/python-app/pasted-error.json` | `show "<a traceback>" --json` (archvow 2.7.0, contract 2.5): a pasted error naming `mark_paid.py:28` | `regenerate.py` (`PASTED_ERRORS`) | `pasted-error-regression.js`, `PastedErrorRegression` |
 | `contract/cli/catalog.json` | `archvow catalog --json` outside a project: the templates and their questions | `regenerate.py` | `ArchvowInitCatalog`, the `init` wizard when the CLI does not answer; `componentTypes()` |
 | `contract/cli/rules.md`, `rules.fr.md` | the meaning of each check code (archvow's `docs/rules*.md`) | `regenerate.py` (copy) | `ArchvowRuleDocs`, `ruleExplanation()`: the explanation under a diagnostic |
 | `contract/cli/<example>/show.json`, `next.json`, `check.json`, `show/<component>.json` | what the CLI prints on archvow's three examples | `regenerate.py` | the VS Code tests (`vscode/src/test/workspace.test.ts`, `layout.test.ts`) and both plugins' test setups |
@@ -74,13 +75,13 @@ What to look for in the diff:
 
 ## The archvow version and the contract (0.20.0)
 
-archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "2.4", "archvow": "2.6.2",
+archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "2.5", "archvow": "2.7.0",
 ...}`, and every `--json` object starts with `"contract"`. `ArchvowVersion.warning` and `contractWarning()`
 compare it with `contract.txt`: the same MAJOR and a MINOR at least the plugin's, nothing; an older one, or
 an archvow that says no contract (before 1.23: it has no `version` command, its `--version` gives the
 number), "older: update archvow"; a later MAJOR, "newer: update the plugin". So an archvow release that
 keeps the contract needs no plugin release, while archvow still keeps no backward compatibility: the
-contract number is what tells. Install puts the tested archvow exactly (`archvow==2.6.2`).
+contract number is what tells. Install puts the tested archvow exactly (`archvow==2.7.0`).
 
 Contract 1.1 (archvow 1.25, plugin 0.21.0) adds `archvow workspace --json`: what the plugins load, in one
 process (`readWorkspace()` in `model.ts`, `WorkspaceAnswer` in IntelliJ, both tested on

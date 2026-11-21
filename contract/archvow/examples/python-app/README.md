@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/python-app@2.6.2`).
+(template `archvow/python-app@2.7.0`).
 
 ## For developers
 

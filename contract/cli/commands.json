@@ -773,7 +773,7 @@
           "multiToken": false,
           "optionalValue": true,
           "choices": [],
-          "help": "one component, a rule R1, a file (file.py or file.py:<line>), or any other name to find in the project",
+          "help": "one component, a rule R1, a file (file.py or file.py:<line>), an error as it was printed (quoted), or any other name to find in the project",
           "hidden": false,
           "metavar": "component"
         },
@@ -3579,6 +3579,21 @@
           "optionalValue": false,
           "choices": [],
           "help": "the same, in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "error",
+          "flags": [
+            "--error"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the error people saw when it went wrong (Java heap space): archvow show \"<pasted error>\" finds this rule by it",
           "hidden": false,
           "metavar": "TEXT"
         },
