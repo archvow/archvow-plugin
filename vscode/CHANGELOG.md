@@ -2,7 +2,7 @@
 
 ## 0.26.1 - 2026-11-20
 
-Built on archvow 2.6.1 (contract 2.4, unchanged: 2.6.1 prints what 2.6.0 printed, but the version). Security and
+Built on archvow 2.6.2 (contract 2.4, unchanged: 2.6.2 prints what 2.6.0 printed, but the version). Security and
 release fixes from the review of 0.26.0.
 
 - **Nothing runs in a project you have not trusted.** As before, archvow runs only in a trusted workspace (Restricted Mode: the `.vow` language only).
@@ -10,8 +10,10 @@ release fixes from the review of 0.26.0.
   root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code
   each time the plugin called archvow (reproduced). Python 3.11 or later, as archvow itself needs; an older Python
   found first is passed over for the next candidate.
-- **archvow 2.6.1 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 789
-  check messages, 100 codes, harvested from its suite, which now passes as delivered).
+- **archvow 2.6.2 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 790
+  check messages, 100 codes, harvested from its suite, which now passes as delivered). 2.6.2 fixes a false
+  ARCH020: a first rule parameter set stricter than its default (a lower ARCH022 budget) is no longer reported
+  as a weakened guard.
 - **"Try it" shows its result where you clicked.** On the welcome page of a folder without archvow, the sidebar's Try it ran `archvow try` but sent the running state and the result to the editor tab only: the sidebar never changed, and in the editor tab the result sat under the cards, below the fold - nothing seemed to happen. The result now shows under the Try card in the sidebar as well, and scrolls into view wherever it shows (`scripts/try-it-regression.js`).
 - `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
   `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin

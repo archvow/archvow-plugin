@@ -5520,7 +5520,7 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.1: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.2: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
    "meaning": "The project was set up with the template an older version; the archvow installed here brings a newer one. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of an older version.",
@@ -5544,7 +5544,7 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.1: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.2: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
    "meaning": "Le projet a été créé avec the template an older version ; l'archvow installé ici apporte a newer one. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de an older version.",
@@ -9642,7 +9642,7 @@
  {
   "fr": false,
   "code": "ARCH020",
-  "message": "rule ARCH022: max_files relaxed from 30 to 300",
+  "message": "rule ARCH022: max_files relaxed from 30 (default) to 31",
   "guide": {
    "code": "ARCH020",
    "meaning": "a guard is weakened: a lower severity or verification, a rule's limit loosened in `rules:`, or a stricter one taken out (ARCH022's change budget too), a removed hazard or invariant, a project rule (R1...) removed, reworded or narrowed, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example or a personal column taken out of the spec, an edited guard file, a pack updated or removed, more frozen violations, a new AI assistant or dependency",
@@ -9657,7 +9657,7 @@
  {
   "fr": true,
   "code": "ARCH020",
-  "message": "rule ARCH022: max_files relaxed from 30 to 300",
+  "message": "rule ARCH022: max_files relaxed from 30 (default) to 31",
   "guide": {
    "code": "ARCH020",
    "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
@@ -9672,7 +9672,7 @@
  {
   "fr": false,
   "code": "ARCH020",
-  "message": "rule ARCH022: max_files relaxed from default to 1",
+  "message": "rule ARCH022: max_files relaxed from 30 to 300",
   "guide": {
    "code": "ARCH020",
    "meaning": "a guard is weakened: a lower severity or verification, a rule's limit loosened in `rules:`, or a stricter one taken out (ARCH022's change budget too), a removed hazard or invariant, a project rule (R1...) removed, reworded or narrowed, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example or a personal column taken out of the spec, an edited guard file, a pack updated or removed, more frozen violations, a new AI assistant or dependency",
@@ -9687,7 +9687,7 @@
  {
   "fr": true,
   "code": "ARCH020",
-  "message": "rule ARCH022: max_files relaxed from default to 1",
+  "message": "rule ARCH022: max_files relaxed from 30 to 300",
   "guide": {
    "code": "ARCH020",
    "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
@@ -9958,6 +9958,36 @@
   "fr": true,
   "code": "ARCH020",
   "message": "rule STY004: max_percent relaxed from 30 to 90",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
+   "todo": "l'annuler, ou les architectes l'approuvent (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, ou `--accept-weakening`)",
+   "who": "Un architecte : cela change les garde-fous de tout le projet.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH020",
+  "message": "rule STY004: min_code_lines relaxed from 20 (default) to 21",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "a guard is weakened: a lower severity or verification, a rule's limit loosened in `rules:`, or a stricter one taken out (ARCH022's change budget too), a removed hazard or invariant, a project rule (R1...) removed, reworded or narrowed, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example or a personal column taken out of the spec, an edited guard file, a pack updated or removed, more frozen violations, a new AI assistant or dependency",
+   "todo": "undo it, or the architects approve it (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, or `--accept-weakening`)",
+   "who": "An architect: it changes the guards of the whole project.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH020",
+  "message": "rule STY004: min_code_lines relaxed from 20 (default) to 21",
   "guide": {
    "code": "ARCH020",
    "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
@@ -28178,7 +28208,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 968b68bb: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 2f871d40: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
@@ -28196,7 +28226,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit 968b68bb: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "message": "commit 2f871d40: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
@@ -28214,7 +28244,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit b54cb7ba: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit df5f0c5a: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
@@ -28232,7 +28262,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit b54cb7ba: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit df5f0c5a: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",

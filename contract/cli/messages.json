@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 2.6.1",
+ "archvow": "archvow 2.6.2",
  "messages": [
   {
    "code": "ACME001",
@@ -1033,7 +1033,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.1: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.2: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -1810,14 +1810,14 @@
   {
    "code": "ARCH020",
    "severity": "error",
-   "message": "rule ARCH022: max_files relaxed from 30 to 300",
+   "message": "rule ARCH022: max_files relaxed from 30 (default) to 31",
    "file": ".archvow/project.vow",
    "line": 0
   },
   {
    "code": "ARCH020",
    "severity": "error",
-   "message": "rule ARCH022: max_files relaxed from default to 1",
+   "message": "rule ARCH022: max_files relaxed from 30 to 300",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -1881,6 +1881,13 @@
    "code": "ARCH020",
    "severity": "error",
    "message": "rule STY004: max_percent relaxed from 30 to 90",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "rule STY004: min_code_lines relaxed from 20 (default) to 21",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -4708,14 +4715,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit 968b68bb: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 2f871d40: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit b54cb7ba: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit df5f0c5a: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },

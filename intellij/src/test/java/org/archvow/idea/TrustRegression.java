@@ -64,7 +64,7 @@ public final class TrustRegression {
         // -P: the project's root, where archvow runs, is never first on sys.path
         check(ArchvowProcessCommand.build("archvow", "/venv/bin/python3", "/work/p", List.of("next"))
             .subList(0, 4).equals(List.of("/venv/bin/python3", "-P", "-m", "archvow")), "python without -P");
-        check(ArchvowInstall.pipArgs("2.6.1", ArchvowInstall.source("")).get(0).equals("-P"), "pip without -P");
+        check(ArchvowInstall.pipArgs("2.6.2", ArchvowInstall.source("")).get(0).equals("-P"), "pip without -P");
         System.out.println("OK: trust asked before each process; -P on every python command line");
     }
 }

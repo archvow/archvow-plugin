@@ -35,7 +35,7 @@ vm.runInNewContext(script, { window, document, console, setTimeout, clearTimeout
   acquireVsCodeApi: () => ({ postMessage() {}, getState() {}, setState() {} }), CSS: { escape: String } });
 assert.ok(onMessage, 'the page listens for messages');
 const send = (data) => onMessage({ data });
-send({ type: 'init', commands: [], catalog: {}, knownVersion: '2.6.1', forms: {}, icons: {}, types: [], tmpdir: '/tmp', rules: { en: '', fr: '' } });
+send({ type: 'init', commands: [], catalog: {}, knownVersion: '2.6.2', forms: {}, icons: {}, types: [], tmpdir: '/tmp', rules: { en: '', fr: '' } });
 send({ type: 'state', state: { readiness: 'NOT_INITIALIZED', fr: false, project: { root: '/work/new' }, install: {}, snapshots: {} } });
 assert.match(app.innerHTML, /Not sure yet\? See it catch a mistake/, 'the Try card is on the sidebar welcome page');
 assert.doesNotMatch(app.innerHTML, /Command result/, 'no result before Try it');
