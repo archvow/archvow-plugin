@@ -14,7 +14,7 @@
   let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {}, icons: {} };
   /** What the person chose on the page. */
   const ui = {
-    tab: 'overview', overSub: 'architecture', packsOpen: false, tryExample: 'pyspark-pipeline', forceWorkspace: false, filterMenu: false, projectMore: false,
+    tab: 'overview', overSub: 'architecture', packsOpen: false, tryExample: 'pyspark-pipeline', reveal: '', forceWorkspace: false, filterMenu: false, projectMore: false,
     /** The editor tab: 'empty', 'feature', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
@@ -213,11 +213,13 @@
         break;
       case 'running':
         ui.results[m.target] = { running: true, args: m.args };
+        if (m.target === 'welcome') ui.reveal = 'welcome';  // Try it: its result shows under the cards, maybe below the fold
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; ui.back = null; }
         break;
       case 'result':
         ui.results[m.target] = { html: m.html, raw: m.raw, args: m.args, ok: m.ok, label: m.label, refusal: m.refusal || '', warnings: m.warnings || [] };
         ui.raw[m.target] = false;
+        if (m.target === 'welcome') ui.reveal = 'welcome';
         if (ui.confirm && ui.confirm.target === m.target) ui.confirm = null;
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; }
         break;
@@ -342,6 +344,7 @@
     const previousStepScroll = previousSteps ? previousSteps.scrollLeft : 0;
     app.innerHTML = page();
     layoutExpandedResult();
+    revealResult();
     if (!NAV) {
       const title = editorTitle();
       if (title !== ui.title) {
@@ -493,6 +496,17 @@
   ${resultCard('welcome')}${tryFollowUp('welcome', fresh)}
   ${fresh ? `<p class="muted small">${esc(t('After Initialize, the Overview shows the first steps. Developers and reviewers who clone a project with archvow start from its README.',
     "Après Initialiser, la Vue d'ensemble montre les premiers pas. Les développeurs et relecteurs qui clonent un projet avec archvow partent de son README."))}</p>` : ''}</section>`;
+  }
+
+  /** Scroll a result that just started or arrived into view (0.26.1): Try it's result shows under the welcome cards,
+   *  below the fold of a sidebar or a short editor - it seemed that nothing happened. */
+  function revealResult() {
+    const target = ui.reveal;
+    ui.reveal = '';
+    if (!target) return;
+    const body = document.querySelector(`[data-body="${CSS.escape(target)}"]`);
+    const card = body && body.closest ? body.closest('.card.result') : null;
+    if (card && card.scrollIntoView) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   /** Under a `try` result (2.1): set archvow up here (only where it is not yet), or read the example's spec. */

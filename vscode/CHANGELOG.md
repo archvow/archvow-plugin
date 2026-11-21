@@ -12,6 +12,7 @@ release fixes from the review of 0.26.0.
   found first is passed over for the next candidate.
 - **archvow 2.6.1 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 789
   check messages, 100 codes, harvested from its suite, which now passes as delivered).
+- **"Try it" shows its result where you clicked.** On the welcome page of a folder without archvow, the sidebar's Try it ran `archvow try` but sent the running state and the result to the editor tab only: the sidebar never changed, and in the editor tab the result sat under the cards, below the fold - nothing seemed to happen. The result now shows under the Try card in the sidebar as well, and scrolls into view wherever it shows (`scripts/try-it-regression.js`).
 - `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
   `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin
   Verifier on the recommended IDE releases (`intellij-verify`) before publishing.

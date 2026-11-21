@@ -14,6 +14,7 @@ release fixes from the review of 0.26.0.
   found first is passed over for the next candidate.
 - **archvow 2.6.1 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 789
   check messages, 100 codes, harvested from its suite, which now passes as delivered).
+- **"Try it" shows its result.** The welcome page was a GridBagLayout that gives every part its minimum size as soon as the tool window is narrower than the parts (420 px) or shorter than their sum: Try it's result area shrank to its scroll bar, and nothing seemed to happen. The welcome page now scrolls, lays its parts out from the top at their own height, and brings the result into view when it starts and when it arrives (`TryItRegression`: 260 px in a narrow, a short and a wide tool window; 22 px before).
 - `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
   `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin
   Verifier on the recommended IDE releases (`intellij-verify`) before publishing.

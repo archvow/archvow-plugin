@@ -14,7 +14,7 @@ runs them with `JavaExec` (`intellij/build.gradle.kts`). Gradle's `test` task is
 | Task | Class | What it checks |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | the `.vow` reader on every vow of `contract/vows`: the scanner covers all the text, restarts at any token, one colour per depth; vows broken on purpose give the right problems |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 62 regression classes: everything that does not need a running IntelliJ |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 63 regression classes: everything that does not need a running IntelliJ |
 | `contractDump` (not in `check`) | `DumpContract` | writes `contract/vow-reader/expected.json`, the TypeScript reader's reference |
 
 The panel itself (`ArchvowPanel`) needs a running IntelliJ; that is why **the logic is taken out into
@@ -28,6 +28,7 @@ what it protects:
 | `ArchitectureViewRegression` | Component, State, Pending always visible at any width |
 | `CommandPrefillRegression`, `InlineCommandRegression`, `LaunchCommandRegression` | what a form receives, the exact command line |
 | `TrustRegression` | nothing runs in an untrusted project (safe mode, 0.26.1): every archvow, Test and Install process asks `ArchvowTrust` first; `-P` on every Python command line |
+| `TryItRegression` | "Try it" shows its result (0.26.1): the welcome page scrolls, and the result area keeps its 260 px in a narrow, a short and a wide tool window (22 px before: the GridBagLayout gave each part its minimum size) |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, the `\\wsl.localhost\...` paths |
 | `TextDialogRegression` | a dialog's size, Copy command |
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |

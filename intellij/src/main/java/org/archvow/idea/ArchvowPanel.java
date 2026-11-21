@@ -192,6 +192,8 @@ final class ArchvowPanel extends JPanel {
     /** In archvow try's form (0.25.1): where the example will be copied, as the fields say. */
     private final JLabel tryWhere = new JLabel();
     private JScrollPane welcomeResultScroll;
+    /** The welcome page scrolls (0.26.1): with Try it's result under the cards it is taller than a tool window. */
+    private JScrollPane welcomePage;
     /** "missing", "version" or "" (archvow speaks the plugin's contract). */
     private String installReason = "";
     private boolean installing;
@@ -466,7 +468,7 @@ final class ArchvowPanel extends JPanel {
         add(buildHeader(), BorderLayout.NORTH);
         buildTabs();
         rootCards.add(tabs, "workspace");
-        rootCards.add(buildWelcomeView(), "welcome");
+        rootCards.add(buildWelcomeView(), "welcome");  // a scroll pane: see welcomePage
         resultExpansion = new ArchvowResultExpansion(rootCards, rootLayout, "workspace");
         add(rootCards, BorderLayout.CENTER);
         for (ArchvowGrammar.Command command : ArchvowGrammar.COMMANDS) commandModel.addElement(command);
@@ -1225,8 +1227,8 @@ final class ArchvowPanel extends JPanel {
         new String[] {"fastapi-service", "FastAPI service"}, new String[] {"python-app", "Python app"},
         new String[] {"langgraph-agent", "LangGraph agent"});
 
-    private JPanel buildWelcomeView() {
-        JPanel container = new JPanel(new GridBagLayout());
+    private JComponent buildWelcomeView() {
+        JPanel container = new WelcomePage();
         JPanel column = new JPanel();
         column.setOpaque(false);
         column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
@@ -1280,6 +1282,7 @@ final class ArchvowPanel extends JPanel {
         welcomeResult.setVisible(true);
         welcomeResultScroll = scroll(welcomeResult);
         welcomeResultScroll.setPreferredSize(new Dimension(420, 260));
+        welcomeResultScroll.setMinimumSize(new Dimension(0, 200));  // never only its scroll bar, whatever the room
         welcomeResultScroll.setAlignmentX(0f);
         welcomeResultScroll.setVisible(false);
         column.add(Box.createVerticalStrut(10));
@@ -1290,11 +1293,39 @@ final class ArchvowPanel extends JPanel {
             "Après Initialiser, la Vue d'ensemble montre les premiers pas. Les développeurs et relecteurs qui clonent un projet avec archvow partent de son README."),
             ArchvowOverviewCards.muted(), 12f);
         column.add(welcomeFoot);
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.weightx = 1; gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(15, 15, 15, 15);
-        container.add(column, gc);
-        return container;
+        container.add(column, BorderLayout.NORTH);
+        welcomePage = new JScrollPane(container, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        welcomePage.setBorder(BorderFactory.createEmptyBorder());
+        welcomePage.getVerticalScrollBar().setUnitIncrement(18);
+        return welcomePage;
+    }
+
+    /** The welcome page's content (0.26.1): as wide as the tool window, each part at its preferred height, from the top.
+     *  It was a GridBagLayout, which gives every part its MINIMUM size as soon as the window is narrower than the parts'
+     *  preferred 420 pixels, or shorter than their sum: in a sidebar Try it's result area shrank to its scroll bar. */
+    static final class WelcomePage extends JPanel implements Scrollable {
+        WelcomePage() {
+            super(new BorderLayout());
+            setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 18; }
+        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) {
+            return Math.max(18, visible.height - 32);
+        }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() {
+            return getParent() instanceof JViewport viewport && viewport.getHeight() > getPreferredSize().height;
+        }
+    }
+
+    /** Bring Try it's result into view (0.26.1): it shows under the Try card, below what the window shows. */
+    private void revealWelcomeResult() {
+        SwingUtilities.invokeLater(() -> {
+            if (!welcomeResultScroll.isShowing()) return;
+            welcomeResultScroll.scrollRectToVisible(new Rectangle(0, 0, welcomeResultScroll.getWidth(), welcomeResultScroll.getHeight()));
+        });
     }
 
     /** "Not sure yet? See it catch a mistake" (0.25.0): archvow try on an example, in a scratch folder. */
@@ -1332,7 +1363,11 @@ final class ArchvowPanel extends JPanel {
         welcomeResult.setText(htmlMessage("<b>⏳ " + escape(ArchvowI18n.text(project, "Running", "Exécution"))
             + "</b> · " + escape("archvow " + String.join(" ", args))));
         revalidate();
-        cli.executeAction("try", args, null, result -> storeCommandResult(welcomeResult, "try", result));
+        revealWelcomeResult();
+        cli.executeAction("try", args, null, result -> {
+            storeCommandResult(welcomeResult, "try", result);
+            revealWelcomeResult();
+        });
     }
 
     private void showWelcome(ArchvowProjectReadiness.Status status, String customError) {

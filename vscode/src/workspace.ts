@@ -81,7 +81,8 @@ export interface State {
   overview: Overview;
 }
 
-type Target = 'overview' | 'component' | 'command' | 'quick' | 'decision' | 'question' | 'safety' | 'data';
+// welcome: the welcome page's result (Try it, Install), in the sidebar and in the editor tab (0.26.1: it was missing here)
+type Target = 'overview' | 'component' | 'command' | 'quick' | 'decision' | 'question' | 'safety' | 'data' | 'welcome';
 /** Which page sent a message: the sidebar or the editor tab. */
 type From = 'nav' | 'editor';
 
@@ -691,9 +692,13 @@ export class ArchvowProject {
     const html = result.startError !== undefined
       ? renderResult(labelText, -1, '', result.startError, false, fr)
       : renderResult(labelText, result.exitCode, result.stdout, result.stderr, result.timedOut, fr);
-    this.toOpenEditor({ type: 'result', target, label: labelText, html, raw: (result.stdout + (result.stderr ? '\n' + result.stderr : '')).trim(),
+    const message = { type: 'result', target, label: labelText, html, raw: (result.stdout + (result.stderr ? '\n' + result.stderr : '')).trim(),
       args: ['archvow', ...result.args].join(' '), ok: result.exitCode === 0 && !result.timedOut && result.startError === undefined,
-      ...alerts(result) });
+      ...alerts(result) };
+    this.toOpenEditor(message);
+    // The welcome page is in the sidebar too: a result posted to the editor tab alone left the sidebar, where the
+    // person clicked Try it, unchanged - nothing seemed to happen (0.26.1)
+    if (target === 'welcome') this.toNav(message);
   }
 
   // ------------------------------------------------------------------ what the page asks
@@ -965,7 +970,9 @@ export class ArchvowProject {
 
   private async execute(labelText: string, args: string[], target: Target, stdin: string | undefined, change: boolean,
     then?: () => void): Promise<void> {
-    this.toEditor({ type: 'running', target, label: labelText, args: ['archvow', ...args].join(' ') });
+    const running = { type: 'running', target, label: labelText, args: ['archvow', ...args].join(' ') };
+    this.toEditor(running);
+    if (target === 'welcome') this.toNav(running);  // Try it on the sidebar's welcome page shows its result there too (0.26.1)
     const result = await this.cli.run(args, stdin, true);
     this.sendResult(target, labelText, result);
     if (args[0] === 'check' && !result.timedOut) {

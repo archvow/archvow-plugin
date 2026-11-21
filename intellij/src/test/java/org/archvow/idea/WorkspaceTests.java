@@ -35,6 +35,7 @@ public final class WorkspaceTests {
         run("InstallRegression", () -> InstallRegression.main(NONE));
         run("LaunchCommandRegression", () -> LaunchCommandRegression.main(NONE));
         run("TrustRegression", () -> TrustRegression.main(NONE));
+        run("TryItRegression", () -> TryItRegression.main(NONE));
         run("MotionRegression", () -> MotionRegression.main(NONE));
         run("NativeChecksAndRulesRegression", () -> NativeChecksAndRulesRegression.main(NONE));
         run("NavigationTabsRegression", () -> NavigationTabsRegression.main(NONE));
