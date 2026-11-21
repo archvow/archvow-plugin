@@ -3011,8 +3011,7 @@ final class ArchvowPanel extends JPanel {
     /** Overview › Packs (archvow 1.26): the project's packs, each with Update / Remove / Check (ArchvowPacks). */
     private void openPacks() {
         if (role == Role.NAVIGATION) {
-            ArchvowPanel editor = ArchvowEditorTab.panel(project);
-            if (editor != null) editor.openPacks();
+            ArchvowEditorTab.withPanel(project, ArchvowPanel::openPacks);
             return;
         }
         showWorkspace();
@@ -3028,8 +3027,7 @@ final class ArchvowPanel extends JPanel {
     /** Read-only documentation: the command reference, not `archvow doc` (which writes the project's pages). */
     private void openCommandReference() {
         if (role == Role.NAVIGATION) {
-            ArchvowPanel editor = ArchvowEditorTab.panel(project);
-            if (editor != null) editor.openCommandReference();
+            ArchvowEditorTab.withPanel(project, ArchvowPanel::openCommandReference);
             return;
         }
         StringBuilder html = new StringBuilder("<h2>")
@@ -4206,7 +4204,7 @@ final class ArchvowPanel extends JPanel {
             commandResult.setText(htmlMessage("<b>✔ " + escape(ArchvowI18n.text(project, "Saved " + relative + " (" + lines + " lines)",
                 "Enregistré " + relative + " (" + lines + " lignes)")) + "</b> · " + escape("archvow " + String.join(" ", args))));
             var found = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file);
-            if (found != null) FileEditorManager.getInstance(project).openFile(found, true);
+            if (found != null) new OpenFileDescriptor(project, found).navigate(true);
         });
     }
 
@@ -4347,8 +4345,7 @@ final class ArchvowPanel extends JPanel {
         }
         if (role == Role.NAVIGATION) {
             // Overview's commands: their result in the editor tab
-            ArchvowPanel detail = ArchvowEditorTab.panel(project);
-            if (detail != null) { detail.runFromOverview(label, args, stdin, refreshAfter); return; }
+            if (ArchvowEditorTab.withPanel(project, detail -> detail.runFromOverview(label, args, stdin, refreshAfter))) return;
         }
         int origin = tabs.getSelectedIndex();
         // The component-local Other actions run inside Components, not Overview.
@@ -5794,7 +5791,7 @@ final class ArchvowPanel extends JPanel {
         for (File file : candidates) {
             if (!file.isFile()) continue;
             var virtual = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-            if (virtual != null) { FileEditorManager.getInstance(project).openFile(virtual, true); return; }
+            if (virtual != null) { new OpenFileDescriptor(project, virtual).navigate(true); return; }
         }
         message(fallback);
     }
@@ -5933,7 +5930,7 @@ final class ArchvowPanel extends JPanel {
             return;
         }
         var file = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(filePath.toFile());
-        if (file != null) FileEditorManager.getInstance(project).openFile(file, true);
+        if (file != null) new OpenFileDescriptor(project, file).navigate(true);
     }
 
     /** The project doc's Checks section: archvow doc writes it, then it opens there. */
@@ -5950,8 +5947,7 @@ final class ArchvowPanel extends JPanel {
         if (match != null) {
             var file = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(match.path().toFile());
             if (file != null) {
-                FileEditorManager.getInstance(project).openTextEditor(
-                    new OpenFileDescriptor(project, file, match.offset()), true);
+                new OpenFileDescriptor(project, file, match.offset()).navigate(true);
                 return;
             }
         }
@@ -6508,7 +6504,7 @@ final class ArchvowPanel extends JPanel {
             } else if (file.isFile() && line > 0) {
                 new OpenFileDescriptor(project, virtual, line - 1, 0).navigate(true);
             } else if (file.isFile()) {
-                FileEditorManager.getInstance(project).openFile(virtual, true);
+                new OpenFileDescriptor(project, virtual).navigate(true);
             } else {
                 message(ArchvowI18n.text(project, "Unsupported diagnostic location: ",
                     "Emplacement du diagnostic non pris en charge : ") + relative);
@@ -6574,12 +6570,12 @@ final class ArchvowPanel extends JPanel {
     private void openQuickList(int listIndex) {
         if (role == Role.NAVIGATION) {
             // the tool window shows the components with such work; the editor tab opens the first of them
-            ArchvowPanel detail = ArchvowEditorTab.panel(project);
             tabs.setSelectedIndex(1);
-            if (detail == null) return;
-            detail.openQuickListFromNavigation(listIndex);
-            setComponentFilter(detail.componentFilter);
-            follow(detail.selectedComponent == null ? "" : detail.selectedComponent.id, null);
+            ArchvowEditorTab.withPanel(project, detail -> {
+                detail.openQuickListFromNavigation(listIndex);
+                setComponentFilter(detail.componentFilter);
+                follow(detail.selectedComponent == null ? "" : detail.selectedComponent.id, null);
+            });
             return;
         }
         showWorkspace();
@@ -6625,11 +6621,11 @@ final class ArchvowPanel extends JPanel {
     /** Overview › Architecture › Project items: the Other view, on the first project-wide item (0.25.0). */
     private void openProjectWork() {
         if (role == Role.NAVIGATION) {
-            ArchvowPanel detail = ArchvowEditorTab.panel(project);
             tabs.setSelectedIndex(1);
-            if (detail == null) return;
-            detail.openProjectWork();
-            detail.afterSelectionChange();
+            ArchvowEditorTab.withPanel(project, detail -> {
+                detail.openProjectWork();
+                detail.afterSelectionChange();
+            });
             return;
         }
         showWorkspace();

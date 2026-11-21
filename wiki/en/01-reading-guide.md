@@ -50,7 +50,7 @@ sequenceDiagram
   participant CLI as ArchvowCli
   P->>NAV: click on clean_orders in the tree
   NAV->>TAB: showComponent(project, "clean_orders")
-  TAB->>TAB: FileEditorManager.openFile(tab, false): opens or finds THE tab
+  TAB->>TAB: OpenFileDescriptor(tab).navigate(false): opens or finds THE tab
   TAB->>DET: panel.showComponent("clean_orders")
   DET->>DET: loadComponent: shows the snapshot already read (componentSnapshots)
   DET->>CLI: show clean_orders --json (in the background)

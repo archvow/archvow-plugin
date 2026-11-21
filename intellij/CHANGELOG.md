@@ -7,6 +7,12 @@ The plugin joins two former plugins in 0.5.0; their own histories follow.
 Built on archvow 2.7.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to
 be older, with Install archvow 2.7.0). Security and release fixes from the review of 0.26.0.
 
+- **No Plugin Verifier warnings** (they were on every IDE from 2024.3 to 2026.3 EAP): files open through
+  `OpenFileDescriptor.navigate`, as before, instead of `FileEditorManager.openFile` / `openTextEditor` (deprecated
+  from 2026.3); the Archvow editor tab is used once it is open, also when the IDE opens it later. The trust check
+  calls the platform's `TrustedProjects.isProjectTrusted` (2025.1 and later), else the older `isTrusted` (2024.3),
+  by name - a platform with neither runs nothing (`ArchvowTrust`, `ArchvowEditorTab.withPanel`,
+  `PlatformApiRegression`).
 - **Nothing runs in a project you have not trusted.** A project opened in safe mode ("Preview in Safe Mode") starts no archvow, Test or Install process (`ArchvowTrust`, `TrustedProjects.isTrusted`): 0.26.0 ran archvow as soon as an archvow project opened - with the project's `.venv` Python among the candidates - and never asked. The panel says why; after "Trust project", Refresh runs as before.
 - **Python runs with `-P`** (`<python> -P -m archvow`, `<python> -P -m pip`): archvow and pip run in the project's
   root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code

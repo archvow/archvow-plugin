@@ -50,7 +50,7 @@ sequenceDiagram
   participant CLI as ArchvowCli
   P->>NAV: clic sur clean_orders dans l'arbre
   NAV->>TAB: showComponent(project, "clean_orders")
-  TAB->>TAB: FileEditorManager.openFile(onglet, false) : ouvre ou retrouve L'onglet
+  TAB->>TAB: OpenFileDescriptor(onglet).navigate(false) : ouvre ou retrouve L'onglet
   TAB->>DET: panel.showComponent("clean_orders")
   DET->>DET: loadComponent : affiche l'instantané déjà lu (componentSnapshots)
   DET->>CLI: show clean_orders --json (en arrière-plan)

@@ -41,6 +41,7 @@ public final class WorkspaceTests {
         run("InitTargetRegression", () -> InitTargetRegression.main(NONE));
         run("AgentPickerRegression", () -> AgentPickerRegression.main(NONE));
         run("PastedErrorRegression", () -> PastedErrorRegression.main(NONE));
+        run("PlatformApiRegression", () -> PlatformApiRegression.main(NONE));
         run("TryItRegression", () -> TryItRegression.main(NONE));
         run("MotionRegression", () -> MotionRegression.main(NONE));
         run("NativeChecksAndRulesRegression", () -> NativeChecksAndRulesRegression.main(NONE));

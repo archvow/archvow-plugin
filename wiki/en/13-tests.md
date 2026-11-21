@@ -14,7 +14,7 @@ runs them with `JavaExec` (`intellij/build.gradle.kts`). Gradle's `test` task is
 | Task | Class | What it checks |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | the `.vow` reader on every vow of `contract/vows`: the scanner covers all the text, restarts at any token, one colour per depth; vows broken on purpose give the right problems |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 69 regression classes: everything that does not need a running IntelliJ |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 70 regression classes: everything that does not need a running IntelliJ |
 | `contractDump` (not in `check`) | `DumpContract` | writes `contract/vow-reader/expected.json`, the TypeScript reader's reference |
 
 The panel itself (`ArchvowPanel`) needs a running IntelliJ; that is why **the logic is taken out into
@@ -35,6 +35,7 @@ what it protects:
 | `InitTargetRegression` | After init (0.26.1): another folder (`--dir`) opens as the IDE's project; PyCharm Home (PyCharmMiscProject) is never initialized itself, a new project's folder follows its package |
 | `AgentPickerRegression` | The AI assistants of init (0.26.1): picked from the agents archvow knows, any other added by name (archvow's rule), `none` alone, each change the form's |
 | `PastedErrorRegression` | An error pasted in Find (archvow 2.7.0): shown as an error from archvow's real output - known errors with their fix and why, where it broke, buttons that go there - never as a search found nowhere |
+| `PlatformApiRegression` | No API the Plugin Verifier reported (2024.3 to 2026.3 EAP): files open through `OpenFileDescriptor.navigate`; the trust check is the platform's newest that exists (2025.1 `isProjectTrusted`, else 2024.3 `isTrusted`), none or a failing one means not trusted |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, the `\\wsl.localhost\...` paths |
 | `TextDialogRegression` | a dialog's size, Copy command |
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |
