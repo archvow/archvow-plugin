@@ -16,7 +16,7 @@ import { aiView, AiView, request, skillCommand } from './aiSkills';
 import { Briefs, locate, readBriefs } from './briefs';
 import { bestBase, Book, choiceBook, missingRef, refKinds, refNames } from './choices';
 import { renderResult } from './formatter';
-import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, previewWithOutput, promptCommand,
+import { alerts, Command, featurePromptCommand, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, previewWithOutput, promptCommand,
   withPluginParameters } from './grammar';
 import { addableByLayer, filePlan } from './filePlan';
 import { componentVow, docPage, PROJECT_VOW } from './layout';
@@ -749,6 +749,8 @@ export class ArchvowProject {
         return;
       case 'featurePrompt':
         return this.copyPrompt('', String(m.feature));
+      case 'featureCheck':
+        return this.copyPrompt('', String(m.feature), true);
       case 'openDoc':
         return this.openDoc(String(m.feature ?? ''));
       case 'quickList':
@@ -920,18 +922,22 @@ export class ArchvowProject {
   }
 
   /** `archvow prompt <component>` into the clipboard; with a feature, `archvow prompt --feature <feature>`: the
-   *  feature in a few lines, then the task of its next component (contract 2.0). */
-  async copyPrompt(component: string, feature = ''): Promise<void> {
+   *  feature in a few lines, then the task of its next component (contract 2.0); `check`: the feature's check before
+   *  any code (`--clarify`, archvow 2.8.0). */
+  async copyPrompt(component: string, feature = '', check = false): Promise<void> {
     const fr = this.state.fr;
-    const result = await this.cli.run(feature ? ['prompt', '--feature', feature] : ['prompt', component], undefined, true);
+    const result = await this.cli.run(feature ? featurePromptCommand(feature, check) : ['prompt', component], undefined, true);
     if (result.exitCode !== 0 || result.startError !== undefined) {
       void vscode.window.showErrorMessage(failure(result));
       return;
     }
     await vscode.env.clipboard.writeText(result.stdout);
     const what = component || feature;
-    void vscode.window.showInformationMessage(tr(fr, `The instruction for ${what} is in the clipboard: paste it to your AI assistant.`,
-      `L'instruction pour ${what} est dans le presse-papiers : colle-la à ton assistant IA.`));
+    void vscode.window.showInformationMessage(check
+      ? tr(fr, `The check of ${what} is in the clipboard: paste it to your AI assistant. It records what it finds as questions and writes no code.`,
+        `La vérification de ${what} est dans le presse-papiers : colle-la à ton assistant IA. Il enregistre ce qu'il trouve en questions et n'écrit pas de code.`)
+      : tr(fr, `The instruction for ${what} is in the clipboard: paste it to your AI assistant.`,
+        `L'instruction pour ${what} est dans le presse-papiers : colle-la à ton assistant IA.`));
   }
 
   /** `archvow doc [<feature>]`, then its page in an editor: Markdown to read, written into .archvow/doc/ (ignored

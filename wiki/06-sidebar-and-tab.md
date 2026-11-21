@@ -19,7 +19,8 @@ IntelliJ `ArchvowFeatureView`, à partir des `features` de `workspace --json`) :
 et tickets, ce que fait le produit dans celle-ci, combien de composants sont vérifiés, les fonctionnalités qu'elle
 utilise et qui l'utilisent (avec les usages qui font chaque lien), ses composants par couche et ce qui y est ouvert ;
 **Ajouter un composant** (`component add -f <fonctionnalité>`), **Ouvrir la doc** (`archvow doc <fonctionnalité>`,
-puis la page dans un éditeur), **Copier le prompt IA** (`archvow prompt --feature`), **Prochaines étapes**
+puis la page dans un éditeur), **Copier le prompt IA** (`archvow prompt --feature`), **Vérifier avant de coder** (`archvow prompt --feature <f>
+--clarify`, archvow 2.8.0 : l'IA vérifie toute la fonctionnalité avant tout code et enregistre des questions), **Prochaines étapes**
 (`next --feature`), **Renommer…**. Une fonctionnalité ajoutée par un agent IA dit qui l'a ajoutée, et
 **Accepter…** ouvre `feature accept` (0.26.0, archvow 2.5). L'en-tête d'un composant nomme sa fonctionnalité (un lien), et **Déplacer…**
 ouvre `component move`.

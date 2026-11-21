@@ -2400,7 +2400,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "the whole feature: what it does, one line per component (the AI sees every one), then the full task of the component to build now",
+          "help": "the whole feature: what it does, one line per component (the AI sees every one), what the others already decided, then the full task of the component to build now",
           "hidden": false,
           "metavar": "FEATURE"
         },
@@ -2430,7 +2430,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "ask the AI to list ambiguities as questions instead (it answers none)",
+          "help": "ask the AI to list ambiguities as questions instead (it answers none); with --feature: where the feature's components disagree or leave a gap between them",
           "hidden": false,
           "metavar": "clarify"
         },

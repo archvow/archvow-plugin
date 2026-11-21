@@ -7,7 +7,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { test } from 'node:test';
 import { esc, initReport, renderResult } from '../formatter';
-import { Command, findCommand, inline, isMutating, needsFullCard, planForm, prefill, promptCommand, taskNumber } from '../grammar';
+import { Command, featurePromptCommand, findCommand, inline, isMutating, needsFullCard, planForm, prefill, promptCommand, taskNumber } from '../grammar';
 import { componentTypes, derive, readiness, ruleExplanation } from '../projectState';
 import { architectureRows, buildWork, issueFix, Json, needsFeatureBranch, objects, otherCategory, str, viewForItem } from '../workItems';
 
@@ -23,8 +23,8 @@ const EXAMPLES = ['fastapi-service', 'pyspark-pipeline', 'python-app'];
 const snapshots = (example: string): Record<string, Json> => Object.fromEntries(
   fs.readdirSync(path.join(CLI, example, 'show')).map((f) => [f.replace(/\.json$/, ''), read(example, 'show', f)]));
 
-test('the grammar is archvow 2.7\'s, with every command the workspace offers', () => {
-  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /2\.7\./);
+test('the grammar is archvow 2.8\'s, with every command the workspace offers', () => {
+  assert.match(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'), /2\.8\./);
   for (const name of ['init', 'check', 'next', 'show', 'decision make', 'decision propose', 'decision accept', 'question add',
     'question accept', 'hazard add', 'hazard dismiss', 'hazard edit', 'hazard accept', 'rule accept', 'brief show', 'invariant add', 'invariant edit', 'invariant remove', 'component accept', 'assumption accept', 'rule add', 'column set', 'prompt', 'doctor', 'audit', 'diff', 'review', 'version', 'workspace', 'pack new', 'pack template', 'pack agent', 'pack rule', 'pack add',
     'pack update', 'pack remove', 'pack check', 'feature add', 'feature accept', 'feature rename', 'feature remove', 'component move', 'doc', 'try']) {
@@ -87,6 +87,9 @@ test('in-place actions, task prompts', () => {
   assert.deepEqual(inline.editHazard('c', 'c.H2', '', 'low'), ['hazard', 'edit', 'c.H2', '--severity', 'low', '--json']);
   assert.equal(taskNumber('t3'), '3');
   assert.deepEqual(promptCommand('c', ''), ['prompt', 'c']);
+  assert.deepEqual(featurePromptCommand('orders'), ['prompt', '--feature', 'orders']);
+  assert.deepEqual(featurePromptCommand('orders', true), ['prompt', '--feature', 'orders', '--clarify']);  // archvow 2.8.0
+  assert.ok(/with --feature: where the feature's components disagree/.test(JSON.stringify(command('prompt'))), 'archvow takes --clarify with --feature');
   assert.ok(needsFullCard(1, 'x is one task: its card is small enough'));
 });
 

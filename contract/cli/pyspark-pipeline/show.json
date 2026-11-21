@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "my_pipeline",
-      "template": "archvow/pyspark-pipeline@2.7.0",
+      "template": "archvow/pyspark-pipeline@2.8.0",
       "package": "my_pipeline",
       "path": "src/my_pipeline",
       "components": [

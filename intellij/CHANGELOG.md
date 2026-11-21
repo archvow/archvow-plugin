@@ -4,8 +4,8 @@ The plugin joins two former plugins in 0.5.0; their own histories follow.
 
 ## 0.26.1 - 2026-11-20
 
-Built on archvow 2.7.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to
-be older, with Install archvow 2.7.0). Security and release fixes from the review of 0.26.0.
+Built on archvow 2.8.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to
+be older, with Install archvow 2.8.0). Security and release fixes from the review of 0.26.0.
 
 - **No Plugin Verifier warnings** (they were on every IDE from 2024.3 to 2026.3 EAP): files open through
   `OpenFileDescriptor.navigate`, as before, instead of `FileEditorManager.openFile` / `openTextEditor` (deprecated
@@ -18,10 +18,15 @@ be older, with Install archvow 2.7.0). Security and release fixes from the revie
   root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code
   each time the plugin called archvow (reproduced). Python 3.11 or later, as archvow itself needs; an older Python
   found first is passed over for the next candidate.
-- **archvow 2.7.0 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 791
+- **archvow 2.8.0 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 803
   check messages, 100 codes, harvested from its suite, which now passes as delivered). Since 2.6.2, a first rule
   parameter set stricter than its default (a lower ARCH022 budget) is no longer reported as a weakened guard
   (ARCH020).
+- **Check before coding**, on a feature's page after **Copy AI prompt**: copies `archvow prompt --feature <feature>
+  --clarify` (archvow 2.8.0) - the AI checks the whole feature before any code, where its components disagree or
+  leave a gap between them (one writes one folder per run date, another reads everything under the path), and
+  records each finding as a question on the component that must change; it writes no code. **Copy AI prompt** now
+  also gives what the feature's other components already decided (`ArchvowFeatureView.promptArgs`, `FeatureViewRegression`).
 - **An error pasted in Find is shown as an error.** `archvow show "<the error>"` (archvow 2.7.0): what went wrong,
   the template's known errors it matches - each pack rule kept with that error (`pack rule --error`), with its fix
   and why - then where it broke, with the lines around it, **Open at line** and **Show <component>**, and where the
@@ -41,7 +46,7 @@ be older, with Install archvow 2.7.0). Security and release fixes from the revie
   computer - the project's interpreter, its `.venv`, the IDE's interpreters, python.org, Homebrew, the system's,
   pyenv, conda, the PATH - each with its version and the archvow it has, those with archvow first (as the IDE's
   own interpreter list); *Automatic (recommended)* stays the default, and says its order. **Runs**, at the top of
-  the page and on the Archvow window's welcome page, says what runs: `archvow 2.7.0 with
+  the page and on the Archvow window's welcome page, says what runs: `archvow 2.8.0 with
   /usr/local/bin/python3.12 — the project's Python interpreter`. A Python chosen here now comes before the
   project's interpreter (`ArchvowPythons`, `PythonsRegression`).
 - **Initialize opens the new project.** From PyCharm Home (the non-modal welcome screen, a project kept in

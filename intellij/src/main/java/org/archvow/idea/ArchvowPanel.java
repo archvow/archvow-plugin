@@ -862,7 +862,7 @@ final class ArchvowPanel extends JPanel {
                 @Override public void openFile(String relative) { openViolationFile(relative, 0); }
                 @Override public void openCommand(String command, Map<String, String> values) { ArchvowPanel.this.openCommand(command, values); }
                 @Override public void openDoc(String feature) { ArchvowPanel.this.openDoc(feature, List.of()); }
-                @Override public void copyPrompt(String feature) { copyFeaturePrompt(feature); }
+                @Override public void copyPrompt(String feature, boolean check) { copyFeaturePrompt(feature, check); }
                 @Override public void nextSteps(String feature) { executeDirect("next", List.of("next", "--feature", feature, "--json"), null, false); }
             });
             detailHomeCards.add(featureView, "feature");
@@ -1048,13 +1048,17 @@ final class ArchvowPanel extends JPanel {
         });
     }
 
-    /** {@code archvow prompt --feature <feature>} into the clipboard: the feature in a few lines, then the task of its next component. */
-    private void copyFeaturePrompt(String feature) {
-        cli.executeAction("prompt", List.of("prompt", "--feature", feature), null, r -> {
+    /** {@code archvow prompt --feature <feature>} into the clipboard: the feature in a few lines, then the task of its next
+     *  component; {@code check}: the feature's check before any code ({@code --clarify}, archvow 2.8.0). */
+    private void copyFeaturePrompt(String feature, boolean check) {
+        cli.executeAction("prompt", ArchvowFeatureView.promptArgs(feature, check), null, r -> {
             if (!r.ok()) { message(r.output); return; }
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(r.stdout), null);
-            message(ArchvowI18n.text(project, "The instruction for " + feature + " is in the clipboard: paste it to your AI assistant.",
-                "L'instruction pour " + feature + " est dans le presse-papiers : colle-la à ton assistant IA."));
+            message(check
+                ? ArchvowI18n.text(project, "The check of " + feature + " is in the clipboard: paste it to your AI assistant. It records what it finds as questions and writes no code.",
+                    "La vérification de " + feature + " est dans le presse-papiers : colle-la à ton assistant IA. Il enregistre ce qu'il trouve en questions et n'écrit pas de code.")
+                : ArchvowI18n.text(project, "The instruction for " + feature + " is in the clipboard: paste it to your AI assistant.",
+                    "L'instruction pour " + feature + " est dans le presse-papiers : colle-la à ton assistant IA."));
         });
     }
 

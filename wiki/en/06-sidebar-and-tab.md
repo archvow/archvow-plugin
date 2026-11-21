@@ -17,7 +17,8 @@ A feature's page (VS Code `featureDetail()`, IntelliJ `ArchvowFeatureView`, from
 its open items, its components and tickets, what the product does in it, how many components are verified, the
 features it uses and that use it (with the uses that make each link), its components by layer and what is open in
 it; **Add component** (`component add -f <feature>`), **Open feature doc** (`archvow doc <feature>`, then the page
-in an editor), **Copy AI prompt** (`archvow prompt --feature`), **Next steps** (`next --feature`), **Rename…**. A
+in an editor), **Copy AI prompt** (`archvow prompt --feature`), **Check before coding** (`archvow prompt --feature <f> --clarify`,
+archvow 2.8.0: the AI checks the whole feature before any code and records questions), **Next steps** (`next --feature`), **Rename…**. A
 feature an AI agent added says who added it, and **Accept…** opens `feature accept` (0.26.0, archvow 2.5). A
 component's head names its feature (a link), and **Move…** opens `component move`.
 

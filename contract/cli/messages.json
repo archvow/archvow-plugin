@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 2.7.0",
+ "archvow": "archvow 2.8.0",
  "messages": [
   {
    "code": "ACME001",
@@ -497,6 +497,13 @@
    "message": "'read_order' is PUT /orders/{order_id}, the spec says GET /orders/{order_id}",
    "file": "src/api/p4_api/orders_router.py",
    "line": 22
+  },
+  {
+   "code": "ARCH004",
+   "severity": "error",
+   "message": "'read_orders' signature is (spark, path), the spec says (spark: SparkSession, path: str) -> DataFrame -> write the spec's signature, or a person changes the spec: archvow component edit orders_reader --signature \"(spark, path)\"",
+   "file": "src/sales/p2_io/orders_reader.py",
+   "line": 12
   },
   {
    "code": "ARCH004",
@@ -1040,7 +1047,7 @@
   {
    "code": "ARCH012",
    "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.7.0: to adopt it, archvow init sales --force (then review and commit)",
+   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.8.0: to adopt it, archvow init sales --force (then review and commit)",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -2223,161 +2230,168 @@
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'bank_client' is implemented but 3 decision(s) are still to make, e.g. 'How long does it wait for an answer before giving up (in seconds) - e.g. 10?' - the code made a silent choice -> archvow show bank_client, then archvow decision make bank_client <number> \"...\"",
+   "message": "'bank_client' is implemented but 3 decision(s) are still to make, e.g. 'How long does it wait for an answer before giving up (in seconds) - e.g. 10?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show bank_client, then archvow decision make bank_client <number> \"...\"",
    "file": ".archvow/features/shop/components/bank_client.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'bill_customer' is implemented but 4 decision(s) are still to make, e.g. 'What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?' - the code made a silent choice -> archvow show bill_customer, then archvow decision make bill_customer <number> \"...\"",
+   "message": "'bill_customer' is implemented but 4 decision(s) are still to make, e.g. 'What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show bill_customer, then archvow decision make bill_customer <number> \"...\"",
    "file": ".archvow/features/shop/components/bill_customer.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'clean_orders' is implemented but 8 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
+   "message": "'clean_orders' is implemented but 8 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
    "file": ".archvow/features/sales/components/clean_orders.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'clean_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
+   "message": "'clean_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
    "file": ".archvow/features/sales/components/clean_orders.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'clean_returns' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_returns, then archvow decision make clean_returns <number> \"...\"",
+   "message": "'clean_returns' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_returns, then archvow decision make clean_returns <number> \"...\"",
    "file": ".archvow/features/sales/components/clean_returns.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'config' is implemented but 1 decision(s) are still to make, e.g. 'What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
+   "message": "'config' is implemented but 1 decision(s) are still to make, e.g. 'What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show config, then archvow decision make config <number> \"...\"",
    "file": ".archvow/features/shared/components/config.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'config' is implemented but 2 decision(s) are still to make, e.g. 'Settings, name: type = default separated by commas (no default = required) - e.g. data_dir: str, log_level: str = \"INFO\" - or none?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
+   "message": "'config' is implemented but 2 decision(s) are still to make, e.g. 'Settings, name: type = default separated by commas (no default = required) - e.g. data_dir: str, log_level: str = \"INFO\" - or none?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show config, then archvow decision make config <number> \"...\"",
    "file": ".archvow/features/shared/components/config.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'customer_model' is implemented but 4 decision(s) are still to make, e.g. 'Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?' - the code made a silent choice -> archvow show customer_model, then archvow decision make customer_model <number> \"...\"",
+   "message": "'customer_model' is implemented but 4 decision(s) are still to make, e.g. 'Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customer_model, then archvow decision make customer_model <number> \"...\"",
    "file": ".archvow/features/shop/components/customer_model.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'customers_repository' is implemented but 4 decision(s) are still to make, e.g. 'Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?' - the code made a silent choice -> archvow show customers_repository, then archvow decision make customers_repository <number> \"...\"",
+   "message": "'customers_repository' is implemented but 4 decision(s) are still to make, e.g. 'Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_repository, then archvow decision make customers_repository <number> \"...\"",
    "file": ".archvow/features/shop/components/customers_repository.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
+   "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
    "file": ".archvow/features/sales/components/customers_schema.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
+   "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
    "file": ".archvow/features/sales/components/customers_writer.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'daily_main' is implemented but 2 decision(s) are still to make, e.g. 'Invalid arguments (e.g. --run-date <date>): which exit code and message?' - the code made a silent choice -> archvow show daily_main, then archvow decision make daily_main <number> \"...\"",
+   "message": "'daily_main' is implemented but 2 decision(s) are still to make, e.g. 'Invalid arguments (e.g. --run-date <date>): which exit code and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show daily_main, then archvow decision make daily_main <number> \"...\"",
    "file": ".archvow/features/sales/components/daily_main.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
+   "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
    "file": ".archvow/features/sales/components/enrich_orders.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?' - the code made a silent choice -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
+   "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
    "file": ".archvow/features/shared/components/logging_setup.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?' - the code made a silent choice -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
+   "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
    "file": ".archvow/features/shared/components/logging_setup.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'order_not_found_error' is implemented but 2 decision(s) are still to make, e.g. 'Which HTTP status does the app answer with it (404, 409, 422...) - e.g. OrderNotFound -> 404?' - the code made a silent choice -> archvow show order_not_found_error, then archvow decision make order_not_found_error <number> \"...\"",
+   "message": "'order_not_found_error' is implemented but 2 decision(s) are still to make, e.g. 'Which HTTP status does the app answer with it (404, 409, 422...) - e.g. OrderNotFound -> 404?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show order_not_found_error, then archvow decision make order_not_found_error <number> \"...\"",
    "file": ".archvow/features/api/components/order_not_found_error.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'orders_clean_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show orders_clean_writer, then archvow decision make orders_clean_writer <number> \"...\"",
+   "message": "'orders_clean_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_clean_writer, then archvow decision make orders_clean_writer <number> \"...\"",
    "file": ".archvow/features/sales/components/orders_clean_writer.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'orders_reader' is implemented but 4 decision(s) are still to make, e.g. 'The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?' - the code made a silent choice -> archvow show orders_reader, then archvow decision make orders_reader <number> \"...\"",
+   "message": "'orders_reader' is implemented but 3 decision(s) are still to make, e.g. 'Rows that do not match the schema (wrong type, missing column) - e.g. amount = \"abc\": stop the job, drop them, or set them aside in a reject file (where)?' - the code was written without this answer (a choice it made silently, or a question asked since) -> the AI records its choice: archvow decision propose orders_reader <number> \"...\"",
+   "file": ".archvow/features/orders/components/orders_reader.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH033",
+   "severity": "error",
+   "message": "'orders_reader' is implemented but 4 decision(s) are still to make, e.g. 'The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_reader, then archvow decision make orders_reader <number> \"...\"",
    "file": ".archvow/features/sales/components/orders_reader.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'orders_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show orders_schema, then archvow decision make orders_schema <number> \"...\"",
+   "message": "'orders_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_schema, then archvow decision make orders_schema <number> \"...\"",
    "file": ".archvow/features/sales/components/orders_schema.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'shop_cli' is implemented but 3 decision(s) are still to make, e.g. 'Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?' - the code made a silent choice -> archvow show shop_cli, then archvow decision make shop_cli <number> \"...\"",
+   "message": "'shop_cli' is implemented but 3 decision(s) are still to make, e.g. 'Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show shop_cli, then archvow decision make shop_cli <number> \"...\"",
    "file": ".archvow/features/shop/components/shop_cli.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Réglages Spark de chaque session, clé=valeur séparés par des virgules - par ex. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - ou aucun ?' - the code made a silent choice -> archvow show spark, then archvow decision make spark <number> \"...\"",
+   "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Réglages Spark de chaque session, clé=valeur séparés par des virgules - par ex. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - ou aucun ?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show spark, then archvow decision make spark <number> \"...\"",
    "file": ".archvow/features/shared/components/spark.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?' - the code made a silent choice -> archvow show spark, then archvow decision make spark <number> \"...\"",
+   "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show spark, then archvow decision make spark <number> \"...\"",
    "file": ".archvow/features/shared/components/spark.vow",
    "line": 0
   },
   {
    "code": "ARCH033",
    "severity": "error",
-   "message": "'user_repository' is implemented but 4 decision(s) are still to make, e.g. 'Not found (e.g. get(42) when 42 does not exist): return None, or raise which domain error?' - the code made a silent choice -> archvow show user_repository, then archvow decision make user_repository <number> \"...\"",
+   "message": "'user_repository' is implemented but 4 decision(s) are still to make, e.g. 'Not found (e.g. get(42) when 42 does not exist): return None, or raise which domain error?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show user_repository, then archvow decision make user_repository <number> \"...\"",
    "file": ".archvow/features/api/components/user_repository.vow",
    "line": 0
   },
@@ -3553,6 +3567,41 @@
   {
    "code": "ARCH035",
    "severity": "warning",
+   "message": "'order_totals': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show order_totals",
+   "file": ".archvow/features/orders/components/order_totals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_totals': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show order_totals",
+   "file": ".archvow/features/orders/components/order_totals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_totals': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show order_totals",
+   "file": ".archvow/features/orders/components/order_totals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_totals': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show order_totals",
+   "file": ".archvow/features/orders/components/order_totals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'order_totals': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show order_totals",
+   "file": ".archvow/features/orders/components/order_totals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
    "message": "'orders_clean_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show orders_clean_writer",
    "file": ".archvow/features/sales/components/orders_clean_writer.vow",
    "line": 0
@@ -3772,6 +3821,34 @@
    "severity": "warning",
    "message": "'policies_retriever': safety question S4 not answered (missing) - Something missing (a model, a tool or the index down, nothing relevant found): what must never happen? -> archvow show policies_retriever",
    "file": ".archvow/features/assistant/components/policies_retriever.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show refunds_reader",
+   "file": ".archvow/features/refunds/components/refunds_reader.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show refunds_reader",
+   "file": ".archvow/features/refunds/components/refunds_reader.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show refunds_reader",
+   "file": ".archvow/features/refunds/components/refunds_reader.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH035",
+   "severity": "warning",
+   "message": "'refunds_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show refunds_reader",
+   "file": ".archvow/features/refunds/components/refunds_reader.vow",
    "line": 0
   },
   {
@@ -4498,6 +4575,13 @@
   {
    "code": "ARCH043",
    "severity": "warning",
+   "message": "'orders_reader' decision 1 was proposed by the AI, not reviewed yet: \"Fail with a clear error\" -> a person runs archvow decision accept orders_reader 1 (or decision make orders_reader 1 \"...\")",
+   "file": ".archvow/features/orders/proposals.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH043",
+   "severity": "warning",
    "message": "R1 was added by the AI (claude-code), not kept by a person yet: \"Rows with is_test are never written\" -> archvow rule accept R1 (or rule edit / rule remove)",
    "file": ".archvow/project.vow",
    "line": 0
@@ -4722,14 +4806,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit bbdabebf: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit e9f7dbed: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit d3255488: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit fcb3553c: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
