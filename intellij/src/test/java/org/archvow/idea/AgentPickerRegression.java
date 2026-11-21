@@ -72,7 +72,14 @@ public final class AgentPickerRegression {
         boolean standard = false;
         for (JLabel l : all(picker, JLabel.class)) standard |= "my-agent".equals(l.getText()) && l.getToolTipText().contains("standard files");
         equal(true, standard, "an unknown one says what it gets");
-        for (JButton b : all(picker, JButton.class)) if ("Remove copilot".equals(b.getToolTipText())) b.doClick();
+        // a chip is as wide as its name and its small ×: no button's minimum width between them (0.26.1)
+        for (ArchvowAgentPicker.Chip chip : all(picker, ArchvowAgentPicker.Chip.class)) {
+            JLabel name = all(chip, JLabel.class).get(0);
+            int extra = chip.getPreferredSize().width - name.getPreferredSize().width;
+            if (extra > 30) throw new AssertionError("chip '" + name.getText() + "' is " + extra + " px wider than its name");
+            if (chip.getPreferredSize().height > name.getPreferredSize().height + 6) throw new AssertionError("chip too tall: " + chip.getPreferredSize());
+        }
+        for (ArchvowAgentPicker.Remove r : all(picker, ArchvowAgentPicker.Remove.class)) if ("Remove copilot".equals(r.getToolTipText())) r.doClick();
         equal("claude-code,my-agent", picker.value(), "removed");
         equal(3, changes[0], "each change is the form's");
         System.out.println("AgentPickerRegression OK");

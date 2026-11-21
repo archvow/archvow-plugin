@@ -23,7 +23,7 @@ final class ArchvowAgentPicker extends JPanel {
     private final List<String> known;
     private final boolean fr;
     private final List<String> picked = new ArrayList<>();
-    private final JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+    private final JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 3));
     private final JComboBox<String> add = new JComboBox<>();
     private final JTextField other = new JTextField(14);
     private final JLabel problem = new JLabel();
@@ -77,6 +77,114 @@ final class ArchvowAgentPicker extends JPanel {
     static String badName(boolean fr) {
         return fr ? "Un nom : lettres minuscules et chiffres, mots reliés par - ou _ (mon-agent)."
             : "A name is lowercase letters and digits, words joined by - or _ (my-agent).";
+    }
+
+    /**
+     * One chosen assistant (0.26.1): a rounded chip as wide as its name, and a small × that removes it. Not a JButton:
+     * IntelliJ's look gives every button a wide minimum size, which left a gap between the name and its ×.
+     */
+    static final class Chip extends JPanel {
+        final Remove remove;
+        private final boolean known;
+
+        Chip(String text, boolean known, String removeName, Runnable onRemove) {
+            this.known = known;
+            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(2, 8, 2, 4));
+            JLabel name = new JLabel(text);
+            remove = new Remove(removeName, onRemove);
+            add(name);
+            add(Box.createHorizontalStrut(4));
+            add(remove);
+        }
+
+        @Override public void setToolTipText(String text) {
+            super.setToolTipText(text);
+            for (Component c : getComponents()) if (c instanceof JLabel l) l.setToolTipText(text);
+        }
+
+        @Override public Dimension getMaximumSize() { return getPreferredSize(); }
+
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                Color text = UIManager.getColor("Label.foreground") != null ? UIManager.getColor("Label.foreground") : Color.DARK_GRAY;
+                Color edge = known ? (UIManager.getColor("Component.focusColor") != null ? UIManager.getColor("Component.focusColor") : new Color(0x3D, 0x7E, 0xD8))
+                    : new Color(0xC8, 0x8A, 0x1E);
+                int arc = getHeight();
+                g2.setColor(new Color(text.getRed(), text.getGreen(), text.getBlue(), 22));
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+                g2.setColor(edge);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+            } finally {
+                g2.dispose();
+            }
+        }
+    }
+
+    /** The small × of a chip: drawn, 14 px, reachable with the keyboard (Tab, then Enter, Space or Delete). */
+    static final class Remove extends JComponent {
+        private final Runnable onRemove;
+        private boolean over;
+
+        Remove(String name, Runnable onRemove) {
+            this.onRemove = onRemove;
+            setFocusable(true);
+            setToolTipText(name);
+            getAccessibleContext().setAccessibleName(name);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            Dimension size = new Dimension(14, 14);
+            setPreferredSize(size);
+            setMinimumSize(size);
+            setMaximumSize(size);
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) { doClick(); }
+                @Override public void mouseEntered(java.awt.event.MouseEvent e) { over = true; repaint(); }
+                @Override public void mouseExited(java.awt.event.MouseEvent e) { over = false; repaint(); }
+            });
+            addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override public void keyPressed(java.awt.event.KeyEvent e) {
+                    int k = e.getKeyCode();
+                    if (k == java.awt.event.KeyEvent.VK_ENTER || k == java.awt.event.KeyEvent.VK_SPACE
+                        || k == java.awt.event.KeyEvent.VK_DELETE || k == java.awt.event.KeyEvent.VK_BACK_SPACE) doClick();
+                }
+            });
+            addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override public void focusGained(java.awt.event.FocusEvent e) { repaint(); }
+                @Override public void focusLost(java.awt.event.FocusEvent e) { repaint(); }
+            });
+        }
+
+        void doClick() { onRemove.run(); }
+
+        /** Screen readers: a button named "Remove <name>". */
+        @Override public javax.accessibility.AccessibleContext getAccessibleContext() {
+            if (accessibleContext == null) accessibleContext = new AccessibleJComponent() {
+                @Override public javax.accessibility.AccessibleRole getAccessibleRole() { return javax.accessibility.AccessibleRole.PUSH_BUTTON; }
+            };
+            return accessibleContext;
+        }
+
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                Color text = UIManager.getColor("Label.foreground") != null ? UIManager.getColor("Label.foreground") : Color.DARK_GRAY;
+                if (over || isFocusOwner()) {
+                    g2.setColor(new Color(text.getRed(), text.getGreen(), text.getBlue(), 40));
+                    g2.fillOval(0, 0, getWidth(), getHeight());
+                }
+                g2.setColor(over || isFocusOwner() ? text : new Color(text.getRed(), text.getGreen(), text.getBlue(), 170));
+                g2.setStroke(new BasicStroke(1.4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                int m = 4, w = getWidth(), h = getHeight();
+                g2.drawLine(m, m, w - m - 1, h - m - 1);
+                g2.drawLine(w - m - 1, m, m, h - m - 1);
+            } finally {
+                g2.dispose();
+            }
+        }
     }
 
     ArchvowAgentPicker(List<String> known, String value, boolean fr) {
@@ -164,23 +272,9 @@ final class ArchvowAgentPicker extends JPanel {
                 chips.add(nothing);
             }
             for (String name : picked) {
-                boolean own = known.contains(name);
-                JPanel chip = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
-                chip.setOpaque(false);
-                Color edge = own ? UIManager.getColor("Component.focusColor") : new Color(0xB0, 0x7E, 0x24);
-                chip.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(edge != null ? edge : Color.GRAY, 1, true), BorderFactory.createEmptyBorder(0, 4, 0, 0)));
-                JLabel text = new JLabel(label(name, fr));
-                chip.setToolTipText(note(name, own, fr));
-                text.setToolTipText(note(name, own, fr));
-                JButton remove = new JButton("×");
-                remove.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
-                remove.setContentAreaFilled(false);
-                remove.setToolTipText((fr ? "Retirer " : "Remove ") + name);
-                remove.getAccessibleContext().setAccessibleName((fr ? "Retirer " : "Remove ") + name);
-                remove.addActionListener(e -> { picked.remove(name); refresh(); onChange.run(); });
-                chip.add(text);
-                chip.add(remove);
+                Chip chip = new Chip(label(name, fr), known.contains(name), (fr ? "Retirer " : "Remove ") + name,
+                    () -> { picked.remove(name); refresh(); onChange.run(); });
+                chip.setToolTipText(note(name, known.contains(name), fr));
                 chips.add(chip);
             }
             add.removeAllItems();

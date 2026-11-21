@@ -24,7 +24,8 @@ release fixes from the review of 0.26.0.
   assistants are no longer typed "comma-separated": each chosen one is a chip, **Add an assistant…** lists those
   archvow knows (the catalog's suggestions: archvow's 16 agents, and a pack's own), and a box adds any other name -
   archvow takes any agent name and gives an unknown one the standard AGENTS.md and .agents/skills, as its chip says.
-  `none` stays alone; a wrong name is refused with the rule (`ArchvowAgentPicker`, `AgentPickerRegression`).
+  `none` stays alone; a wrong name is refused with the rule (`ArchvowAgentPicker`, `AgentPickerRegression`). Each chip is a
+  rounded pill as wide as its name, with a small × (not a button: IntelliJ's look gave each × a wide minimum size).
 - **Choose the Python from a list, and see which one runs.** The Python field is a list of the Pythons of this
   computer - the project's interpreter, its `.venv`, the IDE's interpreters, python.org, Homebrew, the system's,
   pyenv, conda, the PATH - each with its version and the archvow it has, those with archvow first (as the IDE's
