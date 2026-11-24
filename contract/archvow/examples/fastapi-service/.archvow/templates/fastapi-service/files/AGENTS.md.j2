@@ -130,7 +130,7 @@ answer or `question accept`) or removes it.
 2. {% if mode == 'strict' %}Answer with one shell block of the commands you propose, in order{% else %}Run, in order{% endif %}: an
    `archvow feature add <feature> -d "<what the product does there>"` when the feature is new (one word for
    what the product does - orders, invoices - never a ticket), then an
-   `archvow component add <type> <name> -d "<what it must do>" --feature <feature> -s <ticket> -u <components it uses>` for
+   `archvow component add <type> <name> -d "<what it must do>" --feature <feature> --ticket <ticket> -u <components it uses>` for
    each new component (reuse the existing ones, of any feature), then an
    `archvow rule add <component>[,<component>...] "Given <situation>, when <action>, then <result>"`
    for each rule the feature states (`--type <type>` or `--all` when it applies to every component
@@ -165,7 +165,7 @@ When asked to draft the spec from a brief (a Markdown or text file in a briefs f
 5. A section that gives an example (these rows or this document in, this result out): list it, and give
    the command a person runs once they have copied it into `tests/examples/<component>/<example>/input/`
    and `expected/` (CSV for rows, JSON or YAML for a document, text otherwise):
-   `archvow example add <component> <example> -s <ticket> --from <brief>#<section>`. Never write those
+   `archvow example add <component> <example> --ticket <ticket> --from <brief>#<section>`. Never write those
    files yourself: the expected result is the business team's.
 Each item then says where it came from; `archvow check` warns when that section changes (ARCH039).
 
@@ -248,7 +248,7 @@ apply in every case, with or without a skill.
    or the results. List what you proposed in your report: a person reviews each one
    (`archvow decision accept`) before the release.
    A component the task needs and the spec lacks: first reuse one (`archvow next` lists them); else
-   add it yourself - `archvow component add <type> <name> -d "<what it must do>" -s <ticket> -u <uses>`,
+   add it yourself - `archvow component add <type> <name> -d "<what it must do>" --ticket <ticket> -u <uses>`,
    a name that follows the type's rule (`archvow catalog` shows it). It is marked "created by the AI";
    list each component you created in your report: a person accepts it (`archvow component accept`).
 {% else -%}
@@ -258,12 +258,12 @@ apply in every case, with or without a skill.
    your report; a person reviews it later. Safety is never yours to relax: a critical or high hazard
    still needs its tested invariant.
    A component the task needs and the spec lacks: first reuse one (`archvow next` lists them); else
-   add it yourself - `archvow component add <type> <name> -d "<what it must do>" -s <ticket> -u <uses>`,
+   add it yourself - `archvow component add <type> <name> -d "<what it must do>" --ticket <ticket> -u <uses>`,
    a name that follows the type's rule (`archvow catalog` shows it). It is marked "created by the AI";
    list each component you created in your report: a person accepts it (`archvow component accept`).
 {% endif -%}
 3. Any other gap is recorded the same way - never only a question in the chat: write nothing and
-   give the archvow command that records it. Missing columns or fields: `archvow component add model <name> -d "<its fields>" -s <ticket>`, then `archvow component edit <component> -u <name>_model`;
+   give the archvow command that records it. Missing columns or fields: `archvow component add model <name> -d "<its fields>" --ticket <ticket>`, then `archvow component edit <component> -u <name>_model`;
    a wrong description: `archvow component edit <component> -d "..."`; anything else: run
    `archvow question add <component> "<question>"` yourself.
    A change you are asked for that contradicts a decision or a rule of the task is a gap too: write

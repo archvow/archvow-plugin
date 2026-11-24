@@ -1,1 +1,1 @@
-archvow 3.0.0
+archvow 3.1.0

@@ -204,7 +204,7 @@ US financial institutions (`regimes/glba.yaml`): the columns tagged `financial`,
 
 | Code | Fails when | Fix |
 |---|---|---|
-| DORA001 | a component has no ticket (the template's foundations excepted); the commit-msg hook also puts the branch's ticket in every commit message | `archvow component edit <component> -s <ticket>` |
+| DORA001 | a component has no ticket (the template's foundations excepted); the commit-msg hook also puts the branch's ticket in every commit message | `archvow component edit <component> --ticket <ticket>` |
 | DORA002 | fewer than two people can approve guard changes (CODEOWNERS has one user and no group) | `init --force -a architects="@first @second"` (or a group) |
 | DORA003 | a package of requirements.txt is not in the third-party register, or a critical one is not pinned with `==` | `archvow dependency add <package> --supplier ... --licence ... --criticality ...` |
 | DORA004 | the test of an invariant can be skipped (`skip`, `skipif`, `xfail`, `pytest.skip()`), or a CI job is allowed to fail (`allow_failure`, `continue-on-error`). That the tests ran and passed is ARCH046, for every project | let it run; let a failing job stop the merge |

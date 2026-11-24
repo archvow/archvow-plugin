@@ -946,3 +946,38 @@ body.vscode-dark .overview .card .link, body.vscode-high-contrast .overview .car
 
 /* the installed archvow against the plugin's range (1.0.0) */
 .compat { margin: 0 0 6px; }
+
+/* 1.1.0: the Spec view - the text, and "Where it is" on its right (above it in a narrow panel) */
+.spec-split { display: grid; grid-template-columns: minmax(0, 1fr) 280px; border: 1px solid var(--vscode-panel-border, rgba(128,128,128,.35)); border-radius: 6px; margin-top: 6px; container-type: inline-size; }
+.spec-split .spec-text { min-width: 0; overflow: auto; }
+.spec-split .spec-text > pre { margin: 0; border: 0; border-radius: 0; }
+.spec-split .spec-where { border-left: 1px solid var(--vscode-panel-border, rgba(128,128,128,.35)); padding: 4px 12px 8px; overflow: auto; background: var(--vscode-sideBar-background, transparent); }
+.spec-split .spec-where .files-head { text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+@media (max-width: 720px) { .spec-split { grid-template-columns: minmax(0, 1fr); } .spec-split .spec-where { order: -1; border-left: 0; border-bottom: 1px solid var(--vscode-panel-border, rgba(128,128,128,.35)); } }
+button.file-open { background: none; border: 0; padding: 0; margin: 0; cursor: pointer; color: inherit; font: inherit; }
+button.file-open:hover code { text-decoration: underline; }
+/* 1.1.0: right-click menus (the row's own actions) */
+.ctx-menu { position: fixed; z-index: 1000; min-width: 200px; padding: 4px; border-radius: 6px; border: 1px solid var(--vscode-menu-border, var(--vscode-widget-border, rgba(128,128,128,.45)));
+  background: var(--vscode-menu-background, var(--vscode-editorWidget-background)); color: var(--vscode-menu-foreground, inherit); box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+.ctx-menu .ctx-head { padding: 3px 10px 2px; font-size: .85em; color: var(--vscode-descriptionForeground); }
+.ctx-menu button { display: block; width: 100%; text-align: left; background: none; border: 0; color: inherit; padding: 4px 10px; border-radius: 4px; font: inherit; cursor: pointer; }
+.ctx-menu button:hover, .ctx-menu button:focus { background: var(--vscode-menu-selectionBackground, var(--vscode-list-activeSelectionBackground)); color: var(--vscode-menu-selectionForeground, inherit); }
+.ctx-menu hr { border: 0; border-top: 1px solid var(--vscode-menu-separatorBackground, rgba(128,128,128,.35)); margin: 4px 6px; }
+.ctx-menu .ctx-remove { color: var(--vscode-errorForeground); }
+
+/* 1.1.0: the strip of a walk (Specify, Build) at the top of a component's page */
+.walk-strip { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; }
+.walk-strip .walk-progress { font-size: .85em; opacity: .85; margin-bottom: 4px; }
+.walk-strip .walk-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.walk-strip .walk-words { flex: 1 1 260px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.walk-strip.tone-done { background: rgba(95, 184, 101, .14); border-color: rgba(95, 184, 101, .55); }
+.walk-strip.tone-info { background: rgba(53, 116, 240, .12); border-color: rgba(53, 116, 240, .5); }
+.walk-strip.tone-warn { background: rgba(229, 165, 75, .14); border-color: rgba(229, 165, 75, .55); }
+.walk-strip.tone-bad { background: rgba(224, 108, 117, .14); border-color: rgba(224, 108, 117, .55); }
+.feature-state { margin: 6px 0 2px; }
+.ready-line { margin: 6px 0 0; }
+/* 1.1.0: a task to build is blue (work), not amber (a decision) */
+.list li.to-build { border-left-color: var(--vscode-charts-blue, #3574f0); }
+.smart-answer .param-required { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.smart-answer input.missing { outline: 1px solid var(--vscode-inputValidation-errorBorder, #e06c75); }
+.smart-answer .hand-line { margin: 6px 0 0; }

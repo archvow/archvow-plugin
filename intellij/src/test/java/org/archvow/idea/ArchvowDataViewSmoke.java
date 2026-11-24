@@ -49,16 +49,16 @@ public final class ArchvowDataViewSmoke {
             JTextPane viewer = ArchvowDataView.create();
             ArchvowDataView.render(viewer, data, true);
             String text = viewer.getDocument().getText(0, viewer.getDocument().getLength());
-            check(text.contains("Actions en attente : 2"), "Badge count is not reflected in text");
-            check(text.contains("customer_id"), "Pending column invisible");
-            check(text.contains("Check the reader contract"), "Pending task invisible");
+            // 1.1.0: the tasks are listed once (the list above, with Copy task prompt), not again here
+            check(!text.contains("Actions en attente") && !text.contains("Check the reader contract"), "No second listing of the tasks");
+            check(text.contains("customer_id") && text.contains("1 à classer"), "Pending column invisible");
             JTextPane rulesViewer = ArchvowDataView.create();
             ArchvowDataView.renderRules(rulesViewer, data, true);  // rules have their own view
             String rulesText = rulesViewer.getDocument().getText(0, rulesViewer.getDocument().getLength());
             check(rulesText.contains("No sensitive data in logs"), "Complex rule not visible");
             check(rulesText.contains("sales_reader"), "Structured rule scope not visible");
             check(!viewer.isEditable(), "Viewer must remain read-only and selectable");
-            check(viewer.getDocument().getLength() > 200, "Unexpected empty viewer");
+            check(viewer.getDocument().getLength() > 80, "Unexpected empty viewer");
         }
         column.addProperty("class", "personal");
         task.addProperty("done", true);

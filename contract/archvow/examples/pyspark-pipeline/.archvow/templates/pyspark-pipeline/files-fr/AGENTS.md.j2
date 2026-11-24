@@ -142,7 +142,7 @@ le demande>"` : chaque élément est marqué comme ajouté par l'IA jusqu'à ce 
 2. {% if mode == 'strict' %}Répondez avec un seul bloc shell des commandes que vous proposez, dans l'ordre{% else %}Lancez, dans l'ordre{% endif %} : un
    `archvow feature add <fonctionnalité> -d "<ce que le produit y fait>"` quand la fonctionnalité est nouvelle (un
    mot pour ce que fait le produit - commandes, factures -, jamais un ticket), puis un
-   `archvow component add <type> <nom> -d "<ce qu'il doit faire>" --feature <fonctionnalité> -s <ticket> -u <composants utilisés>`
+   `archvow component add <type> <nom> -d "<ce qu'il doit faire>" --feature <fonctionnalité> --ticket <ticket> -u <composants utilisés>`
    par nouveau composant (réutilisez ceux qui existent, de toute fonctionnalité), puis un
    `archvow rule add <composant>[,<composant>...] "Étant donné <situation>, quand <action>, alors <résultat>"`
    par règle que la fonctionnalité énonce (`--type <type>` ou `--all` quand elle vaut pour tous
@@ -179,7 +179,7 @@ la spec de <fonctionnalité> », avec cinq choses de plus :
 5. Une section qui donne un exemple (ces lignes ou ce document en entrée, ce résultat en sortie) : listez-la,
    et donnez la commande qu'une personne lance une fois qu'elle l'a recopié dans
    `tests/examples/<composant>/<exemple>/input/` et `expected/` (CSV pour des lignes, JSON ou YAML pour un
-   document, texte sinon) : `archvow example add <composant> <exemple> -s <ticket> --from <brief>#<section>`.
+   document, texte sinon) : `archvow example add <composant> <exemple> --ticket <ticket> --from <brief>#<section>`.
    N'écrivez jamais ces fichiers vous-même : le résultat attendu est celui du métier.
 Chaque élément dit alors d'où il vient ; `archvow check` avertit quand cette section change (ARCH039).
 
@@ -271,7 +271,7 @@ ce fichier s'appliquent dans tous les cas, avec ou sans skill.
    proposition (`archvow decision accept`) avant la livraison.
    Un composant dont la tâche a besoin et que la spec n'a pas : réutilisez-en d'abord un (`archvow next`
    les liste) ; sinon ajoutez-le vous-même - `archvow component add <type> <nom> -d "<ce qu'il doit faire>"
-   -s <ticket> -u <dépendances>`, un nom qui suit la règle du type (`archvow catalog` la montre). Il est
+   --ticket <ticket> -u <dépendances>`, un nom qui suit la règle du type (`archvow catalog` la montre). Il est
    marqué « créé par l'IA » ; listez chaque composant créé dans votre rapport : une personne l'accepte
    (`archvow component accept`).
 {% else -%}
@@ -283,13 +283,13 @@ ce fichier s'appliquent dans tous les cas, avec ou sans skill.
    invariant testé.
    Un composant dont la tâche a besoin et que la spec n'a pas : réutilisez-en d'abord un (`archvow next`
    les liste) ; sinon ajoutez-le vous-même - `archvow component add <type> <nom> -d "<ce qu'il doit faire>"
-   -s <ticket> -u <dépendances>`, un nom qui suit la règle du type (`archvow catalog` la montre). Il est
+   --ticket <ticket> -u <dépendances>`, un nom qui suit la règle du type (`archvow catalog` la montre). Il est
    marqué « créé par l'IA » ; listez chaque composant créé dans votre rapport : une personne l'accepte
    (`archvow component accept`).
 {% endif -%}
 3. Tout autre manque s'enregistre de la même façon - jamais seulement une question dans le chat :
    n'écrivez rien et donnez la commande archvow qui l'enregistre. Colonnes ou champs manquants :
-   `archvow component add schema <nom> -d "<ses colonnes>" -s <ticket>`, puis `archvow component edit <composant> -u <nom>_schema` ; une description fausse : `archvow component edit <composant> -d "..."` ;
+   `archvow component add schema <nom> -d "<ses colonnes>" --ticket <ticket>`, puis `archvow component edit <composant> -u <nom>_schema` ; une description fausse : `archvow component edit <composant> -d "..."` ;
    tout le reste : lancez vous-même `archvow question add <composant> "<question>"`.
    Un changement demandé qui contredit une décision ou une règle de la tâche est aussi un manque :
    n'écrivez rien, dites laquelle, et donnez la commande qui la change, pour qu'une personne la lance

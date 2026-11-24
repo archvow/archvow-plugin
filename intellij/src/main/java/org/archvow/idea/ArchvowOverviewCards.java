@@ -239,10 +239,11 @@ final class ArchvowOverviewCards {
     /** The current step's button: what the page's firstStepsCard() shows. Empty: no button (Commit). */
     static String stepVerb(ArchvowOverview.FirstStep step, boolean fr) {
         if (step.command().startsWith("archvow specify ")) return t(fr, "Specify", "Spécifier");
+        if (step.command().startsWith("archvow prompt ")) return t(fr, "Build", "Construire");  // 3.1: step 4 until code
         return switch (step.step()) {
             case "feature" -> t(fr, "Add feature", "Ajouter une feature");
             case "component" -> t(fr, "Add component", "Ajouter un composant");
-            case "build" -> "Check";
+            case "build" -> t(fr, "Check", "Vérifier");
             default -> "";
         };
     }

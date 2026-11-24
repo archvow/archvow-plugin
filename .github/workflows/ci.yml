@@ -11,18 +11,19 @@ name: CI
 
 on:
   push:
+    branches: ['**']
+    # 1.1.0: a release is a tag - v1.1.0 (stable), v1.2.0-beta (pre-release); a push to a branch only tests
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
-    # Run manually on the beta branch to retry or republish the same beta commit.
-    # A manual run on main keeps the previous behavior: tests only, no publication.
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  # Never cancel a stable or beta Marketplace upload in progress.
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/beta' }}
+  # Never cancel a release in progress (a tag's run).
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
 
 jobs:
   # VS Code: the extension's tests (the .vow reader against the Java one's contract, the CLI runner, the
@@ -82,7 +83,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - name: Verify stable/beta release version logic
+      - name: A release tag names the version the files say
         run: python -m unittest discover -s .github/scripts -p 'test_release_version.py'
       - run: pip install -q contract/archvow/archvow-*-py3-none-any.whl && python -m archvow --version
       - run: python contract/tools/regenerate.py contract/archvow --python python
@@ -132,14 +133,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: { name: archvow-plugins, path: dist/, if-no-files-found: error }
 
-  # Stable: push to main. Beta: push to beta or manual dispatch from beta.
-  # All five existing CI jobs must pass first; no publication from pull requests.
+  # 1.1.0: published from a tag only - v1.1.0 stable (the tag on main), v1.2.0-beta a pre-release - once every job
+  # passed and the tag names the version every release file says. No publication from a branch or a pull request.
   publish:
-    name: Publish both Marketplaces (stable/beta)
-    if: >-
-      (github.event_name == 'push' &&
-        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta')) ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/beta')
+    name: Publish both Marketplaces (from a tag)
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: [vscode, intellij, intellij-verify, contract, live, packages]
     runs-on: ubuntu-latest
     # Serialize cross-branch uploads to the two Marketplace identities.
@@ -147,14 +145,14 @@ jobs:
       group: marketplace-publishing
       cancel-in-progress: false
     env:
-      ARCHVOW_MARKETPLACE_CHANNEL: ${{ github.ref == 'refs/heads/beta' && 'beta' || 'stable' }}
+      ARCHVOW_MARKETPLACE_CHANNEL: ${{ endsWith(github.ref_name, '-beta') && 'beta' || 'stable' }}
     permissions:
       contents: read
       id-token: write  # VS Code Marketplace Trusted Publishing (OIDC)
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # the patch depends on full ancestry from 0.19.0; MAJOR.MINOR comes from vscode/package.json
+          fetch-depth: 0  # a stable tag must be a commit of main (merge-base below)
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - uses: actions/setup-node@v4
@@ -163,13 +161,19 @@ jobs:
         with: { distribution: temurin, java-version: 21 }
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Compute next ArchVow plugin version
+      - name: The tag names the version every release file says
         shell: bash
         run: |
-          version=$(python .github/scripts/release-version.py --compute --channel "$ARCHVOW_MARKETPLACE_CHANNEL")
+          read -r version channel < <(python .github/scripts/release-version.py --check-tag "$GITHUB_REF_NAME")
+          [ "$channel" = "$ARCHVOW_MARKETPLACE_CHANNEL" ] || { echo "::error::channel $channel, expected $ARCHVOW_MARKETPLACE_CHANNEL"; exit 1; }
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
-      - name: Synchronize release manifests and changelogs
-        run: python .github/scripts/release-version.py --apply "$RELEASE_VERSION" --channel "$ARCHVOW_MARKETPLACE_CHANNEL"
+      - name: A stable release is a commit of main
+        if: env.ARCHVOW_MARKETPLACE_CHANNEL == 'stable'
+        shell: bash
+        run: |
+          git fetch -q origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+            echo "::error::$GITHUB_REF_NAME is not on main: tag the merged release commit of main"; exit 1; }
       - name: Check JetBrains publishing credentials before publishing anything
         env:
           PUBLISH_TOKEN: ${{ secrets.JETBRAINS_PUBLISH_TOKEN }}

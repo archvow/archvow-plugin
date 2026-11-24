@@ -33,6 +33,8 @@ final class WorkspaceAnswer {
     final Map<String, JsonObject> features;
     /** Contract 2.1: the first steps of a new project, each {step, title, detail, command, done} (the Overview's card). */
     final JsonArray firstSteps;
+    /** The whole answer (1.1.0): the walks read its next rows, check and features together (ArchvowWalks). */
+    JsonObject raw;
 
     private WorkspaceAnswer(String digest, boolean unchanged, JsonObject spec, Map<String, JsonObject> snapshots, String next,
                             JsonObject check, JsonObject briefs, JsonObject catalog, JsonArray templates, Map<String, JsonObject> features,
@@ -73,10 +75,12 @@ final class WorkspaceAnswer {
         JsonObject byName = object(answer, "features");
         if (byName != null) for (Map.Entry<String, JsonElement> entry : byName.entrySet())
             if (entry.getValue().isJsonObject()) features.put(entry.getKey(), entry.getValue().getAsJsonObject());
-        return new WorkspaceAnswer(digest, false, spec, snapshots, next.toString(), check, object(answer, "briefs"),
+        WorkspaceAnswer read = new WorkspaceAnswer(digest, false, spec, snapshots, next.toString(), check, object(answer, "briefs"),
             object(answer, "catalog"), answer.has("templates") && answer.get("templates").isJsonArray()
                 ? answer.getAsJsonArray("templates") : new JsonArray(), features,
             answer.has("first_steps") && answer.get("first_steps").isJsonArray() ? answer.getAsJsonArray("first_steps") : new JsonArray());
+        read.raw = answer;
+        return read;
     }
 
     private static JsonObject object(JsonObject parent, String key) {

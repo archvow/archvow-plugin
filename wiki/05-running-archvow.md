@@ -109,7 +109,7 @@ seulement dans un projet approuvé). Ceux qui ont archvow d'abord ; un Python pl
 est trop ancien. *Automatique* garde l'ordre ci-dessus.
 
 Ce qui tourne est dit là où un développeur commence : en haut de la page des réglages (**Lance** : `archvow
-3.0.0 avec /usr/local/bin/python3.12 — l'interpréteur Python du projet`, avec **Tester**) et sur la page
+3.1.0 avec /usr/local/bin/python3.12 — l'interpréteur Python du projet`, avec **Tester**) et sur la page
 d'accueil de la fenêtre Archvow, la même ligne. Settings > Tools > Archvow est dans une seule langue, celle
 choisie sur la page (l'anglais par défaut, comme archvow).
 ## Le champ Python, et `python3 -m archvow`
@@ -147,7 +147,7 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 ## Installer archvow (0.12.0)
 
 Quand archvow ne démarre pas, ou n'est pas un de ceux avec lesquels le plugin fonctionne (1.0.0 : son intervalle,
-page [Le contrat](/04-contract)), les plugins proposent **Installer archvow 3.0.0** - ou la version que fixe le
+page [Le contrat](/04-contract)), les plugins proposent **Installer archvow 3.1.0** - ou la version que fixe le
 projet, si elle est dans l'intervalle ; jamais par-dessus une version fixée hors de l'intervalle ; rien n'est
 installé au démarrage ni sans un clic.
 `ArchvowInstall` (IntelliJ) et `vscode/src/install.ts` (VS Code) portent les mêmes règles :
@@ -155,7 +155,7 @@ installé au démarrage ni sans un clic.
 | Question | Réponse |
 |---|---|
 | Dans quel Python ? | le `.venv` du projet, puis `venv` (`venvPythons()`), puis l'interpréteur de l'IDE, puis le Python des réglages ; jamais un `python` nu choisi à la place de la personne (`installPython()`, `ArchvowInstall.python`) : pas de Python trouvé, la carte dit **Configurer Python** |
-| Quelle version ? | la version que fixe le projet si elle est dans l'intervalle, sinon `archvow==3.0.0` (`requirement()`) : l'archvow avec lequel les plugins sont testés ; une fois installé, tout archvow de l'intervalle est accepté (`compatibility()`, `ArchvowCompat`) |
+| Quelle version ? | la version que fixe le projet si elle est dans l'intervalle, sinon `archvow==3.1.0` (`requirement()`) : l'archvow avec lequel les plugins sont testés ; une fois installé, tout archvow de l'intervalle est accepté (`compatibility()`, `ArchvowCompat`) |
 | D'où ? | le réglage *Installer archvow depuis* / `archvow.installFrom` (`installSource()`) : vide = la configuration de pip (pip.conf, `PIP_INDEX_URL`), une URL http(s) = `--index-url`, un fichier `.whl`, ou un dossier de wheels = `--no-index --find-links` (`pipArgs()`) |
 | Comment ? | la commande est affichée (`displayCommand()`), puis lancée seulement après **Confirmer et exécuter** : sans shell, dans le dossier du projet, 10 minutes au plus, `PIP_DISABLE_PIP_VERSION_CHECK=1` ; un Python dans WSL passe par `wsl.exe`, comme archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Ensuite ? | réussite : les réglages gardent ce Python, la version est sondée à nouveau, l'espace de travail se recharge ; échec : la sortie de pip, rien n'est enregistré |

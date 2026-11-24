@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 3.0.0",
+ "archvow": "archvow 3.1.0",
  "messages": [
   {
    "code": "ACME001",
@@ -5037,42 +5037,42 @@
   {
    "code": "DORA001",
    "severity": "error",
-   "message": "'bank_client' has no ticket -> archvow component edit bank_client -s <ticket>",
+   "message": "'bank_client' has no ticket -> archvow component edit bank_client --ticket <ticket>",
    "file": ".archvow/features/shop/components/bank_client.vow",
    "line": 0
   },
   {
    "code": "DORA001",
    "severity": "error",
-   "message": "'bill_customer' has no ticket -> archvow component edit bill_customer -s <ticket>",
+   "message": "'bill_customer' has no ticket -> archvow component edit bill_customer --ticket <ticket>",
    "file": ".archvow/features/shop/components/bill_customer.vow",
    "line": 0
   },
   {
    "code": "DORA001",
    "severity": "error",
-   "message": "'clean_orders' has no ticket -> archvow component edit clean_orders -s <ticket>",
+   "message": "'clean_orders' has no ticket -> archvow component edit clean_orders --ticket <ticket>",
    "file": ".archvow/features/sales/components/clean_orders.vow",
    "line": 0
   },
   {
    "code": "DORA001",
    "severity": "error",
-   "message": "'customer_model' has no ticket -> archvow component edit customer_model -s <ticket>",
+   "message": "'customer_model' has no ticket -> archvow component edit customer_model --ticket <ticket>",
    "file": ".archvow/features/shop/components/customer_model.vow",
    "line": 0
   },
   {
    "code": "DORA001",
    "severity": "error",
-   "message": "'customers_repository' has no ticket -> archvow component edit customers_repository -s <ticket>",
+   "message": "'customers_repository' has no ticket -> archvow component edit customers_repository --ticket <ticket>",
    "file": ".archvow/features/shop/components/customers_repository.vow",
    "line": 0
   },
   {
    "code": "DORA001",
    "severity": "error",
-   "message": "'shop_cli' has no ticket -> archvow component edit shop_cli -s <ticket>",
+   "message": "'shop_cli' has no ticket -> archvow component edit shop_cli --ticket <ticket>",
    "file": ".archvow/features/shop/components/shop_cli.vow",
    "line": 0
   },

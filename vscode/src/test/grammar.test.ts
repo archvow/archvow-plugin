@@ -67,7 +67,7 @@ test('Edit spec from a component: every field it has, the spec entry giving what
   const snapshot = { component: 'sales_reader', description: 'Read partitioned data', uses: ['config', 'sales_schema'] };
   const entry = { id: 'sales_reader', spec: 'FATTRIB-12', group: 'readers', owners: ['@alice', '@data-team'], from: 'briefs/sales.md#reader' };
   const whole = prefill('component edit', { component: 'sales_reader' }, '', snapshot, entry);
-  assert.deepEqual(whole, { component: 'sales_reader', description: 'Read partitioned data', spec: 'FATTRIB-12', uses: 'config,sales_schema',
+  assert.deepEqual(whole, { component: 'sales_reader', description: 'Read partitioned data', ticket: 'FATTRIB-12', uses: 'config,sales_schema',
     group: 'readers', owners: '@alice,@data-team', source: 'briefs/sales.md#reader' });
   const fix = prefill('component edit', { component: 'sales_reader', uses: 'config' }, '', snapshot, entry);
   assert.deepEqual(fix, { component: 'sales_reader', uses: 'config' });

@@ -1,6 +1,6 @@
 name: pyspark-pipeline
-version: 3.0.0                  # archvow's templates carry its version
-archvow: ">=3.0,<4"
+version: 3.1.0                  # archvow's templates carry its version
+archvow: ">=3.1,<4"
 languages: [en, fr]
 extends: python-base
 # What it does not take from python-base's shared guidance: the domain is DataFrames (schemas and
@@ -215,13 +215,13 @@ help_examples:
     archvow component edit clean_sales -d "Keep rows with an id, amount >= 0 and a known currency"
     archvow component remove clean_sales
   component add: |
-    archvow component add schema sales -d "Sales records: id string, amount double, sold_at timestamp" -s US-001
+    archvow component add schema sales -d "Sales records: id string, amount double, sold_at timestamp" --ticket US-001
     archvow component add reader sales -d "Read one CSV file with a header; enforce SALES_SCHEMA" -u sales_schema
     archvow component add reader stores -k jdbc -d "Read the stores table of the CRM database" -u stores_schema
-    archvow component add transformation clean_sales -d "Keep rows with an id and amount >= 0" -s US-002
+    archvow component add transformation clean_sales -d "Keep rows with an id and amount >= 0" --ticket US-002
     archvow component add transformation add_reference -d "Add the reference columns to each row" \
         --signature "(df: DataFrame, reference: DataFrame) -> DataFrame"
-    archvow component add writer revenue -d "Write the sales with their revenue as parquet" -s US-003
+    archvow component add writer revenue -d "Write the sales with their revenue as parquet" --ticket US-003
     archvow component add job my_pipeline -d "Read, clean, write" -u sales_reader,clean_sales,revenue_writer
     archvow component add entrypoint my_pipeline -d "Command line: --input-path PATH, --output-path FOLDER" -u my_pipeline_job
   component edit: |

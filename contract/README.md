@@ -13,7 +13,7 @@ here is a change the plugins must follow.
 | `guidance/expected.json` | what a diagnostic's guidance says on each of those messages (en, fr) | `UPDATE_GUIDANCE=1 npm test` (vscode/) | `GuidanceRegression`: IntelliJ must say the same |
 | `overview/expected.json` | what the Overview's cards read of each example's `workspace.json` (0.25.0): the first steps, the first finding, each row's suggested answers | `UPDATE_OVERVIEW=1 npm test` (vscode/) | `OverviewRegression`: IntelliJ must read the same |
 | `vow-reader/expected.json` | what the Java `.vow` reader gives (tokens, problems, header, links) on every sample and on 400 vows broken on purpose | `./gradlew contractDump` (intellij/) | the VS Code extension's reader must give exactly the same |
-| `archvow-range.txt` | the archvow versions the plugins work with (`>=3.0,<4`, 1.0.0): one value, said in the README, both Marketplace texts and the tool window's header | by hand (the plugins' own statement), with a plugin release | both plugins (`compat.ts`, `ArchvowCompat`); `release.test.ts` checks every place says it |
+| `archvow-range.txt` | the archvow versions the plugins work with (`>=3.1,<4`, 1.0.0): one value, said in the README, both Marketplace texts and the tool window's header | by hand (the plugins' own statement), with a plugin release | both plugins (`compat.ts`, `ArchvowCompat`); `release.test.ts` checks every place says it |
 | `compat/expected.json` | what a plugin says of the installed archvow on each case (its version and contract, the project's pin): the state, the sentence (EN, FR) and the archvow Install puts | `UPDATE_COMPAT=1 npm test` (vscode/) | `CompatRegression`: IntelliJ must say the same |
 | `forms/forms.json` | how each command's form reads (design A, 0.14.0): plain labels, the essential fields first, the button's verb, what archvow will do | by hand (the plugins' own file) | both plugins (`ArchvowForms`, the page's `commandForm()`); `FormsRegression` and `grammar.test.ts` check every name against `cli/commands.json` |
 
@@ -30,4 +30,4 @@ python3 contract/tools/harvest_messages.py ../archvow --python ../archvow/.venv/
 git diff contract/                                         # review: this is what changed for the plugins
 ```
 
-Recorded from archvow 3.0.0.
+Recorded from archvow 3.1.0.

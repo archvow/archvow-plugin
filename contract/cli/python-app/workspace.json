@@ -390,14 +390,14 @@
     },
     "templates": {
       "python-app": {
-        "version": "3.0.0",
+        "version": "3.1.0",
         "source": "archvow",
-        "digest": "65b0ce6dbdd4"
+        "digest": "ac0da1a100d7"
       },
       "python-base": {
-        "version": "3.0.0",
+        "version": "3.1.0",
         "source": "archvow",
-        "digest": "418c6c7829fc"
+        "digest": "a5e5ba7f7f35"
       }
     },
     "features": [
@@ -1946,7 +1946,7 @@
     "templates": [
       {
         "name": "python-app",
-        "version": "3.0.0",
+        "version": "3.1.0",
         "default": true,
         "chain": [
           "python-base",
@@ -2440,7 +2440,7 @@
       },
       {
         "name": "fastapi-service",
-        "version": "3.0.0",
+        "version": "3.1.0",
         "default": false,
         "chain": [
           "python-base",
@@ -2979,7 +2979,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.0.0",
+        "version": "3.1.0",
         "default": false,
         "chain": [
           "python-base",
@@ -3628,7 +3628,7 @@
       },
       {
         "name": "pyspark-pipeline",
-        "version": "3.0.0",
+        "version": "3.1.0",
         "default": false,
         "chain": [
           "python-base",
@@ -4190,9 +4190,9 @@
     "project_templates": [
       {
         "name": "python-app",
-        "version": "3.0.0",
+        "version": "3.1.0",
         "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
-        "archvow": ">=3.0,<4",
+        "archvow": ">=3.1,<4",
         "languages": [
           "en",
           "fr"
@@ -4205,13 +4205,13 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "65b0ce6dbdd4"
+        "digest": "ac0da1a100d7"
       },
       {
         "name": "python-base",
-        "version": "3.0.0",
+        "version": "3.1.0",
         "description": "Shared answers, guards and CI of the Python templates.",
-        "archvow": ">=3.0,<4",
+        "archvow": ">=3.1,<4",
         "languages": [
           "en",
           "fr"
@@ -4227,7 +4227,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "418c6c7829fc"
+        "digest": "a5e5ba7f7f35"
       }
     ],
     "agents": [
@@ -4762,9 +4762,9 @@
   "templates": [
     {
       "name": "python-app",
-      "version": "3.0.0",
+      "version": "3.1.0",
       "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
-      "archvow": ">=3.0,<4",
+      "archvow": ">=3.1,<4",
       "languages": [
         "en",
         "fr"
@@ -4782,9 +4782,9 @@
     },
     {
       "name": "python-base",
-      "version": "3.0.0",
+      "version": "3.1.0",
       "description": "Shared answers, guards and CI of the Python templates.",
-      "archvow": ">=3.0,<4",
+      "archvow": ">=3.1,<4",
       "languages": [
         "en",
         "fr"
@@ -4821,15 +4821,15 @@
     },
     {
       "step": "component",
-      "title": "Add its first component and answer its decisions",
-      "detail": "Next then shows it ready to build",
+      "title": "Add the feature's components and answer their decisions",
+      "detail": "Their decisions are made",
       "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices",
       "done": true
     },
     {
       "step": "build",
-      "title": "Build it, then Check",
-      "detail": "Its code and tests, checked against the spec",
+      "title": "Build them, then Check",
+      "detail": "Their code and tests, checked against the spec",
       "command": "archvow check",
       "done": true
     },

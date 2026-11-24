@@ -400,10 +400,10 @@
           "metavar": "FEATURE"
         },
         {
-          "name": "spec",
+          "name": "ticket",
           "flags": [
-            "-s",
-            "--spec"
+            "-t",
+            "--ticket"
           ],
           "required": false,
           "boolean": false,
@@ -579,10 +579,10 @@
           "metavar": "TEXT"
         },
         {
-          "name": "spec",
+          "name": "ticket",
           "flags": [
-            "-s",
-            "--spec"
+            "-t",
+            "--ticket"
           ],
           "required": false,
           "boolean": false,
@@ -2314,10 +2314,10 @@
           "metavar": "example"
         },
         {
-          "name": "spec",
+          "name": "ticket",
           "flags": [
-            "-s",
-            "--spec"
+            "-t",
+            "--ticket"
           ],
           "required": false,
           "boolean": false,

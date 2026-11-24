@@ -19,15 +19,15 @@
     },
     {
      "step": "component",
-     "title": "Add its first component and answer its decisions",
-     "detail": "Next then shows it ready to build",
+     "title": "Add the feature's components and answer their decisions",
+     "detail": "Their decisions are made",
      "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders",
      "done": true
     },
     {
      "step": "build",
-     "title": "Build it, then Check",
-     "detail": "Its code and tests, checked against the spec",
+     "title": "Build them, then Check",
+     "detail": "Their code and tests, checked against the spec",
      "command": "archvow check",
      "done": true
     },
@@ -65,16 +65,16 @@
     },
     {
      "step": "component",
-     "title": "Add its first component and answer its decisions",
-     "detail": "Next then shows it ready to build",
+     "title": "Add the feature's components and answer their decisions",
+     "detail": "order_totals: 9 open",
      "command": "archvow specify order_totals",
-     "done": true
+     "done": false
     },
     {
      "step": "build",
-     "title": "Build it, then Check",
-     "detail": "Its code and tests, checked against the spec",
-     "command": "archvow check",
+     "title": "Build them, then Check",
+     "detail": "The AI (or you) writes each one from its task",
+     "command": "archvow prompt --feature vat_report",
      "done": false
     },
     {
@@ -85,8 +85,8 @@
      "done": false
     }
    ],
-   "done": 3,
-   "current": 3
+   "done": 2,
+   "current": 2
   },
   "firstFinding": {
    "title": "Safety question of a component not answered (no hazard, no dismissal)",
@@ -124,15 +124,15 @@
     },
     {
      "step": "component",
-     "title": "Add its first component and answer its decisions",
-     "detail": "Next then shows it ready to build",
+     "title": "Add the feature's components and answer their decisions",
+     "detail": "Their decisions are made",
      "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices",
      "done": true
     },
     {
      "step": "build",
-     "title": "Build it, then Check",
-     "detail": "Its code and tests, checked against the spec",
+     "title": "Build them, then Check",
+     "detail": "Their code and tests, checked against the spec",
      "command": "archvow check",
      "done": true
     },

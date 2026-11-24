@@ -1,129 +1,60 @@
 #!/usr/bin/env python3
-"""Prepare matching ArchVow IDE package versions in an ephemeral CI checkout.
+"""The release a tag names (1.1.0): the plugins are published from a tag, never from a push to a branch.
 
-MAJOR.MINOR is the one people chose: `vscode/package.json` at the commit released (0.25.2 -> 0.25). The patch is
-deterministic for the history reachable from that commit since the anchor (ArchVow 0.19.0): odd for stable, even
-for beta, so the channels never collide and a stable merge of beta history is higher than that beta. A computed
-version never goes below the one in package.json: CI refuses rather than publish backwards (it published 0.19.37
-after a 0.25.2 when MAJOR.MINOR was fixed at 0.19). No tags or GitHub write credentials are needed.
+`v1.1.0` publishes the stable release 1.1.0; `v1.2.0-beta` the pre-release 1.2.0 (VS Code's Marketplace takes no
+`-beta` suffix: a pre-release uses numbers no stable release uses). The tag must name the version people set -
+vscode/package.json, intellij/gradle.properties and the newest entry of both changelogs - or CI publishes nothing.
+Nothing is computed, nothing is rewritten: the release commit already says its version, and the release test
+checks that every file says the same one.
+
+    python3 .github/scripts/release-version.py --check-tag v1.1.0     # prints: 1.1.0 stable
 """
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import json
 import re
-import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-BASE_COMMIT = 'f87b75a522f019d58db4bed21270b88b079184f5'
+TAG = re.compile(r'^v(\d+\.\d+\.\d+)(-beta)?$')
 
 
-def chosen_version(root: Path = ROOT) -> str:
-    """The version people set in vscode/package.json (gradle.properties and the README follow it)."""
-    return json.loads((root / 'vscode/package.json').read_text(encoding='utf-8'))['version']
+def read_tag(tag: str) -> tuple[str, str]:
+    """`v1.1.0` -> ("1.1.0", "stable"), `v1.2.0-beta` -> ("1.2.0", "beta"); anything else is refused."""
+    m = TAG.match(tag.strip())
+    if not m:
+        raise SystemExit(f'Not a release tag: {tag!r} - a release is tagged vMAJOR.MINOR.PATCH, or vMAJOR.MINOR.PATCH-beta')
+    return m.group(1), 'beta' if m.group(2) else 'stable'
 
 
-def numbers(version: str) -> tuple[int, ...]:
-    return tuple(int(n) for n in version.split('.'))
-
-
-def release_version(channel: str = 'stable', root: Path = ROOT) -> str:
-    if channel not in ('stable', 'beta'):
-        raise SystemExit(f'Unsupported Marketplace channel: {channel!r}')
-    try:
-        subprocess.run(['git', 'merge-base', '--is-ancestor', BASE_COMMIT, 'HEAD'],
-                       cwd=root, check=True, capture_output=True, text=True)
-        # Count all commits reachable from the release ref, not only first-parent.
-        # This lets a stable merge commit include all beta-branch commits so its
-        # version is greater than the beta versions that it promotes.
-        count = int(subprocess.check_output(
-            ['git', 'rev-list', '--count', f'{BASE_COMMIT}..HEAD'],
-            cwd=root, text=True).strip())
-    except (subprocess.CalledProcessError, ValueError) as exc:
-        raise SystemExit(
-            'Cannot determine the release version: full git history including '
-            f'{BASE_COMMIT} is required (checkout fetch-depth: 0).') from exc
-    if count < 1:
-        raise SystemExit('No release commits after ArchVow 0.19.0; refusing to republish 0.19.0.')
-    # Existing published 0.19.1 on main remains unchanged. For any given commit
-    # count, stable and beta must not reuse the same Marketplace version.
-    patch = 2 * count - (1 if channel == 'stable' else 0)
-    chosen = chosen_version(root)
-    major, minor = chosen.split('.')[:2]
-    version = f'{major}.{minor}.{patch}'
-    if numbers(version) <= numbers(chosen):
-        raise SystemExit(f'The computed version {version} is not above {chosen} (vscode/package.json): '
-                         'the Marketplaces would get a version below the one people chose. Lower the patch of '
-                         'vscode/package.json, or move the anchor (docs/marketplace-publishing.md, Versions).')
-    return version
-
-
-def rewrite_once(path: Path, pattern: str, replacement: str) -> None:
-    original = path.read_text(encoding='utf-8')
-    updated, count = re.subn(pattern, lambda _: replacement, original, count=1, flags=re.MULTILINE)
-    if count != 1:
-        raise SystemExit(f'Expected exactly one version marker in {path}: {pattern}')
-    if updated != original:
-        path.write_text(updated, encoding='utf-8')
-
-
-def apply_version(version: str, root: Path = ROOT, channel: str = "stable") -> None:
-    if channel not in ("stable", "beta"):
-        raise SystemExit(f"Unsupported Marketplace channel: {channel!r}")
-    if not re.fullmatch(r'\d+\.\d+\.\d+', version):
-        raise SystemExit(f'Invalid SemVer version: {version!r}')
-    package = root / 'vscode/package.json'
-    lockfile = root / 'vscode/package-lock.json'
-    gradle = root / 'intellij/gradle.properties'
-    readme = root / 'README.md'
-
-    rewrite_once(package, r'^  "version": "\d+\.\d+\.\d+",$', f'  "version": "{version}",')
-    rewrite_once(lockfile, r'^  "version": "\d+\.\d+\.\d+",$', f'  "version": "{version}",')
-    rewrite_once(lockfile, r'^      "version": "\d+\.\d+\.\d+",$', f'      "version": "{version}",')
-    rewrite_once(gradle, r'^pluginVersion=\d+\.\d+\.\d+$', f'pluginVersion={version}')
-    rewrite_once(readme, r'Both plugins have the same version \(\d+\.\d+\.\d+\)',
-                 f'Both plugins have the same version ({version})')
-    rewrite_once(readme,
-                 r'dist/archvow-intellij-\d+\.\d+\.\d+\.zip, dist/archvow-\d+\.\d+\.\d+\.vsix',
-                 f'dist/archvow-intellij-{version}.zip, dist/archvow-{version}.vsix')
-
-    # The existing release checks require the newest entry of each changelog
-    # to match package.json AND to identify the supported ArchVow CLI.
-    cli = (root / 'contract/cli/version.txt').read_text(encoding='utf-8').strip().split()[-1]
-    date = dt.date.today().isoformat()
+def versions_said(root: Path = ROOT) -> dict[str, str]:
+    """The version each release file says."""
+    said = {'vscode/package.json': json.loads((root / 'vscode/package.json').read_text(encoding='utf-8'))['version']}
+    gradle = re.search(r'(?m)^pluginVersion=(\S+)$', (root / 'intellij/gradle.properties').read_text(encoding='utf-8'))
+    said['intellij/gradle.properties'] = gradle.group(1) if gradle else ''
     for ide in ('vscode', 'intellij'):
-        path = root / ide / 'CHANGELOG.md'
-        original = path.read_text(encoding='utf-8')
-        first = re.search(r'(?m)^## (\d+\.\d+\.\d+)\b.*$', original)
-        if not first:
-            raise SystemExit(f'No version entry found in {path}')
-        if first.group(1) == version:
-            continue
-        entry = (f'## {version} - {date}\n\n'
-                 f'Built on archvow {cli} (unchanged CLI contract).\n\n'
-                 f'- Automated Marketplace {channel} release from the validated {channel} branch.\n\n')
-        updated = original[:first.start()] + entry + original[first.start():]
-        path.write_text(updated, encoding='utf-8')
+        newest = re.search(r'(?m)^## (\S+)', (root / ide / 'CHANGELOG.md').read_text(encoding='utf-8'))
+        said[f'{ide}/CHANGELOG.md'] = newest.group(1) if newest else ''
+    return said
 
-    assert json.loads(package.read_text(encoding='utf-8'))['version'] == version
-    assert json.loads(lockfile.read_text(encoding='utf-8'))['packages']['']['version'] == version
+
+def check_tag(tag: str, root: Path = ROOT) -> tuple[str, str]:
+    """The tag's version and channel, once every release file says that version."""
+    version, channel = read_tag(tag)
+    wrong = {f: v for f, v in versions_said(root).items() if v != version}
+    if wrong:
+        raise SystemExit(f'The tag {tag} names {version}, but ' + ', '.join(f'{f} says {v or "nothing"}' for f, v in wrong.items())
+                         + ': set the version in the release commit, then tag it.')
+    return version, channel
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--compute', action='store_true', help='print deterministic release version from git')
-    group.add_argument('--apply', metavar='VERSION', help='prepare all manifests and changelogs')
-    parser.add_argument('--channel', choices=('stable', 'beta'), default='stable',
-                        help='stable (main) or beta (beta branch)')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--check-tag', metavar='TAG', required=True, help='the pushed tag, e.g. v1.1.0 or v1.2.0-beta')
     args = parser.parse_args()
-    if args.compute:
-        print(release_version(channel=args.channel))
-    else:
-        apply_version(args.apply, channel=args.channel)
-        print(f'Prepared ArchVow IDE plugins {args.apply}')
+    version, channel = check_tag(args.check_tag)
+    print(f'{version} {channel}')
 
 
 if __name__ == '__main__':

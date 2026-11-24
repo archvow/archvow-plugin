@@ -67,6 +67,7 @@ public final class WorkspaceTests {
         run("WorkspaceAnswerRegression", () -> WorkspaceAnswerRegression.main(NONE));
         run("TemplatesRegression", () -> TemplatesRegression.main(NONE));
         run("CompatRegression", () -> CompatRegression.main(NONE));
+        run("WalksRegression", () -> WalksRegression.main(NONE));
         run("ListFilterRegression", () -> ListFilterRegression.main(NONE));
         run("SplitViewRegression", () -> SplitViewRegression.main(NONE));
         run("StatusPaletteRegression", () -> StatusPaletteRegression.main(NONE));

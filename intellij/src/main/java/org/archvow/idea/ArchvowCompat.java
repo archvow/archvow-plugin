@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Which archvow this plugin works with (1.0.0): one range, ../contract/archvow-range.txt (">=3.0,<4"), stated in the
+ * Which archvow this plugin works with (1.0.0): one range, ../contract/archvow-range.txt (">=3.1,<4"), stated in the
  * README, both Marketplace texts and the header of the tool window, and checked against what is installed. The
  * plugin has its own version; the range says which archvow versions it works with. The same as VS Code's compat.ts:
  * both are tested on contract/compat/expected.json (CompatRegression).
@@ -137,7 +137,7 @@ final class ArchvowCompat {
         return new Compatibility("ok", "", "");
     }
 
-    /** The header of the tool window: "archvow 3.0.0 ✓ · this plugin works with archvow >=3.0,<4". */
+    /** The header of the tool window: "archvow 3.1.0 ✓ · this plugin works with archvow >=3.1,<4". */
     static String header(String version, String state, Range range, boolean fr) {
         String mark = "ok".equals(state) ? "✓" : "✗";
         String what = version == null || version.isEmpty() ? "archvow " + mark : "archvow " + version + " " + mark;

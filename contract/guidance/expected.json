@@ -30226,11 +30226,11 @@
  {
   "fr": false,
   "code": "DORA001",
-  "message": "'bank_client' has no ticket -> archvow component edit bank_client -s <ticket>",
+  "message": "'bank_client' has no ticket -> archvow component edit bank_client --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "a component has no ticket (the template's foundations excepted); the commit-msg hook also puts the branch's ticket in every commit message",
-   "todo": "`archvow component edit <component> -s <ticket>`",
+   "todo": "`archvow component edit <component> --ticket <ticket>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -30239,9 +30239,9 @@
     "values": {
      "component": "bank_client"
     },
-    "text": "archvow component edit bank_client -s <ticket>",
+    "text": "archvow component edit bank_client --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30251,11 +30251,11 @@
  {
   "fr": true,
   "code": "DORA001",
-  "message": "'bank_client' has no ticket -> archvow component edit bank_client -s <ticket>",
+  "message": "'bank_client' has no ticket -> archvow component edit bank_client --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "un composant n'a pas de ticket (sauf les fondations du template) ; le hook commit-msg met aussi le ticket de la branche dans chaque message de commit",
-   "todo": "`archvow component edit <composant> -s <ticket>`",
+   "todo": "`archvow component edit <composant> --ticket <ticket>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -30264,9 +30264,9 @@
     "values": {
      "component": "bank_client"
     },
-    "text": "archvow component edit bank_client -s <ticket>",
+    "text": "archvow component edit bank_client --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30276,11 +30276,11 @@
  {
   "fr": false,
   "code": "DORA001",
-  "message": "'bill_customer' has no ticket -> archvow component edit bill_customer -s <ticket>",
+  "message": "'bill_customer' has no ticket -> archvow component edit bill_customer --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "a component has no ticket (the template's foundations excepted); the commit-msg hook also puts the branch's ticket in every commit message",
-   "todo": "`archvow component edit <component> -s <ticket>`",
+   "todo": "`archvow component edit <component> --ticket <ticket>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -30289,9 +30289,9 @@
     "values": {
      "component": "bill_customer"
     },
-    "text": "archvow component edit bill_customer -s <ticket>",
+    "text": "archvow component edit bill_customer --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30301,11 +30301,11 @@
  {
   "fr": true,
   "code": "DORA001",
-  "message": "'bill_customer' has no ticket -> archvow component edit bill_customer -s <ticket>",
+  "message": "'bill_customer' has no ticket -> archvow component edit bill_customer --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "un composant n'a pas de ticket (sauf les fondations du template) ; le hook commit-msg met aussi le ticket de la branche dans chaque message de commit",
-   "todo": "`archvow component edit <composant> -s <ticket>`",
+   "todo": "`archvow component edit <composant> --ticket <ticket>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -30314,9 +30314,9 @@
     "values": {
      "component": "bill_customer"
     },
-    "text": "archvow component edit bill_customer -s <ticket>",
+    "text": "archvow component edit bill_customer --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30326,11 +30326,11 @@
  {
   "fr": false,
   "code": "DORA001",
-  "message": "'clean_orders' has no ticket -> archvow component edit clean_orders -s <ticket>",
+  "message": "'clean_orders' has no ticket -> archvow component edit clean_orders --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "a component has no ticket (the template's foundations excepted); the commit-msg hook also puts the branch's ticket in every commit message",
-   "todo": "`archvow component edit <component> -s <ticket>`",
+   "todo": "`archvow component edit <component> --ticket <ticket>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -30339,9 +30339,9 @@
     "values": {
      "component": "clean_orders"
     },
-    "text": "archvow component edit clean_orders -s <ticket>",
+    "text": "archvow component edit clean_orders --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30351,11 +30351,11 @@
  {
   "fr": true,
   "code": "DORA001",
-  "message": "'clean_orders' has no ticket -> archvow component edit clean_orders -s <ticket>",
+  "message": "'clean_orders' has no ticket -> archvow component edit clean_orders --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "un composant n'a pas de ticket (sauf les fondations du template) ; le hook commit-msg met aussi le ticket de la branche dans chaque message de commit",
-   "todo": "`archvow component edit <composant> -s <ticket>`",
+   "todo": "`archvow component edit <composant> --ticket <ticket>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -30364,9 +30364,9 @@
     "values": {
      "component": "clean_orders"
     },
-    "text": "archvow component edit clean_orders -s <ticket>",
+    "text": "archvow component edit clean_orders --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30376,11 +30376,11 @@
  {
   "fr": false,
   "code": "DORA001",
-  "message": "'customer_model' has no ticket -> archvow component edit customer_model -s <ticket>",
+  "message": "'customer_model' has no ticket -> archvow component edit customer_model --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "a component has no ticket (the template's foundations excepted); the commit-msg hook also puts the branch's ticket in every commit message",
-   "todo": "`archvow component edit <component> -s <ticket>`",
+   "todo": "`archvow component edit <component> --ticket <ticket>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -30389,9 +30389,9 @@
     "values": {
      "component": "customer_model"
     },
-    "text": "archvow component edit customer_model -s <ticket>",
+    "text": "archvow component edit customer_model --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30401,11 +30401,11 @@
  {
   "fr": true,
   "code": "DORA001",
-  "message": "'customer_model' has no ticket -> archvow component edit customer_model -s <ticket>",
+  "message": "'customer_model' has no ticket -> archvow component edit customer_model --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "un composant n'a pas de ticket (sauf les fondations du template) ; le hook commit-msg met aussi le ticket de la branche dans chaque message de commit",
-   "todo": "`archvow component edit <composant> -s <ticket>`",
+   "todo": "`archvow component edit <composant> --ticket <ticket>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -30414,9 +30414,9 @@
     "values": {
      "component": "customer_model"
     },
-    "text": "archvow component edit customer_model -s <ticket>",
+    "text": "archvow component edit customer_model --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30426,11 +30426,11 @@
  {
   "fr": false,
   "code": "DORA001",
-  "message": "'customers_repository' has no ticket -> archvow component edit customers_repository -s <ticket>",
+  "message": "'customers_repository' has no ticket -> archvow component edit customers_repository --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "a component has no ticket (the template's foundations excepted); the commit-msg hook also puts the branch's ticket in every commit message",
-   "todo": "`archvow component edit <component> -s <ticket>`",
+   "todo": "`archvow component edit <component> --ticket <ticket>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -30439,9 +30439,9 @@
     "values": {
      "component": "customers_repository"
     },
-    "text": "archvow component edit customers_repository -s <ticket>",
+    "text": "archvow component edit customers_repository --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30451,11 +30451,11 @@
  {
   "fr": true,
   "code": "DORA001",
-  "message": "'customers_repository' has no ticket -> archvow component edit customers_repository -s <ticket>",
+  "message": "'customers_repository' has no ticket -> archvow component edit customers_repository --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "un composant n'a pas de ticket (sauf les fondations du template) ; le hook commit-msg met aussi le ticket de la branche dans chaque message de commit",
-   "todo": "`archvow component edit <composant> -s <ticket>`",
+   "todo": "`archvow component edit <composant> --ticket <ticket>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -30464,9 +30464,9 @@
     "values": {
      "component": "customers_repository"
     },
-    "text": "archvow component edit customers_repository -s <ticket>",
+    "text": "archvow component edit customers_repository --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30476,11 +30476,11 @@
  {
   "fr": false,
   "code": "DORA001",
-  "message": "'shop_cli' has no ticket -> archvow component edit shop_cli -s <ticket>",
+  "message": "'shop_cli' has no ticket -> archvow component edit shop_cli --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "a component has no ticket (the template's foundations excepted); the commit-msg hook also puts the branch's ticket in every commit message",
-   "todo": "`archvow component edit <component> -s <ticket>`",
+   "todo": "`archvow component edit <component> --ticket <ticket>`",
    "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
    "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
    "then": "Then click Check (↻): the item disappears once it is fixed.",
@@ -30489,9 +30489,9 @@
     "values": {
      "component": "shop_cli"
     },
-    "text": "archvow component edit shop_cli -s <ticket>",
+    "text": "archvow component edit shop_cli --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },
@@ -30501,11 +30501,11 @@
  {
   "fr": true,
   "code": "DORA001",
-  "message": "'shop_cli' has no ticket -> archvow component edit shop_cli -s <ticket>",
+  "message": "'shop_cli' has no ticket -> archvow component edit shop_cli --ticket <ticket>",
   "guide": {
    "code": "DORA001",
    "meaning": "un composant n'a pas de ticket (sauf les fondations du template) ; le hook commit-msg met aussi le ticket de la branche dans chaque message de commit",
-   "todo": "`archvow component edit <composant> -s <ticket>`",
+   "todo": "`archvow component edit <composant> --ticket <ticket>`",
    "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
@@ -30514,9 +30514,9 @@
     "values": {
      "component": "shop_cli"
     },
-    "text": "archvow component edit shop_cli -s <ticket>",
+    "text": "archvow component edit shop_cli --ticket <ticket>",
     "missing": [
-     "spec"
+     "ticket"
     ],
     "readOnly": false
    },

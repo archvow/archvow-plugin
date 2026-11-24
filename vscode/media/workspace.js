@@ -16,6 +16,12 @@
   const ui = {
     /** What is typed in "another assistant" of each AI-assistant question (0.26.1), by kind and question. */
     agentOther: {},
+    /** The open right-click menu (1.1.0): { kind, d, x, y }. */
+    ctxMenu: null,
+    /** The walk under way (1.1.0): Specify or Build, its scope, the components done, the one shown. */
+    walk: null,
+    /** 1.1.0: an answer field the person edited by hand - its table no longer writes over it. */
+    byHand: {},
     tab: 'overview', overSub: 'architecture', templatesOpen: false, tryExample: 'pyspark-pipeline', reveal: '', forceWorkspace: false, filterMenu: false, projectMore: false,
     /** The editor tab: 'empty', 'feature', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
@@ -186,6 +192,7 @@
       case 'state':
         S = m.state;
         if (ui.component && !(ui.component in (S.snapshots || {})) && S.spec && !componentIds().includes(ui.component)) ui.component = '';
+        walkAfterState();
         break;
       case 'select':
         ui.forceWorkspace = true;
@@ -205,6 +212,22 @@
         break;
       case 'featureSelected':
         ui.feature = m.feature || '';
+        break;
+      case 'walk':  // 1.1.0
+        if (NAV) return;
+        startWalk(m);
+        break;
+      case 'walkCopied':
+        if (ui.walk && ui.walk.current === m.component) ui.walk.copied = true;
+        break;
+      case 'walkChecked':
+        if (ui.walk && ui.walk.current === m.component) {
+          const codes = Array.isArray(m.codes) ? m.codes : [];
+          ui.walk.checkOk = !codes.length && ['tested', 'verified'].includes(m.status);
+          ui.walk.checkLine = ui.walk.checkOk ? `✓ ${m.status} · ${t('0 findings', '0 constat')}`
+            : '✖ ' + (codes.length ? t(`${codes.length} finding(s): `, `${codes.length} constat(s) : `) + codes.join(', ')
+              : t(`not tested yet (${m.status})`, `pas encore testé (${m.status})`));
+        }
         break;
       case 'commandSelected':
         ui.command = m.command;
@@ -346,7 +369,7 @@
     // The step strip is horizontal and survives field/preview rerenders.
     const previousSteps = document.querySelector('.guided-command-column .guided-steps');
     const previousStepScroll = previousSteps ? previousSteps.scrollLeft : 0;
-    app.innerHTML = page();
+    app.innerHTML = page() + contextMenu();
     layoutExpandedResult();
     revealResult();
     if (!NAV) {
@@ -777,11 +800,16 @@
     const f = S.overview && S.overview.firstSteps;
     if (!f) return '';
     const button = (step) => {
+      // 1.1.0: Specify walks the foundations or the feature's components; Build walks the ready ones, then Check
       const specify = /^archvow specify (\S+)$/.exec(step.command);
-      if (specify) return btn(t('Specify', 'Spécifier'), 'openCommand', attrs({ command: 'specify', component: specify[1] }));
+      if (specify) return step.step === 'foundations'
+        ? btn(t('Specify', 'Spécifier'), 'walk', attrs({ kind: 'specify', scope: 'foundations', value: '' }))
+        : btn(t('Specify', 'Spécifier'), 'walk', attrs({ kind: 'specify', scope: 'feature', value: (W().featureOf || {})[specify[1]] || '' }));
+      const build = /^archvow prompt --feature (\S+)$/.exec(step.command);
+      if (build) return btn(t('Build', 'Construire'), 'walk', attrs({ kind: 'build', scope: 'feature', value: build[1] }));
       if (step.step === 'feature') return btn(t('Add feature', 'Ajouter une feature'), 'addFeature', '');
       if (step.step === 'component') return btn(t('Add component', 'Ajouter un composant'), 'addComponent', '');
-      if (step.step === 'build') return btn('Check', 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' }));
+      if (step.step === 'build') return btn(t('Check', 'Vérifier'), 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' }));
       return '';
     };
     const steps = f.steps.map((step, i) => {
@@ -908,6 +936,7 @@
       <div class="items-bar" role="img" aria-label="${esc(label)}">${pct ? `<div style="width:${pct}%"></div>` : ''}</div>
       ${o.itemsOpen && !o.firstSteps ? `<p class="muted small">${esc(t(`${o.itemsOpen} open: decisions, questions and tasks. Check findings count in Checks.`,
         `${o.itemsOpen} ouverts : décisions, questions et tâches. Les constats des contrôles comptent dans Contrôles.`))}</p>` : ''}
+      ${(W().ready || []).length ? `<p class="ready-line"><button class="link" data-a="walk" ${attrs({ kind: 'build', scope: 'feature', value: (W().featureOf || {})[W().ready[0]] || '' })} title="${esc(W().ready.join(', '))}">${esc(t(`Ready to build: ${W().ready.length} → Build`, `Prêts à construire : ${W().ready.length} → Construire`))}</button></p>` : ''}
       <div class="row item-links"><button class="link" data-a="quickList" data-i="0">${esc(t(`Open items (${o.itemsOpen || 0})`, `Éléments ouverts (${o.itemsOpen || 0})`))}</button>
       <button class="link" data-a="quickList" data-i="1">${esc(t(`Done items (${done})`, `Éléments faits (${done})`))}</button>
       ${o.projectItems ? `<button class="link" data-a="projectWork" title="${esc(t('Project-wide items, not attributed to components', 'Éléments du projet non attribués aux composants'))}">${esc(t(`Project items (${o.projectItems})`, `Éléments projet (${o.projectItems})`))}</button>` : ''}</div></section>`;
@@ -1043,12 +1072,21 @@
   }
 
   /** One component's row of the trees: its status dot, its name, its type, and its layer or its open items. */
+  /** 1.1.0: a component row's tooltip - what is to decide, or that it is ready to build and how much. */
+  function rowTip(id) {
+    const open = (S.work.pendingByComponent || {})[id] || 0;
+    const build = (S.work.toBuildByComponent || {})[id] || 0;
+    if (open) return t(`${open} to decide`, `${open} à décider`);
+    if (build) return t(`Nothing to decide · ready to build: ${build} task${build === 1 ? '' : 's'}`, `Rien à décider · prêt à construire : ${build} tâche${build === 1 ? '' : 's'}`);
+    return t('Nothing to decide', 'Rien à décider');
+  }
+
   function componentRow(comp, aside) {
     const pending = S.work.pendingByComponent || {};
     const id = str(comp, 'id');
     const p = pending[id] || 0;
     const state = (S.rows.find((r) => r.id === id) || {}).state || str(comp, 'status') || 'planned';
-    return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${aside ? `<span class="muted small mono layer-tag">${esc(aside)}</span>` : ''}${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
+    return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}" data-menu="component" title="${esc(rowTip(id))}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${aside ? `<span class="muted small mono layer-tag">${esc(aside)}</span>` : ''}${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
   }
 
   /** By feature: each feature, folded or not, its components; its name opens its page, its "+" adds a component to it. */
@@ -1069,7 +1107,7 @@
       const rows = folded ? '' : `<ul>${shown.map((c) => componentRow(c, str(c, 'layer').split('_')[0])).join('')
         || `<li class="muted small empty-layer">${esc(t('No component yet: + adds the first one', 'Pas encore de composant : + ajoute le premier'))}</li>`}</ul>`;
       return `<li class="feature ${name === ui.feature && ui.mode !== 'component' ? 'selected' : ''} ${name === 'shared' ? 'shared' : ''}"><div class="node">${chevron}${icon('feature') || icon('folder')}
-  <button class="link feature-name" data-a="pickFeature" data-id="${esc(name)}" title="${esc(described[name] || '')}">${esc(name)}</button><span class="muted small">${comps.length}</span><span class="grow"></span>${open ? `<span class="count">${open}</span>` : ''}${plus}</div>${rows}</li>`;
+  <button class="link feature-name" data-a="pickFeature" data-id="${esc(name)}" data-menu="feature" data-name="${esc(name)}" title="${esc(described[name] || '')}">${esc(name)}</button><span class="muted small">${comps.length}</span><span class="grow"></span>${open ? `<span class="count">${open}</span>` : ''}${plus}</div>${rows}</li>`;
     }).join('');
     return `${filterWords()}<ul class="tree features" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No feature.', 'Aucune fonctionnalité.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
   }
@@ -1102,7 +1140,7 @@
           const id = str(comp, 'id');
           const p = pending[id] || 0;
           const state = (S.rows.find((r) => r.id === id) || {}).state || str(comp, 'status') || 'planned';
-          return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
+          return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}" data-menu="component" title="${esc(rowTip(id))}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
         }).join('') || `<li class="muted small empty-layer">${esc(t('No component yet', 'Pas encore de composant'))}</li>`;
         return `<li class="layer"><div class="node">${icon('layer')}<span>${esc(layer)}</span>${plus}</div>${chooser}<ul>${rows}</ul></li>`;
       }).join('')}</ul></li>`;
@@ -1144,10 +1182,29 @@
     // 10 % steps (no inline style in the page), never full when not complete, never empty when started
     const fill = !comps.length ? 0 : verified === comps.length ? 100 : Math.min(90, Math.max(verified ? 10 : 0, Math.round((10 * verified) / comps.length) * 10));
     const shared = name === 'shared';
+    // 1.1.0: the main action follows the state (walks.ts promptState): build the next ready component, Specify
+    // first (strict, nothing ready), let the AI propose first (guided, free), or add a component once all is built
+    const ps = (W().prompt || {})[name] || { state: 'built', component: '', open: 0 };
+    const specifyBtn = (primary) => btn(t('Specify', 'Spécifier'), 'walk', attrs({ kind: 'specify', scope: 'feature', value: name })
+      + ` title="${esc(t('Answer what is still open, component after component', 'Répondre à ce qui reste ouvert, composant après composant'))}"`, false, primary ? '' : 'secondary');
+    const lead = ps.state === 'ready'
+      ? btn(t(`Copy AI prompt · build ${ps.component}`, `Copier le prompt IA · construire ${ps.component}`), 'featurePrompt', attrs({ id: name })
+        + ` title="${esc(t(`archvow prompt --feature ${name}: the task of ${ps.component}, the next ready component; then Check, then the next one`, `archvow prompt --feature ${name} : la tâche de ${ps.component}, le prochain composant prêt ; puis Vérifier, puis le suivant`))}"`, false, '')
+        + (ps.open ? specifyBtn(false) : '')
+      : ps.state === 'specify-first'
+        ? specifyBtn(true) + btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name })
+          + ` title="${esc(t(`Nothing to build yet: ${decisionsWord(ps.open)} to make (strict mode)`, `Rien à construire encore : ${decisionsWord(ps.open)} à prendre (mode strict)`))}"`, true, 'secondary')
+        : ps.state === 'propose-first'
+          ? btn(t(`Copy AI prompt · ${ps.component}`, `Copier le prompt IA · ${ps.component}`), 'featurePrompt', attrs({ id: name })
+            + ` title="${esc(t(`The AI proposes the ${decisionsWord(ps.open)} still open first, then builds; you review its proposals (AI ▾)`, `L'IA propose d'abord les ${decisionsWord(ps.open)} ouvertes, puis construit ; tu revois ses propositions (IA ▾)`))}"`, false, '') + specifyBtn(false)
+          : '';
+    const stateLine = ps.state === 'specify-first'
+      ? `<p class="feature-state tone-warn"><b>${esc(t(`Nothing to build yet: ${decisionsWord(ps.open)} to make.`, `Rien à construire encore : ${decisionsWord(ps.open)} à prendre.`))}</b> ${esc(t('In strict mode the AI would stop and ask them, and write no code.', "En mode strict, l'IA s'arrêterait pour les poser et n'écrirait pas de code."))}</p>` : '';
     const actions = [
-      btn(t('Add component', 'Ajouter un composant'), 'addToFeature', attrs({ id: name }), false, ''),
+      lead,
+      btn(t('Add component', 'Ajouter un composant'), 'addToFeature', attrs({ id: name }), false, lead ? 'secondary' : ''),
       btn(t('Open feature doc', 'Ouvrir la doc'), 'featureDoc', attrs({ id: name }) + ` title="${esc(t(`archvow doc ${name}: its page, written into .archvow/doc/ (ignored by Git)`, `archvow doc ${name} : sa page, écrite dans .archvow/doc/ (ignoré par Git)`))}"`, false, 'secondary'),
-      btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name}: the feature in a few lines, then the task of its next component`, `archvow prompt --feature ${name} : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant`))}"`, false, 'secondary'),
+      lead ? '' : btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name}: the feature in a few lines, then the task of its next component`, `archvow prompt --feature ${name} : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant`))}"`, false, 'secondary'),
       btn(t('Check before coding', 'Vérifier avant de coder'), 'featureCheck', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name} --clarify: the AI checks the whole feature before any code - where its components disagree or leave a gap between them - and records each finding as a question. It writes no code.`, `archvow prompt --feature ${name} --clarify : l'IA vérifie toute la fonctionnalité avant tout code - là où ses composants ne concordent pas ou laissent un trou entre eux - et enregistre chaque point en question. Elle n'écrit pas de code.`))}"`, false, 'secondary'),
       btn(t('Next steps', 'Prochaines étapes'), 'run', attrs({ label: `next --feature ${name}`, args: `next --feature ${name} --json`, target: 'overview' }), false, 'secondary'),
       byAi ? btn(t('Accept…', 'Accepter…'), 'openCommand', attrs({ command: 'feature accept', feature: name }) + ` title="${esc(t(`archvow feature accept ${name}: a person takes it as the team's`, `archvow feature accept ${name} : une personne la prend comme celle de l'équipe`))}"`, false, 'secondary') : '',
@@ -1185,7 +1242,7 @@
   ${str(f, 'description') ? `<p class="description">${esc(str(f, 'description'))}</p>` : ''}
   <div class="progress-line"><div class="progress-track"><div class="progress-fill p${fill}"></div></div><span class="muted small">${esc(t(`${verified} of ${comps.length} components verified`, `${verified} composants vérifiés sur ${comps.length}`))}</span></div>
   ${uses.length || usedBy.length ? `<p class="links muted small">${uses.length ? `${esc(t('Uses', 'Utilise'))} ${pairs(f.uses)}` : ''}${uses.length && usedBy.length ? '  ·  ' : ''}${usedBy.length ? `${esc(t('Used by', 'Utilisée par'))} ${pairs(f.used_by)}` : ''}</p>` : ''}</div>
-<div class="row wrap actions">${actions}</div>
+<div class="row wrap actions">${actions}</div>${stateLine}
 <div class="feature-body"><section class="feature-main"><h3>${esc(t('Components, by layer', 'Composants, par couche'))}</h3>${table}${featureFiles(name, comps)}</section>
 <aside class="feature-side">${map}${openCard}</aside></div>`;
   }
@@ -1223,15 +1280,17 @@
     const ex = exampleCounts(view);
     const viewBar = VIEW_ORDER.map((i) => {  // every view always shows, Examples too (before Tasks)
       const name = names[i];
-      const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] : counts.total[i] > 0 ? ' ✓' : '')
+      const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] + (i === 5 ? t(' to build', ' à construire') : '') : counts.total[i] > 0 ? ' ✓' : '')
         : i === 7 ? name + (localOtherPending ? ' · ' + localOtherPending : localOtherResolved ? ' ✓' : '')
         : i === 8 ? name + (!ex.total ? '' : ' ' + ex.total + (ex.failing ? ' · ' + ex.failing + ' ✖' : ex.passing === ex.total ? ' ✓' : '')) : name;
       const dot = aiCount(i);
-      const tip = i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('pending items', 'éléments en attente')}` : t('No open items', 'Aucun élément ouvert'))
+      const tip = i === 5 ? (counts.pending[i] > 0 ? t(`${counts.pending[i]} to build: the AI (or you) writes the code and its marked tests; each task is done when they exist`,
+          `${counts.pending[i]} à construire : l'IA (ou toi) écrit le code et ses tests marqués ; chaque tâche est faite quand ils existent`) : t('Nothing to build', 'Rien à construire'))
+        : i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('to decide', 'à décider')}` : t('No open items', 'Aucun élément ouvert'))
         : i === 7 ? t('Only issues of this component; project checks are in Check & Gates.', 'Seulement les éléments de ce composant ; les contrôles globaux sont dans Check & Gates.')
         : i === 8 ? t(`Business examples: ${ex.passing} passing, ${ex.failing} failing, ${ex.total - ex.passing - ex.failing} without a passing run`,
           `Exemples métier : ${ex.passing} réussis, ${ex.failing} en échec, ${ex.total - ex.passing - ex.failing} sans lancement réussi`) : '';
-      const pendingTab = (i < 6 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) || (i === 8 && ex.failing > 0);
+      const pendingTab = (i < 5 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) || (i === 8 && ex.failing > 0);  // tasks: to build, not a warning
       return `<button class="tab ${ui.view === i ? 'current' : ''} ${pendingTab ? 'has-pending' : ''}${i === 8 ? ' examples-tab' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}${aiDot(dot)}</button>`;
     }).join('');
     const listBar = listFilter(counts, aiCount, localOtherPending);
@@ -1250,7 +1309,7 @@
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
     // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
-    return `${head}<div class="row wrap actions">${actions.join('')}</div>
+    return `${head}${walkStrip()}<div class="row wrap actions">${actions.join('')}</div>
   <nav class="tabs views">${viewBar}</nav>${listBar || pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
   }
@@ -1454,7 +1513,7 @@
     const hidden = rows.length - shown.length;
     return `<ul class="cards" data-scroll="cards-${kind}">${shown.map(([row, i, c]) => {
       const key = label(row, i);
-      return `<li class="item-card ${ui.sel[kind] === key ? 'selected' : ''} ${c.open ? 'open' : 'done'}${c.origin && c.origin.toReview ? ' ai-wait' : ''}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}">
+      return `<li class="item-card ${ui.sel[kind] === key ? 'selected' : ''} ${c.open ? 'open' : 'done'}${c.origin && c.origin.toReview ? ' ai-wait' : ''}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}"${['decision', 'question', 'safety'].includes(kind) ? ` data-menu="${kind}" data-text="${esc(c.title)}" data-number="${esc(c.number)}"` : ''}>
   <div class="card-q" title="${esc(c.title)}"><b>${esc(c.number)}</b>${c.origin ? ' ' + originTag(c.origin) : ''} · ${esc(c.title)}</div>
   ${c.open ? `<div class="card-open">● ${esc(c.state || t('Open', 'Ouvert'))}</div>${c.note ? `<div class="card-note">${esc(short(c.note, 160))}</div>` : ''}`
     : `<div class="card-a" title="${esc(c.answer || '')}">${esc(short(c.answer || c.state || t('Resolved', 'Traité'), 220))}</div>`}
@@ -1729,19 +1788,18 @@
   function pendingExplanation() {
     if (!ui.component) return '';
     let total = 0;
-    let data = 0;
     let other = 0;
     for (const item of S.work.pending) {
       if (item.component !== ui.component || item.source === 'check') continue;
       total++;
       const category = item.preset.view || 'other';
-      if (category === 'data') data++;
       if (category === 'other' && isLocalOther(item)) other++;
     }
     if (!total) return '';
+    // 1.1.0: what a person decides only - the tasks to build are in the Tasks view
     return `<p class="muted small" title="${esc(t('Component-local pending work only. Project checks are separate.', 'Uniquement le travail local au composant ; les contrôles du projet sont distincts.'))}">${esc(fr()
-      ? `${total} en attente pour ${ui.component} · ${data} dans Données et tâches` + (other ? ` · ${other} dans Autres` : '')
-      : `${total} pending for ${ui.component} · ${data} in Data & tasks` + (other ? ` · ${other} in Others` : ''))}</p>`;
+      ? `${total} à décider pour ${ui.component}` + (other ? ` · ${other} dans Autres` : '')
+      : `${total} to decide for ${ui.component}` + (other ? ` · ${other} in Others` : ''))}</p>`;
   }
 
   /** The selected row of a view; none yet (a component just opened): the first open one, else the first. */
@@ -1763,6 +1821,28 @@
 
   function draft(key, initial) {
     return key in ui.drafts ? ui.drafts[key] : initial;
+  }
+
+  /** 1.1.0: what a table writes - one answer, in the answer field (no preview, no button to copy it there). */
+  function tableAnswer(key) {
+    if (ui.paramRows[key]) return parametersAnswer(ui.paramRows[key]);
+    if (ui.smartRows[key]) return structuredAnswer(ui.smartRows[key], ui.smartQuestions[key] || '');
+    return null;
+  }
+
+  /** A change in a table: the answer field follows it, unless the person typed in that field (then it stays). */
+  function fromTable(key) {
+    if (ui.byHand[key]) return;
+    const text = tableAnswer(key);
+    if (text !== null) ui.drafts[key] = text;
+  }
+
+  /** The same while typing in the table: the field's text changes in place (no redraw under the cursor). */
+  function writeField(key) {
+    fromTable(key);
+    if (ui.byHand[key]) return;
+    const field = document.querySelector(`textarea.answer-field[data-key="${CSS.escape(key)}"]`);
+    if (field) field.value = ui.drafts[key] || '';
   }
 
   /**
@@ -1844,14 +1924,13 @@
     if (!rows.length) rows.push({ name: '', type: '', nullable: 'unknown', personal: 'unknown', note: '' });
     ui.smartQuestions[key] = str(row, 'question');
     const asks = columnAsks(ui.smartQuestions[key]);
-    const answerText = structuredAnswer(rows, ui.smartQuestions[key]);
     // only what this question asks about: a personal-data question has no Nullable column
     const heads = [t('Column', 'Colonne'), ...(asks.type ? [t('Type', 'Type')] : []), ...(asks.nullable ? [t('Nullable?', 'Nullable ?')] : []),
       ...(asks.personal ? [t('Personal data?', 'Donnée personnelle ?')] : []), t('Notes', 'Notes'), ''];
     const cols = ['minmax(110px,1.2fr)', ...(asks.type ? ['minmax(90px,.9fr)'] : []), ...(asks.nullable ? ['auto'] : []), ...(asks.personal ? ['auto'] : []), 'minmax(90px,1fr)', '28px'].join(' ');
     const field = (i, name, value, extra = '') => `<input data-input="smartField" data-key="${esc(key)}" data-row="${i}" data-name="${name}" value="${esc(value)}" ${extra}>`;
     return `<details class="card smart-answer"${ui.smartExpanded === key ? ' open' : ''} data-smart-key="${esc(key)}"><summary>${esc(t('Answer with a table (optional)', 'Répondre avec un tableau (facultatif)'))}</summary>
-      <p class="muted small">${esc(t('One row per column: what is not known stays Unknown. It writes the answer below for you to read before saving.', 'Une ligne par colonne : ce qui n’est pas connu reste Inconnu. Cela écrit la réponse ci-dessous, à relire avant d’enregistrer.'))}</p>
+      <p class="muted small">${esc(t('One row per column: what is not known stays Unknown. The table writes your answer below as you edit it.', 'Une ligne par colonne : ce qui n’est pas connu reste Inconnu. Le tableau écrit ta réponse ci-dessous au fil des modifications.'))}</p>
       <datalist id="archvow-type-suggestions">${['string','integer','long','float','double','decimal','boolean','date','timestamp'].map((type) => `<option value="${type}">`).join('')}</datalist>
       <div class="smart-grid" style="grid-template-columns:${cols}">${heads.map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
       ${rows.map((r, i) => [field(i, 'name', r.name, `placeholder="${esc(t('column', 'colonne'))}"`),
@@ -1860,10 +1939,8 @@
         ...(asks.personal ? [smartSegments('column', key, i, 'personal', r.personal, [['yes', t('Yes', 'Oui')], ['no', t('No', 'Non')], ['unknown', t('Unknown', 'Inconnu')]])] : []),
         field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`),
         `<button class="icon smart-remove" data-a="smartRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this column from the table', 'Retirer cette colonne du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`].join('')).join('')}</div>
-      <div class="row wrap">${btn(t('+ Add column', '+ Ajouter une colonne'), 'smartAdd', attrs({ key }), false, 'secondary')}
-      ${btn(t('Use this answer', 'Utiliser cette réponse'), 'smartUse', attrs({ key }), !answerText.trim(), 'secondary')}</div>
-      <div class="muted small">${esc(t('Answer preview', 'Aperçu de la réponse'))}</div>
-      <pre class="smart-preview" data-preview="column">${esc(answerText || t('Add a column to prepare a response.', 'Ajoute une colonne pour préparer la réponse.'))}</pre>
+      <div class="row wrap">${btn(t('+ Add column', '+ Ajouter une colonne'), 'smartAdd', attrs({ key }), false, 'secondary')}</div>
+      <p class="muted small hand-line" data-hand="${esc(key)}"${ui.byHand[key] ? '' : ' hidden'}>${esc(t('Edited by hand: the table no longer writes over it ·', "Modifiée à la main : le tableau ne l'écrase plus ·"))} ${btn(t('Write it from the table again', 'La réécrire depuis le tableau'), 'smartRewrite', attrs({ key }), false, 'link')}</p>
     </details>`;
   }
 
@@ -1887,15 +1964,16 @@
       // a type is a word (str, date, list[str], str | None): a sentence is not a list of parameters
       if (!m || !/^[A-Za-z_][\w.]*(\[[\w., |]*\])?( *\| *[A-Za-z_][\w.]*)*$/.test(m[2].trim())) return null;
       const note = (m[5] || '').replace(/^(required|obligatoire)$/i, '');
-      rows.push({ name: m[1], type: m[2].trim(), default: (m[3] || '').trim(), note: note.trim() });
+      rows.push({ name: m[1], type: m[2].trim(), default: (m[3] || '').trim(), note: note.trim(), required: !(m[3] || '').trim() });
     }
     return rows;
   }
 
+  /** 1.1.0: Required ticked, no default; not ticked, its default - a row with neither is left out (marked in red). */
   function parametersAnswer(rows) {
-    return rows.filter((r) => r.name.trim()).map((r) => {
+    return rows.filter((r) => r.name.trim() && (r.required !== false || String(r.default || '').trim())).map((r) => {
       const type = r.type.trim() || 'str';
-      const value = String(r.default || '').trim();
+      const value = r.required !== false ? '' : String(r.default || '').trim();
       const note = String(r.note || '').trim().replace(/[()]/g, '');
       return `${r.name.trim()}: ${type}${value ? ' = ' + value : ''}${note ? ` (${note})` : ''}`;
     }).join(', ');
@@ -1905,25 +1983,25 @@
     if (!canEditParameters(str(row, 'question'))) return '';
     if (!ui.paramRows[key]) ui.paramRows[key] = (parseParameters(initial) || []).map((x) => ({ ...x }));
     const rows = ui.paramRows[key];
-    if (!rows.length) rows.push({ name: '', type: 'str', default: '', note: '' });
+    if (!rows.length) rows.push({ name: '', type: 'str', default: '', note: '', required: true });
     const conf = (((I.forms || {}).smart_answers || {}).parameters || {});
     const types = Array.isArray(conf.types) ? conf.types : ['str', 'int', 'float', 'bool', 'date'];
-    const answerText = parametersAnswer(rows);
     const field = (i, name, value, extra = '') => `<input data-input="paramField" data-key="${esc(key)}" data-row="${i}" data-name="${name}" value="${esc(value)}" ${extra}>`;
+    const required = (r, i) => `<label class="param-required"><input type="checkbox" data-input="paramRequired" data-key="${esc(key)}" data-row="${i}" ${r.required !== false ? 'checked' : ''}> ${esc(r.required !== false ? t('yes', 'oui') : t('no', 'non'))}</label>`;
+    const missing = (r) => r.required === false && !String(r.default || '').trim() && r.name.trim();
     return `<details class="card smart-answer"${ui.smartExpanded === key ? ' open' : ''} data-smart-key="${esc(key)}"><summary>${esc(t('Answer with a table (optional)', 'Répondre avec un tableau (facultatif)'))}</summary>
-      <p class="muted small">${esc(pair(conf.note) || t('One row per parameter. No default = required.', 'Une ligne par paramètre. Sans défaut = obligatoire.'))}</p>
+      <p class="muted small">${esc(t('One row per parameter: Required, or a default. The table writes your answer below as you edit it.', 'Une ligne par paramètre : Obligatoire, ou une valeur par défaut. Le tableau écrit ta réponse ci-dessous au fil des modifications.'))}</p>
       <datalist id="archvow-param-types">${types.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
-      <div class="smart-grid" style="grid-template-columns:minmax(110px,1.1fr) minmax(70px,.6fr) minmax(110px,1fr) auto minmax(90px,1fr) 28px">
-      ${[t('Parameter', 'Paramètre'), t('Type', 'Type'), t('Default', 'Défaut'), '', t('Notes', 'Notes'), ''].map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
+      <div class="smart-grid" style="grid-template-columns:minmax(110px,1.1fr) minmax(70px,.6fr) auto minmax(110px,1fr) minmax(90px,1fr) 28px">
+      ${[t('Parameter', 'Paramètre'), t('Type', 'Type'), t('Required', 'Obligatoire'), t('Default', 'Défaut'), t('Notes', 'Notes'), ''].map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
       ${rows.map((r, i) => [field(i, 'name', r.name, 'placeholder="input_path"'), field(i, 'type', r.type, 'list="archvow-param-types"'),
-        field(i, 'default', r.default, `placeholder="${esc(t('none: required', 'aucun : obligatoire'))}"`),
-        `<span class="chip ${String(r.default || '').trim() ? '' : 'warn'}" data-required="${i}">${esc(String(r.default || '').trim() ? t('optional', 'facultatif') : t('required', 'obligatoire'))}</span>`,
+        required(r, i),
+        r.required !== false ? field(i, 'default', '', 'disabled placeholder="—"')
+          : field(i, 'default', r.default, missing(r) ? `class="missing" title="${esc(t('a default, or tick Required', 'une valeur par défaut, ou cocher Obligatoire'))}" placeholder="${esc(t('a default, or tick Required', 'une valeur par défaut, ou cocher Obligatoire'))}"` : ''),
         field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`),
         `<button class="icon smart-remove" data-a="paramRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this parameter from the table', 'Retirer ce paramètre du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`].join('')).join('')}</div>
-      <div class="row wrap">${btn(t('+ Add parameter', '+ Ajouter un paramètre'), 'paramAdd', attrs({ key }), false, 'secondary')}
-      ${btn(t('Use this answer', 'Utiliser cette réponse'), 'paramUse', attrs({ key }), !answerText.trim(), 'secondary')}</div>
-      <div class="muted small">${esc(t('Answer preview', 'Aperçu de la réponse'))}</div>
-      <pre class="smart-preview" data-preview="param">${esc(answerText || t('Add a parameter to prepare a response.', 'Ajoute un paramètre pour préparer la réponse.'))}</pre>
+      <div class="row wrap">${btn(t('+ Add parameter', '+ Ajouter un paramètre'), 'paramAdd', attrs({ key }), false, 'secondary')}</div>
+      <p class="muted small hand-line" data-hand="${esc(key)}"${ui.byHand[key] ? '' : ' hidden'}>${esc(t('Edited by hand: the table no longer writes over it ·', "Modifiée à la main : le tableau ne l'écrase plus ·"))} ${btn(t('Write it from the table again', 'La réécrire depuis le tableau'), 'smartRewrite', attrs({ key }), false, 'link')}</p>
     </details>`;
   }
 
@@ -1960,7 +2038,8 @@
         + (asked ? `<p class="muted small">${esc(t('Save answer keeps the question and records your decision in one step.', 'Enregistrer la réponse garde la question et enregistre ta décision en une fois.'))}</p>` : '')
         + (answer && byOn(row) ? `<p class="muted small">${esc(t('Recorded by ', 'Enregistrée par ') + byOn(row))}</p>` : '')
         + (proposed ? `<p class="hint"><b class="tone-blue">${esc(t('AI proposal', 'Proposition IA'))}</b> ${esc(proposed)}${pending ? ' · ' + btn(t('Accept', 'Accepter'), 'decide', attrs({ action: 'decision accept' }) + ` title="${esc(t('Take the AI\'s proposal as the answer (decision accept)', "Prendre la proposition de l'IA comme réponse (decision accept)"))}"`, false, 'link') : ''}</p>` : '')
-        + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)} · ${btn(t('Use', 'Utiliser'), 'useSuggestion', ` title="${esc(t('Put the suggestion in the answer field', 'Mettre la suggestion dans le champ de réponse'))}"`, false, 'link')}</p>` : '')
+        // 1.1.0: the field starts with the suggestion - "Back to the suggestion" only once its text differs
+        + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)} ${`<button class="link" data-a="useSuggestion" data-key="${esc(key)}" data-suggested="${esc(suggested)}"${draft(key, answer || proposed || suggested).trim() === suggested.trim() ? ' hidden' : ''} title="${esc(t('Put the suggestion back in the answer field', 'Remettre la suggestion dans le champ de réponse'))}">${esc(t('· Back to the suggestion', '· Revenir à la suggestion'))}</button>`}</p>` : '')
         // archvow 1.19: a question with no safe default offers answers to start from, none chosen
         + (pending && Array.isArray(row.choices) && row.choices.length ? `<p class="hint"><b>${esc(t('No default (it depends on this project) - to start from:', 'Pas de défaut (cela dépend de ce projet) - pour partir de :'))}</b></p>
   <div class="row wrap choices">${row.choices.map((c) => btn(String(c), 'useChoice', attrs({ key, value: String(c) }), false, 'secondary small')).join('')}</div>` : '')
@@ -2149,6 +2228,8 @@
   }).join('') : `<p class="muted">${esc(t('No applicable rules.', 'Aucune règle applicable.'))}</p>`}</div>`;
   }
 
+  /** 1.1.0: one list - a task is work to build (blue), a column to classify a person's decision (amber); the selected
+   *  task's buttons: Copy task prompt, Open code. No second listing of the same tasks under it. */
   function tasksView(view, d) {
     const items = d ? [...d.data.filter((x) => x.pending), ...d.data.filter((x) => !x.pending)] : [];
     const key = (x) => x.kind + ':' + x.id;
@@ -2157,23 +2238,28 @@
       selected = items[0];
       ui.sel.data = key(selected);
     }
-    const rows = items.map((x) => `<li class="${key(x) === ui.sel.data ? 'selected' : ''} ${x.pending ? 'pending' : 'done'}" data-a="sel" data-kind="data" data-key="${esc(key(x))}">${x.kind === 'COLUMN' ? '◉' : '▸'} ${esc(x.title)} · ${esc(x.pending ? t('Pending', 'En attente') : t('Resolved', 'Traité'))}</li>`).join('');
-    const detail = selected ? `${esc(selected.title)} · ${esc(selected.pending ? t('Pending', 'En attente') : t('Resolved', 'Traité'))}\n\n${esc(selected.detail
+    const word = (x) => x.kind === 'COLUMN' ? (x.pending ? t('To classify', 'À classer') : t('Classified', 'Classée'))
+      : (x.pending ? t('To build', 'À construire') : t('Done', 'Faite'));
+    const tone = (x) => !x.pending ? 'done' : x.kind === 'COLUMN' ? 'pending' : 'to-build';
+    const rows = items.map((x) => `<li class="${key(x) === ui.sel.data ? 'selected' : ''} ${tone(x)}" data-a="sel" data-kind="data" data-key="${esc(key(x))}"${x.kind === 'TASK' ? ` data-menu="task" data-id="${esc(x.id)}"` : ''}>${x.kind === 'COLUMN' ? '◉' : '▸'} ${esc(x.title)} · ${esc(word(x))}</li>`).join('');
+    const detail = selected ? `${esc(selected.title)} · ${esc(word(selected))}\n\n${esc(selected.detail
       || t('No further description is recorded for this item in the component spec.', "Aucune description supplémentaire n'est enregistrée pour cet élément dans la spec du composant."))}`
       : esc(t('Select a task or column to see its details.', 'Sélectionne une tâche ou une colonne pour voir ses détails.'));
-    const outstanding = items.filter((x) => x.pending);
-    const summary = [`<h4>${esc(t('Data & tasks', 'Données et tâches'))}</h4>`,
-      `<p class="${outstanding.length ? 'tone-warn' : 'tone-good'}"><b>${esc(t('Pending actions', 'Actions en attente'))}: ${outstanding.length}</b></p>`,
-      outstanding.map((x) => `<p class="tone-warn">● ${esc(x.kind === 'COLUMN' ? t('Column', 'Colonne') : t('Task', 'Tâche'))} : ${esc(x.title)}</p>`).join(''),
-      `<h5>${esc(t('Columns and classifications', 'Colonnes et classifications'))}</h5>`,
+    const toBuild = items.filter((x) => x.kind === 'TASK' && x.pending).length;
+    const heading = toBuild ? t(`${toBuild} task${toBuild === 1 ? '' : 's'} to build: the AI (or you) writes the code and its marked tests. Each one is done when they exist.`,
+      `${toBuild} tâche${toBuild === 1 ? '' : 's'} à construire : l'IA (ou toi) écrit le code et ses tests marqués. Chacune est faite quand ils existent.`)
+      : t('Nothing to build: every task is done.', 'Rien à construire : chaque tâche est faite.');
+    const column = selected && selected.kind === 'COLUMN';
+    const columnsOpen = items.filter((x) => x.kind === 'COLUMN' && x.pending).length;
+    const summary = [`<h5>${esc(t('Columns and classifications', 'Colonnes et classifications') + (columnsOpen ? t(` · ${columnsOpen} to classify`, ` · ${columnsOpen} à classer`) : ''))}</h5>`,
       items.filter((x) => x.kind === 'COLUMN').map((x) => `<p class="${x.pending ? 'tone-warn' : 'tone-good'}">${x.pending ? '●' : '✓'} ${esc(x.title)} — ${esc(x.detail)}</p>`).join('')
         || `<p class="muted">${esc(t('No columns declared.', 'Aucune colonne déclarée.'))}</p>`,
       `<h5>${esc(t('Personal data', 'Données personnelles'))}</h5>`,
       view.personal && typeof view.personal === 'object' && Object.keys(view.personal).length
         ? Object.entries(view.personal).map(([k, v]) => `<p>${esc(k)}: ${esc(readable(v))}</p>`).join('')
         : `<p class="muted">${esc(t('No personal data flows declared.', 'Aucun flux de données personnelles déclaré.'))}</p>`].join('');
-    return `<h4>${esc(t('Actions to complete', 'Actions à terminer'))}</h4><ul class="list items" data-scroll="list-data">${rows || `<li class="muted">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>
-  <div class="row">${btn(selected && selected.kind === 'COLUMN' ? t('Classify column…', 'Classifier la colonne…') : t('Open task prompt', 'Ouvrir les instructions de la tâche'), 'dataAction', '', !selected)}</div>
+    return `<h4>${esc(heading)}</h4><ul class="list items" data-scroll="list-data">${rows || `<li class="muted">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>
+  <div class="row">${btn(column ? t('Classify column…', 'Classifier la colonne…') : t('Copy task prompt', 'Copier la tâche'), 'dataAction', '', !selected)}${column || !selected ? '' : btn(t('Open code', 'Ouvrir le code'), 'openCode', '', false, 'secondary')}</div>
   <div class="details"><h5>${esc(t('Details and description', 'Détails et description'))}</h5><pre class="plain">${detail}</pre>
   ${btn(t('Edit component description…', 'Modifier la description du composant…'), 'openCommand', attrs({ command: 'component edit', component: ui.component }), false, 'secondary')}</div>
   ${resultCard('data')}<div class="details">${summary}</div>`;
@@ -2196,19 +2282,21 @@
     const file = part === 'vow' ? `.archvow/features/${str(entry, 'feature') || '…'}/components/${ui.component}.vow` : `archvow prompt ${ui.component}`;
     const bar = `<div class="row wrap">${toggle}<span class="muted small"><code>${esc(file)}</code> - ${esc(t('read only: change it with the commands (Edit spec, + Question, + Rule...)', 'en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)'))}</span>
   ${part === 'vow' ? btn(t('Open in the editor', "Ouvrir dans l'éditeur"), 'openVowFile', '', false, 'secondary') : btn(t('Copy', 'Copier'), 'aiPrompt', '', false, 'secondary')}${btn(t('Project vow', 'Vow du projet'), 'openProjectVow', '', false, 'secondary')}</div>`;
-    const where = filesBlock(componentFiles(ui.component), t('Where it is', 'Où il est'));
+    // 1.1.0: "Where it is" on the right of the text, its own title and scroll; above it when the panel is narrow
+    const where = filesBlock(componentFiles(ui.component), t('Where it is', 'Où il est'), true);
+    const split = (inner) => `<div class="spec-split"><div class="spec-text">${inner}</div>${where ? `<aside class="spec-where">${where}</aside>` : ''}</div>`;
     if (part === 'card') {
       const card = ui.cards[ui.component] || '';
-      return bar + where + (card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('archvow prompt gave nothing for this component.', "archvow prompt n'a rien donné pour ce composant."))}</p>`);
+      return bar + split(card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('archvow prompt gave nothing for this component.', "archvow prompt n'a rien donné pour ce composant."))}</p>`);
     }
-    if (!text) return bar + where + `<p class="muted">${esc(t('No vow for this component.', 'Pas de vow pour ce composant.'))}</p>`;
+    if (!text) return bar + split(`<p class="muted">${esc(t('No vow for this component.', 'Pas de vow pour ce composant.'))}</p>`);
     const lines = text.split('\n').map((line) => {
       const m = /^(\s*)("(?:[^"\\]|\\.)*"|[A-Za-z_][A-Za-z0-9_./-]*)(.*)$/.exec(line);
       if (line.trimStart().startsWith('#') || !m) return `<span class="${line.trimStart().startsWith('#') ? 'comment' : ''}">${esc(line)}</span>`;
       const depth = Math.min(3, Math.floor(m[1].length / 2));
       return `${esc(m[1])}<span class="key${depth}">${esc(m[2])}</span>${esc(m[3])}`;
     });
-    return bar + where + `<pre class="vow">${lines.join('\n')}</pre>`;
+    return bar + split(`<pre class="vow">${lines.join('\n')}</pre>`);
   }
 
   /** Component and project issues have distinct destinations; check violations stay in Check & Gates. */
@@ -2518,10 +2606,10 @@
       stages.push(stage('Advanced CLI', 'Options CLI avancées', ['force', 'no_git', 'no_input', 'adopt'], 'init-other'));
     } else if (name === 'component add') {
       stages.push(stage('Basics', 'Essentiel', ['type', 'name', 'description', 'feature']));
-      stages.push(stage('Architecture', 'Architecture', ['kind', 'spec', 'uses', 'container', 'group']));
+      stages.push(stage('Architecture', 'Architecture', ['kind', 'ticket', 'uses', 'container', 'group']));
       stages.push(stage('Source & advanced', 'Source et options', ['signature', 'route', 'source', 'file']));
     } else if (name === 'component edit') {
-      stages.push(stage('Identity & changes', 'Identité et modifications', ['component', 'description', 'spec', 'uses']));
+      stages.push(stage('Identity & changes', 'Identité et modifications', ['component', 'description', 'ticket', 'uses']));
       stages.push(stage('Advanced changes', 'Modifications avancées', ['signature', 'group', 'route', 'owners', 'source']));
     } else if (name === 'template new') {
       stages.push(stage('Template basics', 'Création du modèle', ['name', 'extends', 'dir', 'description'], 'template-basics'));
@@ -2719,7 +2807,73 @@
     return lines;
   }
 
-  function filesBlock(rows, heading) {
+  /**
+   * 1.1.0: a right-click menu - the buttons of the row it was opened on, never an action found only there.
+   * `data-menu` names the row's kind; its other data- attributes say which one. Each item runs an existing action.
+   */
+  function menuItems(kind, d) {
+    const item = (label, a, attrs, removal) => ({ label, a, attrs: attrs || {}, removal });
+    const sep = 'sep';
+    switch (kind) {
+      case 'file':
+        return { head: d.path, items: [item(t('Open', 'Ouvrir'), 'openFile', { file: d.path }),
+          item(t('Show in the explorer', "Afficher dans l'explorateur"), 'revealFile', { file: d.path }),
+          item(t('Copy path', 'Copier le chemin'), 'copyText', { text: d.path })] };
+      default:
+        return componentMenu(kind, d, item, sep);
+    }
+  }
+
+  /** The menus of a component, a feature, an item and a task row (1.1.0, the design's artboard 10). */
+  function componentMenu(kind, d, item, sep) {
+    const id = d.id || '';
+    switch (kind) {
+      case 'component':
+        return { head: id, items: [
+          item(t('Specify', 'Spécifier'), 'walk', { kind: 'specify', scope: 'component', value: id }),
+          item(t('Build (copy AI prompt)', 'Construire (copier le prompt IA)'), 'walk', { kind: 'build', scope: 'component', value: id }),
+          item(t('Check', 'Vérifier'), 'run', { label: 'full check', args: 'check --complete --json', target: 'overview' }), sep,
+          item(t('Open code', 'Ouvrir le code'), 'menuOpenCode', { id }),
+          item(t('Open vow', 'Ouvrir le vow'), 'menuOpenVow', { id }), sep,
+          item(t('Edit spec…', 'Modifier la spec…'), 'openCommand', { command: 'component edit', component: id }),
+          item(t('Add question…', 'Ajouter une question…'), 'openCommand', { command: 'question add', component: id }),
+          item(t('Add rule…', 'Ajouter une règle…'), 'menuRule', { id }),
+          item(t('Move to feature…', 'Déplacer vers une feature…'), 'openCommand', { command: 'component move', component: id }), sep,
+          item(t('Remove…', 'Retirer…'), 'openCommand', { command: 'component remove', component: id }, true)] };
+      case 'feature':
+        return { head: d.name, items: [
+          item(t('Specify', 'Spécifier'), 'walk', { kind: 'specify', scope: 'feature', value: d.name }),
+          item(t('Build', 'Construire'), 'walk', { kind: 'build', scope: 'feature', value: d.name }),
+          item(t('Check before coding', 'Vérifier avant de coder'), 'featureCheck', { id: d.name }), sep,
+          item(t('Open feature doc', 'Ouvrir la doc'), 'featureDoc', { id: d.name }),
+          item(t('Add component…', 'Ajouter un composant…'), 'addToFeature', { id: d.name })] };
+      case 'decision': case 'question': case 'safety':
+        return { head: '', items: [
+          item(t('Answer', 'Répondre'), 'sel', { kind, key: d.key }),
+          ...(kind === 'decision' ? [item(t('Save as a proposal…', 'Enregistrer comme proposition…'), 'menuPropose', { number: d.number || '' })] : []), sep,
+          item(t('Copy the question', 'Copier la question'), 'copyText', { text: d.text || '' })] };
+      case 'task':
+        return { head: '', items: [item(t('Copy task prompt', 'Copier la tâche'), 'menuTask', { id }),
+          item(t('Open code', 'Ouvrir le code'), 'openCode', {})] };
+      default:
+        return null;
+    }
+  }
+
+  function contextMenu() {
+    if (!ui.ctxMenu) return '';
+    const { kind, d, x, y } = ui.ctxMenu;
+    const menu = menuItems(kind, d);
+    if (!menu || !menu.items.length) return '';
+    const attrs = (o) => Object.entries(o).map(([k, v]) => `data-${k}="${esc(String(v))}"`).join(' ');
+    const body = menu.items.map((i) => i === 'sep' ? '<hr>'
+      : `<button type="button" role="menuitem" class="${i.removal ? 'ctx-remove' : ''}" data-a="${esc(i.a)}" ${attrs(i.attrs)}>${esc(i.label)}</button>`).join('');
+    const left = Math.max(4, Math.min(x, window.innerWidth - 240));
+    const top = Math.max(4, Math.min(y, window.innerHeight - 24 * menu.items.length - 40));
+    return `<div class="ctx-menu" role="menu" style="left:${left}px;top:${top}px">${menu.head ? `<div class="ctx-head">${esc(menu.head)}</div>` : ''}${body}</div>`;
+  }
+
+  function filesBlock(rows, heading, clickable) {
     if (!Array.isArray(rows) || !rows.length) return '';
     const word = { new: t('new', 'nouveau'), updated: t('updated', 'modifié'), removed: t('removed', 'retiré'), kept: t('kept', 'gardé'), planned: t('planned', 'prévu') };
     // nested lists: the connectors are drawn by CSS (.file-tree li::before / ::after), so they run on beside a note
@@ -2730,7 +2884,11 @@
       const locationOnly = change === 'location';
       const status = r && word[change] ? `<span class="badge ${esc(change)}">${esc(word[change])}</span>` : '';
       const line = locationOnly && Number(r.line) > 0 ? `<span class="muted small">${esc(t('line', 'ligne'))} ${Number(r.line)}</span>` : '';
-      const head = `<div class="file-row change-${esc(change)}${r ? '' : ' file-dir'}">${icon(k.dir ? 'folder' : 'document')}${r ? `<code>${esc(k.name)}</code>` : `<span>${esc(k.name)}</span>`}${status}${line}</div>`;
+      // 1.1.0: in "Where it is", a file opens on a click; its right-click menu: Open, Show in the explorer, Copy path
+      const name = r && clickable && change !== 'planned' && r.path
+        ? `<button type="button" class="file-open" data-a="openFile" data-file="${esc(r.path)}" data-menu="file" data-path="${esc(r.path)}" title="${esc(t('Open ', 'Ouvrir ') + r.path + t(' · right-click: more', ' · clic droit : plus'))}"><code>${esc(k.name)}</code></button>`
+        : r ? `<code>${esc(k.name)}</code>` : `<span>${esc(k.name)}</span>`;
+      const head = `<div class="file-row change-${esc(change)}${r ? '' : ' file-dir'}">${icon(k.dir ? 'folder' : 'document')}${name}${status}${line}</div>`;
       const note = r && r.note && !locationOnly ? `<div class="file-note muted small">${esc(r.note)}</div>` : '';
       const kids = [...k.children.values()];
       return `<li>${head}${note}${kids.length ? `<ul>${kids.map(item).join('')}</ul>` : ''}</li>`;
@@ -3040,7 +3198,162 @@
     if (question) { ui.view = 1; ui.sel.question = str(question, 'key') || str(question, 'number'); return; }
     const safety = list(view, 'safety').find((r) => str(r, 'status').toLowerCase() === 'open');
     if (safety) { ui.view = 2; ui.sel.safety = 'S' + str(safety, 'number'); return; }
-    post({ type: 'message', text: t('All decision and safety questions are answered for this component.', 'Toutes les décisions et questions de sécurité sont traitées pour ce composant.') });
+    onSpecified(ui.component);  // 1.1.0: the strip, not a message - and the next component
+  }
+
+  // ---------------------------------------------------------------- the walks (1.1.0): Specify and Build
+
+  const W = () => (S && S.walks) || { featureOf: {}, open: {}, prompt: {}, foundations: [], features: {}, order: {}, build: {}, planned: {}, budget: false, ready: [] };
+  const decisionsWord = (n) => t(`${n} decision${n === 1 ? '' : 's'}`, `${n} décision${n === 1 ? '' : 's'}`);
+
+  /** The scope's components with something open, in build order (as walks.ts specifyQueue). */
+  function specifyQueue(scope, value) {
+    const w = W();
+    if (scope === 'foundations') return w.foundations || [];
+    if (scope === 'feature') return (w.features || {})[value] || [];
+    const feature = (w.featureOf || {})[value] || '';
+    const ids = [value, ...(((w.order || {})[feature]) || []).filter((id) => id !== value)];
+    return ids.filter((id) => ((w.open || {})[id] || 0) > 0).map((id) => ({ component: id, open: (w.open || {})[id] || 0 }));
+  }
+
+  function scopeLabel(scope, value) {
+    if (scope === 'foundations') return t('the foundations', 'les fondations');
+    if (scope === 'component') return (W().featureOf || {})[value] || value;
+    return value;
+  }
+
+  /** A view still has something for a person to decide. */
+  function hasOpen(view) {
+    return list(view, 'decisions').some((r) => !str(r, 'answer')) || list(view, 'questions').some((r) => !str(r, 'answer'))
+      || list(view, 'safety').some((r) => str(r, 'status').toLowerCase() === 'open');
+  }
+
+  function showWalkComponent(id) {
+    ui.forceWorkspace = true;
+    ui.mode = 'component';
+    ui.back = null;
+    selectComponent(id);
+  }
+
+  /** A walk starts (the 'walk' message): Specify from the foundations, a feature or a component; Build a feature. */
+  function startWalk(m) {
+    if (m.kind === 'specify') {
+      const queue = specifyQueue(m.scope, m.value);
+      const label = scopeLabel(m.scope, m.value);
+      if (!queue.length) { post({ type: 'message', text: t(`Nothing open in ${label}: every decision is made.`, `Rien d'ouvert dans ${label} : tout est décidé.`) }); return; }
+      ui.walk = { kind: 'specify', scope: m.scope, value: m.value, label, total: queue.length, done: [], current: '', view: 'progress' };
+      continueSpecify(queue[0].component);
+      return;
+    }
+    if (m.kind === 'build') {
+      if (m.scope === 'component') { buildOne(m.value); return; }
+      const queue = (W().build || {})[m.value] || [];
+      if (!queue.length) {
+        post({ type: 'message', text: W().budget ? t('The change budget is reached: commit and open the merge request; the rest goes in the next one.', 'Le budget de changement est atteint : committe et ouvre la merge request ; le reste va dans la suivante.')
+          : t(`Nothing ready to build in ${m.value}: Specify first.`, `Rien de prêt à construire dans ${m.value} : Spécifier d'abord.`) });
+        return;
+      }
+      ui.walk = { kind: 'build', scope: 'feature', value: m.value, label: m.value, total: queue.length, done: [], current: '', view: 'build' };
+      buildComponent(queue[0], m.copied === true);
+    }
+  }
+
+  function continueSpecify(id) {
+    if (!ui.walk) return;
+    ui.walk.current = id;
+    ui.walk.view = 'progress';
+    ui.walk.choose = true;  // its first open item, once its view is here
+    showWalkComponent(id);
+    if (snapshot()) { ui.walk.choose = false; chooseNext(); }
+  }
+
+  /** A component has nothing open any more: say so, offer the next one of the walk, or its end. */
+  function onSpecified(id) {
+    if (!id) return;
+    if (!ui.walk || ui.walk.kind !== 'specify') {
+      const rest = specifyQueue('component', id);
+      ui.walk = { kind: 'specify', scope: 'component', value: id, label: scopeLabel('component', id), total: Math.max(1, rest.length), done: [], current: id };
+    }
+    const w = ui.walk;
+    if (!w.done.includes(id)) w.done.push(id);
+    w.current = id;
+    const rest = specifyQueue(w.scope, w.value).filter((s) => !w.done.includes(s.component));
+    w.total = Math.max(w.total, w.done.length + rest.length);
+    w.next = rest.length ? rest[0] : null;
+    w.view = rest.length ? 'specified' : 'specify-end';
+  }
+
+  /** After a new state: the walk's component gets its first open item, or - nothing open any more - moves on. */
+  function walkAfterState() {
+    const w = ui.walk;
+    if (!w || w.kind !== 'specify' || w.current !== ui.component) return;
+    const view = snapshot();
+    if (!view) return;
+    if (w.choose) { w.choose = false; chooseNext(); return; }
+    if (!w.done.includes(w.current) && !hasOpen(view)) onSpecified(w.current);
+  }
+
+  function buildComponent(id, copied) {
+    const w = ui.walk;
+    if (!w) return;
+    Object.assign(w, { current: id, copied: !!copied, checkOk: false, checkLine: '', view: 'build' });
+    showWalkComponent(id);
+  }
+
+  function buildOne(id) {
+    const feature = (W().featureOf || {})[id] || '';
+    ui.walk = { kind: 'build', scope: 'feature', value: feature, label: feature || id, total: Math.max(1, ((W().build || {})[feature] || []).length), done: [], current: '', view: 'build' };
+    buildComponent(id, false);
+    post({ type: 'walkCopy', component: id });
+  }
+
+  function buildNext() {
+    const w = ui.walk;
+    if (!w) return;
+    if (!w.done.includes(w.current)) w.done.push(w.current);
+    const rest = ((W().build || {})[w.value] || []).filter((id) => !w.done.includes(id));
+    w.total = Math.max(w.total, w.done.length + rest.length);
+    if (W().budget) { w.view = 'budget'; return; }
+    if (!rest.length) { w.view = 'built'; return; }
+    buildComponent(rest[0], false);
+  }
+
+  /** The strip at the top of the walk's component (the design's artboards 6 and 9). */
+  function walkStrip() {
+    const w = ui.walk;
+    if (!w || w.current !== ui.component) return '';
+    const strip = (tone, progress, title, detail, buttons) => `<div class="walk-strip tone-${tone}" role="status">${progress ? `<div class="walk-progress">${esc(progress)}</div>` : ''}
+  <div class="walk-line"><div class="walk-words"><b>${esc(title)}</b>${detail ? `<span>${esc(detail)}</span>` : ''}</div><div class="row wrap">${buttons.join('')}</div></div></div>`;
+    const stop = btn(t('Stop', 'Arrêter'), 'walkStop', '', false, 'secondary');
+    const close = btn(t('Close', 'Fermer'), 'walkStop', '', false, 'secondary');
+    const of = (k) => ` · ${k} ${t('of', 'sur')} ${w.total}`;
+    if (w.kind === 'specify') {
+      const progress = t('Specifying ', 'Spécifier ') + w.label;
+      if (w.view === 'specified' && w.next) return strip('done', progress + of(w.done.length), `✓ ${w.current} ${t('specified', 'spécifié')}`,
+        `${t('Next: ', 'Suivant : ')}${w.next.component} · ${decisionsWord(w.next.open)}`,
+        [btn(t('Specify next ▸', 'Spécifier le suivant ▸'), 'walkSpecifyNext', attrs({ id: w.next.component })), stop]);
+      if (w.view === 'specify-end') {
+        if (w.scope === 'foundations') return strip('done', '', t('✓ The foundations are specified', '✓ Les fondations sont spécifiées'), w.done.join(', '),
+          [btn(t('Back to First steps', 'Retour aux premières étapes'), 'walkOverview', '', false, 'secondary'), close]);
+        const feature = w.scope === 'feature' ? w.value : (W().featureOf || {})[w.value] || w.value;
+        const planned = (W().planned || {})[feature] || [];
+        return strip('info', '', `✓ ${feature}${t(': every decision is made', ' : chaque décision est prise')}`,
+          planned.length ? t('Ready to build: ', 'Prêts à construire : ') + planned.join(', ') : '',
+          [btn(t('Build ▸', 'Construire ▸'), 'walkBuild', attrs({ id: feature })), close]);
+      }
+      return strip('info', progress + of(w.done.length + 1), w.current,
+        t('What is still open is selected below; Save moves on to the next one.', 'Ce qui reste ouvert est sélectionné ci-dessous ; Enregistrer passe au suivant.'), [stop]);
+    }
+    if (w.view === 'budget') return strip('warn', '', t('Change budget reached', 'Budget de changement atteint'),
+      t('Commit and open the merge request; the rest goes in the next one.', 'Committe et ouvre la merge request ; le reste va dans la suivante.'), [close]);
+    if (w.view === 'built') return strip('done', '', `✓ ${w.label} ${t('is built', 'est construite')}`,
+      t('Commit: the hooks run the same checks as CI; then open a merge request.', 'Committe : les hooks lancent les mêmes contrôles que la CI ; puis ouvre une merge request.'), [close]);
+    const tone = w.checkOk ? 'done' : (w.checkLine || '').startsWith('✖') ? 'bad' : 'info';
+    const steps = `${t('1 · The code', '1 · Le code')}${w.copied ? t(' ✓ copied', ' ✓ copié') : ''}   2 · ${t('Check', 'Vérifier')}${w.checkLine ? ' ' + w.checkLine : ''}   3 · ${t('Next', 'Suivant')}`;
+    return strip(tone, t('Building ', 'Construire ') + w.label + of(w.done.length + 1), w.current, steps, [
+      btn(t('Copy AI prompt', 'Copier le prompt IA'), 'walkCopy', '', false, w.copied ? 'secondary' : ''),
+      btn(t('Check', 'Vérifier'), 'walkCheck', '', false, w.copied && !w.checkOk ? '' : 'secondary'),
+      btn(t('Build next ▸', 'Construire le suivant ▸'), 'walkBuildNext', '', !w.checkOk, w.checkOk ? '' : 'secondary'), stop]);
   }
 
   function viewForItem(item) {
@@ -3276,6 +3589,22 @@
       post({ type: 'openCommand', command: item.command, values: item.preset, selected: item.component || ui.component });
     },
     openFile: (e) => post({ type: 'openFile', file: e.dataset.file, line: Number(e.dataset.line) || 0 }),
+    // 1.1.0: the walks
+    walk: (e) => post({ type: 'walk', kind: e.dataset.kind, scope: e.dataset.scope || '', value: e.dataset.value || '' }),
+    walkSpecifyNext: (e) => continueSpecify(e.dataset.id),
+    walkStop: () => { ui.walk = null; },
+    walkBuild: (e) => startWalk({ kind: 'build', scope: 'feature', value: e.dataset.id }),
+    walkCopy: () => { if (ui.walk) post({ type: 'walkCopy', component: ui.walk.current }); },
+    walkCheck: () => { if (ui.walk) { ui.walk.checkLine = t('… checking', '… contrôle en cours'); post({ type: 'walkCheck', component: ui.walk.current }); } },
+    walkBuildNext: () => buildNext(),
+    // 1.1.0: what a right-click menu does on a row that is not the selected one
+    menuOpenCode: (e) => post({ type: 'openCode', component: e.dataset.id }),
+    menuOpenVow: (e) => post({ type: 'openVowFile', component: e.dataset.id }),
+    menuRule: (e) => post({ type: 'openCommand', command: 'rule add', values: { words: e.dataset.id + '\n' }, selected: e.dataset.id }),
+    menuPropose: (e) => post({ type: 'openCommand', command: 'decision propose', values: { component: ui.component, question: e.dataset.number }, selected: ui.component }),
+    menuTask: (e) => { if (ui.component) post({ type: 'taskPrompt', component: ui.component, task: e.dataset.id }); },
+    walkOverview: () => { ui.walk = null; post({ type: 'show' }); },
+    revealFile: (e) => post({ type: 'revealFile', file: e.dataset.file }),
     quickList: (e) => {
       // the sidebar shows the components with such work; the editor tab opens the first of them
       const index = Number(e.dataset.i);
@@ -3411,18 +3740,12 @@
       const row = (rows || [])[Number(e.dataset.row)];
       if (row) row[e.dataset.name] = e.dataset.value;
       ui.smartExpanded = e.dataset.key;
+      fromTable(e.dataset.key);
     },
-    paramAdd: (e) => { (ui.paramRows[e.dataset.key] ||= []).push({ name: '', type: 'str', default: '', note: '' }); ui.smartExpanded = e.dataset.key; },
-    paramRemove: (e) => { (ui.paramRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; },
-    paramUse: (e) => {
-      const text = parametersAnswer(ui.paramRows[e.dataset.key] || []);
-      if (text.trim()) { ui.drafts[e.dataset.key] = text; ui.smartExpanded = e.dataset.key; }
-    },
-    smartRemove: (e) => { (ui.smartRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; },
-    smartUse: (e) => {
-      const text = structuredAnswer(ui.smartRows[e.dataset.key] || [], ui.smartQuestions[e.dataset.key] || '');
-      if (text.trim()) { ui.drafts[e.dataset.key] = text; ui.smartExpanded = e.dataset.key; }
-    },
+    paramAdd: (e) => { (ui.paramRows[e.dataset.key] ||= []).push({ name: '', type: 'str', default: '', note: '', required: true }); ui.smartExpanded = e.dataset.key; },
+    paramRemove: (e) => { (ui.paramRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; fromTable(e.dataset.key); },
+    smartRemove: (e) => { (ui.smartRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; fromTable(e.dataset.key); },
+    smartRewrite: (e) => { ui.byHand[e.dataset.key] = false; ui.smartExpanded = e.dataset.key; fromTable(e.dataset.key); },
     useSuggestion: () => {
       const row = selectedRow('decision');
       if (row) ui.drafts[`d:${ui.component}:${str(row, 'number')}`] = str(row, 'suggested');
@@ -3536,7 +3859,21 @@
     }, 0);
   }
 
+  document.body.addEventListener('contextmenu', (event) => {
+    const row = event.target.closest('[data-menu]');
+    if (!row) { if (ui.ctxMenu) { ui.ctxMenu = null; render(); } return; }
+    event.preventDefault();  // the row's own menu, not the webview's Cut / Copy / Paste
+    ui.ctxMenu = { kind: row.dataset.menu, d: Object.assign({}, row.dataset), x: event.clientX, y: event.clientY };
+    render();
+    const first = document.querySelector('.ctx-menu button');
+    if (first) first.focus();
+  });
+
   document.body.addEventListener('click', (event) => {
+    if (ui.ctxMenu) {  // a click closes the menu; on one of its items, the item runs below
+      ui.ctxMenu = null;
+      if (!event.target.closest('.ctx-menu [data-a]')) { render(); return; }
+    }
     const target = event.target.closest('[data-a]');
     // The responsive More menu closes after an action or on an outside click.
     // The same action is used in either the toolbar or its overflow menu.
@@ -3565,6 +3902,7 @@
 
   document.body.addEventListener('keydown', (event) => {
     const e = event.target;
+    if (ui.ctxMenu && event.key === 'Escape') { ui.ctxMenu = null; render(); return; }
     if (e && e.dataset && e.dataset.input === 'agentOther' && event.key === 'Enter') {
       event.preventDefault();
       actions.agentOther(e);
@@ -3605,6 +3943,14 @@
         return;
       case 'draft': {
         ui.drafts[e.dataset.key] = e.value;
+        // 1.1.0: typed by hand in a field a table writes - the table stops writing over it
+        if (ui.smartRows[e.dataset.key] || ui.paramRows[e.dataset.key]) {
+          ui.byHand[e.dataset.key] = true;
+          const line = document.querySelector(`.hand-line[data-hand="${CSS.escape(e.dataset.key)}"]`);
+          if (line) line.hidden = false;
+        }
+        const back = document.querySelector(`[data-a="useSuggestion"][data-key="${CSS.escape(e.dataset.key)}"]`);
+        if (back) back.hidden = e.value.trim() === (back.dataset.suggested || '').trim();
         // Undo changes: pressable as soon as the text differs from the recorded one (no redraw while typing)
         const undo = document.querySelector(`[data-a="cancelDraft"][data-key="${CSS.escape(e.dataset.key)}"]`);
         if (undo) {
@@ -3618,18 +3964,23 @@
         const rows = ui.smartRows[e.dataset.key] || [];
         const row = rows[Number(e.dataset.row)];
         if (row && ['name', 'type', 'nullable', 'personal', 'note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
-        const preview = document.querySelector('.smart-answer .smart-preview[data-preview="column"]');
-        if (preview) preview.textContent = structuredAnswer(rows, ui.smartQuestions[e.dataset.key] || '');
+        writeField(e.dataset.key);
         return;
       }
       case 'paramField': {
         const rows = ui.paramRows[e.dataset.key] || [];
         const row = rows[Number(e.dataset.row)];
         if (row && ['name', 'type', 'default', 'note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
-        const preview = document.querySelector('.smart-answer .smart-preview[data-preview="param"]');
-        if (preview) preview.textContent = parametersAnswer(rows);
-        const chip = row && e.dataset.name === 'default' ? document.querySelector(`.smart-answer [data-required="${Number(e.dataset.row)}"]`) : null;
-        if (chip) { chip.textContent = e.value.trim() ? t('optional', 'facultatif') : t('required', 'obligatoire'); chip.classList.toggle('warn', !e.value.trim()); }
+        if (row && e.dataset.name === 'default') e.classList.toggle('missing', row.required === false && !e.value.trim() && !!row.name.trim());
+        writeField(e.dataset.key);
+        return;
+      }
+      case 'paramRequired': {  // 1.1.0: the Required box
+        const row = (ui.paramRows[e.dataset.key] || [])[Number(e.dataset.row)];
+        if (row) row.required = e.checked;
+        ui.smartExpanded = e.dataset.key;
+        fromTable(e.dataset.key);
+        render();
         return;
       }
       case 'base': ui.base = e.value; ui.baseTouched = true; return;
@@ -3732,7 +4083,7 @@
         const rows = ui.smartRows[e.dataset.key] || [];
         const row = rows[Number(e.dataset.row)];
         if (row && ['name','type','nullable','personal','note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
-        ui.smartExpanded = e.dataset.key; render(); return;
+        ui.smartExpanded = e.dataset.key; fromTable(e.dataset.key); render(); return;
       }
       case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; askPreview(0); refreshCommandStepIndicators(); return;
       case 'choice': choose(e.dataset.name, e.value); askPreview(0); render(); return;

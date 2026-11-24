@@ -84,7 +84,7 @@ test('the CLI contract and the range: what the plugin says of the installed arch
   assert.deepEqual(parseContract(wanted), [3, 0]);  // 3.0: templates; 2.5 show of a pasted error; 2.4 a rule's scope
   assert.equal(parseContract('1.0.0'), null);
   const range = parseRange(fs.readFileSync(path.join(CLI, '..', 'archvow-range.txt'), 'utf8'))!;
-  assert.deepEqual([range.low, range.high], [[3, 0], [4]]);
+  assert.deepEqual([range.low, range.high], [[3, 1], [4]]);
   assert.equal(placeOf(tested, range), 'in', 'the archvow the plugin is tested with is in its range');
   assert.deepEqual(projectPin([{ name: 'requirements.txt', text: 'pytest\narchvow==2.8.0\n' }]), { version: '2.8.0', file: 'requirements.txt' });
   assert.deepEqual(projectPin([{ name: 'pyproject.toml', text: 'dev = ["archvow==3.0.1", "ruff"]' }]), { version: '3.0.1', file: 'pyproject.toml' });
@@ -100,11 +100,11 @@ test('the CLI contract and the range: what the plugin says of the installed arch
   assert.match(byName['pinned below the range'].text, /pins archvow==2\.8\.0 \(requirements\.txt\).*init <package> --force.*nothing over the pin/);
   assert.equal(byName['pinned below the range'].install, '', 'never installed over the pin');
   assert.equal(byName['not pinned, older'].install, tested);
-  assert.equal(byName['pinned in the range, missing'].install, '3.0.1', 'the pin, when it is in the range');
+  assert.equal(byName['pinned in the range, missing'].install, '3.1.1', 'the pin, when it is in the range');
   assert.match(byName['newer'].text, /newer.*update the plugin/);
   assert.match(byName['newer, fr'].text, /plus récent.*mets le plugin à jour/);
   assert.match(byName['missing'].text, /not installed.*python -m pip install archvow==/);
-  assert.equal(headerLine('3.0.0', 'ok', range), 'archvow 3.0.0 ✓ · this plugin works with archvow >=3.0,<4');
+  assert.equal(headerLine('3.1.0', 'ok', range), 'archvow 3.1.0 ✓ · this plugin works with archvow >=3.1,<4');
 });
 
 test('show <id> --json is a component\'s view only when it names that component (a search result never is)', () => {

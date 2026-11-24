@@ -54,6 +54,8 @@ final class ArchvowCli {
 
     private final Project project;
     private final AtomicBoolean running = new AtomicBoolean(false);
+    /** 1.1.0: a command asked for while another runs waits its turn (as VS Code's runner) - never refused. */
+    private final java.util.ArrayDeque<Runnable> waiting = new java.util.ArrayDeque<>();
     ArchvowCli(Project project) { this.project = project; }
     boolean isRunning() { return running.get(); }
 
@@ -85,9 +87,11 @@ final class ArchvowCli {
     private void executeInternal(String label, List<String> arguments, String stdin,
                                  boolean globalCatalog, String templateDirectory, boolean action,
                                  Consumer<Result> finished) {
-        if (!running.compareAndSet(false, true)) {
-            finished.accept(new Result(arguments, -1, "Une autre commande Archvow est déjà en cours."));
-            return;
+        synchronized (waiting) {
+            if (!running.compareAndSet(false, true)) {
+                waiting.add(() -> executeInternal(label, arguments, stdin, globalCatalog, templateDirectory, action, finished));
+                return;
+            }
         }
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Archvow: " + label, true) {
             @Override public void run(@NotNull ProgressIndicator indicator) {
@@ -96,7 +100,14 @@ final class ArchvowCli {
                 try { result = invoke(arguments, stdin, indicator, globalCatalog, templateDirectory); }
                 catch (Exception ex) {
                     result = new Result(arguments, -1, describeFailure(ex));
-                } finally { running.set(false); }
+                } finally {
+                    Runnable next;
+                    synchronized (waiting) {
+                        running.set(false);
+                        next = waiting.poll();
+                    }
+                    if (next != null) ApplicationManager.getApplication().invokeLater(() -> { if (!project.isDisposed()) next.run(); });
+                }
                 ArchvowRunLog.record(project, new ArchvowRunLog.Call(result.arguments, result.exitCode, result.stdout,
                     result.stderr, result.interrupted, result.log, result.error == null ? "" : result.error.text()), action, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
                 Result returned = result;

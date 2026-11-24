@@ -122,7 +122,7 @@ public final class OverviewRegression {
         javax.swing.SwingUtilities.invokeAndWait(() -> {
             javax.swing.JPanel first = ArchvowOverviewCards.firstSteps(steps, false, actions);
             String text = texts(first);
-            check(text.contains("First steps") && text.contains("3 of 5 done") && text.contains("Build it, then Check"), "first steps: " + text);
+            check(text.contains("First steps") && text.contains("3 of 5 done") && text.contains("Build them, then Check"), "first steps: " + text);
             press(first, "Check");
             press(first, "Try archvow on an example first");
             javax.swing.JPanel arch = ArchvowOverviewCards.architecture(11, 45, 25, 2, false, false, actions);

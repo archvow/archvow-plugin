@@ -114,6 +114,28 @@ final class ArchvowPanel extends JPanel {
     private com.google.gson.JsonArray projectTemplates = new com.google.gson.JsonArray();
     /** The first steps of a new project, as workspace --json gives them (archvow 2.1; the Overview's card). */
     private com.google.gson.JsonArray firstStepsJson = new com.google.gson.JsonArray();
+    /** The whole workspace answer (1.1.0): what the walks read (ArchvowWalks). */
+    private JsonObject workspaceJson;
+    /** 1.1.0: the strip of the walk under way, at the top of a component's page. */
+    private final ArchvowWalkStrip walkStrip = new ArchvowWalkStrip();
+    /** 1.1.0: the walk under way - Specify or Build - or null. */
+    private Walk walk;
+
+    /** A walk (1.1.0): its kind, where it started, the components done, the one shown; for Build, its steps. */
+    private static final class Walk {
+        final String kind;  // "specify" or "build"
+        final String scopeKind, scopeValue, label;
+        int total;
+        final Set<String> done = new LinkedHashSet<>();
+        String current = "";
+        /** What the strip shows for the current component (it is shown again when the page renders). */
+        Runnable render = () -> { };
+        boolean copied, checkOk;
+        String checkLine = "";
+        Walk(String kind, String scopeKind, String scopeValue, String label, int total) {
+            this.kind = kind; this.scopeKind = scopeKind; this.scopeValue = scopeValue; this.label = label; this.total = total;
+        }
+    }
     /** The Overview's cards (0.25.0, ArchvowOverviewCards): rebuilt on each refresh. */
     private final JPanel firstStepsHolder = new JPanel(new BorderLayout());
     private final JPanel architectureHolder = new JPanel(new BorderLayout());
@@ -198,7 +220,7 @@ final class ArchvowPanel extends JPanel {
     private String installReason = "";
     /** The installed archvow against the plugin's range (1.0.0): the header, the sentence, the version Install puts. */
     private ArchvowCompat.Compatibility compat = new ArchvowCompat.Compatibility("ok", "", "");
-    /** "archvow 3.0.0 ✓ · this plugin works with archvow >=3.0,<4": atop the Overview and the welcome page. */
+    /** "archvow 3.1.0 ✓ · this plugin works with archvow >=3.1,<4": atop the Overview and the welcome page. */
     private final JLabel compatHeader = new JLabel("");
     private boolean installing;
     private ArchvowProjectReadiness.Status projectStatus;
@@ -262,7 +284,10 @@ final class ArchvowPanel extends JPanel {
     private final JButton assumptionRejectButton = new JButton();
     private final DefaultListModel<ArchvowDataView.Item> dataActionModel = new DefaultListModel<>();
     private final JList<ArchvowDataView.Item> dataActionList = new JList<>(dataActionModel);
-    private final JButton dataActionButton = new JButton();
+    private final JButton dataActionButton = ArchvowSplitView.primary("");
+    /** 1.1.0: Open code beside Copy task prompt; the heading says what tasks are (work to build). */
+    private final JButton dataOpenCode = new JButton();
+    private final JLabel dataHeading = new JLabel();
     private final JTextArea dataSelectedDetails = new JTextArea(4, 30);
     private final JButton dataEditDescription = new JButton();
     private final JEditorPane dataInlineResult = resultHtmlPane();
@@ -378,6 +403,8 @@ final class ArchvowPanel extends JPanel {
 
     private JButton comparisonBaseButton;
     private final Map<String, Integer> pendingByComponent = new LinkedHashMap<>();
+    /** 1.1.0: the tasks still to build per component (never counted as pending: no one decides them). */
+    private final Map<String, Integer> toBuildByComponent = new LinkedHashMap<>();
     private final Map<String, Integer> resolvedByComponent = new LinkedHashMap<>();
     private final DefaultListModel<QuickItem> pendingModel = new DefaultListModel<>();
     private final DefaultListModel<QuickItem> resolvedModel = new DefaultListModel<>();
@@ -867,6 +894,7 @@ final class ArchvowPanel extends JPanel {
                 @Override public void openCommand(String command, Map<String, String> values) { ArchvowPanel.this.openCommand(command, values); }
                 @Override public void openDoc(String feature) { ArchvowPanel.this.openDoc(feature, List.of()); }
                 @Override public void copyPrompt(String feature, boolean check) { copyFeaturePrompt(feature, check); }
+                @Override public void specify(String feature) { startSpecify("feature", feature); }
                 @Override public void nextSteps(String feature) { executeDirect("next", List.of("next", "--feature", feature, "--json"), null, false); }
             });
             detailHomeCards.add(featureView, "feature");
@@ -892,6 +920,14 @@ final class ArchvowPanel extends JPanel {
     }
 
     /** The tool window's panel, when it exists. */
+    /** The tool window's Overview (the end of a Specify walk of the foundations: back to First steps). */
+    private void showOverviewTab() {
+        ArchvowPanel nav = role == Role.NAVIGATION ? this : navigation();
+        if (nav != null) nav.tabs.setSelectedIndex(0);
+        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow("Archvow");
+        if (window != null) window.activate(null);
+    }
+
     private ArchvowPanel navigation() {
         ArchvowPanel nav = project.getUserData(ArchvowToolWindowFactory.PANEL);
         return nav == this ? null : nav;
@@ -911,6 +947,7 @@ final class ArchvowPanel extends JPanel {
         projectCatalog = source.projectCatalog;
         projectTemplates = source.projectTemplates;
         firstStepsJson = source.firstStepsJson;
+        workspaceJson = source.workspaceJson;
         projectFeatures = source.projectFeatures;
         gitRefs = source.gitRefs;
         firstCommit = source.firstCommit;
@@ -1025,7 +1062,8 @@ final class ArchvowPanel extends JPanel {
             QuickItem item = pendingModel.get(i);
             if (!item.componentId.isBlank()) openItems.putIfAbsent(item.componentId, item.title);
         }
-        featureView.show(projectFeatures.get(shownFeature), manifest, pendingByComponent, openItems, ArchvowI18n.isFrench(project));
+        featureView.show(projectFeatures.get(shownFeature), manifest, pendingByComponent, openItems,
+            workspaceJson == null ? null : ArchvowWalks.promptState(workspaceJson, shownFeature), ArchvowI18n.isFrench(project));
     }
 
     /** {@code archvow doc [<feature>]}, then its page in an editor, at the first of {@code headings} it has: Markdown
@@ -1055,9 +1093,21 @@ final class ArchvowPanel extends JPanel {
     /** {@code archvow prompt --feature <feature>} into the clipboard: the feature in a few lines, then the task of its next
      *  component; {@code check}: the feature's check before any code ({@code --clarify}, archvow 2.8.0). */
     private void copyFeaturePrompt(String feature, boolean check) {
+        ArchvowWalks.PromptState state = workspaceJson == null || check ? null : ArchvowWalks.promptState(workspaceJson, feature);
         cli.executeAction("prompt", ArchvowFeatureView.promptArgs(feature, check), null, r -> {
             if (!r.ok()) { message(r.output); return; }
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(r.stdout), null);
+            if (state != null && "ready".equals(state.state())) {  // 1.1.0: the Build walk goes on from there
+                startBuild(feature, true);
+                return;
+            }
+            if (state != null && "propose-first".equals(state.state())) {
+                message(ArchvowI18n.text(project, "In the clipboard. The AI proposes the " + decisions(state.open(), false)
+                        + " still open first, then builds. You review its proposals under AI ▾.",
+                    "Dans le presse-papiers. L'IA propose d'abord les " + decisions(state.open(), true)
+                        + " encore ouvertes, puis construit. Tu revois ses propositions sous IA ▾."));
+                return;
+            }
             message(check
                 ? ArchvowI18n.text(project, "The check of " + feature + " is in the clipboard: paste it to your AI assistant. It records what it finds as questions and writes no code.",
                     "La vérification de " + feature + " est dans le presse-papiers : colle-la à ton assistant IA. Il enregistre ce qu'il trouve en questions et n'écrit pas de code.")
@@ -2133,7 +2183,13 @@ final class ArchvowPanel extends JPanel {
         proposeInline.setToolTipText(ArchvowI18n.text(project, "Recorded, not yet the answer (archvow decision propose)",
             "Enregistrée, pas encore la réponse (archvow decision propose)"));
         acceptInline.setText(ArchvowI18n.text(project, "Accept the AI's proposal", "Accepter la proposition de l'IA"));
-        suggestedInline.setText(ArchvowI18n.text(project, "Use the suggestion", "Utiliser la suggestion"));
+        suggestedInline.setText(ArchvowI18n.text(project, "Back to the suggestion", "Revenir à la suggestion"));
+        // 1.1.0: the field starts with the suggestion - the link only shows once the text differs from it
+        decisionAnswer.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { updateBackToSuggestion(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { updateBackToSuggestion(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { }
+        });
         decideInline.addActionListener(e -> submitInlineDecision("decision make"));
         proposeInline.addActionListener(e -> submitInlineDecision("decision propose"));
         acceptInline.addActionListener(e -> submitInlineDecision("decision accept"));
@@ -2315,6 +2371,7 @@ final class ArchvowPanel extends JPanel {
         JPanel headAndSuggestion = new JPanel(new BorderLayout(0, 4));
         headAndSuggestion.setOpaque(false);
         headAndSuggestion.add(head, BorderLayout.NORTH);
+        headAndSuggestion.add(walkStrip, BorderLayout.CENTER);  // 1.1.0: where Specify or Build is
         suggestStrip.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(ArchvowMotion.accent(), 1, true),
             BorderFactory.createEmptyBorder(7, 10, 7, 10)));
         suggestStrip.add(suggestText, BorderLayout.CENTER);
@@ -2409,6 +2466,7 @@ final class ArchvowPanel extends JPanel {
         addRow.add(addComponentButton);
         tools.add(addRow, BorderLayout.EAST);
         installLayerMenu();
+        installItemMenus();
         componentBrowser.add(tools, BorderLayout.NORTH);
         componentBrowser.add(scroll(componentsTree), BorderLayout.CENTER);
         updateFilterButtons();
@@ -2440,6 +2498,115 @@ final class ArchvowPanel extends JPanel {
         return ArchvowFilePlan.addableByLayer(manifest, catalog);
     }
 
+    /** 1.1.0: a component's right-click menu - the buttons of its page, grouped as on the design's artboard. */
+    JPopupMenu componentMenu(String id) {
+        boolean fr = ArchvowI18n.isFrench(project);
+        JPopupMenu menu = new JPopupMenu(id);
+        addMenuItem(menu, fr ? "Spécifier" : "Specify", () -> startSpecify("component", id));
+        addMenuItem(menu, fr ? "Construire (copier le prompt IA)" : "Build (copy AI prompt)", () -> buildOne(id));
+        addMenuItem(menu, fr ? "Vérifier" : "Check", this::runFullCheck);
+        menu.addSeparator();
+        addMenuItem(menu, fr ? "Ouvrir le code" : "Open code", () -> withId(id, this::openCode));
+        addMenuItem(menu, fr ? "Ouvrir le vow" : "Open vow", () -> withId(id, this::openVowFile));
+        menu.addSeparator();
+        addMenuItem(menu, fr ? "Modifier la spec…" : "Edit spec…", () -> openCommand("component edit", Map.of("component", id)));
+        addMenuItem(menu, fr ? "Ajouter une question…" : "Add question…", () -> openCommand("question add", Map.of("component", id)));
+        addMenuItem(menu, fr ? "Ajouter une règle…" : "Add rule…", () -> openCommand("rule add", Map.of("words", id + "\n")));
+        addMenuItem(menu, fr ? "Déplacer vers une feature…" : "Move to feature…", () -> openCommand("component move", Map.of("component", id)));
+        menu.addSeparator();
+        addMenuItem(menu, fr ? "Retirer…" : "Remove…", () -> openCommand("component remove", Map.of("component", id)));
+        return menu;
+    }
+
+    /** 1.1.0: a feature's right-click menu - the buttons of its page. */
+    JPopupMenu featureMenu(String feature) {
+        boolean fr = ArchvowI18n.isFrench(project);
+        JPopupMenu menu = new JPopupMenu(feature);
+        addMenuItem(menu, fr ? "Spécifier" : "Specify", () -> startSpecify("feature", feature));
+        addMenuItem(menu, fr ? "Construire" : "Build", () -> startBuild(feature));
+        addMenuItem(menu, fr ? "Vérifier avant de coder" : "Check before coding", () -> copyFeaturePrompt(feature, true));
+        menu.addSeparator();
+        addMenuItem(menu, fr ? "Ouvrir la doc" : "Open feature doc", () -> showFeature(feature));
+        addMenuItem(menu, fr ? "Ajouter un composant…" : "Add component…", () -> openCommand("component add", Map.of("feature", feature)));
+        return menu;
+    }
+
+    /** An action of the selected component, on the component {@code id} (a right-click chose it). */
+    private void withId(String id, Runnable action) {
+        if (selectedComponent == null || !id.equals(selectedComponent.id)) selectedComponent = new NodeComponent(id, "", "", "");
+        action.run();
+    }
+
+    /** Build one component (a right-click): its prompt copied, then Check, as in the Build walk of its feature. */
+    void buildOne(String id) {
+        ArchvowPanel at = walker();
+        if (at == null) return;
+        if (at != this) { at.buildOne(id); return; }
+        String feature = ArchvowWalks.featureOf(workspaceJson, id);
+        walk = new Walk("build", "feature", feature, feature.isEmpty() ? id : feature,
+            Math.max(1, ArchvowWalks.buildQueue(workspaceJson, feature).size()));
+        buildComponent(id, false);
+        buildCopy();
+    }
+
+    /** 1.1.0: the right-click menus of the item lists - the buttons of the selected item. */
+    private void installItemMenus() {
+        boolean fr = ArchvowI18n.isFrench(project);
+        rowMenu(decisionsList, () -> {
+            JPopupMenu menu = new JPopupMenu();
+            addMenuItem(menu, fr ? "Répondre" : "Answer", decisionAnswer::requestFocusInWindow);
+            addMenuItem(menu, fr ? "Enregistrer comme proposition…" : "Save as a proposal…", () -> actionDecision("decision propose"));
+            menu.addSeparator();
+            addMenuItem(menu, fr ? "Copier la question" : "Copy the question", () -> copyRowQuestion(decisionsList, "decisions"));
+            return menu;
+        });
+        rowMenu(questionList, () -> {
+            JPopupMenu menu = new JPopupMenu();
+            addMenuItem(menu, fr ? "Répondre" : "Answer", questionAnswer::requestFocusInWindow);
+            menu.addSeparator();
+            addMenuItem(menu, fr ? "Copier la question" : "Copy the question", () -> copyRowQuestion(questionList, "questions"));
+            return menu;
+        });
+        rowMenu(safetyList, () -> {
+            JPopupMenu menu = new JPopupMenu();
+            addMenuItem(menu, fr ? "Répondre" : "Answer", safetyInput::requestFocusInWindow);
+            menu.addSeparator();
+            addMenuItem(menu, fr ? "Copier la question" : "Copy the question", () -> copyRowQuestion(safetyList, "safety"));
+            return menu;
+        });
+        rowMenu(dataActionList, () -> {
+            JPopupMenu menu = new JPopupMenu();
+            ArchvowDataView.Item item = dataActionList.getSelectedValue();
+            boolean column = item != null && item.kind() == ArchvowDataView.Kind.COLUMN;
+            addMenuItem(menu, column ? (fr ? "Classifier la colonne…" : "Classify column…") : (fr ? "Copier la tâche" : "Copy task prompt"), this::handleDataAction);
+            if (!column) addMenuItem(menu, fr ? "Ouvrir le code" : "Open code", this::openCode);
+            return menu;
+        });
+    }
+
+    /** A list's right-click: its row is selected first, then its menu. */
+    private static void rowMenu(JList<?> list, java.util.function.Supplier<JPopupMenu> menu) {
+        list.addMouseListener(new java.awt.event.MouseAdapter() {
+            private void open(java.awt.event.MouseEvent e) {
+                int row = list.locationToIndex(e.getPoint());
+                if (row < 0 || !list.getCellBounds(row, row).contains(e.getPoint())) return;
+                list.setSelectedIndex(row);
+                menu.get().show(list, e.getX(), e.getY());
+            }
+            @Override public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) open(e); }
+            @Override public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) open(e); }
+        });
+    }
+
+    private void copyRowQuestion(JList<?> list, String kind) {
+        JsonObject row = selectedRecord(kind, list.getSelectedIndex());
+        if (row == null) return;
+        String text = ArchvowGrammar.str(row, "question");
+        if (text.isBlank()) text = ArchvowGrammar.str(row, "situation");
+        if (text.isBlank()) text = ArchvowGrammar.str(row, "guide_word");
+        copyText(text);
+    }
+
     /** Right-click on a layer (or its empty line): Add a schema, a transformation... to it; a double-click on the empty line too. */
     private void installLayerMenu() {
         componentsTree.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -2448,7 +2615,22 @@ final class ArchvowPanel extends JPanel {
                 if (path == null || !(path.getLastPathComponent() instanceof DefaultMutableTreeNode node)) return "";
                 return node.getUserObject() instanceof ArchvowTreeIcons.Node n ? n.layer() : "";
             }
-            private void menu(java.awt.event.MouseEvent e) { menu(e, layerAt(e)); }
+            private void menu(java.awt.event.MouseEvent e) {
+                // 1.1.0: a component's or a feature's own menu - its buttons, nothing found only here
+                TreePath path = componentsTree.getPathForLocation(e.getX(), e.getY());
+                if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode node) {
+                    if (node.getUserObject() instanceof NodeComponent comp) {
+                        componentsTree.setSelectionPath(path);
+                        componentMenu(comp.id).show(componentsTree, e.getX(), e.getY());
+                        return;
+                    }
+                    if (node.getUserObject() instanceof ArchvowTreeIcons.Node f && "feature".equals(f.kind())) {
+                        featureMenu(f.text()).show(componentsTree, e.getX(), e.getY());
+                        return;
+                    }
+                }
+                menu(e, layerAt(e));
+            }
             private void menu(java.awt.event.MouseEvent e, String layer) {
                 List<ArchvowFilePlan.Addable> types = addableByLayer().getOrDefault(layer, List.of());
                 if (layer.isEmpty() || types.isEmpty()) return;
@@ -2477,6 +2659,12 @@ final class ArchvowPanel extends JPanel {
         });
         componentsTree.setToolTipText(ArchvowI18n.text(project, "Right-click a layer to add a component to it", "Clic droit sur une couche pour y ajouter un composant"));
         componentsTree.addTip = layer -> ArchvowI18n.text(project, "Add a component to " + layer, "Ajouter un composant à " + layer);
+        componentsTree.componentTip = (open, build) -> open > 0
+            ? ArchvowI18n.text(project, open + " to decide", open + " à décider")
+            : build > 0 ? ArchvowI18n.text(project, "Nothing to decide · ready to build: " + build + (build == 1 ? " task" : " tasks"),
+                "Rien à décider · prêt à construire : " + build + (build == 1 ? " tâche" : " tâches"))
+            : ArchvowI18n.text(project, "Nothing to decide", "Rien à décider");
+        ToolTipManager.sharedInstance().registerComponent(componentsTree);
     }
 
     private boolean showComponentInTree(String id) {
@@ -2585,11 +2773,14 @@ final class ArchvowPanel extends JPanel {
                     int index, boolean selected, boolean focused) {
                 super.getListCellRendererComponent(list, value, index, selected, focused);
                 if (value instanceof ArchvowDataView.Item item) {
-                    String label = item.kind() == ArchvowDataView.Kind.COLUMN ? "◉ " : "▸ ";
-                    setText(label + item.title() + "  ·  " + (item.pending() ?
-                        ArchvowI18n.text(project,"Pending", "En attente") :
-                        ArchvowI18n.text(project,"Resolved", "Traité")));
-                    Color statusColor = ArchvowStatusPalette.statusColor(item.pending());
+                    boolean column = item.kind() == ArchvowDataView.Kind.COLUMN;
+                    String label = column ? "◉ " : "▸ ";
+                    // 1.1.0: a task is work to build (blue), a column to classify is a person's decision (orange)
+                    setText(label + item.title() + "  ·  " + (column
+                        ? (item.pending() ? ArchvowI18n.text(project, "To classify", "À classer") : ArchvowI18n.text(project, "Classified", "Classée"))
+                        : (item.pending() ? ArchvowI18n.text(project, "To build", "À construire") : ArchvowI18n.text(project, "Done", "Faite"))));
+                    Color statusColor = !item.pending() ? ArchvowStatusPalette.statusColor(false)
+                        : column ? ArchvowStatusPalette.statusColor(true) : ArchvowMotion.accent();
                     if (!selected) {
                         setBackground(ArchvowStatusPalette.rowBackground(list.getBackground(), statusColor,
                             false, ArchvowMotion.hoverLevel(dataActionList, index)));
@@ -2616,13 +2807,15 @@ final class ArchvowPanel extends JPanel {
                     if (detail == null || detail.isBlank()) detail = ArchvowI18n.text(project,
                         "No further description is recorded for this item in the component spec.",
                         "Aucune description supplémentaire n'est enregistrée pour cet élément dans la spec du composant.");
-                    dataSelectedDetails.setText(selected.title() + "  ·  " +
-                        (selected.pending() ? ArchvowI18n.text(project,"Pending", "En attente") :
-                            ArchvowI18n.text(project,"Resolved", "Traité")) + "\n\n" + detail);
+                    boolean column = selected.kind() == ArchvowDataView.Kind.COLUMN;
+                    dataSelectedDetails.setText(selected.title() + "  ·  " + (column
+                        ? (selected.pending() ? ArchvowI18n.text(project, "To classify", "À classer") : ArchvowI18n.text(project, "Classified", "Classée"))
+                        : (selected.pending() ? ArchvowI18n.text(project, "To build", "À construire") : ArchvowI18n.text(project, "Done", "Faite"))) + "\n\n" + detail);
                     dataSelectedDetails.setCaretPosition(0);
-                    dataActionButton.setText(selected.kind() == ArchvowDataView.Kind.COLUMN ?
+                    dataActionButton.setText(column ?
                         ArchvowI18n.text(project,"Classify column…", "Classifier la colonne…") :
-                        ArchvowI18n.text(project,"Open task prompt", "Ouvrir les instructions de la tâche"));
+                        ArchvowI18n.text(project,"Copy task prompt", "Copier la tâche"));
+                    dataOpenCode.setVisible(!column);
                 }
             }
         });
@@ -2634,9 +2827,8 @@ final class ArchvowPanel extends JPanel {
         JScrollPane list = scroll(dataActionList);
         list.setPreferredSize(new Dimension(200, 110));
         JPanel toolbar = new JPanel(new BorderLayout(5,5));
-        JLabel label = new JLabel(ArchvowI18n.text(project,"Actions to complete", "Actions à terminer"));
-        label.setFont(label.getFont().deriveFont(Font.BOLD));
-        toolbar.add(label,BorderLayout.NORTH);
+        dataHeading.setFont(dataHeading.getFont().deriveFont(Font.BOLD));
+        toolbar.add(dataHeading,BorderLayout.NORTH);
         JPanel listAndDetails = new JPanel(new BorderLayout(0, 4));
         listAndDetails.add(list, BorderLayout.NORTH);
         toolbar.add(listAndDetails, BorderLayout.CENTER);
@@ -2644,6 +2836,9 @@ final class ArchvowPanel extends JPanel {
         dataActionButton.setEnabled(false);
         dataActionButton.addActionListener(e -> handleDataAction());
         buttons.add(dataActionButton);
+        dataOpenCode.setText(ArchvowI18n.text(project, "Open code", "Ouvrir le code"));
+        dataOpenCode.addActionListener(e -> openCode());
+        buttons.add(dataOpenCode);
 
         toolbar.add(buttons,BorderLayout.SOUTH);
         dataSelectedDetails.setEditable(false);
@@ -2691,6 +2886,11 @@ final class ArchvowPanel extends JPanel {
         for (ArchvowDataView.Item item : available)
             if (!item.pending()) dataActionModel.addElement(item);
         if (dataActionsPanel != null) dataActionsPanel.setVisible(true);
+        long toBuild = available.stream().filter(i -> i.kind() == ArchvowDataView.Kind.TASK && i.pending()).count();
+        dataHeading.setText(toBuild > 0
+            ? ArchvowI18n.text(project, toBuild + (toBuild == 1 ? " task" : " tasks") + " to build: the AI (or you) writes the code and its marked tests. Each one is done when they exist.",
+                toBuild + (toBuild == 1 ? " tâche" : " tâches") + " à construire : l'IA (ou toi) écrit le code et ses tests marqués. Chacune est faite quand ils existent.")
+            : ArchvowI18n.text(project, "Nothing to build: every task is done.", "Rien à construire : chaque tâche est faite."));
         dataEditDescription.setEnabled(selectedComponent != null);
         int selection = -1;
         for (int i=0;i<dataActionModel.size();i++)
@@ -2716,7 +2916,21 @@ final class ArchvowPanel extends JPanel {
             runTaskPrompt(List.of("prompt", componentId), componentId, true);
             return;
         }
-        runTaskPrompt(args, componentId, false);
+        copyTaskPrompt(args);
+    }
+
+    /** 1.1.0: the task's prompt into the clipboard, for the AI assistant; said in the card under the list. */
+    private void copyTaskPrompt(List<String> args) {
+        cli.executeAction("prompt", args, null, r -> {
+            if (!r.ok()) { storeCommandResult(dataInlineResult, "prompt", r); dataInlineResultCard.setVisible(true); return; }
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(r.stdout), null);
+            dataInlineResultCard.setVisible(true);
+            dataInlineResult.setText(htmlMessage(escape(ArchvowI18n.text(project,
+                "The task is in the clipboard: paste it to your AI assistant. When it is done: Check.",
+                "La tâche est dans le presse-papiers : colle-la à ton assistant IA. Quand c'est fait : Vérifier."))));
+            dataInlineResult.setCaretPosition(0);
+            dataInlineResultCard.revalidate();
+        });
     }
 
     private void runTaskPrompt(List<String> args, String componentId, boolean wholeCard) {
@@ -3241,7 +3455,7 @@ final class ArchvowPanel extends JPanel {
         decideInline.setText(ArchvowI18n.text(project, "Save answer", "Enregistrer la réponse"));
         proposeInline.setText(ArchvowI18n.text(project, "Save as a proposal", "Enregistrer comme proposition"));
         acceptInline.setText(ArchvowI18n.text(project, "Accept the AI's proposal", "Accepter la proposition de l'IA"));
-        suggestedInline.setText(ArchvowI18n.text(project, "Use the suggestion", "Utiliser la suggestion"));
+        suggestedInline.setText(ArchvowI18n.text(project, "Back to the suggestion", "Revenir à la suggestion"));
         refreshListFilter();
         dismissInline.setText(ArchvowI18n.text(project, "Not applicable", "Non applicable"));
         safetyInvariantButton.setText(ArchvowI18n.text(project, "Add required invariant", "Ajouter l'invariant requis"));
@@ -3436,10 +3650,10 @@ final class ArchvowPanel extends JPanel {
             String helpText = hint.isEmpty() ? param.help : hint;
             if (field != null && field.note != null && !"note".equals(field.kind))
                 helpText += (helpText.isBlank() ? "" : "  ·  ") + field.note;
-            if ("component add".equals(name) && "spec".equals(param.name))
+            if ("component add".equals(name) && "ticket".equals(param.name))
                 helpText += ArchvowI18n.text(project,
-                    "  ·  Example: US-001 or a ticket reference from your backlog (optional; do not enter a .vow path).",
-                    "  ·  Exemple : US-001 ou une référence de ticket (facultatif ; pas un chemin .vow).");
+                    "  ·  Example: US-001 or a ticket reference from your backlog (optional).",
+                    "  ·  Exemple : US-001 ou une référence de ticket de votre backlog (facultatif).");
             if (!helpText.isBlank()) under.add(formHint(helpText, true));
             if ("try".equals(name) && "example".equals(param.name)) {
                 tryWhere.setFont(new Font(Font.MONOSPACED, Font.PLAIN, tryWhere.getFont().getSize()));
@@ -3569,10 +3783,10 @@ final class ArchvowPanel extends JPanel {
             ? "Project" : "Advanced CLI";
         if ("component add".equals(command)) {
             if (Set.of("type", "name", "description", "feature").contains(parameter)) return "Basics";
-            if (Set.of("kind", "spec", "uses", "container", "group").contains(parameter)) return "Architecture";
+            if (Set.of("kind", "ticket", "uses", "container", "group").contains(parameter)) return "Architecture";
             return "Source & advanced";
         }
-        if ("component edit".equals(command)) return Set.of("component", "description", "spec", "uses").contains(parameter)
+        if ("component edit".equals(command)) return Set.of("component", "description", "ticket", "uses").contains(parameter)
             ? "Identity & changes" : "Advanced changes";
         if ("template new".equals(command)) return Set.of("name", "extends", "description", "dir").contains(parameter)
             ? "Template basics" : "Other options";
@@ -4614,6 +4828,7 @@ final class ArchvowPanel extends JPanel {
             if (ArchvowInitCatalog.hasTemplates(answer.catalog)) projectCatalog = answer.catalog;
             projectTemplates = answer.templates;  // archvow 3.0: the project's chain of templates
             firstStepsJson = answer.firstSteps;  // archvow 2.1: the first steps of a new project
+            workspaceJson = answer.raw;  // 1.1.0: the walks (Specify, Build) and the feature's Copy AI prompt read it
             projectFeatures = answer.features;  // archvow 2.0: each feature
             componentSnapshots.clear();
             componentSnapshots.putAll(answer.snapshots);
@@ -4801,6 +5016,7 @@ final class ArchvowPanel extends JPanel {
         refreshViewStatus(data);
         refreshComponentOtherModels();
         updateComponentPendingExplanation();
+        refreshWalkStrip();
     }
 
     /** A view's cards, its selection kept (same component) or on its first open item (another one). */
@@ -4868,11 +5084,16 @@ final class ArchvowPanel extends JPanel {
             JToggleButton tab = componentViewButtons.get(i);
             int ai = i == 0 ? aiView.count("decisions") : i == 2 ? aiView.count("safety") : i == 3 ? aiView.count("assumptions")
                 : i == 4 ? aiView.count("rules") : 0;
-            String label = names[i] + (pending[i] > 0 ? " · " + pending[i] :
+            String label = names[i] + (pending[i] > 0 ? " · " + pending[i] + (i == 5 ? ArchvowI18n.text(project, " to build", " à construire") : "") :
                 total[i] > 0 ? " ✓" : "") + (ai > 0 ? "  ● " + ai : "");
             tab.setText(label);
-            tab.setToolTipText(pending[i] > 0 ? pending[i] + " " +
-                ArchvowI18n.text(project,"pending items","éléments en attente") :
+            // 1.1.0: tasks are work to build, in the plain colour (not a warning); the rest is what a person decides
+            if (i == 5) tab.setToolTipText(pending[i] > 0 ? ArchvowI18n.text(project,
+                    pending[i] + " to build: the AI (or you) writes the code and its marked tests; each task is done when they exist",
+                    pending[i] + " à construire : l'IA (ou toi) écrit le code et ses tests marqués ; chaque tâche est faite quand ils existent")
+                : ArchvowI18n.text(project, "Nothing to build", "Rien à construire"));
+            else tab.setToolTipText(pending[i] > 0 ? pending[i] + " " +
+                ArchvowI18n.text(project,"to decide","à décider") :
                 ArchvowI18n.text(project,"No open items","Aucun élément ouvert"));
         }
         if (componentViewButtons.size() > 7) {
@@ -5160,7 +5381,8 @@ final class ArchvowPanel extends JPanel {
         proposeInline.setEnabled(available && ArchvowGrammar.str(row, "answer").isBlank());
         acceptInline.setEnabled(available && ArchvowGrammar.str(row, "answer").isBlank()
             && !ArchvowGrammar.str(row, "proposed").isBlank());
-        suggestedInline.setEnabled(available && !ArchvowGrammar.str(row, "suggested").isBlank());
+        suggestedInline.setEnabled(available && ArchvowGrammar.str(row, "answer").isBlank() && !ArchvowGrammar.str(row, "suggested").isBlank());
+        decisionSuggestion = available ? ArchvowGrammar.str(row, "suggested") : "";
         // only what applies to this decision is offered next to Cancel / Save answer
         for (JButton other : List.of(removeQuestionInline, keepQuestionInline, proposeInline, acceptInline, suggestedInline))
             other.setVisible(other.isEnabled());
@@ -5187,8 +5409,20 @@ final class ArchvowPanel extends JPanel {
         }
         decisionChoices.setVisible(offers);
         columnAnswerPanel.showFor(selectedView, row, ArchvowI18n.isFrench(project));
+        updateBackToSuggestion();
         decisionChoices.revalidate(); decisionChoices.repaint();
         if (decisionInlineResultCard != null) decisionInlineResultCard.setVisible(false);
+    }
+
+    /** The decision's suggestion (1.1.0): "Back to the suggestion" shows once the field's text differs from it. */
+    private String decisionSuggestion = "";
+
+    private void updateBackToSuggestion() {
+        boolean show = suggestedInline.isEnabled() && !decisionSuggestion.isBlank() && !decisionAnswer.getText().strip().equals(decisionSuggestion.strip());
+        if (suggestedInline.isVisible() != show) {
+            suggestedInline.setVisible(show);
+            if (suggestedInline.getParent() != null) suggestedInline.getParent().revalidate();
+        }
     }
 
     private void showQuestion() {
@@ -5731,10 +5965,251 @@ final class ArchvowPanel extends JPanel {
                 return;
             }
         }
-        message(ArchvowI18n.text(project,
-            "All decision and safety questions are answered for this component.",
-            "Toutes les décisions et questions de sécurité sont traitées pour ce composant."));
+        onSpecified(ArchvowGrammar.str(data, "component"));  // 1.1.0: the strip, not a modal - and the next one
     }
+
+    // ------------------------------------------------------------------ the walks (1.1.0)
+
+    private String scopeLabel(String scopeKind, String value) {
+        if ("foundations".equals(scopeKind)) return ArchvowI18n.text(project, "the foundations", "les fondations");
+        if ("component".equals(scopeKind)) {
+            String feature = ArchvowWalks.featureOf(workspaceJson, value);
+            return feature.isEmpty() ? value : feature;
+        }
+        return value;
+    }
+
+    private static String decisions(int n, boolean fr) {
+        return n + (fr ? (n == 1 ? " décision" : " décisions") : (n == 1 ? " decision" : " decisions"));
+    }
+
+    /** The editor tab's panel does the walk: from the tool window, it goes there first. */
+    private ArchvowPanel walker() {
+        if (role != Role.NAVIGATION) return this;
+        ArchvowPanel detail = ArchvowEditorTab.openPanel(project);
+        if (detail != null) detail.adoptFrom(this);
+        return detail;
+    }
+
+    /** Specify from the foundations, a feature or a component: what is open, component after component. */
+    void startSpecify(String scopeKind, String value) {
+        ArchvowPanel at = walker();
+        if (at == null) return;
+        if (at != this) { at.startSpecify(scopeKind, value); return; }
+        boolean fr = ArchvowI18n.isFrench(project);
+        List<ArchvowWalks.Step> queue = ArchvowWalks.specifyQueue(workspaceJson, scopeKind, value);
+        String label = scopeLabel(scopeKind, value);
+        if (queue.isEmpty()) {
+            message(fr ? "Rien d'ouvert dans " + label + " : tout est décidé." : "Nothing open in " + label + ": every decision is made.");
+            return;
+        }
+        walk = new Walk("specify", scopeKind, value, label, queue.size());
+        continueSpecify(queue.get(0).component());
+    }
+
+    private void continueSpecify(String id) {
+        if (walk == null) return;
+        boolean fr = ArchvowI18n.isFrench(project);
+        walk.current = id;
+        Walk w = walk;
+        w.render = () -> walkStrip.show(ArchvowWalkStrip.Tone.INFO,
+            (fr ? "Spécifier " : "Specifying ") + w.label + " · " + (w.done.size() + 1) + (fr ? " sur " : " of ") + w.total,
+            id, fr ? "Ce qui reste ouvert est sélectionné ci-dessous ; Enregistrer passe au suivant."
+                : "What is still open is selected below; Save moves on to the next one.",
+            List.of(new ArchvowWalkStrip.Action(fr ? "Arrêter" : "Stop", false, this::stopWalk)));
+        showComponent(id);
+        guidedNext();
+        refreshWalkStrip();
+    }
+
+    /** A component has nothing open any more: say so, and offer the next one of the walk (or the end of it). */
+    private void onSpecified(String id) {
+        if (id == null || id.isBlank()) return;
+        boolean fr = ArchvowI18n.isFrench(project);
+        if (walk == null || !"specify".equals(walk.kind)) {  // Specify on one component: the rest of its feature
+            List<ArchvowWalks.Step> rest = ArchvowWalks.specifyQueue(workspaceJson, "component", id);
+            walk = new Walk("specify", "component", id, scopeLabel("component", id), Math.max(1, rest.size()));
+        }
+        Walk w = walk;
+        w.done.add(id);
+        w.current = id;
+        List<ArchvowWalks.Step> rest = new ArrayList<>();
+        for (ArchvowWalks.Step step : ArchvowWalks.specifyQueue(workspaceJson, w.scopeKind, w.scopeValue))
+            if (!w.done.contains(step.component())) rest.add(step);
+        w.total = Math.max(w.total, w.done.size() + rest.size());
+        String progress = (fr ? "Spécifier " : "Specifying ") + w.label + " · " + w.done.size() + (fr ? " sur " : " of ") + w.total;
+        if (!rest.isEmpty()) {
+            ArchvowWalks.Step next = rest.get(0);
+            w.render = () -> walkStrip.show(ArchvowWalkStrip.Tone.DONE, progress,
+                "✓ " + id + (fr ? " spécifié" : " specified"),
+                (fr ? "Suivant : " : "Next: ") + next.component() + " · " + decisions(next.open(), fr),
+                List.of(new ArchvowWalkStrip.Action(fr ? "Spécifier le suivant ▸" : "Specify next ▸", true, () -> continueSpecify(next.component())),
+                    new ArchvowWalkStrip.Action(fr ? "Arrêter" : "Stop", false, this::stopWalk)));
+        } else if ("foundations".equals(w.scopeKind)) {
+            w.render = () -> walkStrip.show(ArchvowWalkStrip.Tone.DONE, "",
+                fr ? "✓ Les fondations sont spécifiées" : "✓ The foundations are specified", String.join(", ", w.done),
+                List.of(new ArchvowWalkStrip.Action(fr ? "Retour aux premières étapes" : "Back to First steps", false, () -> { stopWalk(); showOverviewTab(); }),
+                    new ArchvowWalkStrip.Action(fr ? "Fermer" : "Close", false, this::stopWalk)));
+        } else {
+            String feature = "feature".equals(w.scopeKind) ? w.scopeValue : ArchvowWalks.featureOf(workspaceJson, w.scopeValue);
+            List<String> planned = new ArrayList<>();
+            for (String member : ArchvowWalks.membersOf(workspaceJson, feature))
+                if ("planned".equals(statusOf(member))) planned.add(member);
+            w.render = () -> walkStrip.show(ArchvowWalkStrip.Tone.INFO, "",
+                "✓ " + feature + (fr ? " : chaque décision est prise" : ": every decision is made"),
+                planned.isEmpty() ? "" : (fr ? "Prêts à construire : " : "Ready to build: ") + String.join(", ", planned),
+                List.of(new ArchvowWalkStrip.Action(fr ? "Construire ▸" : "Build ▸", true, () -> startBuild(feature)),
+                    new ArchvowWalkStrip.Action(fr ? "Fermer" : "Close", false, this::stopWalk)));
+        }
+        refreshWalkStrip();
+    }
+
+    /** A component's status, as the check says it ("planned" when the check does not know it). */
+    private String statusOf(String id) {
+        for (JsonObject c : ArchvowGrammar.objects(check, "components"))
+            if (id.equals(ArchvowGrammar.str(c, "component"))) return ArchvowGrammar.str(c, "status");
+        return "planned";
+    }
+
+    /** Build a feature: each ready component - its code from the AI prompt, its check - then the next one. */
+    void startBuild(String feature) { startBuild(feature, false); }
+
+    private void startBuild(String feature, boolean copied) {
+        ArchvowPanel at = walker();
+        if (at == null) return;
+        if (at != this) { at.startBuild(feature, copied); return; }
+        boolean fr = ArchvowI18n.isFrench(project);
+        List<String> queue = ArchvowWalks.buildQueue(workspaceJson, feature);
+        if (queue.isEmpty()) {
+            message(ArchvowWalks.budgetReached(workspaceJson)
+                ? (fr ? "Le budget de changement est atteint : committe et ouvre la merge request ; le reste va dans la suivante."
+                    : "The change budget is reached: commit and open the merge request; the rest goes in the next one.")
+                : (fr ? "Rien de prêt à construire dans " + feature + " : Spécifier d'abord." : "Nothing ready to build in " + feature + ": Specify first."));
+            return;
+        }
+        walk = new Walk("build", "feature", feature, feature, queue.size());
+        buildComponent(queue.get(0), copied);
+    }
+
+    private void buildComponent(String id, boolean copied) {
+        Walk w = walk;
+        if (w == null) return;
+        w.current = id;
+        w.copied = copied;
+        w.checkOk = false;
+        w.checkLine = "";
+        w.render = this::renderBuild;
+        showComponent(id);
+        refreshWalkStrip();
+    }
+
+    /** The Build strip: 1 the code (Copy AI prompt), 2 Check it, 3 the next one - the step to do now filled. */
+    private void renderBuild() {
+        Walk w = walk;
+        if (w == null) return;
+        boolean fr = ArchvowI18n.isFrench(project);
+        String progress = (fr ? "Construire " : "Building ") + w.label + " · " + (w.done.size() + 1) + (fr ? " sur " : " of ") + w.total;
+        String detail = (fr ? "1 · Le code" : "1 · The code") + (w.copied ? (fr ? " ✓ copié" : " ✓ copied") : "")
+            + "   2 · " + (fr ? "Vérifier" : "Check") + (w.checkLine.isEmpty() ? "" : " " + w.checkLine)
+            + "   3 · " + (fr ? "Suivant" : "Next");
+        ArchvowWalkStrip.Tone tone = w.checkOk ? ArchvowWalkStrip.Tone.DONE
+            : w.checkLine.startsWith("✖") ? ArchvowWalkStrip.Tone.BAD : ArchvowWalkStrip.Tone.INFO;
+        walkStrip.show(tone, progress, w.current, detail, List.of(
+            new ArchvowWalkStrip.Action(fr ? "Copier le prompt IA" : "Copy AI prompt", !w.copied, this::buildCopy),
+            new ArchvowWalkStrip.Action(fr ? "Vérifier" : "Check", w.copied && !w.checkOk, this::buildCheck),
+            new ArchvowWalkStrip.Action(fr ? "Construire le suivant ▸" : "Build next ▸", w.checkOk, w.checkOk, this::buildNext),
+            new ArchvowWalkStrip.Action(fr ? "Arrêter" : "Stop", false, this::stopWalk)));
+    }
+
+    private void buildCopy() {
+        Walk w = walk;
+        if (w == null) return;
+        String id = w.current;
+        cli.executeAction("prompt", List.of("prompt", id), null, r -> {
+            if (!r.ok()) { message(r.output); return; }
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(r.stdout), null);
+            if (walk == w && id.equals(w.current)) { w.copied = true; refreshWalkStrip(); }
+        });
+    }
+
+    /** archvow check, its result for this component: verified (or tested) with no error, or what it found. */
+    private void buildCheck() {
+        Walk w = walk;
+        if (w == null) return;
+        String id = w.current;
+        boolean fr = ArchvowI18n.isFrench(project);
+        cli.executeAction("check", List.of("check", "--json"), null, r -> {
+            JsonObject report = ArchvowGrammar.parseObject(r.stdout);
+            if (report == null) { message(r.output); return; }
+            String status = "planned";
+            for (JsonObject c : ArchvowGrammar.objects(report, "components"))
+                if (id.equals(ArchvowGrammar.str(c, "component"))) status = ArchvowGrammar.str(c, "status");
+            List<String> found = new ArrayList<>();
+            for (JsonObject v : ArchvowGrammar.objects(report, "violations"))
+                if (id.equals(ArchvowGrammar.str(v, "component")) && "error".equals(ArchvowGrammar.str(v, "severity")))
+                    found.add(ArchvowGrammar.str(v, "code"));
+            if (walk != w || !id.equals(w.current)) return;
+            w.checkOk = found.isEmpty() && ("tested".equals(status) || "verified".equals(status));
+            w.checkLine = w.checkOk ? "✓ " + status + (fr ? " · 0 constat" : " · 0 findings")
+                : "✖ " + (found.isEmpty() ? (fr ? "pas encore testé (" + status + ")" : "not tested yet (" + status + ")")
+                    : found.size() + (fr ? " constat(s) : " : " finding(s): ") + String.join(", ", found));
+            refreshWalkStrip();
+            reload(false, true);  // the workspace follows: statuses, what is ready next
+        });
+    }
+
+    private void buildNext() {
+        Walk w = walk;
+        if (w == null) return;
+        boolean fr = ArchvowI18n.isFrench(project);
+        w.done.add(w.current);
+        List<String> rest = new ArrayList<>();
+        for (String id : ArchvowWalks.buildQueue(workspaceJson, w.scopeValue)) if (!w.done.contains(id)) rest.add(id);
+        w.total = Math.max(w.total, w.done.size() + rest.size());
+        if (ArchvowWalks.budgetReached(workspaceJson)) {
+            w.render = () -> walkStrip.show(ArchvowWalkStrip.Tone.WARN, "", fr ? "Budget de changement atteint" : "Change budget reached",
+                fr ? "Committe et ouvre la merge request ; le reste va dans la suivante." : "Commit and open the merge request; the rest goes in the next one.",
+                List.of(new ArchvowWalkStrip.Action(fr ? "Fermer" : "Close", false, this::stopWalk)));
+        } else if (rest.isEmpty()) {
+            w.render = () -> walkStrip.show(ArchvowWalkStrip.Tone.DONE, "", "✓ " + w.label + (fr ? " est construite" : " is built"),
+                fr ? "Committe : les hooks lancent les mêmes contrôles que la CI ; puis ouvre une merge request."
+                    : "Commit: the hooks run the same checks as CI; then open a merge request.",
+                List.of(new ArchvowWalkStrip.Action(fr ? "Fermer" : "Close", false, this::stopWalk)));
+        } else {
+            buildComponent(rest.get(0), false);
+            return;
+        }
+        refreshWalkStrip();
+    }
+
+    private void stopWalk() {
+        walk = null;
+        walkStrip.close();
+    }
+
+    /** The strip follows the page: shown on the walk's component, hidden on another one (the walk waits). */
+    private void refreshWalkStrip() {
+        if (walk == null || selectedComponent == null || !walk.current.equals(selectedComponent.id)) { walkStrip.close(); return; }
+        // Specify: the last answer of this component was just saved - say so and offer the next one
+        if ("specify".equals(walk.kind) && !walk.done.contains(walk.current) && selectedView != null
+                && walk.current.equals(ArchvowGrammar.str(selectedView, "component")) && !hasOpen(selectedView)) {
+            onSpecified(walk.current);
+            return;
+        }
+        walk.render.run();
+    }
+
+    /** A component's view still has something for a person to decide: a decision, a question or a safety question. */
+    static boolean hasOpen(JsonObject data) {
+        for (JsonObject row : ArchvowGrammar.objects(data, "decisions")) if (ArchvowGrammar.str(row, "answer").isBlank()) return true;
+        for (JsonObject row : ArchvowGrammar.objects(data, "questions")) if (ArchvowGrammar.str(row, "answer").isBlank()) return true;
+        for (JsonObject row : ArchvowGrammar.objects(data, "safety")) if ("open".equalsIgnoreCase(ArchvowGrammar.str(row, "status"))) return true;
+        return false;
+    }
+
+    /** For the tests: the strip and the walk under way. */
+    ArchvowWalkStrip walkStripForTest() { return walkStrip; }
+    String walkKindForTest() { return walk == null ? "" : walk.kind; }
 
     /**
      * Spec: one view of the component's spec - the task the AI implements (archvow prompt: nothing generated is
@@ -5748,28 +6223,96 @@ final class ArchvowPanel extends JPanel {
         cardDetails.setFont(new Font(Font.MONOSPACED, Font.PLAIN, cardDetails.getFont().getSize()));
         specCards.add(scroll(cardDetails), "card");
         specCards.add(scroll(vowDetails), "vow");
-        specPart.onChange(() -> ((CardLayout) specCards.getLayout()).show(specCards, specPart.buttons().get(0).isSelected() ? "card" : "vow"));
+        // 1.1.0: on the task, the button copies it (as VS Code's Copy); on the vow, it opens the file
+        JButton openOrCopy = button("", () -> {
+            if (specPart.buttons().get(0).isSelected()) copyText(cardDetails.getText()); else openVowFile();
+        });
+        Runnable label = () -> openOrCopy.setText(specPart.buttons().get(0).isSelected()
+            ? ArchvowI18n.text(project, "Copy", "Copier") : ArchvowI18n.text(project, "Open in the editor", "Ouvrir dans l'éditeur"));
+        label.run();
+        specPart.onChange(() -> {
+            ((CardLayout) specCards.getLayout()).show(specCards, specPart.buttons().get(0).isSelected() ? "card" : "vow");
+            label.run();
+        });
         languageRefreshers.add(() -> {  // the switch follows the language; which one is pressed stays
             specPart.buttons().get(0).setText(ArchvowI18n.text(project, "The task the AI implements", "La tâche que l'IA implémente"));
             specPart.buttons().get(1).setText(ArchvowI18n.text(project, "The vow it is written from", "Le vow dont elle est écrite"));
+            label.run();
         });
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
         bar.add(specPart);
-        bar.add(button(ArchvowI18n.text(project, "Open in the editor", "Ouvrir dans l'éditeur"), () -> {
-            if (specPart.buttons().get(0).isSelected()) copyText(cardDetails.getText()); else openVowFile();
-        }));
+        bar.add(openOrCopy);
         bar.add(button(ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
         JLabel readOnly = new JLabel(ArchvowI18n.text(project, "read only: change it with the commands (Edit spec, + Question, + Rule...)",
             "en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)"));
         readOnly.setForeground(mutedTextColor());
         bar.add(readOnly);
-        JPanel top = new JPanel(new BorderLayout(0, 2));
-        top.add(bar, BorderLayout.NORTH);
-        top.add(componentFilesView, BorderLayout.CENTER);
+        componentFilesView.clickable(new ArchvowFilePlanView.FileActions() {
+            @Override public void open(String path) { openProjectFile(path); }
+            @Override public void reveal(String path) { revealProjectFile(path); }
+            @Override public void copyPath(String path) { copyText(path); }
+        });
+        // 1.1.0: "Where it is" on the right of the text, with its own title, divider and scroll; under the bar when
+        // the window is narrow
+        JPanel where = new JPanel(new BorderLayout());
+        where.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 6));
+        where.add(componentFilesView, BorderLayout.NORTH);
+        JScrollPane whereScroll = new JScrollPane(where);
+        whereScroll.setBorder(BorderFactory.createEmptyBorder());
+        whereScroll.setMinimumSize(new Dimension(200, 0));
+        whereScroll.setPreferredSize(new Dimension(SPEC_FILES_WIDTH, 0));
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true);
+        split.setResizeWeight(1.0);
+        split.setBorder(BorderFactory.createEmptyBorder());
         JPanel panel = new JPanel(new BorderLayout(0, 4));
-        panel.add(top, BorderLayout.NORTH);
-        panel.add(specCards, BorderLayout.CENTER);
+        panel.add(bar, BorderLayout.NORTH);
+        boolean[] stacked = {false};
+        Runnable layout = () -> {
+            boolean narrow = panel.getWidth() > 0 && panel.getWidth() < SPEC_NARROW;
+            if (narrow == stacked[0]) return;
+            stacked[0] = narrow;
+            for (Component c : panel.getComponents()) if (c != bar) panel.remove(c);
+            if (narrow) {
+                split.setLeftComponent(null); split.setRightComponent(null);
+                JPanel above = new JPanel(new BorderLayout(0, 4));
+                whereScroll.setPreferredSize(null);
+                above.add(whereScroll, BorderLayout.NORTH);
+                above.add(specCards, BorderLayout.CENTER);
+                panel.add(above, BorderLayout.CENTER);
+            } else {
+                whereScroll.setPreferredSize(new Dimension(SPEC_FILES_WIDTH, 0));
+                split.setLeftComponent(specCards);
+                split.setRightComponent(whereScroll);
+                panel.add(split, BorderLayout.CENTER);
+                split.setDividerLocation(Math.max(200, panel.getWidth() - SPEC_FILES_WIDTH));
+            }
+            panel.revalidate(); panel.repaint();
+        };
+        split.setLeftComponent(specCards);
+        split.setRightComponent(whereScroll);
+        panel.add(split, BorderLayout.CENTER);
+        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) { layout.run(); }
+        });
         return panel;
+    }
+
+    /** The width of "Where it is" beside the spec text, and the width under which it goes above it (1.1.0). */
+    static final int SPEC_FILES_WIDTH = 280, SPEC_NARROW = 720;
+
+    /** A project file named by its path from the project's root, opened in the editor. */
+    private void openProjectFile(String relative) {
+        if (project.getBasePath() == null) return;
+        showFirstFile(List.of(Path.of(project.getBasePath()).resolve(relative).toFile()), ArchvowI18n.text(project,
+            "Not found: ", "Introuvable : ") + relative);
+    }
+
+    /** The same file, selected in the Project view. */
+    private void revealProjectFile(String relative) {
+        if (project.getBasePath() == null) return;
+        var file = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(Path.of(project.getBasePath()).resolve(relative).toFile());
+        if (file == null) { message(ArchvowI18n.text(project, "Not found: ", "Introuvable : ") + relative); return; }
+        revealProjectFolder(file);
     }
 
     /** The task the AI implements, as {@code archvow prompt <component>} gives it (nothing generated is committed since 2.0). */
@@ -5900,6 +6443,19 @@ final class ArchvowPanel extends JPanel {
         firstStepsHolder.setVisible(first != null);
         architectureHolder.removeAll();
         architectureHolder.add(ArchvowOverviewCards.architecture(components, done, open, projectItems, first != null, fr, actions), BorderLayout.CENTER);
+        // 1.1.0: what is ready to build, one click from the Build walk (the first ready component's feature)
+        List<String> ready = workspaceJson == null ? List.of() : ArchvowWalks.readyToBuild(workspaceJson);
+        if (!ready.isEmpty()) {
+            JButton build = ArchvowSplitView.link(fr ? "Prêts à construire : " + ready.size() + " → Construire" : "Ready to build: " + ready.size() + " → Build");
+            build.setName("archvow.overview.build");
+            build.setToolTipText(String.join(", ", ready));
+            String feature = ArchvowWalks.featureOf(workspaceJson, ready.get(0));
+            build.addActionListener(e -> startBuild(feature));
+            JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+            line.setOpaque(false);
+            line.add(build);
+            architectureHolder.add(line, BorderLayout.SOUTH);
+        }
         checksHolder.removeAll();
         checksHolder.add(ArchvowOverviewCards.checks(ArchvowGrammar.number(check, "errors"), ArchvowGrammar.number(check, "warnings"),
             ArchvowOverview.firstFinding(check), fr, actions), BorderLayout.CENTER);
@@ -5922,8 +6478,15 @@ final class ArchvowPanel extends JPanel {
             @Override public void openChecks() { runFullCheck(); }
             @Override public void openFile(String path, int line) { openViolationFile(path, line); }
             @Override public void step(ArchvowOverview.FirstStep step) {
+                // 1.1.0: Specify walks the foundations, or the feature's components; Build walks the ready ones
                 if (step.command().startsWith("archvow specify ")) {
-                    openCommand("specify", Map.of("component", step.command().substring("archvow specify ".length()).trim()));
+                    String id = step.command().substring("archvow specify ".length()).trim();
+                    if ("foundations".equals(step.step())) startSpecify("foundations", "");
+                    else startSpecify("feature", ArchvowWalks.featureOf(workspaceJson, id));
+                    return;
+                }
+                if (step.command().startsWith("archvow prompt --feature ")) {
+                    startBuild(step.command().substring("archvow prompt --feature ".length()).trim());
                     return;
                 }
                 switch (step.step()) {
@@ -5999,6 +6562,7 @@ final class ArchvowPanel extends JPanel {
 
     /** Every pending card is grounded in a real unresolved engine record. */
     private void rebuildQuickModels(List<JsonObject> statuses) {
+        toBuildByComponent.clear();
         pendingModel.clear();
         resolvedModel.clear();
         otherPendingModel.clear();
@@ -6168,6 +6732,9 @@ final class ArchvowPanel extends JPanel {
             for (ArchvowDataView.Item item : ArchvowDataView.items(data)) {
                 if (item.kind() != ArchvowDataView.Kind.TASK) continue;
                 boolean pending = item.pending();
+                // 1.1.0: a task is work to build (the AI or a developer), not something a person decides: it is
+                // counted apart - the Tasks view and the tree's tooltip - never among the pending items
+                if (pending) { toBuildByComponent.merge(id, 1, Integer::sum); continue; }
                 addQuickItem(keys, new QuickItem(pending ? QuickKind.SUGGESTION : QuickKind.RESOLVED,
                     id + " · " + item.id() + " " + shorten(item.title(), 60),
                     item.title() + (item.detail().isBlank() ? "" : "\n" + item.detail()),
@@ -6222,6 +6789,7 @@ final class ArchvowPanel extends JPanel {
                 resolvedByComponent.merge(item.componentId, 1, Integer::sum);
         }
         componentsTree.putClientProperty("archvow.pendingCounts", Map.copyOf(pendingByComponent));
+        componentsTree.putClientProperty(ArchvowComponentTree.TO_BUILD, Map.copyOf(toBuildByComponent));
         componentsTree.putClientProperty("archvow.resolvedCounts", Map.copyOf(resolvedByComponent));
         componentsTree.repaint();
         updateComponentPendingExplanation();
@@ -6235,21 +6803,18 @@ final class ArchvowPanel extends JPanel {
         }
         String id = selectedComponent.id;
         int total = 0;
-        int data = 0;
         int other = 0;
         for (int i = 0; i < pendingModel.size(); i++) {
             QuickItem item = pendingModel.get(i);
             if (!id.equals(item.componentId)) continue;
             total++;
             String category = item.preset.getOrDefault("view", "other");
-            if (category.equals("data")) data++;
             if (category.equals("other")) other++;
         }
+        // 1.1.0: what a person decides only - the tasks to build are in the Tasks view
         String label = ArchvowI18n.isFrench(project) ?
-            total + " en attente pour " + id + " · " + data + " dans Données et tâches" +
-                (other > 0 ? " · " + other + " dans Autres" : "") :
-            total + " pending for " + id + " · " + data + " in Data & tasks" +
-                (other > 0 ? " · " + other + " in Other" : "");
+            total + " à décider pour " + id + (other > 0 ? " · " + other + " dans Autres" : "") :
+            total + " to decide for " + id + (other > 0 ? " · " + other + " in Other" : "");
         componentPendingExplanation.setText(label);
         componentPendingExplanation.setToolTipText(ArchvowI18n.text(project,
             "The component total includes all its pending categories and active diagnostics.",

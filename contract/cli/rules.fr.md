@@ -207,7 +207,7 @@ Les institutions financières américaines (`regimes/glba.yaml`) : les colonnes 
 
 | Code | Échoue quand | Correction |
 |---|---|---|
-| DORA001 | un composant n'a pas de ticket (sauf les fondations du template) ; le hook commit-msg met aussi le ticket de la branche dans chaque message de commit | `archvow component edit <composant> -s <ticket>` |
+| DORA001 | un composant n'a pas de ticket (sauf les fondations du template) ; le hook commit-msg met aussi le ticket de la branche dans chaque message de commit | `archvow component edit <composant> --ticket <ticket>` |
 | DORA002 | moins de deux personnes peuvent approuver les changements de garde (CODEOWNERS n'a qu'un utilisateur et aucun groupe) | `init --force -a architects="@premier @second"` (ou un groupe) |
 | DORA003 | un paquet de requirements.txt n'est pas dans le registre des tiers, ou un paquet critique n'a pas de version figée par `==` | `archvow dependency add <paquet> --supplier ... --licence ... --criticality ...` |
 | DORA004 | le test d'un invariant peut être sauté (`skip`, `skipif`, `xfail`, `pytest.skip()`), ou un job de CI peut échouer sans bloquer (`allow_failure`, `continue-on-error`). Que les tests ont tourné et réussi, c'est ARCH046, pour tout projet | le laisser tourner ; qu'un job en échec bloque la fusion |

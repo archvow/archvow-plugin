@@ -21,7 +21,10 @@ import java.util.regex.Pattern;
  * same as VS Code's page. Columns (nullable, personal data, type): one row per column with Never null /
  * Nullable / Unknown and Yes / No / Unknown as buttons, notes, and a bin to remove it - only what the
  * question asks about is shown. Parameters (`name: type = default`, the config and settings questions):
- * one row per parameter, no default = required. It never saves: "Use this answer" fills the answer field.
+ * one row per parameter, Required ticked or a default (1.1.0: a checkbox column, no floating "required" word).
+ * It never saves. 1.1.0: no preview and no "Use this answer" any more - the table writes the answer field as you
+ * edit (one text, written once); once that field is edited by hand, the table stops writing over it and offers
+ * "Write it from the table again".
  */
 final class ArchvowColumnAnswerPanel extends JPanel {
     enum Mode { NONE, COLUMNS, PARAMETERS }
@@ -29,16 +32,23 @@ final class ArchvowColumnAnswerPanel extends JPanel {
     /** One row of the table: column (name, type, nullable, personal, note) or parameter (name, type, default, note). */
     static final class Row {
         String name = "", type = "", nullable = "unknown", personal = "unknown", value = "", note = "";
+        /** A parameter: no default (1.1.0, the Required column); read back from an answer with no default. */
+        boolean required = true;
     }
 
     private final JTextArea target;
     private final List<Row> rows = new ArrayList<>();
     private final JPanel grid = new JPanel(new GridBagLayout());
-    private final JTextArea preview = new JTextArea(3, 30);
     private final JButton add = new JButton();
-    private final JButton use = new JButton();
     private final JLabel note = new JLabel();
-    private final JLabel previewLabel = new JLabel();
+    /** "Edited by hand: the table no longer writes over it · Write it from the table again" (1.1.0). */
+    private final JPanel handLine = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+    private final JLabel handWords = new JLabel();
+    private final JButton writeAgain = ArchvowSplitView.link("");
+    /** The answer field was changed by the person, not by the table: the table leaves it alone. */
+    private boolean byHand;
+    /** The table is writing the field (its own change, not the person's). */
+    private boolean writing;
     private boolean french;
     private String question = "";
     private Mode mode = Mode.NONE;
@@ -49,20 +59,26 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         this.target = target;
         grid.setOpaque(false);
         add.addActionListener(e -> { rows.add(blank()); rebuild(); });
-        use.addActionListener(e -> {
-            String result = answer();
-            if (!result.isBlank()) { target.setText(result); target.requestFocusInWindow(); }
+        writeAgain.addActionListener(e -> { byHand = false; edited(); });
+        target.getDocument().addDocumentListener(new DocumentListener() {
+            private void changed() {
+                if (writing || !isVisible()) return;
+                byHand = true;
+                handLine.setVisible(true);
+            }
+            @Override public void insertUpdate(DocumentEvent e) { changed(); }
+            @Override public void removeUpdate(DocumentEvent e) { changed(); }
+            @Override public void changedUpdate(DocumentEvent e) { }
         });
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         actions.setOpaque(false);
         actions.add(add);
-        actions.add(use);
-        preview.setEditable(false);
-        preview.setLineWrap(true);
-        preview.setWrapStyleWord(true);
-        preview.setFont(new Font(Font.MONOSPACED, Font.PLAIN, preview.getFont().getSize()));
         note.setForeground(UIManager.getColor("Label.disabledForeground"));
-        previewLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+        handWords.setForeground(UIManager.getColor("Label.disabledForeground"));
+        handLine.setOpaque(false);
+        handLine.add(handWords);
+        handLine.add(writeAgain);
+        handLine.setVisible(false);
         JPanel top = new JPanel(new BorderLayout(0, 4));
         top.setOpaque(false);
         top.add(note, BorderLayout.NORTH);
@@ -70,11 +86,7 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         JPanel bottom = new JPanel(new BorderLayout(0, 4));
         bottom.setOpaque(false);
         bottom.add(actions, BorderLayout.NORTH);
-        JPanel shown = new JPanel(new BorderLayout(0, 2));
-        shown.setOpaque(false);
-        shown.add(previewLabel, BorderLayout.NORTH);
-        shown.add(new JScrollPane(preview), BorderLayout.CENTER);
-        bottom.add(shown, BorderLayout.CENTER);
+        bottom.add(handLine, BorderLayout.SOUTH);
         add(top, BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
         setBorder(BorderFactory.createTitledBorder("Answer with a table (optional)"));
@@ -108,6 +120,8 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         mode = modeFor(question);
         setVisible(mode != Mode.NONE);
         if (mode == Mode.NONE) return;
+        byHand = false;
+        handLine.setVisible(false);
         String q = question.toLowerCase(Locale.ROOT);
         asksType = Pattern.compile("(\\btypes?\\b|datatype|data type)").matcher(q).find();
         asksNullable = Pattern.compile("(null|requir|option|obligat|facultat)").matcher(q).find();
@@ -137,20 +151,25 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         if (rows.isEmpty()) rows.add(blank());
         setBorder(BorderFactory.createTitledBorder(t("Answer with a table (optional)", "Répondre avec un tableau (facultatif)")));
         add.setText(mode == Mode.COLUMNS ? t("+ Add column", "+ Ajouter une colonne") : t("+ Add parameter", "+ Ajouter un paramètre"));
-        use.setText(t("Use this answer", "Utiliser cette réponse"));
-        previewLabel.setText(t("Answer preview", "Aperçu de la réponse"));
+        handWords.setText(t("Edited by hand: the table no longer writes over it ·", "Modifiée à la main : le tableau ne l'écrase plus ·"));
+        writeAgain.setText(t("Write it from the table again", "La réécrire depuis le tableau"));
         note.setText(mode == Mode.COLUMNS
-            ? t("One row per column: what is not known stays Unknown. Review the answer before saving.",
-                "Une ligne par colonne : ce qui n'est pas connu reste Inconnu. Relire la réponse avant d'enregistrer.")
-            : t("One row per parameter. No default = required. Notes go in brackets after it.",
-                "Une ligne par paramètre. Sans défaut = obligatoire. Les notes vont entre parenthèses après."));
+            ? t("One row per column: what is not known stays Unknown. The table writes your answer below as you edit it.",
+                "Une ligne par colonne : ce qui n'est pas connu reste Inconnu. Le tableau écrit ta réponse ci-dessous au fil des modifications.")
+            : t("One row per parameter: Required, or a default. The table writes your answer below as you edit it.",
+                "Une ligne par paramètre : Obligatoire, ou une valeur par défaut. Le tableau écrit ta réponse ci-dessous au fil des modifications."));
         rebuild();
     }
 
     Mode mode() { return mode; }
     int rowCount() { return rows.size(); }
     Row row(int i) { return rows.get(i); }
-    void removeRow(int i) { rows.remove(i); rebuild(); }
+    void removeRow(int i) { rows.remove(i); rebuild(); edited(); }
+    /** For the tests: the field was changed by hand (the table no longer writes over it). */
+    boolean byHand() { return byHand; }
+    /** For the tests: a row's Required box. */
+    void setRequired(int i, boolean required) { rows.get(i).required = required; rebuild(); edited(); }
+    void setDefault(int i, String value) { rows.get(i).value = value; edited(); }
     List<String> headers() {
         List<String> out = new ArrayList<>();
         for (Component c : grid.getComponents()) if (c instanceof JLabel l && Boolean.TRUE.equals(l.getClientProperty("archvow.head"))) out.add(l.getText());
@@ -164,6 +183,11 @@ final class ArchvowColumnAnswerPanel extends JPanel {
     }
 
     private void rebuild() {
+        building = true;
+        try { rebuildRows(); } finally { building = false; }
+    }
+
+    private void rebuildRows() {
         grid.removeAll();
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0; c.insets = new Insets(2, 0, 2, 6); c.anchor = GridBagConstraints.WEST; c.fill = GridBagConstraints.HORIZONTAL;
@@ -174,7 +198,7 @@ final class ArchvowColumnAnswerPanel extends JPanel {
             if (asksNullable) heads.add(t("Nullable?", "Nullable ?"));
             if (asksPersonal) heads.add(t("Personal data?", "Donnée personnelle ?"));
         } else {
-            heads.add(t("Parameter", "Paramètre")); heads.add("Type"); heads.add(t("Default", "Défaut")); heads.add("");
+            heads.add(t("Parameter", "Paramètre")); heads.add("Type"); heads.add(t("Required", "Obligatoire")); heads.add(t("Default", "Défaut"));
         }
         heads.add("Notes");
         heads.add("");
@@ -210,17 +234,36 @@ final class ArchvowColumnAnswerPanel extends JPanel {
                 JsonObject parameters = ArchvowForms.section("smart_answers").getAsJsonObject("parameters");
                 List<String> types = parameters != null && parameters.has("types") ? ArchvowGrammar.strings(parameters, "types") : List.of("str", "int", "float", "bool", "date");
                 grid.add(typeField(row, types), c);
-                JLabel required = new JLabel();
-                Runnable chip = () -> {
-                    boolean optional = !row.value.isBlank();
-                    required.setText(optional ? t("optional", "facultatif") : t("required", "obligatoire"));
-                    required.setForeground(optional ? UIManager.getColor("Label.disabledForeground") : ArchvowStatusPalette.statusColor(true));
+                // 1.1.0: Required is a box with its own column; ticked, the default is "—" and cannot be typed
+                JCheckBox required = new JCheckBox(row.required ? t("yes", "oui") : t("no", "non"), row.required);
+                required.setOpaque(false);
+                required.putClientProperty("archvow.required", Boolean.TRUE);
+                JTextField value = field(row.required ? "" : row.value, v -> { if (!row.required) row.value = v; }, "");
+                Runnable state = () -> {
+                    value.setEnabled(!row.required);
+                    if (row.required) { if (!"—".equals(value.getText())) writingDefault(value, "—"); }
+                    else if ("—".equals(value.getText())) writingDefault(value, row.value);
+                    boolean missing = !row.required && row.value.isBlank() && !row.name.isBlank();
+                    value.putClientProperty("JComponent.outline", missing ? "error" : null);
+                    value.setToolTipText(missing ? t("a default, or tick Required", "une valeur par défaut, ou cocher Obligatoire") : null);
+                    value.repaint();
                 };
-                c.gridx = x++; c.weightx = 1;
-                grid.add(field(row.value, v -> { row.value = v; chip.run(); }, t("none: required", "aucun : obligatoire")), c);
-                chip.run();
+                required.addActionListener(e -> {
+                    row.required = required.isSelected();
+                    required.setText(row.required ? t("yes", "oui") : t("no", "non"));
+                    state.run();
+                    edited();
+                });
+                value.getDocument().addDocumentListener(new DocumentListener() {  // the red mark follows the typing
+                    @Override public void insertUpdate(DocumentEvent e) { if (!building) SwingUtilities.invokeLater(state); }
+                    @Override public void removeUpdate(DocumentEvent e) { if (!building) SwingUtilities.invokeLater(state); }
+                    @Override public void changedUpdate(DocumentEvent e) { }
+                });
                 c.gridx = x++; c.weightx = 0;
                 grid.add(required, c);
+                c.gridx = x++; c.weightx = 1;
+                grid.add(value, c);
+                state.run();
             }
             c.gridx = x++; c.weightx = 1;
             grid.add(field(row.note, v -> row.note = v, t("optional", "facultatif")), c);
@@ -236,7 +279,6 @@ final class ArchvowColumnAnswerPanel extends JPanel {
             grid.add(bin, c);
             c.fill = GridBagConstraints.HORIZONTAL;
         }
-        refreshPreview();
         grid.revalidate(); grid.repaint();
         revalidate(); repaint();
     }
@@ -248,7 +290,7 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         f.setToolTipText(placeholder);
         f.putClientProperty("JTextField.placeholderText", placeholder);
         f.getDocument().addDocumentListener(new DocumentListener() {
-            private void changed() { setter.set(f.getText()); refreshPreview(); }
+            private void changed() { if (f.isEnabled()) { setter.set(f.getText()); edited(); } }
             @Override public void insertUpdate(DocumentEvent e) { changed(); }
             @Override public void removeUpdate(DocumentEvent e) { changed(); }
             @Override public void changedUpdate(DocumentEvent e) { changed(); }
@@ -263,10 +305,10 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         JComboBox<String> box = new JComboBox<>(offered.toArray(String[]::new));
         box.setEditable(true);  // suggestions only: a template's own types are typed freely
         box.setSelectedItem(row.type);
-        box.addActionListener(e -> { row.type = String.valueOf(box.getSelectedItem() == null ? "" : box.getSelectedItem()); refreshPreview(); });
+        box.addActionListener(e -> { row.type = String.valueOf(box.getSelectedItem() == null ? "" : box.getSelectedItem()); edited(); });
         if (box.getEditor().getEditorComponent() instanceof JTextField text) {
             text.getDocument().addDocumentListener(new DocumentListener() {
-                private void changed() { row.type = text.getText(); refreshPreview(); }
+                private void changed() { row.type = text.getText(); edited(); }
                 @Override public void insertUpdate(DocumentEvent e) { changed(); }
                 @Override public void removeUpdate(DocumentEvent e) { changed(); }
                 @Override public void changedUpdate(DocumentEvent e) { changed(); }
@@ -283,16 +325,27 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         ArchvowSegmented s = new ArchvowSegmented(labels, initial, true);
         s.onChange(() -> {
             for (String[] o : options) if (o[1].equals(s.value())) setter.set(o[0]);
-            refreshPreview();
+            edited();
         });
         return s;
     }
 
-    private void refreshPreview() {
-        String text = answer();
-        preview.setText(text.isBlank() ? (mode == Mode.PARAMETERS ? t("Add a parameter to prepare a response.", "Ajoute un paramètre pour préparer la réponse.")
-            : t("Add a column to prepare a response.", "Ajoute une colonne pour préparer la réponse.")) : text);
-        use.setEnabled(!text.isBlank());
+    /** A change in the table: it writes the answer field, unless the person edited that field by hand (1.1.0). */
+    private void edited() {
+        if (byHand || building) return;
+        writing = true;
+        try { target.setText(answer()); } finally { writing = false; }
+        handLine.setVisible(false);
+    }
+
+    /** True while the rows are being made (their fields' first text is not an edit). */
+    private boolean building;
+
+    /** The default field's own text, set without counting as the person's edit. */
+    private void writingDefault(JTextField value, String text) {
+        boolean was = building;
+        building = true;
+        try { value.setText(text); } finally { building = was; }
     }
 
     /** The answer the table writes: as VS Code's structuredAnswer / parametersAnswer, word for word. */
@@ -304,7 +357,8 @@ final class ArchvowColumnAnswerPanel extends JPanel {
             String note = r.note.trim();
             if (mode == Mode.PARAMETERS) {
                 String type = r.type.trim().isEmpty() ? "str" : r.type.trim();
-                String value = r.value.trim();
+                String value = r.required ? "" : r.value.trim();
+                if (!r.required && value.isEmpty()) continue;  // marked in red: left out until it has a default
                 note = note.replaceAll("[()]", "");
                 out.add(name + ": " + type + (value.isEmpty() ? "" : " = " + value) + (note.isEmpty() ? "" : " (" + note + ")"));
                 continue;
@@ -332,6 +386,7 @@ final class ArchvowColumnAnswerPanel extends JPanel {
             if (!m.matches() || !TYPE.matcher(m.group(2).trim()).matches()) return null;
             Row r = new Row();
             r.name = m.group(1); r.type = m.group(2).trim(); r.value = m.group(3) == null ? "" : m.group(3).trim();
+            r.required = r.value.isEmpty();
             String note = m.group(5) == null ? "" : m.group(5);
             r.note = note.matches("(?i)required|obligatoire") ? "" : note.trim();
             out.add(r);

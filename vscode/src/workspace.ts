@@ -5,6 +5,7 @@
 // This side runs archvow and holds what it said; the page (media/workspace.js, the same script in both
 // places) shows it and asks. Every command the page asks for is checked against archvow's own grammar and
 // built here; a change runs only after the person confirms it in the page.
+import { walkState, WalkState } from './walks';
 import { execFile, spawn } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
@@ -88,6 +89,8 @@ export interface State {
   firstSteps: Json[];
   /** What the Overview's cards show (overview.ts, 0.25.0): first steps, own items, first finding. */
   overview: Overview;
+  /** 1.1.0: the walks - Specify and Build - and each feature's Copy AI prompt (walks.ts). */
+  walks: WalkState;
 }
 
 // welcome: the welcome page's result (Try it, Install), in the sidebar and in the editor tab (0.26.1: it was missing here)
@@ -112,7 +115,7 @@ export class ArchvowProject {
   readonly known: string;
   /** The contract the plugin speaks ("1.3", contract/cli/contract.txt). */
   readonly contract: string;
-  /** The archvow versions the plugin works with (">=3.0,<4", contract/archvow-range.txt, 1.0.0). */
+  /** The archvow versions the plugin works with (">=3.1,<4", contract/archvow-range.txt, 1.0.0). */
   readonly range: ArchvowRange;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
@@ -240,6 +243,7 @@ export class ArchvowProject {
       refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
       launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, templates: [], features: {}, aiTools: [], firstSteps: [],
       overview: overview(buildWork(null, null, '', {}, false), null, []),
+      walks: walkState({}),
     };
   }
 
@@ -350,6 +354,7 @@ export class ArchvowProject {
       fs.readFileSync(path.join(this.resources, s.fr ? 'rules.fr.md' : 'rules.md'), 'utf8'), this.commands);
     s.rows = architectureRows(s.spec, s.check, s.snapshots, s.work.pendingByComponent);
     s.overview = overview(s.work, s.check, s.firstSteps);
+    s.walks = walkState({ project: s.spec ?? {}, check: s.check ?? {}, next: s.next ?? [], features: s.features });
     s.derived = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, derive(view, s.fr)]));
     s.ai = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, aiView(view, s.launched[id] ?? [])]));
     this.recomputeChoices();
@@ -785,6 +790,13 @@ export class ArchvowProject {
         return;
       case 'featurePrompt':
         return this.copyPrompt('', String(m.feature));
+      case 'walk':  // 1.1.0: Specify or Build - in the editor tab, from the sidebar or the page
+        this.toEditor({ type: 'walk', kind: String(m.kind), scope: String(m.scope ?? ''), value: String(m.value ?? ''), copied: m.copied === true });
+        return;
+      case 'walkCopy':
+        return this.walkCopy(String(m.component));
+      case 'walkCheck':
+        return this.walkCheck(String(m.component));
       case 'featureCheck':
         return this.copyPrompt('', String(m.feature), true);
       case 'openDoc':
@@ -881,6 +893,13 @@ export class ArchvowProject {
         return this.openRule(String(m.code));
       case 'openFile':
         return this.openProjectFile(String(m.file), Number(m.line) || 0);
+      case 'revealFile': {  // 1.1.0: a file of "Where it is", in the explorer
+        const file = path.resolve(this.root, String(m.file ?? ''));
+        if (file.startsWith(this.root + path.sep) && fs.existsSync(file)) {
+          await vscode.commands.executeCommand('revealInExplorer', vscode.Uri.file(file));
+        }
+        return;
+      }
       case 'openTryCopy':
         return this.openTryCopy(String(m.folder ?? ''));
       case 'search':
@@ -962,18 +981,57 @@ export class ArchvowProject {
    *  any code (`--clarify`, archvow 2.8.0). */
   async copyPrompt(component: string, feature = '', check = false): Promise<void> {
     const fr = this.state.fr;
+    const state = feature && !check ? this.state.walks.prompt[feature] : undefined;
     const result = await this.cli.run(feature ? featurePromptCommand(feature, check) : ['prompt', component], undefined, true);
     if (result.exitCode !== 0 || result.startError !== undefined) {
       void vscode.window.showErrorMessage(failure(result));
       return;
     }
     await vscode.env.clipboard.writeText(result.stdout);
+    if (state?.state === 'ready') {  // 1.1.0: the Build walk goes on from there, its first step done
+      this.toEditor({ type: 'walk', kind: 'build', scope: 'feature', value: feature, copied: true });
+      return;
+    }
+    if (state?.state === 'propose-first') {
+      const n = state.open;
+      void vscode.window.showInformationMessage(tr(fr,
+        `In the clipboard. The AI proposes the ${n} open decision${n === 1 ? '' : 's'} first, then builds. You review its proposals under AI ▾.`,
+        `Dans le presse-papiers. L'IA propose d'abord les ${n} décision${n === 1 ? '' : 's'} ouverte${n === 1 ? '' : 's'}, puis construit. Tu revois ses propositions sous IA ▾.`));
+      return;
+    }
     const what = component || feature;
     void vscode.window.showInformationMessage(check
       ? tr(fr, `The check of ${what} is in the clipboard: paste it to your AI assistant. It records what it finds as questions and writes no code.`,
         `La vérification de ${what} est dans le presse-papiers : colle-la à ton assistant IA. Il enregistre ce qu'il trouve en questions et n'écrit pas de code.`)
       : tr(fr, `The instruction for ${what} is in the clipboard: paste it to your AI assistant.`,
         `L'instruction pour ${what} est dans le presse-papiers : colle-la à ton assistant IA.`));
+  }
+
+  /** 1.1.0, the Build walk's first step: the component's task into the clipboard; the page marks it copied. */
+  private async walkCopy(component: string): Promise<void> {
+    const result = await this.cli.run(['prompt', component], undefined, true);
+    if (result.exitCode !== 0 || result.startError !== undefined) {
+      void vscode.window.showErrorMessage(failure(result));
+      return;
+    }
+    await vscode.env.clipboard.writeText(result.stdout);
+    this.toEditor({ type: 'walkCopied', component });
+  }
+
+  /** 1.1.0, the Build walk's second step: archvow check, its result for this component; then the workspace follows. */
+  private async walkCheck(component: string): Promise<void> {
+    const result = await this.cli.run(['check', '--json'], undefined, true);
+    let report: Json | null = null;
+    try { report = JSON.parse(result.stdout) as Json; } catch { report = null; }
+    if (report === null || !Array.isArray(report.components)) {
+      void vscode.window.showErrorMessage(failure(result) || tr(this.state.fr, 'archvow check gave no answer.', "archvow check n'a rien répondu."));
+      return;
+    }
+    const own = (report.components as Json[]).find((c) => String(c.component) === component);
+    const codes = (Array.isArray(report.violations) ? report.violations as Json[] : [])
+      .filter((v) => String(v.component ?? '') === component && String(v.severity) === 'error').map((v) => String(v.code));
+    this.toEditor({ type: 'walkChecked', component, status: own ? String(own.status) : 'planned', codes });
+    void this.refresh(false);
   }
 
   /** `archvow doc [<feature>]`, then its page in an editor: Markdown to read, written into .archvow/doc/ (ignored
@@ -1403,12 +1461,19 @@ export class ArchvowProject {
     } catch {
       args = ['prompt', component]; // a task id that is not a number: the whole card
     }
-    this.toOpenEditor({ type: 'running', target: 'data', args: ['archvow', ...args].join(' ') });
     let result = await this.cli.run(args, undefined, true);
     if (args.includes('--task') && needsFullCard(result.exitCode, result.stdout + result.stderr)) {
       result = await this.cli.run(['prompt', component], undefined, true);
     }
-    this.sendResult('data', 'prompt', result);
+    if (result.exitCode !== 0 || result.startError !== undefined) {
+      this.sendResult('data', 'prompt', result);
+      return;
+    }
+    // 1.1.0: Copy task prompt - the task goes to the AI assistant, not into a card
+    await vscode.env.clipboard.writeText(result.stdout);
+    void vscode.window.showInformationMessage(tr(this.state.fr,
+      'The task is in the clipboard: paste it to your AI assistant. When it is done: Check.',
+      'La tâche est dans le presse-papiers : colle-la à ton assistant IA. Quand c\'est fait : Vérifier.'));
   }
 
   private async readVow(component: string, from: From): Promise<void> {

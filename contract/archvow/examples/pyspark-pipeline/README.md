@@ -150,14 +150,14 @@ never writes source code, and runs once: developers clone the repository instead
 chain, from the input to the entry point:
 
 ```bash
-archvow component add reader sales -d "Read the sales CSV files at the given path, with a header" -s US-001
-archvow component add schema sales -d "id string not null, amount double >= 0, effective_date date not null, comment string" -s US-001
+archvow component add reader sales -d "Read the sales CSV files at the given path, with a header" --ticket US-001
+archvow component add schema sales -d "id string not null, amount double >= 0, effective_date date not null, comment string" --ticket US-001
 archvow component edit sales_reader -u sales_schema
-archvow component add transformation clean_sales -d "Keep the rows with amount > 0, then sum amount per effective_date as revenue" -s US-001
-archvow component add schema revenue -d "effective_date date not null, revenue double not null" -s US-001
-archvow component add writer revenue -d "Write the revenue per day as parquet, replacing the output" -u revenue_schema -s US-001
-archvow component add job my_pipeline -d "Read the sales, clean them, write the revenue" -u sales_reader,clean_sales,revenue_writer -s US-001
-archvow component add entrypoint my_pipeline -d "Command line: --input-path PATH (the sales folder), --output-path PATH (the revenue folder)" -u my_pipeline_job -s US-001
+archvow component add transformation clean_sales -d "Keep the rows with amount > 0, then sum amount per effective_date as revenue" --ticket US-001
+archvow component add schema revenue -d "effective_date date not null, revenue double not null" --ticket US-001
+archvow component add writer revenue -d "Write the revenue per day as parquet, replacing the output" -u revenue_schema --ticket US-001
+archvow component add job my_pipeline -d "Read the sales, clean them, write the revenue" -u sales_reader,clean_sales,revenue_writer --ticket US-001
+archvow component add entrypoint my_pipeline -d "Command line: --input-path PATH (the sales folder), --output-path PATH (the revenue folder)" -u my_pipeline_job --ticket US-001
 archvow show sales_schema                # its decisions: nullable columns, personal data...
 ```
 
@@ -271,7 +271,7 @@ SPARK_MASTER="local[*]" ./entrypoint.sh my_pipeline <its arguments>   # that lin
 | check a whole feature before coding (where its components disagree) | `archvow prompt --feature <feature> --clarify` (in the chat: `/archvow-clarify <feature>`) |
 | dismiss a safety question that does not apply | `archvow hazard dismiss sales_reader S4 "the job reads only the file it is given"` |
 | see everything about a component | `archvow show sales_reader` |
-| record a business example (files in `tests/examples/clean_sales/<example>/`) | `archvow example add clean_sales US-001-negative-amount -s US-001 --from briefs/<brief>.md#<section>`; `archvow show clean_sales` gives its test's verdict and where `actual/` differs from `expected/` |
+| record a business example (files in `tests/examples/clean_sales/<example>/`) | `archvow example add clean_sales US-001-negative-amount --ticket US-001 --from briefs/<brief>.md#<section>`; `archvow show clean_sales` gives its test's verdict and where `actual/` differs from `expected/` |
 | find a name everywhere (a function, a column, a ticket, an example) | `archvow show <name>`: the spec, the code, the tests, the briefs, the problems naming it |
 | answer what is open, one question at a time | `archvow specify sales_reader` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/archvow-analyze sales_reader` |

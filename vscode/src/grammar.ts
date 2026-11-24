@@ -215,7 +215,7 @@ export function prefill(command: string, requested: Record<string, string>, sele
   if (command === 'component edit' && snapshot && target === snapshot.component) {
     const specific = Object.keys(data).some((k) => k !== 'component');
     if (!specific) {
-      const fields: [string, string][] = [['description', 'description'], ['spec', 'spec'], ['signature', 'signature'],
+      const fields: [string, string][] = [['description', 'description'], ['ticket', 'spec'], ['signature', 'signature'],
         ['uses', 'uses'], ['group', 'group'], ['owners', 'owners'], ['source', 'from'], ['source', 'brief']];
       for (const [field, key] of fields) {
         if (field in data) continue;

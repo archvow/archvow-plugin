@@ -139,7 +139,7 @@
         "label": "invoice_model — model",
         "fill": {
          "description": "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -147,7 +147,7 @@
         "label": "invoice_not_found_error — error",
         "fill": {
          "description": "No invoice with this number",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -155,7 +155,7 @@
         "label": "invoices_repository — repository",
         "fill": {
          "description": "Stores and finds invoices, one JSON file per invoice in the data folder",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "invoice_model"
         }
        },
@@ -164,7 +164,7 @@
         "label": "mark_paid — service",
         "fill": {
          "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "invoice_model,invoice_not_found_error,invoices_repository"
         }
        },
@@ -173,7 +173,7 @@
         "label": "invoices_cli — cli",
         "fill": {
          "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "mark_paid,invoice_not_found_error"
         }
        }
@@ -2161,7 +2161,7 @@
         "label": "invoice_model — model",
         "fill": {
          "description": "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -2169,7 +2169,7 @@
         "label": "invoice_not_found_error — error",
         "fill": {
          "description": "No invoice with this number",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -2177,7 +2177,7 @@
         "label": "invoices_repository — repository",
         "fill": {
          "description": "Stores and finds invoices, one JSON file per invoice in the data folder",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "invoice_model"
         }
        },
@@ -2186,7 +2186,7 @@
         "label": "mark_paid — service",
         "fill": {
          "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "invoice_model,invoice_not_found_error,invoices_repository"
         }
        },
@@ -2195,7 +2195,7 @@
         "label": "invoices_cli — cli",
         "fill": {
          "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "mark_paid,invoice_not_found_error"
         }
        }
@@ -4179,7 +4179,7 @@
         "label": "get_current_user — dependency",
         "fill": {
          "description": "The authenticated customer's id, from the X-Customer header",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -4201,7 +4201,7 @@
         "label": "new_order_model — model",
         "fill": {
          "description": "What a customer sends to create an order: amount Decimal > 0",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -4209,7 +4209,7 @@
         "label": "order_model — model",
         "fill": {
          "description": "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -4217,7 +4217,7 @@
         "label": "order_not_found_error — error",
         "fill": {
          "description": "The order does not exist, or belongs to another customer",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -4225,7 +4225,7 @@
         "label": "orders_repository — repository",
         "fill": {
          "description": "Stores and finds orders (in memory to start)",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model"
         }
        },
@@ -4234,7 +4234,7 @@
         "label": "create_order — service",
         "fill": {
          "description": "Create a pending order for the current customer and save it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model,new_order_model,orders_repository"
         }
        },
@@ -4243,7 +4243,7 @@
         "label": "get_order — service",
         "fill": {
          "description": "Return one order of the current customer",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model,order_not_found_error,orders_repository"
         }
        },
@@ -4252,7 +4252,7 @@
         "label": "main — app",
         "fill": {
          "description": "The service: the order routes under /v1, domain errors mapped to HTTP statuses",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "orders_router,order_not_found_error"
         }
        },
@@ -4261,7 +4261,7 @@
         "label": "orders_router — router",
         "fill": {
          "description": "The order API",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "create_order,get_order,order_model,new_order_model"
         }
        }
@@ -7346,7 +7346,7 @@
         "label": "get_current_user — dependency",
         "fill": {
          "description": "The authenticated customer's id, from the X-Customer header",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -7368,7 +7368,7 @@
         "label": "new_order_model — model",
         "fill": {
          "description": "What a customer sends to create an order: amount Decimal > 0",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -7376,7 +7376,7 @@
         "label": "order_model — model",
         "fill": {
          "description": "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -7384,7 +7384,7 @@
         "label": "order_not_found_error — error",
         "fill": {
          "description": "The order does not exist, or belongs to another customer",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -7392,7 +7392,7 @@
         "label": "orders_repository — repository",
         "fill": {
          "description": "Stores and finds orders (in memory to start)",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model"
         }
        },
@@ -7401,7 +7401,7 @@
         "label": "create_order — service",
         "fill": {
          "description": "Create a pending order for the current customer and save it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model,new_order_model,orders_repository"
         }
        },
@@ -7410,7 +7410,7 @@
         "label": "get_order — service",
         "fill": {
          "description": "Return one order of the current customer",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model,order_not_found_error,orders_repository"
         }
        },
@@ -7419,7 +7419,7 @@
         "label": "main — app",
         "fill": {
          "description": "The service: the order routes under /v1, domain errors mapped to HTTP statuses",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "orders_router,order_not_found_error"
         }
        },
@@ -7428,7 +7428,7 @@
         "label": "orders_router — router",
         "fill": {
          "description": "The order API",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "create_order,get_order,order_model,new_order_model"
         }
        }
@@ -10561,7 +10561,7 @@
         "label": "clean_orders — transformation",
         "fill": {
          "description": "Keep only the valid rows: order_id not null and amount >= 0",
-         "spec": "US-002"
+         "ticket": "US-002"
         }
        },
        {
@@ -10569,7 +10569,7 @@
         "label": "compute_vat — transformation",
         "fill": {
          "description": "Add the column vat = amount * 0.2",
-         "spec": "US-002"
+         "ticket": "US-002"
         }
        },
        {
@@ -10577,7 +10577,7 @@
         "label": "order_totals — transformation",
         "fill": {
          "description": "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)",
-         "spec": "US-004"
+         "ticket": "US-004"
         }
        },
        {
@@ -10585,7 +10585,7 @@
         "label": "orders_schema — schema",
         "fill": {
          "description": "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -10593,7 +10593,7 @@
         "label": "vat_schema — schema",
         "fill": {
          "description": "Output orders with their VAT: order_id string, customer_id string, amount decimal(18,2), order_date date, vat decimal(18,2)",
-         "spec": "US-003"
+         "ticket": "US-003"
         }
        },
        {
@@ -10601,7 +10601,7 @@
         "label": "orders_reader — reader",
         "fill": {
          "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "orders_schema"
         }
        },
@@ -10610,7 +10610,7 @@
         "label": "vat_writer — writer",
         "fill": {
          "description": "Write the orders with their VAT as parquet",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "vat_schema"
         }
        },
@@ -10619,7 +10619,7 @@
         "label": "my_pipeline_job — job",
         "fill": {
          "description": "Read the orders, clean them, compute their VAT, write the result",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "orders_reader,clean_orders,compute_vat,vat_writer"
         }
        },
@@ -10628,7 +10628,7 @@
         "label": "my_pipeline_main — entrypoint",
         "fill": {
          "description": "Command line: --input-path PATH (the input folder), --output-path PATH (the output folder)",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "my_pipeline_job"
         }
        }
@@ -14010,7 +14010,7 @@
         "label": "clean_orders — transformation",
         "fill": {
          "description": "Keep only the valid rows: order_id not null and amount >= 0",
-         "spec": "US-002"
+         "ticket": "US-002"
         }
        },
        {
@@ -14018,7 +14018,7 @@
         "label": "compute_vat — transformation",
         "fill": {
          "description": "Add the column vat = amount * 0.2",
-         "spec": "US-002"
+         "ticket": "US-002"
         }
        },
        {
@@ -14026,7 +14026,7 @@
         "label": "order_totals — transformation",
         "fill": {
          "description": "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)",
-         "spec": "US-004"
+         "ticket": "US-004"
         }
        },
        {
@@ -14034,7 +14034,7 @@
         "label": "orders_schema — schema",
         "fill": {
          "description": "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -14042,7 +14042,7 @@
         "label": "vat_schema — schema",
         "fill": {
          "description": "Output orders with their VAT: order_id string, customer_id string, amount decimal(18,2), order_date date, vat decimal(18,2)",
-         "spec": "US-003"
+         "ticket": "US-003"
         }
        },
        {
@@ -14050,7 +14050,7 @@
         "label": "orders_reader — reader",
         "fill": {
          "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "orders_schema"
         }
        },
@@ -14059,7 +14059,7 @@
         "label": "vat_writer — writer",
         "fill": {
          "description": "Write the orders with their VAT as parquet",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "vat_schema"
         }
        },
@@ -14068,7 +14068,7 @@
         "label": "my_pipeline_job — job",
         "fill": {
          "description": "Read the orders, clean them, compute their VAT, write the result",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "orders_reader,clean_orders,compute_vat,vat_writer"
         }
        },
@@ -14077,7 +14077,7 @@
         "label": "my_pipeline_main — entrypoint",
         "fill": {
          "description": "Command line: --input-path PATH (the input folder), --output-path PATH (the output folder)",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "my_pipeline_job"
         }
        }

@@ -216,14 +216,30 @@ public final class FilePlanRegression {
         check(panel.rowCount() == 2 && !panel.answer().contains("szsz"), "the bin removes its row");
         check(panel.answer().equals("order_id: personal-data classification unknown\namount: personal-data classification unknown"), panel.answer());
         // the parameters of the config: name: type = default, no default = required
+        target.setText("");  // what the columns' table wrote; the next question starts on its own
         panel.showFor(new JsonObject(), JsonParser.parseString("{\"question\":\"The job's parameters, name: type = default separated by commas (no default = required) - e.g. input_path: str, run_date: date, output_format: str = \\\"parquet\\\" - or none?\","
             + "\"answer\":\"input_path: str (required), run_date: date, output_format: str = \\\"parquet\\\" (the format)\"}").getAsJsonObject(), false);
         check(panel.mode() == ArchvowColumnAnswerPanel.Mode.PARAMETERS && panel.rowCount() == 3, "a row per parameter");
         check(panel.answer().equals("input_path: str, run_date: date, output_format: str = \"parquet\" (the format)"), panel.answer());
         check(ArchvowColumnAnswerPanel.parseParameters("input_path: str and output_path: str, both required") == null, "a sentence is not a list");
         check(ArchvowColumnAnswerPanel.parseParameters("none").isEmpty(), "none");
+        check(target.getText().isEmpty(), "opening the table writes nothing");
         panel.bins().get(0).doClick();
         check(panel.answer().startsWith("run_date: date"), "the bin removes a parameter");
-        check(target.getText().isEmpty(), "nothing is written until Use this answer");
+        // 1.1.0: the table writes the answer field as you edit - one text, no preview, no Use this answer
+        check(target.getText().equals(panel.answer()), "the table writes the field: " + target.getText());
+        // Required is a box: unticked with no default, the row is left out (marked) until it has one
+        panel.setRequired(0, false);
+        check(!target.getText().contains("run_date"), "a row with neither Required nor a default is left out: " + target.getText());
+        panel.setDefault(0, "today");
+        check(target.getText().startsWith("run_date: date = today"), target.getText());
+        panel.setRequired(0, true);
+        check(target.getText().startsWith("run_date: date,"), "Required again: no default written: " + target.getText());
+        check(panel.headers().indexOf("Required") == 2 && panel.headers().indexOf("Default") == 3, "a Required column with its title, before Default: " + panel.headers());
+        // typed by hand: the table no longer writes over it
+        target.setText("run_date: date, said in a sentence");
+        check(panel.byHand(), "the person's edit is seen");
+        panel.setRequired(0, false);
+        check(target.getText().equals("run_date: date, said in a sentence"), "the table leaves the hand-typed answer alone");
     }
 }

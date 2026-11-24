@@ -1,6 +1,6 @@
 name: python-app
-version: 3.0.0                  # archvow's templates carry its version
-archvow: ">=3.0,<4"
+version: 3.1.0                  # archvow's templates carry its version
+archvow: ">=3.1,<4"
 languages: [en, fr]
 default: true                   # the template `archvow init` uses without -t
 extends: python-base
@@ -103,7 +103,7 @@ roles: {purpose: [service], store: [repository], share: [client], run: [cli]}
 # (commands not listed show archvow's generic examples).
 help_examples:
   component add: |
-    archvow component add model invoice -d "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid" -s US-001
+    archvow component add model invoice -d "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid" --ticket US-001
     archvow component add error invoice_not_found -d "No invoice with this number"
     archvow component add logic compute_total -d "Sum of the lines, minus the discount, rounded to 2 decimals" -u invoice_model
     archvow component add repository invoices -d "Stores and finds invoices in a JSON file per invoice" -u invoice_model

@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.1.0 - 2026-11-24
+
+Works with archvow >=3.1,<4. Built on archvow 3.1.0 (contract 3.0; the ticket option is `--ticket`; First steps 3
+and 4 wait for every component, then Build). From the first test session: easier to find your way, from the first
+decision to the merge request.
+
+- **Specify walks on.** After a component's last answer, a strip says so and offers the next one ("✓ config
+  specified · Next: logging_setup · Specify next ▸ · Stop") - no modal any more. It walks the foundations, a
+  feature, or a component and the rest of its feature, in archvow's build order, and ends on "every decision is
+  made · Ready to build: … Build ▸".
+- **Build is its own walk**, apart from Check: 1 Copy AI prompt, 2 Check (its result for this component), 3 Build
+  next ▸ once verified; it stops when the merge request is full (ARCH022). First steps, step 4, shows Build until
+  code exists, then Check; the Overview shows "Ready to build: N → Build".
+- **A feature's Copy AI prompt says what it will do**: "Copy AI prompt · build orders_schema" when a component is
+  ready; Specify first in strict mode when nothing is (the AI would only stop and ask); in guided or free mode, the
+  AI proposes the open decisions first.
+- **To decide, to build.** A task is work for the AI or a developer: it no longer counts as pending, never turns a
+  component amber, and the Tasks view lists it once, in blue, with Copy task prompt and Open code. A component with
+  nothing to decide gets its ✓ ("ready to build: 2 tasks" on hover).
+- **One answer, written once.** An answer table writes the answer field as you edit (no preview, no Use this
+  answer); typed by hand, the field is left alone ("Write it from the table again"). Parameters: a Required box in
+  its own column, the default "—" when ticked. "Back to the suggestion" only once the text differs from it.
+- **"Where it is" on the right** of the task or the vow, its files opening on a click; above the text in a narrow
+  panel. The task's button says Copy.
+- **Right-click menus** on components, features, layers, decisions, questions, safety questions, tasks and files:
+  the buttons of the row, nothing hidden there.
+- **Ticket**: the component form shows `--ticket` (archvow 3.1).
+- IntelliJ: a command asked for while another runs waits its turn (it was refused, with a message in French).
+- Releases are published from a tag (`v1.1.0`; `v1.2.0-beta` for a pre-release), its version checked against the
+  manifests and this changelog - not from every push to `main`.
+
 ## 1.0.0 - 2026-11-24
 
 Works with archvow >=3.0,<4. Built on archvow 3.0.0 (contract 3.0: templates replace packs; every question has an

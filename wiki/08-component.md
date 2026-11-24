@@ -46,9 +46,10 @@ Accepter… pour un composant créé par l'IA (archvow 1.19, modes guided et fre
 `component accept` (`aiBadge()`, `createdByAi()`, `buildComponentHtml`, `aiAcceptButton`).
 
 **Les vues** : Décisions, Questions, Sécurité, Hypothèses, Règles, Exemples, Tâches, Spec, Autres / Projet.
-Chaque bouton dit `· n` éléments en attente, ou ✓ quand tout est traité (`refreshViewStatus`,
-`viewCounts()`). Sous les vues, une ligne explique pourquoi le total du composant peut dépasser la vue
-(« 9 en attente · 0 dans Données et tâches · 4 dans Autres / Projet »).
+Chaque bouton dit `· n` éléments à décider, ou ✓ quand tout est traité (`refreshViewStatus`,
+`viewCounts()`) ; Tâches dit `· n à construire` (1.1.0 : une tâche est du travail pour l'IA ou un développeur,
+jamais comptée en attente, jamais orange - `toBuildByComponent`). Sous les vues, une ligne dit ce qui est à décider
+ici (« 9 à décider pour orders_reader · 4 dans Autres / Projet »).
 
 ## Les cartes et le panneau de réponse
 
@@ -112,9 +113,34 @@ Sous une décision sur des colonnes (nullable, données personnelles, type), un 
 colonne connue, Jamais nul / Nullable / Inconnu et Oui / Non / Inconnu en boutons, des notes, et une corbeille
 par ligne (IntelliJ n'en avait pas) ; seul ce que la question demande est montré (une question de données
 personnelles n'a pas de colonne Nullable). Sous une question `nom: type = défaut` (config, settings), le tableau
-des paramètres (`smartParameters()`, `ArchvowColumnAnswerPanel` en mode `PARAMETERS`) : paramètre, type, défaut
-(vide = obligatoire), notes ; il relit une réponse déjà écrite ainsi, pas une phrase. Rien n'est enregistré :
-**Utiliser cette réponse** remplit le champ, à relire avant d'enregistrer.
+des paramètres (`smartParameters()`, `ArchvowColumnAnswerPanel` en mode `PARAMETERS`) : paramètre, type,
+**Obligatoire** (une case : cochée, le défaut est « — »), défaut, notes ; une ligne sans l'un ni l'autre est marquée
+et laissée de côté ; il relit une réponse déjà écrite ainsi, pas une phrase. Rien n'est enregistré : 1.1.0, le
+tableau écrit le champ de réponse au fil des modifications (un seul texte, plus d'aperçu ni de « Utiliser cette
+réponse ») ; dès que le champ est modifié à la main, le tableau ne l'écrase plus et propose **La réécrire depuis le
+tableau**. Le champ d'une décision commence par sa suggestion : **Revenir à la suggestion** n'apparaît que si le
+texte en diffère.
+
+## Les parcours (1.1.0)
+
+**Spécifier** parcourt une liste, comme `archvow specify` dans un terminal : les fondations (premières étapes,
+étape 1), une fonctionnalité (sa page, l'étape 3, clic droit) ou un composant puis le reste de sa fonctionnalité.
+Ordre : l'ordre de construction d'archvow (les lignes de `next`) ; seulement les composants qui ont quelque chose
+d'ouvert. Quand le dernier élément d'un composant est enregistré, une bande en haut de sa page (plus de fenêtre
+modale) : « ✓ config spécifié · Suivant : logging_setup · 1 décision **Spécifier le suivant ▸** · Arrêter » ; à la
+fin, « ✓ Les fondations sont spécifiées » ou « ✓ orders : chaque décision est prise · Prêts à construire : …
+**Construire ▸** ». **Construire** parcourt les composants prêts de la fonctionnalité : 1 le code (**Copier le
+prompt IA**), 2 **Vérifier** (son résultat pour ce composant), 3 **Construire le suivant ▸** une fois vérifié ; il
+s'arrête quand `next` dit la merge request pleine. Les deux ne lisent que `workspace --json` (`walks.ts`,
+`ArchvowWalks` ; les mêmes réponses sur `contract/walks/expected.json`, `WalksRegression`) ; la bande est
+`walkStrip()` / `ArchvowWalkStrip`. Le **Copier le prompt IA** d'une fonctionnalité suit l'état (`promptState`) :
+« Copier le prompt IA · construire X » quand un composant est prêt (il lance Construire), **Spécifier** d'abord en
+mode strict quand rien n'est prêt (le bouton attend, une ligne dit pourquoi), « Copier le prompt IA · X » en mode
+guided ou free (l'IA propose d'abord).
+
+**Clic droit** : un composant, une fonctionnalité, une couche, une ligne de décision, question ou sécurité, une
+tâche, un fichier de « Où il est » - chaque menu reprend les boutons de sa ligne, jamais une action qu'on ne
+trouverait que là (`componentMenu()` / `contextMenu()`, `componentMenu`, `featureMenu`, `installItemMenus`).
 
 ## D'où vient un élément, et ce que l'IA a ajouté (0.16.0)
 
@@ -207,6 +233,6 @@ confirmation laissée ouverte : on ne confirme jamais une action préparée pour
 | Vue | Ce qu'elle montre | Actions |
 |---|---|---|
 | Règles | les règles qui s'appliquent au composant (R1, R2...) et leur portée | Ajouter, Modifier, Supprimer une règle (formulaires) |
-| Tâches | les colonnes à classer et les tâches de la fiche ; données personnelles | Classer la colonne (`column set`), les instructions d'une tâche (`prompt <c> --task n`, `ArchvowTaskPrompt`, `promptCommand()`) |
-| Spec | la tâche que l'IA implémente (`archvow prompt <composant>`, contrat 2.0 : plus de `spec.md`) ou le vow dont elle est écrite (coloré), un sélecteur entre les deux, en lecture seule (0.14.0 : une vue au lieu d'Ouvrir la spec et Full vow ; `vowView()`, `specPanel()`) | Ouvrir dans l'éditeur, Vow du projet |
+| Tâches | une liste : les tâches à construire (bleu) et les colonnes à classer ; données personnelles | Copier la tâche (`prompt <c> --task n` dans le presse-papiers, `ArchvowTaskPrompt`, `promptCommand()`), Ouvrir le code, Classer la colonne (`column set`) |
+| Spec | la tâche que l'IA implémente (`archvow prompt <composant>`, contrat 2.0 : plus de `spec.md`) ou le vow dont elle est écrite (coloré), un sélecteur entre les deux, en lecture seule (0.14.0 : une vue au lieu d'Ouvrir la spec et Full vow ; `vowView()`, `specPanel()`) | Copier (la tâche) ou Ouvrir dans l'éditeur (le vow), Vow du projet ; **Où il est** à droite (1.1.0, au-dessus du texte quand c'est étroit), ses fichiers s'ouvrent d'un clic |
 | Autres / Projet | les contrôles et éléments de tout le projet, ou sans composant prouvé | l'action de chaque élément ; une correction n'est tirée d'un message que si elle est documentée (`ArchvowIssueAction`, `issueFix()`), jamais exécutée telle quelle |

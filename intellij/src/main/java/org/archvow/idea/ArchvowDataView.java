@@ -96,21 +96,11 @@ final class ArchvowDataView {
 
         try {
             List<Item> items = items(component);
-            long outstanding = items.stream().filter(Item::pending).count();
-            append(document, french ? "Données et tâches\n" : "Data & tasks\n", header);
-            append(document, (french ? "Actions en attente : " : "Pending actions: ") + outstanding + "\n", outstanding > 0 ? warning : success);
-            if (outstanding == 0) {
-                append(document, french ? "Aucune action en attente dans cette vue.\n" : "No pending actions in this view.\n", sub);
-            } else {
-                for (Item item : items) {
-                    if (!item.pending()) continue;
-                    String kind = item.kind() == Kind.COLUMN ? (french ? "Colonne" : "Column") : (french ? "Tâche" : "Task");
-                    append(document, "  ● " + kind + " : " + item.title() + "\n", warning);
-                    if (!item.detail().isBlank()) append(document, "     " + localizedDetail(item, french) + "\n", sub);
-                }
-            }
-
-            append(document, "\n" + (french ? "Colonnes et classifications" : "Columns and classifications") + "\n", section);
+            // 1.1.0: the tasks are listed once, above (the list with Copy task prompt): here only the columns and
+            // the personal data - no second "Data & tasks / Pending actions" listing of the same tasks
+            long columnsOpen = items.stream().filter(i -> i.kind() == Kind.COLUMN && i.pending()).count();
+            append(document, (french ? "Colonnes et classifications" : "Columns and classifications")
+                + (columnsOpen > 0 ? (french ? " · " + columnsOpen + " à classer" : " · " + columnsOpen + " to classify") : "") + "\n", section);
             boolean columns = false;
             for (Item item : items) {
                 if (item.kind() != Kind.COLUMN) continue;
@@ -119,16 +109,6 @@ final class ArchvowDataView {
                     item.pending() ? warning : success);
             }
             if (!columns) append(document, french ? "Aucune colonne déclarée.\n" : "No columns declared.\n", sub);
-
-            append(document, "\n" + (french ? "Tâches" : "Tasks") + "\n", section);
-            boolean tasks = false;
-            for (Item item : items) {
-                if (item.kind() != Kind.TASK) continue;
-                tasks = true;
-                append(document, "  " + (item.pending() ? "● " : "✓ ") + item.title() + "\n", item.pending() ? warning : success);
-                if (!item.detail().isBlank()) append(document, "    " + item.detail() + "\n", plain);
-            }
-            if (!tasks) append(document, french ? "Aucune tâche pour ce composant.\n" : "No tasks for this component.\n", sub);
 
             append(document, "\n" + (french ? "Données personnelles" : "Personal data") + "\n", section);
             JsonElement personal = component == null ? null : component.get("personal");

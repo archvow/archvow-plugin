@@ -167,6 +167,9 @@ export interface Work {
   otherResolved: WorkItem[];
   pendingByComponent: Record<string, number>;
   resolvedByComponent: Record<string, number>;
+  /** 1.1.0: the tasks still to build per component - work for the AI or a developer, never what a person decides
+   *  (not in pending, not in the badge): the Tasks view and the tree's tooltip. */
+  toBuildByComponent: Record<string, number>;
 }
 
 const short = (text: string, n: number): string => (text.length <= n ? text : text.substring(0, n - 1) + '…');
@@ -212,7 +215,7 @@ export function viewForItem(item: WorkItem): number {
  */
 export function buildWork(spec: Json | null, check: Json | null, checkFailure: string,
   snapshots: Record<string, Json>, fr: boolean, rules = '', commands: Command[] = []): Work {
-  const work: Work = { pending: [], resolved: [], otherPending: [], otherResolved: [], pendingByComponent: {}, resolvedByComponent: {} };
+  const work: Work = { pending: [], resolved: [], otherPending: [], otherResolved: [], pendingByComponent: {}, resolvedByComponent: {}, toBuildByComponent: {} };
   const keys = new Set<string>();
   const add = (item: WorkItem): void => {
     const key = [item.pending, item.command, item.component, JSON.stringify(item.preset), item.title, item.detail].join('|');
@@ -339,6 +342,10 @@ export function buildWork(spec: Json | null, check: Json | null, checkFailure: s
     }
     for (const item of dataItems(data)) {
       if (item.kind !== 'TASK') continue;
+      if (item.pending) {  // 1.1.0: to build, not to decide
+        work.toBuildByComponent[id] = (work.toBuildByComponent[id] ?? 0) + 1;
+        continue;
+      }
       add({ kind: item.pending ? 'SUGGESTION' : 'RESOLVED', title: `${id} · ${item.id} ${short(item.title, 60)}`,
         detail: item.title + (item.detail ? '\n' + item.detail : ''), component: id, pending: item.pending,
         action: item.pending ? tr(fr, 'View task prompt', 'Voir la tâche') : open,

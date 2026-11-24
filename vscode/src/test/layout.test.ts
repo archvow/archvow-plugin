@@ -135,10 +135,10 @@ test('the items as cards on the left, the selected one answered on the right (0.
   const rows = view.decisions.slice(0, 2).concat([{ number: 3, question: 'Header row missing: infer the columns or fail?', answer: null }]);
   const html = cards('decision', rows, (r: { number: number }) => 'D' + r.number, (r: Record<string, string>) => ({
     number: String(r.number), title: r.question, open: !r.answer, answer: r.answer || '', by: r.answer ? `${r.by} · ${r.on}` : '' }));
-  assert.match(html, /<li class="item-card  done" data-a="sel" data-kind="decision" data-key="D1">/);
+  assert.match(html, /<li class="item-card  done" data-a="sel" data-kind="decision" data-key="D1" data-menu="decision" data-text="[^"]*" data-number="1">/);  // 1.1.0: its right-click menu
   assert.match(html, /<div class="card-a" title="Fail with a clear error: a missing input is an operations problem">Fail with a clear error: a missing input is an operations problem<\/div>/);
   assert.match(html, /<div class="card-by muted">architect@example\.com · 2026-11-11<\/div>/);
-  assert.match(html, /<li class="item-card selected open" data-a="sel" data-kind="decision" data-key="D3">/);
+  assert.match(html, /<li class="item-card selected open" data-a="sel" data-kind="decision" data-key="D3" data-menu="decision" data-text="Header row missing: infer the columns or fail\?" data-number="3">/);
   assert.match(html, /<div class="card-open">● Open<\/div>/);
   // the four views whose items are answered are split; the answer heading says what is answered
   assert.equal(page.match(/return split\(left, rows\.length \? right : ''\);/g)?.length, 4);

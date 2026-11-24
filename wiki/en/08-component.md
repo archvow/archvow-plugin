@@ -46,9 +46,10 @@ review** in the tree and its head until a person runs `component accept` (`aiBad
 `buildComponentHtml`, `aiAcceptButton`).
 
 **The views**: Decisions, Questions, Safety, Assumptions, Rules, Examples, Tasks, Spec, Other / Project.
-Each button says `· n` pending items, or ✓ when everything is resolved (`refreshViewStatus`,
-`viewCounts()`). Under the views, a line explains why the component's total may exceed the view
-("9 pending · 0 in Data & tasks · 4 in Other / Project").
+Each button says `· n` items to decide, or ✓ when everything is resolved (`refreshViewStatus`,
+`viewCounts()`); Tasks says `· n to build` (1.1.0: a task is work for the AI or a developer, never counted as
+pending, never amber - `toBuildByComponent`). Under the views, a line says what is to decide here ("9 to decide for
+orders_reader · 4 in Other / Project").
 
 ## The cards and the answer panel
 
@@ -110,9 +111,30 @@ Under a decision about columns (nullable, personal data, type), an optional tabl
 Never null / Nullable / Unknown and Yes / No / Unknown as buttons, notes, and a bin on every row (IntelliJ had
 none); only what the question asks about is shown (a personal-data question has no Nullable column). Under a
 `name: type = default` question (config, settings), the parameters table (`smartParameters()`,
-`ArchvowColumnAnswerPanel` in `PARAMETERS` mode): parameter, type, default (empty = required), notes; it reads
-back an answer written that way, not a sentence. Nothing is saved: **Use this answer** fills the field, to read
-before saving.
+`ArchvowColumnAnswerPanel` in `PARAMETERS` mode): parameter, type, **Required** (a box: ticked, the default is
+"—"), default, notes; a row with neither is marked and left out; it reads back an answer written that way, not a
+sentence. Nothing is saved: 1.1.0, the table writes the answer field as you edit (one text, no preview, no "Use this
+answer"); once the field is typed in by hand, the table stops writing over it and offers **Write it from the table
+again**. A decision's field starts with its suggestion: **Back to the suggestion** shows only once the text differs.
+
+## The walks (1.1.0)
+
+**Specify** walks a list, as `archvow specify` does in a terminal: the foundations (First steps, step 1), a feature
+(its page, step 3, right-click) or a component and the rest of its feature. Order: archvow's build order (the `next`
+rows); only the components with something open. When a component's last item is saved, a strip at the top of its
+page (no modal): "✓ config specified · Next: logging_setup · 1 decision **Specify next ▸** · Stop"; at the end,
+"✓ The foundations are specified" or "✓ orders: every decision is made · Ready to build: … **Build ▸**".
+**Build** walks the feature's ready components: 1 the code (**Copy AI prompt**), 2 **Check** (its result for this
+component), 3 **Build next ▸** once verified; it stops when `next` says the merge request is full. Both read only
+`workspace --json` (`walks.ts`, `ArchvowWalks`; the same answers on `contract/walks/expected.json`,
+`WalksRegression`); the strip is `walkStrip()` / `ArchvowWalkStrip`. A feature's **Copy AI prompt** follows the
+state (`promptState`): "Copy AI prompt · build X" when a component is ready (it starts Build), **Specify** first in
+strict mode when nothing is ready (the button waits, a line says why), "Copy AI prompt · X" in guided or free mode
+(the AI proposes first).
+
+**Right-click**: a component, a feature, a layer, a decision, question or safety row, a task, a file of "Where it
+is" - each menu holds the buttons of its row, never an action found only there (`componentMenu()` / `contextMenu()`,
+`componentMenu`, `featureMenu`, `installItemMenus`).
 
 ## Where an item came from, and what the AI added (0.16.0)
 
@@ -202,6 +224,6 @@ confirmation left open: you never confirm an action prepared for something else.
 | View | What it shows | Actions |
 |---|---|---|
 | Rules | the rules that apply to the component (R1, R2...) and their scope | Add, Edit, Remove a rule (forms) |
-| Tasks | the columns to classify and the card's tasks; personal data | Classify column (`column set`), a task's instructions (`prompt <c> --task n`, `ArchvowTaskPrompt`, `promptCommand()`) |
-| Spec | the task the AI implements (`archvow prompt <component>`, contract 2.0: no `spec.md` any more) or the vow it is written from (highlighted), a switch between them, read only (0.14.0: one view instead of Open spec and Full vow; `vowView()`, `specPanel()`) | Open in the editor, Project vow |
+| Tasks | one list: the tasks to build (blue) and the columns to classify; personal data | Copy task prompt (`prompt <c> --task n` into the clipboard, `ArchvowTaskPrompt`, `promptCommand()`), Open code, Classify column (`column set`) |
+| Spec | the task the AI implements (`archvow prompt <component>`, contract 2.0: no `spec.md` any more) or the vow it is written from (highlighted), a switch between them, read only (0.14.0: one view instead of Open spec and Full vow; `vowView()`, `specPanel()`) | Copy (the task) or Open in the editor (the vow), Project vow; **Where it is** on the right (1.1.0, above the text when narrow), its files open on a click |
 | Other / Project | the checks and items of the whole project, or without a proven component | each item's action; a fix is drawn from a message only when it is documented (`ArchvowIssueAction`, `issueFix()`), never run as it is |

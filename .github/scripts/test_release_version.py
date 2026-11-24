@@ -1,7 +1,6 @@
-"""Regression checks for beta/stable Marketplace version allocation (offline)."""
+"""The release a tag names (1.1.0): its version and channel, refused unless every release file says the same version."""
 import importlib.util
 import json
-import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -12,85 +11,42 @@ release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
 
 
-class ReleaseVersionTests(unittest.TestCase):
+class ReleaseTagTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        def git(*args):
-            return subprocess.check_output(['git', *args], cwd=self.root, text=True).strip()
-        self.git = git
-        git('init', '-q', '-b', 'main')
-        git('config', 'user.email', 'ci@example.invalid')
-        git('config', 'user.name', 'ArchVow CI')
-        (self.root / 'anchor').write_text('archvow 0.19.0\n')
-        self.choose('0.19.0')
-        git('add', 'anchor', 'vscode/package.json')
-        git('commit', '-qm', 'version anchor')
-        release.BASE_COMMIT = git('rev-parse', 'HEAD')
-        git('commit', '--allow-empty', '-qm', 'release 0.19.1')
+        self.set_version('1.1.0')
 
-    def choose(self, version):
-        """The version people set: vscode/package.json."""
-        (self.root / 'vscode').mkdir(exist_ok=True)
-        (self.root / 'vscode/package.json').write_text('{\n  "version": "%s",\n  "name": "archvow"\n}\n' % version)
+    def set_version(self, version, changelog=None):
+        for folder in ('vscode', 'intellij'):
+            (self.root / folder).mkdir(exist_ok=True)
+            (self.root / folder / 'CHANGELOG.md').write_text(f'# Changelog\n\n## {changelog or version} - 2026-11-24\n\n- what changed\n')
+        (self.root / 'vscode/package.json').write_text(json.dumps({'name': 'archvow', 'version': version}, indent=2))
+        (self.root / 'intellij/gradle.properties').write_text(f'# the plugin\'s own version\npluginVersion={version}\n')
 
-    def test_major_minor_is_the_one_people_chose(self):
-        # 0.25.2 set by hand: CI publishes 0.25.x above it, never 0.19.x below it
-        for _ in range(18):
-            self.git('commit', '--allow-empty', '-qm', 'work')
-        self.choose('0.25.2')
-        self.git('commit', '-qam', '0.25.2')
-        self.assertEqual(release.release_version('stable', self.root), '0.25.39')
-        self.assertEqual(release.release_version('beta', self.root), '0.25.40')
-        self.choose('0.25.90')  # a patch above what the history gives: refused, never published backwards
-        with self.assertRaises(SystemExit):
-            release.release_version('stable', self.root)
+    def test_a_stable_tag_and_a_beta_tag(self):
+        self.assertEqual(release.check_tag('v1.1.0', self.root), ('1.1.0', 'stable'))
+        self.set_version('1.2.0')
+        self.assertEqual(release.check_tag('v1.2.0-beta', self.root), ('1.2.0', 'beta'))
 
-    def test_distinct_versions(self):
-        self.assertEqual(release.release_version('stable', self.root), '0.19.1')
-        self.assertEqual(release.release_version('beta', self.root), '0.19.2')
-        with self.assertRaises(SystemExit):
-            release.release_version('candidate', self.root)
+    def test_a_tag_that_is_not_a_release_is_refused(self):
+        for tag in ('1.1.0', 'v1.1', 'v1.1.0-rc1', 'release-1.1.0', 'v1.1.0-beta.2'):
+            with self.assertRaises(SystemExit, msg=tag):
+                release.check_tag(tag, self.root)
 
-    def test_beta_merge_advances_stable(self):
-        self.git('switch', '-q', '-c', 'beta')
-        self.git('commit', '--allow-empty', '-qm', 'candidate A')
-        v1 = release.release_version('beta', self.root)
-        self.git('commit', '--allow-empty', '-qm', 'candidate B')
-        v2 = release.release_version('beta', self.root)
-        self.assertEqual((v1, v2), ('0.19.4', '0.19.6'))
-        self.git('switch', '-q', 'main')
-        self.git('merge', '--no-ff', '-qm', 'promote beta', 'beta')
-        stable = release.release_version('stable', self.root)
-        self.assertEqual(stable, '0.19.7')
-        self.assertGreater(tuple(map(int, stable.split('.'))),
-                           tuple(map(int, v2.split('.'))))
+    def test_a_tag_and_files_that_disagree_publish_nothing(self):
+        with self.assertRaises(SystemExit) as refused:
+            release.check_tag('v1.1.1', self.root)
+        self.assertIn('vscode/package.json says 1.1.0', str(refused.exception))
+        self.set_version('1.1.1', changelog='1.1.0')  # the manifests moved, the changelogs did not
+        with self.assertRaises(SystemExit) as refused:
+            release.check_tag('v1.1.1', self.root)
+        self.assertIn('vscode/CHANGELOG.md says 1.1.0', str(refused.exception))
 
-    def test_apply_versions_for_beta_without_suffix(self):
-        for d in ['vscode', 'intellij', 'contract/cli']:
-            (self.root / d).mkdir(parents=True, exist_ok=True)
-        (self.root / 'vscode/package-lock.json').write_text(
-            '{\n  "version": "0.19.1",\n  "packages": {\n    "": {\n      "version": "0.19.1",\n      "dummy": true\n    }\n  }\n}\n')
-        (self.root / 'vscode/package.json').write_text(
-            '{\n  "version": "0.19.1",\n  "name": "archvow"\n}\n')
-        (self.root / 'intellij/gradle.properties').write_text('pluginVersion=0.19.1\n')
-        (self.root / 'README.md').write_text(
-            'Both plugins have the same version (0.19.1)\n'
-            'dist/archvow-intellij-0.19.1.zip, dist/archvow-0.19.1.vsix\n')
-        (self.root / 'contract/cli/version.txt').write_text('archvow 1.22.0\n')
-        for d in ['vscode', 'intellij']:
-            (self.root / d / 'CHANGELOG.md').write_text(
-                '## 0.19.1 - 2026-11-09\n\nBuilt on archvow 1.22.\n')
-        release.apply_version('0.19.4', self.root, 'beta')
-        self.assertEqual(json.loads((self.root / 'vscode/package.json').read_text())['version'], '0.19.4')
-        self.assertIn('pluginVersion=0.19.4', (self.root / 'intellij/gradle.properties').read_text())
-        for d in ['vscode', 'intellij']:
-            changes = (self.root / d / 'CHANGELOG.md').read_text()
-            self.assertTrue(changes.startswith('## 0.19.4'))
-            self.assertIn('Marketplace beta release', changes)
-        with self.assertRaises(SystemExit):
-            release.apply_version('0.19.4-beta', self.root, 'beta')
+    def test_this_repository_says_one_version(self):
+        said = release.versions_said()
+        self.assertEqual(len(set(said.values())), 1, said)
 
 
 if __name__ == '__main__':

@@ -70,7 +70,7 @@ decides. Write no code and run none of the commands below.
 2. Answer with one shell block of the commands you propose, in order: an
    `archvow feature add <feature> -d "<what the product does there>"` when the feature is new (one word for
    what the product does - orders, invoices - never a ticket), then an
-   `archvow component add <type> <name> -d "<what it must do>" --feature <feature> -s <ticket> -u <components it uses>` for
+   `archvow component add <type> <name> -d "<what it must do>" --feature <feature> --ticket <ticket> -u <components it uses>` for
    each new component (reuse the existing ones, of any feature), then an
    `archvow rule add <component>[,<component>...] "Given <situation>, when <action>, then <result>"`
    for each rule the feature states (`--type <type>` or `--all` when it applies to every component
@@ -97,7 +97,7 @@ When asked to draft the spec from a brief (a Markdown or text file in a briefs f
 5. A section that gives an example (these rows or this document in, this result out): list it, and give
    the command a person runs once they have copied it into `tests/examples/<component>/<example>/input/`
    and `expected/` (CSV for rows, JSON or YAML for a document, text otherwise):
-   `archvow example add <component> <example> -s <ticket> --from <brief>#<section>`. Never write those
+   `archvow example add <component> <example> --ticket <ticket> --from <brief>#<section>`. Never write those
    files yourself: the expected result is the business team's.
 Each item then says where it came from; `archvow check` warns when that section changes (ARCH039).
 
@@ -156,7 +156,7 @@ apply in every case, with or without a skill.
    answer, put it in the command (`archvow decision make clean_sales 3 "rows without sale_id are
    dropped"`) and give all the commands in one block, to check and run; ask only what nothing says.
 3. Any other gap is recorded the same way - never only a question in the chat: write nothing and
-   give the archvow command that records it. Missing columns or fields: `archvow component add schema <name> -d "<its columns>" -s <ticket>`, then `archvow component edit <component> -u <name>_schema`;
+   give the archvow command that records it. Missing columns or fields: `archvow component add schema <name> -d "<its columns>" --ticket <ticket>`, then `archvow component edit <component> -u <name>_schema`;
    a wrong description: `archvow component edit <component> -d "..."`; anything else: run
    `archvow question add <component> "<question>"` yourself.
    A change you are asked for that contradicts a decision or a rule of the task is a gap too: write
