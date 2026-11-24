@@ -282,7 +282,10 @@ final class ArchvowInitQuestions extends JPanel {
             JPanel block = new JPanel(new BorderLayout(0, 3));
             JComponent field;
             boolean multi = question.has("multiple") && question.get("multiple").getAsBoolean();
-            if (multi && !choices.isEmpty()) {
+            if (ArchvowAgentPicker.names(question)) {
+                // AI assistants (0.26.1): picked from those archvow knows, or any other by name
+                field = new ArchvowAgentPicker(ArchvowAgentPicker.suggestions(question), def, french);
+            } else if (multi && !choices.isEmpty()) {
                 JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
                 LinkedHashSet<String> defaults = new LinkedHashSet<>(List.of(def.split(",")));
                 for (String choice : choices) {
@@ -307,7 +310,8 @@ final class ArchvowInitQuestions extends JPanel {
                     @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { answerChanged(id); }
                     @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { answerChanged(id); }
                 });
-            } else if (field instanceof JComboBox<?> box) box.addActionListener(e -> answerChanged(id));
+            } else if (field instanceof ArchvowAgentPicker picker) picker.onChange(() -> answerChanged(id));
+            else if (field instanceof JComboBox<?> box) box.addActionListener(e -> answerChanged(id));
             else if (field instanceof JPanel chips) for (java.awt.Component x : chips.getComponents())
                 if (x instanceof JCheckBox cb) cb.addItemListener(e -> answerChanged(id));
             block.add(field, BorderLayout.NORTH);
@@ -463,7 +467,9 @@ final class ArchvowInitQuestions extends JPanel {
         for (Map.Entry<String, JComponent> entry : inputs.entrySet()) {
             JComponent field = entry.getValue();
             String value;
-            if (field instanceof JComboBox<?> combo) {
+            if (field instanceof ArchvowAgentPicker picker) {
+                value = picker.value();
+            } else if (field instanceof JComboBox<?> combo) {
                 value = combo.getSelectedItem() == null ? "" : combo.getSelectedItem().toString();
             } else if (field instanceof JTextField free) {
                 value = free.getText().trim();

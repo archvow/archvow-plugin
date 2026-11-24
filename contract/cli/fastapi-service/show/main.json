@@ -1,5 +1,5 @@
 {
-  "contract": "2.4",
+  "contract": "2.5",
   "component": "main",
   "type": "app",
   "layer": "p4_api",

@@ -14,7 +14,7 @@ Gradle les lance avec `JavaExec` (`intellij/build.gradle.kts`). La tâche `test`
 | Tâche | Classe | Ce qu'elle vérifie |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | le lecteur `.vow` sur chaque vow de `contract/vows` : le scanner couvre tout le texte, redémarre à n'importe quel jeton, une couleur par profondeur ; des vows cassés exprès donnent les bons problèmes |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 62 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), en `java.awt.headless=true` | les 70 classes de régression : tout ce qui ne demande pas un IntelliJ qui tourne |
 | `contractDump` (pas dans `check`) | `DumpContract` | écrit `contract/vow-reader/expected.json`, la référence du lecteur TypeScript |
 
 Le panneau lui-même (`ArchvowPanel`) a besoin d'un IntelliJ qui tourne ; c'est pourquoi **la logique
@@ -28,6 +28,14 @@ nom de ce qu'elle protège :
 | `ArchitectureViewRegression` | Composant, État, En attente toujours visibles à toute largeur |
 | `CommandPrefillRegression`, `InlineCommandRegression`, `LaunchCommandRegression` | ce qu'un formulaire reçoit, la ligne de commande exacte |
 | `TrustRegression` | rien ne tourne dans un projet non approuvé (mode sans échec, 0.26.1) : chaque processus archvow, Test et Installer demande `ArchvowTrust` d'abord ; `-P` sur chaque ligne de commande Python |
+| `TryItRegression` | « L'essayer » montre son résultat (0.26.1) : la page d'accueil défile, et la zone du résultat garde ses 260 px dans une fenêtre étroite, basse ou large (22 px avant : le GridBagLayout donnait à chaque partie sa taille minimale) |
+| `FindArchvowRegression` | Où archvow est cherché : un Python choisi dans les réglages d'abord (0.26.1), puis l'interpréteur de l'IDE, le .venv du dossier, l'exécutable, puis ce qui existe d'autre ; `init --dir` tourne dans ce dossier |
+| `PythonsRegression` | Les Python de Settings > Tools > Archvow (0.26.1) : où ils sont cherchés, chacun une fois (un venv reste le sien), la sonde relue, ceux qui ont archvow d'abord, chaque ligne dans une langue |
+| `SettingsTextRegression` | Une langue à la fois (0.26.1) : chaque texte de Settings > Tools > Archvow dans une langue, et aucun texte du plugin ne met l'anglais et le français côte à côte |
+| `InitTargetRegression` | Après init (0.26.1) : un autre dossier (`--dir`) s'ouvre comme projet de l'IDE ; PyCharm Home (PyCharmMiscProject) n'est jamais initialisé lui-même, le dossier d'un nouveau projet suit son paquet |
+| `AgentPickerRegression` | Les assistants IA d'init (0.26.1) : choisis parmi les agents qu'archvow connaît, tout autre ajouté par son nom (la règle d'archvow), `none` seul, chaque changement celui du formulaire |
+| `PastedErrorRegression` | Une erreur collée dans Chercher (archvow 2.7.0) : montrée comme une erreur depuis la vraie sortie d'archvow - erreurs connues avec correction et raison, où ça a cassé, boutons qui y vont - jamais comme une recherche introuvable |
+| `PlatformApiRegression` | Aucune API signalée par le Plugin Verifier (2024.3 à 2026.3 EAP) : les fichiers s'ouvrent par `OpenFileDescriptor.navigate` ; la vérification de confiance est la plus récente de la plateforme qui existe (2025.1 `isProjectTrusted`, sinon 2024.3 `isTrusted`), aucune ou une qui échoue veut dire non approuvé |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, les chemins `\\wsl.localhost\...` |
 | `TextDialogRegression` | la taille d'un dialogue, Copier la commande |
 | `TextSizeRegression` | aucun `px` ni `<h1>`-`<h6>` dans le HTML affiché, le conseil de branche sur plusieurs lignes |
@@ -37,7 +45,7 @@ nom de ce qu'elle protège :
 | `SkillFormRegression` | le formulaire de lancement d'un skill (`ArchvowSkillForm`) : la demande, Copier grisé sans brief, « Pas encore » ; Vue d'ensemble › Briefs (`ArchvowBriefs.statusHtml`) ; les étiquettes d'origine des cartes et le filtre Tout / Ouverts / À relire |
 | `LoadChainRegression` | le chargement du projet est un seul appel `workspace --json` (0.21.0), sans autre commande lancée dedans, et l'ancienne chaîne de six commandes a disparu : ArchvowCli refuse une commande lancée à côté d'une autre (0.16.0 : plus de compteurs) |
 | `WorkspaceAnswerRegression` | `WorkspaceAnswer` sur le `workspace.json` du contrat (0.21.0) : chaque partie égale ce qu'affichent seuls show, show <id>, next et check, briefs, catalogue et packs (0.22.0) présents ; `unchanged`, l'enveloppe d'erreur et une partie manquante bien distingués |
-| `FeatureViewRegression` | la page d'une fonctionnalité (`ArchvowFeatureView`, 0.24.0 ; lancée depuis 0.26.0) : en-tête, carte, composants par couche, ce qui est ouvert ; une fonctionnalité ajoutée par un agent IA dit qui l'a ajoutée et propose Accepter… (EN et FR) |
+| `FeatureViewRegression` | la page d'une fonctionnalité (`ArchvowFeatureView`, 0.24.0 ; lancée depuis 0.26.0) : en-tête, carte, composants par couche, ce qui est ouvert ; une fonctionnalité ajoutée par un agent IA dit qui l'a ajoutée et propose Accepter… (EN et FR) ; **Vérifier avant de coder** après Copier le prompt IA copie `prompt --feature <f> --clarify` (archvow 2.8.0) |
 | `PacksRegression` | la ligne Packs de la vue d'ensemble (0.22.0) : le compte des packs et de ceux modifiés à la main, la liste (ce que chacun apporte, sa source, ARCH060), ce qu'ouvre chaque lien (`pack update/remove/check`, son nom rempli ; `pack add`, `pack new`, `diff`), commandes qui existent dans la grammaire |
 | `RunLogRegression` | le journal de session (0.19.0), comme `runlog.test.ts` : une action en entier avec la réponse d'archvow, un rafraîchissement en une ligne, `check` qui sort avec 1 n'est pas un échec, un échec dit ce qu'archvow a dit, les appels lents marqués, le texte pour le support (mots d'une personne cachés), le composant qu'une action touche |
 | `ListFilterRegression` | la ligne sous les vues (`ArchvowListFilter`), une vue finie dit où est le travail, l'ouvert suivant après un enregistrement, les liens, les quatre actions calmes |

@@ -294,7 +294,7 @@ function catalog(out: Out, data: Json, fr: boolean): void {
   }
   templates.slice(0, 25).forEach((t) => out.card(str(t, 'name'), str(t, 'description'), 'blue', [
     [tr(fr, 'Version', 'Version'), str(t, 'version')],
-    [tr(fr, 'Language / Type', 'Langue / Type'), str(t, 'language') + ' · ' + str(t, 'kind')],
+    [tr(fr, 'Language · Type', 'Langue · Type'), str(t, 'language') + ' · ' + str(t, 'kind')],
     [tr(fr, 'Architecture', 'Architecture'), str(t, 'style')],
     [tr(fr, 'Component types', 'Types de composants'), isObject(t.component_types) ? Object.keys(t.component_types).join(', ') : ''],
     [tr(fr, 'Initialization questions', "Questions d'initialisation"), String(objects(t, 'questions').length)]]));

@@ -72,7 +72,8 @@ export function wslenv(previous: string | undefined): string {
   return names.join(':');
 }
 
-/** Where archvow is looked for, in order: VS Code's interpreter, archvow.python, the folder's .venv (0.25.2),
+/** Where archvow is looked for, in order: archvow.python (0.26.1: a Python the person chose comes first), VS Code's
+ *  interpreter, the folder's .venv (0.25.2),
  *  archvow.executable, then archvow where pip and pipx put it (0.25.2) - as IntelliJ's ArchvowProcessCommand. */
 export interface Candidate { source: 'ide' | 'python' | 'venv' | 'executable' | 'found'; executable: string; python: string }
 
@@ -81,8 +82,8 @@ export function candidates(settings: CliSettings, found: Candidate[] = []): Cand
   const ide = (settings.interpreter || '').trim();
   const python = settings.python.trim();
   const program = (c: Candidate): string => c.python || c.executable;
-  if (settings.useProjectInterpreter !== false && ide) out.push({ source: 'ide', executable: '', python: ide });
-  if (python && !out.some((c) => c.python === python)) out.push({ source: 'python', executable: '', python });
+  if (python) out.push({ source: 'python', executable: '', python });
+  if (settings.useProjectInterpreter !== false && ide && !out.some((c) => c.python === ide)) out.push({ source: 'ide', executable: '', python: ide });
   for (const c of found) if (c.source === 'venv' && !out.some((o) => program(o) === program(c))) out.push(c);
   out.push({ source: 'executable', executable: settings.executable.trim() || 'archvow', python: '' });
   for (const c of found) if (c.source !== 'venv' && !out.some((o) => program(o) === program(c))) out.push(c);
@@ -287,6 +288,11 @@ export class ArchvowCli {
   get program(): string {
     const c = this.chosen?.candidate;
     return c === undefined ? '' : c.python || c.executable;
+  }
+
+  /** Where that program was found (Candidate.source): shown on the welcome page (0.26.1). */
+  get source(): string {
+    return this.chosen?.candidate.source ?? '';
   }
 
   /** Whether a command runs or waits. */

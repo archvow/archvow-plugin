@@ -6,7 +6,7 @@
 
 ```bash
 git clone <dépôt archvow-plugin> && cd archvow-plugin
-python3 -m pip install archvow==2.6.1        # la CLI avec laquelle les plugins sont testés (archvow version)
+python3 -m pip install archvow==2.8.0        # la CLI avec laquelle les plugins sont testés (archvow version)
 
 # IntelliJ : un JDK 21 (celui d'IntelliJ convient)
 export JAVA_HOME="/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home"
@@ -50,7 +50,7 @@ sequenceDiagram
   participant CLI as ArchvowCli
   P->>NAV: clic sur clean_orders dans l'arbre
   NAV->>TAB: showComponent(project, "clean_orders")
-  TAB->>TAB: FileEditorManager.openFile(onglet, false) : ouvre ou retrouve L'onglet
+  TAB->>TAB: OpenFileDescriptor(onglet).navigate(false) : ouvre ou retrouve L'onglet
   TAB->>DET: panel.showComponent("clean_orders")
   DET->>DET: loadComponent : affiche l'instantané déjà lu (componentSnapshots)
   DET->>CLI: show clean_orders --json (en arrière-plan)

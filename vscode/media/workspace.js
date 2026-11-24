@@ -14,7 +14,9 @@
   let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {}, icons: {} };
   /** What the person chose on the page. */
   const ui = {
-    tab: 'overview', overSub: 'architecture', packsOpen: false, tryExample: 'pyspark-pipeline', forceWorkspace: false, filterMenu: false, projectMore: false,
+    /** What is typed in "another assistant" of each AI-assistant question (0.26.1), by kind and question. */
+    agentOther: {},
+    tab: 'overview', overSub: 'architecture', packsOpen: false, tryExample: 'pyspark-pipeline', reveal: '', forceWorkspace: false, filterMenu: false, projectMore: false,
     /** The editor tab: 'empty', 'feature', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
@@ -213,11 +215,13 @@
         break;
       case 'running':
         ui.results[m.target] = { running: true, args: m.args };
+        if (m.target === 'welcome') ui.reveal = 'welcome';  // Try it: its result shows under the cards, maybe below the fold
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; ui.back = null; }
         break;
       case 'result':
         ui.results[m.target] = { html: m.html, raw: m.raw, args: m.args, ok: m.ok, label: m.label, refusal: m.refusal || '', warnings: m.warnings || [] };
         ui.raw[m.target] = false;
+        if (m.target === 'welcome') ui.reveal = 'welcome';
         if (ui.confirm && ui.confirm.target === m.target) ui.confirm = null;
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; }
         break;
@@ -342,6 +346,7 @@
     const previousStepScroll = previousSteps ? previousSteps.scrollLeft : 0;
     app.innerHTML = page();
     layoutExpandedResult();
+    revealResult();
     if (!NAV) {
       const title = editorTitle();
       if (title !== ui.title) {
@@ -464,6 +469,19 @@
   /** The examples `archvow try` copies (2.1): value, label. */
   const TRY_EXAMPLES = [['pyspark-pipeline', 'PySpark pipeline'], ['fastapi-service', 'FastAPI service'], ['python-app', 'Python app'], ['langgraph-agent', 'LangGraph agent']];
 
+  /** Which archvow runs, and why (0.26.1): the first thing a developer needs to trust what the buttons do. */
+  function runsLine() {
+    const r = S.runs || {};
+    if (!r.program) return '';
+    const where = { python: t('the Python chosen for archvow (archvow.python)', 'le Python choisi pour archvow (archvow.python)'),
+      ide: t("the project's Python interpreter", "l'interpréteur Python du projet"), venv: t("the project's .venv", 'le .venv du projet'),
+      found: t('where pip or pipx installed it', "là où pip ou pipx l'a installé") }[r.source]
+      || t('the archvow executable (archvow.executable)', "l'exécutable archvow (archvow.executable)");
+    const what = r.version ? `archvow ${r.version}` : 'archvow';
+    return `<p class="small muted runs">${esc(t(`${what} with ${r.program} — ${where}. To choose another Python: Configure Python.`,
+      `${what} avec ${r.program} — ${where}. Pour choisir un autre Python : Configurer Python.`))}</p>`;
+  }
+
   function welcomeView() {
     const texts = {
       NO_PROJECT: [t('No project', 'Aucun projet'), t('Open a folder to use Archvow.', 'Ouvre un dossier pour utiliser Archvow.')],
@@ -482,6 +500,7 @@
     ${btn(t('Try it', "L'essayer"), 'tryExample', '', false, 'secondary')}</div></section>` : '';
     return `<section class="welcome"><h2>${esc(t('Archvow · Getting started', 'Archvow · Démarrage'))}</h2>
   <section class="card"><h3>${esc(title)}</h3><p>${esc(detail)}</p><p class="mono small muted">${esc(S.project.root)}</p>
+  ${runsLine()}
   ${S.welcomeError ? `<pre class="error">${esc(S.welcomeError)}</pre>` : ''}
   ${installCard()}
   <div class="row wrap">${btn(t('Initialize Archvow', 'Initialiser Archvow'), 'init', '', !fresh)}
@@ -493,6 +512,17 @@
   ${resultCard('welcome')}${tryFollowUp('welcome', fresh)}
   ${fresh ? `<p class="muted small">${esc(t('After Initialize, the Overview shows the first steps. Developers and reviewers who clone a project with archvow start from its README.',
     "Après Initialiser, la Vue d'ensemble montre les premiers pas. Les développeurs et relecteurs qui clonent un projet avec archvow partent de son README."))}</p>` : ''}</section>`;
+  }
+
+  /** Scroll a result that just started or arrived into view (0.26.1): Try it's result shows under the welcome cards,
+   *  below the fold of a sidebar or a short editor - it seemed that nothing happened. */
+  function revealResult() {
+    const target = ui.reveal;
+    ui.reveal = '';
+    if (!target) return;
+    const body = document.querySelector(`[data-body="${CSS.escape(target)}"]`);
+    const card = body && body.closest ? body.closest('.card.result') : null;
+    if (card && card.scrollIntoView) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   /** Under a `try` result (2.1): set archvow up here (only where it is not yet), or read the example's spec. */
@@ -533,7 +563,7 @@
   /** The sidebar's find field (0.18.0): a name - a function, a column, a ticket, an example - and Enter runs
    *  archvow show <name> --json; the result opens in the editor tab. */
   function findBox() {
-    const searchTitle = t('Find in the project (Enter to search)', 'Chercher dans le projet (Entrée pour chercher)');
+    const searchTitle = t('Find in the project - a name, or a pasted error (Enter to search)', 'Chercher dans le projet - un nom, ou une erreur collée (Entrée pour chercher)');
     const filterTitle = t('Filter components', 'Filtrer les composants');
     const filters = [['all', t('All', 'Tous')], ['pending', t('Pending', 'En attente')], ['resolved', t('Resolved', 'Traités')]];
     return `<div class="top-search" role="search"><div class="search-field">${icon('search') || '⌕'}<input id="find" aria-label="${esc(searchTitle)}" data-input="find" data-keep="find" value="${esc(ui.findText)}" placeholder="${esc(t('Search…', 'Rechercher…'))}" title="${esc(searchTitle)}"></div>
@@ -553,6 +583,7 @@
   /** archvow show <name> --json: groups left (with counts, a click filters), the places in the middle, the
    *  selected one's lines right; a name found nowhere gives its close names. As IntelliJ's search panel. */
   function searchView(result) {
+    if (result && typeof result.error === 'object' && result.error !== null) return pastedErrorView(result);
     if (!result) return `<p class="muted">${esc(t('Type a name in the find field of the Archvow sidebar.', 'Tape un nom dans le champ de recherche du panneau Archvow.'))}</p>`;
     const name = str(result, 'name');
     const total = Number(result.total) || 0;
@@ -589,6 +620,37 @@
     return `<div class="search-head"><h2 class="mono">${esc(name)}</h2><span class="muted">${esc(t(`found in ${total} place${total === 1 ? '' : 's'}`, `trouvé à ${total} endroit${total === 1 ? '' : 's'}`))}${str(result, 'summary') ? ' · ' + esc(str(result, 'summary')) : ''}</span>
   <p class="muted small">${esc(t(`archvow show ${name} --json · whole words only`, `archvow show ${name} --json · mots entiers seulement`))}</p></div>
   <div class="search-grid"><nav class="search-groups">${nav}</nav><ul class="search-hits" data-scroll="search-hits">${rows}</ul><aside class="search-preview">${preview}</aside></div>`;
+  }
+
+  /**
+   * A pasted error (archvow show "<the error>" --json, archvow 2.7.0): what went wrong, the template's known errors it
+   * matches - each pack rule with its fix and why - then where it broke, the lines around it, and where its lesson
+   * goes once it is fixed. As IntelliJ's ArchvowSearch.errorHtml.
+   */
+  function pastedErrorView(result) {
+    const error = result.error;
+    const known = list(error, 'known');
+    const file = str(result, 'file');
+    const line = Number(result.line) || 0;
+    const component = str(result, 'component');
+    const symbol = result.symbol && typeof result.symbol === 'object' ? str(result.symbol, 'name') : '';
+    const around = Array.isArray(result.around) ? result.around : [];
+    const rules = known.map((k) => `<div class="alert ${str(k, 'severity') === 'warning' ? 'warn' : 'bad'}"><b>${esc(str(k, 'code'))}</b> ${esc(str(k, 'message'))}
+  <span class="muted small">${esc(t("(a known error: a rule of the template's pack)", '(une erreur connue : une règle du pack du template)'))}</span>
+  ${str(k, 'fix') ? `<div>${esc(t('Fix: ', 'Correction : '))}${esc(str(k, 'fix'))}</div>` : ''}${str(k, 'why') ? `<div class="muted">${esc(t('Why: ', 'Pourquoi : '))}${esc(str(k, 'why'))}</div>` : ''}</div>`).join('');
+    const where = !file
+      ? `<p class="muted">${esc(t('No file of this project in it: once you know where it broke, archvow show <file>:<line>.', "Aucun fichier de ce projet dedans : quand tu sais où ça a cassé, archvow show <fichier>:<ligne>."))}</p>`
+      : `<h3>${esc(t('Where it broke', 'Où ça a cassé'))}</h3><p class="mono small hit-where">${esc(file + (line ? ':' + line : ''))}</p>
+  <p>${esc(component ? t(`code of ${component}`, `code de ${component}`) + (symbol ? t(`, inside ${symbol}`, `, dans ${symbol}`) : '') : str(result, 'hint'))}</p>
+  ${around.length ? `<pre class="plain around">${around.map((l) => `<span class="${Number(l.n) === line ? 'here' : ''}">${esc(String(l.n).padStart(4))}  ${esc(str(l, 'text'))}</span>`).join('\n')}</pre>` : ''}
+  <div class="row wrap">${btn(line ? t(`Open at line ${line}`, `Ouvrir à la ligne ${line}`) : t('Open', 'Ouvrir'), 'openFile', attrs({ file, line }))}
+  ${component ? btn(t(`Show ${component}`, `Afficher ${component}`), 'pick', attrs({ id: component }), false, 'secondary') : ''}</div>`;
+    return `<div class="card pasted-error"><div class="answer-head"><span>${esc(t('Error', 'Erreur'))}</span></div>
+  <h2 class="mono">${esc(str(error, 'error'))}</h2>
+  ${rules || `<p class="muted">${esc(t("Not a known error of this project's template.", 'Pas une erreur connue du template de ce projet.'))}</p>`}
+  ${where}
+  <p class="muted small">${esc(t('Fixed? Record the lesson where it reaches: the component\'s decision or rule, a pack rule with this error (--error), or the template\'s troubleshooting page. The AI says which at the end of "Fix a bug".',
+    "Corrigé ? Enregistre la leçon où elle porte : la décision ou la règle du composant, une règle de pack avec cette erreur (--error), ou la page de dépannage du template. L'IA le dit à la fin de « Corrige un bug »."))}</p></div>`;
   }
 
   // ---------------------------------------------------------------- shared: result card, confirmation
@@ -1062,6 +1124,7 @@
       btn(t('Add component', 'Ajouter un composant'), 'addToFeature', attrs({ id: name }), false, ''),
       btn(t('Open feature doc', 'Ouvrir la doc'), 'featureDoc', attrs({ id: name }) + ` title="${esc(t(`archvow doc ${name}: its page, written into .archvow/doc/ (ignored by Git)`, `archvow doc ${name} : sa page, écrite dans .archvow/doc/ (ignoré par Git)`))}"`, false, 'secondary'),
       btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name}: the feature in a few lines, then the task of its next component`, `archvow prompt --feature ${name} : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant`))}"`, false, 'secondary'),
+      btn(t('Check before coding', 'Vérifier avant de coder'), 'featureCheck', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name} --clarify: the AI checks the whole feature before any code - where its components disagree or leave a gap between them - and records each finding as a question. It writes no code.`, `archvow prompt --feature ${name} --clarify : l'IA vérifie toute la fonctionnalité avant tout code - là où ses composants ne concordent pas ou laissent un trou entre eux - et enregistre chaque point en question. Elle n'écrit pas de code.`))}"`, false, 'secondary'),
       btn(t('Next steps', 'Prochaines étapes'), 'run', attrs({ label: `next --feature ${name}`, args: `next --feature ${name} --json`, target: 'overview' }), false, 'secondary'),
       byAi ? btn(t('Accept…', 'Accepter…'), 'openCommand', attrs({ command: 'feature accept', feature: name }) + ` title="${esc(t(`archvow feature accept ${name}: a person takes it as the team's`, `archvow feature accept ${name} : une personne la prend comme celle de l'équipe`))}"`, false, 'secondary') : '',
       shared ? '' : btn(t('Rename…', 'Renommer…'), 'openCommand', attrs({ command: 'feature rename', feature: name }), false, 'link quiet'),
@@ -2716,9 +2779,74 @@
     }
   }
 
+  /** Several lines on one: each line's words kept apart by one space. */
+  function joinLines(text) {
+    return text.split(/\r?\n/).map((line) => line.trim()).filter((line) => line).join(' ');
+  }
+
+  /** An agent's name, as archvow takes it (agents.NAME_RE): lowercase letters and digits, words joined by - or _. */
+  const AGENT_NAME = /^[a-z][a-z0-9]*([_-][a-z0-9]+)*$/;
+
+  /** The list after adding one: `none` alone, or the assistants without `none`; each once. */
+  function agentsWith(current, name) {
+    if (name === 'none') return ['none'];
+    const rest = current.filter((x) => x !== 'none' && x !== name);
+    return [...rest, name];
+  }
+
+  /**
+   * The AI assistants of a question that names agents (`suggestions`, 0.26.1): the chosen ones as chips, a list of
+   * the assistants archvow knows, and a box for any other name - archvow takes any agent name, so nothing is closed.
+   */
+  function agentPicker(q, value, kind) {
+    const id = str(q, 'id');
+    const known = q.suggestions.map(String);
+    const picked = value.split(',').map((x) => x.trim()).filter((x) => x);
+    const named = (n) => (n === 'none' ? t('none (no AI assistant)', "aucun (pas d'assistant IA)") : n);
+    const data = `data-kind="${kind}" data-id="${esc(id)}"`;
+    const chips = picked.map((n) => {
+      const own = known.includes(n);
+      const note = own ? t('Known to archvow: it writes this assistant\'s own files.', 'Connu d\'archvow : il écrit les fichiers propres à cet assistant.')
+        : t(`Not known to archvow: ${n} gets the standard files (AGENTS.md, .agents/skills); archvow recognises it when it runs with AI_AGENT=${n}.`,
+          `Inconnu d'archvow : ${n} reçoit les fichiers standard (AGENTS.md, .agents/skills) ; archvow le reconnaît quand il tourne avec AI_AGENT=${n}.`);
+      return `<span class="chip ${own ? 'blue' : 'warn'}" title="${esc(note)}">${esc(named(n))} <button class="link" data-a="agentRemove" ${data} data-name="${esc(n)}" aria-label="${esc(t('Remove ', 'Retirer ') + n)}">×</button></span>`;
+    }).join('');
+    const offered = known.filter((n) => !picked.includes(n));
+    const typed = ui.agentOther[kind + ':' + id] || '';
+    const bad = typed.trim() !== '' && !AGENT_NAME.test(typed.trim().toLowerCase());
+    return `<div class="chips agents">${chips || `<span class="muted small">${esc(t('None chosen yet', 'Aucun choisi pour l\'instant'))}</span>`}</div>
+  <div class="row wrap"><select data-change="agentAdd" ${data} aria-label="${esc(t('Add an assistant archvow knows', 'Ajouter un assistant connu d\'archvow'))}"><option value="">${esc(t('Add an assistant…', 'Ajouter un assistant…'))}</option>${offered.map((n) => `<option value="${esc(n)}">${esc(named(n))}</option>`).join('')}</select>
+  <input class="${bad ? 'invalid' : ''}" data-input="agentOther" ${data} data-keep="agent-${kind}-${esc(id)}" value="${esc(typed)}" placeholder="${esc(t('or another one, e.g. my-agent', 'ou un autre, ex. mon-agent'))}">${btn(t('Add', 'Ajouter'), 'agentOther', data, false, 'secondary')}</div>
+  ${bad ? `<div class="error small">${esc(t('A name is lowercase letters and digits, words joined by - or _ (my-agent).', 'Un nom : lettres minuscules et chiffres, mots reliés par - ou _ (mon-agent).'))}</div>` : ''}
+  <div class="muted small">${esc(t('The list holds the assistants archvow knows: it writes their own files. Any other name works too: it gets the standard files (AGENTS.md, .agents/skills), and archvow recognises it when it runs with AI_AGENT=<name>.',
+    "La liste contient les assistants qu'archvow connaît : il écrit leurs fichiers propres. Tout autre nom marche aussi : il reçoit les fichiers standard (AGENTS.md, .agents/skills), et archvow le reconnaît quand il tourne avec AI_AGENT=<nom>."))}</div>`;
+  }
+
+  /** The answer of a question, as it stands: what was chosen, or its default (init and pack template). */
+  function answerOf(kind, id) {
+    if (kind === 'tpl') {
+      const q = list(baseTemplate(), 'questions').find((x) => str(x, 'id') === id);
+      return id in ui.tplAnswers ? ui.tplAnswers[id] : str(q, 'default');
+    }
+    const template = templates().find((x) => str(x, 'name') === ui.initTemplate);
+    const q = template && list(template, 'questions').find((x) => str(x, 'id') === id);
+    return id in ui.initAnswers ? ui.initAnswers[id] : str(q, 'default');
+  }
+
+  function setAnswer(kind, id, value) {
+    if (kind === 'tpl') ui.tplAnswers[id] = value;
+    else { ui.initAnswers[id] = value; ui.initTouched[id] = true; }
+  }
+
+  function addAgent(kind, id, name) {
+    const current = answerOf(kind, id).split(',').map((x) => x.trim()).filter((x) => x);
+    setAnswer(kind, id, agentsWith(current, name).join(','));
+  }
+
   /** A question of a template as a field: its choices only, several of them, or text (checked against its format). */
   function questionControl(q, value, kind) {
     const id = str(q, 'id');
+    if (q.multiple === true && Array.isArray(q.suggestions) && q.suggestions.length) return agentPicker(q, value, kind);
     const choices = Array.isArray(q.choices) ? q.choices.map(String) : [];
     if (q.multiple === true && choices.length) {
       const picked = new Set(value.split(',').map((x) => x.trim()));
@@ -3031,6 +3159,20 @@
   }
 
   const actions = {
+    agentRemove: (e) => {
+      const current = answerOf(e.dataset.kind, e.dataset.id).split(',').map((x) => x.trim()).filter((x) => x);
+      setAnswer(e.dataset.kind, e.dataset.id, current.filter((x) => x !== e.dataset.name).join(','));
+    },
+    agentOther: (e) => {
+      const key = e.dataset.kind + ':' + e.dataset.id;
+      const name = (ui.agentOther[key] || '').trim().toLowerCase();
+      if (!AGENT_NAME.test(name)) {
+        post({ type: 'message', text: t('A name is lowercase letters and digits, words joined by - or _ (my-agent).', 'Un nom : lettres minuscules et chiffres, mots reliés par - ou _ (mon-agent).') });
+        return;
+      }
+      addAgent(e.dataset.kind, e.dataset.id, name);
+      ui.agentOther[key] = '';
+    },
     tab: (e) => { ui.tab = e.dataset.tab; ui.filterMenu = false; ui.projectMore = false; },
     openComponents: () => { ui.tab = 'components'; ui.filter = 'all'; },
     openBriefCommands: () => {
@@ -3136,6 +3278,7 @@
     addToFeature: (e) => post({ type: 'openCommand', command: 'component add', values: { feature: e.dataset.id }, selected: '' }),
     featureDoc: (e) => post({ type: 'openDoc', feature: e.dataset.id }),
     featurePrompt: (e) => post({ type: 'featurePrompt', feature: e.dataset.id }),
+    featureCheck: (e) => post({ type: 'featureCheck', feature: e.dataset.id }),
     addHere: (e) => { ui.addLayer = ui.addLayer === e.dataset.id ? '' : e.dataset.id; },
     addType: (e) => { ui.addLayer = ''; post({ type: 'openCommand', command: 'component add', values: { type: e.dataset.id }, selected: '' }); },
     view: (e) => {
@@ -3399,15 +3542,41 @@
 
   document.body.addEventListener('keydown', (event) => {
     const e = event.target;
+    if (e && e.dataset && e.dataset.input === 'agentOther' && event.key === 'Enter') {
+      event.preventDefault();
+      actions.agentOther(e);
+      render();
+      return;
+    }
     if (e && e.dataset && e.dataset.input === 'find' && event.key === 'Enter') {
       ui.findText = e.value;
       actions.find(e);
     }
   });
 
+  // A traceback pasted in the find field (2.7.0): an input drops its line breaks and glues the lines together
+  // ("in mark_paidValueError: ..."); a space keeps each line's words apart, so archvow still reads the error.
+  document.body.addEventListener('paste', (event) => {
+    const e = event.target;
+    if (!e || e.id !== 'find' || !event.clipboardData) return;
+    const text = event.clipboardData.getData('text');
+    if (!/[\r\n]/.test(text)) return;
+    event.preventDefault();
+    e.setRangeText(joinLines(text), e.selectionStart, e.selectionEnd, 'end');
+    ui.findText = e.value;
+  });
+
   document.body.addEventListener('input', (event) => {
     const e = event.target;
     switch (e.dataset.input) {
+      case 'agentOther': {
+        const key = e.dataset.kind + ':' + e.dataset.id;
+        const was = (ui.agentOther[key] || '').trim() !== '' && !AGENT_NAME.test((ui.agentOther[key] || '').trim().toLowerCase());
+        ui.agentOther[key] = e.value;
+        const bad = e.value.trim() !== '' && !AGENT_NAME.test(e.value.trim().toLowerCase());
+        if (bad !== was) render();  // the hint appears or goes; typing is kept (data-keep)
+        return;
+      }
       case 'find':
         ui.findText = e.value;
         return;
@@ -3554,6 +3723,9 @@
         render();
         return;
       }
+      case 'agentAdd':
+        if (e.value) { addAgent(e.dataset.kind, e.dataset.id, e.value); render(); }
+        return;
       case 'initTemplate':
         ui.initTemplate = e.value;
         ui.form.template = e.value;

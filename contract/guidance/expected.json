@@ -2986,6 +2986,60 @@
  {
   "fr": false,
   "code": "ARCH004",
+  "message": "'clean_orders' signature is (df), the spec says (df: DataFrame) -> DataFrame -> write the spec's signature, or a person changes the spec: archvow component edit clean_orders --signature \"(df)\"",
+  "guide": {
+   "code": "ARCH004",
+   "meaning": "a signature, an annotation or a route's method and path differs from the spec",
+   "todo": "match the spec, or change the spec (`archvow component edit --signature`, when the type allows it)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "component edit",
+    "values": {
+     "component": "clean_orders",
+     "signature": "(df)"
+    },
+    "text": "archvow component edit clean_orders --signature \"(df)\"",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 12
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH004",
+  "message": "'clean_orders' signature is (df), the spec says (df: DataFrame) -> DataFrame -> write the spec's signature, or a person changes the spec: archvow component edit clean_orders --signature \"(df)\"",
+  "guide": {
+   "code": "ARCH004",
+   "meaning": "une signature, une annotation ou la méthode et le chemin d'une route diffèrent de la spec",
+   "todo": "suivre la spec, ou changer la spec (`archvow component edit --signature`, quand le type le permet)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "component edit",
+    "values": {
+     "component": "clean_orders",
+     "signature": "(df)"
+    },
+    "text": "archvow component edit clean_orders --signature \"(df)\"",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 12
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH004",
   "message": "'read_order' is PUT /orders/{order_id}, the spec says GET /orders/{order_id}",
   "guide": {
    "code": "ARCH004",
@@ -3016,6 +3070,60 @@
    "file": {
     "path": "src/api/p4_api/orders_router.py",
     "line": 22
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH004",
+  "message": "'read_orders' signature is (spark, path), the spec says (spark: SparkSession, path: str) -> DataFrame -> write the spec's signature, or a person changes the spec: archvow component edit orders_reader --signature \"(spark, path)\"",
+  "guide": {
+   "code": "ARCH004",
+   "meaning": "a signature, an annotation or a route's method and path differs from the spec",
+   "todo": "match the spec, or change the spec (`archvow component edit --signature`, when the type allows it)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "component edit",
+    "values": {
+     "component": "orders_reader",
+     "signature": "(spark, path)"
+    },
+    "text": "archvow component edit orders_reader --signature \"(spark, path)\"",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p2_io/orders_reader.py",
+    "line": 12
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH004",
+  "message": "'read_orders' signature is (spark, path), the spec says (spark: SparkSession, path: str) -> DataFrame -> write the spec's signature, or a person changes the spec: archvow component edit orders_reader --signature \"(spark, path)\"",
+  "guide": {
+   "code": "ARCH004",
+   "meaning": "une signature, une annotation ou la méthode et le chemin d'une route diffèrent de la spec",
+   "todo": "suivre la spec, ou changer la spec (`archvow component edit --signature`, quand le type le permet)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "component edit",
+    "values": {
+     "component": "orders_reader",
+     "signature": "(spark, path)"
+    },
+    "text": "archvow component edit orders_reader --signature \"(spark, path)\"",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": {
+    "path": "src/sales/p2_io/orders_reader.py",
+    "line": 12
    }
   }
  },
@@ -5520,7 +5628,7 @@
  {
   "fr": false,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.1: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.8.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
    "meaning": "The project was set up with the template an older version; the archvow installed here brings a newer one. archvow's own files in the project (CI job, Git hooks, AGENTS.md, ruff and test settings) are still those of an older version.",
@@ -5544,7 +5652,7 @@
  {
   "fr": true,
   "code": "ARCH012",
-  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.6.1: to adopt it, archvow init sales --force (then review and commit)",
+  "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.8.0: to adopt it, archvow init sales --force (then review and commit)",
   "guide": {
    "code": "ARCH012",
    "meaning": "Le projet a été créé avec the template an older version ; l'archvow installé ici apporte a newer one. Les fichiers d'archvow dans le projet (job CI, hooks Git, AGENTS.md, réglages ruff et tests) sont encore ceux de an older version.",
@@ -9642,7 +9750,7 @@
  {
   "fr": false,
   "code": "ARCH020",
-  "message": "rule ARCH022: max_files relaxed from 30 to 300",
+  "message": "rule ARCH022: max_files relaxed from 30 (default) to 31",
   "guide": {
    "code": "ARCH020",
    "meaning": "a guard is weakened: a lower severity or verification, a rule's limit loosened in `rules:`, or a stricter one taken out (ARCH022's change budget too), a removed hazard or invariant, a project rule (R1...) removed, reworded or narrowed, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example or a personal column taken out of the spec, an edited guard file, a pack updated or removed, more frozen violations, a new AI assistant or dependency",
@@ -9657,7 +9765,7 @@
  {
   "fr": true,
   "code": "ARCH020",
-  "message": "rule ARCH022: max_files relaxed from 30 to 300",
+  "message": "rule ARCH022: max_files relaxed from 30 (default) to 31",
   "guide": {
    "code": "ARCH020",
    "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
@@ -9672,7 +9780,7 @@
  {
   "fr": false,
   "code": "ARCH020",
-  "message": "rule ARCH022: max_files relaxed from default to 1",
+  "message": "rule ARCH022: max_files relaxed from 30 to 300",
   "guide": {
    "code": "ARCH020",
    "meaning": "a guard is weakened: a lower severity or verification, a rule's limit loosened in `rules:`, or a stricter one taken out (ARCH022's change budget too), a removed hazard or invariant, a project rule (R1...) removed, reworded or narrowed, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example or a personal column taken out of the spec, an edited guard file, a pack updated or removed, more frozen violations, a new AI assistant or dependency",
@@ -9687,7 +9795,7 @@
  {
   "fr": true,
   "code": "ARCH020",
-  "message": "rule ARCH022: max_files relaxed from default to 1",
+  "message": "rule ARCH022: max_files relaxed from 30 to 300",
   "guide": {
    "code": "ARCH020",
    "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
@@ -9958,6 +10066,36 @@
   "fr": true,
   "code": "ARCH020",
   "message": "rule STY004: max_percent relaxed from 30 to 90",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
+   "todo": "l'annuler, ou les architectes l'approuvent (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, ou `--accept-weakening`)",
+   "who": "Un architecte : cela change les garde-fous de tout le projet.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH020",
+  "message": "rule STY004: min_code_lines relaxed from 20 (default) to 21",
+  "guide": {
+   "code": "ARCH020",
+   "meaning": "a guard is weakened: a lower severity or verification, a rule's limit loosened in `rules:`, or a stricter one taken out (ARCH022's change budget too), a removed hazard or invariant, a project rule (R1...) removed, reworded or narrowed, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example or a personal column taken out of the spec, an edited guard file, a pack updated or removed, more frozen violations, a new AI assistant or dependency",
+   "todo": "undo it, or the architects approve it (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, or `--accept-weakening`)",
+   "who": "An architect: it changes the guards of the whole project.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": null,
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH020",
+  "message": "rule STY004: min_code_lines relaxed from 20 (default) to 21",
   "guide": {
    "code": "ARCH020",
    "meaning": "une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance",
@@ -11992,7 +12130,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'bank_client' is implemented but 3 decision(s) are still to make, e.g. 'How long does it wait for an answer before giving up (in seconds) - e.g. 10?' - the code made a silent choice -> archvow show bank_client, then archvow decision make bank_client <number> \"...\"",
+  "message": "'bank_client' is implemented but 3 decision(s) are still to make, e.g. 'How long does it wait for an answer before giving up (in seconds) - e.g. 10?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show bank_client, then archvow decision make bank_client <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12018,7 +12156,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'bank_client' is implemented but 3 decision(s) are still to make, e.g. 'How long does it wait for an answer before giving up (in seconds) - e.g. 10?' - the code made a silent choice -> archvow show bank_client, then archvow decision make bank_client <number> \"...\"",
+  "message": "'bank_client' is implemented but 3 decision(s) are still to make, e.g. 'How long does it wait for an answer before giving up (in seconds) - e.g. 10?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show bank_client, then archvow decision make bank_client <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12044,7 +12182,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'bill_customer' is implemented but 4 decision(s) are still to make, e.g. 'What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?' - the code made a silent choice -> archvow show bill_customer, then archvow decision make bill_customer <number> \"...\"",
+  "message": "'bill_customer' is implemented but 4 decision(s) are still to make, e.g. 'What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show bill_customer, then archvow decision make bill_customer <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12070,7 +12208,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'bill_customer' is implemented but 4 decision(s) are still to make, e.g. 'What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?' - the code made a silent choice -> archvow show bill_customer, then archvow decision make bill_customer <number> \"...\"",
+  "message": "'bill_customer' is implemented but 4 decision(s) are still to make, e.g. 'What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show bill_customer, then archvow decision make bill_customer <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12096,7 +12234,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'clean_orders' is implemented but 8 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
+  "message": "'clean_orders' is implemented but 8 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12122,7 +12260,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'clean_orders' is implemented but 8 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
+  "message": "'clean_orders' is implemented but 8 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12148,7 +12286,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'clean_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
+  "message": "'clean_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12174,7 +12312,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'clean_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
+  "message": "'clean_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_orders, then archvow decision make clean_orders <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12200,7 +12338,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'clean_returns' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_returns, then archvow decision make clean_returns <number> \"...\"",
+  "message": "'clean_returns' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_returns, then archvow decision make clean_returns <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12226,7 +12364,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'clean_returns' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> archvow show clean_returns, then archvow decision make clean_returns <number> \"...\"",
+  "message": "'clean_returns' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show clean_returns, then archvow decision make clean_returns <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12252,7 +12390,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'config' is implemented but 1 decision(s) are still to make, e.g. 'What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
+  "message": "'config' is implemented but 1 decision(s) are still to make, e.g. 'What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show config, then archvow decision make config <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12278,7 +12416,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'config' is implemented but 1 decision(s) are still to make, e.g. 'What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
+  "message": "'config' is implemented but 1 decision(s) are still to make, e.g. 'What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show config, then archvow decision make config <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12304,7 +12442,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'config' is implemented but 2 decision(s) are still to make, e.g. 'Settings, name: type = default separated by commas (no default = required) - e.g. data_dir: str, log_level: str = \"INFO\" - or none?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
+  "message": "'config' is implemented but 2 decision(s) are still to make, e.g. 'Settings, name: type = default separated by commas (no default = required) - e.g. data_dir: str, log_level: str = \"INFO\" - or none?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show config, then archvow decision make config <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12330,7 +12468,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'config' is implemented but 2 decision(s) are still to make, e.g. 'Settings, name: type = default separated by commas (no default = required) - e.g. data_dir: str, log_level: str = \"INFO\" - or none?' - the code made a silent choice -> archvow show config, then archvow decision make config <number> \"...\"",
+  "message": "'config' is implemented but 2 decision(s) are still to make, e.g. 'Settings, name: type = default separated by commas (no default = required) - e.g. data_dir: str, log_level: str = \"INFO\" - or none?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show config, then archvow decision make config <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12356,7 +12494,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'customer_model' is implemented but 4 decision(s) are still to make, e.g. 'Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?' - the code made a silent choice -> archvow show customer_model, then archvow decision make customer_model <number> \"...\"",
+  "message": "'customer_model' is implemented but 4 decision(s) are still to make, e.g. 'Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customer_model, then archvow decision make customer_model <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12382,7 +12520,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'customer_model' is implemented but 4 decision(s) are still to make, e.g. 'Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?' - the code made a silent choice -> archvow show customer_model, then archvow decision make customer_model <number> \"...\"",
+  "message": "'customer_model' is implemented but 4 decision(s) are still to make, e.g. 'Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customer_model, then archvow decision make customer_model <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12408,7 +12546,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'customers_repository' is implemented but 4 decision(s) are still to make, e.g. 'Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?' - the code made a silent choice -> archvow show customers_repository, then archvow decision make customers_repository <number> \"...\"",
+  "message": "'customers_repository' is implemented but 4 decision(s) are still to make, e.g. 'Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_repository, then archvow decision make customers_repository <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12434,7 +12572,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'customers_repository' is implemented but 4 decision(s) are still to make, e.g. 'Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?' - the code made a silent choice -> archvow show customers_repository, then archvow decision make customers_repository <number> \"...\"",
+  "message": "'customers_repository' is implemented but 4 decision(s) are still to make, e.g. 'Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_repository, then archvow decision make customers_repository <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12460,7 +12598,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
+  "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12486,7 +12624,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
+  "message": "'customers_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_schema, then archvow decision make customers_schema <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12512,7 +12650,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
+  "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12538,7 +12676,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
+  "message": "'customers_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show customers_writer, then archvow decision make customers_writer <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12564,7 +12702,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'daily_main' is implemented but 2 decision(s) are still to make, e.g. 'Invalid arguments (e.g. --run-date <date>): which exit code and message?' - the code made a silent choice -> archvow show daily_main, then archvow decision make daily_main <number> \"...\"",
+  "message": "'daily_main' is implemented but 2 decision(s) are still to make, e.g. 'Invalid arguments (e.g. --run-date <date>): which exit code and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show daily_main, then archvow decision make daily_main <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12590,7 +12728,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'daily_main' is implemented but 2 decision(s) are still to make, e.g. 'Invalid arguments (e.g. --run-date <date>): which exit code and message?' - the code made a silent choice -> archvow show daily_main, then archvow decision make daily_main <number> \"...\"",
+  "message": "'daily_main' is implemented but 2 decision(s) are still to make, e.g. 'Invalid arguments (e.g. --run-date <date>): which exit code and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show daily_main, then archvow decision make daily_main <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12616,7 +12754,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
+  "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12642,7 +12780,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code made a silent choice -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
+  "message": "'enrich_orders' is implemented but 9 decision(s) are still to make, e.g. 'Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?' - the code was written without this answer (a choice it made silently, or a question asked since) -> the AI records its choice: archvow decision propose enrich_orders <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12668,7 +12806,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?' - the code made a silent choice -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
+  "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12694,7 +12832,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?' - the code made a silent choice -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
+  "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12720,7 +12858,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?' - the code made a silent choice -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
+  "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12746,7 +12884,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?' - the code made a silent choice -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
+  "message": "'logging_setup' is implemented but 1 decision(s) are still to make, e.g. 'Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show logging_setup, then archvow decision make logging_setup <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12772,7 +12910,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'order_not_found_error' is implemented but 2 decision(s) are still to make, e.g. 'Which HTTP status does the app answer with it (404, 409, 422...) - e.g. OrderNotFound -> 404?' - the code made a silent choice -> archvow show order_not_found_error, then archvow decision make order_not_found_error <number> \"...\"",
+  "message": "'order_not_found_error' is implemented but 2 decision(s) are still to make, e.g. 'Which HTTP status does the app answer with it (404, 409, 422...) - e.g. OrderNotFound -> 404?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show order_not_found_error, then archvow decision make order_not_found_error <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12798,7 +12936,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'order_not_found_error' is implemented but 2 decision(s) are still to make, e.g. 'Which HTTP status does the app answer with it (404, 409, 422...) - e.g. OrderNotFound -> 404?' - the code made a silent choice -> archvow show order_not_found_error, then archvow decision make order_not_found_error <number> \"...\"",
+  "message": "'order_not_found_error' is implemented but 2 decision(s) are still to make, e.g. 'Which HTTP status does the app answer with it (404, 409, 422...) - e.g. OrderNotFound -> 404?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show order_not_found_error, then archvow decision make order_not_found_error <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12824,7 +12962,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'orders_clean_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show orders_clean_writer, then archvow decision make orders_clean_writer <number> \"...\"",
+  "message": "'orders_clean_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_clean_writer, then archvow decision make orders_clean_writer <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12850,7 +12988,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'orders_clean_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code made a silent choice -> archvow show orders_clean_writer, then archvow decision make orders_clean_writer <number> \"...\"",
+  "message": "'orders_clean_writer' is implemented but 5 decision(s) are still to make, e.g. 'Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_clean_writer, then archvow decision make orders_clean_writer <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12876,7 +13014,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'orders_reader' is implemented but 4 decision(s) are still to make, e.g. 'The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?' - the code made a silent choice -> archvow show orders_reader, then archvow decision make orders_reader <number> \"...\"",
+  "message": "'orders_reader' is implemented but 3 decision(s) are still to make, e.g. 'Rows that do not match the schema (wrong type, missing column) - e.g. amount = \"abc\": stop the job, drop them, or set them aside in a reject file (where)?' - the code was written without this answer (a choice it made silently, or a question asked since) -> the AI records its choice: archvow decision propose orders_reader <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12902,7 +13040,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'orders_reader' is implemented but 4 decision(s) are still to make, e.g. 'The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?' - the code made a silent choice -> archvow show orders_reader, then archvow decision make orders_reader <number> \"...\"",
+  "message": "'orders_reader' is implemented but 3 decision(s) are still to make, e.g. 'Rows that do not match the schema (wrong type, missing column) - e.g. amount = \"abc\": stop the job, drop them, or set them aside in a reject file (where)?' - the code was written without this answer (a choice it made silently, or a question asked since) -> the AI records its choice: archvow decision propose orders_reader <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12928,7 +13066,59 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'orders_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show orders_schema, then archvow decision make orders_schema <number> \"...\"",
+  "message": "'orders_reader' is implemented but 4 decision(s) are still to make, e.g. 'The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_reader, then archvow decision make orders_reader <number> \"...\"",
+  "guide": {
+   "code": "ARCH033",
+   "meaning": "code exists while a decision is still to make",
+   "todo": "`archvow decision make <component> <n> \"...\"` (a person)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "orders_reader"
+    },
+    "text": "archvow decision make orders_reader <number> \"...\"",
+    "missing": [
+     "question",
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH033",
+  "message": "'orders_reader' is implemented but 4 decision(s) are still to make, e.g. 'The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_reader, then archvow decision make orders_reader <number> \"...\"",
+  "guide": {
+   "code": "ARCH033",
+   "meaning": "du code existe alors qu'une décision reste à prendre",
+   "todo": "`archvow decision make <composant> <n> \"...\"` (une personne)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision make",
+    "values": {
+     "component": "orders_reader"
+    },
+    "text": "archvow decision make orders_reader <number> \"...\"",
+    "missing": [
+     "question",
+     "answer"
+    ],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH033",
+  "message": "'orders_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_schema, then archvow decision make orders_schema <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -12954,7 +13144,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'orders_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code made a silent choice -> archvow show orders_schema, then archvow decision make orders_schema <number> \"...\"",
+  "message": "'orders_schema' is implemented but 2 decision(s) are still to make, e.g. 'Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show orders_schema, then archvow decision make orders_schema <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -12980,7 +13170,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'shop_cli' is implemented but 3 decision(s) are still to make, e.g. 'Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?' - the code made a silent choice -> archvow show shop_cli, then archvow decision make shop_cli <number> \"...\"",
+  "message": "'shop_cli' is implemented but 3 decision(s) are still to make, e.g. 'Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show shop_cli, then archvow decision make shop_cli <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -13006,7 +13196,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'shop_cli' is implemented but 3 decision(s) are still to make, e.g. 'Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?' - the code made a silent choice -> archvow show shop_cli, then archvow decision make shop_cli <number> \"...\"",
+  "message": "'shop_cli' is implemented but 3 decision(s) are still to make, e.g. 'Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show shop_cli, then archvow decision make shop_cli <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -13032,7 +13222,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Réglages Spark de chaque session, clé=valeur séparés par des virgules - par ex. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - ou aucun ?' - the code made a silent choice -> archvow show spark, then archvow decision make spark <number> \"...\"",
+  "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Réglages Spark de chaque session, clé=valeur séparés par des virgules - par ex. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - ou aucun ?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show spark, then archvow decision make spark <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -13058,7 +13248,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Réglages Spark de chaque session, clé=valeur séparés par des virgules - par ex. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - ou aucun ?' - the code made a silent choice -> archvow show spark, then archvow decision make spark <number> \"...\"",
+  "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Réglages Spark de chaque session, clé=valeur séparés par des virgules - par ex. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - ou aucun ?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show spark, then archvow decision make spark <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -13084,7 +13274,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?' - the code made a silent choice -> archvow show spark, then archvow decision make spark <number> \"...\"",
+  "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show spark, then archvow decision make spark <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -13110,7 +13300,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?' - the code made a silent choice -> archvow show spark, then archvow decision make spark <number> \"...\"",
+  "message": "'spark' is implemented but 1 decision(s) are still to make, e.g. 'Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show spark, then archvow decision make spark <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -13136,7 +13326,7 @@
  {
   "fr": false,
   "code": "ARCH033",
-  "message": "'user_repository' is implemented but 4 decision(s) are still to make, e.g. 'Not found (e.g. get(42) when 42 does not exist): return None, or raise which domain error?' - the code made a silent choice -> archvow show user_repository, then archvow decision make user_repository <number> \"...\"",
+  "message": "'user_repository' is implemented but 4 decision(s) are still to make, e.g. 'Not found (e.g. get(42) when 42 does not exist): return None, or raise which domain error?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show user_repository, then archvow decision make user_repository <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "code exists while a decision is still to make",
@@ -13162,7 +13352,7 @@
  {
   "fr": true,
   "code": "ARCH033",
-  "message": "'user_repository' is implemented but 4 decision(s) are still to make, e.g. 'Not found (e.g. get(42) when 42 does not exist): return None, or raise which domain error?' - the code made a silent choice -> archvow show user_repository, then archvow decision make user_repository <number> \"...\"",
+  "message": "'user_repository' is implemented but 4 decision(s) are still to make, e.g. 'Not found (e.g. get(42) when 42 does not exist): return None, or raise which domain error?' - the code was written without this answer (a choice it made silently, or a question asked since) -> archvow show user_repository, then archvow decision make user_repository <number> \"...\"",
   "guide": {
    "code": "ARCH033",
    "meaning": "du code existe alors qu'une décision reste à prendre",
@@ -20878,6 +21068,236 @@
  {
   "fr": false,
   "code": "ARCH035",
+  "message": "'order_totals': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S3 not answered (less) - Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S4 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'order_totals': safety question S5 not answered (exposed) - Data exposed (personal or secret data written where it must not be): what must never happen? -> archvow show order_totals",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "order_totals"
+    },
+    "text": "archvow show order_totals",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
   "message": "'orders_clean_writer': safety question S1 not answered (partial) - Half-written output (a failure in the middle of a write): what must never happen? -> archvow show orders_clean_writer",
   "guide": {
    "code": "ARCH035",
@@ -22341,6 +22761,190 @@
      "component": "policies_retriever"
     },
     "text": "archvow show policies_retriever",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'refunds_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show refunds_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "refunds_reader"
+    },
+    "text": "archvow show refunds_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'refunds_reader': safety question S1 not answered (missing) - Input missing, empty or late: what must never happen? -> archvow show refunds_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "refunds_reader"
+    },
+    "text": "archvow show refunds_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'refunds_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show refunds_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "refunds_reader"
+    },
+    "text": "archvow show refunds_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'refunds_reader': safety question S2 not answered (more) - Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen? -> archvow show refunds_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "refunds_reader"
+    },
+    "text": "archvow show refunds_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'refunds_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show refunds_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "refunds_reader"
+    },
+    "text": "archvow show refunds_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'refunds_reader': safety question S3 not answered (wrong) - Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen? -> archvow show refunds_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "refunds_reader"
+    },
+    "text": "archvow show refunds_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH035",
+  "message": "'refunds_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show refunds_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "a safety question of a component is not answered; `check` counts them on one line, `check --all` lists them",
+   "todo": "`archvow specify <component>`, or `hazard add <component> S<number> ...` / `hazard dismiss <component> S<number> \"...\"` (`archvow show <component>` numbers them)",
+   "who": "Anyone: the command changes nothing.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "refunds_reader"
+    },
+    "text": "archvow show refunds_reader",
+    "missing": [],
+    "readOnly": true
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH035",
+  "message": "'refunds_reader': safety question S4 not answered (stale) - Old data treated as today's (the job reads the wrong date): what must never happen? -> archvow show refunds_reader",
+  "guide": {
+   "code": "ARCH035",
+   "meaning": "une question de sûreté d'un composant n'a pas de réponse ; `check` les compte sur une ligne, `check --all` les liste",
+   "todo": "`archvow specify <composant>`, ou `hazard add <composant> S<numéro> ...` / `hazard dismiss <composant> S<numéro> \"...\"` (`archvow show <composant>` les numérote)",
+   "who": "Tout le monde : la commande ne change rien.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "show",
+    "values": {
+     "component": "refunds_reader"
+    },
+    "text": "archvow show refunds_reader",
     "missing": [],
     "readOnly": true
    },
@@ -26968,6 +27572,54 @@
  {
   "fr": false,
   "code": "ARCH043",
+  "message": "'orders_reader' decision 1 was proposed by the AI, not reviewed yet: \"Fail with a clear error\" -> a person runs archvow decision accept orders_reader 1 (or decision make orders_reader 1 \"...\")",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "a decision the AI proposed (`archvow decision propose`, kept in `.archvow/features/<feature>/proposals.vow`) that no person reviewed yet, a component the AI created (`archvow component add` run by an agent in mode guided or free: marked `origin ai` in its vow) that no person accepted yet, a feature an agent added (`archvow feature add`: marked `origin ai`) that no person accepted yet (`archvow feature accept`), or a question, a hazard, an invariant or a rule an agent added (`question add` in any mode; `hazard add`, `invariant add`, `rule add` in mode guided or free: marked `added_by <agent>`) that no person kept yet",
+   "todo": "a person runs `archvow decision accept <component> <n>`, or `archvow decision make <component> <n> \"...\"` to replace it; for a component, `archvow component accept <component>` (or `component remove`); for a question, `archvow decision make` (answering keeps it) or `archvow question accept <component> <n>` (or `question remove`); for a hazard and the invariants the AI added to prevent it, `archvow hazard accept <id>`; for a rule, `archvow rule accept <id>` (an edit by a person keeps the item too)",
+   "who": "A person, here or in their own terminal - not an AI agent: it decides or changes the spec.",
+   "blocking": "Does not block: a warning - the commit and CI pass. Some warnings become errors in mode strict or with check --complete.",
+   "then": "Then click Check (↻): the item disappears once it is fixed.",
+   "command": {
+    "name": "decision accept",
+    "values": {
+     "component": "orders_reader",
+     "number": "1"
+    },
+    "text": "archvow decision accept orders_reader 1",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH043",
+  "message": "'orders_reader' decision 1 was proposed by the AI, not reviewed yet: \"Fail with a clear error\" -> a person runs archvow decision accept orders_reader 1 (or decision make orders_reader 1 \"...\")",
+  "guide": {
+   "code": "ARCH043",
+   "meaning": "une décision proposée par l'IA (`archvow decision propose`, gardée dans `.archvow/features/<fonctionnalité>/proposals.vow`) qu'aucune personne n'a encore relue, un composant créé par l'IA (`archvow component add` lancé par un agent en mode guided ou free : marqué `origin ai` dans son vow) qu'aucune personne n'a encore accepté, une fonctionnalité ajoutée par un agent (`archvow feature add` : marquée `origin ai`) qu'aucune personne n'a encore acceptée (`archvow feature accept`), ou une question, un hazard, un invariant ou une règle ajouté par un agent (`question add` dans tous les modes ; `hazard add`, `invariant add`, `rule add` en mode guided ou free : marqué `added_by <agent>`) qu'aucune personne n'a encore gardé",
+   "todo": "une personne lance `archvow decision accept <composant> <n>`, ou `archvow decision make <composant> <n> \"...\"` pour la remplacer ; pour un composant, `archvow component accept <composant>` (ou `component remove`) ; pour une question, `archvow decision make` (y répondre la garde) ou `archvow question accept <composant> <n>` (ou `question remove`) ; pour un hazard et les invariants que l'IA a ajoutés pour l'empêcher, `archvow hazard accept <id>` ; pour une règle, `archvow rule accept <id>` (une modification par une personne garde aussi l'élément)",
+   "who": "Une personne, ici ou dans son propre terminal - pas un agent IA : cela décide ou change la spec.",
+   "blocking": "Non bloquant : un avertissement - le commit et la CI passent. Certains avertissements deviennent des erreurs en mode strict ou avec check --complete.",
+   "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": {
+    "name": "decision accept",
+    "values": {
+     "component": "orders_reader",
+     "number": "1"
+    },
+    "text": "archvow decision accept orders_reader 1",
+    "missing": [],
+    "readOnly": false
+   },
+   "file": null
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH043",
   "message": "R1 was added by the AI (claude-code), not kept by a person yet: \"Rows with is_test are never written\" -> archvow rule accept R1 (or rule edit / rule remove)",
   "guide": {
    "code": "ARCH043",
@@ -28178,43 +28830,7 @@
  {
   "fr": false,
   "code": "ARCH053",
-  "message": "commit 968b68bb: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
-   "todo": "Redo the commit with the hooks on: git reset --soft HEAD~1, then git commit. If the hooks never run on your machine: git config core.hooksPath .githooks.",
-   "who": "You, who made the commit.",
-   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
-   "then": "Then push again: CI checks the branch again.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": true,
-  "code": "ARCH053",
-  "message": "commit 968b68bb: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
-  "guide": {
-   "code": "ARCH053",
-   "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
-   "todo": "Refaites le commit avec les hooks : git reset --soft HEAD~1, puis git commit. Si les hooks ne tournent jamais sur votre poste : git config core.hooksPath .githooks.",
-   "who": "Vous, qui avez fait le commit.",
-   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
-   "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
-   "command": null,
-   "file": {
-    "path": "src/sales/p1_domain/clean_orders.py",
-    "line": 0
-   }
-  }
- },
- {
-  "fr": false,
-  "code": "ARCH053",
-  "message": "commit b54cb7ba: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit e9f7dbed: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote while it was not protected (outside its sandbox, or in YOLO mode).",
@@ -28232,7 +28848,7 @@
  {
   "fr": true,
   "code": "ARCH053",
-  "message": "commit b54cb7ba: code written by jetbrains-ai-chat while it ran in YOLO mode",
+  "message": "commit e9f7dbed: code written by jetbrains-ai-chat while it ran in YOLO mode",
   "guide": {
    "code": "ARCH053",
    "meaning": "Un commit de cette branche modifie du code que jetbrains-ai-chat a écrit sans être protégé (hors de son bac à sable, ou en mode YOLO).",
@@ -28240,6 +28856,42 @@
    "who": "Vous, puis les architectes.",
    "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
    "then": "Ensuite cliquez sur Vérifier (↻) : l'élément disparaît une fois corrigé.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": false,
+  "code": "ARCH053",
+  "message": "commit fcb3553c: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "A commit of this branch changes code jetbrains-ai-chat wrote, and its message has no Archvow-Agent line: it was made without the Git hooks (git commit --no-verify?), so nobody checked how jetbrains-ai-chat ran.",
+   "todo": "Redo the commit with the hooks on: git reset --soft HEAD~1, then git commit. If the hooks never run on your machine: git config core.hooksPath .githooks.",
+   "who": "You, who made the commit.",
+   "blocking": "Blocks: archvow check fails until it is fixed - the Git hook refuses the commit and CI fails.",
+   "then": "Then push again: CI checks the branch again.",
+   "command": null,
+   "file": {
+    "path": "src/sales/p1_domain/clean_orders.py",
+    "line": 0
+   }
+  }
+ },
+ {
+  "fr": true,
+  "code": "ARCH053",
+  "message": "commit fcb3553c: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+  "guide": {
+   "code": "ARCH053",
+   "meaning": "Un commit de cette branche modifie du code écrit par jetbrains-ai-chat, et son message n'a pas de ligne Archvow-Agent : il a été fait sans les hooks Git (git commit --no-verify ?), personne n'a vérifié comment jetbrains-ai-chat a tourné.",
+   "todo": "Refaites le commit avec les hooks : git reset --soft HEAD~1, puis git commit. Si les hooks ne tournent jamais sur votre poste : git config core.hooksPath .githooks.",
+   "who": "Vous, qui avez fait le commit.",
+   "blocking": "Bloquant : archvow check échoue tant que ce n'est pas corrigé - le hook Git refuse le commit et la CI échoue.",
+   "then": "Ensuite poussez à nouveau : la CI revérifie la branche.",
    "command": null,
    "file": {
     "path": "src/sales/p1_domain/clean_orders.py",

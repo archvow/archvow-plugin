@@ -91,7 +91,7 @@
        (<code>~/.local/bin</code>, <code>/opt/homebrew/bin</code>, <code>/usr/local/bin</code>). On Windows, a Python in
        WSL works. <b>Test</b> in the settings shows which one answered, or what each said.</p>
 
-    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; the ArchVow CLI 2.6.0 (contract 2.4) in Python 3.11+.
+    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; the ArchVow CLI 2.8.0 (contract 2.5) in Python 3.11+.
        <b>Languages:</b> English (default) and French. The same workspace exists for VS Code.</p>
   ]]></description>
 

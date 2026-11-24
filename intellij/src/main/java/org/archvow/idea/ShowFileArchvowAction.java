@@ -37,7 +37,6 @@ public final class ShowFileArchvowAction extends AnAction {
         Editor editor = event.getData(CommonDataKeys.EDITOR);
         boolean same = editor != null && file.equals(FileDocumentManager.getInstance().getFile(editor.getDocument()));
         int line = same ? editor.getCaretModel().getLogicalPosition().line + 1 : 0;
-        ArchvowPanel panel = ArchvowEditorTab.panel(project);
-        if (panel != null) panel.showFile(relative, line);
+        ArchvowEditorTab.withPanel(project, panel -> panel.showFile(relative, line));
     }
 }

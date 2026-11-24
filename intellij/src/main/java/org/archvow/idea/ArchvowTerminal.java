@@ -52,7 +52,7 @@ final class ArchvowTerminal {
         bar.add(left, BorderLayout.WEST);
         JButton copy = new JButton();
         ArchvowUiIcons.explicit(copy, "copy");
-        copy.setToolTipText("Copy command / Copier la commande");
+        copy.setToolTipText("Copy command");
         copy.getAccessibleContext().setAccessibleName("Copy command");
         copy.setMargin(new Insets(1, 4, 1, 4));
         copy.setOpaque(false);

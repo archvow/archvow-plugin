@@ -296,6 +296,13 @@ export function promptCommand(component: string, task: string): string[] {
   return ['prompt', component, '--task', n];
 }
 
+/** `archvow prompt --feature <feature>`; `check`: with --clarify, the AI checks the whole feature before any code
+ *  (archvow 2.8.0) - where its components disagree - and writes none. */
+export function featurePromptCommand(feature: string, check = false): string[] {
+  if (!feature) throw new Error('Missing feature');
+  return ['prompt', '--feature', feature, ...(check ? ['--clarify'] : [])];
+}
+
 /** archvow refuses --task on a component too small to cut into tasks: show the whole card then. */
 export function needsFullCard(exitCode: number, output: string): boolean {
   if (exitCode === 0 || !output) return false;

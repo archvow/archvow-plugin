@@ -13,6 +13,17 @@ public final class FeatureViewRegression {
         if (!ok) throw new AssertionError(what);
     }
 
+    private static javax.swing.JButton find(java.awt.Container in, String name) {
+        for (java.awt.Component c : in.getComponents()) {
+            if (c instanceof javax.swing.JButton b && name.equals(b.getName())) return b;
+            if (c instanceof java.awt.Container inner) {
+                javax.swing.JButton found = find(inner, name);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
     public static void main(String[] args) throws Exception {
         Path contract = Path.of(System.getProperty("archvow.contract.root", "../contract"));
         JsonObject workspace = JsonParser.parseString(Files.readString(contract.resolve("cli/fastapi-service/workspace.json"))).getAsJsonObject();
@@ -44,6 +55,32 @@ public final class FeatureViewRegression {
         check(ArchvowFeatureView.addedByAi(refunds), "an AI agent's feature: Accept… shows");
         check(ArchvowFeatureView.html(refunds, spec, Map.of(), Map.of(), false).contains("added by claude-code: a person accepts it (ARCH043 until then)"), "who added it");
         check(ArchvowFeatureView.html(refunds, spec, Map.of(), Map.of(), true).contains("ajoutée par claude-code : une personne l'accepte"), "who added it, in French");
-        System.out.println("OK: a feature's page - head, map, components by layer, what is open, an AI agent's to accept (EN and FR)");
+        // archvow 2.8.0: Check before coding, after Copy AI prompt - archvow prompt --feature <feature> --clarify
+        check(ArchvowFeatureView.promptArgs("orders", true).equals(java.util.List.of("prompt", "--feature", "orders", "--clarify")), "the check");
+        check(ArchvowFeatureView.promptArgs("orders", false).equals(java.util.List.of("prompt", "--feature", "orders")), "the prompt, unchanged");
+        java.util.List<String> copied = new java.util.ArrayList<>();
+        ArchvowFeatureView view = new ArchvowFeatureView(new ArchvowFeatureView.Actions() {
+            @Override public void showComponent(String id) { }
+            @Override public void showFeature(String name) { }
+            @Override public void openFile(String relative) { }
+            @Override public void openCommand(String command, Map<String, String> values) { }
+            @Override public void openDoc(String feature) { }
+            @Override public void copyPrompt(String feature, boolean check) { copied.add(feature + (check ? " check" : " prompt")); }
+            @Override public void nextSteps(String feature) { }
+        });
+        view.show(orders, spec, Map.of(), Map.of(), false);
+        javax.swing.JButton button = find(view, "archvow.feature.check");
+        check(button != null && "Check before coding".equals(button.getText()), "its label");
+        check(button.getToolTipText().startsWith("archvow prompt --feature orders --clarify: the AI checks the whole feature before any code")
+            && button.getToolTipText().endsWith("It writes no code."), "what it does, on hover: " + button.getToolTipText());
+        java.awt.Container row = button.getParent();
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        for (java.awt.Component c : row.getComponents()) if (c instanceof javax.swing.JButton b) labels.add(b.getText());
+        check(labels.indexOf("Check before coding") == labels.indexOf("Copy AI prompt") + 1, "right after Copy AI prompt: " + labels);
+        for (java.awt.event.ActionListener l : button.getActionListeners()) l.actionPerformed(new java.awt.event.ActionEvent(button, 0, ""));
+        check(copied.equals(java.util.List.of("orders check")), "it copies the check of this feature: " + copied);
+        view.show(orders, spec, Map.of(), Map.of(), true);
+        check("Vérifier avant de coder".equals(button.getText()) && button.getToolTipText().contains("l'IA vérifie toute la fonctionnalité"), "in French");
+        System.out.println("OK: a feature's page - head, map, components by layer, what is open, an AI agent's to accept, Check before coding (EN and FR)");
     }
 }

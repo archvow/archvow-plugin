@@ -1,10 +1,10 @@
 {
-  "contract": "2.4",
+  "contract": "2.5",
   "templates": [
     {
       "name": "archvow/fastapi-service",
       "pack": "archvow",
-      "version": "2.6.1",
+      "version": "2.8.0",
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
@@ -538,7 +538,7 @@
     {
       "name": "archvow/langgraph-agent",
       "pack": "archvow",
-      "version": "2.6.1",
+      "version": "2.8.0",
       "language": "python",
       "kind": "ai-application",
       "style": "layered (common -> domain -> tools -> agents -> app)",
@@ -1182,7 +1182,7 @@
     {
       "name": "archvow/pyspark-pipeline",
       "pack": "archvow",
-      "version": "2.6.1",
+      "version": "2.8.0",
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
@@ -1737,7 +1737,7 @@
     {
       "name": "archvow/python-app",
       "pack": "archvow",
-      "version": "2.6.1",
+      "version": "2.8.0",
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",
@@ -2227,7 +2227,7 @@
   "packs": [
     {
       "name": "archvow",
-      "version": "2.6.1",
+      "version": "2.8.0",
       "description": "The templates, agents and languages archvow ships.",
       "archvow": "",
       "builtin": true,

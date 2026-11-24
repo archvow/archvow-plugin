@@ -35,6 +35,14 @@ public final class WorkspaceTests {
         run("InstallRegression", () -> InstallRegression.main(NONE));
         run("LaunchCommandRegression", () -> LaunchCommandRegression.main(NONE));
         run("TrustRegression", () -> TrustRegression.main(NONE));
+        run("FindArchvowRegression", () -> FindArchvowRegression.main(NONE));
+        run("PythonsRegression", () -> PythonsRegression.main(NONE));
+        run("SettingsTextRegression", () -> SettingsTextRegression.main(NONE));
+        run("InitTargetRegression", () -> InitTargetRegression.main(NONE));
+        run("AgentPickerRegression", () -> AgentPickerRegression.main(NONE));
+        run("PastedErrorRegression", () -> PastedErrorRegression.main(NONE));
+        run("PlatformApiRegression", () -> PlatformApiRegression.main(NONE));
+        run("TryItRegression", () -> TryItRegression.main(NONE));
         run("MotionRegression", () -> MotionRegression.main(NONE));
         run("NativeChecksAndRulesRegression", () -> NativeChecksAndRulesRegression.main(NONE));
         run("NavigationTabsRegression", () -> NavigationTabsRegression.main(NONE));

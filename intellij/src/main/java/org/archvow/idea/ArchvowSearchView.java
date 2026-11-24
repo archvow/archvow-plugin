@@ -35,6 +35,10 @@ final class ArchvowSearchView extends JPanel {
     private final JPanel nowhere = new JPanel(new BorderLayout(0, 8));
     private final JPanel closeNames = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
     private final JLabel nowhereText = new JLabel();
+    private final JEditorPane errorPane = new JEditorPane("text/html", "");
+    private final JButton errorOpen = new JButton();
+    private final JButton errorComponent = new JButton();
+    private ArchvowSearch.Hit errorPlace;
     private final CardLayout cards = new CardLayout();
     private final JPanel body = new JPanel(cards);
     private final List<String> groupKeys = new ArrayList<>();
@@ -91,6 +95,18 @@ final class ArchvowSearchView extends JPanel {
         JPanel nowhereBox = new JPanel(new BorderLayout());
         nowhereBox.add(nowhere, BorderLayout.NORTH);
         body.add(nowhereBox, "nowhere");
+        // a pasted error (2.7.0): its known errors, where it broke, and buttons to go there
+        errorPane.setEditable(false);
+        errorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        errorOpen.addActionListener(e -> { if (errorPlace != null) actions.openFile(errorPlace.file(), errorPlace.line()); });
+        errorComponent.addActionListener(e -> { if (errorPlace != null) actions.showComponent(errorPlace.component()); });
+        JPanel errorButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+        errorButtons.add(errorOpen);
+        errorButtons.add(errorComponent);
+        JPanel errorBox = new JPanel(new BorderLayout(0, 6));
+        errorBox.add(new JScrollPane(errorPane), BorderLayout.CENTER);
+        errorBox.add(errorButtons, BorderLayout.SOUTH);
+        body.add(errorBox, "error");
         add(body, BorderLayout.CENTER);
         setFrench(false);
     }
@@ -107,6 +123,10 @@ final class ArchvowSearchView extends JPanel {
         base = projectBase;
         setFrench(frenchText);
         name.setText(wanted);
+        if (ArchvowSearch.isError(data)) {
+            showError(data);
+            return;
+        }
         if (ArchvowGrammar.number(data, "total") == 0) {
             heading.setText("");
             nowhereText.setText(ArchvowSearch.nowhere(wanted, french));
@@ -137,6 +157,23 @@ final class ArchvowSearchView extends JPanel {
         filling = false;
         fillHits();
         cards.show(body, "found");
+    }
+
+    /** A pasted error (archvow show "<the error>" --json, 2.7.0). */
+    private void showError(JsonObject data) {
+        name.setText(french ? "Erreur" : "Error");
+        heading.setText("archvow show \"<" + (french ? "l'erreur" : "the error") + ">\" --json");
+        errorPlace = ArchvowSearch.errorPlace(data);
+        boolean openable = errorPlace != null && errorPlace.openable();
+        errorOpen.setVisible(openable);
+        errorComponent.setVisible(errorPlace != null && !errorPlace.component().isBlank());
+        if (openable) errorOpen.setText((french ? "Ouvrir à la ligne " : "Open at line ") + errorPlace.line());
+        if (errorPlace != null) errorComponent.setText((french ? "Afficher " : "Show ") + errorPlace.component());
+        errorPane.setText(ArchvowSearch.errorHtml(data, errorPlace == null ? List.of() : ArchvowSearch.around(base, errorPlace), french));
+        errorPane.setCaretPosition(0);
+        cards.show(body, "error");
+        revalidate();
+        repaint();
     }
 
     private void fillHits() {

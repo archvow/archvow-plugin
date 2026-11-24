@@ -93,8 +93,8 @@ test('archvow in WSL, VS Code on Windows: wsl.exe with Linux paths, no shell (0.
   assert.equal(wslenv('PATH/l'), 'PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG');
 });
 
-test("the search order: VS Code's interpreter, archvow.python, archvow.executable; the first that answers runs", async () => {
-  assert.deepEqual(candidates({ executable: '', python: '/p2', timeoutSeconds: 1, interpreter: '/p1' }).map((c) => c.source), ['ide', 'python', 'executable']);
+test("the search order: archvow.python, VS Code's interpreter, archvow.executable; the first that answers runs", async () => {
+  assert.deepEqual(candidates({ executable: '', python: '/p2', timeoutSeconds: 1, interpreter: '/p1' }).map((c) => c.source), ['python', 'ide', 'executable']);
   assert.deepEqual(candidates({ executable: '', python: '/p2', timeoutSeconds: 1, interpreter: '/p1', useProjectInterpreter: false }).map((c) => c.source), ['python', 'executable']);
   assert.equal(candidates({ executable: '', python: '', timeoutSeconds: 1 })[0].executable, 'archvow');
   // 0.25.2: the folder's .venv, then archvow where pip and pipx put it - only what exists (as IntelliJ's FindArchvowRegression)
@@ -102,7 +102,7 @@ test("the search order: VS Code's interpreter, archvow.python, archvow.executabl
   const found = foundCandidates('/work/p', '/Users/me', false, (p) => there.has(p));
   assert.deepEqual(found.map((c) => c.source), ['venv', 'found', 'found']);
   assert.deepEqual(candidates({ executable: '', python: '/p2', timeoutSeconds: 1, interpreter: '/p1' }, found).map((c) => c.source),
-    ['ide', 'python', 'venv', 'executable', 'found', 'found']);
+    ['python', 'ide', 'venv', 'executable', 'found', 'found']);
   assert.deepEqual(foundCandidates('C:\\work\\p', 'C:\\Users\\me', true, (p) => p === 'C:\\work\\p\\.venv\\Scripts\\python.exe').map((c) => c.python),
     ['C:\\work\\p\\.venv\\Scripts\\python.exe']);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archvow-order-'));

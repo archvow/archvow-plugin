@@ -4,16 +4,58 @@ The plugin joins two former plugins in 0.5.0; their own histories follow.
 
 ## 0.26.1 - 2026-11-20
 
-Built on archvow 2.6.1 (contract 2.4, unchanged: 2.6.1 prints what 2.6.0 printed, but the version). Security and
-release fixes from the review of 0.26.0.
+Built on archvow 2.8.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to
+be older, with Install archvow 2.8.0). Security and release fixes from the review of 0.26.0.
 
+- **No Plugin Verifier warnings** (they were on every IDE from 2024.3 to 2026.3 EAP): files open through
+  `OpenFileDescriptor.navigate`, as before, instead of `FileEditorManager.openFile` / `openTextEditor` (deprecated
+  from 2026.3); the Archvow editor tab is used once it is open, also when the IDE opens it later. The trust check
+  calls the platform's `TrustedProjects.isProjectTrusted` (2025.1 and later), else the older `isTrusted` (2024.3),
+  by name - a platform with neither runs nothing (`ArchvowTrust`, `ArchvowEditorTab.withPanel`,
+  `PlatformApiRegression`).
 - **Nothing runs in a project you have not trusted.** A project opened in safe mode ("Preview in Safe Mode") starts no archvow, Test or Install process (`ArchvowTrust`, `TrustedProjects.isTrusted`): 0.26.0 ran archvow as soon as an archvow project opened - with the project's `.venv` Python among the candidates - and never asked. The panel says why; after "Trust project", Refresh runs as before.
 - **Python runs with `-P`** (`<python> -P -m archvow`, `<python> -P -m pip`): archvow and pip run in the project's
   root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code
   each time the plugin called archvow (reproduced). Python 3.11 or later, as archvow itself needs; an older Python
   found first is passed over for the next candidate.
-- **archvow 2.6.1 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 789
-  check messages, 100 codes, harvested from its suite, which now passes as delivered).
+- **archvow 2.8.0 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 803
+  check messages, 100 codes, harvested from its suite, which now passes as delivered). Since 2.6.2, a first rule
+  parameter set stricter than its default (a lower ARCH022 budget) is no longer reported as a weakened guard
+  (ARCH020).
+- **Check before coding**, on a feature's page after **Copy AI prompt**: copies `archvow prompt --feature <feature>
+  --clarify` (archvow 2.8.0) - the AI checks the whole feature before any code, where its components disagree or
+  leave a gap between them (one writes one folder per run date, another reads everything under the path), and
+  records each finding as a question on the component that must change; it writes no code. **Copy AI prompt** now
+  also gives what the feature's other components already decided (`ArchvowFeatureView.promptArgs`, `FeatureViewRegression`).
+- **An error pasted in Find is shown as an error.** `archvow show "<the error>"` (archvow 2.7.0): what went wrong,
+  the template's known errors it matches - each pack rule kept with that error (`pack rule --error`), with its fix
+  and why - then where it broke, with the lines around it, **Open at line** and **Show <component>**, and where the
+  lesson goes once it is fixed. Before, it was a search found nowhere, or the component alone (its known errors
+  lost) (`ArchvowSearch.errorHtml`, `PastedErrorRegression`; contract `cli/python-app/pasted-error.json`).
+- **Settings > Tools > Archvow in one language** - the one chosen on the page, English by default as archvow -
+  instead of every text twice, "English / Français"; the language list switches the page at once. The other
+  texts that said everything twice (the fix labels, "Answer / Réponse", the safety previews) follow the chosen
+  language too, and `SettingsTextRegression` keeps it so.
+- **AI assistants picked from a list, or added by name.** In init and pack template (ai_tools, reviewers), the
+  assistants are no longer typed "comma-separated": each chosen one is a chip, **Add an assistant…** lists those
+  archvow knows (the catalog's suggestions: archvow's 16 agents, and a pack's own), and a box adds any other name -
+  archvow takes any agent name and gives an unknown one the standard AGENTS.md and .agents/skills, as its chip says.
+  `none` stays alone; a wrong name is refused with the rule (`ArchvowAgentPicker`, `AgentPickerRegression`). Each chip is a
+  rounded pill as wide as its name, with a small × (not a button: IntelliJ's look gave each × a wide minimum size).
+- **Choose the Python from a list, and see which one runs.** The Python field is a list of the Pythons of this
+  computer - the project's interpreter, its `.venv`, the IDE's interpreters, python.org, Homebrew, the system's,
+  pyenv, conda, the PATH - each with its version and the archvow it has, those with archvow first (as the IDE's
+  own interpreter list); *Automatic (recommended)* stays the default, and says its order. **Runs**, at the top of
+  the page and on the Archvow window's welcome page, says what runs: `archvow 2.8.0 with
+  /usr/local/bin/python3.12 — the project's Python interpreter`. A Python chosen here now comes before the
+  project's interpreter (`ArchvowPythons`, `PythonsRegression`).
+- **Initialize opens the new project.** From PyCharm Home (the non-modal welcome screen, a project kept in
+  PyCharmMiscProject), Initialize no longer initializes PyCharm Home itself: it asks for the new project's
+  Folder - filled from the package, under the IDE's projects folder - and once archvow made it, the IDE opens it,
+  with the Archvow window. From any project, an init into another Folder opens that folder (this window or a new
+  one, as the IDE's setting says); an init of the project itself shows its new files in the Project view at once
+  (`ArchvowInitTarget`, `InitTargetRegression`).
+- **"Try it" shows its result.** The welcome page was a GridBagLayout that gives every part its minimum size as soon as the tool window is narrower than the parts (420 px) or shorter than their sum: Try it's result area shrank to its scroll bar, and nothing seemed to happen. The welcome page now scrolls, lays its parts out from the top at their own height, and brings the result into view when it starts and when it arrives (`TryItRegression`: 260 px in a narrow, a short and a wide tool window; 22 px before).
 - `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
   `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin
   Verifier on the recommended IDE releases (`intellij-verify`) before publishing.

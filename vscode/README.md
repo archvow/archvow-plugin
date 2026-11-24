@@ -143,7 +143,7 @@ Show the archvow log, Copy the archvow log for support.
 ## Requirements
 
 - VS Code 1.90 or later.
-- The ArchVow CLI 2.6.0 (contract 2.4) in a Python 3.11+ environment. The extension says when the installed
+- The ArchVow CLI 2.8.0 (contract 2.5) in a Python 3.11+ environment. The extension says when the installed
   ArchVow does not speak its contract, rather than misreading it.
 - Optional: the Python extension, to use the project's interpreter.
 

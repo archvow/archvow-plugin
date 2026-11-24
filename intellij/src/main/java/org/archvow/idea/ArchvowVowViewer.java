@@ -30,17 +30,17 @@ final class ArchvowVowViewer {
     static String read(String projectRoot, String componentId) {
         if (projectRoot == null || projectRoot.isBlank() || componentId == null
             || !componentId.matches("[A-Za-z_][A-Za-z_0-9-]*")) {
-            return "No component spec selected / Aucune spécification sélectionnée.";
+            return "No component spec selected.";
         }
         try {
             Path root = Path.of(projectRoot).toRealPath();
             Path spec = ArchvowLayout.componentVow(root, componentId);
-            if (spec == null) return "vow not found / vow introuvable : " + componentId;
-            if (!spec.toRealPath().startsWith(root)) return "File outside the project / Fichier hors du projet.";
-            if (Files.size(spec) > MAX_BYTES) return "vow too large to preview / Fichier trop volumineux pour l'aperçu.";
+            if (spec == null) return "vow not found: " + componentId;
+            if (!spec.toRealPath().startsWith(root)) return "File outside the project.";
+            if (Files.size(spec) > MAX_BYTES) return "vow too large to preview.";
             return Files.readString(spec, StandardCharsets.UTF_8);
         } catch (IOException | SecurityException e) {
-            return "Cannot read the vow / Impossible de lire le vow : " + e.getMessage();
+            return "Cannot read the vow: " + e.getMessage();
         }
     }
 

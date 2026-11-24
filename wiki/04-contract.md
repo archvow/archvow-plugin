@@ -22,6 +22,7 @@ les plugins doivent suivre**. Il est enregistré depuis une vraie CLI archvow, j
 | `contract/forms/file-plans.expected.json` | ce que `filePlan()` donne sur 21 exemples en anglais et en français, les couches où ajouter un composant, les lignes d'Enregistrer dans un fichier | `UPDATE_FILE_PLANS=1 npm test` | `FilePlanRegression` : `ArchvowFilePlan` doit donner exactement la même chose |
 | `contract/forms/examples.expected.json` | l'état de chaque exemple (réussi, en échec, sans test) tel que la page le dit, en anglais et en français | `UPDATE_EXAMPLES=1 npm test` | `ExamplesAndSearchRegression` : `ArchvowExamples.state` doit dire la même chose |
 | `contract/cli/python-app/examples/` (`passing.json`, `failing.json`, `no-test.json`), `contract/cli/<exemple>/search/<nom>.json` | `show invoices_cli --json` avec un exemple réussi, en échec, sans test ; `show <nom> --json` sur des noms trouvés et un nom introuvable (`mark_payd`) | `regenerate.py` (`examples()`, `SEARCHES`) | `examples.test.ts`, `ExamplesAndSearchRegression` |
+| `contract/cli/python-app/pasted-error.json` | `show "<une trace>" --json` (archvow 2.7.0, contrat 2.5) : une erreur collée qui nomme `mark_paid.py:28` | `regenerate.py` (`PASTED_ERRORS`) | `pasted-error-regression.js`, `PastedErrorRegression` |
 | `contract/cli/catalog.json` | `archvow catalog --json` hors projet : les templates et leurs questions | `regenerate.py` | `ArchvowInitCatalog`, l'assistant `init` quand la CLI ne répond pas ; `componentTypes()` |
 | `contract/cli/rules.md`, `rules.fr.md` | la signification de chaque code de contrôle (`docs/rules*.md` d'archvow) | `regenerate.py` (copie) | `ArchvowRuleDocs`, `ruleExplanation()` : l'explication sous un diagnostic |
 | `contract/cli/<exemple>/show.json`, `next.json`, `check.json`, `show/<composant>.json` | ce que la CLI affiche sur les trois exemples d'archvow | `regenerate.py` | les tests VS Code (`vscode/src/test/workspace.test.ts`, `layout.test.ts`) et les montages de test des deux plugins |
@@ -75,14 +76,14 @@ Ce qu'il faut ensuite regarder dans le diff :
 
 ## La version d'archvow et le contrat (0.20.0)
 
-archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "2.4", "archvow": "2.6.1",
+archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "2.5", "archvow": "2.8.0",
 ...}`, et chaque objet `--json` commence par `"contract"`. `ArchvowVersion.warning` et `contractWarning()`
 le comparent à `contract.txt` : même MAJEURE et une MINEURE au moins celle du plugin, rien ; une plus
 ancienne, ou un archvow qui ne dit pas de contrat (avant 1.23 : il n'a pas de commande `version`, son
 `--version` donne le numéro), « plus ancien : mets archvow à jour » ; une MAJEURE plus récente, « plus
 récent : mets le plugin à jour ». Une version d'archvow qui garde le contrat ne demande donc pas de
 nouvelle version du plugin, et archvow ne garde toujours pas de compatibilité ascendante : c'est le numéro
-de contrat qui le dit. L'installation met exactement l'archvow testé (`archvow==2.6.1`).
+de contrat qui le dit. L'installation met exactement l'archvow testé (`archvow==2.8.0`).
 
 Le contrat 1.1 (archvow 1.25, plugin 0.21.0) ajoute `archvow workspace --json` : ce que les plugins
 chargent, en un seul processus (`readWorkspace()` dans `model.ts`, `WorkspaceAnswer` dans IntelliJ, tous

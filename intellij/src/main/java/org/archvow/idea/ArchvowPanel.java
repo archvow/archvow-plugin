@@ -192,6 +192,8 @@ final class ArchvowPanel extends JPanel {
     /** In archvow try's form (0.25.1): where the example will be copied, as the fields say. */
     private final JLabel tryWhere = new JLabel();
     private JScrollPane welcomeResultScroll;
+    /** The welcome page scrolls (0.26.1): with Try it's result under the cards it is taller than a tool window. */
+    private JScrollPane welcomePage;
     /** "missing", "version" or "" (archvow speaks the plugin's contract). */
     private String installReason = "";
     private boolean installing;
@@ -466,7 +468,7 @@ final class ArchvowPanel extends JPanel {
         add(buildHeader(), BorderLayout.NORTH);
         buildTabs();
         rootCards.add(tabs, "workspace");
-        rootCards.add(buildWelcomeView(), "welcome");
+        rootCards.add(buildWelcomeView(), "welcome");  // a scroll pane: see welcomePage
         resultExpansion = new ArchvowResultExpansion(rootCards, rootLayout, "workspace");
         add(rootCards, BorderLayout.CENTER);
         for (ArchvowGrammar.Command command : ArchvowGrammar.COMMANDS) commandModel.addElement(command);
@@ -732,8 +734,8 @@ final class ArchvowPanel extends JPanel {
         if (role == Role.NAVIGATION) {
             findField.setColumns(10);
             findField.setToolTipText(ArchvowI18n.text(project,
-                "Find a function, column, ticket or example (Enter to search)",
-                "Rechercher une fonction, une colonne, un ticket ou un exemple (Entrée pour chercher)"));
+                "Find a function, column, ticket or example - or paste an error (Enter to search)",
+                "Rechercher une fonction, une colonne, un ticket ou un exemple - ou coller une erreur (Entrée pour chercher)"));
             findField.addActionListener(e -> showSearch(findField.getText()));
             // A magnifier INSIDE the search field, not a second Find button.
             JPanel searchBox = new JPanel(new BorderLayout(5, 0));
@@ -860,7 +862,7 @@ final class ArchvowPanel extends JPanel {
                 @Override public void openFile(String relative) { openViolationFile(relative, 0); }
                 @Override public void openCommand(String command, Map<String, String> values) { ArchvowPanel.this.openCommand(command, values); }
                 @Override public void openDoc(String feature) { ArchvowPanel.this.openDoc(feature, List.of()); }
-                @Override public void copyPrompt(String feature) { copyFeaturePrompt(feature); }
+                @Override public void copyPrompt(String feature, boolean check) { copyFeaturePrompt(feature, check); }
                 @Override public void nextSteps(String feature) { executeDirect("next", List.of("next", "--feature", feature, "--json"), null, false); }
             });
             detailHomeCards.add(featureView, "feature");
@@ -985,10 +987,10 @@ final class ArchvowPanel extends JPanel {
                 return;
             }
             String id = ArchvowGrammar.str(data, "component");
-            if (!id.isBlank() && !data.has("groups")) { showComponent(id); return; }
+            if (!id.isBlank() && !data.has("groups") && !ArchvowSearch.isError(data)) { showComponent(id); return; }
             backComponent = null;
             showWorkspace();
-            searchName = wanted;
+            searchName = ArchvowSearch.isError(data) ? ArchvowGrammar.str(data.getAsJsonObject("error"), "error") : wanted;
             searchView.show(data, wanted, project.getBasePath(), ArchvowI18n.isFrench(project));
             showDetailHome("search");
             tabs.setSelectedIndex(0);
@@ -1046,13 +1048,17 @@ final class ArchvowPanel extends JPanel {
         });
     }
 
-    /** {@code archvow prompt --feature <feature>} into the clipboard: the feature in a few lines, then the task of its next component. */
-    private void copyFeaturePrompt(String feature) {
-        cli.executeAction("prompt", List.of("prompt", "--feature", feature), null, r -> {
+    /** {@code archvow prompt --feature <feature>} into the clipboard: the feature in a few lines, then the task of its next
+     *  component; {@code check}: the feature's check before any code ({@code --clarify}, archvow 2.8.0). */
+    private void copyFeaturePrompt(String feature, boolean check) {
+        cli.executeAction("prompt", ArchvowFeatureView.promptArgs(feature, check), null, r -> {
             if (!r.ok()) { message(r.output); return; }
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(r.stdout), null);
-            message(ArchvowI18n.text(project, "The instruction for " + feature + " is in the clipboard: paste it to your AI assistant.",
-                "L'instruction pour " + feature + " est dans le presse-papiers : colle-la à ton assistant IA."));
+            message(check
+                ? ArchvowI18n.text(project, "The check of " + feature + " is in the clipboard: paste it to your AI assistant. It records what it finds as questions and writes no code.",
+                    "La vérification de " + feature + " est dans le presse-papiers : colle-la à ton assistant IA. Il enregistre ce qu'il trouve en questions et n'écrit pas de code.")
+                : ArchvowI18n.text(project, "The instruction for " + feature + " is in the clipboard: paste it to your AI assistant.",
+                    "L'instruction pour " + feature + " est dans le presse-papiers : colle-la à ton assistant IA."));
         });
     }
 
@@ -1062,8 +1068,8 @@ final class ArchvowPanel extends JPanel {
         find.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
         JLabel label = translated(new JLabel(), "Find in the project", "Chercher dans le projet");
         label.setForeground(new Color(125, 131, 140));
-        findField.setToolTipText(ArchvowI18n.text(project, "A name: a function, a column, a ticket, an example (archvow show <name>)",
-            "Un nom : une fonction, une colonne, un ticket, un exemple (archvow show <nom>)"));
+        findField.setToolTipText(ArchvowI18n.text(project, "A name: a function, a column, a ticket, an example (archvow show <name>) - or an error, pasted",
+            "Un nom : une fonction, une colonne, un ticket, un exemple (archvow show <nom>) - ou une erreur, collée"));
         findField.addActionListener(e -> showSearch(findField.getText()));
         JButton go = button(ArchvowI18n.text(project, "Find", "Chercher"), () -> showSearch(findField.getText()));
         languageRefreshers.add(() -> go.setText(ArchvowI18n.text(project, "Find", "Chercher")));
@@ -1225,8 +1231,8 @@ final class ArchvowPanel extends JPanel {
         new String[] {"fastapi-service", "FastAPI service"}, new String[] {"python-app", "Python app"},
         new String[] {"langgraph-agent", "LangGraph agent"});
 
-    private JPanel buildWelcomeView() {
-        JPanel container = new JPanel(new GridBagLayout());
+    private JComponent buildWelcomeView() {
+        JPanel container = new WelcomePage();
         JPanel column = new JPanel();
         column.setOpaque(false);
         column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
@@ -1280,6 +1286,7 @@ final class ArchvowPanel extends JPanel {
         welcomeResult.setVisible(true);
         welcomeResultScroll = scroll(welcomeResult);
         welcomeResultScroll.setPreferredSize(new Dimension(420, 260));
+        welcomeResultScroll.setMinimumSize(new Dimension(0, 200));  // never only its scroll bar, whatever the room
         welcomeResultScroll.setAlignmentX(0f);
         welcomeResultScroll.setVisible(false);
         column.add(Box.createVerticalStrut(10));
@@ -1290,11 +1297,39 @@ final class ArchvowPanel extends JPanel {
             "Après Initialiser, la Vue d'ensemble montre les premiers pas. Les développeurs et relecteurs qui clonent un projet avec archvow partent de son README."),
             ArchvowOverviewCards.muted(), 12f);
         column.add(welcomeFoot);
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.weightx = 1; gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(15, 15, 15, 15);
-        container.add(column, gc);
-        return container;
+        container.add(column, BorderLayout.NORTH);
+        welcomePage = new JScrollPane(container, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        welcomePage.setBorder(BorderFactory.createEmptyBorder());
+        welcomePage.getVerticalScrollBar().setUnitIncrement(18);
+        return welcomePage;
+    }
+
+    /** The welcome page's content (0.26.1): as wide as the tool window, each part at its preferred height, from the top.
+     *  It was a GridBagLayout, which gives every part its MINIMUM size as soon as the window is narrower than the parts'
+     *  preferred 420 pixels, or shorter than their sum: in a sidebar Try it's result area shrank to its scroll bar. */
+    static final class WelcomePage extends JPanel implements Scrollable {
+        WelcomePage() {
+            super(new BorderLayout());
+            setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 18; }
+        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) {
+            return Math.max(18, visible.height - 32);
+        }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() {
+            return getParent() instanceof JViewport viewport && viewport.getHeight() > getPreferredSize().height;
+        }
+    }
+
+    /** Bring Try it's result into view (0.26.1): it shows under the Try card, below what the window shows. */
+    private void revealWelcomeResult() {
+        SwingUtilities.invokeLater(() -> {
+            if (!welcomeResultScroll.isShowing()) return;
+            welcomeResultScroll.scrollRectToVisible(new Rectangle(0, 0, welcomeResultScroll.getWidth(), welcomeResultScroll.getHeight()));
+        });
     }
 
     /** "Not sure yet? See it catch a mistake" (0.25.0): archvow try on an example, in a scratch folder. */
@@ -1332,7 +1367,11 @@ final class ArchvowPanel extends JPanel {
         welcomeResult.setText(htmlMessage("<b>⏳ " + escape(ArchvowI18n.text(project, "Running", "Exécution"))
             + "</b> · " + escape("archvow " + String.join(" ", args))));
         revalidate();
-        cli.executeAction("try", args, null, result -> storeCommandResult(welcomeResult, "try", result));
+        revealWelcomeResult();
+        cli.executeAction("try", args, null, result -> {
+            storeCommandResult(welcomeResult, "try", result);
+            revealWelcomeResult();
+        });
     }
 
     private void showWelcome(ArchvowProjectReadiness.Status status, String customError) {
@@ -1352,7 +1391,10 @@ final class ArchvowPanel extends JPanel {
             }
             case NOT_INITIALIZED -> {
                 title = ArchvowI18n.text(project, "Archvow not initialized", "Archvow non initialisé");
-                detail = ArchvowI18n.text(project,
+                detail = welcomeProject() ? ArchvowI18n.text(project,
+                    "PyCharm Home is not a project. Initialize Archvow creates a new project in its own folder, then the IDE opens it.",
+                    "PyCharm Home n'est pas un projet. Initialiser Archvow crée un nouveau projet dans son propre dossier, puis l'IDE l'ouvre.")
+                    : ArchvowI18n.text(project,
                     "This folder does not contain .archvow/project.vow. Initialize Archvow to begin, or open an initialized project.",
                     "Ce dossier ne contient pas .archvow/project.vow. Initialise Archvow pour commencer, ou ouvre un projet déjà initialisé.");
             }
@@ -1376,8 +1418,12 @@ final class ArchvowPanel extends JPanel {
         }
         String extra = customError == null || customError.isBlank() ? "" :
             "<p style='color:" + (darkTheme() ? "#FF9CAB" : "#A52440") + ";'>" + escape(customError) + "</p>";
+        // which archvow runs, and why (0.26.1): the first thing a developer needs to trust what the buttons do
+        String runs = cli.program().isBlank() ? "" : "<p><small>" + escape(ArchvowSettingsText.runs(ArchvowI18n.isFrench(project),
+            cli.program(), cli.source(), runningVersion)) + ". " + escape(ArchvowI18n.text(project,
+            "To choose another Python: Configure Python.", "Pour choisir un autre Python : Configurer Python.")) + "</small></p>";
         welcomeText.setText(htmlHead() + ArchvowHtml.heading(escape(title), 1.3, "margin:4px 0 8px 0;") + "<p>" + escape(detail)
-            + "</p><p><small>" + escape(status.root()) + "</small></p>" + extra + "</body></html>");
+            + "</p><p><small>" + escape(status.root()) + "</small></p>" + runs + extra + "</body></html>");
         welcomeText.setCaretPosition(0);
         welcomeInit.setEnabled(status.canInitialize());
         boolean fresh = status.state() == ArchvowProjectReadiness.State.NOT_INITIALIZED;
@@ -1447,7 +1493,7 @@ final class ArchvowPanel extends JPanel {
                     byte[] out = process.getInputStream().readAllBytes();
                     if (!process.waitFor(600, java.util.concurrent.TimeUnit.SECONDS)) {
                         process.destroyForcibly();
-                        return new String[] {"1", "Timeout after 600 seconds / Délai dépassé après 600 secondes."};
+                        return new String[] {"1", ArchvowI18n.text(project, "Timeout after 600 seconds.", "Délai dépassé après 600 secondes.")};
                     }
                     return new String[] {Integer.toString(process.exitValue()), new String(out, java.nio.charset.StandardCharsets.UTF_8)};
                 } catch (Exception error) {
@@ -1911,7 +1957,7 @@ final class ArchvowPanel extends JPanel {
         };
         grip.setPreferredSize(new Dimension(10, 9));
         grip.setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
-        grip.setToolTipText("Drag to make the result taller or shorter / Tirer pour agrandir ou réduire le résultat");
+        grip.setToolTipText(ArchvowI18n.text(null, "Drag to make the result taller or shorter", "Tirer pour agrandir ou réduire le résultat"));
         java.awt.event.MouseAdapter drag = new java.awt.event.MouseAdapter() {
             private int startY, startHeight;
             @Override public void mousePressed(java.awt.event.MouseEvent e) {
@@ -1966,7 +2012,7 @@ final class ArchvowPanel extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         JLabel hint = new JLabel("Python: /path/to/venv/bin/python3");
         hint.setForeground(UIManager.getColor("Label.disabledForeground"));
-        hint.setToolTipText("Only the Python executable path / Uniquement le chemin Python. Configure in Settings → Tools → Archvow.");
+        hint.setToolTipText(ArchvowI18n.text(project, "A Python that has archvow: choose it in Settings → Tools → Archvow.", "Un Python qui a archvow : choisis-le dans Settings → Tools → Archvow."));
         panel.add(hint, BorderLayout.CENTER);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
         openSettingsButton.addActionListener(e -> ShowSettingsUtil.getInstance().showSettingsDialog(project, ArchvowSettingsConfigurable.class));
@@ -2969,8 +3015,7 @@ final class ArchvowPanel extends JPanel {
     /** Overview › Packs (archvow 1.26): the project's packs, each with Update / Remove / Check (ArchvowPacks). */
     private void openPacks() {
         if (role == Role.NAVIGATION) {
-            ArchvowPanel editor = ArchvowEditorTab.panel(project);
-            if (editor != null) editor.openPacks();
+            ArchvowEditorTab.withPanel(project, ArchvowPanel::openPacks);
             return;
         }
         showWorkspace();
@@ -2986,8 +3031,7 @@ final class ArchvowPanel extends JPanel {
     /** Read-only documentation: the command reference, not `archvow doc` (which writes the project's pages). */
     private void openCommandReference() {
         if (role == Role.NAVIGATION) {
-            ArchvowPanel editor = ArchvowEditorTab.panel(project);
-            if (editor != null) editor.openCommandReference();
+            ArchvowEditorTab.withPanel(project, ArchvowPanel::openCommandReference);
             return;
         }
         StringBuilder html = new StringBuilder("<h2>")
@@ -3079,6 +3123,14 @@ final class ArchvowPanel extends JPanel {
         if (command == null || buildingForm) return;
         Map<String, String> values = currentValues();
         boolean fr = ArchvowI18n.isFrench(project);
+        if ("init".equals(command.label) && welcomeProject() && fields.get("dir") instanceof JTextField dir) {
+            // PyCharm Home is not a project (0.26.1): a new one goes to the projects folder, named after its package
+            String suggestion = ArchvowInitTarget.suggestedFolder(com.intellij.ide.impl.ProjectUtil.getBaseDir(), values.getOrDefault("package", ""));
+            if (!suggestion.isBlank() && (dir.getText().isBlank() || dir.getText().equals(autoDir)) && !dir.getText().equals(suggestion)) {
+                autoDir = suggestion;
+                SwingUtilities.invokeLater(() -> dir.setText(suggestion));
+            }
+        }
         formPreview.setText(ArchvowForms.commandLine(command, values, fr,
             "init".equals(command.label) && initQuestions != null ? initQuestions.answers() : List.of()));
         if ("try".equals(command.label)) tryWhere.setText((fr ? "Copié dans  " : "Copied to  ")
@@ -3547,6 +3599,11 @@ final class ArchvowPanel extends JPanel {
                 ArchvowForms.essential(command.label, param));
             if (!stage.equals(matchingStage)) continue;
             if (values.getOrDefault(param.name, "").trim().isEmpty()) return false;
+        }
+        if ("init".equals(command.label) && welcomeProject() && values.getOrDefault("dir", "").isBlank()) {
+            String dirStage = command.parameters.stream().filter(p -> "dir".equals(p.name)).findFirst()
+                .map(p -> formStageFor(command.label, p.name, p.hidden, ArchvowForms.essential(command.label, p))).orElse("");
+            if (stage.equals(dirStage)) return false;
         }
         if ("Template questions".equals(stage) && "init".equals(command.label))
             return !values.getOrDefault("template", "").isBlank();
@@ -4104,7 +4161,7 @@ final class ArchvowPanel extends JPanel {
         if ("check".equals(command.label) && args.contains("--stdin")) {
             var editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
             var chosen = FileEditorManager.getInstance(project).getSelectedFiles();
-            if (editor == null || chosen.length == 0) { message("Open the file to check in an editor / Ouvre le fichier à vérifier dans un éditeur."); return; }
+            if (editor == null || chosen.length == 0) { message(ArchvowI18n.text(project, "Open the file to check in an editor.", "Ouvre le fichier à vérifier dans un éditeur.")); return; }
             String absolute = chosen[0].getPath();
             if (args.contains("--file")) {
                 String requested = args.get(args.indexOf("--file") + 1);
@@ -4151,7 +4208,7 @@ final class ArchvowPanel extends JPanel {
             commandResult.setText(htmlMessage("<b>✔ " + escape(ArchvowI18n.text(project, "Saved " + relative + " (" + lines + " lines)",
                 "Enregistré " + relative + " (" + lines + " lignes)")) + "</b> · " + escape("archvow " + String.join(" ", args))));
             var found = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file);
-            if (found != null) FileEditorManager.getInstance(project).openFile(found, true);
+            if (found != null) new OpenFileDescriptor(project, found).navigate(true);
         });
     }
 
@@ -4187,7 +4244,7 @@ final class ArchvowPanel extends JPanel {
         }
         selectCommand(name);
         if (commandList.getSelectedValue() == null || !commandList.getSelectedValue().label.equals(name)) {
-            message("Unknown command / Commande inconnue : " + name); return;
+            message(ArchvowI18n.text(project, "Unknown command: ", "Commande inconnue : ") + name); return;
         }
         // Edit spec: what the component has now (not what a diagnostic asks to change): only differences are sent
         formBaseline = "component edit".equals(name) ? whatTheComponentHas(target) : Map.of();
@@ -4249,9 +4306,41 @@ final class ArchvowPanel extends JPanel {
     private void executeDirect(String label, List<String> args, String stdin, boolean refreshAfter) {
         executeDirect(label, args, stdin, refreshAfter, false);
     }
+
+    /** The Folder the welcome project's init form filled in itself, from the package (0.26.1). */
+    private String autoDir = "";
+
+    /** PyCharm's welcome project ("PyCharm Home", 2025.2 and later): the IDE says so, else its folder's name. */
+    private boolean welcomeProject() {
+        try {
+            Class<?> provider = Class.forName("com.intellij.openapi.wm.ex.WelcomeScreenProjectProvider");
+            Object answer = provider.getMethod("isSingleWelcomeScreenProject", Project.class).invoke(null, project);
+            if (answer instanceof Boolean welcome && welcome) return true;
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError older) {
+            // an IDE without a welcome project
+        }
+        return ArchvowInitTarget.welcomeFolder(project.getBasePath());
+    }
+
+    /**
+     * The folder init just made, opened as the IDE's project (0.26.1): from PyCharm Home in its place; from another
+     * project, where the IDE's own setting says (this window or a new one). The Archvow window then opens on it.
+     */
+    private void openInitialized(String folder) {
+        com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
+            if (project.isDisposed()) return;
+            com.intellij.ide.impl.ProjectUtil.openOrImport(java.nio.file.Path.of(folder), welcomeProject() ? project : null, false);
+        });
+    }
     private void executeDirect(String label, List<String> args, String stdin, boolean refreshAfter, boolean fromQuickItem) {
         boolean initialization = args.contains("init") && !args.isEmpty() && "init".equals(args.get(0));
         boolean version = args.equals(List.of("--version"));
+        String opens = initialization ? ArchvowInitTarget.folderToOpen(args, project.getBasePath()) : null;
+        if (initialization && opens == null && welcomeProject()) {
+            message(ArchvowI18n.text(project, "PyCharm Home is not a project: give the new project's folder (Folder), archvow creates it and the IDE opens it.",
+                "PyCharm Home n'est pas un projet : indique le dossier du nouveau projet (Dossier), archvow le crée et l'IDE l'ouvre."));
+            return;
+        }
         ArchvowProjectReadiness.Status status = ArchvowProjectReadiness.inspect(project.getBasePath());
         if (!status.ready() && !(initialization && status.canInitialize())
             && !(version && !status.root().isBlank() && new File(status.root()).isDirectory())) {
@@ -4260,8 +4349,7 @@ final class ArchvowPanel extends JPanel {
         }
         if (role == Role.NAVIGATION) {
             // Overview's commands: their result in the editor tab
-            ArchvowPanel detail = ArchvowEditorTab.panel(project);
-            if (detail != null) { detail.runFromOverview(label, args, stdin, refreshAfter); return; }
+            if (ArchvowEditorTab.withPanel(project, detail -> detail.runFromOverview(label, args, stdin, refreshAfter))) return;
         }
         int origin = tabs.getSelectedIndex();
         // The component-local Other actions run inside Components, not Overview.
@@ -4296,10 +4384,19 @@ final class ArchvowPanel extends JPanel {
             }
             if (initialization && result.ok()) {
                 com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Archvow")
-                    .createNotification(ArchvowI18n.text(project, "Archvow initialized successfully. The project architecture is ready.",
-                        "Archvow initialisé avec succès. L’architecture du projet est prête."), com.intellij.notification.NotificationType.INFORMATION)
+                    .createNotification(opens != null
+                        ? ArchvowI18n.text(project, "Archvow initialized " + opens + ". It opens as the IDE's project.",
+                            "Archvow initialisé dans " + opens + ". Il s'ouvre comme projet de l'IDE.")
+                        : ArchvowI18n.text(project, "Archvow initialized successfully. The project architecture is ready.",
+                            "Archvow initialisé avec succès. L’architecture du projet est prête."), com.intellij.notification.NotificationType.INFORMATION)
                     .notify(project);
-                reload(false);
+                if (opens != null) openInitialized(opens);
+                else {
+                    // the new files in the Project view at once, not at the next sync
+                    String root = project.getBasePath();
+                    if (root != null) com.intellij.openapi.vfs.VfsUtil.markDirtyAndRefresh(true, true, true, new File(root));
+                    reload(false);
+                }
             }
             else if (refreshAfter && result.ok()) {
                 ownLoad = true;  // the vow change that follows is this action's: the watcher stays quiet
@@ -4334,12 +4431,19 @@ final class ArchvowPanel extends JPanel {
         cli.execute("Version", List.of("version", "--json"), null, result -> {
             ArchvowVersion.Said said = ArchvowVersion.said(result.ok() ? result.stdout : "");
             if (!said.version().isBlank()) {
+                runningVersion = said.version();
                 then.accept(said);
                 return;
             }
-            cli.execute("Version", List.of("--version"), null, old -> then.accept(new ArchvowVersion.Said(ArchvowVersion.number(old.output), "")));
+            cli.execute("Version", List.of("--version"), null, old -> {
+                runningVersion = ArchvowVersion.number(old.output);
+                then.accept(new ArchvowVersion.Said(runningVersion, ""));
+            });
         });
     }
+
+    /** The version of the archvow that runs, once asked (0.26.1: on the welcome page). */
+    private volatile String runningVersion = "";
 
     /** The session log's header, once archvow said its version (0.19.0) and contract (0.20.0). */
     private void logSession(ArchvowVersion.Said said) {
@@ -5236,7 +5340,7 @@ final class ArchvowPanel extends JPanel {
             dismissInline.setText(ArchvowI18n.text(project, "Confirm not applicable (decision " + coveringNumber + ")",
                 "Confirmer non applicable (décision " + coveringNumber + ")"));
         } else dismissInline.setText(ArchvowI18n.text(project, "Not applicable", "Non applicable"));
-        safetySuggestedButton.setToolTipText(available ? ArchvowSafetyState.preview(row) : "");
+        safetySuggestedButton.setToolTipText(available ? ArchvowSafetyState.preview(row, ArchvowI18n.isFrench(project)) : "");
         switch (safetyMode) {
             case "change" -> {
                 safetyInputLabel.setText(ArchvowI18n.text(project, "Change hazard ", "Modifier le hazard ") + changingHazard);
@@ -5336,8 +5440,8 @@ final class ArchvowPanel extends JPanel {
         JsonObject row = selectedRecord("safety", safetyList.getSelectedIndex());
         if (row == null || selectedComponent == null || ArchvowSafetyState.suggestedHazard(row).isBlank()) return;
         String word = ArchvowGrammar.str(row, "guide_word");
-        if (word.isBlank()) { message("Safety guide word unavailable / Guide word de sécurité indisponible."); return; }
-        String proposal = ArchvowSafetyState.preview(row);
+        if (word.isBlank()) { message(ArchvowI18n.text(project, "Safety guide word unavailable.", "Guide word de sécurité indisponible.")); return; }
+        String proposal = ArchvowSafetyState.preview(row, ArchvowI18n.isFrench(project));
         if (ArchvowSafetyState.suggestedInvariant(row).isBlank()) proposal += "\n" + ArchvowI18n.text(project,
             "No invariant suggestion: a high-severity hazard will still need an invariant.",
             "Aucun invariant suggéré : un hazard élevé nécessitera encore un invariant.");
@@ -5396,7 +5500,7 @@ final class ArchvowPanel extends JPanel {
         } catch (IllegalArgumentException ex) { message(ex.getMessage()); return; }
         String confirmation = "D" + number + " — " + question + "\n\n"
             + ("decision accept".equals(action) ? "Proposal / Proposition: " + ArchvowGrammar.str(row,"proposed")
-                : "Answer / Réponse: " + answer)
+                : ArchvowI18n.text(project, "Answer: ", "Réponse : ") + answer)
             + "\n\n" + ArchvowI18n.text(project,
                 "This changes the Archvow specification. Confirm?",
                 "Cette action modifie la spécification Archvow. Confirmer ?");
@@ -5534,7 +5638,7 @@ final class ArchvowPanel extends JPanel {
     private void actionDecision(String command) {
         if (selectedComponent == null) return;
         JsonObject row = selectedRecord("decisions", decisionsList.getSelectedIndex());
-        if (row == null) { message("Select a decision / Sélectionne une décision"); return; }
+        if (row == null) { message(ArchvowI18n.text(project, "Select a decision.", "Sélectionne une décision.")); return; }
         Map<String, String> preset = new HashMap<>();
         preset.put("component", selectedComponent.id);
         preset.put("question", ArchvowGrammar.str(row, "number"));
@@ -5546,12 +5650,12 @@ final class ArchvowPanel extends JPanel {
     private void actionSafety(String command) {
         if (selectedComponent == null) return;
         JsonObject row = selectedRecord("safety", safetyList.getSelectedIndex());
-        if (row == null) { message("Select a safety question / Sélectionne une question de sécurité"); return; }
+        if (row == null) { message(ArchvowI18n.text(project, "Select a safety question.", "Sélectionne une question de sécurité.")); return; }
         openCommand(command, Map.of("component", selectedComponent.id,
             "guide_word", "S" + ArchvowGrammar.str(row, "number"), "severity", "high"));
     }
     private void guidedNext() {
-        if (selectedComponent == null) { message("Select a component / Sélectionne un composant."); return; }
+        if (selectedComponent == null) { message(ArchvowI18n.text(project, "Select a component.", "Sélectionne un composant.")); return; }
         String id = selectedComponent.id;
         if (selectedView != null && id.equals(ArchvowGrammar.str(selectedView, "component"))) {
             chooseNext(selectedView); return;
@@ -5670,7 +5774,7 @@ final class ArchvowPanel extends JPanel {
             if (component != null) break;
         }
         if (component == null || container == null) {
-            message("Code location unknown / Emplacement du code inconnu pour " + selectedComponent.id);
+            message(ArchvowI18n.text(project, "Code location unknown for ", "Emplacement du code inconnu pour ") + selectedComponent.id);
             return;
         }
         String module = ArchvowGrammar.str(component, "module").replace('.', '/');
@@ -5679,7 +5783,7 @@ final class ArchvowPanel extends JPanel {
         showFirstFile(List.of(new File(root, prefix + "/" + module + ".py"),
                 new File(root, "src/" + module + ".py"),
                 new File(root, parent + "/" + selectedComponent.id + ".py")),
-            "Code not found / Code introuvable pour " + selectedComponent.id + "\nModule : " + module);
+            ArchvowI18n.text(project, "Code not found for ", "Code introuvable pour ") + selectedComponent.id + "\nModule: " + module);
     }
     /** The spec of the example archvow try copied (0.25.1): only a .archvow/project.vow in the folder it printed. */
     private void openTryCopy(String folder) {
@@ -5691,7 +5795,7 @@ final class ArchvowPanel extends JPanel {
         for (File file : candidates) {
             if (!file.isFile()) continue;
             var virtual = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-            if (virtual != null) { FileEditorManager.getInstance(project).openFile(virtual, true); return; }
+            if (virtual != null) { new OpenFileDescriptor(project, virtual).navigate(true); return; }
         }
         message(fallback);
     }
@@ -5830,7 +5934,7 @@ final class ArchvowPanel extends JPanel {
             return;
         }
         var file = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(filePath.toFile());
-        if (file != null) FileEditorManager.getInstance(project).openFile(file, true);
+        if (file != null) new OpenFileDescriptor(project, file).navigate(true);
     }
 
     /** The project doc's Checks section: archvow doc writes it, then it opens there. */
@@ -5847,8 +5951,7 @@ final class ArchvowPanel extends JPanel {
         if (match != null) {
             var file = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(match.path().toFile());
             if (file != null) {
-                FileEditorManager.getInstance(project).openTextEditor(
-                    new OpenFileDescriptor(project, file, match.offset()), true);
+                new OpenFileDescriptor(project, file, match.offset()).navigate(true);
                 return;
             }
         }
@@ -5877,7 +5980,7 @@ final class ArchvowPanel extends JPanel {
             String referenced = ArchvowGrammar.str(violation, "component");
             if (!componentSnapshots.containsKey(referenced))
                 referenced = ArchvowIssueAction.quotedComponent(description, componentSnapshots.keySet());
-            ArchvowIssueAction.Fix fix = ArchvowIssueAction.fix(code, description, referenced);
+            ArchvowIssueAction.Fix fix = ArchvowIssueAction.fix(code, description, referenced, ArchvowI18n.isFrench(project));
             // ARCH030 is already represented by an actionable incomplete safety item.
             // Avoid counting the same missing invariant twice in global Pending.
             if ("ARCH030".equals(code) && fix != null && !referenced.isBlank()) {
@@ -5923,7 +6026,7 @@ final class ArchvowPanel extends JPanel {
                         !answer.isBlank() || state.equals("resolved") || state.equals("answered");
                     addQuickItem(keys, new QuickItem(closed ? QuickKind.RESOLVED : QuickKind.QUESTION,
                         ArchvowI18n.text(project, "Project", "Projet") + " · " + category + " · " + shorten(title, 65),
-                        title + (answer.isBlank() ? "" : "\nAnswer / Réponse: " + answer),
+                        title + (answer.isBlank() ? "" : "\n" + ArchvowI18n.text(project, "Answer: ", "Réponse : ") + answer),
                         "", !closed,
                         ArchvowI18n.text(project, "Open project specification", "Ouvrir la spécification du projet"),
                         "open-project-vow", Map.of()));
@@ -5949,7 +6052,7 @@ final class ArchvowPanel extends JPanel {
                 boolean suggested = !proposed.isBlank();
                 addQuickItem(keys, new QuickItem(pending ? (suggested ? QuickKind.SUGGESTION : QuickKind.DECISION) : QuickKind.RESOLVED,
                     id + " · D" + number + " " + shorten(question, 60),
-                    question + "\n" + (pending ? (suggested ? "Proposal / Proposition: " + proposed : "Suggested / Suggéré: " + ArchvowGrammar.str(decision,"suggested")) : "Answer / Réponse: " + answer),
+                    question + "\n" + (pending ? (suggested ? ArchvowI18n.text(project, "Proposal: ", "Proposition : ") + proposed : ArchvowI18n.text(project, "Suggested: ", "Suggéré : ") + ArchvowGrammar.str(decision,"suggested")) : ArchvowI18n.text(project, "Answer: ", "Réponse : ") + answer),
                     id, pending,
                     pending ? (suggested ? ArchvowI18n.text(project,"Accept proposal", "Accepter la proposition") : ArchvowI18n.text(project,"Answer", "Répondre"))
                         : ArchvowI18n.text(project,"Open component", "Ouvrir le composant"),
@@ -5962,7 +6065,7 @@ final class ArchvowPanel extends JPanel {
                 String text = ArchvowGrammar.str(q, "question");
                 boolean pending = ArchvowGrammar.str(q,"answer").isBlank();
                 addQuickItem(keys,new QuickItem(pending ? QuickKind.QUESTION : QuickKind.RESOLVED,
-                    id + " · " + key + " " + shorten(text,60), text + "\n" + (pending ? "" : "Answer / Réponse: " + ArchvowGrammar.str(q,"answer")),
+                    id + " · " + key + " " + shorten(text,60), text + "\n" + (pending ? "" : ArchvowI18n.text(project, "Answer: ", "Réponse : ") + ArchvowGrammar.str(q,"answer")),
                     id,pending,pending ? ArchvowI18n.text(project,"Answer", "Répondre") : ArchvowI18n.text(project,"Open component", "Ouvrir le composant"),
                     pending ? "decision make" : "component-show", pending ? Map.of("component",id,"question",key,"view","question") : Map.of("view","question","question",key)));
             }
@@ -5974,7 +6077,7 @@ final class ArchvowPanel extends JPanel {
                 String word = "S"+number;
                 String safetyAction = pending ? (missingProtection.isBlank() ? "hazard add" : "invariant add") : "component-show";
                 String title = id + " · " + word + " " + shorten(question,60);
-                String detail = question + "\n" + ArchvowSafetyState.preview(safety);
+                String detail = question + "\n" + ArchvowSafetyState.preview(safety, ArchvowI18n.isFrench(project));
                 Map<String,String> preset = new java.util.LinkedHashMap<>();
                 preset.put("component", id);
                 preset.put("guide_word", word);
@@ -6405,7 +6508,7 @@ final class ArchvowPanel extends JPanel {
             } else if (file.isFile() && line > 0) {
                 new OpenFileDescriptor(project, virtual, line - 1, 0).navigate(true);
             } else if (file.isFile()) {
-                FileEditorManager.getInstance(project).openFile(virtual, true);
+                new OpenFileDescriptor(project, virtual).navigate(true);
             } else {
                 message(ArchvowI18n.text(project, "Unsupported diagnostic location: ",
                     "Emplacement du diagnostic non pris en charge : ") + relative);
@@ -6471,12 +6574,12 @@ final class ArchvowPanel extends JPanel {
     private void openQuickList(int listIndex) {
         if (role == Role.NAVIGATION) {
             // the tool window shows the components with such work; the editor tab opens the first of them
-            ArchvowPanel detail = ArchvowEditorTab.panel(project);
             tabs.setSelectedIndex(1);
-            if (detail == null) return;
-            detail.openQuickListFromNavigation(listIndex);
-            setComponentFilter(detail.componentFilter);
-            follow(detail.selectedComponent == null ? "" : detail.selectedComponent.id, null);
+            ArchvowEditorTab.withPanel(project, detail -> {
+                detail.openQuickListFromNavigation(listIndex);
+                setComponentFilter(detail.componentFilter);
+                follow(detail.selectedComponent == null ? "" : detail.selectedComponent.id, null);
+            });
             return;
         }
         showWorkspace();
@@ -6522,11 +6625,11 @@ final class ArchvowPanel extends JPanel {
     /** Overview › Architecture › Project items: the Other view, on the first project-wide item (0.25.0). */
     private void openProjectWork() {
         if (role == Role.NAVIGATION) {
-            ArchvowPanel detail = ArchvowEditorTab.panel(project);
             tabs.setSelectedIndex(1);
-            if (detail == null) return;
-            detail.openProjectWork();
-            detail.afterSelectionChange();
+            ArchvowEditorTab.withPanel(project, detail -> {
+                detail.openProjectWork();
+                detail.afterSelectionChange();
+            });
             return;
         }
         showWorkspace();
@@ -6610,7 +6713,7 @@ final class ArchvowPanel extends JPanel {
 
     private interface ComponentAction { void run(NodeComponent component); }
     private void withComponent(ComponentAction action) {
-        if (selectedComponent == null) { message("Select a component first / Sélectionne d'abord un composant."); return; }
+        if (selectedComponent == null) { message(ArchvowI18n.text(project, "Select a component first.", "Sélectionne d'abord un composant.")); return; }
         action.run(selectedComponent);
     }
     // ------------------------------------------------------------------ AI skills (0.16.0)

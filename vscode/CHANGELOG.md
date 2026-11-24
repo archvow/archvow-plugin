@@ -2,16 +2,44 @@
 
 ## 0.26.1 - 2026-11-20
 
-Built on archvow 2.6.1 (contract 2.4, unchanged: 2.6.1 prints what 2.6.0 printed, but the version). Security and
-release fixes from the review of 0.26.0.
+Built on archvow 2.8.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to
+be older, with Install archvow 2.8.0). Security and release fixes from the review of 0.26.0.
 
 - **Nothing runs in a project you have not trusted.** As before, archvow runs only in a trusted workspace (Restricted Mode: the `.vow` language only).
 - **Python runs with `-P`** (`<python> -P -m archvow`, `<python> -P -m pip`): archvow and pip run in the project's
   root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code
   each time the plugin called archvow (reproduced). Python 3.11 or later, as archvow itself needs; an older Python
   found first is passed over for the next candidate.
-- **archvow 2.6.1 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 789
-  check messages, 100 codes, harvested from its suite, which now passes as delivered).
+- **archvow 2.8.0 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 803
+  check messages, 100 codes, harvested from its suite, which now passes as delivered). Since 2.6.2, a first rule
+  parameter set stricter than its default (a lower ARCH022 budget) is no longer reported as a weakened guard
+  (ARCH020).
+- **Check before coding**, on a feature's page after **Copy AI prompt**: copies `archvow prompt --feature <feature>
+  --clarify` (archvow 2.8.0) - the AI checks the whole feature before any code, where its components disagree or
+  leave a gap between them (one writes one folder per run date, another reads everything under the path), and
+  records each finding as a question on the component that must change; it writes no code. **Copy AI prompt** now
+  also gives what the feature's other components already decided (`featurePromptCommand`, `feature-check-regression.js`).
+- **An error pasted in Find is shown as an error.** `archvow show "<the error>"` (archvow 2.7.0): what went wrong,
+  the template's known errors it matches - each pack rule kept with that error (`pack rule --error`), with its fix
+  and why - then where it broke, with the lines around it, **Open at line** and **Show <component>**, and where the
+  lesson goes once it is fixed. A traceback pasted in the one-line field keeps its lines apart
+  (`pasted-error-regression.js`; contract `cli/python-app/pasted-error.json`).
+- **AI assistants picked from a list, or added by name.** In init (ai_tools, reviewers), the assistants are no longer
+  typed "comma-separated": each chosen one is a chip, **Add an assistant…** lists those archvow knows (the catalog's
+  suggestions: archvow's 16 agents, and a pack's own), and a box adds any other name - archvow takes any agent name
+  and gives an unknown one the standard AGENTS.md and .agents/skills, as its chip says. `none` stays alone; a wrong
+  name is refused with the rule (`agent-picker-regression.js`). archvow itself is unchanged.
+- **Choose the Python from a list, and see which one runs.** **Configure Python** (the command *Choose the Python
+  that runs archvow*) lists the Pythons of this computer - the project's interpreter, its `.venv`, the Python
+  extension's environments, python.org, Homebrew, the system's, pyenv, conda, the PATH - each with its version and
+  the archvow it has, those with archvow first; *Automatic* stays the default. The welcome page says what runs:
+  `archvow 2.8.0 with /usr/local/bin/python3.12 — the project's Python interpreter`. `archvow.python`, when set,
+  now comes before the project's interpreter: a Python the person chose is the one that runs (`pythons.ts`).
+- **Init into another folder opens it.** `init` with a Folder (`--dir`) other than the workspace's offers to open
+  that folder here or in a new window: it is the new project (`initTarget.ts`).
+- **One language at a time.** The few texts that said everything twice ("Review signature / Vérifier la
+  signature", "Answer / Réponse", the safety previews) are in the chosen language; a test keeps it so.
+- **"Try it" shows its result where you clicked.** On the welcome page of a folder without archvow, the sidebar's Try it ran `archvow try` but sent the running state and the result to the editor tab only: the sidebar never changed, and in the editor tab the result sat under the cards, below the fold - nothing seemed to happen. The result now shows under the Try card in the sidebar as well, and scrolls into view wherever it shows (`scripts/try-it-regression.js`).
 - `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
   `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin
   Verifier on the recommended IDE releases (`intellij-verify`) before publishing.

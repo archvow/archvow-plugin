@@ -28,7 +28,8 @@ final class ArchvowFeatureView extends JPanel {
         /** A command form, prefilled: component add (feature), feature accept, rename, remove. */
         void openCommand(String command, Map<String, String> values);
         void openDoc(String feature);
-        void copyPrompt(String feature);
+        /** {@code check}: the feature's check before any code ({@code --clarify}, archvow 2.8.0). */
+        void copyPrompt(String feature, boolean check);
         void nextSteps(String feature);
     }
 
@@ -37,6 +38,7 @@ final class ArchvowFeatureView extends JPanel {
     private final JButton add = ArchvowSplitView.primary("Add component");
     private final JButton doc = new JButton("Open feature doc");
     private final JButton prompt = new JButton("Copy AI prompt");
+    private final JButton check = new JButton("Check before coding");
     private final JButton next = new JButton("Next steps");
     private final JButton accept = new JButton("Accept…");
     private final JButton rename = new JButton("Rename…");
@@ -66,15 +68,22 @@ final class ArchvowFeatureView extends JPanel {
         });
         add.addActionListener(e -> actions.openCommand("component add", Map.of("feature", feature)));
         doc.addActionListener(e -> actions.openDoc(feature));
-        prompt.addActionListener(e -> actions.copyPrompt(feature));
+        prompt.addActionListener(e -> actions.copyPrompt(feature, false));
+        check.setName("archvow.feature.check");
+        check.addActionListener(e -> actions.copyPrompt(feature, true));
         next.addActionListener(e -> actions.nextSteps(feature));
         accept.addActionListener(e -> actions.openCommand("feature accept", Map.of("feature", feature)));
         rename.addActionListener(e -> actions.openCommand("feature rename", Map.of("feature", feature)));
         remove.addActionListener(e -> actions.openCommand("feature remove", Map.of("feature", feature)));
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
-        for (JButton b : List.of(add, doc, prompt, next, accept, rename, remove)) buttons.add(b);
+        for (JButton b : List.of(add, doc, prompt, check, next, accept, rename, remove)) buttons.add(b);
         add(buttons, BorderLayout.NORTH);
         add(new JScrollPane(page), BorderLayout.CENTER);
+    }
+
+    /** {@code archvow prompt --feature <feature>}; {@code check}: with {@code --clarify} (archvow 2.8.0). */
+    static List<String> promptArgs(String feature, boolean check) {
+        return check ? List.of("prompt", "--feature", feature, "--clarify") : List.of("prompt", "--feature", feature);
     }
 
     /** The feature {@code view} ({@code show <feature> --json}); {@code pending}: open items per component. */
@@ -87,6 +96,9 @@ final class ArchvowFeatureView extends JPanel {
         prompt.setText(french ? "Copier le prompt IA" : "Copy AI prompt");
         prompt.setToolTipText(french ? "archvow prompt --feature " + feature + " : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant"
             : "archvow prompt --feature " + feature + ": the feature in a few lines, then the task of its next component");
+        check.setText(french ? "Vérifier avant de coder" : "Check before coding");
+        check.setToolTipText(french ? "archvow prompt --feature " + feature + " --clarify : l'IA vérifie toute la fonctionnalité avant tout code - là où ses composants ne concordent pas ou laissent un trou entre eux - et enregistre chaque point en question. Elle n'écrit pas de code."
+            : "archvow prompt --feature " + feature + " --clarify: the AI checks the whole feature before any code - where its components disagree or leave a gap between them - and records each finding as a question. It writes no code.");
         next.setText(french ? "Prochaines étapes" : "Next steps");
         accept.setText(french ? "Accepter…" : "Accept…");
         accept.setToolTipText(french ? "archvow feature accept " + feature + " : une personne la prend comme celle de l'équipe"

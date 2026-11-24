@@ -66,10 +66,10 @@ test('"Drawn from", the refusal and ARCH039 as archvow 1.18 prints them (contrac
   assert.equal(addFolder('archvow check: all good'), null);
   const changed = json('briefs', 'check.json').violations.find((v: { code: string }) => v.code === 'ARCH039');
   assert.deepEqual(issueFix('ARCH039', changed.message, ''), { command: 'brief accept', values: { brief: 'specs/001-orders/plan.md#paying-an-invoice' },
-    label: 'Accept (reviewed) / Accepter (relue)' });
+    label: 'Accept (reviewed)' });
   const outside = 'mark_paid is drawn from docs/x.md, outside the briefs folders (briefs) -> an architect adds it: archvow init invoicing --force -a briefs=briefs,docs';
   assert.deepEqual(issueFix('ARCH039', outside, ''), { command: 'init', values: { package: 'invoicing', force: 'true', answer: 'briefs=briefs,docs' },
-    label: 'Add this folder (architect) / Ajouter ce dossier (architecte)' });
+    label: 'Add this folder (architect)' });
 });
 
 test('the page: the --from picker, Drawn from, Add this folder, Review; no briefs folder duplication in Overview', () => {

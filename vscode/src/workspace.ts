@@ -16,7 +16,7 @@ import { aiView, AiView, request, skillCommand } from './aiSkills';
 import { Briefs, locate, readBriefs } from './briefs';
 import { bestBase, Book, choiceBook, missingRef, refKinds, refNames } from './choices';
 import { renderResult } from './formatter';
-import { alerts, Command, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, previewWithOutput, promptCommand,
+import { alerts, Command, featurePromptCommand, findCommand, inline, isMutating, itemId, needsFullCard, planForm, prefill, preview, previewWithOutput, promptCommand,
   withPluginParameters } from './grammar';
 import { addableByLayer, filePlan } from './filePlan';
 import { componentVow, docPage, PROJECT_VOW } from './layout';
@@ -28,6 +28,8 @@ import { RunLog } from './runlog';
 import { moduleFiles } from './vow/links';
 import { architectureRows, buildWork, Json, objects, str, Work } from './workItems';
 import { componentTypes, derive, Derived, readiness, Readiness, ruleExplanation } from './projectState';
+import { folderToOpen } from './initTarget';
+import { archvowText, automaticOrder, Found, placesHere, probe, runsText, whereText } from './pythons';
 
 const QUIET_MS = 800;
 
@@ -51,6 +53,8 @@ export interface State {
   knownVersion: string;
   /** Install archvow (0.12.0): shown when it cannot start or does not speak the plugin's contract. */
   install: InstallOffer;
+  /** Which archvow runs and where it was found (0.26.1): the welcome page says it. */
+  runs: { program: string; source: string; version: string };
   /** The briefs folders (init answer `briefs`) and their files' headings, for --from and "Drawn from" (0.12.0). */
   briefs: Briefs;
   /** Per component, what its views show: counts, each safety question's status, columns and tasks. */
@@ -81,7 +85,8 @@ export interface State {
   overview: Overview;
 }
 
-type Target = 'overview' | 'component' | 'command' | 'quick' | 'decision' | 'question' | 'safety' | 'data';
+// welcome: the welcome page's result (Try it, Install), in the sidebar and in the editor tab (0.26.1: it was missing here)
+type Target = 'overview' | 'component' | 'command' | 'quick' | 'decision' | 'question' | 'safety' | 'data' | 'welcome';
 /** Which page sent a message: the sidebar or the editor tab. */
 type From = 'nav' | 'editor';
 
@@ -222,6 +227,7 @@ export class ArchvowProject {
       readiness: readiness(this.root), welcomeError: '', branch: '', loading: '', spec: null, check: null, checkFailure: '',
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
+      runs: { program: '', source: '', version: '' },
       refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
       launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, packs: [], features: {}, aiTools: [], firstSteps: [],
       overview: overview(buildWork(null, null, '', {}, false), null, []),
@@ -335,7 +341,7 @@ export class ArchvowProject {
       fs.readFileSync(path.join(this.resources, s.fr ? 'rules.fr.md' : 'rules.md'), 'utf8'), this.commands);
     s.rows = architectureRows(s.spec, s.check, s.snapshots, s.work.pendingByComponent);
     s.overview = overview(s.work, s.check, s.firstSteps);
-    s.derived = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, derive(view)]));
+    s.derived = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, derive(view, s.fr)]));
     s.ai = Object.fromEntries(Object.entries(s.snapshots).map(([id, view]) => [id, aiView(view, s.launched[id] ?? [])]));
     this.recomputeChoices();
     this.changed.fire();
@@ -367,6 +373,7 @@ export class ArchvowProject {
       const old = await this.cli.run(['--version']);
       version = (parseVersion(old.stdout + old.stderr) ?? []).join('.');
     }
+    this.state.runs = { program: this.cli.program, source: this.cli.source, version };
     this.runLog.header({ plugin: String(this.context.extension.packageJSON.version ?? ''),
       archvow: version, contract: said === null ? '' : str(said, 'contract'), python: this.cli.program, project: this.root,
       ide: `VS Code ${vscode.version}` });
@@ -591,6 +598,13 @@ export class ArchvowProject {
       void vscode.window.showWarningMessage(failure(result) || tr(this.state.fr, 'archvow found nothing to show.', "archvow n'a rien trouvé à montrer."));
       return;
     }
+    const pasted = typeof view.error === 'object' && view.error !== null && !Array.isArray(view.error);
+    if (pasted) {
+      // a pasted error (archvow 2.7.0, contract 2.5): its known errors and where it broke, on one page
+      view.around = this.around(str(view, 'file'), Number(view.line) || 0);
+      this.toEditor({ type: 'search', name: str(view.error as Json, 'error') || wanted, result: view });
+      return;
+    }
     if (str(view, 'component') && !Array.isArray(view.groups)) {
       this.show(str(view, 'component'));
       return;
@@ -691,9 +705,13 @@ export class ArchvowProject {
     const html = result.startError !== undefined
       ? renderResult(labelText, -1, '', result.startError, false, fr)
       : renderResult(labelText, result.exitCode, result.stdout, result.stderr, result.timedOut, fr);
-    this.toOpenEditor({ type: 'result', target, label: labelText, html, raw: (result.stdout + (result.stderr ? '\n' + result.stderr : '')).trim(),
+    const message = { type: 'result', target, label: labelText, html, raw: (result.stdout + (result.stderr ? '\n' + result.stderr : '')).trim(),
       args: ['archvow', ...result.args].join(' '), ok: result.exitCode === 0 && !result.timedOut && result.startError === undefined,
-      ...alerts(result) });
+      ...alerts(result) };
+    this.toOpenEditor(message);
+    // The welcome page is in the sidebar too: a result posted to the editor tab alone left the sidebar, where the
+    // person clicked Try it, unchanged - nothing seemed to happen (0.26.1)
+    if (target === 'welcome') this.toNav(message);
   }
 
   // ------------------------------------------------------------------ what the page asks
@@ -731,6 +749,8 @@ export class ArchvowProject {
         return;
       case 'featurePrompt':
         return this.copyPrompt('', String(m.feature));
+      case 'featureCheck':
+        return this.copyPrompt('', String(m.feature), true);
       case 'openDoc':
         return this.openDoc(String(m.feature ?? ''));
       case 'quickList':
@@ -849,7 +869,7 @@ export class ArchvowProject {
         await vscode.workspace.getConfiguration('archvow').update('language', String(m.mode), vscode.ConfigurationTarget.Global);
         return;
       case 'settings':
-        await vscode.commands.executeCommand('workbench.action.openSettings', 'archvow');
+        await this.choosePython();
         return;
       case 'log':
         this.log.show();
@@ -902,18 +922,22 @@ export class ArchvowProject {
   }
 
   /** `archvow prompt <component>` into the clipboard; with a feature, `archvow prompt --feature <feature>`: the
-   *  feature in a few lines, then the task of its next component (contract 2.0). */
-  async copyPrompt(component: string, feature = ''): Promise<void> {
+   *  feature in a few lines, then the task of its next component (contract 2.0); `check`: the feature's check before
+   *  any code (`--clarify`, archvow 2.8.0). */
+  async copyPrompt(component: string, feature = '', check = false): Promise<void> {
     const fr = this.state.fr;
-    const result = await this.cli.run(feature ? ['prompt', '--feature', feature] : ['prompt', component], undefined, true);
+    const result = await this.cli.run(feature ? featurePromptCommand(feature, check) : ['prompt', component], undefined, true);
     if (result.exitCode !== 0 || result.startError !== undefined) {
       void vscode.window.showErrorMessage(failure(result));
       return;
     }
     await vscode.env.clipboard.writeText(result.stdout);
     const what = component || feature;
-    void vscode.window.showInformationMessage(tr(fr, `The instruction for ${what} is in the clipboard: paste it to your AI assistant.`,
-      `L'instruction pour ${what} est dans le presse-papiers : colle-la à ton assistant IA.`));
+    void vscode.window.showInformationMessage(check
+      ? tr(fr, `The check of ${what} is in the clipboard: paste it to your AI assistant. It records what it finds as questions and writes no code.`,
+        `La vérification de ${what} est dans le presse-papiers : colle-la à ton assistant IA. Il enregistre ce qu'il trouve en questions et n'écrit pas de code.`)
+      : tr(fr, `The instruction for ${what} is in the clipboard: paste it to your AI assistant.`,
+        `L'instruction pour ${what} est dans le presse-papiers : colle-la à ton assistant IA.`));
   }
 
   /** `archvow doc [<feature>]`, then its page in an editor: Markdown to read, written into .archvow/doc/ (ignored
@@ -965,7 +989,9 @@ export class ArchvowProject {
 
   private async execute(labelText: string, args: string[], target: Target, stdin: string | undefined, change: boolean,
     then?: () => void): Promise<void> {
-    this.toEditor({ type: 'running', target, label: labelText, args: ['archvow', ...args].join(' ') });
+    const running = { type: 'running', target, label: labelText, args: ['archvow', ...args].join(' ') };
+    this.toEditor(running);
+    if (target === 'welcome') this.toNav(running);  // Try it on the sidebar's welcome page shows its result there too (0.26.1)
     const result = await this.cli.run(args, stdin, true);
     this.sendResult(target, labelText, result);
     if (args[0] === 'check' && !result.timedOut) {
@@ -979,10 +1005,80 @@ export class ArchvowProject {
     }
     const ok = result.exitCode === 0 && result.startError === undefined && !result.timedOut;
     if (ok && args[0] === 'init') {
-      void vscode.window.showInformationMessage(tr(this.state.fr, 'Archvow initialized successfully.', 'Archvow initialisé avec succès.'));
+      const other = folderToOpen(args, this.root);
+      if (other === null) void vscode.window.showInformationMessage(tr(this.state.fr, 'Archvow initialized successfully.', 'Archvow initialisé avec succès.'));
+      else await this.openInitialized(other);
     }
     if (ok && then) then();
     else if (ok && change) await this.refreshAfter();
+  }
+
+  /**
+   * The folder init just made, opened (0.26.1): it is the new project. With no folder open, here; otherwise the
+   * person chooses this window or a new one.
+   */
+  private async openInitialized(folder: string): Promise<void> {
+    const fr = this.state.fr;
+    const uri = vscode.Uri.file(folder);
+    if (!this.root) { await vscode.commands.executeCommand('vscode.openFolder', uri, false); return; }
+    const here = tr(fr, 'Open here', 'Ouvrir ici');
+    const window = tr(fr, 'Open in a new window', 'Ouvrir dans une nouvelle fenêtre');
+    const chosen = await vscode.window.showInformationMessage(
+      tr(fr, `Archvow initialized ${folder}. Open it as the project?`, `Archvow initialisé dans ${folder}. L'ouvrir comme projet ?`), here, window);
+    if (chosen === here) await vscode.commands.executeCommand('vscode.openFolder', uri, false);
+    else if (chosen === window) await vscode.commands.executeCommand('vscode.openFolder', uri, true);
+  }
+
+  /**
+   * Configure Python (0.26.1): the Pythons of this computer, each with its version and archvow, and Automatic; the
+   * one chosen goes into archvow.python (this folder's settings). Each Python runs once to say what it has: never in
+   * a folder not trusted (the project's .venv is the project's code).
+   */
+  async choosePython(): Promise<void> {
+    const fr = this.state.fr;
+    if (!vscode.workspace.isTrusted) {
+      void vscode.window.showInformationMessage(tr(fr, 'Trust this folder before choosing its Python.', 'Fais confiance à ce dossier avant de choisir son Python.'));
+      return;
+    }
+    let known: string[] = [];
+    try {
+      const api = vscode.extensions.getExtension('ms-python.python')?.exports as { environments?: { known?: { path?: string }[] } } | undefined;
+      known = (api?.environments?.known ?? []).map((e) => e.path ?? '').filter((p) => p);
+    } catch { /* no Python extension */ }
+    type Item = vscode.QuickPickItem & { value?: string };
+    const pick = vscode.window.createQuickPick<Item>();
+    pick.title = tr(fr, 'The Python that runs archvow', 'Le Python qui lance archvow');
+    pick.placeholder = this.state.runs.program
+      ? runsLine(fr, this.state.runs) : tr(fr, 'No archvow found yet', 'Aucun archvow trouvé pour l\'instant');
+    pick.busy = true;
+    const automatic: Item = { label: tr(fr, 'Automatic (recommended)', 'Automatique (recommandé)'), detail: automaticOrder(fr), value: '' };
+    const browse: Item = { label: tr(fr, 'Another Python…', 'Un autre Python…'), value: '\u0000browse' };
+    const settings: Item = { label: tr(fr, 'Open the archvow settings', 'Ouvrir les réglages archvow'), value: '\u0000settings' };
+    pick.items = [automatic, browse, settings];
+    pick.show();
+    const found: Found[] = await probe(placesHere(this.interpreter, this.root, known));
+    const item = (f: Found): Item => ({ label: `Python ${f.version || '?'} · ${archvowText(f, fr)}`, description: f.path,
+      detail: whereText(f.where, fr), value: f.path });
+    pick.items = [automatic, ...found.map(item), browse, settings];
+    pick.busy = false;
+    const chosen = await new Promise<Item | undefined>((resolve) => {
+      pick.onDidAccept(() => { resolve(pick.selectedItems[0]); pick.hide(); });
+      pick.onDidHide(() => resolve(undefined));
+    });
+    pick.dispose();
+    if (chosen === undefined) return;
+    let value = chosen.value ?? '';
+    if (value === '\u0000settings') { await vscode.commands.executeCommand('workbench.action.openSettings', 'archvow'); return; }
+    if (value === '\u0000browse') {
+      const file = await vscode.window.showOpenDialog({ canSelectFiles: true, canSelectFolders: false, canSelectMany: false,
+        title: tr(fr, 'A Python that has archvow', 'Un Python qui a archvow') });
+      if (!file?.length) return;
+      value = file[0].fsPath;
+    }
+    const target = vscode.workspace.workspaceFolders?.length ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global;
+    await vscode.workspace.getConfiguration('archvow').update('python', value, target);
+    this.versionChecked = false;
+    await this.refresh(true);
   }
 
   /** After an action: the whole workspace again, in one process (0.21.0); the vow watcher stays quiet meanwhile. */
@@ -1114,8 +1210,8 @@ export class ArchvowProject {
           if (action !== 'decision accept' && !answer) throw new Error(tr(fr, 'Enter an answer first.', "Saisis d'abord une réponse."));
           args = action === 'decision accept' ? inline.accept(component, number)
             : action === 'decision propose' ? inline.propose(component, number, answer) : inline.decide(component, number, answer);
-          summary = `D${number} — ${m.question ?? ''}\n\n` + (action === 'decision accept' ? 'Proposal / Proposition: ' + (m.proposed ?? '')
-            : 'Answer / Réponse: ' + answer) + '\n\n' + tr(fr, 'This changes the archvow specification. Confirm?',
+          summary = `D${number} — ${m.question ?? ''}\n\n` + (action === 'decision accept' ? tr(fr, 'Proposal: ', 'Proposition : ') + (m.proposed ?? '')
+            : tr(fr, 'Answer: ', 'Réponse : ') + answer) + '\n\n' + tr(fr, 'This changes the archvow specification. Confirm?',
             'Cette action modifie la spécification archvow. Confirmer ?');
           break;
         }
@@ -1337,10 +1433,10 @@ export class ArchvowProject {
       for (const candidate of candidates) {
         if (fs.existsSync(path.join(this.root, candidate))) return this.openFile(path.join(this.root, candidate), 0, '');
       }
-      void vscode.window.showInformationMessage(`Code not found / Code introuvable pour ${component}\nModule : ${module}`);
+      void vscode.window.showInformationMessage(tr(this.state.fr, `Code not found for ${component}\nModule: ${module}`, `Code introuvable pour ${component}\nModule : ${module}`));
       return;
     }
-    void vscode.window.showInformationMessage('Code location unknown / Emplacement du code inconnu pour ' + component);
+    void vscode.window.showInformationMessage(tr(this.state.fr, 'Code location unknown for ', 'Emplacement du code inconnu pour ') + component);
   }
 
   private async openFile(file: string, line: number, missing: string): Promise<void> {
@@ -1417,6 +1513,11 @@ export class ArchvowProject {
   explain(code: string): string {
     return ruleExplanation(fs.readFileSync(path.join(this.resources, this.state.fr ? 'rules.fr.md' : 'rules.md'), 'utf8'), code);
   }
+}
+
+/** "archvow 2.6.2 with … — …", for the Python chooser's placeholder. */
+function runsLine(fr: boolean, runs: { program: string; source: string; version: string }): string {
+  return runsText(fr, runs.program, runs.source, runs.version);
 }
 
 function parse(text: string): Json | null {

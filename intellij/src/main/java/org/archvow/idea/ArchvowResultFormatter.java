@@ -393,7 +393,7 @@ final class ArchvowResultFormatter {
             String name = str(template, "name");
             StringBuilder details = new StringBuilder();
             field(details, p, tr(fr, "Version", "Version"), str(template,"version"));
-            field(details, p, tr(fr, "Language / Type", "Langue / Type"),
+            field(details, p, tr(fr, "Language · Type", "Langue · Type"),
                 str(template,"language") + " · " + str(template,"kind"));
             field(details, p, tr(fr, "Architecture", "Architecture"), str(template,"style"));
             JsonObject kinds = obj(template,"component_types");
