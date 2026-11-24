@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Offline reference: `archvow catalog --json` of the archvow the plugin was built for
  * (../contract/cli/catalog.json, copied into the plugin by the build).
- * Use the installed CLI result whenever possible (especially for company packs).
+ * Use the installed CLI result whenever possible (a project's own templates are only there).
  * The reference makes init questions accessible even on PyCharm Welcome Screen
  * before a Python interpreter has been configured for that pseudo-project.
  */

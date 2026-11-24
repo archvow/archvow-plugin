@@ -100,7 +100,7 @@ final class ArchvowSearch {
     }
 
     /**
-     * A pasted error's page (2.7.0): what went wrong, the template's known errors it matches - each pack rule with
+     * A pasted error's page (2.7.0): what went wrong, the template's known errors it matches - each template rule with
      * its fix and why - then where it broke, with the lines around it, and where its lesson goes once it is fixed.
      */
     static String errorHtml(JsonObject data, List<String[]> around, boolean french) {
@@ -117,8 +117,8 @@ final class ArchvowSearch {
             out.append("<div style='margin:6px 0'><b style='color:").append(color).append("'>")
                 .append(ArchvowExamples.esc(ArchvowGrammar.str(k, "code"))).append("</b> ")
                 .append(ArchvowExamples.esc(ArchvowGrammar.str(k, "message")))
-                .append(" <span style='color:gray'>").append(french ? "(une erreur connue : une règle du pack du template)"
-                    : "(a known error: a rule of the template's pack)").append("</span>");
+                .append(" <span style='color:gray'>").append(french ? "(une erreur connue : une règle des templates du projet)"
+                    : "(a known error: a rule of the project's templates)").append("</span>");
             if (!ArchvowGrammar.str(k, "fix").isBlank()) out.append("<br>").append(french ? "Correction : " : "Fix: ")
                 .append(ArchvowExamples.esc(ArchvowGrammar.str(k, "fix")));
             if (!ArchvowGrammar.str(k, "why").isBlank()) out.append("<br><span style='color:gray'>").append(french ? "Pourquoi : " : "Why: ")
@@ -146,8 +146,8 @@ final class ArchvowSearch {
             }
         }
         out.append("<p style='color:gray; ").append(ArchvowHtml.size(.85)).append("'>").append(french
-            ? "Corrigé ? Enregistre la leçon où elle porte : la décision ou la règle du composant, une règle de pack avec cette erreur (--error), ou la page de dépannage du template. L'IA le dit à la fin de « Corrige un bug »."
-            : "Fixed? Record the lesson where it reaches: the component's decision or rule, a pack rule with this error (--error), or the template's troubleshooting page. The AI says which at the end of \"Fix a bug\".")
+            ? "Corrigé ? Enregistre la leçon où elle porte : la décision ou la règle du composant, une règle de template avec cette erreur (--error), ou la page de dépannage du template. L'IA le dit à la fin de « Corrige un bug »."
+            : "Fixed? Record the lesson where it reaches: the component's decision or rule, a template rule with this error (--error), or the template's troubleshooting page. The AI says which at the end of \"Fix a bug\".")
             .append("</p>");
         return out.append("</body></html>").toString();
     }

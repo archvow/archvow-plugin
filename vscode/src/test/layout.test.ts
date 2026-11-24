@@ -241,7 +241,7 @@ test('the Overview as designed (0.25.0): Next and Check named, More with the res
   // the cards: First steps before the toolbar, then Architecture, Checks, Packs
   const overview = page.match(/function overviewTab\(\) \{[\s\S]*?\n  \}/);
   assert.ok(overview);
-  const order = ['firstStepsCard()', 'projectToolbar()', 'architectureView()', 'checksCard()', 'packsSummary()'].map((f) => overview[0].indexOf(f));
+  const order = ['firstStepsCard()', 'projectToolbar()', 'architectureView()', 'checksCard()', 'templatesSummary()'].map((f) => overview[0].indexOf(f));
   assert.ok(order.every((at, i) => at > 0 && (i === 0 || at > order[i - 1])), 'First steps, toolbar, Architecture, Checks, Packs');
   assert.match(page, /First finding', 'Premier constat'/);
   assert.match(page, /Check findings count in Checks\./);
@@ -260,7 +260,7 @@ test('the Overview as designed (0.25.0): Next and Check named, More with the res
   assert.match(page, /class="card checks-card"/);
   assert.match(page, /data-a="openChecks"/);
   assert.doesNotMatch(page, /class="checks-badges"/, 'diagnostic counters live in the Checks card');
-  assert.match(css, /\.checks-summary, \.packs-summary \{ display: flex; align-items: center; justify-content: space-between;/,
+  assert.match(css, /\.checks-summary, \.templates-summary \{ display: flex; align-items: center; justify-content: space-between;/,
     'the Packs card is one row like Architecture and Checks: its link on the right, not under the title');
 });
 

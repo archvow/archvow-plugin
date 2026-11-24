@@ -1,0 +1,383 @@
+{%- set assisted = 'none' not in ai_tools -%}
+# {{ project_name }}
+
+{{ description }}
+
+Une **application Python**, spécifiée et protégée avec [archvow](.archvow/README.md)
+(template `{{ template }}`).
+
+## Pour les développeurs
+
+Tout ce qu'il vous faut au quotidien, sur une page. La spec de chaque composant est écrite et
+approuvée par les architectes ({{ architects }}) ; vous écrivez le code à partir d'elle.
+
+**Une fois, après le clone** - Python {{ python_version }} ou plus récent
+{%- if pip_index_url %}, paquets depuis `{{ pip_index_url }}`{% endif %} :
+
+```bash
+{{ install_command }}            # le paquet (éditable), archvow, ruff, mypy, pytest...
+{%- if git_hooks == 'githooks' %}
+git config core.hooksPath .githooks        # les contrôles avant chaque commit
+{%- elif git_hooks == 'pre-commit' %}
+pre-commit install                         # les contrôles avant chaque commit
+{%- endif %}
+archvow doctor                             # vérifie votre installation, avec la correction de chaque problème
+make help                                  # les commandes habituelles : make check, make test, make run...
+```
+
+**Chaque jour**
+
+| Étape | À faire |
+|---|---|
+| Quoi construire | `archvow next` - les composants prévus dans l'ordre de construction, *ready* ou ce que chacun attend |
+| Votre tâche | `archvow prompt <composant>` (toute la fonctionnalité : `archvow prompt --feature <fonctionnalité>`) : le fichier, ses noms publics, les décisions prises, les tests, ce qui ne doit jamais arriver |
+| L'écrire | vous-même, en commençant le fichier par l'en-tête de la tâche (`@assisted none`){% if assisted %} - ou avec l'assistant IA, une ligne dans son chat : `implémente <composant>`{% endif %} |
+| Quelque chose n'est pas clair | ne devinez pas : `archvow question add <composant> "<question>"`, un architecte décide |
+| Commiter | `git commit` - le hook Git lance ruff et `archvow check` ; `make test` lance les tests |
+
+**Bon à savoir**
+
+- Les fonctions utilitaires privées (`_parse_line`, `_Row`) sont libres. Tout ce qui est public
+  doit figurer dans l'engagement du composant, sinon le build échoue (`ARCH001`, `ARCH002`).
+- Les fichiers, les bases de données et les autres services ne sont atteints que depuis `p2_io` ;
+  le domaine est pur. Le domaine et les services lèvent des erreurs métier ; la ligne de commande
+  les traduit en message et en code de sortie.
+- Chaque fonction est typée : `make check` lance mypy (réglages dans `pyproject.toml`).
+- Un test par composant : `tests/<couche>/test_<composant>.py` ; les scénarios de bout en bout
+  vont dans `tests/integration/`.
+- Chaque erreur dit comment la corriger ; les règles sont dans
+  la doc du projet (`archvow doc`, Contrôles) et expliquées dans
+  [`.archvow/README.md`](.archvow/README.md).
+- `.archvow/` ne change que par les commandes archvow, approuvées par les architectes -
+  jamais à la main.
+- Assistants IA approuvés pour ce projet : {% if 'none' in ai_tools %}aucun{% else %}{{ ai_tools | join(', ') }}{% endif %}. Leurs règles : [`AGENTS.md`](AGENTS.md).
+
+La suite de ce README s'adresse aux architectes et sert de référence : comment l'application est
+spécifiée, étape par étape, et comment elle s'exécute.
+
+## Architecture
+
+Le code vit dans `{{ src }}/{{ package }}/`, en cinq couches (l'organisation *src* : les tests importent
+toujours le paquet installé). Une couche ne peut importer que les couches listées à côté d'elle :
+les règles métier ne dépendent jamais des fichiers, des bases de données ni de la ligne de
+commande, et la ligne de commande n'atteint jamais un fichier ou une base sans passer par un
+service.
+
+| Couche | Responsabilité | Peut importer |
+|---|---|---|
+{% for layer in layers -%}
+| `{{ layer.name }}` | {{ layer.description }} | {{ layer.may_import | join(', ') or '-' }} |
+{% endfor %}
+La spécification complète - chaque composant, ses fonctions publiques, les décisions
+prises sur les cas limites et ce qui ne doit jamais arriver - est dans [`.archvow/`](.archvow/README.md) :
+
+- La doc du projet - `archvow doc` l'écrit dans `.archvow/doc/` (jamais commitée) : tout le projet sur une page - diagramme, fonctionnalités, composants, règles, hazards, invariants{% if privacy %}, données personnelles{% endif %}, contrôles - et une page par fonctionnalité
+- [La spec](.archvow/) - `project.vow`, puis `features/<fonctionnalité>/<fonctionnalité>.vow` et un engagement par composant dans `features/<fonctionnalité>/components/` ; la tâche d'un composant : `archvow prompt <composant>`
+
+## Organisation du projet
+
+{%- macro row(left, note="") -%}
+{%- set width = [40, left | length + 2] | max -%}
+{{ (left ~ " " * (width - left | length) ~ note).rstrip() }}
+{%- endmacro %}
+
+Juste après `archvow init` - la spec et les gardes, pas encore de code :
+
+```
+{{ project_name }}/
+{{ row("├── .archvow/", "la spec : project.vow, features/<fonctionnalité>/, README.md") }}
+{{ row("├── AGENTS.md", "règles de tout assistant IA") }}
+{%- if ci_tool == 'gitlab' %}
+{{ row("├── .gitlab-ci.yml", "CI : gardes et tests") }}
+{%- elif ci_tool == 'github' %}
+{{ row("├── .github/workflows/architecture.yml", "CI : gardes et tests") }}
+{%- elif ci_tool == 'jenkins' %}
+{{ row("├── Jenkinsfile", "CI (Jenkins) : gardes et tests") }}
+{%- endif %}
+{%- if platform == 'gitlab' %}
+{{ row("├── .gitlab/CODEOWNERS", "les architectes approuvent la spec et les gardes") }}
+{%- elif platform == 'github' %}
+{{ row("├── .github/CODEOWNERS", "les architectes approuvent la spec et les gardes") }}
+{%- endif %}
+{%- if git_hooks == 'githooks' %}
+{{ row("├── .githooks/pre-commit", "contrôles avant chaque commit") }}
+{%- elif git_hooks == 'pre-commit' %}
+{{ row("├── .pre-commit-config.yaml", "contrôles avant chaque commit") }}
+{%- endif %}
+{%- if not makefile_theirs %}
+{{ row("├── Makefile", "make check, make test, make run... (make help)") }}
+{%- endif %}
+{{ row("├── pyproject.toml", "le paquet, ce dont il a besoin à l'exécution, réglages de pytest et mypy") }}
+{{ row("├── README.md") }}
+{{ row("├── " ~ requirements_name, "outils de développement") }}
+{{ row("├── ruff.toml", "règles de style et de sécurité") }}
+{%- if sonar == 'yes' %}
+{{ row("└── sonar-project.properties", "analyse SonarQube (lit coverage.xml, test-results.xml)") }}
+{%- else %}
+{{ row("└── .gitignore") }}
+{%- endif %}
+```
+
+Une fois le développement terminé - chaque composant écrit à partir de sa tâche, avec
+son test :
+
+```
+{{ project_name }}/
+{{ row("├── .archvow/") }}
+{{ row("│   ├── project.vow", "l'engagement du projet") }}
+{{ row("│   └── features/<fonctionnalité>/", "<fonctionnalité>.vow + components/<composant>.vow (un engagement chacun)") }}
+{{ row("├── " ~ src ~ "/") }}
+{{ row("│   └── " ~ package ~ "/") }}
+{{ row("│       ├── p0_common/", "config.py, logging_setup.py, petits utilitaires") }}
+{{ row("│       ├── p1_domain/", "invoice_model.py, invoice_not_found_error.py, compute_total.py") }}
+{{ row("│       ├── p2_io/", "invoices_repository.py, mailer_client.py") }}
+{{ row("│       ├── p3_services/", "send_invoice.py, list_invoices.py") }}
+{{ row("│       └── p4_entrypoints/", "invoices_cli.py (main)") }}
+{{ row("├── tests/") }}
+{{ row("│   ├── <couche>/test_<composant>.py", "un test par composant") }}
+{{ row("│   └── integration/", "de bout en bout, via la ligne de commande") }}
+{{ row("└── ...", "les fichiers du premier arbre") }}
+```
+
+Beaucoup de composants dans une couche ? Rangez-les dans des dossiers : `archvow component add service
+create_invoice -g billing` écrit `p3_services/billing/create_invoice.py`, testé dans
+`tests/p3_services/billing/test_create_invoice.py`.
+
+## Construire l'application, étape par étape
+
+Chaque étape ci-dessous montre **un exemple** ; faites de même pour chaque composant. Des
+personnes écrivent la spec (étapes 1 à 4) ; puis le code est écrit à partir d'elle, par une
+personne ou un assistant IA (étape 5) ; les mêmes contrôles le jugent (étape 6). Chaque commande
+et option, avec des exemples : `archvow --help` ; une application complète, du projet vide jusqu'à
+une exécution : la documentation d'archvow, *Template Python*.
+
+**1. Créer le projet** - celui-ci a été créé avec :
+
+```bash
+{{ init_command }}
+{{ install_command }}
+git add -A && git commit -m "archvow init"          # le seul commit sur main
+git switch -c develop                            # une fois, depuis main
+git switch -c feature/{{ ticket(1) }}-invoices develop   # une branche par changement, depuis develop
+```
+
+Les branches suivent gitflow : travaillez sur `feature/<ticket>-<nom-court>` depuis `develop`,
+fusionnée dans `develop` par une merge request ; le hook Git refuse les commits sur `main` et
+`develop`, et le hook et la CI refusent les autres noms de branche.
+Releases et hotfixes : la documentation d'archvow, *Travail au quotidien*.
+
+`init` écrit le dossier de spec `.archvow/`, les gardes (AGENTS.md, ruff.toml, les réglages
+des tests, la CI, CODEOWNERS, le hook Git) et deux composants de départ, `config` et
+`logging_setup`. Il n'écrit
+jamais de code source, et ne se lance qu'une fois : les développeurs clonent le dépôt.
+
+**2. Déclarer les composants** - pour chacun son type, un nom, et ce qu'il doit faire ; ici
+toute la chaîne, des données au point d'entrée :
+
+```bash
+archvow component add model invoice -d "Une facture : number str, customer str, amount Decimal >= 0, status draft | sent | paid" -s {{ ticket(1) }}
+archvow component add service send_invoice -d "Refuser une facture qui n'est pas un brouillon, la marquer envoyée, la renvoyer" -u invoice_model -s {{ ticket(1) }}
+archvow component add cli invoices -d "Ligne de commande : send NUMERO - envoie la facture et l'affiche" -u send_invoice -s {{ ticket(1) }}
+```
+
+Le type fixe la structure : le fichier, la classe ou la fonction publique, la couche, le fichier
+de test ; il transforme le nom en identifiant de composant (`invoice` -> `invoice_model`). **La
+description (`-d`) est ce que l'assistant IA - ou le développeur - implémente** : écrivez les
+vrais champs, règles et statuts. Les types (utility, model, error, logic, repository, client,
+service, cli) : `archvow component add --help`. L'assistant IA peut proposer ces
+commandes pour toute une fonctionnalité : `/archvow-draft-spec <la fonctionnalité en mots simples>`.
+
+La ligne de commande (`invoices_cli`, sa fonction `main(argv) -> int`) est le point d'entrée :
+elle rend le programme exécutable (`python -m {{ package }}.p4_entrypoints.invoices_cli`). Tant
+qu'elle et tout ce qu'elle utilise ne sont pas codés, `archvow next` se termine par *Not ready to
+run yet* et ce qui manque ; ensuite par *Try it locally* et la commande.
+
+**3. Répondre à ses questions** - chaque type demande ce qui ne doit pas être deviné :
+
+```bash
+archvow show invoice_model
+archvow decision make invoice_model 2 "amount >= 0 avec 2 décimales ; status draft, sent ou paid"
+archvow rule add invoice_model "Étant donné un montant à 3 décimales, quand une facture est construite, alors elle est refusée"
+```
+
+`show` liste tout sur le composant : ses questions numérotées (✖ rouge ouverte, ✔ vert
+répondue), ses règles et ses questions de sûreté S1, S2... `decision make` répond à la question 2 (sans réponse, il prend celle que `show` suggère) ;
+`rule add` ajoute une règle que les questions ne couvrent pas (numérotées R1, R2... pour le projet ;
+`--type model` pour chaque model, `--all` pour tous les composants ; un test chacune). Dans un
+terminal, `archvow specify invoice_model` pose ce qui est ouvert, une question à la fois. Rien n'est décidé en silence : du code écrit
+alors qu'une question est ouverte fait échouer le build.
+{%- if privacy %}
+
+Données personnelles ({{ privacy | join(', ') }}) : chaque colonne d'un model est classée - `archvow column set invoice_model
+email,phone personal` (`special` pour la santé, la religion, la biométrie..., `none` sinon) ; du
+code avec une colonne non classée fait échouer le build. Un service et un repository qui manipulent des
+données personnelles répondent ensuite aux questions de chaque régime (RGPD : P1, P2... ;
+`archvow show <composant>` les liste) : `archvow decision make <composant> P1 "..."`. Le résultat :
+le registre de chaque régime dans la doc du projet (`archvow doc`).
+{%- endif %}
+
+**4. Dire ce qui ne doit jamais arriver, puis commiter la spec**
+
+```bash
+archvow hazard add invoice_model S1 high "Une facture est enregistrée avec un montant négatif"
+archvow invariant add invoice_model "chaque facture a un montant positif ou nul"
+git add .archvow && git commit -m "{{ ticket(1) }}: spécifier invoice_model"
+```
+
+Chaque question de sûreté (S1, S2... dans `archvow show <composant>`) finit en hazard, désigné par son numéro, ou écartée avec sa raison
+(`archvow hazard dismiss <composant> S<numéro> "..."`). L'invariant dit ce qui est toujours vrai
+pour que le hazard ne puisse pas arriver ; par défaut il protège du hazard du composant et se
+prouve par un test.
+
+**5. Écrire le code** - `archvow next` donne l'ordre, et ce qu'attend chaque composant :
+
+```bash
+archvow next
+```
+
+```
+  component                    type            status
+✖ {{ "%-28s %-15s %s" | format("config", "foundation", "blocked: 2 decisions to make") }}  -> archvow specify config
+✖ {{ "%-28s %-15s %s" | format("logging_setup", "foundation", "blocked: 1 decision to make (1 suggested)") }}  -> archvow specify logging_setup
+✖ {{ "%-28s %-15s %s" | format("invoice_model", "model", "blocked: 3 decisions to make (1 suggested)") }}  -> archvow specify invoice_model
+✖ {{ "%-28s %-15s %s" | format("send_invoice", "service", "blocked: 4 decisions to make (1 suggested)") }}  -> archvow specify send_invoice
+✖ {{ "%-28s %-15s %s" | format("invoices_cli", "cli", "blocked: 3 decisions to make (2 suggested)") }}  -> archvow specify invoices_cli
+
+Safety: 1 of 9 questions answered  -> archvow specify
+
+! Not ready to run yet: invoices_cli needs config (planned), logging_setup (planned), invoice_model (planned), send_invoice (planned), invoices_cli (planned)
+```
+
+*blocked* : des questions sont encore ouvertes ; répondez-y comme à l'étape 3 et le composant
+devient *ready*.
+{%- if assisted %} Ensuite, dans le chat de l'assistant IA (mode agent, dans le dossier du projet) :
+
+```
+implémente invoice_model
+implémente tout ce que archvow next indique comme ready
+```
+
+`AGENTS.md` dit à chaque assistant approuvé ({{ ai_tools | join(', ') }}) ce que veut dire
+« implémente » : lire sa tâche, écrire le fichier avec son en-tête et ses tests, lancer
+les contrôles, corriger, et signaler tout ce qu'il a dû supposer.
+{% endif %}
+*Vous-même* : `archvow prompt <composant>` est votre tâche ; commencez le
+fichier par son en-tête, `@assisted none`. Commitez chaque composant ; le hook Git lance d'abord
+les contrôles. Si l'assistant a dû supposer quelque chose, le commit est refusé jusqu'à ce
+qu'une personne le relise : `archvow assumption accept invoice_model 1` (ou `archvow assumption reject invoice_model 1`).
+
+**6. Vérifier et lancer**
+
+```bash
+archvow check --complete                             # porte de livraison : tout ce qui est prévu est construit
+pytest {{ cov_option }} --cov-report=term-missing           # tous les tests, avec la couverture (comme la CI)
+make run CLI=invoices ARGS="--help"                   # la ligne de commande du composant invoices_cli
+```
+
+## Un exemple par commande
+
+| Pour... | Par exemple |
+|---|---|
+| déclarer la ligne de commande | `archvow component add cli invoices -d "send NUMÉRO, list [--status]" -u send_invoice` |
+| changer un composant (description, dépendances) | `archvow component edit invoice_model -d "Une facture : number str, customer str, amount Decimal >= 0"` |
+| supprimer un composant | `archvow component remove invoice_model` (puis supprimer son fichier et son test) |
+| retirer un hazard, un invariant ou une règle | `archvow hazard remove invoice_model.H1`, `archvow invariant remove invoice_model.INV1`, `archvow rule remove R1` (chacune dit ce qui part, demande d'abord) |
+| voir un hazard, un invariant ou une règle | `archvow show invoice_model.INV1` |
+| parler à un autre système | `archvow component add client mailer -d "Envoyer un e-mail par le relais SMTP de l'entreprise"` |
+| ajouter une erreur métier | `archvow component add error invoice_not_found -d "Aucune facture avec ce numéro"` |
+| ajouter une règle métier pure | `archvow component add logic compute_total -d "Somme des lignes" --signature "(lines: list[Line]) -> Decimal"` |
+| poser une question, en tant que développeur | `archvow question add invoice_model "Une facture peut-elle avoir un montant nul ?"` |
+| laisser l'IA trouver ce qui n'est pas clair | `archvow prompt invoice_model --clarify` (dans le chat : `/archvow-clarify invoice_model`) |
+| vérifier toute une fonctionnalité avant de coder (où ses composants ne concordent pas) | `archvow prompt --feature <fonctionnalité> --clarify` (dans le chat : `/archvow-clarify <fonctionnalité>`) |
+| ajouter une règle pour tous les composants d'un type | `archvow rule add --type model "Étant donné un champ inconnu, quand il est lu, alors il est refusé"` |
+| écarter une question de sûreté qui ne s'applique pas | `archvow hazard dismiss invoice_model S2 "les factures ne contiennent pas de données personnelles"` |
+| voir tout sur un composant | `archvow show invoice_model` |
+| enregistrer un exemple métier (fichiers dans `tests/examples/invoices_cli/<exemple>/`) | `archvow example add invoices_cli {{ ticket(1) }}-pay-a-sent-invoice -s {{ ticket(1) }} --from briefs/<brief>.md#<section>` ; `archvow show invoices_cli` donne le verdict de son test et où `actual/` diffère d'`expected/` |
+| trouver un nom partout (une fonction, une colonne, un ticket, un exemple) | `archvow show <nom>` : la spec, le code, les tests, les briefs, les problèmes qui le nomment |
+| répondre à ce qui est ouvert, une question à la fois | `archvow specify invoice_model` (dans un terminal) |
+| laisser l'IA proposer les risques d'un composant | dans le chat : `/archvow-analyze invoice_model` |
+| construire un gros composant une tâche à la fois | `archvow show send_invoice` liste ses tâches T1, T2... ; `archvow prompt send_invoice` donne la suivante ; marquer chaque test : `@pytest.mark.decision(3)` |
+| tirer la spec d'un brief ({% for f in briefs %}`{{ f }}/`{{ ', ' if not loop.last }}{% endfor %}, Markdown ; un autre dossier : `archvow init {{ package }} --force -a briefs=...`) | dans le chat : `/archvow-draft-spec briefs/factures.md` ; après un changement du brief (ARCH039) : `archvow brief accept briefs/factures.md#envoi` |
+{% if privacy -%}
+| classer des colonnes (données personnelles) | `archvow column set invoice_model email,phone personal` |
+| dire qu'une étape les supprime ou les pseudonymise | `archvow column set send_invoice phone --removes` |
+{% endif -%}
+{% if 'dora' in compliance -%}
+| enregistrer un paquet tiers (DORA) | `archvow dependency add requests --supplier "Python Software Foundation" --licence Apache-2.0 --criticality important` |
+{% endif -%}
+| lister ce que contient une version | `archvow changes --from v1.0.0 --markdown` |
+| adopter archvow sur du code existant | `archvow freeze` |
+| vérifier mon poste (Python, outils, hook Git) | `archvow doctor` |
+| voir chaque commande et option | `archvow --help`, puis `archvow <commande> --help` |
+
+Un nouveau paquet tiers ou un nouvel assistant IA est approuvé par un architecte, avec
+`archvow init {{ package }} --force -a dependencies=...` (ou `ai_tools=...`). Détails et
+raisons : [`.archvow/README.md`](.archvow/README.md).
+
+
+
+## Tests
+
+Chaque composant a son test, `tests/<couche>/test_<composant>.py` ; un composant implémenté
+sans lui fait échouer le build. Sa tâche dit de quel type et quoi couvrir.
+
+- **Unitaires** (modèles, erreurs, règles pures, utilitaires, la ligne de commande) : de simples
+  objets, rapides ; la ligne de commande se teste en appelant `main([...])` et en vérifiant son
+  code de sortie et ce qu'elle affiche.
+- **D'intégration** (repositories, clients, services) : de vrais fichiers dans le `tmp_path` de
+  pytest, une base dans un fichier temporaire, un faux transport pour les autres systèmes ; marqués
+  `@pytest.mark.integration`.
+
+```bash
+pytest -m "not integration"                # retour rapide pendant le codage
+pytest                                     # tout
+make check                                 # ruff, mypy, archvow check
+```
+
+Une règle qui doit tenir pour toute entrée se prouve au mieux par un test de propriété :
+Hypothesis génère les entrées (`@given`), et le test vérifie l'invariant sur chacune.
+
+## Lancer l'application
+
+```bash
+make run CLI=invoices ARGS="send F-42"      # python -m {{ package }}.p4_entrypoints.invoices_cli send F-42
+python -m {{ package }}.p4_entrypoints.invoices_cli --help
+```
+
+Les réglages viennent de l'environnement (`load_config()`), jamais du code ; un fichier `.env`
+local est gitignoré. Pour donner au programme son propre nom de commande une fois installé,
+ajoutez-le à `pyproject.toml` (un architecte approuve le changement) :
+
+```toml
+[project.scripts]
+invoices = "{{ package }}.p4_entrypoints.invoices_cli:main"
+```
+
+uv marche aussi bien que pip : `uv venv && uv pip install -r requirements.txt`.
+
+**Une base de données :** un architecte approuve le pilote (`archvow init {{ package }} --force -a
+dependencies=sqlalchemy`), un repository l'utilise et les services décident de ce qui est
+enregistré ensemble.
+
+## Commiter les changements de spec
+
+Les mêmes règles s'appliquent à tout le monde, personnes et assistants IA :
+
+1. **Commitez `.archvow/` avec le changement.** Chaque commande ci-dessus met à jour les
+   engagements (fichiers `.vow`) dans `.archvow/` ; commitez tout le dossier (`doc/`, ce
+   qu'écrit `archvow doc`, est ignoré). Ne modifiez jamais un engagement à la main : `archvow check` le voit
+   (`ARCH014`).
+2. **La spec et le code qui la suit voyagent ensemble.** Du code sans son changement de spec
+   échoue (`ARCH001`, `ARCH002`) ; un changement de spec sans son code est simplement *prévu*.
+3. **Les changements de spec sont approuvés par les architectes** ({{ architects }}), via
+   {% if platform == 'gitlab' %}`.gitlab/CODEOWNERS`{% elif platform == 'github' %}`.github/CODEOWNERS`{% else %}les code owners de votre plateforme{% endif %}. Pour tout ce qui dépasse un petit changement,
+   préférez deux merge requests : d'abord la spec (approuvée par un architecte), puis le code
+   (revue normale).
+
+## Règles pour les contributeurs et les assistants IA
+
+[`AGENTS.md`](AGENTS.md) - à lire avant de contribuer. Assistants IA approuvés :
+{%- if 'none' in ai_tools %} aucun{% else %} {{ ai_tools | join(', ') }}{% endif %}.
+
+Les changements de la spécification et de ses gardes sont approuvés par {{ architects }}
+({% if platform == 'gitlab' %}`.gitlab/CODEOWNERS`{% elif platform == 'github' %}`.github/CODEOWNERS`{% else %}les code owners de votre plateforme{% endif %}).

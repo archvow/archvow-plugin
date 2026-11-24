@@ -11,7 +11,9 @@ les plugins doivent suivre**. Il est enregistré depuis une vraie CLI archvow, j
 | Dossier ou fichier | Quoi | Écrit par | Lu par |
 |---|---|---|---|
 | `contract/cli/version.txt` | `archvow --version` (aujourd'hui `archvow 2.0.1`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()` : l'archvow avec lequel le plugin est testé et qu'il installe |
-| `contract/cli/contract.txt` (0.20.0) | le numéro de contrat de `archvow version --json` (MAJEURE.MINEURE, aujourd'hui `1.1` : 1.0 plus `workspace`) | `regenerate.py` | `ArchvowVersion.CONTRACT`, `contractWarning()` : le contrat que le plugin parle |
+| `contract/archvow-range.txt` (1.0.0) | les versions d'archvow avec lesquelles les plugins fonctionnent (`>=3.0,<4`) | à la main, avec une version des plugins | `ArchvowCompat.RANGE_OF_PLUGIN`, `compat.ts` ; `release.test.ts` vérifie que chaque endroit le dit |
+| `contract/compat/expected.json` (1.0.0) | ce qu'un plugin dit de l'archvow installé, cas par cas (EN, FR) | `UPDATE_COMPAT=1 npm test` | `CompatRegression` |
+| `contract/cli/contract.txt` (0.20.0) | le numéro de contrat de `archvow version --json` (MAJEURE.MINEURE, aujourd'hui `3.0`) | `regenerate.py` | `ArchvowVersion.CONTRACT`, `compatibility()` |
 | `contract/cli/errors/` (0.20.0) | trois commandes qui échouent, telles que les plugins les reçoivent (`ARCHVOW_LOG=info`) : `no-spec`, `refused` (l'enveloppe d'erreur sur stdout, le message et les lignes de journal d'archvow sur stderr), `usage` (un refus d'argparse : pas d'enveloppe) | `regenerate.py` (`errors()`) | `cli.test.ts`, `OutputRegression` |
 | `contract/cli/commands.json` | chaque commande et ses paramètres, tirés du parseur argparse d'archvow | `contract/tools/export_grammar.py` | `ArchvowGrammar`, `vscode/src/grammar.ts` : les formulaires de Commands |
 | `contract/forms/forms.json` | comment se lit chaque formulaire (0.14.0, design A) : les libellés en mots simples, les champs essentiels et leur ordre, le verbe du bouton, ce que va faire archvow - le fichier des plugins, pas d'archvow | à la main | `ArchvowForms`, `commandForm()` de la page ; `FormsRegression`, `grammar.test.ts` vérifient ses noms face à `commands.json` |
@@ -76,14 +78,20 @@ Ce qu'il faut ensuite regarder dans le diff :
 
 ## La version d'archvow et le contrat (0.20.0)
 
-archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "2.5", "archvow": "2.8.0",
-...}`, et chaque objet `--json` commence par `"contract"`. `ArchvowVersion.warning` et `contractWarning()`
-le comparent à `contract.txt` : même MAJEURE et une MINEURE au moins celle du plugin, rien ; une plus
-ancienne, ou un archvow qui ne dit pas de contrat (avant 1.23 : il n'a pas de commande `version`, son
-`--version` donne le numéro), « plus ancien : mets archvow à jour » ; une MAJEURE plus récente, « plus
-récent : mets le plugin à jour ». Une version d'archvow qui garde le contrat ne demande donc pas de
-nouvelle version du plugin, et archvow ne garde toujours pas de compatibilité ascendante : c'est le numéro
-de contrat qui le dit. L'installation met exactement l'archvow testé (`archvow==2.8.0`).
+archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "3.0", "archvow": "3.0.0",
+...}`, et chaque objet `--json` commence par `"contract"`. Depuis 1.0.0 les plugins ont leur propre numérotation
+et disent l'intervalle des versions d'archvow avec lesquelles ils fonctionnent : `contract/archvow-range.txt`
+(`>=3.0,<4`), une seule valeur, dite dans le README, les deux textes des Marketplaces et l'en-tête de la fenêtre
+(`archvow 3.0.0 ✓ · ce plugin fonctionne avec archvow >=3.0,<4`). `compatibility()` (`compat.ts`) et
+`ArchvowCompat.of` jugent l'archvow installé face à l'intervalle et à `contract.txt` (même MAJEURE et une MINEURE
+au moins celle du plugin), avec la version que fixe le projet (`archvow==X` dans son requirements.txt ou son
+pyproject.toml, `projectPin()`) : dans l'intervalle, rien ; plus ancien, Installer archvow 3.0.0 - ou la version
+fixée, si elle est dans l'intervalle ; une version fixée plus ancienne, comment les architectes du projet le
+mettent à jour (`pip install archvow==3.0.0`, `archvow init <package> --force`), et rien n'est installé
+par-dessus ; plus récent, « mets le plugin à jour » ; absent, la commande d'installation exacte. Les deux disent
+la même chose sur chaque cas de `contract/compat/expected.json` (`UPDATE_COMPAT=1 npm test`,
+`CompatRegression`). Une version d'archvow dans l'intervalle ne demande donc pas de nouvelle version du plugin,
+et archvow ne garde pas de compatibilité ascendante d'une MAJEURE à l'autre.
 
 Le contrat 1.1 (archvow 1.25, plugin 0.21.0) ajoute `archvow workspace --json` : ce que les plugins
 chargent, en un seul processus (`readWorkspace()` dans `model.ts`, `WorkspaceAnswer` dans IntelliJ, tous
@@ -92,7 +100,14 @@ deux testés sur `contract/cli/<exemple>/workspace.json`). Chaque partie a la fo
 `catalog`) ; seul le haut de la réponse dit `"contract"`. `--since <condensé>` répond `{"unchanged": true}`
 tant qu'aucun fichier du projet n'a changé (chemins, tailles et heures de modification).
 
-Le contrat 1.2 (archvow 1.26, plugin 0.22.0) ajoute les packs : `workspace --json` a `packs` (chaque pack du
+Le contrat 3.0 (archvow 3.0, plugin 1.0.0) remplace les packs par les templates : `workspace --json` a
+`templates` (la chaîne des copies du projet, bases d'abord - nom, version, `extends`, source, `state` `ok` ou
+`changed`, `why` - puis `project`, ses ajouts propres), `catalog --json` a `templates` (des noms simples,
+`default`, `chain`) et `project_templates` ; les commandes `template new/rule/question/agent/check/update`
+remplacent celles des packs ; chaque question d'un composant a un `id`. Les plugins lisent `templates` (la ligne
+Templates, page 7) et ont un formulaire par commande `template`.
+
+Le contrat 1.2 (archvow 1.26, plugin 0.22.0) ajoutait les packs : `workspace --json` a `packs` (chaque pack du
 projet, ce qu'il apporte, sa source, `state` `ok` ou `changed`, `why`), `catalog --json` a `packs` et `agents`, et
 les modèles sont nommés `<pack>/<modèle>` (`archvow/python-app`) ; les commandes `pack new/template/agent/rule/
 add/update/remove/check` remplacent `template new`. Les plugins lisent `packs` (la ligne Packs, page 7), ont un

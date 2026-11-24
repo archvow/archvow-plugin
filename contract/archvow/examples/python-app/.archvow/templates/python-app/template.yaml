@@ -1,0 +1,297 @@
+name: python-app
+version: 3.0.0                  # archvow's templates carry its version
+archvow: ">=3.0,<4"
+languages: [en, fr]
+default: true                   # the template `archvow init` uses without -t
+extends: python-base
+language: python
+kind: application
+style: layered (common -> domain -> io -> services -> entrypoints)
+description: >-
+  Python application or library, no framework imposed. Business rules live in a pure domain,
+  files, databases and other services behind repositories and clients, each operation in a
+  service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.
+
+# The answers of python-base (language, platform, CI, AI assistants...) plus these.
+questions:
+  - id: dependencies
+    prompt: Approved third-party packages besides pytest and hypothesis, comma-separated, as imported (e.g. requests, yaml)
+  - id: python_version
+    default: "3.12"
+    choices: ["3.11", "3.12", "3.13"]
+
+# Third-party packages the code may import without approval (ARCH023); the `dependencies` answer
+# adds a project's own (e.g. -a dependencies=requests). Names as imported.
+dependencies: [pytest, hypothesis]
+
+# What `archvow doctor` checks on a developer's machine, besides Python, archvow and Git.
+doctor:
+  - name: ruff
+    command: ruff --version
+    fix: make install (or python3 -m pip install -r requirements.txt)
+  - name: mypy
+    command: mypy --version
+    fix: make install (or python3 -m pip install -r requirements.txt)
+  - name: pytest
+    module: pytest
+    fix: make install (or python3 -m pip install -r requirements.txt)
+  - name: Hypothesis
+    module: hypothesis
+    fix: make install (or python3 -m pip install -r requirements.txt)
+
+# Lines archvow adds to .gitignore (merged: existing lines are kept, missing ones appended).
+gitignore:
+  - "# archvow: the spec to read and the local status (archvow doc writes them; never committed)"
+  - .archvow/doc/
+  - "# Secrets: settings come from the environment, never from a committed file"
+  - .env
+  - "# Python"
+  - __pycache__/
+  - "*.py[cod]"
+  - .venv/
+  - venv/
+  - "*.egg-info/"
+  - build/
+  - dist/
+  - .coverage
+  - coverage.xml
+  - test-results.xml
+  - htmlcov/
+  - "# Tool caches"
+  - .pytest_cache/
+  - .ruff_cache/
+  - .mypy_cache/
+  - .hypothesis/
+  - .cache/
+  - "# OS and IDE"
+  - .DS_Store
+  - .idea/
+  - .vscode/
+
+allowed_paths: [tests, docs, scripts]
+test_kinds:
+  unit: >-
+    Pure and fast: plain Python objects, no files, no database, no network. Runs on every commit.
+  integration: >-
+    Real files in a temporary folder (pytest's tmp_path), a database in a temporary file (SQLite),
+    a fake transport for other services, marked @pytest.mark.integration. Never a shared database,
+    a real external service or a file outside the test's folder.
+
+# The template's own packages in the DORA third-party register (adds to python-base's list).
+third_parties:
+  - {name: ruff, supplier: "Astral Software Inc.", licence: MIT, criticality: minor}
+  - {name: mypy, supplier: "The mypy developers (Python Software Foundation)", licence: MIT, criticality: minor}
+  - {name: pytest, supplier: "pytest-dev", licence: MIT, criticality: important}
+  - {name: pytest-cov, supplier: "pytest-dev", licence: MIT, criticality: minor}
+  - {name: hypothesis, supplier: "Hypothesis developers (David R. MacIver)", licence: MPL-2.0, criticality: important}
+  - {name: pre-commit, supplier: "Anthony Sottile (pre-commit)", licence: MIT, criticality: minor}
+
+# The run line of `archvow next` and `archvow show <cli>`: how to try the program on a laptop, once
+# it and everything it uses are coded (never a deployment). The arguments are the required
+# settings of the config component's first decision.
+run:
+  types: [cli]
+  command: "python -m {module} {arguments} --help"
+  arguments_from: {component: config, question: settings}
+
+# The roles its component types play, for the regimes (regimes/*.yaml of the templates: GDPR, US-PRIVACY, GLBA,
+# DORA...): `purpose` processes personal data, `store` writes it, `share` sends it to a third party, `run` runs
+# (a job, an app: DORA's operations questions). Each regime asks its own questions there (P1, U1, G1, O1...).
+roles: {purpose: [service], store: [repository], share: [client], run: [cli]}
+
+# Examples shown by `archvow <command> --help` for this template's component types
+# (commands not listed show archvow's generic examples).
+help_examples:
+  component add: |
+    archvow component add model invoice -d "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid" -s US-001
+    archvow component add error invoice_not_found -d "No invoice with this number"
+    archvow component add logic compute_total -d "Sum of the lines, minus the discount, rounded to 2 decimals" -u invoice_model
+    archvow component add repository invoices -d "Stores and finds invoices in a JSON file per invoice" -u invoice_model
+    archvow component add client mailer -d "Sends an e-mail through the company's SMTP relay"
+    archvow component add service send_invoice -d "Find the invoice, check it is a draft, send it, mark it sent" -u invoices_repository,mailer_client
+    archvow component add cli invoices -d "Command line: send NUMBER, list [--status]" -u send_invoice
+    archvow component add service export_invoices -g reports -d "..."    # in the folder p3_services/reports/
+  component edit: |
+    archvow component edit send_invoice -d "Find the invoice, check it is a draft, send it, mark it sent; refuse a paid one"
+    archvow component edit export_invoices -g exports
+  component remove: |
+    archvow component remove send_invoice   # with its decisions, hazards and invariants; then delete its files
+  decision make: |
+    archvow decision make invoice_model 1 "number, customer and amount required; note optional, default empty"
+    archvow decision make send_invoice 3,4 "Only drafts; sending twice is refused with AlreadySent"
+    archvow decision make send_invoice 2         # no answer: the suggested one ("show" prints it)
+  decision add: |
+    archvow decision add send_invoice "May an invoice of zero be sent?" "No, it is refused"
+  question add: |
+    archvow question add send_invoice "Is the customer copied on the e-mail?"
+  question remove: |
+    archvow question remove send_invoice 7      # a question a person added (the template's questions stay)
+  rule add: |
+    archvow rule add send_invoice "Given a paid invoice, when it is sent, then it is refused"
+    archvow rule add send_invoice "When the mail server does not answer, send_invoice keeps the invoice unsent"
+    archvow rule add --type repository "Given a file half written, when it is read, then it is refused"
+  rule edit: |
+    archvow rule edit R1 "Given a paid invoice, when it is sent again, then it is refused"
+  rule remove: |
+    archvow rule remove R1
+  show: |
+    archvow show send_invoice             # its questions, rules, safety questions S1, S2...
+    archvow show send_invoice INV1        # one of its hazards (H1) or invariants (INV1); a rule: archvow show R1
+  hazard add: |
+    archvow hazard add send_invoice S1 critical      # the suggestion of question S1, and its invariant
+    archvow hazard add send_invoice repeated high "An invoice is sent twice"
+    archvow hazard add invoices_repository partial high "An invoice file is half written"
+  hazard remove: |
+    archvow hazard remove send_invoice.H1         # its invariants stay, no longer pointing to it
+    archvow hazard remove send_invoice S2         # undo a "not applicable": the question is open again
+  invariant add: |
+    archvow invariant add send_invoice "an invoice is sent at most once"
+    archvow invariant add invoices_repository "an invoice file is complete or absent" --prevents H1
+  invariant remove: |
+    archvow invariant remove send_invoice.INV1    # never the last guard of a critical or high hazard
+
+# The folder of each layer: src/<package>/<folder>/ and tests/<folder>/. A company template may
+# rename some (layer_names: {p1_domain: domain}); archvow then uses the new folder everywhere -
+# layers, component types, starting components and the files it writes.
+layer_names:
+  p0_common: p0_common
+  p1_domain: p1_domain
+  p2_io: p2_io
+  p3_services: p3_services
+  p4_entrypoints: p4_entrypoints
+
+layers:
+  - name: p0_common
+    description: Shared foundations - settings, logging, small helpers every layer may use
+    may_import: []
+    io_allowed: true
+    must_never: ["hold business rules"]
+  - name: p1_domain
+    description: Business rules - data classes, domain errors and pure functions, no I/O
+    may_import: [p0_common]
+    io_allowed: false
+    forbidden_imports: [os, pathlib, shutil, subprocess, socket, sqlite3, requests, httpx, urllib, logging]
+    must_never:
+      - "read or write anything (no files, database, network or environment)"
+      - "log, print or read the clock (time and dates are passed in)"
+  - name: p2_io
+    description: Repositories and clients - the only place that reads and writes files, databases and other services
+    may_import: [p0_common, p1_domain]
+    io_allowed: true
+    forbidden_imports: [subprocess]
+    must_never: ["hold business rules beyond mapping data", "parse command-line arguments"]
+  - name: p3_services
+    description: Services - one operation each, calling repositories and clients and applying the domain's rules
+    may_import: [p0_common, p1_domain, p2_io]
+    io_allowed: false
+    must_never: ["parse command-line arguments", "print to the terminal"]
+  - name: p4_entrypoints
+    description: Entry points - the command line, which parses arguments, calls a service and sets the exit code
+    may_import: [p0_common, p1_domain, p3_services]
+    io_allowed: false
+    must_never: ["call a repository or a client directly (use a service)", "hold business rules"]
+
+component_types:
+  repository:
+    layer: p2_io
+    requires_uses: [model]   # the fields it stores are a model component (ARCH019)
+    test: integration
+    description: Stores and finds one kind of data (files, a database).
+    module: "{name}_repository"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "the data, plural, e.g. invoices"
+    symbols:
+      - {kind: class, name: "{Name}Repository"}
+    writes_data: true      # stores the personal fields of the models it uses (PRIV003, and the regimes' store questions)
+    guide_words: [missing, more, partial, stale, concurrent, exposed]
+    safety_decisions: {missing: not_found, partial: crash_write, concurrent: same_record}  # the decision that already answers it
+    edge_cases:
+      - {id: storage, question: "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?", choices: ["One JSON file per item in a data folder", "A SQLite table"]}
+      - {id: not_found, question: "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?", suggested: "Return None; the service raises the domain error"}
+      - {id: crash_write, question: "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?", suggested: "Write to a temporary file next to it, then rename it"}
+      - {id: same_record, question: "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?", suggested: "The second one is refused"}
+
+  client:
+    layer: p2_io
+    test: integration
+    description: Talks to one other system (an HTTP API, a mail server, a message broker...).
+    module: "{name}_client"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "the other system, e.g. mailer"
+    symbols:
+      - {kind: class, name: "{Name}Client"}
+    writes_data: true      # sends the personal fields of the models it uses to a third party (the regimes' share questions)
+    guide_words: [missing, wrong, repeated]
+    safety_decisions: {missing: down, repeated: retries}  # the decision that already answers it
+    edge_cases:
+      - {id: timeout, question: "How long does it wait for an answer before giving up (in seconds) - e.g. 10?", suggested: "10 seconds"}
+      - {id: retries, question: "If a call fails, is it retried, how many times, on which errors, and can the same call be sent twice without doing it twice (e.g. sending an e-mail twice) - e.g. 3 retries on timeouts, never for a send?"}
+      - {id: down, question: "The other system is down or answers an error: fail with which domain error - e.g. MailerUnavailable?"}
+
+  service:
+    layer: p3_services
+    test: integration
+    description: One operation - calls repositories and clients and applies the domain's rules.
+    module: "{name}"
+    name_pattern: "^[a-z]+_[a-z0-9_]+$"
+    name_hint: "verb_noun, e.g. send_invoice"
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}"}   # its parameters are the implementer's, unless --signature fixes them
+    guide_words: [missing, repeated, partial, concurrent, exposed]
+    safety_decisions: {missing: not_found, repeated: twice, partial: all_or_nothing}  # the decision that already answers it
+    edge_cases:
+      - {id: steps, question: "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?"}
+      - {id: not_found, question: "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?"}
+      - {id: twice, question: "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?", suggested: "The same result, no duplicate effect"}
+      - {id: all_or_nothing, question: "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?"}
+
+  cli:
+    layer: p4_entrypoints
+    test: unit
+    examples: true   # business examples: archvow example add <component> <name>
+    description: The command line - parses the arguments, calls a service, prints the result, sets the exit code.
+    module: "{name}_cli"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "the program, e.g. invoices"
+    symbols:
+      - {kind: function, name: main, signature: "(argv: Sequence[str] | None = None) -> int"}
+    guide_words: [wrong, exposed]
+    safety_decisions: {wrong: invalid_arguments}  # the decision that already answers it
+    edge_cases:
+      - {id: invalid_arguments, question: "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?", suggested: "Exit code 2 with the usage message (argparse)"}
+      - {id: code, question: "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?", suggested: "0 ok, 1 error, 2 bad arguments"}
+      - {id: output, question: "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?"}
+    requirements:
+      - "End the file with `if __name__ == \"__main__\": raise SystemExit(main())`, so `python -m <module>` runs it."
+      - "Parse the arguments with argparse; turn domain errors into a message on stderr and an exit code, never a traceback."
+      - "Accept one --name-with-dashes argument per required setting of the config decision (archvow next prints them in its run line)."
+      - "Call setup_logging once, first; log the start and the end of the run with its exit code, never the values the user typed in when they may be personal."
+
+initial_components:
+  - id: config
+    name: config
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.config"
+    description: The program's settings, read from the environment and the command line, never from code.
+    uses: []
+    symbols:
+      - {kind: class, name: Config}
+      - {kind: function, name: load_config, signature: "(environ: Mapping[str, str] | None = None) -> Config"}
+    edge_cases:
+      - {id: settings, question: "Settings, name: type = default separated by commas (no default = required) - e.g. data_dir: str, log_level: str = \"INFO\" - or none?"}
+      - {id: secrets, question: "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?"}
+  - id: logging_setup
+    name: logging_setup
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.logging_setup"
+    description: Configures logging once, for the entry points - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the config, one line per event with an id that follows one run, never a secret or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs must not write to a test's closed stream).
+    uses: []
+    symbols:
+      - {kind: function, name: setup_logging, signature: "(level: str = \"INFO\") -> None"}
+    edge_cases:
+      - {id: destination, question: "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?", suggested: "stderr, one line per event: time, level, message"}
+
+rules: {}

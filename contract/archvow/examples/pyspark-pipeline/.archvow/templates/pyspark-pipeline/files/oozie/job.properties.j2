@@ -1,0 +1,13 @@
+# Oozie settings of {{ package }}: one file per environment (dev, prod...); deployment fills them.
+nameNode=hdfs://<namenode>:8020
+jobTracker=<resourcemanager>:8032
+queueName=default
+appPath=${nameNode}/apps/{{ package }}
+entryPoint={{ package }}
+packageVersion=0.1.0
+sparkOpts=--num-executors 2 --executor-memory 2g
+frequency=${coord:days(1)}
+start=2026-01-01T00:00Z
+end=2099-12-31T00:00Z
+oozie.use.system.libpath=true
+oozie.coord.application.path=${appPath}/coordinator.xml

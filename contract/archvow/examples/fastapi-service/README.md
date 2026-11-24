@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/fastapi-service@2.8.0`).
+(template `fastapi-service`).
 
 ## For developers
 
@@ -125,7 +125,7 @@ complete service, from the empty project to a run: archvow's documentation, *Fas
 **1. Create the project** - this one was created with:
 
 ```bash
-archvow init orders_api -t archvow/fastapi-service -d Orders \
+archvow init orders_api -t fastapi-service -d Orders \
     -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a fastapi_version=0.143 -a ai_tools=copilot -a mode=strict -a rules=ARCH,STYLE,FASTAPI,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
@@ -257,6 +257,7 @@ make run                                             # http://127.0.0.1:8000/doc
 | add a pure business rule | `archvow component add logic compute_total -d "Sum of the lines" --signature "(lines: list[Line]) -> Decimal"` |
 | ask a question, as a developer | `archvow question add order_model "May an order have an amount of zero?"` |
 | let the AI find what is unclear | `archvow prompt order_model --clarify` (in the chat: `/archvow-clarify order_model`) |
+| check a whole feature before coding (where its components disagree) | `archvow prompt --feature <feature> --clarify` (in the chat: `/archvow-clarify <feature>`) |
 | add a rule for every component of a type | `archvow rule add --type model "Given an unknown field, when it is parsed, then it is refused"` |
 | dismiss a safety question that does not apply | `archvow hazard dismiss order_model S2 "orders hold no personal data"` |
 | see everything about a component | `archvow show order_model` |

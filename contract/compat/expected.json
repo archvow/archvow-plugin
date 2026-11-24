@@ -1,0 +1,248 @@
+{
+  "about": "What both plugins say of the installed archvow (1.0.0): each case - the installed archvow (null: it did not answer), the contract the plugin speaks, the archvow it is tested with, the project's pin - against contract/archvow-range.txt. Written by UPDATE_COMPAT=1 npm test (vscode/compat.ts); the IntelliJ plugin must give the same (CompatRegression).",
+  "cases": [
+    {
+      "name": "tested",
+      "installed": {
+        "version": "3.0.0",
+        "contract": "3.0"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": false,
+      "expected": {
+        "state": "ok",
+        "install": "",
+        "text": ""
+      }
+    },
+    {
+      "name": "a later minor contract",
+      "installed": {
+        "version": "3.2.1",
+        "contract": "3.4"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": false,
+      "expected": {
+        "state": "ok",
+        "install": "",
+        "text": ""
+      }
+    },
+    {
+      "name": "not pinned, older",
+      "installed": {
+        "version": "2.8.0",
+        "contract": "2.5"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": false,
+      "expected": {
+        "state": "older",
+        "install": "3.0.0",
+        "text": "archvow 2.8.0 is older than this plugin works with (archvow >=3.0,<4). Install archvow 3.0.0."
+      }
+    },
+    {
+      "name": "not pinned, older, fr",
+      "installed": {
+        "version": "2.8.0",
+        "contract": "2.5"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": true,
+      "expected": {
+        "state": "older",
+        "install": "3.0.0",
+        "text": "archvow 2.8.0 est plus ancien que ce avec quoi ce plugin fonctionne (archvow >=3.0,<4). Installer archvow 3.0.0."
+      }
+    },
+    {
+      "name": "pinned below the range",
+      "installed": {
+        "version": "2.8.0",
+        "contract": "2.5"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": {
+        "version": "2.8.0",
+        "file": "requirements.txt"
+      },
+      "fr": false,
+      "expected": {
+        "state": "older",
+        "install": "",
+        "text": "archvow 2.8.0 is older than this plugin works with (archvow >=3.0,<4). This project pins archvow==2.8.0 (requirements.txt). Its architects upgrade the project on a branch - pip install archvow==3.0.0, then archvow init <package> --force, review and merge (archvow's CHANGELOG says what changes); the plugin installs nothing over the pin."
+      }
+    },
+    {
+      "name": "pinned below the range, fr",
+      "installed": {
+        "version": "2.8.0",
+        "contract": "2.5"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": {
+        "version": "2.8.0",
+        "file": "requirements.txt"
+      },
+      "fr": true,
+      "expected": {
+        "state": "older",
+        "install": "",
+        "text": "archvow 2.8.0 est plus ancien que ce avec quoi ce plugin fonctionne (archvow >=3.0,<4). Ce projet fixe archvow==2.8.0 (requirements.txt). Ses architectes mettent le projet à jour sur une branche - pip install archvow==3.0.0, puis archvow init <package> --force, relecture et merge (le CHANGELOG d'archvow dit ce qui change) ; le plugin n'installe rien par-dessus le choix du projet."
+      }
+    },
+    {
+      "name": "pinned in the range, older installed",
+      "installed": {
+        "version": "2.8.0",
+        "contract": "2.5"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": {
+        "version": "3.0.1",
+        "file": "requirements.txt"
+      },
+      "fr": false,
+      "expected": {
+        "state": "older",
+        "install": "3.0.1",
+        "text": "archvow 2.8.0 is older than this plugin works with (archvow >=3.0,<4). This project pins archvow==3.0.1 (requirements.txt). Install archvow 3.0.1."
+      }
+    },
+    {
+      "name": "an older contract in the range",
+      "installed": {
+        "version": "3.0.0",
+        "contract": "2.9"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": false,
+      "expected": {
+        "state": "older",
+        "install": "3.0.0",
+        "text": "archvow 3.0.0 is older than this plugin works with (archvow >=3.0,<4). Install archvow 3.0.0."
+      }
+    },
+    {
+      "name": "newer",
+      "installed": {
+        "version": "4.0.0",
+        "contract": "4.0"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": false,
+      "expected": {
+        "state": "newer",
+        "install": "",
+        "text": "archvow 4.0.0 is newer than this plugin works with (archvow >=3.0,<4): update the plugin."
+      }
+    },
+    {
+      "name": "newer, fr",
+      "installed": {
+        "version": "4.0.0",
+        "contract": "4.0"
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": true,
+      "expected": {
+        "state": "newer",
+        "install": "",
+        "text": "archvow 4.0.0 est plus récent que ce avec quoi ce plugin fonctionne (archvow >=3.0,<4) : mets le plugin à jour."
+      }
+    },
+    {
+      "name": "missing",
+      "installed": null,
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": false,
+      "expected": {
+        "state": "missing",
+        "install": "3.0.0",
+        "text": "archvow is not installed for this project; this plugin works with archvow >=3.0,<4. Install it: python -m pip install archvow==3.0.0"
+      }
+    },
+    {
+      "name": "missing, fr",
+      "installed": null,
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": true,
+      "expected": {
+        "state": "missing",
+        "install": "3.0.0",
+        "text": "archvow n'est pas installé pour ce projet ; ce plugin fonctionne avec archvow >=3.0,<4. L'installer : python -m pip install archvow==3.0.0"
+      }
+    },
+    {
+      "name": "pinned in the range, missing",
+      "installed": null,
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": {
+        "version": "3.0.1",
+        "file": "pyproject.toml"
+      },
+      "fr": false,
+      "expected": {
+        "state": "missing",
+        "install": "3.0.1",
+        "text": "archvow is not installed for this project; this plugin works with archvow >=3.0,<4. This project pins archvow==3.0.1 (pyproject.toml). Install it: python -m pip install archvow==3.0.1"
+      }
+    },
+    {
+      "name": "pinned below the range, missing",
+      "installed": null,
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": {
+        "version": "2.8.0",
+        "file": "requirements.txt"
+      },
+      "fr": false,
+      "expected": {
+        "state": "missing",
+        "install": "",
+        "text": "archvow is not installed for this project; this plugin works with archvow >=3.0,<4. This project pins archvow==2.8.0 (requirements.txt). Its architects upgrade the project on a branch - pip install archvow==3.0.0, then archvow init <package> --force, review and merge (archvow's CHANGELOG says what changes); the plugin installs nothing over the pin."
+      }
+    },
+    {
+      "name": "no version said",
+      "installed": {
+        "version": "",
+        "contract": ""
+      },
+      "wanted": "3.0",
+      "tested": "3.0.0",
+      "pin": null,
+      "fr": false,
+      "expected": {
+        "state": "missing",
+        "install": "3.0.0",
+        "text": "archvow is not installed for this project; this plugin works with archvow >=3.0,<4. Install it: python -m pip install archvow==3.0.0"
+      }
+    }
+  ]
+}

@@ -10,7 +10,7 @@ system
 
 # --- containers
 container my_pipeline
-  template archvow/pyspark-pipeline@2.8.0
+  template pyspark-pipeline
   package my_pipeline
   path src/my_pipeline
 
@@ -55,3 +55,13 @@ rule R2
     type transformation
   by architect@example.com
   on 2026-11-11T19:07:01.516139+00:00
+
+templates
+  pyspark-pipeline
+    version 3.0.0
+    source archvow
+    digest e847a2270ae5
+  python-base
+    version 3.0.0
+    source archvow
+    digest 418c6c7829fc

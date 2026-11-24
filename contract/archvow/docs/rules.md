@@ -27,10 +27,10 @@ hit is reported once per file, line and message (an import of nine names is one 
 | ARCH006 | a component imports another one not listed in its `uses` | `archvow component edit <component> -u a,b` (architect review) |
 | ARCH007 | an import forbidden in this layer (`os`, `pathlib`, `requests`... in `p1_domain`) | move the I/O to a reader or writer |
 | ARCH008 | a declared file does not exist (with `--complete`) | write the component, or `archvow component remove` it |
-| ARCH009 | an invalid entry in a vow (`.vow`), or an unknown template | the message names the entry; a company template comes in a pack: `archvow pack add <folder>` |
+| ARCH009 | an invalid entry in a vow (`.vow`), or an unknown template | the message names the entry; a template is given by its folder: `archvow init <package> --force -t <folder>`, then commit `.archvow/templates/` |
 | ARCH010 | a file in the package outside every layer (a module there is `ARCH001`, which says how to map it) | move it into a layer folder, or map it in `layer_paths` |
 | ARCH011 | a suppression without a reason | `# archvow: ignore[CODE] -- why` |
-| ARCH012 | (warning) the installed template version differs from the project's | `archvow init <package> --force`, review, commit ([upgrading](project-management.md#upgrading-archvow-in-a-project)) |
+| ARCH012 | a template of the project (its copy in `.archvow/templates/`) needs another archvow version than the one installed (its `archvow` range) | install the archvow the project pins, or take a version of the template made for this archvow: `archvow template update`, review, commit ([upgrading](project-management.md#upgrading-archvow-in-a-project)) |
 | ARCH013 | a file cannot be parsed | fix the syntax error, or save the file as UTF-8 |
 | ARCH014 | an entry of a vow differs from what its template generates (edited by hand) | revert the hand edit; change the spec with the commands |
 | ARCH015 | a Python file outside the architecture (no layer, not an allowed path) | make it a component, move it under `tests/`, or `archvow freeze` legacy code |
@@ -66,7 +66,7 @@ hit is reported once per file, line and message (an import of nine names is one 
 | ARCH057 | (warning; an error with `check --complete`) a component's description, signature or routes changed (`archvow component edit`) after decisions, hazards, invariants, "not applicable" answers, accepted assumptions or business examples were recorded for it: each may no longer hold ("amount > 0" when the description now says "> 1"). archvow deletes nothing; `archvow show` lists them, the spec stops the AI, `archvow next` says the component is blocked | a person looks at each one: one that no longer holds is recorded again (`archvow decision make <component> <n> "..."`, `archvow hazard edit`...), which takes it off the list; when every one still holds, `archvow component accept <component>` |
 | ARCH058 | (an error; a warning from 90 %) the project is over its limit: more components than `max_components`, or more lines of code under the package's folder than `max_code_lines` (init answers, off by default; lines that are not blank, comments or docstrings; tests not counted). `archvow component add` refuses the component over the limit | split the project, or an architect raises the limit: `archvow init <package> --force -a max_components=<n>` (a raised limit is a weakening, ARCH020) |
 | ARCH059 | `logging.basicConfig`, `logging.config.dictConfig` / `fileConfig`, a handler added or removed (`addHandler`), or the root logger's level set, anywhere but the project's `logging_setup` foundation (only when the project has one) | configure logging in `setup_logging` only; every other module takes its logger with `logging.getLogger(__name__)` and logs |
-| ARCH060 | a pack's copy in `.archvow/packs/<name>/` differs from what `archvow pack add` or `pack update` recorded in project.vow (its digest), a recorded pack has no copy, or a copy is not recorded | an architect runs `archvow pack update <name>` to take a new version of the pack, or `archvow pack add <folder>` again; nobody edits the copy - a company change goes into the pack itself, then into its new version |
+| ARCH060 | a template's copy in `.archvow/templates/<name>/` differs from what `init` or `archvow template update` recorded in project.vow (its digest), a recorded template has no copy, or a copy is not recorded | an architect runs `archvow template update` to take the template again from its source; nobody edits the copy - a change goes into the template itself, then into its new version (or, for this project only, into `.archvow/template/`) |
 | ARCH061 | features use each other in a loop (orders uses invoices and invoices uses orders, through their components' `uses`): two features that cannot be told apart | keep one direction: move what both need to shared (`archvow component move <component> shared`), or merge the two features (`component move`, then `feature remove`) |
 | ARCH062 | a component of `shared` uses a feature, and it is not an entry point (something uses it): shared is what every feature uses, and only the app or a job plugs the features in | move the component into the feature it uses (`archvow component move <component> <feature>`), or let the entry point use that feature instead |
 | ARCH050 | a file in `.archvow/` that archvow does not write: CODEOWNERS lists the folder path by path, so nobody would own it; or a feature folder that lost its vow (always on) | move it out of `.archvow/`; a lost feature vow: restore it (`git checkout -- .archvow/features/<feature>/<feature>.vow`) |
@@ -80,7 +80,7 @@ hit is reported once per file, line and message (an import of nine names is one 
 | Code | Fails when | Fix |
 |---|---|---|
 | ARCH019 | (warning) a component works on columns written nowhere: a reader or writer without its schema, a repository without its model | `archvow component add schema <name> -d "..."`, then `archvow component edit <component> -u <name>_schema` |
-| ARCH020 | a guard is weakened: a lower severity or verification, a rule's limit loosened in `rules:`, or a stricter one taken out (ARCH022's change budget too), a removed hazard or invariant, a project rule (R1...) removed, reworded or narrowed, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example or a personal column taken out of the spec, an edited guard file, a pack updated or removed, more frozen violations, a new AI assistant or dependency | undo it, or the architects approve it (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, or `--accept-weakening`) |
+| ARCH020 | a guard is weakened: a lower severity or verification, a rule's limit loosened in `rules:`, or a stricter one taken out (ARCH022's change budget too), a removed hazard or invariant, a project rule (R1...) removed, reworded or narrowed, a relaxed ruff rule or test setting, a deleted test, a spec item whose marked test is gone, unmarked or skipped on the branch, a business example or a personal column taken out of the spec, an edited guard file, a template updated or removed, more frozen violations, a new AI assistant or dependency | undo it, or the architects approve it (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, or `--accept-weakening`) |
 | ARCH021 | (warning) new suppressions | check each reason in the review |
 | ARCH022 | the change is too big to review (default: over 30 files, 1000 lines added or 300 deleted, outside `.archvow/`) | split the merge request, or the architects approve it. To stay under it: `archvow next --base develop` lists nothing as ready once the change is full (AI assistants run it before each component) |
 
@@ -139,7 +139,7 @@ hit is reported once per file, line and message (an import of nine names is one 
 | STY003 | (warning) a shell script (`*.sh`, outside hidden folders) over 150 lines | move the logic into a tested Python component; keep the script a launcher |
 | STY004 | (warning) a Python file with more comment lines than 30% of its code lines (from 20 code lines; the comment block at the top - licence, copyright - is not counted) | rename, extract a function, move the explanation into the docstring; ruff's `ERA` already refuses commented-out code |
 
-## Personal data - PRIV (on with any privacy regime: GDPR by default, US-PRIVACY, GLBA, a pack's)
+## Personal data - PRIV (on with any privacy regime: GDPR by default, US-PRIVACY, GLBA, a template's)
 
 The rules read the classification of each column (`archvow column set`) and follow it through the
 `uses` of the spec - see [Compliance](compliance.md).
@@ -211,13 +211,13 @@ US financial institutions (`regimes/glba.yaml`): the columns tagged `financial`,
 | DORA005 | a coded job, entry point or app has no answer to O1, O2 (failure detection and alerting, recovery with its RTO and RPO) | `archvow decision make <component> O1 "..."` |
 | DORA006 | (warning) the licence in the register differs from the installed package's metadata | correct the register |
 
-## A company's own rules (a pack's `rules/`)
+## A company's own rules (a template's `rules/`)
 
-A company pack declares rules as data, without Python - forbidden imports, calls, text or files, an
+A company template declares rules as data, without Python - forbidden imports, calls, text or files, an
 import allowed only in some component types, a text every file must contain, or a question asked of a
 component type (C1, C2...). Their codes are the company's (for example `ACME001`), their section is ACME
 in `.archvow/doc/project.md` (Checks), and each rule carries an example it must catch and one it must pass.
-See [Packs](packs.md#rules).
+A rule marked `final` cannot be weakened below it. See [Templates](templates.md#rules).
 
 ## Ruff
 
@@ -255,7 +255,7 @@ The template sets the weakest check each severity accepts (`verification_floor`)
 
 ## Changing a severity or a limit
 
-For every project of a template, in its `rules:` ([packs](packs.md)).
+For every project of a template, in its `rules:` ([templates](templates.md)).
 For one project, in the `rules` group of its `.archvow/project.vow` (by hand, the only part of a
 vow that is; [the .vow format](vow-format.md)) - a guard change, approved by the architects:
 

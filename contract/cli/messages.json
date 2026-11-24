@@ -1,5 +1,5 @@
 {
- "archvow": "archvow 2.8.0",
+ "archvow": "archvow 3.0.0",
  "messages": [
   {
    "code": "ACME001",
@@ -7,6 +7,13 @@
    "message": "No direct use of the old billing API: import legacy_billing -> use acme_billing.client",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 11
+  },
+  {
+   "code": "ACME001",
+   "severity": "error",
+   "message": "No legacy: import legacy",
+   "file": "src/demo/legacy_user.py",
+   "line": 1
   },
   {
    "code": "ACME001",
@@ -97,6 +104,13 @@
    "severity": "error",
    "message": "batch.steps is not declared and sits in no layer: map it in `layer_paths` (archvow init sales --force --adopt proposes it), then archvow component add <type> <name> --file src/batch/steps.py",
    "file": "src/batch/steps.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH001",
+   "severity": "error",
+   "message": "demo.legacy_user is not declared and sits in no layer: map it in `layer_paths` (archvow init demo --force --adopt proposes it), then archvow component add <type> <name> --file src/demo/legacy_user.py",
+   "file": "src/demo/legacy_user.py",
    "line": 0
   },
   {
@@ -942,43 +956,22 @@
   {
    "code": "ARCH009",
    "severity": "error",
-   "message": "compliance names 'hipaa', a regime archvow cannot find or read: its questions and rules do not run - add the pack that holds it, fix its file, or take the name out (archvow init <package> --force -a rules=...)",
+   "message": "compliance names 'hipaa', a regime archvow cannot find or read: its questions and rules do not run - use a template that holds it, fix its file, or take the name out (archvow init <package> --force -a rules=...)",
    "file": ".archvow/project.vow",
    "line": 0
   },
   {
    "code": "ARCH009",
    "severity": "error",
-   "message": "container 'acoss_pipeline': unknown template 'acme/acme-pyspark' (available: archvow/fastapi-service, archvow/langgraph-agent, archvow/pyspark-pipeline, archvow/python-app, archvow/python-base). A company template comes in a pack that lives in the project: archvow pack add <the folder of pack acme>, then commit .archvow/packs/",
+   "message": "container 'acoss_pipeline': unknown template 'acme-pyspark' (available: fastapi-service, langgraph-agent, pyspark-pipeline, python-app, python-base). The project's templates are copied in .archvow/templates/ by init: archvow template update (or init acoss_pipeline --force -t <template>), then commit them",
    "file": ".archvow/project.vow",
    "line": 0
   },
   {
    "code": "ARCH009",
    "severity": "error",
-   "message": "pack acme: <tmp>: ACME001: target '(' is not a valid regular expression (missing ), unterminated subpattern at position 0)",
-   "file": ".archvow/packs/acme/pack.yaml",
-   "line": 0
-  },
-  {
-   "code": "ARCH009",
-   "severity": "error",
-   "message": "pack acme: <tmp>: ACME008: give its target (what the kind looks for)",
-   "file": ".archvow/packs/acme/pack.yaml",
-   "line": 0
-  },
-  {
-   "code": "ARCH009",
-   "severity": "error",
-   "message": "pack acme: <tmp>: cannot be read (while parsing a flow sequence\n  in \"<unicode string>\", line 1, column 7\ndid not find expected ',' or ']'\n  in \"<unicode string>\", line 2, column 1)",
-   "file": ".archvow/packs/acme/pack.yaml",
-   "line": 0
-  },
-  {
-   "code": "ARCH009",
-   "severity": "error",
-   "message": "pack acme: <tmp>: skills '../escaped' leaves the project: give a folder inside it (.acme/skills)",
-   "file": ".archvow/packs/acme/pack.yaml",
+   "message": "rules: ACME001 is final (its template says so): it cannot be made a off - archvow ignores it",
+   "file": ".archvow/project.vow",
    "line": 0
   },
   {
@@ -1033,8 +1026,43 @@
   {
    "code": "ARCH009",
    "severity": "error",
-   "message": "template acme/acme-pyspark: rules: ARCH001: severity 'info' is none of error, warning, off - archvow ignores it",
-   "file": ".archvow/packs/acme/templates/acme-pyspark/template.yaml",
+   "message": "template acme-app: <tmp>: ACME001: target '(' is not a valid regular expression (missing ), unterminated subpattern at position 0)",
+   "file": ".archvow/templates/acme-app/template.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "template acme-app: <tmp>: skills '../escaped' leaves the project: give a folder inside it (.acme/skills)",
+   "file": ".archvow/templates/acme-app/template.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "template acme-app: rules: STY001: severity 'False' is none of error, warning, off - archvow ignores it",
+   "file": ".archvow/templates/acme-app/template.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "template acme-pyspark: <tmp>: ACME008: give its target (what the kind looks for)",
+   "file": ".archvow/templates/acme-pyspark/template.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "template acme-pyspark: rules: ARCH001: severity 'info' is none of error, warning, off - archvow ignores it",
+   "file": ".archvow/templates/acme-pyspark/template.yaml",
+   "line": 0
+  },
+  {
+   "code": "ARCH009",
+   "severity": "error",
+   "message": "template template: <tmp>: cannot be read (while parsing a flow sequence\n  in \"<unicode string>\", line 1, column 7\ndid not find expected ',' or ']'\n  in \"<unicode string>\", line 2, column 1)",
+   "file": ".archvow/template",
    "line": 0
   },
   {
@@ -1046,8 +1074,15 @@
   },
   {
    "code": "ARCH012",
-   "severity": "warning",
-   "message": "the vow says pyspark-pipeline@0.9.0, the template is archvow/pyspark-pipeline@2.8.0: to adopt it, archvow init sales --force (then review and commit)",
+   "severity": "error",
+   "message": "container 'demo': template acme-app 1.0.0 needs archvow >=4.0,<5; this is archvow 3.0.0. The project's templates are copied in .archvow/templates/ by init: archvow template update (or init demo --force -t <template>), then commit them",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH012",
+   "severity": "error",
+   "message": "container 'sales': template pyspark-pipeline 3.0.0 needs archvow >=9.0; this is archvow 3.0.0. The project's templates are copied in .archvow/templates/ by init: archvow template update (or init sales --force -t <template>), then commit them",
    "file": ".archvow/project.vow",
    "line": 0
   },
@@ -1656,20 +1691,6 @@
   {
    "code": "ARCH020",
    "severity": "error",
-   "message": "pack acme changed from 1.0.0 (aaaaaaaaaaaa) to 1.0.0 (cccccccccccc): its rules and templates may say less",
-   "file": ".archvow/project.vow",
-   "line": 0
-  },
-  {
-   "code": "ARCH020",
-   "severity": "error",
-   "message": "pack beta removed (its rules, regimes and agent profiles no longer apply)",
-   "file": ".archvow/project.vow",
-   "line": 0
-  },
-  {
-   "code": "ARCH020",
-   "severity": "error",
    "message": "project rule R1 narrowed from clean_orders, keep_paid to clean_orders",
    "file": ".archvow/project.vow",
    "line": 0
@@ -1943,6 +1964,27 @@
   {
    "code": "ARCH020",
    "severity": "error",
+   "message": "template acme changed from 1.0.0 (aaaaaaaaaaaa) to 1.0.0 (cccccccccccc): its rules and questions may say less",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "template acme-app changed from 1.0.0 (c96f2402ac10) to 1.1.0 (1743fac40853): its rules and questions may say less",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "template beta removed (its rules, questions, regimes and agent profiles no longer apply)",
+   "file": ".archvow/project.vow",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
    "message": "test file deleted",
    "file": "tests/p0_common/test_spark.py",
    "line": 0
@@ -1952,6 +1994,13 @@
    "severity": "warning",
    "message": "test file deleted (accepted)",
    "file": "tests/p0_common/test_spark.py",
+   "line": 0
+  },
+  {
+   "code": "ARCH020",
+   "severity": "error",
+   "message": "the project's template acme-app changed (2 file(s) of its copy); needs architect approval",
+   "file": ".archvow/templates/acme-app",
    "line": 0
   },
   {
@@ -1974,6 +2023,13 @@
    "message": "change too big to review: files 4 > 1. Split it into smaller merge requests (or the architects accept it)",
    "file": ".",
    "line": 0
+  },
+  {
+   "code": "ARCH023",
+   "severity": "error",
+   "message": "'legacy' is not an approved dependency. An architect approves it: archvow init demo --force -a dependencies=legacy",
+   "file": "src/demo/legacy_user.py",
+   "line": 1
   },
   {
    "code": "ARCH023",
@@ -4806,14 +4862,14 @@
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit e9f7dbed: code written by jetbrains-ai-chat while it ran in YOLO mode",
+   "message": "commit 6d3cfce6: code written by jetbrains-ai-chat while it ran in YOLO mode",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
   {
    "code": "ARCH053",
    "severity": "error",
-   "message": "commit fcb3553c: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
+   "message": "commit 8239d6dc: code written by jetbrains-ai-chat, and the commit has no Archvow-Agent line - the Git hooks did not run (git commit --no-verify?): redo it with the hooks on (the last commit: git reset --soft HEAD~1, then git commit; the hooks: git config core.hooksPath .githooks)",
    "file": "src/sales/p1_domain/clean_orders.py",
    "line": 0
   },
@@ -4848,7 +4904,7 @@
   {
    "code": "ARCH055",
    "severity": "error",
-   "message": "example FATTRIB-012-negative-amount of clean_orders: the files in tests/examples/clean_orders/FATTRIB-012-negative-amount/ changed since r@x recorded them -> put them back (git checkout -- tests/examples/clean_orders/FATTRIB-012-negative-amount), or a person checks them with the business team and runs archvow example add clean_orders FATTRIB-012-negative-amount",
+   "message": "example FATTRIB-012-negative-amount of clean_orders: the files in tests/examples/clean_orders/FATTRIB-012-negative-amount/ changed since noreply@anthropic.com recorded them -> put them back (git checkout -- tests/examples/clean_orders/FATTRIB-012-negative-amount), or a person checks them with the business team and runs archvow example add clean_orders FATTRIB-012-negative-amount",
    "file": ".archvow/features/sales/components/clean_orders.vow",
    "line": 0
   },
@@ -4925,29 +4981,43 @@
   {
    "code": "ARCH060",
    "severity": "error",
-   "message": "pack acme: copied into .archvow/packs/ but not recorded in project.vow (not added with `archvow pack add`) - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
-   "file": ".archvow/packs/acme",
+   "message": "template acme-app: its copy differs from what init / `archvow template update` wrote - an architect runs `archvow template update` (or init --force -t), never edits the copy",
+   "file": ".archvow/templates/acme-app",
    "line": 0
   },
   {
    "code": "ARCH060",
    "severity": "error",
-   "message": "pack acme: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
-   "file": ".archvow/packs/acme",
+   "message": "template acme-pyspark: its copy differs from what init / `archvow template update` wrote - an architect runs `archvow template update` (or init --force -t), never edits the copy",
+   "file": ".archvow/templates/acme-pyspark",
    "line": 0
   },
   {
    "code": "ARCH060",
    "severity": "error",
-   "message": "pack acme: recorded in project.vow, but its copy .archvow/packs/acme/ is missing - an architect runs `archvow pack update acme` (or `pack add`), never edits the copy",
-   "file": ".archvow/packs/acme",
+   "message": "template acme: recorded in project.vow, but its copy .archvow/templates/acme/ is missing - an architect runs `archvow template update` (or init --force -t), never edits the copy",
+   "file": ".archvow/templates/acme",
    "line": 0
   },
   {
    "code": "ARCH060",
    "severity": "error",
-   "message": "pack team: its copy differs from what `archvow pack add` / `pack update` wrote - an architect runs `archvow pack update team` (or `pack add`), never edits the copy",
-   "file": ".archvow/packs/team",
+   "message": "template pyspark-pipeline: copied into .archvow/templates/ but not recorded in project.vow - an architect runs `archvow template update` (or init --force -t), never edits the copy",
+   "file": ".archvow/templates/pyspark-pipeline",
+   "line": 0
+  },
+  {
+   "code": "ARCH060",
+   "severity": "error",
+   "message": "template pyspark-streaming: its copy differs from what init / `archvow template update` wrote - an architect runs `archvow template update` (or init --force -t), never edits the copy",
+   "file": ".archvow/templates/pyspark-streaming",
+   "line": 0
+  },
+  {
+   "code": "ARCH060",
+   "severity": "error",
+   "message": "template python-base: copied into .archvow/templates/ but not recorded in project.vow - an architect runs `archvow template update` (or init --force -t), never edits the copy",
+   "file": ".archvow/templates/python-base",
    "line": 0
   },
   {

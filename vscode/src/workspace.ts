@@ -22,7 +22,8 @@ import { addableByLayer, filePlan } from './filePlan';
 import { componentVow, docPage, PROJECT_VOW } from './layout';
 import { isFrench, tr } from './i18n';
 import { installCommand, installPython, installSource, InstallOffer, InstallReason, offer } from './install';
-import { componentView, contractWarning, knownVersion, parseVersion, problemsOf, readWorkspace } from './model';
+import { componentView, knownVersion, parseVersion, problemsOf, readWorkspace } from './model';
+import { ArchvowRange, compatibility, Compatibility, headerLine, parseRange, projectPin } from './compat';
 import { overview, Overview } from './overview';
 import { RunLog } from './runlog';
 import { moduleFiles } from './vow/links';
@@ -55,6 +56,9 @@ export interface State {
   install: InstallOffer;
   /** Which archvow runs and where it was found (0.26.1): the welcome page says it. */
   runs: { program: string; source: string; version: string };
+  /** The installed archvow against the range the plugin works with (1.0.0): the header line, and what to do when it
+   *  does not fit (install, upgrade the project, update the plugin). */
+  compat: { state: Compatibility['state']; text: string; header: string };
   /** The briefs folders (init answer `briefs`) and their files' headings, for --from and "Drawn from" (0.12.0). */
   briefs: Briefs;
   /** Per component, what its views show: counts, each safety question's status, columns and tasks. */
@@ -73,8 +77,9 @@ export interface State {
   launched: Record<string, string[]>;
   /** `archvow brief show --json` (archvow 1.20): every brief, section by section; null with an older archvow. */
   briefStatus: Json | null;
-  /** The project's packs (`workspace --json` packs, 0.22.0): the Overview's Packs row and list. */
-  packs: Json[];
+  /** The project's templates (`workspace --json` templates, contract 3.0): its chain's copies, the Overview's
+   *  Templates row and list. */
+  templates: Json[];
   /** Each feature, as `show <feature> --json` (contract 2.0, 0.24.0): the Features tab and the feature page. */
   features: Record<string, Json>;
   /** The project's approved AI tools (init answer ai_tools): where a skill's request goes. */
@@ -107,6 +112,8 @@ export class ArchvowProject {
   readonly known: string;
   /** The contract the plugin speaks ("1.3", contract/cli/contract.txt). */
   readonly contract: string;
+  /** The archvow versions the plugin works with (">=3.0,<4", contract/archvow-range.txt, 1.0.0). */
+  readonly range: ArchvowRange;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
   /** The trees' icons (contract/forms/icons.json, 0.15.0). */
@@ -148,6 +155,8 @@ export class ArchvowProject {
     }
     this.known = knownVersion(fs.readFileSync(path.join(this.resources, 'version.txt'), 'utf8'));
     this.contract = fs.readFileSync(path.join(this.resources, 'contract.txt'), 'utf8').trim();
+    const range = fs.readFileSync(path.join(this.resources, 'archvow-range.txt'), 'utf8');
+    this.range = parseRange(range) ?? { text: range.trim(), low: [0], high: [Number.MAX_SAFE_INTEGER] };
     this.forms = JSON.parse(fs.readFileSync(path.join(this.resources, 'forms.json'), 'utf8')) as Json;
     this.commands = withPluginParameters(this.commands, this.forms);
     this.icons = JSON.parse(fs.readFileSync(path.join(this.resources, 'icons.json'), 'utf8')) as Json;
@@ -227,9 +236,9 @@ export class ArchvowProject {
       readiness: readiness(this.root), welcomeError: '', branch: '', loading: '', spec: null, check: null, checkFailure: '',
       next: null, snapshots: {}, work: buildWork(null, null, '', {}, false), rows: [], vows: {}, knownVersion: this.known, derived: {},
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
-      runs: { program: '', source: '', version: '' },
+      runs: { program: '', source: '', version: '' }, compat: { state: 'ok', text: '', header: '' },
       refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
-      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, packs: [], features: {}, aiTools: [], firstSteps: [],
+      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, templates: [], features: {}, aiTools: [], firstSteps: [],
       overview: overview(buildWork(null, null, '', {}, false), null, []),
     };
   }
@@ -310,10 +319,10 @@ export class ArchvowProject {
     this.state.briefs = readBriefs(this.root, spec);
     s.aiTools = Array.isArray(spec.ai_tools) ? spec.ai_tools.map(String) : [];
     s.briefStatus = answer.briefStatus;
-    s.packs = answer.packs;
+    s.templates = answer.templates;
     s.features = answer.features;
     s.firstSteps = answer.firstSteps;
-    // the project's catalog: its template's types and kinds, and the project's own templates (component add, pack template)
+    // the project's catalog: its templates' types and kinds (component add, template new)
     if (answer.catalog !== null && objects(answer.catalog, 'templates').length > 0) this.projectCatalog = answer.catalog;
     this.setCheck(answer.check, '');
     s.next = answer.next;
@@ -363,7 +372,7 @@ export class ArchvowProject {
     const result = await this.cli.run(['version', '--json']);
     if (result.startError !== undefined) {
       this.state.welcomeError = result.startError;
-      this.offerInstall('missing');
+      this.judge(null);
       return;
     }
     this.versionChecked = true;
@@ -377,14 +386,33 @@ export class ArchvowProject {
     this.runLog.header({ plugin: String(this.context.extension.packageJSON.version ?? ''),
       archvow: version, contract: said === null ? '' : str(said, 'contract'), python: this.cli.program, project: this.root,
       ide: `VS Code ${vscode.version}` });
-    const warning = contractWarning({ version, contract: said === null ? '' : str(said, 'contract') }, this.contract, this.known, this.french());
-    this.offerInstall(warning === null ? '' : 'version');
-    if (warning !== null) {
-      const install = tr(this.french(), `Install archvow ${this.known}`, `Installer archvow ${this.known}`);
-      void vscode.window.showWarningMessage(warning, install).then((chosen) => {
-        if (chosen === install) this.askInstall('nav');
+    const judged = this.judge({ version, contract: said === null ? '' : str(said, 'contract') });
+    if (judged.state !== 'ok') {
+      const install = judged.install ? tr(this.french(), `Install archvow ${judged.install}`, `Installer archvow ${judged.install}`) : '';
+      void (install ? vscode.window.showWarningMessage(judged.text, install) : vscode.window.showWarningMessage(judged.text)).then((chosen) => {
+        if (install && chosen === install) this.askInstall('nav');
       });
     }
+  }
+
+  /** The archvow the project pins (requirements.txt, pyproject.toml), as archvow's init writes it. */
+  private pin(): { version: string; file: string } | null {
+    return projectPin(['requirements.txt', 'pyproject.toml'].map((name) => {
+      try {
+        return { name, text: fs.readFileSync(path.join(this.root, name), 'utf8') };
+      } catch {
+        return { name, text: '' };
+      }
+    }));
+  }
+
+  /** The installed archvow (null: none answered) against the plugin's range and the project's pin: the header,
+   *  the sentence, and the install card when Install may put an archvow (never over a pin outside the range). */
+  private judge(installed: { version: string; contract: string } | null): Compatibility {
+    const judged = compatibility(installed, this.range, this.contract, this.known, this.pin(), this.french());
+    this.state.compat = { state: judged.state, text: judged.text, header: headerLine(installed?.version ?? '', judged.state, this.range, this.french()) };
+    this.offerInstall(judged.install === '' ? '' : judged.state === 'missing' ? 'missing' : 'version', judged.install || this.known);
+    return judged;
   }
 
   // ------------------------------------------------------------------ installing archvow (guided, 0.12.0)
@@ -392,29 +420,37 @@ export class ArchvowProject {
   private pendingInstall = new Map<string, { program: string; args: string[]; python: string }>();
 
   /** The install card: the Python it goes into and the command, or nothing when archvow answers as expected. */
-  private offerInstall(reason: InstallReason): void {
+  private offerInstall(reason: InstallReason, version = this.known): void {
     const config = vscode.workspace.getConfiguration('archvow');
     const python = reason === '' ? null : installPython(this.root, this.interpreter, config.get<string>('python', ''), (f) => fs.existsSync(f));
-    this.state.install = offer(reason, this.known, python, this.root, installSource(config.get<string>('installFrom', '')));
+    this.state.install = offer(reason, version, python, this.root, installSource(config.get<string>('installFrom', '')));
   }
 
   /** "Install archvow": the command, shown; it runs only once the person confirms it. */
   private askInstall(from: From): void {
     const fr = this.state.fr;
     const install = this.state.install;
-    if (!install.reason) this.offerInstall('missing');
+    if (!install.reason) {  // asked from the command palette: what Install would put here
+      const version = compatibility(null, this.range, this.contract, this.known, this.pin(), fr).install;
+      if (!version) {  // the project's pin is outside the range: nothing is installed over it
+        void vscode.window.showWarningMessage(this.state.compat.text || compatibility(null, this.range, this.contract, this.known, this.pin(), fr).text);
+        return;
+      }
+      this.offerInstall('missing', version);
+    }
     if (!this.state.install.python) {
       void vscode.window.showInformationMessage(tr(fr, 'No Python found for this project: choose one in the settings (archvow.python), or create .venv.',
         'Aucun Python trouvé pour ce projet : choisis-en un dans les réglages (archvow.python), ou crée .venv.'));
       return;
     }
     const config = vscode.workspace.getConfiguration('archvow');
-    const command = installCommand(this.state.install.python, this.root, this.known, installSource(config.get<string>('installFrom', '')));
+    const version = this.state.install.version;
+    const command = installCommand(this.state.install.python, this.root, version, installSource(config.get<string>('installFrom', '')));
     const token = crypto.randomBytes(8).toString('hex');
     this.pendingInstall.set(token, { ...command, python: this.state.install.python });
-    const summary = tr(fr, `Installs archvow ${this.known} into ${this.state.install.python}, from ${this.state.install.source}. Nothing else changes; afterwards archvow.python points to this Python.`,
-      `Installe archvow ${this.known} dans ${this.state.install.python}, depuis ${this.state.install.source === "pip's configuration" ? 'la configuration de pip' : this.state.install.source}. Rien d'autre ne change ; ensuite archvow.python désigne ce Python.`);
-    const message = { type: 'confirm', token, title: tr(fr, `Install archvow ${this.known}`, `Installer archvow ${this.known}`), summary,
+    const summary = tr(fr, `Installs archvow ${version} into ${this.state.install.python}, from ${this.state.install.source}. Nothing else changes; afterwards archvow.python points to this Python.`,
+      `Installe archvow ${version} dans ${this.state.install.python}, depuis ${this.state.install.source === "pip's configuration" ? 'la configuration de pip' : this.state.install.source}. Rien d'autre ne change ; ensuite archvow.python désigne ce Python.`);
+    const message = { type: 'confirm', token, title: tr(fr, `Install archvow ${version}`, `Installer archvow ${version}`), summary,
       target: 'welcome', command: this.state.install.command };
     this.reply(from, message);
   }
@@ -425,7 +461,7 @@ export class ArchvowProject {
     this.pendingInstall.delete(token);
     if (!job) return;
     const fr = this.state.fr;
-    const label = tr(fr, `Install archvow ${this.known}`, `Installer archvow ${this.known}`);
+    const label = tr(fr, `Install archvow ${this.state.install.version}`, `Installer archvow ${this.state.install.version}`);
     const shown = [job.program, ...job.args].join(' ');
     this.reply(from, { type: 'running', target: 'welcome', label, args: shown });
     const wsl = job.program === 'wsl.exe';
@@ -1389,8 +1425,8 @@ export class ArchvowProject {
     this.reply(from, { type: 'vow', component, text: this.state.vows[component], card });
   }
 
-  /** The template catalog for init: what archvow lists here (its own pack and the packs `pack add` copied into this
-   *  folder, 0.22.0), else the bundled one. */
+  /** The template catalog for init: what archvow lists here (its templates, and the packages that declare some),
+   *  else the bundled one. A company's template is given by its folder. */
   private async loadCatalog(_template: string, force: boolean, from: From): Promise<void> {
     const post = (message: Json): void => this.reply(from, message);
     const fr = this.state.fr;
@@ -1401,7 +1437,7 @@ export class ArchvowProject {
     }
     post({ type: 'catalog', data: this.bundledCatalog, source: tr(fr, `Built-in archvow ${this.known} templates · Checking installed catalog…`,
       `Modèles intégrés archvow ${this.known} · Vérification du catalogue installé…`) });
-    // in the project's folder: archvow's pack and the packs copied there (.archvow/packs/), named <pack>/<template>
+    // in the project's folder: the templates archvow finds there, by name
     const neutral = new ArchvowCli(this.root, () => this.cliSettings(), (result, action) => this.runLog.record(result, action));
     const result = await neutral.run(['catalog', '--json']);
     const data = parse(result.stdout);
@@ -1409,8 +1445,8 @@ export class ArchvowProject {
       this.liveCatalog = { scope, data };
       post({ type: 'catalog', data, source: tr(fr, 'Loaded from installed archvow.', 'Chargé depuis archvow installé.') });
     } else {
-      post({ type: 'catalog', data: this.bundledCatalog, source: tr(fr, `Built-in archvow ${this.known} catalog (offline). Install archvow, then add your company's pack (Packs), to load its templates.`,
-        `Catalogue archvow ${this.known} intégré (hors ligne). Installe archvow, puis ajoute le pack de ton entreprise (Packs), pour charger ses modèles.`) });
+      post({ type: 'catalog', data: this.bundledCatalog, source: tr(fr, `Built-in archvow ${this.known} catalog (offline). Install archvow to load the templates it finds; a company's template is given by its folder.`,
+        `Catalogue archvow ${this.known} intégré (hors ligne). Installe archvow pour charger les modèles qu'il trouve ; le template d'une entreprise se donne par son dossier.`) });
     }
   }
 

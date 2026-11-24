@@ -1,0 +1,682 @@
+name: pyspark-pipeline
+version: 3.0.0                  # archvow's templates carry its version
+archvow: ">=3.0,<4"
+languages: [en, fr]
+extends: python-base
+# What it does not take from python-base's shared guidance: the domain is DataFrames (schemas and
+# transformations), not data classes, domain errors and business functions; two runs never share a file.
+remove:
+  - component_types.model
+  - component_types.error
+  - component_types.logic
+  - component_types.utility.edge_cases.contract
+  - component_types.utility.name_hint
+  - guide_words.concurrent
+  - safety_suggestions.concurrent
+language: python
+kind: data-pipeline
+style: layered (common -> domain -> io -> jobs -> entrypoints)
+description: >-
+  Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated
+  from I/O, sessions and orchestration so each piece is testable on its own.
+
+# The answers of python-base (language, platform, CI, AI assistants...) plus these.
+questions:
+  - id: dependencies
+    prompt: Approved third-party packages besides pyspark, pytest and hypothesis, comma-separated, as imported (e.g. yaml, requests)
+  - id: ci_image
+    prompt: Internal CI image with Python and git (and Java 17 for Spark) (empty = public python image)
+  - id: spark_version
+    prompt: PySpark version
+    default: "3.5"
+    choices: ["3.4", "3.5", "4.0"]
+  - id: scheduler
+    ask: true
+    prompt: Scheduler that runs the pipeline (none = run entrypoint.sh yourself or from your own scheduler)
+    default: "none"
+    choices: ["none", "airflow", "oozie"]
+
+# Rule families on top of archvow's generic rules: the PySpark style guide and layer purity
+# (SPK001-SPK014).
+# archvow's PySpark checks (SPK001-014): the only layer allowed to build a SparkSession (SPK003).
+rule_sets:
+  pyspark: {session_layer: p0_common}
+
+# The project's Python must be one the PySpark line runs on (python_ceiling below).
+answer_rules:
+  - check: "python_version.split('.') | map('int') | list <= python_ceiling[spark_version].split('.') | map('int') | list"
+    message: "-a python_version={{ python_version }} is newer than PySpark {{ spark_version }} supports (Python {{ python_ceiling[spark_version] }} at most): choose -a python_version={{ python_ceiling[spark_version] }} or lower, or a newer -a spark_version"
+
+# The CI's Python (the newest the PySpark line supports), and what the shared CI needs.
+derived:
+  ci_python: "python_ceiling[spark_version]"
+
+context:
+  python_ceiling: {"3.4": "3.11", "3.5": "3.12", "4.0": "3.13"}
+  ci_java: true                    # the tests run Spark, which needs Java 17
+  rules_label: PySpark rules        # how the CI names this template's rules
+  ruff_ignore:                      # ruff rules this template turns off, with the reason
+    - [N812, "Spark convention: `functions as F`, `types as T` (Palantir guide)"]
+
+# Files of this template written only when the expression is true (python-base has the others).
+file_conditions:
+  "dags/": "scheduler == 'airflow'"
+  "oozie/": "scheduler == 'oozie'"
+
+# Third-party packages the code may import without approval (ARCH023); the `dependencies` answer
+# adds a project's own. Names as imported (import yaml -> yaml). Standard library: always allowed.
+dependencies: [pyspark, py4j, pytest, hypothesis]
+# Packages approved only in one folder: the Airflow DAG may import Airflow, the pipeline code may not.
+dependencies_by_path:
+  dags: [airflow, pendulum]
+
+# What `archvow doctor` checks on a developer's machine, besides Python, archvow and Git
+# (rendered with the answers). `command` must run (and print `version` if given); `module` must be
+# importable (and its version start with `version`). `optional: true` makes a failure a warning.
+doctor:
+  - name: Java (for Spark)
+    command: java -version
+    fix: install Java 17 (e.g. apt install openjdk-17-jre-headless, or your company's JDK) and set JAVA_HOME
+  - name: PySpark {{ spark_version }}
+    module: pyspark
+    version: "{{ spark_version }}"
+    fix: python3 -m pip install "pyspark=={{ spark_version }}.*"
+  - name: ruff
+    command: ruff --version
+    fix: make install (or python3 -m pip install -r requirements.txt)
+  - name: pytest
+    module: pytest
+    fix: make install (or python3 -m pip install -r requirements.txt)
+  - name: Hypothesis
+    module: hypothesis
+    fix: make install (or python3 -m pip install -r requirements.txt)
+
+# Written with the executable bit (Git keeps it when committed).
+executable_files: [entrypoint.sh]   # added to python-base's (the Git hooks)
+
+
+# Lines archvow adds to .gitignore (merged: existing lines are kept, missing ones appended).
+# Everything else archvow writes must be committed: CI, CODEOWNERS and AI tools read it.
+gitignore:
+  - "# archvow: the spec to read and the local status (archvow doc writes them; never committed)"
+  - .archvow/doc/
+  - "# Python"
+  - __pycache__/
+  - "*.py[cod]"
+  - .venv/
+  - venv/
+  - "*.egg-info/"
+  - build/
+  - dist/
+  - .coverage
+  - coverage.xml
+  - test-results.xml
+  - htmlcov/
+  - "# Tool caches (pytest, ruff, Hypothesis, pip cache of the GitLab pipeline)"
+  - .pytest_cache/
+  - .ruff_cache/
+  - .hypothesis/
+  - .cache/
+  - "# Spark local artefacts"
+  - spark-warehouse/
+  - metastore_db/
+  - derby.log
+  - "# OS and IDE"
+  - .DS_Store
+  - .idea/
+  - .vscode/
+
+allowed_paths: [tests, docs, dags]
+
+test_kinds:
+  unit: >-
+    Pure and fast: small DataFrames built in memory, no files, tables or network.
+    Runs on every commit.
+  integration: >-
+    Real I/O in a temporary folder (files, tables, a local Derby metastore), marked
+    @pytest.mark.integration. Never a real metastore, bucket or database.
+
+# The template's own packages in the DORA third-party register (adds to python-base's list).
+third_parties:
+  - {name: ruff, supplier: "Astral Software Inc.", licence: MIT, criticality: minor}
+  - {name: pytest, supplier: "pytest-dev", licence: MIT, criticality: important}
+  - {name: pytest-cov, supplier: "pytest-dev", licence: MIT, criticality: minor}
+  - {name: hypothesis, supplier: "Hypothesis developers (David R. MacIver)", licence: MPL-2.0, criticality: important}
+  - {name: pre-commit, supplier: "Anthony Sottile (pre-commit)", licence: MIT, criticality: minor}
+  - {name: pyspark, supplier: "Apache Software Foundation", licence: Apache-2.0, criticality: critical}
+  - {name: setuptools, supplier: "Python Packaging Authority", licence: MIT, criticality: minor}
+  - {name: wheel, supplier: "Python Packaging Authority", licence: MIT, criticality: minor}
+
+# One section of checks per family in the project's doc, archvow doc (see python-base).
+# The run line of `archvow next` and `archvow show <entry point>`: how to try an entry point on a
+# laptop, once it and everything it uses are coded. Never a deployment: entrypoint.sh keeps its own
+# settings (SPARK_MASTER, DEPLOY_MODE, SPARK_SUBMIT, SPARK_ARGS) for a cluster, Kubernetes or a
+# serverless platform. The arguments come from the parameters decision of `arguments_from`.
+run:
+  types: [entrypoint]
+  command: 'SPARK_MASTER="local[*]" ./entrypoint.sh {name} {arguments}'
+  arguments_from: {component: config, question: parameters}
+
+rule_families:
+  SPK: {name: SPARK, title: "PySpark style and layer purity"}
+
+# The roles its component types play, for the regimes (regimes/*.yaml of the templates: GDPR, US-PRIVACY, GLBA,
+# DORA...): `purpose` processes personal data, `store` writes it, `share` sends it to a third party, `run` runs
+# (a job, an app: DORA's operations questions). Each regime asks its own questions there (P1, U1, G1, O1...).
+roles: {purpose: [job], store: [writer], run: [job, entrypoint]}
+
+# ---------------------------------------------------------------------------------------
+# Safety analysis (HAZOP-style guide words adapted to data). `archvow specify` asks every
+# applicable question for every component; each must end as a hazard or a dismissal.
+# ---------------------------------------------------------------------------------------
+# Suggested answers to the safety questions (archvow show): `hazard add <component> S<number>
+# <severity>` without text takes the hazard, and for critical or high its invariant too.
+safety_suggestions:
+  missing:
+    hazard: "an absent, empty or late input is processed as if it were complete"
+    invariant: "an absent or empty input stops the job with a clear error"
+  more:
+    hazard: "rows are counted twice (duplicates, a join that multiplies rows, a file delivered twice)"
+    invariant: "the output has at most one row per key"
+  less:
+    hazard: "a valid row is silently dropped"
+    invariant: "every valid input row appears in the output"
+  wrong:
+    hazard: "a null, negative or out-of-range value reaches the output"
+    invariant: "every output value has its type and is within its allowed range"
+  partial:
+    hazard: "downstream reads a half-written output"
+    invariant: "the output is complete or absent, never half written"
+  repeated:
+    hazard: "a re-run gives a different or duplicated result"
+    invariant: "running twice on the same input gives the same output"
+  stale:
+    hazard: "old data is processed as if it were current"
+    invariant: "the job processes only the date it is given"
+  exposed:
+    hazard: "personal or secret data is written where it must not be"
+    invariant: "personal and secret columns never reach the output"
+
+guide_words:
+  missing: "Input missing, empty or late: what must never happen?"
+  more: "Too many rows (duplicates, a join that multiplies rows, a file delivered twice): what must never happen?"
+  less: "Rows lost (dropped by a filter, an inner join or a wrong date): what must never happen?"
+  wrong: "Wrong values (nulls, negatives, out of range, wrong types, a column that changes type or disappears): what must never happen?"
+  partial: "Half-written output (a failure in the middle of a write): what must never happen?"
+  repeated: "Run twice (a re-run or a retry): what must never happen?"
+  stale: "Old data treated as today's (the job reads the wrong date): what must never happen?"
+  exposed: "Data exposed (personal or secret data written where it must not be): what must never happen?"
+
+# Examples shown by `archvow <command> --help` for this template's component types
+# (commands not listed show archvow's generic examples).
+help_examples:
+  component: |
+    archvow component add reader sales -d "Read one CSV file with a header; enforce SALES_SCHEMA" -u sales_schema
+    archvow component edit clean_sales -d "Keep rows with an id, amount >= 0 and a known currency"
+    archvow component remove clean_sales
+  component add: |
+    archvow component add schema sales -d "Sales records: id string, amount double, sold_at timestamp" -s US-001
+    archvow component add reader sales -d "Read one CSV file with a header; enforce SALES_SCHEMA" -u sales_schema
+    archvow component add reader stores -k jdbc -d "Read the stores table of the CRM database" -u stores_schema
+    archvow component add transformation clean_sales -d "Keep rows with an id and amount >= 0" -s US-002
+    archvow component add transformation add_reference -d "Add the reference columns to each row" \
+        --signature "(df: DataFrame, reference: DataFrame) -> DataFrame"
+    archvow component add writer revenue -d "Write the sales with their revenue as parquet" -s US-003
+    archvow component add job my_pipeline -d "Read, clean, write" -u sales_reader,clean_sales,revenue_writer
+    archvow component add entrypoint my_pipeline -d "Command line: --input-path PATH, --output-path FOLDER" -u my_pipeline_job
+  component edit: |
+    archvow component edit clean_sales -d "Keep rows with an id, amount >= 0 and a known currency"
+    archvow component edit my_pipeline_job -u sales_reader,clean_sales,add_reference,revenue_writer
+    archvow component edit add_reference --signature "(df: DataFrame, reference: DataFrame) -> DataFrame"
+  component remove: |
+    archvow component remove clean_sales    # with its decisions, hazards and invariants; then delete its files
+  show: |
+    archvow show clean_sales              # its questions, rules, safety questions S1, S2...
+    archvow show clean_sales INV1         # one of its hazards (H1) or invariants (INV1); a rule: archvow show R1
+  specify: |
+    archvow specify clean_sales           # answers what is open, one question at a time (Enter: the suggestion)
+  decision: |
+    archvow decision make clean_sales 1 "Rows with an id and amount >= 0"
+    archvow decision add clean_sales "Which currency are amounts in?" "Euros, always"
+  decision make: |
+    archvow decision make clean_sales 1 "Rows with an id and amount >= 0"
+    archvow decision make clean_sales 5          # no answer: the suggested one ("show" prints it)
+    archvow decision make compute_revenue 6,7,8 "Not possible here: clean_sales runs first"
+  decision add: |
+    archvow decision add clean_sales "Which currency are amounts in?" "Euros, always"
+  question: |
+    archvow question add clean_sales "May amount be negative for refunds?"
+    archvow decision make clean_sales 10 "No: refunds come in another file"     # a person answers it
+  question add: |
+    archvow question add clean_sales "May amount be negative for refunds?"
+  question remove: |
+    archvow question remove clean_sales 10       # a question a person added (the template's questions stay)
+  rule: |
+    archvow rule add compute_revenue "revenue is rounded half-up to 2 decimals"
+    archvow rule edit R2 "Given a row without an id, when it runs, then it is dropped and counted"
+    archvow rule remove R2
+  rule add: |
+    archvow rule add compute_revenue "revenue is rounded half-up to 2 decimals"
+    archvow rule add clean_sales,compute_revenue "Given a row without an id, when it runs, then it is dropped"
+    archvow rule add revenue_writer "When the output folder already exists, revenue_writer replaces it whole"
+    archvow rule add --type reader "Given a missing input path, when it reads, then the job fails"
+    archvow rule add --all "Amounts are Decimal, never float"
+  rule edit: |
+    archvow rule edit R2 "Given a row without an id, when it runs, then it is dropped and counted"
+  rule remove: |
+    archvow rule remove R2
+  assumption: |
+    archvow assumption add clean_sales "Amounts are in euros"
+    archvow show clean_sales              # lists the assumptions
+    archvow assumption accept clean_sales 1      # a person, never the AI (or: reject)
+  assumption add: |
+    archvow assumption add clean_sales "Amounts are in euros"
+  assumption accept: |
+    archvow show clean_sales              # lists the assumptions
+    archvow assumption accept clean_sales 1
+  assumption reject: |
+    archvow show clean_sales              # lists the assumptions
+    archvow assumption reject clean_sales 1
+  hazard: |
+    archvow hazard add revenue_writer S1 critical "Downstream reads a half-written output"
+    archvow hazard dismiss sales_schema S2 "the input holds no personal data"
+    archvow hazard remove revenue_writer.H1
+  hazard add: |
+    archvow hazard add clean_sales S3 high            # the suggestion of question S3, and its invariant
+    archvow hazard add clean_sales S3 high "A valid input row is dropped"
+    archvow hazard add revenue_writer S1 critical "Downstream reads a half-written output"
+    archvow hazard add system stale high "Yesterday's output is published as today's"
+  hazard dismiss: |
+    archvow hazard dismiss sales_schema S2 "the input holds no personal data"
+    archvow hazard dismiss clean_sales S2,S5 "one row per id upstream, no personal columns"
+  hazard remove: |
+    archvow hazard remove revenue_writer.H1       # its invariants stay, no longer pointing to it
+    archvow hazard remove sales_reader S2         # undo a "not applicable": the question is open again
+  invariant: |
+    archvow invariant add clean_sales "every valid input row appears in the output"
+    archvow invariant remove clean_sales.INV1
+  invariant add: |
+    archvow invariant add clean_sales "every valid input row appears in the output"
+    archvow invariant add revenue_writer "the output folder is complete or absent" --prevents H1
+  invariant remove: |
+    archvow invariant remove clean_sales.INV1     # never the last guard of a critical or high hazard
+  prompt: |
+    archvow prompt clean_sales                 # paste into an assistant that cannot read files
+    archvow prompt clean_sales                 # a big spec: its next open task (T2 of 3...)
+    archvow prompt clean_sales --task 1        # one task of it
+    archvow prompt clean_sales --clarify       # ask the AI what is unclear (it decides nothing)
+
+# The folder of each layer: src/<package>/<folder>/ and tests/<folder>/. A company template may
+# rename some (layer_names: {p1_domain: domain}); archvow then uses the new folder everywhere -
+# layers, component types, starting components and the files it writes.
+layer_names:
+  p0_common: p0_common
+  p1_domain: p1_domain
+  p2_io: p2_io
+  p3_jobs: p3_jobs
+  p4_entrypoints: p4_entrypoints
+
+layers:
+  - name: p0_common
+    description: Shared foundations - SparkSession factory, configuration, constants
+    may_import: []
+    io_allowed: false
+    must_never: ["perform I/O", "hold business logic"]
+  - name: p1_domain
+    description: Schemas and pure, lazy DataFrame -> DataFrame transformations
+    may_import: [p0_common]
+    io_allowed: false
+    lazy_only: true
+    forbidden_imports: [os, pathlib, shutil, subprocess, io, requests, boto3, pandas]
+    must_never:
+      - "read or write data (no spark.read, .write, open())"
+      - "trigger Spark actions (collect, count, show, toPandas, cache...)"
+      - "create a SparkSession"
+  - name: p2_io
+    description: Readers and writers - the only place that touches storage
+    may_import: [p0_common, p1_domain]
+    io_allowed: true
+    forbidden_imports: [subprocess]
+    must_never: ["transform business data beyond enforcing the schema"]
+  - name: p3_jobs
+    description: Jobs wiring readers, transformations and writers together
+    may_import: [p0_common, p1_domain, p2_io]
+    io_allowed: false
+    must_never: ["read or write directly (use p2_io components)"]
+  - name: p4_entrypoints
+    description: Process entry points (CLI, scheduler, Databricks/EMR job)
+    may_import: [p0_common, p3_jobs]
+    io_allowed: false
+    must_never: ["contain pipeline logic"]
+
+component_types:
+  foundation:
+    layer: p0_common
+    description: Template-owned foundation module.
+    addable: false
+    implicit_dependency: true
+    test: none
+
+  utility:
+    layer: p0_common
+    test: unit
+    examples: true   # business examples: archvow example add <component> <name>
+    description: Shared helper or constants module (no Spark actions, no I/O).
+    module: "{name}"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    implicit_dependency: true
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}", signature: "() -> None"}
+    guide_words: [wrong]
+    safety_decisions: {wrong: invalid_input}  # the decision that already answers it
+    edge_cases:
+      - {id: invalid_input, question: "What must happen with invalid input (raise which exception, or return what) - e.g. raise ValueError(\"amount must be >= 0\"), or return None?"}
+
+  schema:
+    layer: p1_domain
+    test: unit
+    description: Explicit StructType contract for a dataset.
+    module: "{name}_schema"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "dataset name, e.g. orders"
+    symbols:
+      - {kind: constant, name: "{NAME}_SCHEMA", annotation: "T.StructType"}
+    columns: structfield   # its StructField names are classified (archvow column set, PRIV001)
+    guide_words: [wrong, exposed]
+    safety_decisions: {wrong: nullable, exposed: personal_columns}  # the decision that already answers it
+    edge_cases:
+      - {id: nullable, question: "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?"}
+      - {id: personal_columns, question: "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?"}
+
+  transformation:
+    layer: p1_domain
+    test: unit
+    examples: true   # business examples: archvow example add <component> <name>
+    description: Pure, lazy DataFrame -> DataFrame function.
+    module: "{name}"
+    name_pattern: "^[a-z]+_[a-z0-9_]+$"
+    name_hint: "verb_noun, e.g. clean_orders"
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}", signature: "(df: DataFrame) -> DataFrame"}
+    guide_words: [missing, more, less, wrong, exposed]
+    safety_decisions: {missing: empty_input, more: duplicate_keys, less: rows_kept, wrong: out_of_range}  # the decision that already answers it
+    core_questions: 4        # questions 1-4 (what it computes) are built first, as task T1
+    edge_cases:
+      # what it computes
+      - {id: rows_kept, question: "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?"}
+      - {id: output_columns, question: "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?"}
+      - {id: grouping, question: "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?", choices: ["No grouping", "Group by (keys), with (aggregates)"]}
+      - {id: join, question: "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")", choices: ["No join", "Join (dataset) on (keys), left join; no match: (what)"]}
+      # edge cases
+      - {id: empty_input, question: "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?", suggested: "Return an empty DataFrame with the output schema"}
+      - {id: null_keys, question: "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?", suggested: "Stop the job with an error naming the column"}
+      - {id: duplicate_keys, question: "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?", suggested: "Fail with an error naming the duplicated key"}
+      - {id: out_of_range, question: "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?", choices: ["Keep them", "Replace them by the nearest limit", "Drop the row", "Stop the job, naming the value"]}
+      - {id: extra_columns, question: "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?", suggested: "Drop them: select only the schema's columns"}
+
+  reader:
+    layer: p2_io
+    requires_uses: [schema]   # the columns it works on are a schema component (ARCH019)
+    test: integration
+    examples: true   # business examples: archvow example add <component> <name>
+    description: Reads one dataset and enforces its schema.
+    module: "{name}_reader"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "dataset name, e.g. orders"
+    symbols:
+      - {kind: function, name: "read_{name}", signature: "(spark: SparkSession, path: str) -> DataFrame"}
+    guide_words: [missing, more, wrong, stale]
+    safety_decisions: {missing: missing_path, wrong: bad_rows, stale: each_run}  # the decision that already answers it
+    edge_cases:
+      - {id: missing_path, question: "The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?", suggested: "Fail with an error naming the path"}
+      - {id: bad_rows, question: "Rows that do not match the schema (wrong type, missing column) - e.g. amount = \"abc\": stop the job, drop them, or set them aside in a reject file (where)?", suggested: "Stop the job (mode FAILFAST), naming the file"}
+      - {id: each_run, question: "On each run, what does it read: everything at the path, or only one date (e.g. the folder date=2026-10-12)? If that date's data is not there yet: fail, wait, or read the previous date?", choices: ["Everything at the path", "One date; fail if it is missing", "One date; wait for it", "One date; read the previous one"]}
+      - {id: shared_library, question: "Does an approved shared library already read these files (e.g. acme_io.read_csv, listed in requirements.txt)? Then the code calls it - which function - instead of reading them with Spark.", choices: ["No: Spark reads it itself", "Yes: it calls the library's function (name it)"]}
+    default_kind: files
+    kinds:   # -k: what it reads, the way Spark reads it (each kind brings its own questions)
+      files: {}   # spark.read.format(...).load(path): parquet, orc, csv, json, text, avro, xml, binaryFile
+      table:
+        description: Reads one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi) and enforces its schema.
+        symbols:
+          - {kind: function, name: "read_{name}", signature: "(spark: SparkSession, table: str) -> DataFrame"}
+        guide_words: [missing, more, wrong, stale]
+        safety_decisions: {missing: missing_table, wrong: columns_change, stale: each_run}
+        edge_cases:
+          - {id: which_table, question: "Which table, and who creates it - e.g. finance.orders, created by ddl/001_orders.sql, or by another team (which one)?"}
+          - {id: each_run, question: "What does each run read: the whole table, or only some rows (e.g. WHERE order_date = the run date, or the rows changed since the last run)?", choices: ["The whole table", "Only the run date's rows", "Only the rows changed since the last run"]}
+          - {id: missing_table, question: "The table is missing or has no rows for the run (e.g. the upstream job did not run yet): fail, or go on with an empty DataFrame?", suggested: "Fail with an error naming the table"}
+          - {id: columns_change, question: "Its columns change upstream (e.g. a column is added or renamed): fail, or read only the schema's columns and ignore the others?", suggested: "Read only the schema's columns; fail if one of them is missing"}
+          - {id: table_version, question: "A Delta or Iceberg table: read its latest version, or a fixed one, so a re-run reads the same data (e.g. versionAsOf, or a snapshot id recorded by the job)?", choices: ["Its latest version", "A fixed version recorded by the job"]}
+          - {id: shared_library, question: "Does an approved shared library already read it (e.g. acme_io.read_table, listed in requirements.txt)? Then the code calls it - which function - instead of reading it with Spark.", choices: ["No: Spark reads it itself", "Yes: it calls the library's function (name it)"]}
+        safety_suggestions:
+          stale:
+            hazard: "an old version of the table is read as if it were the run's data"
+            invariant: "each run reads the rows (or the version) of its own date only"
+      jdbc:
+        description: Reads a table or a query of a database over JDBC (spark.read.jdbc) and enforces its schema.
+        symbols:
+          - {kind: function, name: "read_{name}", signature: "(spark: SparkSession, url: str, query: str, properties: dict[str, str]) -> DataFrame"}
+        guide_words: [missing, more, stale, exposed]
+        safety_decisions: {missing: database_down, stale: each_run}
+        edge_cases:
+          - {id: which_database, question: "Which database, which table or query, and which JDBC driver - e.g. PostgreSQL, the table sales.orders or SELECT ... WHERE order_date = the run date, the driver org.postgresql.Driver from the internal repository?"}
+          - {id: credentials, question: "Where do the user and the password come from (e.g. the environment variable DB_PASSWORD, a secret manager, a Kerberos keytab)? Never in the code, the spec or the command line.", suggested: "From environment variables, typed secret in the config decision"}
+          - {id: parallel_read, question: "A big table: read it with one query, or in parallel slices on a numeric or date column (e.g. partitionColumn=order_id, lowerBound, upperBound, numPartitions=8), and how many rows per round trip (e.g. fetchsize=10000)?", choices: ["One query", "Parallel slices on a column (partitionColumn, bounds, numPartitions)"]}
+          - {id: each_run, question: "What does each run read: everything, or only the new rows (e.g. updated_at after the last run's maximum - recorded where)?", choices: ["Everything", "Only the new rows since the last run's maximum"]}
+          - {id: database_down, question: "The database is down or too slow (e.g. no answer after 10 minutes): fail the job, or retry (how many times, how far apart)?", suggested: "Fail with an error naming the database; the scheduler retries"}
+          - {id: shared_library, question: "Does an approved shared library already read it (e.g. acme_io.read_jdbc, listed in requirements.txt)? Then the code calls it - which function - instead of reading it with Spark.", choices: ["No: Spark reads it itself", "Yes: it calls the library's function (name it)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "a password or a token appears in the code, the logs or the command line"
+            invariant: "credentials are read from the environment or a secret manager only, and never logged"
+          stale:
+            hazard: "rows already read are read again, or new rows are missed, between two runs"
+            invariant: "each run reads exactly the rows after the last one it recorded"
+      connector:
+        description: Reads with a Spark connector (spark.read.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka read in batch... - and enforces its schema.
+        symbols:
+          - {kind: function, name: "read_{name}", signature: "(spark: SparkSession, options: dict[str, str]) -> DataFrame"}
+        guide_words: [missing, more, stale, exposed]
+        safety_decisions: {missing: source_down}
+        edge_cases:
+          - {id: which_connector, question: "Which connector and which version, and where does its jar come from (e.g. spark-bigquery-with-dependencies 0.41 from the internal repository, given with SPARK_ARGS --jars - never --packages, which downloads)?"}
+          - {id: pushdown, question: "What does it read, and what runs in the source rather than in Spark (e.g. a query, or a filter on order_date done by BigQuery itself)?"}
+          - {id: credentials, question: "Where do the credentials come from (e.g. a service account file named by an environment variable, a secret manager)? Never in the code, the spec or the command line.", suggested: "From the environment or a secret manager, named in the config decision"}
+          - {id: staging, question: "Does the connector need a staging area (e.g. a temporary bucket gs://acme-tmp for BigQuery, S3 for Redshift), and who empties it?"}
+          - {id: source_down, question: "The source is down or its quota is reached (e.g. HTTP 429 or 503): fail, or retry (how many times, how far apart)?", suggested: "Fail with an error naming the source; the scheduler retries"}
+          - {id: shared_library, question: "Does an approved shared library already read it (e.g. acme_io.read_bigquery, listed in requirements.txt)? Then the code calls it - which function - instead of reading it with Spark.", choices: ["No: Spark reads it itself", "Yes: it calls the library's function (name it)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "a password or a token appears in the code, the logs or the command line"
+            invariant: "credentials are read from the environment or a secret manager only, and never logged"
+      custom:
+        description: Reads a source Spark has no reader for (a REST API, SFTP, a SaaS export, an in-house file format) with its own Python code - a Python data source (Spark 4.0) or calls on the executors - and enforces its schema.
+        symbols:
+          - {kind: function, name: "read_{name}", signature: "(spark: SparkSession, options: dict[str, str]) -> DataFrame"}
+        guide_words: [missing, more, wrong, exposed]
+        safety_decisions: {missing: source_down}
+        edge_cases:
+          - {id: which_source, question: "What is the source and how is it read - e.g. GET https://api.acme.com/v1/orders, 100 rows per page, until a page comes back empty?"}
+          - {id: volume, question: "How much data per run, so where is it read: on the driver, then spark.createDataFrame (small, e.g. under 100 000 rows), or spread over the executors (a Python data source in Spark 4.0, or mapPartitions)?", choices: ["On the driver, then spark.createDataFrame (small)", "Spread over the executors (big)"]}
+          - {id: credentials, question: "Where does the token or the password come from (e.g. the environment variable ORDERS_API_TOKEN, a secret manager)? Never in the code, the spec or the command line.", suggested: "From environment variables, typed secret in the config decision"}
+          - {id: limits, question: "Limits and errors (e.g. at most 10 calls a second, HTTP 429 or 503): how long is one call allowed to take, how many retries, how far apart?", suggested: "30 seconds per call, 3 retries 10 seconds apart, then fail naming the source"}
+          - {id: source_down, question: "The source is down for the whole run (e.g. the API is closed all night): fail, or go on with the last data read (kept where)?", suggested: "Fail with an error naming the source"}
+          - {id: shared_library, question: "Does an approved shared library already read it (e.g. acme_io.read_api, listed in requirements.txt)? Then the code calls it - which function - instead of writing the calls here.", choices: ["No: Spark reads it itself", "Yes: it calls the library's function (name it)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "a password or a token appears in the code, the logs or the command line"
+            invariant: "credentials are read from the environment or a secret manager only, and never logged"
+
+  writer:
+    layer: p2_io
+    requires_uses: [schema]   # the columns it works on are a schema component (ARCH019)
+    test: integration
+    description: Writes one dataset.
+    module: "{name}_writer"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "dataset name, e.g. orders_clean"
+    symbols:
+      - {kind: function, name: "write_{name}", signature: "(df: DataFrame, path: str) -> None"}
+    writes_data: true      # writes the personal columns its job hands it (PRIV003, and the regimes' store questions)
+    guide_words: [partial, repeated, exposed]
+    safety_decisions: {partial: half_written, repeated: rerun}  # the decision that already answers it
+    edge_cases:
+      - {id: existing_output, question: "Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?", choices: ["Overwrite", "Append", "Fail"]}
+      - {id: half_written, question: "If the job fails while writing (e.g. it stops after 3 of 10 files), how do readers avoid a half-written output: write to a temporary folder then rename, a _SUCCESS file, or a table transaction?", choices: ["Temporary folder, then rename", "A _SUCCESS file readers wait for", "One transaction (table format)"]}
+      - {id: rerun, question: "If the job runs again on the same input (e.g. a re-run after a failure), must the output be exactly the same, with no duplicated rows?", suggested: "Yes: the same output, no duplicated rows"}
+      - {id: format, question: "How is the output stored: which file format (parquet, csv...), and is it split into folders by a column (e.g. date=2026-10-12) or not?", choices: ["Parquet, not split", "Parquet, split by the run date", "CSV with a header, not split"]}
+      - {id: shared_library, question: "Does an approved shared library already write these files (e.g. acme_io.write_parquet, listed in requirements.txt)? Then the code calls it - which function - instead of writing them with Spark.", choices: ["No: Spark writes it itself", "Yes: it calls the library's function (name it)"]}
+    default_kind: files
+    kinds:   # -k: what it writes, the way Spark writes it (each kind brings its own questions)
+      files: {}   # df.write.format(...).save(path): parquet, orc, csv, json, text, avro, xml
+      table:
+        description: Writes one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi).
+        symbols:
+          - {kind: function, name: "write_{name}", signature: "(df: DataFrame, table: str) -> None"}
+        guide_words: [partial, repeated, exposed]
+        safety_decisions: {partial: half_written, repeated: rerun}
+        edge_cases:
+          - {id: which_table, question: "Which table, created by which script (e.g. finance.orders by ddl/001_orders.sql - tables exist before the job: deployment or the scheduler runs `./entrypoint.sh --ddl`, the job never creates them)?"}
+          - {id: write_mode, question: "How are rows written: added, only the run date's rows replaced (e.g. insertInto with overwrite and partitionOverwriteMode=dynamic), everything replaced, or merged on keys (e.g. MERGE INTO on order_id, with Delta or Iceberg)?", choices: ["Added", "Only the run date's rows replaced", "Everything replaced", "Merged on keys"]}
+          - {id: rerun, question: "If the job runs again on the same input (e.g. a re-run after a failure), must the table be exactly the same, with no duplicated rows?", suggested: "Yes: the same table, no duplicated rows"}
+          - {id: half_written, question: "If the job fails while writing, how do readers avoid half-written data (e.g. one Delta or Iceberg transaction, or a staging table then a swap)?", choices: ["One Delta or Iceberg transaction", "A staging table, then a swap"]}
+          - {id: schema_change, question: "The schema gains or loses a column (e.g. a new column upstream): fail, or let the table change (e.g. mergeSchema with Delta)?", suggested: "Fail: the ddl/ script changes first, reviewed"}
+          - {id: shared_library, question: "Does an approved shared library already write it (e.g. acme_io.write_table, listed in requirements.txt)? Then the code calls it - which function - instead of writing it with Spark.", choices: ["No: Spark writes it itself", "Yes: it calls the library's function (name it)"]}
+        test_hints:
+          - "In the test, run the ddl/ scripts with spark.sql on the local test catalog, then assert spark.table(<table>).schema equals the schema (names, types, order) - the script and the code can never drift apart. Write with df.select(*spark.table(<table>).columns).write.insertInto(<table>, overwrite=True) and spark.sql.sources.partitionOverwriteMode=dynamic, never saveAsTable on an existing table."
+      jdbc:
+        description: Writes a table of a database over JDBC (df.write.jdbc).
+        symbols:
+          - {kind: function, name: "write_{name}", signature: "(df: DataFrame, url: str, table: str, properties: dict[str, str]) -> None"}
+        guide_words: [partial, repeated, exposed]
+        safety_decisions: {partial: half_written, repeated: rerun}
+        edge_cases:
+          - {id: which_database, question: "Which database, which table, and which JDBC driver (e.g. PostgreSQL, the table sales.revenue, the driver org.postgresql.Driver from the internal repository)?"}
+          - {id: credentials, question: "Where do the user and the password come from (e.g. the environment variable DB_PASSWORD, a secret manager, a Kerberos keytab)? Never in the code, the spec or the command line.", suggested: "From environment variables, typed secret in the config decision"}
+          - {id: write_mode, question: "How are rows written: appended, the table emptied first (e.g. mode overwrite with truncate=true), or merged on keys (e.g. into a staging table, then one INSERT ... ON CONFLICT run by the database)?", choices: ["Appended", "The table emptied first (truncate)", "Merged on keys through a staging table"]}
+          - {id: half_written, question: "If the job fails halfway (e.g. after 3 of 10 batches), how do readers avoid half-written data: a staging table then one statement, or one transaction (e.g. isolationLevel=SERIALIZABLE)?", choices: ["A staging table, then one statement", "One transaction"]}
+          - {id: rerun, question: "If the job runs again on the same input (e.g. a re-run after a failure), must the table be exactly the same, with no duplicated rows?", suggested: "Yes: the same table, no duplicated rows"}
+          - {id: batch_size, question: "How many rows per round trip and how many connections at once, so the database is not overloaded (e.g. batchsize=10000, 4 connections)?"}
+          - {id: shared_library, question: "Does an approved shared library already write it (e.g. acme_io.write_jdbc, listed in requirements.txt)? Then the code calls it - which function - instead of writing it with Spark.", choices: ["No: Spark writes it itself", "Yes: it calls the library's function (name it)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "a password or a token appears in the code, the logs or the command line"
+            invariant: "credentials are read from the environment or a secret manager only, and never logged"
+      connector:
+        description: Writes with a Spark connector (df.write.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka...
+        symbols:
+          - {kind: function, name: "write_{name}", signature: "(df: DataFrame, options: dict[str, str]) -> None"}
+        guide_words: [partial, repeated, exposed]
+        safety_decisions: {repeated: rerun}
+        edge_cases:
+          - {id: which_connector, question: "Which connector and which version, and where does its jar come from (e.g. spark-snowflake 3.1 from the internal repository, given with SPARK_ARGS --jars - never --packages, which downloads)?"}
+          - {id: write_mode, question: "How are rows written: appended, the target replaced, or merged on keys (e.g. a MERGE in Snowflake, writeMethod=indirect for BigQuery)?", choices: ["Appended", "The target replaced", "Merged on keys"]}
+          - {id: credentials, question: "Where do the credentials come from (e.g. a private key named by an environment variable, a secret manager)? Never in the code, the spec or the command line.", suggested: "From the environment or a secret manager, named in the config decision"}
+          - {id: staging, question: "Does the connector need a staging area (e.g. a temporary bucket for BigQuery, S3 for Redshift), and who empties it?"}
+          - {id: rerun, question: "If the job runs again on the same input (e.g. a re-run after a failure), must the target be exactly the same, with no duplicated rows?", suggested: "Yes: the same target, no duplicated rows"}
+          - {id: shared_library, question: "Does an approved shared library already write it (e.g. acme_io.write_snowflake, listed in requirements.txt)? Then the code calls it - which function - instead of writing it with Spark.", choices: ["No: Spark writes it itself", "Yes: it calls the library's function (name it)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "a password or a token appears in the code, the logs or the command line"
+            invariant: "credentials are read from the environment or a secret manager only, and never logged"
+      custom:
+        description: Writes to a target Spark has no writer for (a REST API, SFTP, a SaaS import, an in-house format) with its own Python code - foreachPartition, or a Python data source writer (Spark 4.0).
+        symbols:
+          - {kind: function, name: "write_{name}", signature: "(df: DataFrame, options: dict[str, str]) -> None"}
+        guide_words: [partial, repeated, exposed]
+        safety_decisions: {repeated: rerun}
+        edge_cases:
+          - {id: which_target, question: "What receives the data and how - e.g. POST https://api.acme.com/v1/invoices, 100 rows per call?"}
+          - {id: where_calls, question: "Where are the calls made: on the driver after collect (small, e.g. under 10 000 rows), or on the executors (e.g. foreachPartition, or a Python data source writer in Spark 4.0)?", choices: ["On the driver after collect (small)", "On the executors (foreachPartition)"]}
+          - {id: credentials, question: "Where does the token or the password come from (e.g. the environment variable INVOICES_API_TOKEN, a secret manager)? Never in the code, the spec or the command line.", suggested: "From environment variables, typed secret in the config decision"}
+          - {id: limits, question: "Limits and errors (e.g. at most 10 calls a second, HTTP 429 or 503): how long is one call allowed to take, how many retries, how far apart?", suggested: "30 seconds per call, 3 retries 10 seconds apart, then fail naming the target"}
+          - {id: rerun, question: "If the job runs again (e.g. after failing halfway), how is nothing sent twice (e.g. a key per row that the receiver checks, or a record of what was already sent)?"}
+          - {id: shared_library, question: "Does an approved shared library already write it (e.g. acme_io.post_rows, listed in requirements.txt)? Then the code calls it - which function - instead of writing the calls here.", choices: ["No: Spark writes it itself", "Yes: it calls the library's function (name it)"]}
+        safety_suggestions:
+          repeated:
+            hazard: "rows are sent twice when the job runs again"
+            invariant: "a re-run sends nothing the receiver already has"
+          exposed:
+            hazard: "a password or a token appears in the code, the logs or the command line"
+            invariant: "credentials are read from the environment or a secret manager only, and never logged"
+
+  job:
+    layer: p3_jobs
+    test: integration
+    examples: true   # business examples: archvow example add <component> <name>
+    description: Orchestrates read -> transform -> write for one output.
+    module: "{name}_job"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "output name, e.g. daily_sales"
+    symbols:
+      - {kind: function, name: "run_{name}", signature: "(spark: SparkSession, config: JobConfig) -> None"}
+    orchestrates: true     # hands its data to every component it wires (personal data flow)
+    requirements:
+      - "Log one line when it starts and one when it ends (with its duration), and the rows read and written per step, taken from what Spark already computed (the write's metrics, a DataFrame already cached): a df.count() of its own runs the whole job again."
+    guide_words: [missing, repeated, stale]
+    safety_decisions: {missing: missing_input, repeated: retries, stale: run_date}  # the decision that already answers it
+    edge_cases:
+      - {id: missing_input, question: "If one of its inputs is missing (e.g. the refunds file was not delivered): stop with an error, skip this run (nothing written), or continue without it?", suggested: "Stop with an error naming the missing input"}
+      - {id: retries, question: "If a run fails, is it retried automatically, how many times, and can a retry run after a half-finished run without duplicating data - e.g. 2 retries 10 minutes apart, the output is overwritten?"}
+      - {id: run_date, question: "Which date does one run process (e.g. yesterday's data), and where does that date come from: an argument from the scheduler, or computed by the job?", choices: ["The --run-date argument from the scheduler", "Yesterday, computed by the job"]}
+    test_hints:
+      - "End to end with golden files: the business examples of the spec (archvow example add: tests/examples/<component>/<example>/input/ and expected/, locked, with an optional scenario.feature saying it in Given/When/Then words), and one test per example in tests/integration/ that runs the job on input/ and compares the result with expected/ (sorted, same columns and types). Read them as they are, never change them: no example yet means a person records one first."
+
+  entrypoint:
+    layer: p4_entrypoints
+    test: unit
+    requirements:
+      - "End the file with `if __name__ == \"__main__\": raise SystemExit(main())`: entrypoint.sh runs it with spark-submit."
+      - "Create the SparkSession with p0_common.spark.get_spark_session and stop it before returning."
+      - "Accept one --name-with-dashes argument per required parameter of the config decision (archvow next prints them in its run line), in line with what the job reads and writes."
+      - "Call setup_logging once, first, with the run id and the run date it will put on every line."
+    description: Process entry point that parses arguments and runs one job.
+    module: "{name}_main"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    symbols:
+      - {kind: function, name: "main", signature: "(argv: Sequence[str] | None = None) -> int"}
+    guide_words: [wrong]
+    safety_decisions: {wrong: invalid_arguments}  # the decision that already answers it
+    edge_cases:
+      - {id: invalid_arguments, question: "Invalid arguments (e.g. --run-date 2026-13-01): which exit code and message?", suggested: "Exit code 2 with the usage message (argparse)"}
+      - {id: code, question: "Which exit code for which problem, so the scheduler knows what happened (e.g. 0 ok, 1 error, 2 bad arguments, 3 input not ready)?", suggested: "0 ok, 1 error, 2 bad arguments"}
+
+initial_components:
+  - id: spark
+    name: spark
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.spark"
+    description: "Creates the SparkSession with the project's Spark settings (spark.* keys); with master local[*] it also sets spark.driver.bindAddress=127.0.0.1 and spark.driver.host=127.0.0.1, so Spark starts on a laptop (VPN, several networks)."
+    uses: []
+    symbols:
+      - {kind: function, name: get_spark_session, signature: "(app_name: str, master: str | None = None) -> SparkSession"}
+    edge_cases:
+      - {id: spark_settings, question: "Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?"}
+  - id: config
+    name: config
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.config"
+    description: The job's own parameters (paths, run date, options), given by the entry point to the job.
+    uses: []
+    symbols:
+      - {kind: class, name: JobConfig}
+    edge_cases:
+      - {id: parameters, question: "The job's parameters, name: type = default separated by commas (no default = required) - e.g. input_path: str, run_date: date, output_format: str = \"parquet\" - or none?"}
+      - {id: invalid_value, question: "What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?", suggested: "ConfigError naming the value, raised when JobConfig is built; the entry point exits with code 2"}
+  - id: logging_setup
+    name: logging_setup
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.logging_setup"
+    description: Configures logging once, for the entry point - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the config, one line per event on stderr - the cluster keeps it - with the run id and the run date, never a secret, a row or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs, Spark's too, must not write to a test's closed stream).
+    uses: []
+    symbols:
+      - {kind: function, name: setup_logging, signature: "(level: str = \"INFO\") -> None"}
+    edge_cases:
+      - {id: destination, question: "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?", suggested: "stderr, one line per event: time, level, component, message"}
+
+rules: {}

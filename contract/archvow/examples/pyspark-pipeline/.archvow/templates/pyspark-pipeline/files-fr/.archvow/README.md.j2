@@ -1,0 +1,272 @@
+<!-- archvow README - comment ce dossier spécifie et protège le projet, pour chaque développeur et architecte. Écrit par archvow init, ne pas modifier. -->
+
+# .archvow - comment ce projet est spécifié et protégé
+
+Ce dossier contient la spécification du projet et les règles qui la protègent. Il est écrit par
+`archvow` et protégé par CODEOWNERS : on le modifie avec les commandes `archvow`, dans une
+merge request qu'un architecte approuve - jamais à la main, jamais pour faire passer un contrôle.
+
+Une règle pour la lire : **les fichiers `.vow` sont la spec** (ce qui doit être ; les commandes archvow les
+changent), **`archvow doc` l'écrit pour la lire** (dans `doc/`, jamais commité). La spec est rangée par
+fonctionnalité - ce que fait le produit - et chaque composant a son propre engagement.
+
+| Fichier | Ce que c'est |
+|---|---|
+| `project.vow` | L'engagement du projet : mode, familles de contrôles actives, assistants IA, relecteurs et paquets approuvés, règles propres au projet R1, R2... (`archvow rule add`), registre des tiers |
+| `features/<fonctionnalité>/<fonctionnalité>.vow` | Une fonctionnalité : ce que le produit y fait, et le brief que des personnes ont écrit pour elle (`archvow feature add`) |
+| `features/<fonctionnalité>/components/<composant>.vow` | L'engagement d'un composant : son fichier et ses noms publics, décisions, hypothèses, colonnes, hazards (H1, H2...) et invariants (INV1...) |
+| `features/shared/` | Ce que chaque fonctionnalité utilise : réglages, journalisation, l'app ou le job qui branche les fonctionnalités |
+| `features/<fonctionnalité>/proposals.vow` | Décisions proposées par l'IA, en attente d'une personne (modes guided et free ; seulement tant qu'il y en a) |
+| `frozen.json` | Violations qui existaient avant l'adoption d'archvow (la liste ne peut que diminuer) |
+| `templates/` | Les copies des templates du projet, toute leur chaîne (`archvow template update` prend une nouvelle version) |
+| `template/` | Les ajouts propres au projet : règles, questions, agents (`archvow template rule\|question project`) |
+| `doc/` | Ce qu'`archvow doc` écrit pour lire : le projet, chaque fonctionnalité, l'état local - ignoré par Git |
+| `README.md` | Ce fichier : comment fonctionnent les règles, et pourquoi |
+
+Commandes de tous les jours : `archvow show <composant>` (tout sur lui ; `archvow show <fonctionnalité>` : la
+fonctionnalité), `archvow specify` (répondre à ce qui est ouvert), `archvow next` (quoi construire, dans quel
+ordre), `archvow prompt <composant>` ou `archvow prompt --feature <fonctionnalité>` (la tâche), `archvow check`
+(le code suit-il la spec), `archvow doc` (la spec à lire), `archvow diff --base develop` (ce qu'une branche
+change dans la spec).
+
+## Les règles et leur origine
+
+Quatre sources, chacune appliquée par un outil plutôt que par la mémoire :
+
+| Source | Appliquée par |
+|---|---|
+| PEP 8 - Style Guide for Python Code | ruff (`E`, `W`, `N`, `I`) + `ruff format` |
+| PEP 20 - The Zen of Python | familles de règles ruff et règles archvow (correspondance ci-dessous) |
+| Palantir PySpark Style Guide | règles archvow `SPK*` / `STY*` |
+| La spec d'architecture et de sûreté de ce projet | règles archvow `ARCH*` + les engagements de `.archvow/` |
+
+## Le Zen de Python, rendu vérifiable
+
+| Aphorisme | Ce qu'il veut dire ici | Appliqué par |
+|---|---|---|
+| Beautiful is better than ugly. | Une seule mise en forme, pas de débat. | `ruff format`, PEP 8 (`E`, `W`) |
+| Explicit is better than implicit. | Signatures typées déclarées dans l'engagement ; `how=` sur les jointures ; cadres de fenêtre explicites ; schémas explicites. | ruff `ANN`, `ARCH004`, `SPK004`, `SPK010`, composants `schema` |
+| Simple is better than complex. | Fonctions natives plutôt qu'UDF ; petites fonctions. | ruff `C90`, `PLR` ; `SPK006`, `STY002` |
+| Complex is better than complicated. | Découper les transformations à plusieurs sources en sous-étapes nommées. | `SPK009`, `STY001` |
+| Flat is better than nested. | Peu de branches, des chaînes courtes. | ruff `SIM`, `PLR0912` ; `SPK009` |
+| Sparse is better than dense. | Un composant par module ; chaînes d'au plus 5 appels. | structure archvow ; `SPK009` |
+| Readability counts. | Noms PEP 8 ; des parenthèses au lieu de `\`. | ruff `N` ; `SPK008` |
+| Errors should never pass silently. | Pas d'`except` aveugle ; pas de `''`/`'NA'` qui cachent des nulls. | ruff `BLE`, `E722` ; `SPK012` |
+| Unless explicitly silenced. | Les exemptions (`ignore`) doivent porter une raison. | `ARCH011` |
+| In the face of ambiguity, refuse the temptation to guess. | Modules ou symboles non déclarés font échouer le build. | `ARCH001`, `ARCH002` |
+| There should be one obvious way to do it. | Structure seulement via `archvow component add` ; E/S seulement dans `p2_io` ; sessions seulement dans `p0_common`. | `ARCH001`, `SPK001`, `SPK003` |
+| Now is better than never. | Les composants prévus sont listés dans l'ordre de construction ; une release les exige tous. | `archvow next`, `check --complete` |
+| If the implementation is hard to explain, it's a bad idea. | Chaque composant a une description ; chaque symbole public une docstring. | `ARCH009`, ruff `D` |
+| Namespaces are one honking great idea. | Les couches sont des paquets ; préfixes `F.`, `T.`, `W.` ; pas d'import étoile. | `ARCH005`, `SPK007`, ruff `F403` |
+
+## Règles PySpark (d'après le Palantir PySpark Style Guide)
+
+- **Imports** : `from pyspark.sql import functions as F, types as T, Window as W`. Ne jamais
+  importer de noms directement de `pyspark.sql.functions` (masque `sum`, `max`, ...). `SPK007`
+- **Colonnes** : préférer `F.col("a")` ou de simples chaînes à `df.a` / `df["a"]`, sauf pour
+  lever une ambiguïté dans une jointure. (Règle de revue ; non détectable statiquement.)
+- **Contrats de schéma** : commencer ou finir une transformation par un `select` qui énonce les
+  colonnes de sortie ; préférer `F.col(...).alias(...)` à `withColumnRenamed`. `SPK013`
+- **Colonnes vides** : `F.lit(None)`, jamais `''` ni `'NA'`. `SPK012`
+- **Jointures** : toujours `how=` en mot-clé, même pour une jointure interne ; jamais de
+  jointure à droite ; ne pas utiliser `distinct()` / `dropDuplicates()` pour cacher une
+  explosion de jointure. `SPK004`, `SPK005`, `SPK014`
+- **Fenêtres** : toujours un cadre explicite (`rowsBetween` / `rangeBetween`) ; jamais de
+  `partitionBy()` vide. `SPK010`, `SPK011`
+- **Chaînage** : au plus 5 appels chaînés, un seul type d'opération par bloc, des parenthèses
+  pour les expressions sur plusieurs lignes. `SPK008`, `SPK009`
+- **UDF** : à éviter ; les fonctions natives sont bien plus rapides. `SPK006`
+- **Taille** : fichiers d'au plus 250 lignes, fonctions d'au plus 70 lignes. `STY001`, `STY002`
+- **Commentaires** : expliquer *pourquoi*, pas *quoi* ; pas de code commenté. ruff `ERA`
+- **Littéraux** : nommer les valeurs magiques en constantes. ruff `PLR2004`
+
+## Règles des couches
+
+| Couche | Peut importer | E/S | Actions | Notes |
+|---|---|---|---|---|
+| `p0_common` | - | non | - | Seul endroit qui crée une SparkSession |
+| `p1_domain` | `p0_common` | non | non (paresseux uniquement) | Pas de `os`, `pathlib`, `pandas`, `requests`, ... |
+| `p2_io` | `p0_common`, `p1_domain` | oui | autorisées | Appliquer les schémas à la lecture |
+| `p3_jobs` | `p0_common`, `p1_domain`, `p2_io` | non | autorisées | Uniquement le câblage |
+| `p4_entrypoints` | `p0_common`, `p3_jobs` | non | - | Lecture des arguments, codes de sortie |
+
+## En-tête des fichiers
+
+Chaque fichier de composant commence par un en-tête dans la docstring du module, fourni
+pré-rempli par sa tâche (`archvow prompt`). Il indique le composant, la spec et le projet, et qui a écrit
+le fichier avec quel assistant IA (ou `none`) :
+
+```python
+"""Garder seulement les lignes d'entrée valides.
+
+@component  clean_sales (transformation, p1_domain)
+@spec       {{ ticket(2) }}
+@project    my_pipeline
+@author     A. Développeur
+@assisted   claude-code
+@date       2026-10-06
+"""
+```
+
+`archvow check` échoue (`ARCH018`) s'il manque, contient encore un `<...>` à remplir, nomme un
+autre composant, une autre spec ou un autre projet, ou nomme un assistant IA non approuvé.
+
+## Tests
+
+Chaque type de composant déclare le test dont il a besoin ; un composant implémenté sans
+`tests/<couche>/[<groupe>/]test_<composant>.py` fait échouer le build (`ARCH017`). Sa tâche (`archvow prompt`) liste
+ce qu'il faut couvrir : un test par décision, et le test de chaque invariant.
+
+| Type | Pour | Ce qu'il fait |
+|---|---|---|
+| unit | schémas, transformations, utilitaires, points d'entrée | petits DataFrames en mémoire ; ni fichiers, ni tables, ni réseau ; rapide |
+| integration | lecteurs, écrivains, jobs | vrais fichiers ou tables dans un dossier temporaire ; `@pytest.mark.integration` |
+| de bout en bout | scénarios sur plusieurs composants | `tests/integration/test_<scenario>.py`, nom libre |
+
+Les règles des couches (pas d'E/S, pas d'actions) s'appliquent au code, pas aux tests : les
+tests peuvent lire, écrire et créer des tables. Des tests complets sur un **metastore Hive
+local** (Derby) sont bienvenus, en restant sûrs :
+
+- seulement dans les tests d'intégration, pour que `pytest -m "not integration"` reste rapide ;
+- tout dans un dossier temporaire : `spark.sql.warehouse.dir` et le dossier de Derby
+  (`-Dderby.system.home=...` via `spark.driver.extraJavaOptions`), pour que rien ne fuie dans le
+  dépôt (`metastore_db/`, `derby.log` et `spark-warehouse/` sont de toute façon gitignorés) ;
+- une seule SparkSession pour toute l'exécution des tests (une fixture de portée session) :
+  Derby embarqué n'accepte qu'une connexion, donc ne lancez pas ces tests dans des processus
+  parallèles ;
+- jamais un vrai metastore, bucket ou base de données : un test d'intégration doit pouvoir être
+  rejoué sur n'importe quel portable et en CI.
+
+Les réglages des tests (`[tool.pytest.ini_options]` dans `pyproject.toml`, ou `pytest.ini`)
+déclarent les marqueurs de façon stricte (`--strict-markers`) : un `@pytest.mark.invarient(...)`
+mal tapé échoue au lieu de ne fournir silencieusement aucune preuve. Les modifier est un
+changement de garde (`ARCH020`).
+
+## Ce qui ne doit jamais arriver (sûreté)
+
+La spec est surtout utile là où elle dit ce qui ne doit **pas** arriver. archvow suit la
+pratique des systèmes critiques : trouver les hazards de façon systématique, garder peu de
+propriétés essentielles, et les vérifier sans compromis.
+
+1. **Poser les questions de sûreté.** `archvow specify <composant>` pose, sous forme de
+   questions simples numérotées S1, S2..., ce qu'appelle son type (entrée absente, trop de lignes,
+   valeurs fausses...). Chacune se termine par un **hazard** - ce qui ne doit jamais arriver,
+   enregistré high par `specify`, avec comment c'est empêché, son invariant
+   (une autre gravité : `archvow hazard add <composant> S<numéro> <gravité>`, la suggestion est
+   prise sans texte) -
+   ou par « sans objet » avec une raison (`archvow hazard dismiss <composant> S<numéro> "..."`).
+   Les questions sans réponse sont des avertissements (`ARCH035`). Gravités : critical = données
+   perdues ou résultats faux irrattrapables ; high = des résultats faux arrivent aux
+   utilisateurs ; medium = un retard ou une relance ; low = remarqué et corrigé sans dommage.
+2. **Empêcher chaque hazard critique ou élevé par un invariant** - ce qui est toujours vrai,
+   pour que le hazard ne puisse pas arriver, par exemple « order_id n'est jamais dupliqué dans la sortie » (`archvow invariant
+   add`, `ARCH030`). Les hazards moyens et faibles peuvent en avoir un. Les deux sont listés par
+   `archvow doc` (Hazards, Invariants).
+3. **Le tester.** Chaque invariant est testé par un test marqué
+   `@pytest.mark.invariant("clean_sales.INV1")` ; pour un hazard critique, un test Hypothesis `@given` qui
+   cherche des contre-exemples (`ARCH031`, `ARCH037`). Les experts peuvent demander une autre
+   vérification : une garde dans le code marquée `# archvow: enforces[clean_sales.INV1]` (elle fait échouer le job),
+   une règle archvow, un modèle ou une démonstration vérifiés en CI.
+4. **Aucune décision silencieuse.** Chaque composant commence avec les questions de cas
+   limites de son type (entrée vide, nulls, doublons, écritures partielles, relances...). Le
+   code d'un composant dont une décision reste à prendre échoue (`ARCH033`) ; de même pour du
+   code qui repose sur une hypothèse que personne n'a encore relue (`ARCH034`) ; une hypothèse
+   rejetée ne bloque plus, le code ne doit simplement pas s'y fier.
+
+Supprimer un hazard, baisser sa gravité, supprimer un invariant ou affaiblir son test compte
+comme l'affaiblissement d'une garde (`ARCH020` avec `check --base`).
+
+## Données personnelles, données de test, DORA (conformité)
+
+La réponse `rules` d'`init` choisit les familles de règles : GDPR et TST sont actives par défaut ;
+DORA et les régimes américains (US-PRIVACY, GLBA) sur demande (`archvow init <package> --force -a rules=all`,
+ou une liste comme `-a rules=ARCH,GDPR,US-PRIVACY,DORA`).
+
+- **Données personnelles (PRIV, avec chaque régime de protection)** - chaque colonne d'un schéma ou d'un
+  modèle est classée : `archvow column set <composant> <colonnes> personal|special|none` (special =
+  santé, religion, biométrie... : RGPD art. 9, informations sensibles américaines), avec les étiquettes
+  qu'un régime peut demander (`--tag financial`, `health`, `biometric`, `children`, `precise-location`).
+  Du code avec une colonne non classée échoue (`PRIV001`). archvow suit les colonnes à travers les
+  `uses` de la spec : un composant qui manipule des données personnelles n'affiche, n'imprime et ne
+  journalise jamais de lignes (`PRIV002`), ne partitionne jamais de fichiers selon elles (`PRIV004`),
+  ne les met jamais dans une URL (`PRIV005`). Des données particulières écrites en clair exigent un
+  hazard `exposed` critique et son invariant testé, sauf si une étape les pseudonymise (`archvow column
+  set <étape> <colonnes> --pseudonymises`, `PRIV003`).
+- **Les régimes de protection** - chacun pose ses propres questions là où des données personnelles
+  sont traitées, stockées ou envoyées, et échoue tant qu'une reste ouverte sur du code écrit : RGPD P1,
+  P2... (finalité et base légale `GDPR002`, conservation `GDPR003`, localisation et destinataires
+  `GDPR008`), US-PRIVACY U1, U2..., GLBA G1, G2... (les colonnes étiquetées `financial`) :
+  `archvow decision make <composant> P1 "..."`. `archvow doc` résume le registre de chaque régime (RGPD :
+  le registre des traitements, art. 30).
+- **TST** - les tests utilisent des données inventées : rien n'est lu hors de `tests/`
+  (`TST001`), aucun e-mail, IBAN, numéro de carte, de sécurité sociale ou de téléphone d'apparence
+  réelle (`TST002`), aucun extrait binaire ni gros fichier de données (`TST003`).
+- **DORA** - chaque composant a un ticket et chaque commit en nomme un (`DORA001`, hook
+  commit-msg) ; au moins deux personnes peuvent approuver les changements de garde (`DORA002`) ;
+  chaque paquet de requirements.txt est dans le registre des tiers, les critiques avec une version
+  figée (`DORA003`, `archvow dependency add`) ; les tests des invariants ne peuvent pas être
+  sautés et aucun job de CI ne peut échouer en silence (`DORA004` ; qu'ils ont tourné et réussi : `ARCH046`) ; les jobs répondent à O1,
+  O2 - détection des pannes, reprise (`DORA005`). `archvow changes --from <dernière version>`
+  liste ce que contient une version, fusion par fusion.
+
+Un template d'entreprise ajoute ses propres règles comme des données (`custom_rules` : imports,
+appels, textes ou fichiers interdits, ou une question par type de composant) ; chaque famille a
+sa section dans la doc du projet (`archvow doc`, Contrôles).
+
+## Assistants IA : une politique, pas un verrou
+
+`archvow init -a ai_tools=...` enregistre les assistants approuvés (`ai_tools` dans
+`project.vow`, protégé). La liste est la **politique** du projet : décidée par les architectes,
+visible dans le dépôt, tracée dans l'en-tête de chaque fichier et vérifiée au moment de la
+fusion. Ce n'est pas un verrou - aucun dépôt ne peut voir quel outil a tapé le code. Cela
+fonctionne de la même façon dans tous les éditeurs (VS Code, IDE JetBrains, autres). Trois
+niveaux, du plus fort au plus faible :
+
+| Niveau | Mécanisme | Force |
+|---|---|---|
+| Restreindre | `.claude/settings.json` interdit à Claude Code de modifier les fichiers de garde et de lancer `git commit --no-verify` | réelle pour les outils d'édition de fichiers de Claude Code ; pas un bac à sable |
+| Détecter | `ARCH040` : les fichiers de configuration d'assistants non approuvés (`.cursor/`, `CLAUDE.md`, `.junie/`, `GEMINI.md`...) font échouer le build ; approuver un nouvel outil est un `ARCH020` avec `--base` | après coup |
+| Demander | `AGENTS.md` demande à tout assistant qui le lit et n'est pas approuvé de s'arrêter | dépend de l'outil |
+
+Ce qu'un dépôt ne peut pas faire : empêcher quelqu'un de l'ouvrir avec n'importe quel assistant
+installé sur sa machine, dans n'importe quel éditeur. Le blocage à l'échelle de l'entreprise se
+fait hors du dépôt - installations d'IDE gérées avec une liste de plugins autorisés, politiques
+d'organisation du fournisseur d'IA (quels modèles, quelles licences, chemins exclus), et règles
+réseau ou proxy qui n'autorisent que les points d'accès IA approuvés. Le dépôt rend alors la
+politique visible, appliquée à la fusion, et auditée.
+
+## Fonctionner ne suffit pas : ce qui fait échouer le build
+
+| Ce que l'IA (ou n'importe qui) a fait | Règle |
+|---|---|
+| Créé un fichier ou un symbole public que la spec ne déclare pas | `ARCH001`, `ARCH002` |
+| Utilisé d'autres noms ou signatures que la spec | `ARCH004`, `ARCH014` |
+| Mis un fichier hors de `src/<package>/<couche>/`, `tests/` ou `docs/` | `ARCH010`, `ARCH015` |
+| Nommé un fichier de test autrement que `tests/<couche>/test_<composant>.py` (ou `tests/integration/`) | `ARCH016` |
+| Implémenté un composant sans son test | `ARCH017` |
+| Oublié l'en-tête du fichier, laissé un `<...>`, ou nommé un assistant IA non approuvé | `ARCH018` |
+| Importé à travers les couches ou utilisé un composant non déclaré | `ARCH005`, `ARCH006` |
+| Implémenté alors qu'une décision restait à prendre, ou sur une hypothèse que personne n'a relue | `ARCH033`, `ARCH034` |
+| Implémenté alors que les invariants du composant ne sont pas testés | `ARCH031`, `ARCH032` |
+| Baissé une règle, assoupli ruff, supprimé un test, modifié un fichier de garde, supprimé un hazard ou un invariant (par rapport à `main`) | `ARCH020` |
+| Ajouté `# noqa`, `# type: ignore` ou `# archvow: ignore` (par rapport à `main`) | `ARCH021` |
+
+Les composants prévus qui n'existent pas encore ne sont pas des erreurs ;
+`archvow check --complete` en fait des erreurs pour une porte de release.
+
+## Faire taire une règle
+
+Seulement sur une ligne, seulement avec une raison (au moins quelques mots) :
+
+```python
+df = df.dropDuplicates(["id"])  # archvow: ignore[SPK014] -- voulu
+```
+
+Les changements pour tout le projet vont dans `project.vow`, sous `rules`, et sont revus comme tout
+autre changement d'architecture :
+
+```vow
+rules
+  SPK009
+    max_chain 4
+```

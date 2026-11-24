@@ -15,6 +15,7 @@ symbol get_spark_session
 
 # --- decisions
 decision 1
+  id spark_settings
   question "Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?"
   answer "spark.sql.session.timeZone=UTC, nothing else"
   by architect@example.com

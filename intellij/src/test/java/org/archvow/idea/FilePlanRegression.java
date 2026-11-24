@@ -131,8 +131,8 @@ public final class FilePlanRegression {
                 new ArchvowFilePlan.Row("new", ".archvow/features/refunds/components/compute_vat.vow", "")), false)
             .equals(String.join("\n", ".archvow/", "└── features/", "    ├── vat_report/", "    │   └── components/", "    │       └── compute_vat.vow",
                 "    └── refunds/", "        └── components/", "            └── compute_vat.vow")), "a move, every level drawn");
-        check(tree(List.of(new ArchvowFilePlan.Row("new", "/srv/packs/acme/rules/", "")), false)
-            .equals(String.join("\n", "/srv/", "└── packs/", "    └── acme/", "        └── rules/")), "an absolute folder");
+        check(tree(List.of(new ArchvowFilePlan.Row("new", "/srv/templates/acme/rules/", "")), false)
+            .equals(String.join("\n", "/srv/", "└── templates/", "    └── acme/", "        └── rules/")), "an absolute folder");
         check(tree(List.of(new ArchvowFilePlan.Row("location", "src/sales/p2_io/orders_reader.py", "")), true)
             .equals("src/sales/p2_io/\n└── orders_reader.py"), "a check's location, compact");
         ArchvowFilePlan.TreeLine projectVow = ArchvowFilePlan.treeLines(init, false).get(1);

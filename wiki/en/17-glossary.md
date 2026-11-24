@@ -24,7 +24,10 @@ archvow's wiki; here are the plugins' own, with where to find them in the code.
 | **Back** | in the tab, going back to the component a command was opened from, on its view | `goBack`, `backComponent`; `back` in the page |
 | **contract** | what the plugins and the CLI share: sample vows, recorded JSON, grammar, catalog, meaning of the codes, version | `contract/`, page [The contract](/en/04-contract) |
 | **known version** | the archvow the plugins are tested with and install (`contract/cli/version.txt`) | `ArchvowVersion.KNOWN`, `knownVersion()` |
-| **contract** (0.20.0) | archvow's number for what it prints for tools (MAJOR.MINOR, `archvow version --json`); the plugins accept the same MAJOR and a MINOR at least theirs | `ArchvowVersion.CONTRACT`, `contractWarning()` |
+| **contract** (0.20.0) | archvow's number for what it prints for tools (MAJOR.MINOR, `archvow version --json`); the plugins accept the same MAJOR and a MINOR at least theirs | `ArchvowVersion.CONTRACT`, `compatibility()` |
+| **range** (1.0.0) | the archvow versions a plugin release works with (`>=3.0,<4`, `contract/archvow-range.txt`), said in its header, README and Marketplace pages | `ArchvowCompat`, `compat.ts` |
+| **pin** (1.0.0) | the archvow a project fixes (`archvow==X` in its requirements.txt or pyproject.toml): Install puts it when it is in the range, and never installs over it | `projectPin()`, `ArchvowCompat.projectPin` |
+| **template chain** (1.0.0, archvow 3.0) | a project's templates, bases first, copied into `.archvow/templates/`; the Overview's Templates row | `ArchvowTemplates`, `templatesView()` |
 | **error envelope** (0.20.0) | archvow's error as an object on stdout with `--json`: `{"error": {type, message, hint, exit}}` | `ArchvowOutput.error`, `errorOf()` |
 | **candidate** | a way to run archvow: the IDE's interpreter, the settings' Python, the executable; the first that answers `--version` is kept | `ArchvowProcessCommand.Candidate`, `candidates()` |
 | **WSL** | archvow installed in Linux under Windows, run through `wsl.exe` with Linux paths | `ArchvowWsl` |

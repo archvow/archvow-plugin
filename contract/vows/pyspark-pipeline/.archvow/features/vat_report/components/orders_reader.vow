@@ -17,24 +17,28 @@ symbol read_orders
 
 # --- decisions
 decision 1
+  id missing_path
   question "The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?"
   answer "Fail with a clear error: a missing input is an operations problem"
   by architect@example.com
   on 2026-11-11T19:06:56.526320+00:00
 
 decision 2
+  id bad_rows
   question "Rows that do not match the schema (wrong type, missing column) - e.g. amount = \"abc\": stop the job, drop them, or set them aside in a reject file (where)?"
   answer "Fail the job (FAILFAST): a malformed file must be fixed upstream"
   by architect@example.com
   on 2026-11-11T19:06:56.749135+00:00
 
 decision 3
+  id each_run
   question "On each run, what does it read: everything at the path, or only one date (e.g. the folder date=2026-10-12)? If that date's data is not there yet: fail, wait, or read the previous date?"
   answer "Everything under the given path, no partitions"
   by architect@example.com
   on 2026-11-11T19:06:57.015876+00:00
 
 decision 4
+  id shared_library
   question "Does an approved shared library already read these files (e.g. acme_io.read_csv, listed in requirements.txt)? Then the code calls it - which function - instead of reading them with Spark."
   answer "No: Spark reads it itself"
   by architect@example.com

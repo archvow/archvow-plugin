@@ -117,10 +117,11 @@ final class ArchvowInstall {
         return out.toString();
     }
 
-    /** Why the card shows: "missing" (archvow did not start or say its version), "version" (it does not speak the plugin's contract), "" (none). */
-    static String reason(ArchvowVersion.Said installed) {
-        if (installed == null || installed.version().isBlank()) return "missing";
-        return ArchvowVersion.warning(installed, ArchvowVersion.CONTRACT, ArchvowVersion.KNOWN, false).isEmpty() ? "" : "version";
+    /** Why the card shows: "missing" (archvow did not start or say its version), "version" (an archvow the plugin does
+     *  not work with), "" (none - also when Install may put nothing: never over a pin outside the range, 1.0.0). */
+    static String reason(ArchvowCompat.Compatibility compat) {
+        if (compat == null || compat.install().isEmpty()) return "";
+        return "missing".equals(compat.state()) ? "missing" : "older".equals(compat.state()) ? "version" : "";
     }
 
     static Offer offer(String reason, String version, String python, String root, Source source, boolean french, boolean windows) {
@@ -143,7 +144,8 @@ final class ArchvowInstall {
     /** The card's text: what is wrong, then what the button will do. */
     static String explain(Offer offer, boolean french) {
         String why = "version".equals(offer.reason())
-            ? (french ? "Ce plugin est fait pour archvow " + offer.version() + "." : "This plugin is made for archvow " + offer.version() + ".")
+            ? (french ? "Ce plugin fonctionne avec archvow " + ArchvowCompat.RANGE_OF_PLUGIN.text() + "."
+                : "This plugin works with archvow " + ArchvowCompat.RANGE_OF_PLUGIN.text() + ".")
             : (french ? "archvow ne démarre pas dans ce projet." : "archvow does not start in this project.");
         if (offer.python().isEmpty()) {
             return why + " " + (french

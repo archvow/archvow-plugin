@@ -382,8 +382,8 @@ final class ArchvowResultFormatter {
         heading(out, p, tr(fr, "Template catalog", "Catalogue de modèles"), p.blue);
         summary(out, p, List.of(chip(templates.size() + tr(fr, " templates", " modèles"), p.blue)));
         if (templates.size() == 0) {
-            empty(out, p, tr(fr, "No templates found. A company's templates come in a pack: archvow pack add <folder>.",
-                "Aucun modèle trouvé. Les modèles d'une entreprise viennent dans un pack : archvow pack add <dossier>."));
+            empty(out, p, tr(fr, "No templates found. A company's template is given by its folder: archvow init <package> -t <folder>.",
+                "Aucun modèle trouvé. Le template d'une entreprise se donne par son dossier : archvow init <package> -t <dossier>."));
             return;
         }
         int shown = 0;

@@ -195,7 +195,9 @@ final class ArchvowInitQuestions extends JPanel {
         boolean manualPath = requested != null && !requested.isBlank() && match == null;
         if (match == null && !manualPath && (requested == null || requested.isBlank())) {
             match = matchedTemplate(preferred);   // in a project: its own template
-            if (match == null) match = matchedTemplate("python-app"); // archvow's default template
+            for (JsonObject t : catalog)  // archvow 3.0: the template marked default (python-app)
+                if (match == null && t.has("default") && t.get("default").isJsonPrimitive() && t.get("default").getAsBoolean()) match = string(t, "name");
+            if (match == null) match = matchedTemplate("python-app");
         }
         if (manualPath && !requested.equals(folder.getText().trim())) folder.setText(requested);
         if (match != null) templatePicker.setSelectedItem(match);
@@ -227,9 +229,7 @@ final class ArchvowInitQuestions extends JPanel {
             String source = string(t, "source");
             if (requested.equals(name) || requested.equals(source) || requested.endsWith("/" + name)) return name;
         }
-        // a short name (python-app) is a pack's template (archvow/python-app), as archvow's init --template reads it
-        for (JsonObject t : catalog) if (string(t, "name").endsWith("/" + requested)) return string(t, "name");
-        return null;
+        return null;  // a company template's folder: its questions are not in this catalog
     }
 
     private void showTemplate(String name) {

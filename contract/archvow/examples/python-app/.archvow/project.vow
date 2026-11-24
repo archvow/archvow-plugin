@@ -10,7 +10,7 @@ system
 
 # --- containers
 container invoicing
-  template archvow/python-app@2.8.0
+  template python-app
   package invoicing
   path src/invoicing
 
@@ -38,3 +38,12 @@ init_answers
   branch_naming gitflow
   pip_index_url ""
   ci_image ""
+templates
+  python-app
+    version 3.0.0
+    source archvow
+    digest 65b0ce6dbdd4
+  python-base
+    version 3.0.0
+    source archvow
+    digest 418c6c7829fc

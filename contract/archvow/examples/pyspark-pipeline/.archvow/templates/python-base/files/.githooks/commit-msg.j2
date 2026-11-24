@@ -1,0 +1,38 @@
+#!/bin/sh
+{%- if agents_approved %}
+# AI agents: the code of this commit that an AI agent wrote (@assisted in its file header) gets one line
+# per agent, `Archvow-Agent: <tool> sandbox=yes yolo=no` - how it last ran here, as the pre-commit hook's
+# `archvow check` found it (ARCH053). CI checks every commit of the merge request has it: a commit made
+# with --no-verify has none.
+{%- endif %}
+{%- if 'dora' in compliance %}
+# DORA: every commit names its ticket. Adds the ticket of the branch (feature/{{ ticket(1) }}-...) to a
+# message that has none; refuses a message without a ticket on a branch without one.
+{%- endif %}
+# Enable once per clone:   git config core.hooksPath .githooks   (the same as the pre-commit hook)
+# Guard file (CODEOWNERS).
+msg_file="$1"
+{%- if agents_approved %}
+trailer="$(dirname "$0")/../.archvow/trailer.local"
+if [ -f "$trailer" ]; then
+    while IFS= read -r line; do
+        [ -n "$line" ] && git interpret-trailers --in-place --if-exists addIfDifferent \
+            --trailer "Archvow-Agent: $line" "$msg_file"
+    done < "$trailer"
+    rm -f "$trailer"
+fi
+{%- endif %}
+{%- if 'dora' in compliance %}
+ticket='{{ ticket_pattern }}'
+grep -Eq "$ticket" "$msg_file" && exit 0
+head -n 1 "$msg_file" | grep -Eq '^(Merge|Revert|fixup!|squash!)' && exit 0
+git rev-parse -q --verify HEAD >/dev/null 2>&1 || exit 0   # the repository's first commit
+branch=$(git symbolic-ref --short -q HEAD || true)
+found=$(printf '%s\n' "$branch" | grep -Eo "$ticket" | head -n 1)
+if [ -z "$found" ]; then
+    echo "commit-msg: name the ticket in the message (e.g. {{ ticket(1) }}: ...) - DORA traceability" >&2
+    exit 1
+fi
+printf '%s: %s\n' "$found" "$(cat "$msg_file")" > "$msg_file.archvow" && mv "$msg_file.archvow" "$msg_file"
+{%- endif %}
+exit 0

@@ -18,7 +18,7 @@ The same workspace in both editors, in the same places:
 
 | Where | What |
 |---|---|
-| **Overview** | for a new project, **First steps** (five steps archvow reads from the spec and Git, the current one with its button); **Next** and **Check**, with Doctor, Audit, Briefs, Budget / Next, Diff and AI review under **More**; **Architecture** (items done, open items, done items); **Checks** (errors, warnings and the first finding: its rule in words, its file and line); **Packs** |
+| **Overview** | for a new project, **First steps** (five steps archvow reads from the spec and Git, the current one with its button); **Next** and **Check**, with Doctor, Audit, Briefs, Budget / Next, Diff and AI review under **More**; **Architecture** (items done, open items, done items); **Checks** (errors, warnings and the first finding: its rule in words, its file and line); **Templates** (the project's chain of templates, its own additions) |
 | **Features** | what the product does, feature by feature (`shared` last) or by layer; a feature's page: how far it is, the features it uses and that use it, its components by layer, what is open, with Add component, Open feature doc, Copy AI prompt, Next steps, Rename |
 | **A component** | its decisions (with the template's suggested answers), questions, safety (hazards, invariants), assumptions, rules, columns, tasks and its spec: the items as cards, the answer panel beside them |
 | **Commands** | every archvow command as a form built from archvow's own parser, the exact command shown, its result read and laid out; the init wizard built from `archvow catalog --json`, with the files it will write |
@@ -42,7 +42,7 @@ English by default, French as a setting. Every change runs an archvow command, a
 ## Build and test
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-0.26.1.zip, dist/archvow-0.26.1.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-1.0.0.zip, dist/archvow-1.0.0.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -60,7 +60,7 @@ When archvow changes, the contract is recorded again from its wheel: [contract/R
 ## Continuous integration and publishing
 
 GitHub Actions (`.github/workflows/ci.yml`) runs both plugins' tests, regenerates the contract with the
-archvow kept in `contract/archvow/` (the 2.8.0 wheel, its examples and rules) and requires it unchanged,
+archvow kept in `contract/archvow/` (the 3.0.0 wheel, its examples and rules) and requires it unchanged,
 runs the VS Code tests against that archvow, then opens the built `.vsix` and `.zip` as the IDEs do. The
 page [Tests](wiki/en/13-tests.md) says what each job checks.
 
@@ -82,7 +82,7 @@ both together.
   the cards in a narrow tab); it opens on its first open item.
 - **The same Overview in both editors** (0.25): First steps for a new project, Next and Check named with
   More for the others, the Architecture card counting its own items (decisions, questions, tasks), the
-  Checks card with the first finding, Packs. What both read of archvow's JSON is checked against one file,
+  Checks card with the first finding, Templates (the project's chain). What both read of archvow's JSON is checked against one file,
   `contract/overview/expected.json`.
 - **The CLI is the only writer.** The state is the vows (`.archvow/project.vow`, `.archvow/features/**/*.vow`). A plugin reads what the
   CLI prints (`workspace --json`, `show`, `next`, `check --json`) and runs an archvow command, after a
@@ -101,20 +101,25 @@ both together.
 - **One `.vow` reader, written twice.** The Java reader (`intellij/.../org/archvow/vow/core`) is the
   reference; the TypeScript one (`vscode/src/vow`) must give the same tokens, problems and links on
   every case of `contract/vow-reader/expected.json`.
-- **A plugin says when the installed archvow does not speak its contract**, rather than misreading it:
-  archvow says its contract number (`archvow version --json`, MAJOR.MINOR); the same MAJOR and a MINOR at
-  least the plugin's is accepted, so an archvow release that keeps the contract needs no plugin release.
+- **A plugin says when the installed archvow is not one it works with**, rather than misreading it: the
+  range (`contract/archvow-range.txt`, >=3.0,<4) and archvow's contract number (`archvow version --json`,
+  MAJOR.MINOR: the same MAJOR and a MINOR at least the plugin's), so an archvow release in the range needs no
+  plugin release. Both plugins say the same on every case of `contract/compat/expected.json`.
 - **No outside source at run time.** Neither plugin downloads anything on its own, runs no AI model and sends
   nothing anywhere; for a team, the `.zip` and the `.vsix` go to an internal plugin repository (JetBrains
   `updatePlugins.xml`, a self-hosted Open VSX) or a share. When archvow is missing or does not speak the
-  contract, **Install archvow 2.8.0** shows the pip command (into the project's venv, from pip's own
+  contract, **Install archvow 3.0.0** (or the version the project pins, when it is in the range) shows the pip command (into the project's venv, from pip's own
   configuration, your company's index or a wheel: the setting *Install archvow from*) and runs it only after
   **Confirm and run** - never at startup.
 
 ## Versions
 
-Both plugins have the same version (0.26.1), their own, not archvow's. They read `.vow` format 1, speak
-archvow's contract 2.5 (`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI
-2.8.0 (`contract/cli/version.txt`, the version the contract was recorded from); each says when the
-installed archvow does not speak that contract (archvow keeps no backward compatibility). What changed:
-[VS Code](vscode/CHANGELOG.md), [IntelliJ](intellij/CHANGELOG.md).
+Both plugins have the same version (1.0.0), their own, not archvow's: from 1.0.0 they evolve on their own
+versioning. **They work with archvow >=3.0,<4** - one value, `contract/archvow-range.txt`, said here, on both
+Marketplace pages and in the header of the tool window (`archvow 3.0.0 ✓ · this plugin works with archvow
+>=3.0,<4`); the release test checks they all say it. They read `.vow` format 1, speak archvow's contract 3.0
+(`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI 3.0.0
+(`contract/cli/version.txt`, the version the contract was recorded from). An installed archvow outside the range
+is said, with what to do: older - Install archvow, or, when the project pins an older archvow, how its architects
+upgrade the project (the plugin never installs over a pin); newer - update the plugin; none - the exact install
+command. What changed: [VS Code](vscode/CHANGELOG.md), [IntelliJ](intellij/CHANGELOG.md).

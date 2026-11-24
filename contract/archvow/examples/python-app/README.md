@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/python-app@2.8.0`).
+(template `python-app`).
 
 ## For developers
 
@@ -125,7 +125,7 @@ complete application, from the empty project to a run: archvow's documentation, 
 **1. Create the project** - this one was created with:
 
 ```bash
-archvow init invoicing -t archvow/python-app -d 'Marks invoices paid, from the command line' \
+archvow init invoicing -t python-app -d 'Marks invoices paid, from the command line' \
     -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@acme/architects -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
@@ -255,6 +255,7 @@ make run CLI=invoices ARGS="--help"                   # the command line of the 
 | add a pure business rule | `archvow component add logic compute_total -d "Sum of the lines" --signature "(lines: list[Line]) -> Decimal"` |
 | ask a question, as a developer | `archvow question add invoice_model "May an invoice have an amount of zero?"` |
 | let the AI find what is unclear | `archvow prompt invoice_model --clarify` (in the chat: `/archvow-clarify invoice_model`) |
+| check a whole feature before coding (where its components disagree) | `archvow prompt --feature <feature> --clarify` (in the chat: `/archvow-clarify <feature>`) |
 | add a rule for every component of a type | `archvow rule add --type model "Given an unknown field, when it is parsed, then it is refused"` |
 | dismiss a safety question that does not apply | `archvow hazard dismiss invoice_model S2 "invoices hold no personal data"` |
 | see everything about a component | `archvow show invoice_model` |

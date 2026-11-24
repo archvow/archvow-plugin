@@ -75,8 +75,8 @@ final class ArchvowCli {
     }
 
     /**
-     * The catalog for init (0.22.0): what archvow lists in the project's folder - its own pack and the packs
-     * `archvow pack add` copied there (.archvow/packs/), templates named {@code <pack>/<template>}.
+     * The catalog for init: what archvow lists in the project's folder - its templates (in a project, the project's
+     * first, as it uses them) and those of the packages that declare some, by name (archvow 3.0).
      */
     void executeGlobalCatalog(String ignored, Consumer<Result> finished) {
         executeInternal("Catalog", List.of("catalog", "--json"), null, false, null, false, finished);

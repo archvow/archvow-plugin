@@ -137,14 +137,21 @@ page.message({ type: 'feature', feature: 'orders' });
 assert.doesNotMatch(page.app.innerHTML, /feature accept|ARCH043/, 'a person\'s feature: nothing to accept');
 console.log('A feature an AI agent added: OK');
 
-// archvow 2.6 records a pack folder by its path from the project's root (0.26.0): the Packs list says what a source is
-const packs = make('nav');
-packs.message({ type: 'state', state: { ...state, packs: [
-  { name: 'acme', version: '1.0.0', description: '', source: '../company-packs/acme', state: 'ok', why: '' },
-  { name: 'bank', version: '0.1.0', description: '', source: 'bank_packs', state: 'ok', why: '' },
-  { name: 'old', version: '0.1.0', description: '', source: '/home/alice/packs/old', state: 'ok', why: '' }] } });
-packs.click('openPacks');
-assert.match(packs.app.innerHTML, /Source: \.\.\/company-packs\/acme \(a folder, from the project&#39;s root\)|Source: \.\.\/company-packs\/acme \(a folder, from the project's root\)/);
-assert.match(packs.app.innerHTML, /Source: bank_packs \(an installed package\)/);
-assert.match(packs.app.innerHTML, /\/home\/alice\/packs\/old \(an absolute path: true on this machine only/);
-console.log('Packs sources: OK');
+// archvow 3.0 records each template of the project's chain with its source: the Templates list says what a source is
+const chain = make('nav');
+chain.message({ type: 'state', state: { ...state, templates: [
+  { name: 'python-base', version: '3.0.0', description: '', extends: [], source: 'archvow', state: 'ok', why: '' },
+  { name: 'acme-app', version: '1.0.0', description: '', extends: ['python-app', 'acme'], source: '../company-templates', state: 'ok', why: '' },
+  { name: 'bank', version: '0.1.0', description: '', extends: [], source: 'bank_templates', state: 'changed', why: 'its copy was edited by hand' },
+  { name: 'project', version: null, source: '.archvow/template', state: 'ok', why: '', rule_families: ['TEAM'], agents: [] }] } });
+assert.match(chain.app.innerHTML, /python-base ← acme-app ← bank/);
+chain.click('openTemplates');
+assert.match(chain.app.innerHTML, /Source: \.\.\/company-templates \(a folder, from the project&#39;s root\)|Source: \.\.\/company-templates \(a folder, from the project's root\)/);
+assert.match(chain.app.innerHTML, /Source: bank_templates \(an installed package\)/);
+assert.match(chain.app.innerHTML, /Source: archvow</);
+assert.match(chain.app.innerHTML, /Extends: python-app, acme/);
+assert.match(chain.app.innerHTML, /its copy was edited by hand \(ARCH060\)/);
+assert.match(chain.app.innerHTML, /rules: TEAM/);
+assert.match(chain.app.innerHTML, /data-command="template update"/);
+assert.match(chain.app.innerHTML, /data-command="template question"[^>]*data-templatename="project"|data-templatename="project"[^>]*data-command="template question"/);
+console.log('Templates chain and sources: OK');

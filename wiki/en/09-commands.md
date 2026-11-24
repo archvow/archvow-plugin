@@ -66,7 +66,7 @@ says, for each command and parameter, what the form offers, from what archvow pr
 | `hazard add/dismiss` guide word, `invariant add --prevents` | the safety questions (open first) / the component's hazards |
 | `hazard remove`, `invariant remove`, `rule edit/remove`, `dependency remove` | the project's ids; `rule edit` fills the rule's text |
 | `component add` type and `--kind` | the types of the project's template only; the kinds of the chosen type, the default first (archvow 1.18's catalog, else `contract/cli/kinds.json` for 1.17) |
-| `pack template --extends` | the templates of the catalog (`<pack>/<template>`, 0.22.0) |
+| `template new --extends` | the templates of the catalog (1.0.0: plain names; empty: a template from scratch) |
 | `--base`, `changes` start/end | the branches and tags of the repository |
 
 A `select` field takes only what it lists; a list that depends on the component or the type waits for it
@@ -164,29 +164,29 @@ question and its state ("Load question") before you answer.
 
 In a folder without `.archvow/project.vow`, **Initialize Archvow** opens the `init` form with a wizard:
 the template, then its questions (the essential ones; the others under "advanced settings"). The
-questions come from `archvow catalog --json` run in the project's folder (0.22.0, archvow 1.26: archvow's
-templates and those of the packs `archvow pack add` copied there, named `<pack>/<template>`), otherwise from
+questions come from `archvow catalog --json` run in the project's folder (archvow 3.0: archvow's templates and
+those of the installed packages that declare some, by name; in a project, its own first, as it uses them), otherwise from
 the bundled copy of the catalog
 (`ArchvowInitCatalog`, the catalog of `contract/cli/catalog.json`). `ArchvowInitQuestions` (VS Code:
 `initWizard()`) emits only documented answers, `--answer KEY=VALUE`, and only those shown or changed.
 The template is chosen **once**, in "Template and its questions", right under the package's name
-(0.13.0: the form's `--template` field made it a second place): a template of the catalog; a short name
-(`python-app`) is a pack's template (`archvow/python-app`), as for `init --template`; in a project, its own
-template first, with a line saying `init` needs `--force` there. A company template is first added to the
-project through its pack (**Add a pack**, below).
+(0.13.0: the form's `--template` field made it a second place): a template of the catalog, or a company
+template's folder (`-t <folder>`: its questions are not in the catalog); without one, the template archvow marks
+`default` (`python-app`); in a project, its own template first, with a line saying `init` needs `--force` there.
 
-## Packs (0.22.0, archvow 1.26)
+## Templates (1.0.0, archvow 3.0)
 
-A pack brings a company's templates, agents and rules. The **Packs** group of the commands has a form for
-each of the eight `archvow pack` commands: `pack new` (create a pack, `--dir` for a company pack outside the
-project), `pack template`, `pack agent`, `pack rule` (add a part to it), `pack add`, `pack update`, `pack
-remove` (the pack in this project) and `pack check` (test a pack before sharing it). Each form's file plan
-shows what it will write, in the pack's folder (`--dir`, or the named pack in `.archvow/packs/`). The
-overview has a **Packs** row (see page 7).
+A template brings layers, questions, rules, agents, regimes and files. The **Templates** group of the commands has
+a form for each of the six `archvow template` commands: `template new` (a template extending others, or from
+scratch; `--dir` where to create it), `template rule` (with **Final**), `template question`, `template agent`
+(add a part to a template's folder, or to `project`: this project's own additions, `.archvow/template/`),
+`template check` (test a template before sharing it) and `template update` (take the project's templates again
+from their sources). Each form's file plan shows what it will write (`{template}`: the folder, or
+`.archvow/template` for `project`). The overview has a **Templates** row (see page 7).
 
 ## Making a company template
 
-`pack template` (0.22.0; `template new` before archvow 1.26): choosing the base template (`--extends`, the catalog's list) fills "Settings of <base>"
+`template new` (1.0.0; `pack template` from 0.22.0 to 0.26): choosing the base template (`--extends`, the catalog's list; the first of a list) fills "Settings of <base>"
 under it with the base's values (`ArchvowTemplateSettings`; VS Code: `templateWizard()`). What the company
 may set - the defaults of the init answers, the folder of each layer - can be changed, within what the base
 allows: its choices only (a list, nothing to type), its formats (the field turns red, running is refused

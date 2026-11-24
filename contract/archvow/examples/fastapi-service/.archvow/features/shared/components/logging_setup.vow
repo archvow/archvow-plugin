@@ -15,6 +15,7 @@ symbol setup_logging
 
 # --- decisions
 decision 1
+  id destination
   question "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id and message?"
   answer "stderr, one line per event: time, level, request id, message"
   by update@archvow.invalid

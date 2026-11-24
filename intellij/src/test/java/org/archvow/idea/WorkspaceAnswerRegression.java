@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * 0.21.0: the panel loads a project with `archvow workspace --json` (archvow 1.25, contract 1.1; packs since 1.26, contract 1.2). On the contract's
+ * 0.21.0: the panel loads a project with `archvow workspace --json` (archvow 1.25, contract 1.1; templates since 3.0, contract 3.0). On the contract's
  * real answers (../contract/cli/<example>/workspace.json), WorkspaceAnswer gives exactly what show, show <id>, next,
  * check, brief show and catalog print on their own; `unchanged` and a failure are told apart from an answer. VS Code
  * checks the same (model.test.ts).
@@ -57,8 +57,8 @@ public final class WorkspaceAnswerRegression {
             check(shown.equals(new TreeSet<>(answer.snapshots.keySet())), example + ": components " + answer.snapshots.keySet());
             check(answer.briefs != null && answer.briefs.has("files"), example + ": briefs");
             check(ArchvowInitCatalog.hasTemplates(answer.catalog), example + ": catalog");
-            check(answer.packs != null && answer.packs.equals(JsonParser.parseString(text(folder.resolve("workspace.json")))
-                .getAsJsonObject().get("packs")), example + ": packs");
+            check(answer.templates != null && answer.templates.equals(JsonParser.parseString(text(folder.resolve("workspace.json")))
+                .getAsJsonObject().get("templates")), example + ": templates");
             check(answer.firstSteps.equals(JsonParser.parseString(text(folder.resolve("workspace.json")))
                 .getAsJsonObject().get("first_steps")) && answer.firstSteps.size() == 5, example + ": first steps (contract 2.1)");
             read++;

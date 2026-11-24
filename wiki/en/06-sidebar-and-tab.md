@@ -99,7 +99,7 @@ shown by `ArchvowEditorTab.showSearch`; VS Code: `searchView()`, `searchHits()`,
 
 **A pasted error** (0.26.1, archvow 2.7.0): an error or a traceback pasted in the field is what `archvow show
 "<the error>" --json` reads. Its answer has an `error` object, and the panel shows an error page instead of a
-search: what went wrong, the template's known errors it matches (the pack rules kept with that error, their fix and
+search: what went wrong, the template's known errors it matches (the template rules kept with that error, their fix and
 why), then where it broke with the lines around it, **Open at line** and **Show <component>**, and where the lesson
 goes once it is fixed. The one-line field keeps a traceback's lines apart (IntelliJ's field puts a space for each
 line break; VS Code's `joinLines` on paste). IntelliJ: `ArchvowSearch.isError`, `errorPlace`, `errorHtml`; VS Code:

@@ -1,0 +1,159 @@
+# The gate nothing can skip: in the branch rulesets of main and develop, require the status checks
+# "architecture-guards" and "architecture-tests" (GitHub lists checks per job, not per workflow).
+# Code that works but ignores the architecture cannot be merged.
+{%- if ci_image %}
+# Runs in {{ ci_image }} (internal; must contain Python {{ ci_python }}{% if ci_java %}, Java 17{% endif %} and git).
+# Only actions/checkout is used; mirror it on GitHub Enterprise Server if github.com is not allowed.
+{%- else %}
+# WARNING: public sources in use (GitHub-hosted actions, {% if not pip_index_url %}PyPI, {% endif %}runner images).
+# For critical projects, re-run `archvow init` with -a ci_image=... -a pip_index_url=...
+{%- endif %}
+name: architecture
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]  # gitflow: after each merge
+{% if pip_index_url %}
+env:
+  PIP_INDEX_URL: "{{ pip_index_url }}"
+{% endif %}
+jobs:
+  guards:
+    name: architecture-guards
+    runs-on: ubuntu-latest
+{%- if ci_image %}
+    container: {{ ci_image }}
+{%- endif %}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # --base needs the history of the target branch
+{%- if not ci_image %}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "{{ ci_python }}"
+{%- endif %}
+      - name: Install tools
+        # Set the repository variable ARCHVOW_PIP_SPEC to where archvow is published internally.
+        run: pip install "{% raw %}${{ vars.ARCHVOW_PIP_SPEC || 'archvow=={% endraw %}{{ archvow_version }}{% raw %}' }}{% endraw %}" "ruff>=0.6"
+      - name: Code matches the spec (names, layers, safety evidence, {{ rules_label }})
+        run: archvow check
+      - name: Guards not weakened since the target branch
+        # a release or a back-merge from main carries changes already reviewed on develop
+        if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'release/') && github.head_ref != 'main'
+        run: |
+          FLAGS=""
+          # The label is a signal, not an access control (anyone with write access can add it).
+          # Guard files still need Code Owner approval; the label only accepts what they approved.
+          if [ "{% raw %}${{ contains(github.event.pull_request.labels.*.name, 'architecture-approved') }}{% endraw %}" = "true" ]; then
+            FLAGS="--accept-weakening"
+          fi
+          archvow diff --base "origin/{% raw %}${{ github.base_ref }}{% endraw %}" --markdown >> "$GITHUB_STEP_SUMMARY"
+          archvow doc --base "origin/{% raw %}${{ github.base_ref }}{% endraw %}"
+          archvow check --base "origin/{% raw %}${{ github.base_ref }}{% endraw %}" $FLAGS
+      - name: The spec to read, changes marked (the project and each feature)
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: archvow-spec
+          path: .archvow/doc/
+{%- if branch_naming != 'none' %}
+      - name: Branch name (gitflow)
+        if: github.event_name == 'pull_request'
+        env:
+          BRANCH: "{% raw %}${{ github.head_ref }}{% endraw %}"
+        run: |
+          echo "$BRANCH" | grep -Eq '{{ branch_regex }}|^(main|master|develop)$' ||
+            { echo "branch name must be feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name> or release/<version>"; exit 1; }
+{%- endif %}
+      - name: PEP 8 and Zen of Python
+        run: ruff check . && ruff format --check .
+
+  tests:
+    name: architecture-tests
+    runs-on: ubuntu-latest
+{%- if ci_image %}
+    container: {{ ci_image }}
+{%- endif %}
+    steps:
+      - uses: actions/checkout@v4
+      - id: project
+        run: test -d tests && echo "present=true" >> "$GITHUB_OUTPUT" || echo "present=false" >> "$GITHUB_OUTPUT"
+{%- if not ci_image %}
+      - if: steps.project.outputs.present == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "{{ ci_python }}"
+{%- if ci_java %}
+      - if: steps.project.outputs.present == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+{%- endif %}
+{%- endif %}
+      - if: steps.project.outputs.present == 'true'
+        name: Install the tools
+        run: {{ install_command }}
+      - if: steps.project.outputs.present == 'true'
+        run: pytest {{ cov_option }} --cov-report=term-missing --cov-report=xml --junitxml=test-results.xml
+      - if: steps.project.outputs.present == 'true'
+        name: Every invariant's test ran and passed (ARCH046)
+        run: archvow check --test-report test-results.xml
+{%- if sonar == 'yes' %}
+      - if: steps.project.outputs.present == 'true'
+        name: SonarQube analysis (repository secrets SONAR_TOKEN and SONAR_HOST_URL)
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: {% raw %}${{ secrets.SONAR_TOKEN }}{% endraw %}
+          SONAR_HOST_URL: {% raw %}${{ secrets.SONAR_HOST_URL }}{% endraw %}
+{%- endif %}
+{%- if reviewers %}
+
+  ai-review:
+    # An approved AI reviewer ({{ reviewers | join(', ') }}) reads the change and writes a report (shown in the
+    # job summary); it never changes code (the job fails if it does) and never reviews code written
+    # with its own tool. HIGH findings fail the job until a person adds the label review-acknowledged.
+    # The runner needs the reviewer's command line; credentials as repository secrets. Another command:
+    # set ARCHVOW_REVIEW_COMMAND (the task is in $ARCHVOW_REVIEW_PROMPT).
+    name: architecture-review
+    if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'release/') && github.head_ref != 'main'
+    runs-on: ubuntu-latest
+{%- if ci_image %}
+    container: {{ ci_image }}
+{%- endif %}
+{%- if review_secrets %}
+    env:
+{%- for secret in review_secrets %}
+      {{ secret }}: {% raw %}${{ secrets.{% endraw %}{{ secret }}{% raw %} }}{% endraw %}
+{%- endfor %}
+{%- endif %}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the review compares with the target branch
+{%- if not ci_image %}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "{{ ci_python }}"
+{%- if ci_java %}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+{%- endif %}
+{%- endif %}
+      - name: Install the tools
+        run: {{ install_command }}
+      - name: AI review of the change
+        run: |
+          FLAGS=""
+          if [ "{% raw %}${{ contains(github.event.pull_request.labels.*.name, 'review-acknowledged') }}{% endraw %}" = "true" ]; then
+            FLAGS="--acknowledged"
+          fi
+          archvow review --base "origin/{% raw %}${{ github.base_ref }}{% endraw %}" $FLAGS
+      - name: Report
+        if: always()
+        run: cat reviews/last-change.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+{%- endif %}

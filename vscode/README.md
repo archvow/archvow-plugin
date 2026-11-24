@@ -56,8 +56,9 @@ your editor stays uncluttered.
   and the done ones.
 - **Checks** - errors and warnings, and the first finding: its rule in words (*Illegal dependency between layers*),
   the code and the file and line, with a button that opens it.
-- **Packs** - the shared sets of templates and rules your project uses, whether their copy was changed by hand,
-  with Update, Remove and Check.
+- **Templates** - the project's chain of templates (`python-base ← pyspark-pipeline ← acme-pyspark`), where each
+  came from and whether its copy was changed by hand, with Update and New template; and the project's own
+  additions, with Add a question and Add a rule.
 
 ### Features and components
 
@@ -143,8 +144,10 @@ Show the archvow log, Copy the archvow log for support.
 ## Requirements
 
 - VS Code 1.90 or later.
-- The ArchVow CLI 2.8.0 (contract 2.5) in a Python 3.11+ environment. The extension says when the installed
-  ArchVow does not speak its contract, rather than misreading it.
+- **The ArchVow CLI: this extension works with archvow >=3.0,<4** (tested with 3.0.0, contract 3.0), in a Python
+  3.11+ environment. The header of the workspace says it (`archvow 3.0.0 ✓ · this plugin works with archvow
+  >=3.0,<4`); an archvow outside it is said, with what to do - and a project pinned to an older archvow is never
+  installed over.
 - Optional: the Python extension, to use the project's interpreter.
 
 **Languages:** English (default) and French. The same workspace exists for IntelliJ IDEA, PyCharm and the other

@@ -16,24 +16,28 @@ symbol create_app
 
 # --- decisions
 decision 1
+  id routers
   question "Which routers, under which prefix (e.g. /v1)?"
   answer "orders_router under /v1"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 2
+  id domain_errors
   question "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?"
   answer "OrderNotFoundError -> 404, as decided by the error"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 3
+  id lifespan
   question "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?"
   answer "Nothing to start or stop yet"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 4
+  id cors
   question "CORS: which origins may call it from a browser - or none?"
   answer "No CORS: not called from browsers"
   by architect@example.com

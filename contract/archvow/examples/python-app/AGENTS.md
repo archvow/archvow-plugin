@@ -45,6 +45,9 @@ you were told another) and implement the first component it lists as ready. Stop
 ready. If it says the change budget is full, say so in your report: the rest goes in the next
 merge request, so the reviewers get a change small enough to read (ARCH022). Finish with a short
 report: files written, tests, anything you had to assume. Commit only when asked.
+**A feature is checked first**: asked to implement a feature, or the first component of one, first run
+`archvow prompt --feature <feature> --clarify` and do the task it prints. If you recorded anything, stop and
+report: a person answers before any code.
 **A big spec is cut into tasks** (`archvow show <component>` lists T1, T2...): do one task at a
 time, in order. `archvow prompt <component>` prints the next open one; mark each test with what
 it tests (`@pytest.mark.decision(3)`, `@pytest.mark.rule("R2")`), which is how archvow sees a task
@@ -114,8 +117,9 @@ and run none of the commands below.
 
 ## "Fix a bug in <component>"
 A bug is something the code does that the spec does not want. Fix it test first; change nothing else.
-1. Start from the file the bug points to (an error trace, a failing test): `archvow show <file>:<line>`
-   names its component, what uses it, and the test behind each decision and rule.
+1. Start from the error as it was printed (a traceback, a failing test): `archvow show "<the error>"`. It gives
+   the known errors of the template it matches, with their fix and why (apply them), then where it broke: its
+   component, what uses it, and the test behind each decision and rule (`archvow show <file>:<line>` for a place).
 2. Read the component's task. What it should do must be a decision or a rule of its vow. If it is
    not, write nothing and give the developer the command that records it, e.g.
    `archvow rule add <component> "When an order has no lines, <component> rejects it"`.
@@ -123,6 +127,15 @@ A bug is something the code does that the spec does not want. Fix it test first;
    and run it: it must fail for the reason of the bug.
 4. Fix the code until it passes. Every other test of the component stays green: they are the
    part that must not change. Never change or delete one to make the fix pass.
+5. Say where the lesson goes, and give the command that records it (a person runs it):
+   - this component's spec was wrong or silent: `archvow decision make`, or `archvow hazard add` and `invariant add`;
+   - a mistake that comes back across this project: `archvow rule add <component>,... "When ..., then ..."`
+     (`--type <type>`, `--all`);
+   - a code pattern caused it: a template rule with the error people saw - for this project
+     `archvow template rule project <CODE> --kind <kind> --target <what> --message "..." --fix "..." --why "<ticket>"
+     --error "<the error line>" --bad "<the code before>" --good "<the code after>"`; for every project of the
+     template, the same on the template's folder, then `archvow template update` in each project;
+   - nothing in the code caused it (setup, infrastructure): a paragraph for the template's troubleshooting page.
 
 ## Skills
 The procedures of this file are also skills, in your tool's skills folder (`.claude/skills/`, `.github/skills/`):
@@ -130,8 +143,8 @@ The procedures of this file are also skills, in your tool's skills folder (`.cla
 apply in every case, with or without a skill.
 
 ## Before coding
-1. Read the component's task: `archvow prompt <component>` (with its whole feature: `archvow prompt --feature <feature> <component>`)
-   (`archvow prompt <component>`). Start with its **Must never happen** section.
+1. Read the component's task: `archvow prompt <component>` (with its whole feature: `archvow prompt --feature <feature> <component>`).
+   Start with its **Must never happen** section.
    To find files, use your own file tools or `archvow next` (every component, in order), never
    `find` (it can delete files or run commands, so it is never auto-approved). Run one command per
    call - never chained with `&&`, `;` or `|`: each one alone is what the assistants approve without asking.

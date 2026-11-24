@@ -1,0 +1,76 @@
+# French texts of python-app (projects initialised with -a language=fr, the default).
+# Merged over template.yaml: mappings key by key, layers and initial components by name / id,
+# lists replaced. Keywords (guide words, statuses, codes) stay as they are.
+
+layers:
+  - name: p0_common
+    description: Fondations partagées - réglages, journalisation, petits utilitaires que toutes les couches peuvent utiliser
+    must_never: ["contenir de règles métier"]
+  - name: p1_domain
+    description: Règles métier - data classes, erreurs métier et fonctions pures, sans E/S
+    must_never:
+      - "lire ou écrire quoi que ce soit (ni fichiers, ni base de données, ni réseau, ni environnement)"
+      - "journaliser, afficher ou lire l'horloge (les dates et heures sont passées en paramètre)"
+  - name: p2_io
+    description: Repositories et clients - le seul endroit qui lit et écrit fichiers, bases de données et autres services
+    must_never: ["contenir de règle métier au-delà de la conversion des données", "analyser les arguments de la ligne de commande"]
+  - name: p3_services
+    description: Services - une opération chacun, qui appelle repositories et clients et applique les règles du domaine
+    must_never: ["analyser les arguments de la ligne de commande", "afficher dans le terminal"]
+  - name: p4_entrypoints
+    description: Points d'entrée - la ligne de commande, qui analyse les arguments, appelle un service et fixe le code de sortie
+    must_never: ["appeler un repository ou un client directement (passer par un service)", "contenir de règles métier"]
+
+# Suggested answers to the safety questions (archvow show): `hazard add <component> S<number>
+# <severity>` without text takes the hazard, and for critical or high its invariant too.
+test_kinds:
+  unit: >-
+    Purs et rapides : de simples objets Python, ni fichiers, ni base de données, ni réseau. Lancés à chaque commit.
+  integration: >-
+    De vrais fichiers dans un dossier temporaire (le tmp_path de pytest), une base dans un fichier
+    temporaire (SQLite), un faux transport pour les autres services, marqués @pytest.mark.integration.
+    Jamais une base partagée, un vrai service externe ni un fichier hors du dossier du test.
+
+component_types:
+  repository:
+    description: Enregistre et retrouve un type de données (fichiers, base de données).
+    edge_cases:
+      - {id: storage, question: "Où et dans quel format les données sont-elles gardées - par ex. un fichier JSON par facture dans data/invoices/, ou une table SQLite ?", choices: ["Un fichier JSON par élément dans un dossier de données", "Une table SQLite"]}
+      - {id: not_found, question: "Introuvable (par ex. get(\"F-42\") alors qu'elle n'existe pas) : renvoyer None, ou lever quelle erreur métier ?", suggested: "Renvoyer None ; le service lève l'erreur métier"}
+      - {id: crash_write, question: "Un plantage pendant l'écriture (par ex. disque plein après la moitié d'un fichier) : comment un lecteur ne voit-il jamais un enregistrement à moitié écrit - écrire dans un fichier temporaire puis le renommer, ou une transaction ?", suggested: "Écrire dans un fichier temporaire à côté, puis le renommer"}
+      - {id: same_record, question: "Deux exécutions écrivent le même enregistrement au même moment : la dernière gagne, la seconde est refusée, ou la seconde attend (un verrou) ?", suggested: "La seconde est refusée"}
+  client:
+    description: Parle à un autre système (une API HTTP, un serveur de mail, une file de messages...).
+    edge_cases:
+      - {id: timeout, question: "Combien de temps attend-il une réponse avant d'abandonner (en secondes) - par ex. 10 ?", suggested: "10 secondes"}
+      - {id: retries, question: "Si un appel échoue, est-il relancé, combien de fois, sur quelles erreurs, et le même appel peut-il partir deux fois sans être exécuté deux fois (par ex. envoyer un e-mail deux fois) - par ex. 3 relances sur expiration, jamais pour un envoi ?"}
+      - {id: down, question: "L'autre système est en panne ou répond une erreur : échouer avec quelle erreur métier - par ex. MailerIndisponible ?"}
+  service:
+    description: Une opération - appelle repositories et clients et applique les règles du domaine.
+    edge_cases:
+      - {id: steps, question: "Que fait-il, étape par étape (lire, vérifier, modifier, enregistrer, appeler) - par ex. lire la facture, vérifier que c'est un brouillon, l'envoyer, la marquer envoyée ?"}
+      - {id: not_found, question: "Une chose dont il a besoin n'existe pas : quelle erreur métier - par ex. FactureIntrouvable ?"}
+      - {id: twice, question: "Lancé deux fois avec la même entrée (une relance) - par ex. \"envoyer la facture F-42\" deux fois : même résultat et aucun effet en double, ou une erreur métier ?", suggested: "Le même résultat, aucun effet en double"}
+      - {id: all_or_nothing, question: "Qu'est-ce qui doit être tout ou rien, et que se passe-t-il si une étape échoue au milieu - par ex. l'e-mail est envoyé mais la marquer envoyée échoue ?"}
+  cli:
+    description: La ligne de commande - analyse les arguments, appelle un service, affiche le résultat, fixe le code de sortie.
+    edge_cases:
+      - {id: invalid_arguments, question: "Arguments invalides (par ex. une option inconnue, une date fausse) : quel code de sortie et quel message ?", suggested: "Code de sortie 2 avec le message d'usage (argparse)"}
+      - {id: code, question: "Quel code de sortie pour quel problème, pour qu'un script ou un ordonnanceur sache ce qui s'est passé - par ex. 0 ok, 1 erreur, 2 mauvais arguments, 3 introuvable ?", suggested: "0 ok, 1 erreur, 2 mauvais arguments"}
+      - {id: output, question: "Qu'affiche-t-il en cas de succès, et où vont les erreurs - par ex. une ligne par facture sur stdout, les erreurs sur stderr ?"}
+    requirements:
+      - "Terminer le fichier par `if __name__ == \"__main__\": raise SystemExit(main())`, pour que `python -m <module>` le lance."
+      - "Analyser les arguments avec argparse ; traduire les erreurs métier en message sur stderr et en code de sortie, jamais en trace d'erreur."
+      - "Accepter un argument --nom-avec-tirets par réglage obligatoire de la décision de config (archvow next les affiche dans sa ligne de lancement)."
+      - "Appeler setup_logging une fois, en premier ; journaliser le début et la fin de l'exécution avec son code de sortie, jamais les valeurs saisies quand elles peuvent être personnelles."
+
+initial_components:
+  - id: config
+    description: Les réglages du programme, lus dans l'environnement et la ligne de commande, jamais dans le code.
+    edge_cases:
+      - {id: settings, question: "Réglages, nom: type = défaut séparés par des virgules (sans défaut = obligatoire) - par ex. data_dir: str, log_level: str = \"INFO\" - ou aucun ?"}
+      - {id: secrets, question: "Quels réglages sont des secrets (jamais journalisés, jamais affichés), et d'où viennent-ils - par ex. smtp_password, d'une variable d'environnement - ou aucun ?"}
+  - id: logging_setup
+    description: Configure la journalisation une fois, pour les points d'entrée - le seul endroit qui la configure (ARCH059 - aucun basicConfig, handler ni niveau du journal racine ailleurs) ; chaque module prend son propre journal avec logging.getLogger(__name__). Niveau tiré de la config, une ligne par événement avec un identifiant qui suit une exécution, jamais un secret ni une donnée personnelle ; les tests remettent la journalisation comme avant après chaque test (une fixture commune de tests/conftest.py - les journaux suivants ne doivent pas écrire dans le flux fermé d'un test).
+    edge_cases:
+      - {id: destination, question: "Où vont les journaux et dans quel format - par ex. stderr, une ligne par événement avec l'heure, le niveau et le message ?", suggested: "stderr, une ligne par événement : heure, niveau, message"}

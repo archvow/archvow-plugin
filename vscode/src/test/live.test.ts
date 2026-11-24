@@ -18,7 +18,8 @@ import * as path from 'node:path';
 import { test } from 'node:test';
 import { ArchvowCli, CliSettings } from '../cli';
 import { Command, DESTRUCTIVE, findCommand, isMutating, READ_ONLY } from '../grammar';
-import { buildTree, CheckResult, componentView, contractWarning, knownVersion, NextRow, problemsOf, Spec } from '../model';
+import { buildTree, CheckResult, componentView, knownVersion, NextRow, problemsOf, Spec } from '../model';
+import { compatibility, parseRange } from '../compat';
 import { derive } from '../projectState';
 
 const CONTRACT = path.resolve(__dirname, '..', '..', '..', 'contract');
@@ -35,11 +36,11 @@ const COMMANDS = recorded<{ commands: Command[] }>('commands.json').commands;
 
 const settings = (): CliSettings => ({ executable: EXECUTABLE || 'archvow', python: PYTHON, timeoutSeconds: 120, useProjectInterpreter: false });
 
-/** Where archvow is installed here, as regenerate.py records it: <archvow>/templates/<name> (<archvow>/packs/<name> before 1.26). */
+/** Where archvow is installed here, as regenerate.py records it: <archvow>/templates/<name> (archvow 3.0: its wheel's
+ *  archvow/resources/templates/<name>). */
 function portable(templates: { source?: string }[] | undefined): void {
   for (const t of templates ?? []) {
-    if (t.source && /[\\/]archvow[\\/]resources[\\/]archvow[\\/]templates[\\/]/.test(t.source)) t.source = `<archvow>/templates/${path.basename(t.source)}`;
-    else if (t.source && /[\\/]archvow[\\/]packs[\\/]/.test(t.source)) t.source = `<archvow>/packs/${path.basename(t.source)}`;
+    if (t.source && /[\\/]archvow[\\/]resources[\\/]templates[\\/]/.test(t.source)) t.source = `<archvow>/templates/${path.basename(t.source)}`;
   }
 }
 
@@ -97,7 +98,8 @@ test('live: the installed archvow speaks the plugin\'s contract and is the one i
   const wanted = fs.readFileSync(path.join(CONTRACT, 'cli', 'contract.txt'), 'utf8').trim();
   assert.equal(data.archvow, tested);
   assert.equal(data.contract, wanted);
-  assert.equal(contractWarning({ version: data.archvow, contract: data.contract }, wanted, tested), null);
+  const range = parseRange(fs.readFileSync(path.join(CONTRACT, 'archvow-range.txt'), 'utf8'))!;
+  assert.equal(compatibility({ version: data.archvow, contract: data.contract }, range, wanted, tested, null).state, 'ok');
 });
 
 test('live: catalog --json outside a project is the recorded catalog (the init wizard\'s questions)', { skip }, async () => {

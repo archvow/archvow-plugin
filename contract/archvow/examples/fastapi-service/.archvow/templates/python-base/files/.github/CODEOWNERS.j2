@@ -1,0 +1,29 @@
+# Guard files: changes need an architect's review (enable "Require review from Code Owners").
+# .archvow/ is listed path by path: in mode free, the AI's proposals (each feature's proposals.vow) are not the
+# architects' (the line without owner below leaves them unowned).
+/.archvow/project.vow        {{ architects }}
+/.archvow/README.md          {{ architects }}
+/.archvow/features/          {{ architects }}
+/.archvow/frozen.json        {{ architects }}
+/.archvow/templates/         {{ architects }}
+/.archvow/template/          {{ architects }}
+{%- if mode == 'free' %}
+/.archvow/features/*/proposals.vow
+{%- endif %}
+/AGENTS.md                  {{ architects }}
+/CLAUDE.md                  {{ architects }}
+/.aiassistant/              {{ architects }}
+/.junie/                    {{ architects }}
+/ruff.toml                  {{ architects }}
+/pytest.ini                 {{ architects }}
+/.pre-commit-config.yaml    {{ architects }}
+/.githooks/                 {{ architects }}
+/.claude/                   {{ architects }}
+/.cursor/                   {{ architects }}
+/.continue/                 {{ architects }}
+/.agents/                   {{ architects }}
+/.github/                   {{ architects }}
+/Jenkinsfile                {{ architects }}
+{%- for rel in ai_instruction_paths %}
+/{{ rel }}{{ " " * (27 - rel | length) }}{{ architects }}
+{%- endfor %}

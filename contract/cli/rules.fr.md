@@ -30,10 +30,10 @@ neuf noms est un seul import).
 | ARCH006 | un composant en importe un autre absent de ses `uses` | `archvow component edit <composant> -u a,b` (revue d'un architecte) |
 | ARCH007 | un import interdit dans cette couche (`os`, `pathlib`, `requests`... dans `p1_domain`) | déplacer les E/S dans un lecteur ou un écrivain |
 | ARCH008 | un fichier déclaré n'existe pas (avec `--complete`) | écrire le composant, ou le supprimer avec `archvow component remove` |
-| ARCH009 | une entrée invalide dans un engagement (`.vow`), ou un template inconnu | le message nomme l'entrée ; un template d'entreprise vient dans un pack : `archvow pack add <dossier>` |
+| ARCH009 | une entrée invalide dans un engagement (`.vow`), ou un template inconnu | le message nomme l'entrée ; un template se donne par son dossier : `archvow init <package> --force -t <dossier>`, puis commitez `.archvow/templates/` |
 | ARCH010 | un fichier du paquet hors de toute couche (un module y est un `ARCH001`, qui dit comment le rattacher) | le déplacer dans le dossier d'une couche, ou le rattacher dans `layer_paths` |
 | ARCH011 | une exemption (`ignore`) sans raison | `# archvow: ignore[CODE] -- pourquoi` |
-| ARCH012 | (warning) la version du template installé diffère de celle du projet | `archvow init <package> --force`, relire, commiter ([montée de version](project-management.md#nouvelle-version-darchvow-dans-un-projet)) |
+| ARCH012 | un template du projet (sa copie dans `.archvow/templates/`) demande une autre version d'archvow que celle installée (son intervalle `archvow`) | installez l'archvow que fixe le projet, ou prenez une version du template faite pour cet archvow : `archvow template update`, relire, commiter ([montée de version](project-management.md#nouvelle-version-darchvow-dans-un-projet)) |
 | ARCH013 | un fichier est illisible | corriger l'erreur de syntaxe, ou enregistrer le fichier en UTF-8 |
 | ARCH014 | une entrée d'un engagement diffère de ce que génère son template (modifiée à la main) | annuler la modification manuelle ; changer la spec avec les commandes |
 | ARCH015 | un fichier Python hors de l'architecture (aucune couche, chemin non autorisé) | en faire un composant, le déplacer sous `tests/`, ou geler l'existant avec `archvow freeze` |
@@ -69,7 +69,7 @@ neuf noms est un seul import).
 | ARCH057 | (avertissement ; une erreur avec `check --complete`) la description, la signature ou les routes d'un composant ont changé (`archvow component edit`) après que des décisions, hazards, invariants, réponses « sans objet », hypothèses acceptées ou exemples métier ont été enregistrés pour lui : chacun peut ne plus tenir (« montant > 0 » quand la description dit maintenant « > 1 »). archvow ne supprime rien ; `archvow show` les liste, la spec arrête l'IA, `archvow next` dit que le composant est bloqué | une personne regarde chacun : celui qui ne tient plus est enregistré à nouveau (`archvow decision make <composant> <n> "..."`, `archvow hazard edit`...), ce qui le retire de la liste ; quand tous tiennent encore, `archvow component accept <composant>` |
 | ARCH058 | (une erreur ; un avertissement dès 90 %) le projet dépasse sa limite : plus de composants que `max_components`, ou plus de lignes de code sous le dossier du package que `max_code_lines` (réponses d'init, désactivées par défaut ; lignes qui ne sont ni vides, ni des commentaires, ni des docstrings ; tests non comptés). `archvow component add` refuse le composant de trop | découper le projet, ou un architecte relève la limite : `archvow init <package> --force -a max_components=<n>` (une limite relevée est un affaiblissement, ARCH020) |
 | ARCH059 | `logging.basicConfig`, `logging.config.dictConfig` / `fileConfig`, un handler ajouté ou retiré (`addHandler`), ou le niveau du journal racine fixé, ailleurs que dans la fondation `logging_setup` du projet (seulement quand le projet en a une) | configurer la journalisation dans `setup_logging` seulement ; chaque autre module prend son journal avec `logging.getLogger(__name__)` et journalise |
-| ARCH060 | la copie d'un pack dans `.archvow/packs/<nom>/` diffère de ce que `archvow pack add` ou `pack update` a enregistré dans project.vow (son condensé), un pack enregistré n'a pas de copie, ou une copie n'est pas enregistrée | un architecte lance `archvow pack update <nom>` pour prendre une nouvelle version du pack, ou de nouveau `archvow pack add <dossier>` ; personne ne modifie la copie - un changement de l'entreprise va dans le pack lui-même, puis dans sa nouvelle version |
+| ARCH060 | la copie d'un template dans `.archvow/templates/<nom>/` diffère de ce qu'`init` ou `archvow template update` a enregistré dans project.vow (son condensé), un template enregistré n'a pas de copie, ou une copie n'est pas enregistrée | un architecte lance `archvow template update` pour reprendre le template à sa source ; personne ne modifie la copie - un changement va dans le template lui-même, puis dans sa nouvelle version (ou, pour ce seul projet, dans `.archvow/template/`) |
 | ARCH061 | des fonctionnalités s'utilisent en boucle (orders utilise invoices et invoices utilise orders, par les `uses` de leurs composants) : deux fonctionnalités qu'on ne sait plus séparer | gardez un seul sens : déplacez ce dont les deux ont besoin dans shared (`archvow component move <composant> shared`), ou fusionnez les deux fonctionnalités (`component move`, puis `feature remove`) |
 | ARCH062 | un composant de `shared` utilise une fonctionnalité, et ce n'est pas un point d'entrée (quelque chose l'utilise) : shared est ce que chaque fonctionnalité utilise, et seuls l'app ou un job branchent les fonctionnalités | déplacez le composant dans la fonctionnalité qu'il utilise (`archvow component move <composant> <fonctionnalité>`), ou laissez le point d'entrée utiliser cette fonctionnalité à sa place |
 | ARCH050 | un fichier dans `.archvow/` qu'archvow n'écrit pas : CODEOWNERS liste le dossier chemin par chemin, donc personne n'en serait propriétaire ; ou le dossier d'une fonctionnalité qui a perdu son engagement (toujours actif) | le sortir de `.archvow/` ; un engagement de fonctionnalité perdu : le restaurer (`git checkout -- .archvow/features/<fonctionnalité>/<fonctionnalité>.vow`) |
@@ -83,7 +83,7 @@ neuf noms est un seul import).
 | Code | Échoue quand | Correction |
 |---|---|---|
 | ARCH019 | (avertissement) un composant travaille sur des colonnes écrites nulle part : un lecteur ou un écrivain sans son schéma, un repository sans son modèle | `archvow component add schema <nom> -d "..."`, puis `archvow component edit <composant> -u <nom>_schema` |
-| ARCH020 | une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un pack mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance | l'annuler, ou les architectes l'approuvent (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, ou `--accept-weakening`) |
+| ARCH020 | une garde est affaiblie : une gravité ou une vérification plus faible, une limite de règle assouplie dans `rules:`, ou une limite plus stricte retirée (le budget de changement d'ARCH022 aussi), un hazard ou un invariant supprimé, une règle du projet (R1...) supprimée, reformulée ou restreinte, une règle ruff ou un réglage des tests assouplis, un test supprimé, un élément de la spec dont le test marqué a disparu, perdu sa marque ou est sauté sur la branche, un exemple métier ou une colonne personnelle retirés de la spec, un fichier de garde modifié, un template mis à jour ou retiré, davantage de violations gelées, un nouvel assistant IA ou une nouvelle dépendance | l'annuler, ou les architectes l'approuvent (label `architecture-approved`, `ARCHITECTURE_APPROVED=true`, ou `--accept-weakening`) |
 | ARCH021 | (warning) de nouvelles exemptions | vérifier chaque raison pendant la revue |
 | ARCH022 | le changement est trop gros pour être relu (par défaut : plus de 30 fichiers, 1000 lignes ajoutées ou 300 supprimées, hors `.archvow/`) | découper la merge request, ou les architectes l'approuvent. Pour rester en dessous : `archvow next --base develop` n'indique plus rien comme ready une fois le changement plein (les assistants IA le lancent avant chaque composant) |
 
@@ -142,7 +142,7 @@ neuf noms est un seul import).
 | STY003 | (warning) un script shell (`*.sh`, hors dossiers cachés) de plus de 150 lignes | mettre la logique dans un composant Python testé ; le script reste un lanceur |
 | STY004 | (warning) un fichier Python avec plus de lignes de commentaire que 30 % de ses lignes de code (à partir de 20 lignes de code ; le bloc de commentaires en tête - licence, copyright - ne compte pas) | renommer, extraire une fonction, mettre l'explication dans la docstring ; `ERA` de ruff refuse déjà le code commenté |
 
-## Données personnelles - PRIV (actives avec tout régime de protection : GDPR par défaut, US-PRIVACY, GLBA, celui d'un pack)
+## Données personnelles - PRIV (actives avec tout régime de protection : GDPR par défaut, US-PRIVACY, GLBA, celui d'un template)
 
 Les règles lisent la classe de chaque colonne (`archvow column set`) et la suivent à travers les
 `uses` de la spec - voir [Conformité](compliance.md).
@@ -214,14 +214,14 @@ Les institutions financières américaines (`regimes/glba.yaml`) : les colonnes 
 | DORA005 | un job, un point d'entrée ou une app codé n'a pas de réponse à O1, O2 (détection des pannes et alerte, reprise avec son RTO et son RPO) | `archvow decision make <composant> O1 "..."` |
 | DORA006 | (warning) la licence du registre diffère de celle des métadonnées du paquet installé | corriger le registre |
 
-## Les règles propres à une entreprise (le dossier `rules/` d'un pack)
+## Les règles propres à une entreprise (le dossier `rules/` d'un template)
 
-Un pack d'entreprise déclare des règles comme des données, sans Python - imports, appels, textes ou
+Un template d'entreprise déclare des règles comme des données, sans Python - imports, appels, textes ou
 fichiers interdits, un import permis seulement dans certains types de composants, un texte que chaque
 fichier doit contenir, ou une question posée à un type de composant (C1, C2...). Leurs codes sont ceux de
 l'entreprise (par exemple `ACME001`), leur section est ACME dans `.archvow/doc/project.md` (Contrôles), et chaque
 règle porte un exemple qu'elle doit attraper et un qu'elle doit laisser passer. Voir
-[Packs](packs.fr.md#interdits-et-questions).
+[Templates](templates.md#questions). Une règle marquée `final` ne peut pas être affaiblie en dessous.
 
 ## Ruff
 
@@ -259,7 +259,7 @@ Le template fixe la vérification la plus faible que chaque gravité accepte (`v
 
 ## Changer un niveau ou une limite
 
-Pour tous les projets d'un template, dans ses `rules:` ([packs](packs.md)).
+Pour tous les projets d'un template, dans ses `rules:` ([templates](templates.md)).
 Pour un seul projet, dans le groupe `rules` de son `.archvow/project.vow` (à la main, la seule
 partie d'un engagement qui l'est ; [le format .vow](vow-format.md)) - un changement de garde, approuvé
 par les architectes :

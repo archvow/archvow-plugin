@@ -8,9 +8,8 @@ import java.util.regex.Pattern;
 
 /**
  * The archvow the plugin is tested with and installs (../contract/cli/version.txt), the contract it speaks
- * (../contract/cli/contract.txt, MAJOR.MINOR) and what to say when the installed archvow does not speak it:
- * archvow 1.23 says its contract (archvow version --json); the same MAJOR and a MINOR at least the plugin's is
- * accepted. The same rules as the VS Code extension (model.ts contractWarning).
+ * (../contract/cli/contract.txt, MAJOR.MINOR), and what an archvow says of itself (archvow version --json). What to
+ * say when the installed archvow is not one the plugin works with is ArchvowCompat's (1.0.0).
  */
 final class ArchvowVersion {
     private static final Pattern VERSION = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
@@ -75,27 +74,5 @@ final class ArchvowVersion {
         } catch (RuntimeException notJson) {
             return new Said("", "");
         }
-    }
-
-    /** A sentence when the installed archvow does not speak the contract {@code wanted}, else "". */
-    static String warning(Said installed, String wanted, String tested, boolean french) {
-        if (installed == null || installed.version().isBlank()) {
-            return french ? "archvow n'a pas donné sa version (archvow --version) : est-il installé ?"
-                : "archvow did not say its version (archvow --version): is it installed?";
-        }
-        int[] have = parseContract(installed.contract());
-        int[] need = parseContract(wanted);
-        if (need == null) need = new int[] {0, 0};
-        boolean older = have == null || have[0] < need[0] || (have[0] == need[0] && have[1] < need[1]);
-        if (!older && have[0] == need[0]) return "";
-        String v = installed.version();
-        if (older) {
-            return french ? "archvow " + v + " est plus ancien que ce qu'il faut à ce plugin (archvow " + tested + ") : mets archvow à jour."
-                : "archvow " + v + " is older than this plugin needs (archvow " + tested + "): update archvow.";
-        }
-        return french ? "archvow " + v + " est plus récent que ce que ce plugin connaît (contrat " + installed.contract()
-                + ", plugin fait pour le contrat " + wanted + ") : mets le plugin à jour."
-            : "archvow " + v + " is newer than this plugin knows (contract " + installed.contract() + ", the plugin speaks "
-                + wanted + "): update the plugin.";
     }
 }

@@ -16,7 +16,7 @@
   const ui = {
     /** What is typed in "another assistant" of each AI-assistant question (0.26.1), by kind and question. */
     agentOther: {},
-    tab: 'overview', overSub: 'architecture', packsOpen: false, tryExample: 'pyspark-pipeline', reveal: '', forceWorkspace: false, filterMenu: false, projectMore: false,
+    tab: 'overview', overSub: 'architecture', templatesOpen: false, tryExample: 'pyspark-pipeline', reveal: '', forceWorkspace: false, filterMenu: false, projectMore: false,
     /** The editor tab: 'empty', 'feature', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
@@ -33,7 +33,7 @@
     /** The form's live preview (design A): the command line, or what is still missing. */
     preview: { text: '', missing: '', files: [] },
     catalog: null, catalogSource: '', initTemplate: '', initAnswers: {}, initTouched: {}, advanced: false,
-    /** Edit spec: the values the form opened with (only the changed ones are sent); pack template: its settings. */
+    /** Edit spec: the values the form opened with (only the changed ones are sent); template new: its settings. */
     formBaseline: {}, tplAnswers: {}, tplLayers: {}, smartRows: {}, smartQuestions: {}, paramRows: {},
     /** The layer whose "+" is open in the Components tab (its types to add), or ''. */
     addLayer: '',
@@ -56,6 +56,8 @@
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const str = (o, k) => (o && o[k] !== null && o[k] !== undefined ? (typeof o[k] === 'object' ? JSON.stringify(o[k]) : String(o[k])) : '');
   const list = (o, k) => (o && Array.isArray(o[k]) ? o[k].filter((x) => x && typeof x === 'object') : []);
+  /** A list of names (strings) of an object, e.g. a template's `extends`. */
+  const names = (o, k) => (o && Array.isArray(o[k]) ? o[k].filter((x) => typeof x === 'string') : []);
   const short = (s, n) => (s.length <= n ? s : s.substring(0, n - 1) + '…');
   const post = (m) => {
     // a command opened from a component (Edit spec, + Question, Accept...): the editor tab can go back to it
@@ -478,8 +480,23 @@
       found: t('where pip or pipx installed it', "là où pip ou pipx l'a installé") }[r.source]
       || t('the archvow executable (archvow.executable)', "l'exécutable archvow (archvow.executable)");
     const what = r.version ? `archvow ${r.version}` : 'archvow';
-    return `<p class="small muted runs">${esc(t(`${what} with ${r.program} — ${where}. To choose another Python: Configure Python.`,
+    return `${compatLine()}<p class="small muted runs">${esc(t(`${what} with ${r.program} — ${where}. To choose another Python: Configure Python.`,
       `${what} avec ${r.program} — ${where}. Pour choisir un autre Python : Configurer Python.`))}</p>`;
+  }
+
+  /** "archvow 3.0.0 ✓ · this plugin works with archvow >=3.0,<4" (1.0.0): the installed archvow against the plugin's range. */
+  function compatLine() {
+    const c = S.compat || {};
+    return c.header ? `<p class="small compat ${c.state === 'ok' ? 'tone-good' : 'tone-warn'}">${esc(c.header)}</p>` : '';
+  }
+
+  /** An archvow outside the range (1.0.0): what to do - install, upgrade the project, update the plugin. */
+  function compatCard() {
+    const c = S.compat || {};
+    if (!c.state || c.state === 'ok' || c.state === 'missing') return '';
+    const offer = S.install && S.install.reason === 'version';
+    return offer ? installCard() + confirmation('welcome') + resultCard('welcome')
+      : `<div class="card install"><p class="tone-warn">${esc(c.header)}</p><p><b>${esc(c.text)}</b></p></div>`;
   }
 
   function welcomeView() {
@@ -502,6 +519,7 @@
   <section class="card"><h3>${esc(title)}</h3><p>${esc(detail)}</p><p class="mono small muted">${esc(S.project.root)}</p>
   ${runsLine()}
   ${S.welcomeError ? `<pre class="error">${esc(S.welcomeError)}</pre>` : ''}
+  ${S.compat && S.compat.state !== 'ok' && !(S.install && S.install.reason) ? `<p><b>${esc(S.compat.text)}</b></p>` : ''}
   ${installCard()}
   <div class="row wrap">${btn(t('Initialize Archvow', 'Initialiser Archvow'), 'init', '', !fresh)}
   ${btn(t('Configure Python', 'Configurer Python'), 'settings', '', false, 'secondary')}${btn(t('Retry', 'Réessayer'), 'refresh', '', false, 'secondary')}</div>
@@ -541,9 +559,9 @@
   function installCard() {
     const i = S.install || {};
     if (!i.reason) return '';
-    const why = i.reason === 'missing'
+    const why = (S.compat && S.compat.text) || (i.reason === 'missing'
       ? t(`archvow is not installed where the plugin looks. Install archvow ${i.version}:`, `archvow n'est pas installé là où le plugin le cherche. Installer archvow ${i.version} :`)
-      : t(`The installed archvow is not ${i.version}, the version this plugin knows:`, `L'archvow installé n'est pas ${i.version}, la version que ce plugin connaît :`);
+      : t(`The installed archvow is not one this plugin works with. Install archvow ${i.version}:`, `L'archvow installé n'est pas un de ceux avec lesquels ce plugin fonctionne. Installer archvow ${i.version} :`));
     const where = i.python
       ? `${terminalCommand(i.command)}<p class="muted small">${esc(t('From', 'Depuis'))}: ${esc(i.source === "pip's configuration" ? t("pip's configuration", 'la configuration de pip') : i.source)} · ${esc(t('setting archvow.installFrom', 'réglage archvow.installFrom'))}</p>`
       : `<p class="tone-warn">${esc(t('No Python found for this project (.venv, venv, the Python extension\'s interpreter, archvow.python): choose one with Configure Python.',
@@ -624,7 +642,7 @@
 
   /**
    * A pasted error (archvow show "<the error>" --json, archvow 2.7.0): what went wrong, the template's known errors it
-   * matches - each pack rule with its fix and why - then where it broke, the lines around it, and where its lesson
+   * matches - each template rule with its fix and why - then where it broke, the lines around it, and where its lesson
    * goes once it is fixed. As IntelliJ's ArchvowSearch.errorHtml.
    */
   function pastedErrorView(result) {
@@ -636,7 +654,7 @@
     const symbol = result.symbol && typeof result.symbol === 'object' ? str(result.symbol, 'name') : '';
     const around = Array.isArray(result.around) ? result.around : [];
     const rules = known.map((k) => `<div class="alert ${str(k, 'severity') === 'warning' ? 'warn' : 'bad'}"><b>${esc(str(k, 'code'))}</b> ${esc(str(k, 'message'))}
-  <span class="muted small">${esc(t("(a known error: a rule of the template's pack)", '(une erreur connue : une règle du pack du template)'))}</span>
+  <span class="muted small">${esc(t("(a known error: a rule of the project's templates)", '(une erreur connue : une règle des templates du projet)'))}</span>
   ${str(k, 'fix') ? `<div>${esc(t('Fix: ', 'Correction : '))}${esc(str(k, 'fix'))}</div>` : ''}${str(k, 'why') ? `<div class="muted">${esc(t('Why: ', 'Pourquoi : '))}${esc(str(k, 'why'))}</div>` : ''}</div>`).join('');
     const where = !file
       ? `<p class="muted">${esc(t('No file of this project in it: once you know where it broke, archvow show <file>:<line>.', "Aucun fichier de ce projet dedans : quand tu sais où ça a cassé, archvow show <fichier>:<ligne>."))}</p>`
@@ -649,8 +667,8 @@
   <h2 class="mono">${esc(str(error, 'error'))}</h2>
   ${rules || `<p class="muted">${esc(t("Not a known error of this project's template.", 'Pas une erreur connue du template de ce projet.'))}</p>`}
   ${where}
-  <p class="muted small">${esc(t('Fixed? Record the lesson where it reaches: the component\'s decision or rule, a pack rule with this error (--error), or the template\'s troubleshooting page. The AI says which at the end of "Fix a bug".',
-    "Corrigé ? Enregistre la leçon où elle porte : la décision ou la règle du composant, une règle de pack avec cette erreur (--error), ou la page de dépannage du template. L'IA le dit à la fin de « Corrige un bug »."))}</p></div>`;
+  <p class="muted small">${esc(t('Fixed? Record the lesson where it reaches: the component\'s decision or rule, a template rule with this error (--error), or the template\'s troubleshooting page. The AI says which at the end of "Fix a bug".',
+    "Corrigé ? Enregistre la leçon où elle porte : la décision ou la règle du composant, une règle de template avec cette erreur (--error), ou la page de dépannage du template. L'IA le dit à la fin de « Corrige un bug »."))}</p></div>`;
   }
 
   // ---------------------------------------------------------------- shared: result card, confirmation
@@ -782,18 +800,19 @@
   }
 
   function overviewTab() {
-    if (ui.packsOpen) return packsView();  // Overview › Packs, in the same tab (0.22.0)
+    if (ui.templatesOpen) return templatesView();  // Overview › Templates, in the same tab (1.0.0)
     const branchWarning = needsFeatureBranch(S.branch) ? `<div class="warning" title="${esc(t('Advice only. Archvow does not automatically change Git branches.',
       'Conseil uniquement. Archvow ne change pas automatiquement de branche Git.'))}">${esc(t(`⚠ You are on ${S.branch}. For development, create a feature branch (e.g. feature/my-change) first.`,
       `⚠ Branche ${S.branch} : crée une branche de fonctionnalité (ex. feature/ma-modification) avant de développer.`))}</div>` : '';
     return `<section class="overview">
+  ${compatLine()}
   ${branchWarning}
-  ${S.install && S.install.reason === 'version' ? installCard() + confirmation('welcome') + resultCard('welcome') : ''}
+  ${compatCard()}
   ${firstStepsCard()}
   <div class="project-action-container">${projectToolbar()}</div>
   ${architectureView()}
   ${checksCard()}
-  ${packsSummary()}
+  ${templatesSummary()}
   <footer class="hint"><label>${esc(t('Language', 'Langue'))} <select data-change="language">${[['auto', t('Follow VS Code', 'Suivre VS Code')], ['en', 'English'], ['fr', 'Français']]
     .map(([v, l]) => `<option value="${v}" ${S.languageMode === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
     <span class="row wrap">${btn(t('Open settings', 'Ouvrir les paramètres'), 'settings', '', false, 'secondary')}
@@ -816,56 +835,61 @@
       ${f.file ? btn(checkFileLabel(f.file), 'openFile', attrs({ file: f.file, line: f.line }), false, 'secondary') : btn(t('Open Checks', 'Voir les contrôles'), 'openChecks', '', false, 'secondary')}</div></section>`;
   }
 
-  /** Overview › Packs (0.22.0): one row, as Architecture and Checks - how many packs, the copies changed by hand. */
-  function packsSummary() {
-    const packs = (S && S.packs) || [];
-    const changed = packs.filter((p) => str(p, 'state') === 'changed').length;
-    const line = `${packs.length} ${esc(t(packs.length === 1 ? 'pack' : 'packs', packs.length === 1 ? 'pack' : 'packs'))}`
+  /** Overview › Templates (1.0.0): one row, as Architecture and Checks - the project's chain, the copies changed by hand. */
+  function templatesSummary() {
+    const chain = ((S && S.templates) || []).filter((p) => str(p, 'name') !== 'project');
+    const changed = chain.filter((p) => str(p, 'state') === 'changed').length;
+    const line = `${esc(chain.map((p) => str(p, 'name')).join(' ← ') || t('none', 'aucun'))}`
       + (changed ? ` · <span class="tone-warn">${changed} ${esc(t('changed by hand', 'modifiés à la main'))}</span>` : '');
-    return `<div class="card packs-summary" data-a="openPacks" title="${esc(t('Open Packs', 'Voir les packs'))}"><div class="checks-summary-info"><div>
-    <h3>${esc(t('Packs', 'Packs'))}</h3>
+    return `<div class="card templates-summary" data-a="openTemplates" title="${esc(t('Open Templates', 'Voir les templates'))}"><div class="checks-summary-info"><div>
+    <h3>${esc(t('Templates', 'Templates'))}</h3>
     <p class="muted small">${line}</p></div></div>
-    <button class="link" data-a="openPacks">${esc(t('Open Packs', 'Voir les packs'))} →</button></div>`;
+    <button class="link" data-a="openTemplates">${esc(t('Open Templates', 'Voir les templates'))} →</button></div>`;
   }
 
-  /** Where a pack came from, as archvow 2.6 records it: a folder by its path from the project's root (the same in
-   *  every clone laid out alike), an installed package by its name; an absolute path is an earlier archvow's, which
-   *  its next Update rewrites. */
-  function packSource(source) {
+  /** Where a template came from, as archvow 3.0 records it: archvow's own, a folder by its path from the project's
+   *  root (the same in every clone laid out alike), or an installed package by its name. */
+  function templateSource(source) {
     if (!source) return t('Source: unknown', 'Source : inconnue');
-    if (/^(\/|[A-Za-z]:[\\/]|\\\\)/.test(source)) return t(`Source: ${source} (an absolute path: true on this machine only; Update records it from the project's root)`,
-      `Source : ${source} (un chemin absolu : vrai sur cette machine seulement ; Mettre à jour l'enregistre depuis la racine du projet)`);
+    if (source === 'archvow') return t('Source: archvow', 'Source : archvow');
+    if (/^(\/|[A-Za-z]:[\\/]|\\\\)/.test(source)) return t(`Source: ${source} (an absolute path: true on this machine only)`,
+      `Source : ${source} (un chemin absolu : vrai sur cette machine seulement)`);
     if (/[\\/]/.test(source) || source.startsWith('.')) return t(`Source: ${source} (a folder, from the project's root)`, `Source : ${source} (un dossier, depuis la racine du projet)`);
     return t(`Source: ${source} (an installed package)`, `Source : ${source} (un paquet installé)`);
   }
 
-  /** The project's packs (0.22.0): what each brings and its state, with Update / Remove, and Add a pack / New pack. */
-  function packsView() {
-    const packs = (S && S.packs) || [];
-    const brings = (p) => [['templates', t('templates', 'templates')], ['agents', t('agents', 'agents')], ['rule_families', t('rules', 'règles')],
-      ['regimes', t('privacy regimes', 'régimes de protection')]]
-      .map(([key, label]) => list(p, key).length ? `${label}: ${list(p, key).map((x) => esc(String(x))).join(', ')}` : '').filter((x) => x).join(' · ');
-    const rows = packs.map((p) => {
+  /** The project's templates (1.0.0): its chain's copies, bases first, each with what it extends, its source and
+   *  state; then the project's own additions. Update takes them again; questions and rules go to `project`. */
+  function templatesView() {
+    const all = (S && S.templates) || [];
+    const chain = all.filter((p) => str(p, 'name') !== 'project');
+    const own = all.find((p) => str(p, 'name') === 'project');
+    const rows = chain.map((p) => {
       const name = str(p, 'name');
       const changed = str(p, 'state') === 'changed';
-      return `<div class="card pack"><div class="card-head"><h3>${esc(name)} <span class="muted small">${esc(str(p, 'version'))}</span></h3>
-        <span class="${changed ? 'tone-warn' : 'tone-good'}">${esc(changed ? t('changed by hand', 'modifié à la main') : t('as added', 'tel qu\'ajouté'))}</span></div>
+      const bases = names(p, 'extends').map((x) => esc(x)).join(', ');
+      return `<div class="card template"><div class="card-head"><h3>${esc(name)} <span class="muted small">${esc(str(p, 'version'))}</span></h3>
+        <span class="${changed ? 'tone-warn' : 'tone-good'}">${esc(changed ? t('changed by hand', 'modifié à la main') : t('as copied', 'tel que copié'))}</span></div>
         <p class="muted small">${esc(str(p, 'description'))}</p>
-        <p class="small">${brings(p) || esc(t('Nothing yet.', 'Rien pour l\'instant.'))}</p>
-        <p class="muted small">${esc(packSource(str(p, 'source')))}</p>
-        ${changed ? `<p class="small tone-warn">${esc(str(p, 'why'))} (ARCH060)</p>` : ''}
-        <span class="row wrap">${btn(t('Update', 'Mettre à jour'), 'openCommand', attrs({ command: 'pack update', packname: name }), false, 'secondary')}
-        ${btn(t('Remove', 'Retirer'), 'openCommand', attrs({ command: 'pack remove', packname: name }), false, 'secondary')}
-        ${changed ? btn(t('See the change', 'Voir le changement'), 'openCommand', attrs({ command: 'diff', field: 'base' }), false, 'secondary') : ''}
-        ${btn(t('Check', 'Vérifier'), 'openCommand', attrs({ command: 'pack check', pack: name }), false, 'secondary')}</span></div>`;
+        ${bases ? `<p class="small">${esc(t('Extends', 'Étend'))}: ${bases}</p>` : ''}
+        <p class="muted small">${esc(templateSource(str(p, 'source')))}</p>
+        ${changed ? `<p class="small tone-warn">${esc(str(p, 'why'))} (ARCH060)</p>
+        ${btn(t('See the change', 'Voir le changement'), 'openCommand', attrs({ command: 'diff', field: 'base' }), false, 'secondary')}` : ''}</div>`;
     }).join('');
-    return `<section class="overview packs-list"><div class="card-head"><h3>${esc(t('Packs', 'Packs'))}</h3>
-      <span class="row wrap">${btn(t('Add a pack', 'Ajouter un pack'), 'openCommand', attrs({ command: 'pack add' }))}
-      ${btn(t('New pack', 'Nouveau pack'), 'openCommand', attrs({ command: 'pack new' }), false, 'secondary')}</span></div>
-      <p class="muted small">${esc(t("A pack brings a company's templates, agents and rules; its copy in .archvow/packs/ is what every clone and the CI read.",
-        "Un pack apporte les templates, agents et règles d'une entreprise ; sa copie dans .archvow/packs/ est ce que lisent chaque clone et la CI."))}</p>
-      ${rows || `<p class="muted">${esc(t('No pack in this project: its templates come from archvow.', 'Aucun pack dans ce projet : ses templates viennent d\'archvow.'))}</p>`}
-      <button class="link" data-a="closePacks">← ${esc(t('Overview', 'Vue d\'ensemble'))}</button></section>`;
+    const ownLine = own ? [['rule_families', t('rules', 'règles')], ['agents', t('agents', 'agents')]]
+      .map(([key, label]) => names(own, key).length ? `${label}: ${names(own, key).map((x) => esc(x)).join(', ')}` : '').filter((x) => x).join(' · ') : '';
+    return `<section class="overview templates-list"><div class="card-head"><h3>${esc(t('Templates', 'Templates'))}</h3>
+      <span class="row wrap">${btn(t('Update', 'Mettre à jour'), 'openCommand', attrs({ command: 'template update' }))}
+      ${btn(t('New template', 'Nouveau template'), 'openCommand', attrs({ command: 'template new' }), false, 'secondary')}</span></div>
+      <p class="muted small">${esc(t("The project's templates, bases first: their copies in .archvow/templates/ are what every clone and the CI read.",
+        "Les templates du projet, bases d'abord : leurs copies dans .archvow/templates/ sont ce que lisent chaque clone et la CI."))}</p>
+      ${rows || `<p class="muted">${esc(t('No template copied in this project yet: run archvow init --force.', 'Aucun template copié dans ce projet : lance archvow init --force.'))}</p>`}
+      <div class="card template"><div class="card-head"><h3>${esc(t("This project's own additions", 'Les ajouts propres à ce projet'))}</h3>
+        <span class="mono small muted">.archvow/template/</span></div>
+        <p class="small">${ownLine || esc(t('None yet: a question or a rule for this project only.', 'Aucun pour l\'instant : une question ou une règle pour ce seul projet.'))}</p>
+        <span class="row wrap">${btn(t('Add a question', 'Ajouter une question'), 'openCommand', attrs({ command: 'template question', templatename: 'project' }), false, 'secondary')}
+        ${btn(t('Add a rule', 'Ajouter une règle'), 'openCommand', attrs({ command: 'template rule', templatename: 'project' }), false, 'secondary')}</span></div>
+      <button class="link" data-a="closeTemplates">← ${esc(t('Overview', 'Vue d\'ensemble'))}</button></section>`;
   }
 
   /** Overview › Architecture (0.25.0): its own items only - decisions, questions and tasks; check findings are
@@ -2262,8 +2286,8 @@
       if (!('no_input' in ui.form)) ui.form.no_input = 'true';
       post({ type: 'catalog', template: ui.form.template || '' });
     }
-    // pack template: the templates to extend and their settings, from the installed archvow
-    if (name === 'pack template') post({ type: 'catalog', template: '' });
+    // template new: the templates to extend and their settings, from the installed archvow
+    if (name === 'template new') post({ type: 'catalog', template: '' });
   }
 
   /** Edit spec's baseline: the fields the component already has, as choosing the component fills them. */
@@ -2467,7 +2491,7 @@
     const name = command.path.join(' ');
     const seen = new Set();
     const possible = params.filter((p) => !((name === 'init' && ['template', 'answer'].includes(p.name))
-      || (name === 'pack template' && ['answer', 'layer'].includes(p.name))));
+      || (name === 'template new' && ['answer', 'layer'].includes(p.name))));
     const stage = (en, fr, names, extra = '') => {
       const own = names.filter((key) => possible.some((p) => p.name === key) && !seen.has(key));
       own.forEach((key) => seen.add(key));
@@ -2499,7 +2523,7 @@
     } else if (name === 'component edit') {
       stages.push(stage('Identity & changes', 'Identité et modifications', ['component', 'description', 'spec', 'uses']));
       stages.push(stage('Advanced changes', 'Modifications avancées', ['signature', 'group', 'route', 'owners', 'source']));
-    } else if (name === 'pack template') {
+    } else if (name === 'template new') {
       stages.push(stage('Template basics', 'Création du modèle', ['name', 'extends', 'dir', 'description'], 'template-basics'));
       stages.push(stage('Other options', 'Autres options', ['allowed_paths', 'verbatim_folders', 'no_input'], 'template-layers'));
       const base = baseTemplate();
@@ -2522,7 +2546,7 @@
     for (let i = 0; i < expert.length; i += 5) stages.push(stage('Expert checks', 'Contrôles experts', expert.slice(i, i + 5)));
     const result = stages.filter((s) => s.names.length || (s.questions && s.questions.length) || s.extra);
     // A parameterless/read-only command stays a single direct form.
-    if (result.length <= 1 && name !== 'init' && name !== 'pack template') return result;
+    if (result.length <= 1 && name !== 'init' && name !== 'template new') return result;
     result.push({ title: t('Review', 'Récapitulatif'), names: [], review: true });
     return result;
   }
@@ -2535,7 +2559,7 @@
         if (p.boolean) value = value === 'true' ? t('Yes', 'Oui') : t('No', 'Non');
         return `<div class="guided-review-item"><b>${esc(fieldLabel(name, p.name))}</b><span>${esc(value || '—')}</span></div>`;
       }).join('');
-      const template = name === 'init' ? templates().find((x) => str(x, 'name') === ui.initTemplate) : name === 'pack template' ? baseTemplate() : null;
+      const template = name === 'init' ? templates().find((x) => str(x, 'name') === ui.initTemplate) : name === 'template new' ? baseTemplate() : null;
       const answers = template ? list(template, 'questions').map((q) => {
         const id = str(q, 'id');
         const value = name === 'init' ? (id in ui.initAnswers ? ui.initAnswers[id] : str(q, 'default'))
@@ -2569,7 +2593,7 @@
     if (!fieldsReady) return false;
     if (stage.extra === 'init-template' && !String(ui.form.template || ui.initTemplate || '').trim()) return false;
     const source = command.path.join(' ') === 'init' ? templates().find((x) => str(x, 'name') === ui.initTemplate)
-      : command.path.join(' ') === 'pack template' ? baseTemplate() : null;
+      : command.path.join(' ') === 'template new' ? baseTemplate() : null;
     const questions = source ? list(source, 'questions') : [];
     return (stage.questions || []).every((id) => {
       const question = questions.find((q) => str(q, 'id') === id);
@@ -2765,15 +2789,15 @@
   function chooseInitTemplate() {
     const requested = (ui.form.template || '').trim();
     const names = templates().map((x) => str(x, 'name'));
-    const match = templates().find((x) => requested && (str(x, 'name') === requested || str(x, 'source') === requested || requested.endsWith('/' + str(x, 'name'))))
-      // a short name (python-app) is a pack's template (archvow/python-app), as archvow's init --template reads it
-      || templates().find((x) => requested && str(x, 'name').endsWith('/' + requested));
+    // a name, or the folder of one (a company template: -t <its folder>)
+    const match = templates().find((x) => requested && (str(x, 'name') === requested || str(x, 'source') === requested || requested.endsWith('/' + str(x, 'name'))));
     if (match) ui.initTemplate = str(match, 'name');
     else if (requested) ui.initTemplate = ''; // a custom template path: its questions are not in this catalog
     else {
       // in a project: its own template (init --force there rewrites its files); else python-app
       const own = projectTemplate();
-      const builtin = names.includes('archvow/python-app') ? 'archvow/python-app' : names.includes('python-app') ? 'python-app' : '';
+      const marked = templates().find((x) => x.default === true);  // archvow 3.0: the one marked default (python-app)
+      const builtin = marked ? str(marked, 'name') : names.includes('python-app') ? 'python-app' : '';
       ui.initTemplate = names.includes(own) ? own : builtin || names[0] || '';
       if (ui.initTemplate) ui.form.template = ui.initTemplate;
     }
@@ -2822,7 +2846,7 @@
     "La liste contient les assistants qu'archvow connaît : il écrit leurs fichiers propres. Tout autre nom marche aussi : il reçoit les fichiers standard (AGENTS.md, .agents/skills), et archvow le reconnaît quand il tourne avec AI_AGENT=<nom>."))}</div>`;
   }
 
-  /** The answer of a question, as it stands: what was chosen, or its default (init and pack template). */
+  /** The answer of a question, as it stands: what was chosen, or its default (init and template new). */
   function answerOf(kind, id) {
     if (kind === 'tpl') {
       const q = list(baseTemplate(), 'questions').find((x) => str(x, 'id') === id);
@@ -2896,14 +2920,14 @@
   <textarea rows="2" data-input="form" data-name="answer" data-keep="f-answer" title="${esc(t('Optional extra answers, one KEY=VALUE per line', 'Réponses supplémentaires : KEY=VALUE par ligne'))}">${esc(ui.form.answer || '')}</textarea></fieldset>`;
   }
 
-  /** pack template: the base chosen in --extends, as the catalog knows it. */
+  /** template new: the base chosen in --extends (the first of a list), as the catalog knows it; none: from scratch. */
   function baseTemplate() {
-    const name = (ui.form.extends || '').trim();
+    const name = (ui.form.extends || '').split(',')[0].trim();
     return name ? templates().concat(list(I.catalog, 'templates')).find((x) => str(x, 'name') === name) : undefined;
   }
 
   /**
-   * pack template: the settings of the base, filled in with its values. What the company may set - the
+   * template new: the settings of the base, filled in with its values. What the company may set - the
    * defaults of the init answers, the folder of each layer - is editable, within what the base allows
    * (its choices, its formats); what the base imposes - its layers, its version, what it extends - is shown,
    * not editable. Only what differs from the base is written into the new template.
@@ -2941,7 +2965,7 @@
   ${showLayers ? `<p class="muted small">${esc(t('The folder of each layer (src/<package>/<folder>/, tests/<folder>/):', 'Le dossier de chaque couche (src/<package>/<dossier>/, tests/<dossier>/) :'))}</p><div class="form">${layers}</div>` : ''}</fieldset>`;
   }
 
-  /** pack template: the -a and --layer lines of what differs from the base; a format the base refuses, as a message. */
+  /** template new: the -a and --layer lines of what differs from the base; a format the base refuses, as a message. */
   function templateSettings() {
     const base = baseTemplate();
     const out = { answer: [], layer: [], problem: '' };
@@ -3226,8 +3250,8 @@
     },
     openProjectVow: () => post({ type: 'openProjectVow' }),
     openChecks: () => post({ type: 'openChecks' }),
-    openPacks: () => { ui.packsOpen = true; },
-    closePacks: () => { ui.packsOpen = false; },
+    openTemplates: () => { ui.templatesOpen = true; },
+    closeTemplates: () => { ui.templatesOpen = false; },
     openChecksReference: () => post({ type: 'openChecksReference' }),
     projectWork: () => post({ type: 'showProjectWork', index: 0 }),
     openRule: (e) => post({ type: 'openRule', code: e.dataset.code }),
@@ -3322,8 +3346,7 @@
       if (e.dataset.number) values.number = e.dataset.number;
       if (e.dataset.id) values.id = e.dataset.id;  // hazard accept, rule accept / remove (0.16.0)
       if (e.dataset.brief) values.brief = e.dataset.brief;  // brief accept, from Overview › Briefs
-      if (e.dataset.packname) values.name = e.dataset.packname;  // pack update / remove, from Overview › Packs (0.22.0)
-      if (e.dataset.pack) values.pack = e.dataset.pack;  // pack check
+      if (e.dataset.templatename) values.template = e.dataset.templatename;  // template question / rule project, from Overview › Templates
       if (e.dataset.field === 'base' && baseNow().trim()) values.base = baseNow().trim();
       post({ type: 'openCommand', command: e.dataset.command, values, selected: ui.component });
     },
@@ -3469,7 +3492,7 @@
     cancelForm: () => { setCommand(ui.command, {}, ''); },
     runForm: () => {
       const values = Object.assign({}, ui.form);
-      if (ui.command === 'pack template') {
+      if (ui.command === 'template new') {
         const settings = templateSettings();
         if (settings.problem) { post({ type: 'message', text: settings.problem }); return; }
         values.answer = settings.answer.join('\n');

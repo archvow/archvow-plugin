@@ -2,6 +2,31 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 1.0.0 - 2026-11-24
+
+Works with archvow >=3.0,<4. Built on archvow 3.0.0 (contract 3.0: templates replace packs; every question has an
+id). The plugins now have their own versioning, from 1.0.0: a plugin release says the range of archvow versions it
+works with, and an archvow release in that range needs no plugin release.
+
+- **The range is said where you look**: the header of the workspace (`archvow 3.0.0 ✓ · this plugin works with
+  archvow >=3.0,<4`), the README and the Marketplace page - one value, `contract/archvow-range.txt`, checked by the
+  release test.
+- **An archvow outside the range is said, with what to do.** Older: Install archvow 3.0.0 - or, when the project
+  pins an older archvow (`archvow==2.8.0` in its requirements.txt or pyproject.toml), how its architects upgrade
+  the project on a branch (`pip install archvow==3.0.0`, `archvow init <package> --force`); the plugin never
+  installs over a pin. A project pinned inside the range gets its own pin installed. Newer: update the plugin.
+  None: the exact install command. Both plugins say the same on every case of `contract/compat/expected.json`.
+- **Overview › Templates** replaces Packs: the project's chain of templates, bases first (`python-base ←
+  pyspark-pipeline ← acme-pyspark`), each with what it extends, where it came from and whether its copy in
+  `.archvow/templates/` is as copied (ARCH060 otherwise, with See the change); **Update** (`archvow template
+  update`), **New template**, and the project's own additions (`.archvow/template/`) with **Add a question** and
+  **Add a rule**.
+- **The template commands as forms**: `template new` (extend one or more templates - a base's settings filled in
+  - or start from scratch), `template rule` (with **Final**), `template question`, `template agent`, `template
+  check`, `template update`, each with the files it writes. The `pack` commands are gone with archvow 3.0.
+- **Init**: template names are plain (`pyspark-pipeline`, no `archvow/`); a company template is given by its
+  folder; without one, the template archvow marks as the default (python-app).
+
 ## 0.26.1 - 2026-11-20
 
 Built on archvow 2.8.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to

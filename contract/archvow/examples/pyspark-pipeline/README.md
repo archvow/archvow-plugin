@@ -6,7 +6,7 @@
 PySpark pipeline for my_pipeline
 
 A batch **PySpark data pipeline**, specified and guarded with
-[archvow](.archvow/README.md) (template `archvow/pyspark-pipeline@2.8.0`).
+[archvow](.archvow/README.md) (template `pyspark-pipeline`).
 
 ## For developers
 
@@ -129,7 +129,7 @@ complete pipeline, from the empty project to a run: archvow's documentation, *Ge
 **1. Create the project** - this one was created with:
 
 ```bash
-archvow init my_pipeline -t archvow/pyspark-pipeline -d 'PySpark pipeline for my_pipeline' \
+archvow init my_pipeline -t pyspark-pipeline -d 'PySpark pipeline for my_pipeline' \
     -a language=en -a python_version=3.11 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a spark_version=3.5 -a scheduler=none -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,SPARK,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
@@ -268,6 +268,7 @@ SPARK_MASTER="local[*]" ./entrypoint.sh my_pipeline <its arguments>   # that lin
 | join two datasets | `archvow component add transformation add_reference -d "..." --signature "(df: DataFrame, reference: DataFrame) -> DataFrame"` |
 | ask a question, as a developer | `archvow question add clean_sales "May amount be negative for refunds?"` |
 | let the AI find what is unclear | `archvow prompt clean_sales --clarify` (in the chat: `/archvow-clarify clean_sales`) |
+| check a whole feature before coding (where its components disagree) | `archvow prompt --feature <feature> --clarify` (in the chat: `/archvow-clarify <feature>`) |
 | dismiss a safety question that does not apply | `archvow hazard dismiss sales_reader S4 "the job reads only the file it is given"` |
 | see everything about a component | `archvow show sales_reader` |
 | record a business example (files in `tests/examples/clean_sales/<example>/`) | `archvow example add clean_sales US-001-negative-amount -s US-001 --from briefs/<brief>.md#<section>`; `archvow show clean_sales` gives its test's verdict and where `actual/` differs from `expected/` |

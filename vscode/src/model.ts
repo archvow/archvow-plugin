@@ -281,10 +281,11 @@ export interface WorkspaceAnswer {
   briefStatus: Record<string, unknown> | null;
   /** Contract 2.0: each feature, as `show <feature> --json`, by name. */
   features: Record<string, Record<string, unknown>>;
-  /** The templates, packs and agents, as `catalog --json` in the project. */
+  /** The templates and agents, as `catalog --json` in the project. */
   catalog: Record<string, unknown> | null;
-  /** The project's packs (archvow 1.26, contract 1.2): each with its source and state, `ok` or `changed` (ARCH060). */
-  packs: Record<string, unknown>[];
+  /** The project's templates (contract 3.0): its chain's copies, bases first, each with its version, `extends`,
+   *  source and state, `ok` or `changed` (ARCH060: edited by hand, or missing); then `project`, its own additions. */
+  templates: Record<string, unknown>[];
   /** Contract 2.1: the first steps of a new project, each `{step, title, detail, command, done}` (the Overview's card). */
   firstSteps: Record<string, unknown>[];
 }
@@ -311,7 +312,7 @@ export function readWorkspace(answer: Record<string, unknown> | null): Workspace
   return { digest: answer.digest, spec, snapshots, next: answer.next as Record<string, unknown>[], check,
     briefStatus: record(answer.briefs), catalog: record(answer.catalog),
     features: Object.fromEntries(Object.entries(record(answer.features) ?? {}).map(([k, v]) => [k, record(v)]).filter(([, v]) => v !== null)) as Record<string, Record<string, unknown>>,
-    packs: Array.isArray(answer.packs) ? (answer.packs as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [],
+    templates: Array.isArray(answer.templates) ? (answer.templates as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [],
     firstSteps: Array.isArray(answer.first_steps) ? (answer.first_steps as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [] };
 }
 
@@ -325,29 +326,4 @@ export function knownVersion(versionTxt: string): string {
 export function parseContract(text: string): number[] | null {
   const m = /^\s*(\d+)\.(\d+)\s*$/.exec(text);
   return m === null ? null : [Number(m[1]), Number(m[2])];
-}
-
-/**
- * A sentence when the installed archvow does not speak this plugin's contract, else null. archvow says its
- * contract (`archvow version --json`, 1.23): the same MAJOR and a MINOR at least the plugin's is accepted, any
- * patch or later minor release included. An archvow that says no contract is older than the plugin needs.
- * `tested` is the archvow the plugin is tested with (what Install installs). The IntelliJ plugin says the same.
- */
-export function contractWarning(installed: { version: string; contract: string } | null, wanted: string, tested: string,
-  fr = false): string | null {
-  if (installed === null || installed.version === '') {
-    return fr ? "archvow n'a pas donné sa version (archvow --version) : est-il installé ?"
-      : 'archvow did not say its version (archvow --version): is it installed?';
-  }
-  const have = parseContract(installed.contract);
-  const need = parseContract(wanted) ?? [0, 0];
-  const older = have === null || have[0] < need[0] || (have[0] === need[0] && have[1] < need[1]);
-  if (!older && have !== null && have[0] === need[0]) return null;
-  const v = installed.version;
-  if (older) {
-    return fr ? `archvow ${v} est plus ancien que ce qu'il faut à ce plugin (archvow ${tested}) : mets archvow à jour.`
-      : `archvow ${v} is older than this plugin needs (archvow ${tested}): update archvow.`;
-  }
-  return fr ? `archvow ${v} est plus récent que ce que ce plugin connaît (contrat ${installed.contract}, plugin fait pour le contrat ${wanted}) : mets le plugin à jour.`
-    : `archvow ${v} is newer than this plugin knows (contract ${installed.contract}, the plugin speaks ${wanted}): update the plugin.`;
 }

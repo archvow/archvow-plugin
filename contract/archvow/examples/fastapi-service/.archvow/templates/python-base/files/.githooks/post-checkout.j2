@@ -1,0 +1,25 @@
+#!/bin/sh
+# archvow: runs after `git switch` / `git checkout`. It only warns, never blocks (the pre-commit hook
+# and CI refuse a commit on a badly named branch). Create branches with plain Git:
+#   git switch -c feature/<ticket>-<short-name> develop
+[ "$3" = 1 ] || exit 0   # a branch was checked out (not a single file)
+{%- if branch_naming != 'none' %}
+[ "${ARCHVOW_BRANCH_NAMING-{{ branch_naming }}}" != none ] || exit 0
+branch=$(git symbolic-ref --short -q HEAD || true)
+case "$branch" in
+    ""|main|master|develop) exit 0 ;;
+esac
+{%- if not ticket_pattern_set %}
+case "$branch" in
+    feature/*|hotfix/*)
+        echo "post-checkout: this project has no ticket pattern yet (how its tickets are written, e.g. FATTRIB-[0-9]+)." >&2
+        echo "  Set it once (architects approve it): archvow init {{ package }} --force -a ticket_pattern='FATTRIB-[0-9]+'" >&2 ;;
+esac
+{%- endif %}
+if ! printf '%s\n' "$branch" | grep -Eq '{{ branch_regex }}'; then
+    echo "post-checkout: branch '$branch' does not follow the naming the commit hook and CI require:" >&2
+    echo "  feature/<ticket>-<short-name> (e.g. feature/{{ ticket(1) }}-sales-reader), hotfix/<ticket>-<short-name>, release/<version>" >&2
+    echo "  rename it now: git branch -m feature/{{ ticket(1) }}-<short-name>" >&2
+fi
+{%- endif %}
+exit 0

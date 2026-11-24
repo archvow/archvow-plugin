@@ -19,13 +19,13 @@ export interface PlanContext {
 }
 
 /**
- * Where a pack command writes (0.22.0): `{dir}` the folder `pack new --dir` names (empty: inside this project,
- * .archvow/packs); `{pack}` a pack's folder, or the name of one of the project's packs (.archvow/packs/<name>).
+ * Where a template command writes (1.0.0): `{dir}` the folder `template new --dir` names (empty: where archvow runs);
+ * `{template}` a template's folder, or `project`: this project's own additions (.archvow/template).
  */
-function packFolder(value: string | undefined, parent: boolean): string {
+function templateFolder(value: string | undefined, parent: boolean): string {
   const text = (value ?? '').trim().replace(/\/+$/, '');
-  if (parent) return text || '.archvow/packs';
-  return /[/\\]/.test(text) || text.startsWith('.') ? text : `.archvow/packs/${text}`;
+  if (parent) return text || '.';
+  return text === 'project' ? '.archvow/template' : text;
 }
 
 /** {name} orders_clean, {NAME} ORDERS_CLEAN, {Name} OrdersClean: archvow's manifest.name_values. */
@@ -174,10 +174,10 @@ export function filePlan(name: string, values: Record<string, string>, ctx: Plan
       const feature = (values.feature ?? '').trim() || (name === 'component add' ? defaultFeature(ctx.spec) : '');
       if ((pattern.includes('{home}') && !home) || (pattern.includes('{feature}') && !feature)) continue;
       if (pattern.includes('{name}') && !(values.name ?? '').trim()) continue;
-      if (pattern.includes('{pack}') && !(values.pack ?? '').trim()) continue;
+      if (pattern.includes('{template}') && !(values.template ?? '').trim()) continue;
       const one = pattern.replace('{new}', id).replace(/\{component\}/g, id).replace(/\{name\}/g, (values.name ?? '').trim())
         .replace(/\{home\}/g, home).replace(/\{feature\}/g, feature)
-        .replace('{dir}', packFolder(values.dir, true)).replace('{pack}', packFolder(values.pack, false));
+        .replace('{dir}', templateFolder(values.dir, true)).replace('{template}', templateFolder(values.template, false));
       // {member}: each component of the form's feature; {each_feature}: each feature of the project
       const each = one.includes('{member}') ? componentsOf(ctx.spec).filter((x) => str(x.comp, 'feature') === feature).map((x) => str(x.comp, 'id'))
         : one.includes('{each_feature}') ? objects(ctx.spec, 'features').map((f) => str(f, 'name')) : null;

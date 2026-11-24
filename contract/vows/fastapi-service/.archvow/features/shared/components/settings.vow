@@ -18,12 +18,14 @@ symbol get_settings
 
 # --- decisions
 decision 1
+  id settings
   question "Which settings, with which defaults (name: type = default), and which are required?"
   answer "app_name: str = 'orders'; nothing else yet"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 2
+  id secrets
   question "Which settings are secrets (never logged, never in a response), and where do they come from?"
   answer "No secret yet"
   by architect@example.com

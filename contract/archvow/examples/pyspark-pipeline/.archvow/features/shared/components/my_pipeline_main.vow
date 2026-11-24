@@ -16,12 +16,14 @@ symbol main
 
 # --- decisions
 decision 1
+  id invalid_arguments
   question "Invalid arguments (e.g. --run-date 2026-13-01): which exit code and message?"
   answer "Exit code 2 with a usage message"
   by architect@example.com
   on 2026-11-11T19:07:03.587374+00:00
 
 decision 2
+  id code
   question "Which exit code for which problem, so the scheduler knows what happened (e.g. 0 ok, 1 error, 2 bad arguments, 3 input not ready)?"
   answer "0 success, 1 job failure, 2 invalid arguments"
   by architect@example.com

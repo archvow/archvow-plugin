@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "component": "compute_vat",
   "type": "transformation",
   "layer": "p1_domain",

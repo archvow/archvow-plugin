@@ -27,7 +27,7 @@ const audit = window.audit;
 handlers.message({ data: { type: 'init', commands: [], forms: {}, catalog, types: {}, icons: {} } });
 handlers.message({ data: { type: 'state', state: { fr: false, project: { name: 't', root: '/tmp/t' }, install: {}, snapshots: {}, readiness: 'NOT_INITIALIZED' } } });
 audit.ui.catalog = catalog;
-audit.ui.initTemplate = 'archvow/python-app';
+audit.ui.initTemplate = 'python-app';
 
 // 1. ai_tools: a chip per chosen assistant, a list of the others archvow knows, a box for any other name
 let html = audit.initWizard();

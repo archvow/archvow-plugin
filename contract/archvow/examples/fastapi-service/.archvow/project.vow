@@ -10,7 +10,7 @@ system
 
 # --- containers
 container orders_api
-  template archvow/fastapi-service@2.8.0
+  template fastapi-service
   package orders_api
   path src/orders_api
 
@@ -39,3 +39,12 @@ init_answers
 compliance [gdpr, tst]
 mode strict
 families [all]
+templates
+  fastapi-service
+    version 3.0.0
+    source archvow
+    digest 53b4f9be9e57
+  python-base
+    version 3.0.0
+    source archvow
+    digest 418c6c7829fc

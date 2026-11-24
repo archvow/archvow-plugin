@@ -1,0 +1,12 @@
+# Development tools for {{ project_name }}: tests and checks (CI installs the same).
+#   pip install -r requirements.txt          (or: uv pip install -r requirements.txt)
+{%- if pip_index_url %}
+--index-url {{ pip_index_url }}
+{%- endif %}
+-e .
+archvow=={{ archvow_version }}
+ruff>=0.6
+mypy>=1.10
+pytest>=8
+pytest-cov>=5
+hypothesis>=6

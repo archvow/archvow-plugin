@@ -78,16 +78,14 @@ def write(path, data):
 
 def portable(catalog):
     """A built-in template's `source` is where archvow is installed on this machine: recorded as
-    <archvow>/templates/<name> (archvow 1.26: resources/archvow/templates/<name>; before, packs/<name>), so the
+    <archvow>/templates/<name> (archvow 3.0: its wheel's archvow/resources/templates/<name>), so the
     contract is the same wherever it is regenerated (the CI job `contract` regenerates it and fails on any
     difference). The plugins do not read it."""
     for template in catalog.get("templates", []):
         source = Path(str(template.get("source") or ""))
-        if source.parent.name == "templates" and source.parent.parent.name == "archvow" \
-                and source.parent.parent.parent.name == "resources":
+        if source.parent.name == "templates" and source.parent.parent.name == "resources" \
+                and source.parent.parent.parent.name == "archvow":
             template["source"] = f"<archvow>/templates/{source.name}"
-        elif source.parent.name == "packs" and source.parent.parent.name == "archvow":
-            template["source"] = f"<archvow>/packs/{source.name}"
     return catalog
 
 

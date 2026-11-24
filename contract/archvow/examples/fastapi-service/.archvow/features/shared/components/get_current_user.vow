@@ -15,12 +15,14 @@ symbol get_current_user
 
 # --- decisions
 decision 1
+  id provides
   question "What does it provide, and for how long (one request, the whole app)?"
   answer "The customer id (str) from the X-Customer header, for one request"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 2
+  id cannot
   question "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end?"
   answer "Header missing or empty: 401 Unauthorized"
   by architect@example.com
