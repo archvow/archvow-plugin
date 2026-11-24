@@ -113,12 +113,13 @@ assert.equal(editor.posted.at(-1).values.uses, 'schema,config');
 editor.message({ type: 'select', component: 'schema' });
 assert.match(editor.app.innerHTML, /Answer with a table \(optional\)/);
 assert.match(editor.app.innerHTML, /id/);
-assert.match(editor.app.innerHTML, /personal-data classification unknown|not personal data/);
+assert.match(editor.app.innerHTML, /data-name="personal"[^>]*data-value="unknown"/, 'personal-data choices include Unknown');
+assert.match(editor.app.innerHTML, /data-name="personal"[^>]*data-value="no"/, 'known non-personal columns are prefilled');
+assert.match(editor.app.innerHTML, /data-name="personal"[^>]*data-value="yes"/, 'known personal columns are prefilled');
 // 0.15.0: each row has Never null / Nullable / Unknown and Yes / No / Unknown as buttons, and a bin to remove it
 assert.match(editor.app.innerHTML, /data-a="smartSeg"[^>]*data-name="nullable"[^>]*data-value="no"/);
 assert.equal((editor.app.innerHTML.match(/data-a="smartRemove"/g) || []).length, 2, 'one bin per column');
 editor.click('smartSeg', { kind: 'column', key: 'd:schema:1', row: '0', name: 'nullable', value: 'no' });
-editor.click('smartUse', { key: 'd:schema:1' });
 assert.match(editor.app.innerHTML, /id: not null, not personal data/);
 editor.click('smartRemove', { key: 'd:schema:1', row: '1' });
 assert.equal((editor.app.innerHTML.match(/data-a="smartRemove"/g) || []).length, 1, 'the bin removes its row');
