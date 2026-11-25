@@ -40,7 +40,7 @@ final class ArchvowColumnAnswerPanel extends JPanel {
     private final List<Row> rows = new ArrayList<>();
     private final JPanel grid = new JPanel(new GridBagLayout());
     private final JButton add = new JButton();
-    private final JLabel note = new JLabel();
+    private final ArchvowWrapLabel note = new ArchvowWrapLabel();  // 1.2.1: it wraps (a JLabel was cut in a narrow pane)
     /** "Edited by hand: the table no longer writes over it · Write it from the table again" (1.1.0). */
     private final JPanel handLine = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
     private final JLabel handWords = new JLabel();
@@ -70,10 +70,11 @@ final class ArchvowColumnAnswerPanel extends JPanel {
             @Override public void removeUpdate(DocumentEvent e) { changed(); }
             @Override public void changedUpdate(DocumentEvent e) { }
         });
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JPanel actions = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 5, 0));
         actions.setOpaque(false);
         actions.add(add);
         note.setForeground(UIManager.getColor("Label.disabledForeground"));
+        note.setOpaque(false);
         handWords.setForeground(UIManager.getColor("Label.disabledForeground"));
         handLine.setOpaque(false);
         handLine.add(handWords);
@@ -91,6 +92,18 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         add(bottom, BorderLayout.SOUTH);
         setBorder(BorderFactory.createTitledBorder("Answer with a table (optional)"));
         setVisible(false);
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) {
+                if (mode != Mode.NONE && stackedFor(getWidth()) != stacked) SwingUtilities.invokeLater(ArchvowColumnAnswerPanel.this::fitWidth);
+            }
+        });
+    }
+
+    boolean stackedForTest() { return stacked; }
+
+    /** Rows side by side or stacked, as the width now asks. */
+    void fitWidth() {
+        if (mode != Mode.NONE && stackedFor(getWidth()) != stacked) rebuild();
     }
 
     private String t(String en, String fr) { return french ? fr : en; }
@@ -187,10 +200,20 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         try { rebuildRows(); } finally { building = false; }
     }
 
+    /** One cell of a row: its label (the column's head), the field, how much it widens, and whether it takes a
+     *  whole line when the table is stacked. */
+    private record Cell(String label, JComponent field, double weight, boolean wide) { }
+
+    /** 1.2.1: under this width the rows are stacked, each a small form with its labels (a grid of 6 columns at
+     *  minimum size made the fields a few pixels wide, "Pa…", "…"). */
+    static final int STACK_BELOW = 520;
+    private boolean stacked;
+
+    private boolean stackedFor(int width) { return width > 0 && width < STACK_BELOW; }
+
     private void rebuildRows() {
         grid.removeAll();
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 0; c.insets = new Insets(2, 0, 2, 6); c.anchor = GridBagConstraints.WEST; c.fill = GridBagConstraints.HORIZONTAL;
+        stacked = stackedFor(getWidth());
         List<String> heads = new ArrayList<>();
         if (mode == Mode.COLUMNS) {
             heads.add(t("Column", "Colonne"));
@@ -202,85 +225,135 @@ final class ArchvowColumnAnswerPanel extends JPanel {
         }
         heads.add("Notes");
         heads.add("");
-        for (int i = 0; i < heads.size(); i++) {
-            JLabel h = new JLabel(heads.get(i));
-            h.setForeground(UIManager.getColor("Label.disabledForeground"));
-            h.putClientProperty("archvow.head", Boolean.TRUE);
-            c.gridx = i; c.weightx = 0;
-            grid.add(h, c);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = 0; c.insets = new Insets(2, 0, 2, 6); c.anchor = GridBagConstraints.WEST; c.fill = GridBagConstraints.HORIZONTAL;
+        if (!stacked) {
+            for (int i = 0; i < heads.size(); i++) {
+                JLabel h = new JLabel(heads.get(i));
+                h.setForeground(UIManager.getColor("Label.disabledForeground"));
+                h.putClientProperty("archvow.head", Boolean.TRUE);
+                c.gridx = i; c.weightx = 0;
+                grid.add(h, c);
+            }
         }
         for (int r = 0; r < rows.size(); r++) {
-            Row row = rows.get(r);
-            final int index = r;
-            c.gridy = r + 1;
-            int x = 0;
-            c.gridx = x++; c.weightx = 1;
-            grid.add(field(row.name, v -> row.name = v, mode == Mode.PARAMETERS ? "input_path" : t("column", "colonne")), c);
-            if (mode == Mode.COLUMNS) {
-                if (asksType) { c.gridx = x++; c.weightx = .6; grid.add(typeField(row, List.of("string", "integer", "long", "float", "double", "decimal", "boolean", "date", "timestamp")), c); }
-                c.weightx = 0;
-                if (asksNullable) {
-                    c.gridx = x++;
-                    grid.add(segments(List.of(new String[] {"no", t("Never null", "Jamais nul")}, new String[] {"yes", "Nullable"},
-                        new String[] {"unknown", t("Unknown", "Inconnu")}), row.nullable, v -> row.nullable = v), c);
+            List<Cell> cells = cells(rows.get(r), r, heads);
+            if (!stacked) {
+                c.gridy = r + 1;
+                for (int x = 0; x < cells.size(); x++) {
+                    Cell cell = cells.get(x);
+                    c.gridx = x; c.weightx = cell.weight();
+                    c.fill = cell.label().isEmpty() ? GridBagConstraints.NONE : GridBagConstraints.HORIZONTAL;
+                    grid.add(cell.field(), c);
                 }
-                if (asksPersonal) {
-                    c.gridx = x++;
-                    grid.add(segments(List.of(new String[] {"yes", t("Yes", "Oui")}, new String[] {"no", t("No", "Non")},
-                        new String[] {"unknown", t("Unknown", "Inconnu")}), row.personal, v -> row.personal = v), c);
-                }
+                c.fill = GridBagConstraints.HORIZONTAL;
             } else {
-                c.gridx = x++; c.weightx = .5;
-                JsonObject parameters = ArchvowForms.section("smart_answers").getAsJsonObject("parameters");
-                List<String> types = parameters != null && parameters.has("types") ? ArchvowGrammar.strings(parameters, "types") : List.of("str", "int", "float", "bool", "date");
-                grid.add(typeField(row, types), c);
-                // 1.1.0: Required is a box with its own column; ticked, the default is "—" and cannot be typed
-                JCheckBox required = new JCheckBox(row.required ? t("yes", "oui") : t("no", "non"), row.required);
-                required.setOpaque(false);
-                required.putClientProperty("archvow.required", Boolean.TRUE);
-                JTextField value = field(row.required ? "" : row.value, v -> { if (!row.required) row.value = v; }, "");
-                Runnable state = () -> {
-                    value.setEnabled(!row.required);
-                    if (row.required) { if (!"—".equals(value.getText())) writingDefault(value, "—"); }
-                    else if ("—".equals(value.getText())) writingDefault(value, row.value);
-                    boolean missing = !row.required && row.value.isBlank() && !row.name.isBlank();
-                    value.putClientProperty("JComponent.outline", missing ? "error" : null);
-                    value.setToolTipText(missing ? t("a default, or tick Required", "une valeur par défaut, ou cocher Obligatoire") : null);
-                    value.repaint();
-                };
-                required.addActionListener(e -> {
-                    row.required = required.isSelected();
-                    required.setText(row.required ? t("yes", "oui") : t("no", "non"));
-                    state.run();
-                    edited();
-                });
-                value.getDocument().addDocumentListener(new DocumentListener() {  // the red mark follows the typing
-                    @Override public void insertUpdate(DocumentEvent e) { if (!building) SwingUtilities.invokeLater(state); }
-                    @Override public void removeUpdate(DocumentEvent e) { if (!building) SwingUtilities.invokeLater(state); }
-                    @Override public void changedUpdate(DocumentEvent e) { }
-                });
-                c.gridx = x++; c.weightx = 0;
-                grid.add(required, c);
-                c.gridx = x++; c.weightx = 1;
-                grid.add(value, c);
-                state.run();
+                c.gridy = r; c.gridx = 0; c.weightx = 1; c.gridwidth = 1; c.insets = new Insets(0, 0, 0, 0);
+                grid.add(stackedRow(cells, r), c);
             }
-            c.gridx = x++; c.weightx = 1;
-            grid.add(field(row.note, v -> row.note = v, t("optional", "facultatif")), c);
-            JButton bin = new JButton(ArchvowTreeIcons.icon("remove", null));
-            bin.putClientProperty("archvow.bin", Boolean.TRUE);
-            bin.setToolTipText(mode == Mode.COLUMNS ? t("Remove this column from the table", "Retirer cette colonne du tableau")
-                : t("Remove this parameter from the table", "Retirer ce paramètre du tableau"));
-            bin.getAccessibleContext().setAccessibleName(t("Remove", "Retirer"));
-            bin.setBorderPainted(false); bin.setContentAreaFilled(false); bin.setFocusPainted(false);
-            bin.setMargin(new Insets(1, 3, 1, 3));
-            bin.addActionListener(e -> removeRow(index));
-            c.gridx = x; c.weightx = 0; c.fill = GridBagConstraints.NONE;
-            grid.add(bin, c);
-            c.fill = GridBagConstraints.HORIZONTAL;
         }
         grid.revalidate(); grid.repaint();
         revalidate(); repaint();
+    }
+
+    /** A row stacked: two cells a line, a wide one alone on its line, the label above each, the bin at the end. */
+    private JPanel stackedRow(List<Cell> cells, int index) {
+        JPanel line = new JPanel(new GridBagLayout());
+        line.setOpaque(false);
+        line.putClientProperty("archvow.stackedRow", Boolean.TRUE);
+        line.setBorder(BorderFactory.createCompoundBorder(
+            index == 0 ? BorderFactory.createEmptyBorder() : BorderFactory.createMatteBorder(1, 0, 0, 0, separator()),
+            BorderFactory.createEmptyBorder(6, 0, 6, 0)));
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST; c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1; c.gridy = 0; c.insets = new Insets(0, 0, 0, 8);
+        int x = 0;
+        for (Cell cell : cells) {
+            if (cell.label().isEmpty()) {  // the bin: alone at the end, on the right
+                if (x != 0) { c.gridy++; x = 0; }
+                c.gridx = 0; c.gridwidth = 2; c.fill = GridBagConstraints.NONE; c.anchor = GridBagConstraints.EAST;
+                line.add(cell.field(), c);
+                c.fill = GridBagConstraints.HORIZONTAL; c.anchor = GridBagConstraints.WEST; c.gridwidth = 1;
+                continue;
+            }
+            if (cell.wide() && x != 0) { c.gridy++; x = 0; }
+            JPanel box = new JPanel(new BorderLayout(0, 2));
+            box.setOpaque(false);
+            JLabel label = new JLabel(cell.label());
+            label.setForeground(UIManager.getColor("Label.disabledForeground"));
+            label.putClientProperty("archvow.head", Boolean.TRUE);
+            box.add(label, BorderLayout.NORTH);
+            JPanel left = new JPanel(new BorderLayout());
+            left.setOpaque(false);
+            left.add(cell.field(), cell.field() instanceof JTextField ? BorderLayout.CENTER : BorderLayout.WEST);
+            box.add(left, BorderLayout.CENTER);
+            c.gridx = x; c.gridwidth = cell.wide() ? 2 : 1;
+            c.insets = new Insets(2, 0, 2, x == 0 && !cell.wide() ? 8 : 0);
+            line.add(box, c);
+            if (cell.wide() || x == 1) { c.gridy++; x = 0; } else x = 1;
+        }
+        return line;
+    }
+
+    private static Color separator() {
+        Color color = UIManager.getColor("Separator.foreground");
+        return color == null ? new Color(128, 128, 128, 90) : color;
+    }
+
+    /** The cells of one row, in the order of the heads. */
+    private List<Cell> cells(Row row, int index, List<String> heads) {
+        List<Cell> cells = new ArrayList<>();
+        int h = 0;
+        cells.add(new Cell(heads.get(h++), field(row.name, v -> row.name = v, mode == Mode.PARAMETERS ? "input_path" : t("column", "colonne")), 1, true));
+        if (mode == Mode.COLUMNS) {
+            if (asksType) cells.add(new Cell(heads.get(h++), typeField(row, List.of("string", "integer", "long", "float", "double", "decimal", "boolean", "date", "timestamp")), .6, false));
+            if (asksNullable) cells.add(new Cell(heads.get(h++), segments(List.of(new String[] {"no", t("Never null", "Jamais nul")}, new String[] {"yes", "Nullable"},
+                new String[] {"unknown", t("Unknown", "Inconnu")}), row.nullable, v -> row.nullable = v), 0, true));
+            if (asksPersonal) cells.add(new Cell(heads.get(h++), segments(List.of(new String[] {"yes", t("Yes", "Oui")}, new String[] {"no", t("No", "Non")},
+                new String[] {"unknown", t("Unknown", "Inconnu")}), row.personal, v -> row.personal = v), 0, true));
+        } else {
+            JsonObject parameters = ArchvowForms.section("smart_answers").getAsJsonObject("parameters");
+            List<String> types = parameters != null && parameters.has("types") ? ArchvowGrammar.strings(parameters, "types") : List.of("str", "int", "float", "bool", "date");
+            cells.add(new Cell(heads.get(h++), typeField(row, types), .5, false));
+            // 1.1.0: Required is a box with its own column; ticked, the default is "—" and cannot be typed
+            JCheckBox required = new JCheckBox(row.required ? t("yes", "oui") : t("no", "non"), row.required);
+            required.setOpaque(false);
+            required.putClientProperty("archvow.required", Boolean.TRUE);
+            JTextField value = field(row.required ? "" : row.value, v -> { if (!row.required) row.value = v; }, "");
+            Runnable state = () -> {
+                value.setEnabled(!row.required);
+                if (row.required) { if (!"—".equals(value.getText())) writingDefault(value, "—"); }
+                else if ("—".equals(value.getText())) writingDefault(value, row.value);
+                boolean missing = !row.required && row.value.isBlank() && !row.name.isBlank();
+                value.putClientProperty("JComponent.outline", missing ? "error" : null);
+                value.setToolTipText(missing ? t("a default, or tick Required", "une valeur par défaut, ou cocher Obligatoire") : null);
+                value.repaint();
+            };
+            required.addActionListener(e -> {
+                row.required = required.isSelected();
+                required.setText(row.required ? t("yes", "oui") : t("no", "non"));
+                state.run();
+                edited();
+            });
+            value.getDocument().addDocumentListener(new DocumentListener() {  // the red mark follows the typing
+                @Override public void insertUpdate(DocumentEvent e) { if (!building) SwingUtilities.invokeLater(state); }
+                @Override public void removeUpdate(DocumentEvent e) { if (!building) SwingUtilities.invokeLater(state); }
+                @Override public void changedUpdate(DocumentEvent e) { }
+            });
+            cells.add(new Cell(heads.get(h++), required, 0, false));
+            cells.add(new Cell(heads.get(h++), value, 1, false));
+            state.run();
+        }
+        cells.add(new Cell(heads.get(h), field(row.note, v -> row.note = v, t("optional", "facultatif")), 1, mode == Mode.COLUMNS));
+        JButton bin = new JButton(ArchvowTreeIcons.icon("remove", null));
+        bin.putClientProperty("archvow.bin", Boolean.TRUE);
+        bin.setToolTipText(mode == Mode.COLUMNS ? t("Remove this column from the table", "Retirer cette colonne du tableau")
+            : t("Remove this parameter from the table", "Retirer ce paramètre du tableau"));
+        if (bin.getAccessibleContext() != null) bin.getAccessibleContext().setAccessibleName(t("Remove", "Retirer"));
+        bin.setBorderPainted(false); bin.setContentAreaFilled(false); bin.setFocusPainted(false);
+        bin.setMargin(new Insets(1, 3, 1, 3));
+        bin.addActionListener(e -> removeRow(index));
+        cells.add(new Cell("", bin, 0, false));
+        return cells;
     }
 
     private interface Setter { void set(String value); }

@@ -15,6 +15,7 @@ public final class WorkspaceTests {
 
     public static void main(String[] args) throws Exception {
         run("ArchitectureViewRegression", () -> ArchitectureViewRegression.main(NONE));
+        run("ResponsiveViewsRegression", () -> ResponsiveViewsRegression.main(NONE));
         run("AnswerEditorRegression", () -> AnswerEditorRegression.main(NONE));
         run("ArchvowDataViewSmoke", () -> ArchvowDataViewSmoke.main(NONE));
         run("BriefsRegression", () -> BriefsRegression.main(NONE));

@@ -186,3 +186,21 @@ drafting.message({ type: 'select', component: 'schema' });
 assert.match(drafting.app.innerHTML, /AI drafts are off for this project/, 'off: the hover says why');
 assert.match(drafting.app.innerHTML, /data-a="draftRun"[^>]*disabled/, 'off: the icon greyed');
 console.log('Draft with AI: icon, menu, draft marked, saved as the person\'s, off for the project: OK');
+
+// 1.2.1: layouts that squeezed or cut at some width (the real widths are measured in a browser; here, their markup)
+const css = fs.readFileSync(path.join(root, 'vscode/media/workspace.css'), 'utf8');
+const shaped = make('editor');
+shaped.message({ type: 'skill', skill: 'clarify', values: { component: 'schema' } });
+assert.match(shaped.app.innerHTML, /<div class="form-grid skill-grid">/, 'the skill form has its own two columns');
+assert.doesNotMatch(shaped.app.innerHTML, /<div class="split"><div class="split-list">/, 'not the list/answer split (its middle column is the 10 px bar)');
+assert.match(css, /\.what \.two \{ display: grid; grid-template-columns: repeat\(auto-fit, minmax\(150px, 1fr\)\)/, 'The AI can / You still stack when narrow');
+assert.match(css, /\.smart-answer \{ container: smart \/ inline-size; \}/, 'the answer table follows its pane, not the window');
+assert.match(css, /@container smart \(max-width: 560px\)/, 'and stacks its rows when the pane is narrow');
+assert.doesNotMatch(css, /var\(--vscode-editor-font-family\)(?!, ?monospace)/, 'the editor font always falls back to monospace (never serif)');
+const tasks = make('editor');
+tasks.message({ type: 'select', component: 'schema' });
+tasks.click('view', { i: '5' });
+assert.match(tasks.app.innerHTML, /No separate tasks: the AI builds schema in one go, from its spec\./, 'no task: says what it means');
+assert.doesNotMatch(tasks.app.innerHTML, /data-a="dataAction"/, 'no task: no list, no empty button');
+assert.doesNotMatch(tasks.app.innerHTML, /handles: |writes: /, 'no empty personal data lines');
+console.log('Layouts: the skill form, the answer table, Tasks without tasks, the editor font: OK');

@@ -71,7 +71,7 @@ final class ArchvowInitQuestions extends JPanel {
         setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(
                 french ? "Modèle et ses questions" : "Template and its questions"),
                 BorderFactory.createEmptyBorder(7, 8, 7, 8)));
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
+        JPanel toolbar = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 8, 2));
         toolbar.add(new JLabel(french ? "Modèle" : "Template"));
         templatePicker.setPreferredSize(new Dimension(225, 28));
         templatePicker.addActionListener(e -> {
@@ -97,7 +97,7 @@ final class ArchvowInitQuestions extends JPanel {
         status.setForeground(UIManager.getColor("Label.disabledForeground"));
         head.add(toolbar);
         // or a company template's folder: its questions come from archvow's catalog of that folder
-        JPanel custom = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
+        JPanel custom = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 8, 2));
         custom.setAlignmentX(LEFT_ALIGNMENT);
         custom.add(new JLabel(french ? "ou le dossier d'un modèle d'entreprise :" : "or the folder of a company template:"));
         folder.setToolTipText("/path/to/templates/acme-pipeline");
@@ -286,7 +286,7 @@ final class ArchvowInitQuestions extends JPanel {
                 // AI assistants (0.26.1): picked from those archvow knows, or any other by name
                 field = new ArchvowAgentPicker(ArchvowAgentPicker.suggestions(question), def, french);
             } else if (multi && !choices.isEmpty()) {
-                JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+                JPanel chips = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
                 LinkedHashSet<String> defaults = new LinkedHashSet<>(List.of(def.split(",")));
                 for (String choice : choices) {
                     JCheckBox chip = new JCheckBox(choice, defaults.contains(choice));

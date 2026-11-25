@@ -1454,7 +1454,7 @@
   <div class="muted small">${esc(t('Instructions to copy (for any AI)', "Consignes à copier (pour toute IA)"))}</div><pre class="request">${esc(text)}</pre></aside>`;
     return `<div class="skill-form"><h2>${esc(pair(def.label))} <span class="mono small muted">skill: archvow-${esc(id)}</span></h2>
   <p>${esc(pair(def.does))}</p>${blocked ? `<div class="alert warn">${esc(pair(blocked))}</div>` : ''}
-  <div class="split"><div class="split-list">${skillNav}<section class="guided-panel">${shownControls}</section>${skillPager}</div>${right}</div>
+  <div class="form-grid skill-grid"><div>${skillNav}<section class="guided-panel">${shownControls}</section>${skillPager}</div>${right}</div>
   ${runInChat && sandboxed ? `<div class="alert warn sandbox-note">${esc(t("⚠ This project needs AI agents in a sandbox (ARCH051). Copilot's agent runs commands in your own terminal: archvow would refuse them. Copy the instructions to an agent you start in its sandbox.",
     "⚠ Ce projet demande que les agents IA tournent dans un bac à sable (ARCH051). L'agent de Copilot lance les commandes dans ton propre terminal : archvow les refuserait. Copie les consignes vers un agent que tu démarres dans son bac à sable."))}</div>` : ''}
   <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'link')}
@@ -2048,12 +2048,12 @@
       <p class="muted small">${esc(t('One row per column: what is not known stays Unknown. The table writes your answer below as you edit it.', 'Une ligne par colonne : ce qui n’est pas connu reste Inconnu. Le tableau écrit ta réponse ci-dessous au fil des modifications.'))}</p>
       <datalist id="archvow-type-suggestions">${['string','integer','long','float','double','decimal','boolean','date','timestamp'].map((type) => `<option value="${type}">`).join('')}</datalist>
       <div class="smart-grid" style="grid-template-columns:${cols}">${heads.map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
-      ${rows.map((r, i) => [field(i, 'name', r.name, `placeholder="${esc(t('column', 'colonne'))}"`),
-        ...(asks.type ? [field(i, 'type', r.type, `list="archvow-type-suggestions" placeholder="${esc(t('Unknown', 'Inconnu'))}"`)] : []),
-        ...(asks.nullable ? [smartSegments('column', key, i, 'nullable', r.nullable, [['no', t('Never null', 'Jamais nul')], ['yes', 'Nullable'], ['unknown', t('Unknown', 'Inconnu')]])] : []),
-        ...(asks.personal ? [smartSegments('column', key, i, 'personal', r.personal, [['yes', t('Yes', 'Oui')], ['no', t('No', 'Non')], ['unknown', t('Unknown', 'Inconnu')]])] : []),
-        field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`),
-        `<button class="icon smart-remove" data-a="smartRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this column from the table', 'Retirer cette colonne du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`].join('')).join('')}</div>
+      ${rows.map((r, i) => smartLine([[heads[0], field(i, 'name', r.name, `placeholder="${esc(t('column', 'colonne'))}"`), 'wide'],
+        ...(asks.type ? [[t('Type', 'Type'), field(i, 'type', r.type, `list="archvow-type-suggestions" placeholder="${esc(t('Unknown', 'Inconnu'))}"`)]] : []),
+        ...(asks.nullable ? [[t('Nullable?', 'Nullable ?'), smartSegments('column', key, i, 'nullable', r.nullable, [['no', t('Never null', 'Jamais nul')], ['yes', 'Nullable'], ['unknown', t('Unknown', 'Inconnu')]]), 'wide']] : []),
+        ...(asks.personal ? [[t('Personal data?', 'Donnée personnelle ?'), smartSegments('column', key, i, 'personal', r.personal, [['yes', t('Yes', 'Oui')], ['no', t('No', 'Non')], ['unknown', t('Unknown', 'Inconnu')]]), 'wide']] : []),
+        [t('Notes', 'Notes'), field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`), 'wide'],
+        ['', `<button class="icon smart-remove" data-a="smartRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this column from the table', 'Retirer cette colonne du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`, 'remove']])).join('')}</div>
       <div class="row wrap">${btn(t('+ Add column', '+ Ajouter une colonne'), 'smartAdd', attrs({ key }), false, 'secondary')}</div>
       <p class="muted small hand-line" data-hand="${esc(key)}"${ui.byHand[key] ? '' : ' hidden'}>${esc(t('Edited by hand: the table no longer writes over it ·', "Modifiée à la main : le tableau ne l'écrase plus ·"))} ${btn(t('Write it from the table again', 'La réécrire depuis le tableau'), 'smartRewrite', attrs({ key }), false, 'link')}</p>
     </details>`;
@@ -2109,15 +2109,21 @@
       <datalist id="archvow-param-types">${types.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
       <div class="smart-grid" style="grid-template-columns:minmax(110px,1.1fr) minmax(70px,.6fr) auto minmax(110px,1fr) minmax(90px,1fr) 28px">
       ${[t('Parameter', 'Paramètre'), t('Type', 'Type'), t('Required', 'Obligatoire'), t('Default', 'Défaut'), t('Notes', 'Notes'), ''].map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
-      ${rows.map((r, i) => [field(i, 'name', r.name, 'placeholder="input_path"'), field(i, 'type', r.type, 'list="archvow-param-types"'),
-        required(r, i),
-        r.required !== false ? field(i, 'default', '', 'disabled placeholder="—"')
-          : field(i, 'default', r.default, missing(r) ? `class="missing" title="${esc(t('a default, or tick Required', 'une valeur par défaut, ou cocher Obligatoire'))}" placeholder="${esc(t('a default, or tick Required', 'une valeur par défaut, ou cocher Obligatoire'))}"` : ''),
-        field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`),
-        `<button class="icon smart-remove" data-a="paramRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this parameter from the table', 'Retirer ce paramètre du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`].join('')).join('')}</div>
+      ${rows.map((r, i) => smartLine([[t('Parameter', 'Paramètre'), field(i, 'name', r.name, 'placeholder="input_path"'), 'wide'],
+        [t('Type', 'Type'), field(i, 'type', r.type, 'list="archvow-param-types"')],
+        [t('Required', 'Obligatoire'), required(r, i)],
+        [t('Default', 'Défaut'), r.required !== false ? field(i, 'default', '', 'disabled placeholder="—"')
+          : field(i, 'default', r.default, missing(r) ? `class="missing" title="${esc(t('a default, or tick Required', 'une valeur par défaut, ou cocher Obligatoire'))}" placeholder="${esc(t('a default, or tick Required', 'une valeur par défaut, ou cocher Obligatoire'))}"` : '')],
+        [t('Notes', 'Notes'), field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`)],
+        ['', `<button class="icon smart-remove" data-a="paramRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this parameter from the table', 'Retirer ce paramètre du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`, 'remove']])).join('')}</div>
       <div class="row wrap">${btn(t('+ Add parameter', '+ Ajouter un paramètre'), 'paramAdd', attrs({ key }), false, 'secondary')}</div>
       <p class="muted small hand-line" data-hand="${esc(key)}"${ui.byHand[key] ? '' : ' hidden'}>${esc(t('Edited by hand: the table no longer writes over it ·', "Modifiée à la main : le tableau ne l'écrase plus ·"))} ${btn(t('Write it from the table again', 'La réécrire depuis le tableau'), 'smartRewrite', attrs({ key }), false, 'link')}</p>
     </details>`;
+  }
+
+  /** 1.2.1: one row of an answer table: its cells, each with its label (shown above it when the pane is narrow). */
+  function smartLine(cells) {
+    return `<div class="smart-line">${cells.map(([label, html, cls]) => `<div class="smart-cell${cls ? ' ' + cls : ''}" data-label="${esc(label)}">${html}</div>`).join('')}</div>`;
   }
 
   function decisionsView(view) {
@@ -2360,23 +2366,31 @@
     const detail = selected ? `${esc(selected.title)} · ${esc(word(selected))}\n\n${esc(selected.detail
       || t('No further description is recorded for this item in the component spec.', "Aucune description supplémentaire n'est enregistrée pour cet élément dans la spec du composant."))}`
       : esc(t('Select a task or column to see its details.', 'Sélectionne une tâche ou une colonne pour voir ses détails.'));
-    const toBuild = items.filter((x) => x.kind === 'TASK' && x.pending).length;
+    const tasks = items.filter((x) => x.kind === 'TASK');
+    const toBuild = tasks.filter((x) => x.pending).length;
+    // 1.2.1: no tasks is not "every task is done": a small component has none, the AI builds it in one go
     const heading = toBuild ? t(`${toBuild} task${toBuild === 1 ? '' : 's'} to build: the AI (or you) writes the code and its marked tests. Each one is done when they exist.`,
       `${toBuild} tâche${toBuild === 1 ? '' : 's'} à construire : l'IA (ou toi) écrit le code et ses tests marqués. Chacune est faite quand ils existent.`)
-      : t('Nothing to build: every task is done.', 'Rien à construire : chaque tâche est faite.');
+      : tasks.length ? t('Nothing to build: every task is done.', 'Rien à construire : chaque tâche est faite.')
+      : t(`No separate tasks: the AI builds ${ui.component} in one go, from its spec.`, `Pas de tâches séparées : l'IA construit ${ui.component} d'un seul tenant, depuis sa spec.`);
     const column = selected && selected.kind === 'COLUMN';
     const columnsOpen = items.filter((x) => x.kind === 'COLUMN' && x.pending).length;
+    const flows = [['handles', t('Handles', 'Manipule')], ['writes', t('Writes', 'Écrit')], ['removed', t('Removes', 'Retire')], ['pseudonymised', t('Pseudonymises', 'Pseudonymise')]]
+      .map(([k, l]) => {
+        const v = view.personal && typeof view.personal === 'object' ? view.personal[k] : null;
+        const words = Array.isArray(v) ? v.map(String) : v && typeof v === 'object' ? Object.entries(v).map(([name, kind]) => `${name} (${kind})`) : [];
+        return words.length ? `<p>${esc(l)}: ${esc(words.join(', '))}</p>` : '';
+      }).join('');
     const summary = [`<h5>${esc(t('Columns and classifications', 'Colonnes et classifications') + (columnsOpen ? t(` · ${columnsOpen} to classify`, ` · ${columnsOpen} à classer`) : ''))}</h5>`,
       items.filter((x) => x.kind === 'COLUMN').map((x) => `<p class="${x.pending ? 'tone-warn' : 'tone-good'}">${x.pending ? '●' : '✓'} ${esc(x.title)} — ${esc(x.detail)}</p>`).join('')
         || `<p class="muted">${esc(t('No columns declared.', 'Aucune colonne déclarée.'))}</p>`,
       `<h5>${esc(t('Personal data', 'Données personnelles'))}</h5>`,
-      view.personal && typeof view.personal === 'object' && Object.keys(view.personal).length
-        ? Object.entries(view.personal).map(([k, v]) => `<p>${esc(k)}: ${esc(readable(v))}</p>`).join('')
-        : `<p class="muted">${esc(t('No personal data flows declared.', 'Aucun flux de données personnelles déclaré.'))}</p>`].join('');
-    return `<h4>${esc(heading)}</h4><ul class="list items" data-scroll="list-data">${rows || `<li class="muted">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>
-  <div class="row">${btn(column ? t('Classify column…', 'Classifier la colonne…') : t('Copy task prompt', 'Copier la tâche'), 'dataAction', '', !selected)}${column || !selected ? '' : btn(t('Open code', 'Ouvrir le code'), 'openCode', '', false, 'secondary')}</div>
-  <div class="details"><h5>${esc(t('Details and description', 'Détails et description'))}</h5><pre class="plain">${detail}</pre>
-  ${btn(t('Edit component description…', 'Modifier la description du composant…'), 'openCommand', attrs({ command: 'component edit', component: ui.component }), false, 'secondary')}</div>
+      flows || `<p class="muted">${esc(t('None declared.', 'Aucune déclarée.'))}</p>`].join('');
+    const left = `<ul class="list items" data-scroll="list-data">${rows}</ul>
+  <div class="row wrap">${btn(column ? t('Classify column…', 'Classifier la colonne…') : t('Copy task prompt', 'Copier la tâche'), 'dataAction', '', !selected)}${column || !selected ? '' : btn(t('Open code', 'Ouvrir le code'), 'openCode', '', false, 'secondary')}</div>`;
+    const right = `<h5>${esc(t('Details and description', 'Détails et description'))}</h5><pre class="plain">${detail}</pre>
+  ${btn(t('Edit component description…', 'Modifier la description du composant…'), 'openCommand', attrs({ command: 'component edit', component: ui.component }), false, 'secondary')}`;
+    return `<h4>${esc(heading)}</h4>${items.length ? split(left, right) : ''}
   ${resultCard('data')}<div class="details">${summary}</div>`;
   }
 

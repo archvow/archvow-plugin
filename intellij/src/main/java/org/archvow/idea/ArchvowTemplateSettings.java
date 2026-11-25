@@ -111,7 +111,7 @@ final class ArchvowTemplateSettings extends JPanel {
             if (ArchvowAgentPicker.names(q)) {
                 field = new ArchvowAgentPicker(ArchvowAgentPicker.suggestions(q), value, french);  // 0.26.1
             } else if (isTrue(q, "multiple") && !choices.isEmpty()) {
-                JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+                JPanel chips = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
                 Set<String> picked = new LinkedHashSet<>(List.of(value.split(",")));
                 for (String choice : choices) chips.add(new JCheckBox(choice, picked.contains(choice.trim())));
                 field = chips;

@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.2 - 2026-11-25
+
+Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0). Layouts that broke at some widths.
+
+- **AI skill form: "What will happen" was a column one word wide.** It took the list/answer split of 1.2.0, whose
+  middle column is the 10 px bar. It has its own two columns again (stacked under 760 px). "The AI can" and
+  "You still" go one under the other when there is no room for both.
+- **The answer table follows the answer pane, not the window.** Beside the list, the pane is narrower than the
+  window, and the last columns (Default, Notes, the bin) went past its edge. Below 560 px each row is a small form,
+  with its labels.
+- **Tasks:**
+  - A component with no task says so ("No separate tasks: the AI builds config in one go, from its spec"). It said
+    "every task is done".
+  - The list and the details are side by side like the other views.
+  - Personal data shows only what the component handles, writes, removes or pseudonymises, or "None declared".
+- **The editor font falls back to monospace.** When the editor's font is missing in the page, text such as
+  "skill: archvow-clarify" was drawn in a serif font.
+
 ## 1.2.1 - 2026-11-25
 
 Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0).

@@ -51,19 +51,28 @@ final class ArchvowProgress {
         List<Part> parts = parts(view, french);
         if (parts.isEmpty()) return "";
         String track = dark ? "#3C3F41" : "#E3E5E8";
-        StringBuilder out = new StringBuilder("<table class='progress' title='").append(escape(tooltip(parts)))
+        // 1.2.1: the parts share the width (as on the VS Code page) and each bar is 6 px: an empty cell of the
+        // editor kit is a line tall, so each holds a 1 pt space (it was a grey block, 120 px wide)
+        StringBuilder out = new StringBuilder("<table class='progress' width='100%' title='").append(escape(tooltip(parts)))
             .append("' cellspacing='0' cellpadding='0' style='margin-top:6px; margin-bottom:4px'><tr>");
-        for (Part p : parts) {
+        int share = 100 / parts.size();
+        for (int i = 0; i < parts.size(); i++) {
+            Part p = parts.get(i);
             String color = p.complete() ? (dark ? "#5FB865" : "#388A34") : (dark ? "#E0A33A" : "#D18616");
-            out.append("<td valign='top' style='padding-right:14px' title='").append(escape(p.said())).append("'>")
+            out.append("<td valign='top' width='").append(share).append("%' style='padding-right:").append(i == parts.size() - 1 ? 0 : 14)
+                .append("px' title='").append(escape(p.said())).append("'>")
                 .append("<div style='color:").append(dark ? "#B4B8BF" : "#5A5F66").append("'>").append(escape(p.label()))
                 .append(" <b>").append(p.done()).append("/").append(p.total()).append("</b></div>")
-                .append("<table data-part='").append(p.key()).append("' width='120' cellspacing='0' cellpadding='0'><tr>");
-            if (p.fill() > 0) out.append("<td width='").append(p.fill()).append("%' height='6' bgcolor='").append(color).append("'></td>");
-            if (p.fill() < 100) out.append("<td width='").append(100 - p.fill()).append("%' height='6' bgcolor='").append(track).append("'></td>");
+                .append("<table data-part='").append(p.key()).append("' width='100%' cellspacing='0' cellpadding='0'><tr>");
+            if (p.fill() > 0) out.append(cell(p.fill(), color));
+            if (p.fill() < 100) out.append(cell(100 - p.fill(), track));
             out.append("</tr></table></td>");
         }
         return out.append("</tr></table>").toString();
+    }
+
+    private static String cell(int percent, String color) {
+        return "<td width='" + percent + "%' height='6' bgcolor='" + color + "' style='font-size:1pt'>&nbsp;</td>";
     }
 
     private static void add(List<Part> out, String key, String label, JsonObject view, String field, Predicate<JsonObject> done) {

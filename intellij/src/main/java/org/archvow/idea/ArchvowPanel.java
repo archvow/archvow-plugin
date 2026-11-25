@@ -294,17 +294,10 @@ final class ArchvowPanel extends JPanel {
     private final JList<ArchvowItemCards.Card> assumptionList = new JList<>(assumptionModel);
     private final JButton assumptionAcceptButton = ArchvowSplitView.primary("");
     private final JButton assumptionRejectButton = new JButton();
-    private final DefaultListModel<ArchvowDataView.Item> dataActionModel = new DefaultListModel<>();
-    private final JList<ArchvowDataView.Item> dataActionList = new JList<>(dataActionModel);
-    private final JButton dataActionButton = ArchvowSplitView.primary("");
-    /** 1.1.0: Open code beside Copy task prompt; the heading says what tasks are (work to build). */
-    private final JButton dataOpenCode = new JButton();
-    private final JLabel dataHeading = new JLabel();
-    private final JTextArea dataSelectedDetails = new JTextArea(4, 30);
-    private final JButton dataEditDescription = new JButton();
+    // 1.2.1: the Tasks view is its own class (list | details, as the other views; ArchvowTasksView)
+    private ArchvowTasksView tasksView;
     private final JEditorPane dataInlineResult = resultHtmlPane();
     private JPanel dataInlineResultCard;
-    private JPanel dataActionsPanel;
     private final JButton safetySuggestedButton = new JButton();
     private final JButton safetyInvariantButton = new JButton();
     private final JButton changeHazardButton = new JButton();
@@ -319,7 +312,6 @@ final class ArchvowPanel extends JPanel {
     /** archvow 1.18 gives a safety question's suggestion only while it is open: kept for its invariant (component:number). */
     private final Map<String, String> rememberedInvariants = new java.util.HashMap<>();
     private final JTextPane rulesOnlyDetails = ArchvowDataView.create();
-    private final JTextPane rulesDetails = ArchvowDataView.create();
     private final JTextPane vowDetails = ArchvowVowViewer.create();
     /** The Spec view: the task the AI implements (archvow prompt) over the vow it is written from, both read only. */
     private final JTextArea cardDetails = new JTextArea();
@@ -1314,7 +1306,7 @@ final class ArchvowPanel extends JPanel {
             BorderFactory.createEmptyBorder(14, 16, 14, 16)));
         welcomeText.setPreferredSize(new Dimension(420, 100));
         card.add(welcomeText, BorderLayout.CENTER);
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JPanel actions = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 8, 0));
         welcomeInit = button(ArchvowI18n.text(project,"Initialize Archvow","Initialiser Archvow"), () -> {
             showWorkspace();
             openCommand("init", Map.of());
@@ -1828,7 +1820,7 @@ final class ArchvowPanel extends JPanel {
         quickTabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         quickTabs.addTab("Pending", scroll(otherPendingList));
         quickTabs.addTab("Resolved", scroll(otherResolvedList));
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        JPanel actions = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 0));
         quickPrimary.addActionListener(e -> handleQuickPrimaryAction());
         quickSecondary.addActionListener(e -> handleQuickSecondaryAction());
         actions.add(quickPrimary);
@@ -1892,7 +1884,7 @@ final class ArchvowPanel extends JPanel {
         componentOtherTabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         componentOtherTabs.addTab("Pending", scroll(componentOtherPendingList));
         componentOtherTabs.addTab("Resolved", scroll(componentOtherResolvedList));
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        JPanel actions = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 0));
         componentOtherPrimary.addActionListener(e -> handleQuickPrimaryAction());
         componentOtherSecondary.addActionListener(e -> handleQuickSecondaryAction());
         actions.add(componentOtherPrimary);
@@ -2336,7 +2328,7 @@ final class ArchvowPanel extends JPanel {
         assumptionList.addListSelectionListener(e -> { if (!e.getValueIsAdjusting()) showAssumption(); });
         JPanel assumptionItems = new JPanel(new BorderLayout(0, 6));
         assumptionItems.add(cardsScroll(assumptionList), BorderLayout.CENTER);
-        JPanel addAssumption = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JPanel addAssumption = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 0, 0));
         addAssumption.add(button(ArchvowI18n.text(project, "+ Assumption", "+ Hypothèse"),
             () -> withComponent(c -> openCommand("assumption add", Map.of("component", c.id)))));
         assumptionItems.add(addAssumption, BorderLayout.SOUTH);
@@ -2453,7 +2445,7 @@ final class ArchvowPanel extends JPanel {
         right.add(componentResultCard, BorderLayout.SOUTH);
         selectComponentView(0);
         JPanel componentBrowser = new JPanel(new BorderLayout(0, 3));
-        JPanel filterRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 2));
+        JPanel filterRow = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 3, 2));
         allComponentsFilter = button(ArchvowI18n.text(project, "All", "Tous"), () -> setComponentFilter("all"));
         pendingComponentsFilter = button(ArchvowI18n.text(project, "Pending", "En attente"), () -> setComponentFilter("pending"));
         resolvedComponentsFilter = button(ArchvowI18n.text(project, "Resolved", "Traités"), () -> setComponentFilter("resolved"));
@@ -2488,7 +2480,7 @@ final class ArchvowPanel extends JPanel {
         JPanel tools = new JPanel(new BorderLayout());
         tools.add(groupRow, BorderLayout.NORTH);
         tools.add(filterRow, BorderLayout.CENTER);
-        JPanel addRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 2));
+        JPanel addRow = new JPanel(new ArchvowWrapLayout(FlowLayout.RIGHT, 3, 2));
         addRow.add(addComponentButton);
         tools.add(addRow, BorderLayout.EAST);
         installLayerMenu();
@@ -2598,9 +2590,9 @@ final class ArchvowPanel extends JPanel {
             addMenuItem(menu, fr ? "Copier la question" : "Copy the question", () -> copyRowQuestion(safetyList, "safety"));
             return menu;
         });
-        rowMenu(dataActionList, () -> {
+        rowMenu(tasksView.items(), () -> {
             JPopupMenu menu = new JPopupMenu();
-            ArchvowDataView.Item item = dataActionList.getSelectedValue();
+            ArchvowDataView.Item item = tasksView.selected();
             boolean column = item != null && item.kind() == ArchvowDataView.Kind.COLUMN;
             addMenuItem(menu, column ? (fr ? "Classifier la colonne…" : "Classify column…") : (fr ? "Copier la tâche" : "Copy task prompt"), this::handleDataAction);
             if (!column) addMenuItem(menu, fr ? "Ouvrir le code" : "Open code", this::openCode);
@@ -2746,7 +2738,7 @@ final class ArchvowPanel extends JPanel {
 
     private JComponent rulesPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
-        JPanel commands = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+        JPanel commands = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
         commands.add(button(ArchvowI18n.text(project, "Add rule…", "Ajouter une règle…"),
             () -> openCommand("rule add", selectedComponent == null ? Map.of()
                 : Map.of("words", selectedComponent.id + "\n"))));
@@ -2789,142 +2781,29 @@ final class ArchvowPanel extends JPanel {
     }
 
     private JComponent dataPanel() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        dataActionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        ArchvowMotion.installList(dataActionList);
-        dataActionList.setCellRenderer(new DefaultListCellRenderer() {
-            @Override public java.awt.Component getListCellRendererComponent(JList<?> list, Object value,
-                    int index, boolean selected, boolean focused) {
-                super.getListCellRendererComponent(list, value, index, selected, focused);
-                if (value instanceof ArchvowDataView.Item item) {
-                    boolean column = item.kind() == ArchvowDataView.Kind.COLUMN;
-                    String label = column ? "◉ " : "▸ ";
-                    // 1.1.0: a task is work to build (blue), a column to classify is a person's decision (orange)
-                    setText(label + item.title() + "  ·  " + (column
-                        ? (item.pending() ? ArchvowI18n.text(project, "To classify", "À classer") : ArchvowI18n.text(project, "Classified", "Classée"))
-                        : (item.pending() ? ArchvowI18n.text(project, "To build", "À construire") : ArchvowI18n.text(project, "Done", "Faite"))));
-                    Color statusColor = !item.pending() ? ArchvowStatusPalette.statusColor(false)
-                        : column ? ArchvowStatusPalette.statusColor(true) : ArchvowMotion.accent();
-                    if (!selected) {
-                        setBackground(ArchvowStatusPalette.rowBackground(list.getBackground(), statusColor,
-                            false, ArchvowMotion.hoverLevel(dataActionList, index)));
-                        setForeground(darkTheme() ? new Color(222, 229, 239) : new Color(35, 47, 63));
-                    }
-                    setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, selected ? 4 : 3, 0, 0, statusColor),
-                        BorderFactory.createEmptyBorder(5, 7, 5, 7)));
-                }
-                return this;
+        tasksView = new ArchvowTasksView(new ArchvowTasksView.Actions() {
+            @Override public void act(ArchvowDataView.Item item) { handleDataAction(); }
+            @Override public void openCode() { ArchvowPanel.this.openCode(); }
+            @Override public void editDescription() {
+                if (selectedComponent != null) openCommand("component edit", Map.of("component", selectedComponent.id));
             }
         });
-        dataActionList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                ArchvowDataView.Item selected = dataActionList.getSelectedValue();
-                dataActionButton.setEnabled(selected != null);
-                dataEditDescription.setEnabled(selected != null && selectedComponent != null);
-                if (selected == null) {
-                    dataSelectedDetails.setText(ArchvowI18n.text(project,
-                        "Select a task or column to see its details.",
-                        "Sélectionne une tâche ou une colonne pour voir ses détails."));
-                } else {
-                    String detail = selected.detail();
-                    if (detail == null || detail.isBlank()) detail = ArchvowI18n.text(project,
-                        "No further description is recorded for this item in the component spec.",
-                        "Aucune description supplémentaire n'est enregistrée pour cet élément dans la spec du composant.");
-                    boolean column = selected.kind() == ArchvowDataView.Kind.COLUMN;
-                    dataSelectedDetails.setText(selected.title() + "  ·  " + (column
-                        ? (selected.pending() ? ArchvowI18n.text(project, "To classify", "À classer") : ArchvowI18n.text(project, "Classified", "Classée"))
-                        : (selected.pending() ? ArchvowI18n.text(project, "To build", "À construire") : ArchvowI18n.text(project, "Done", "Faite"))) + "\n\n" + detail);
-                    dataSelectedDetails.setCaretPosition(0);
-                    dataActionButton.setText(column ?
-                        ArchvowI18n.text(project,"Classify column…", "Classifier la colonne…") :
-                        ArchvowI18n.text(project,"Copy task prompt", "Copier la tâche"));
-                    dataOpenCode.setVisible(!column);
-                }
-            }
-        });
-        dataActionList.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (e.getClickCount() == 2) handleDataAction();
-            }
-        });
-        JScrollPane list = scroll(dataActionList);
-        list.setPreferredSize(new Dimension(200, 110));
-        JPanel toolbar = new JPanel(new BorderLayout(5,5));
-        dataHeading.setFont(dataHeading.getFont().deriveFont(Font.BOLD));
-        toolbar.add(dataHeading,BorderLayout.NORTH);
-        JPanel listAndDetails = new JPanel(new BorderLayout(0, 4));
-        listAndDetails.add(list, BorderLayout.NORTH);
-        toolbar.add(listAndDetails, BorderLayout.CENTER);
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT,5,2));
-        dataActionButton.setEnabled(false);
-        dataActionButton.addActionListener(e -> handleDataAction());
-        buttons.add(dataActionButton);
-        dataOpenCode.setText(ArchvowI18n.text(project, "Open code", "Ouvrir le code"));
-        dataOpenCode.addActionListener(e -> openCode());
-        buttons.add(dataOpenCode);
-
-        toolbar.add(buttons,BorderLayout.SOUTH);
-        dataSelectedDetails.setEditable(false);
-        dataSelectedDetails.setLineWrap(true);
-        dataSelectedDetails.setWrapStyleWord(true);
-        dataSelectedDetails.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        dataSelectedDetails.setBackground(UIManager.getColor("Panel.background"));
-        dataSelectedDetails.setForeground(UIManager.getColor("Label.foreground"));
-        dataSelectedDetails.setText(ArchvowI18n.text(project,
-            "Select a task or column to see its details.",
-            "Sélectionne une tâche ou une colonne pour voir ses détails."));
-        JScrollPane detail = scroll(dataSelectedDetails);
-        detail.setPreferredSize(new Dimension(170, 90));
-        detail.setBorder(BorderFactory.createTitledBorder(
-            ArchvowI18n.text(project, "Details and description", "Détails et description")));
-        dataEditDescription.setText(ArchvowI18n.text(project,
-            "Edit component description…", "Modifier la description du composant…"));
-        dataEditDescription.addActionListener(e -> {
-            if (selectedComponent != null) openCommand("component edit", Map.of("component", selectedComponent.id));
-        });
-        dataEditDescription.setEnabled(true);
-        JPanel detailsWithAction = new JPanel(new BorderLayout(0, 3));
-        detailsWithAction.add(detail, BorderLayout.CENTER);
-        JPanel detailFooter = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
-        detailFooter.add(dataEditDescription);
-        detailsWithAction.add(detailFooter, BorderLayout.SOUTH);
-        listAndDetails.add(detailsWithAction, BorderLayout.CENTER);
-        dataActionsPanel = toolbar;
-        panel.add(toolbar,BorderLayout.NORTH);
-        panel.add(scroll(rulesDetails),BorderLayout.CENTER);
+        tasksView.setFrench(ArchvowI18n.isFrench(project));
+        languageRefreshers.add(() -> tasksView.setFrench(ArchvowI18n.isFrench(project)));
+        ArchvowMotion.installList(tasksView.items());
         dataInlineResultCard = inlineResultCard(dataInlineResult, () -> dataInlineResultCard.setVisible(false));
         dataInlineResultCard.setVisible(false);
-        panel.add(dataInlineResultCard, BorderLayout.SOUTH);
-        return panel;
+        tasksView.resultSlot().add(dataInlineResultCard, BorderLayout.CENTER);
+        return tasksView;
     }
 
     private void refreshDataActions(JsonObject data) {
-        String oldId = dataActionList.getSelectedValue() == null ? "" : dataActionList.getSelectedValue().id();
-        dataActionModel.clear();
-        // Show both pending and completed tasks, so an item's description remains
-        // inspectable after completion. Pending work appears first.
-        List<ArchvowDataView.Item> available = ArchvowDataView.items(data);
-        for (ArchvowDataView.Item item : available)
-            if (item.pending()) dataActionModel.addElement(item);
-        for (ArchvowDataView.Item item : available)
-            if (!item.pending()) dataActionModel.addElement(item);
-        if (dataActionsPanel != null) dataActionsPanel.setVisible(true);
-        long toBuild = available.stream().filter(i -> i.kind() == ArchvowDataView.Kind.TASK && i.pending()).count();
-        dataHeading.setText(toBuild > 0
-            ? ArchvowI18n.text(project, toBuild + (toBuild == 1 ? " task" : " tasks") + " to build: the AI (or you) writes the code and its marked tests. Each one is done when they exist.",
-                toBuild + (toBuild == 1 ? " tâche" : " tâches") + " à construire : l'IA (ou toi) écrit le code et ses tests marqués. Chacune est faite quand ils existent.")
-            : ArchvowI18n.text(project, "Nothing to build: every task is done.", "Rien à construire : chaque tâche est faite."));
-        dataEditDescription.setEnabled(selectedComponent != null);
-        int selection = -1;
-        for (int i=0;i<dataActionModel.size();i++)
-            if (oldId.equals(dataActionModel.get(i).id())) selection=i;
-        if (!dataActionModel.isEmpty()) dataActionList.setSelectedIndex(selection < 0 ? 0 : selection);
+        tasksView.show(selectedComponent == null ? ArchvowGrammar.str(data, "component") : selectedComponent.id, data);
         if (dataInlineResultCard != null) dataInlineResultCard.setVisible(false);
     }
 
     private void handleDataAction() {
-        ArchvowDataView.Item item = dataActionList.getSelectedValue();
+        ArchvowDataView.Item item = tasksView.selected();
         if (item == null || selectedComponent == null) return;
         if (item.kind() == ArchvowDataView.Kind.COLUMN) {
             // The classification cannot be inferred from the column name.
@@ -5021,7 +4900,6 @@ final class ArchvowPanel extends JPanel {
         }
         refreshRulesAiActions();
         refreshSuggestion();
-        ArchvowDataView.render(rulesDetails, data, ArchvowI18n.isFrench(project));
         refreshDataActions(data);
         ArchvowVowViewer.display(vowDetails,
             ArchvowVowViewer.read(project.getBasePath(), ArchvowGrammar.str(data, "component")));
@@ -5031,7 +4909,6 @@ final class ArchvowPanel extends JPanel {
             frFiles ? "Où il est" : "Where it is");
         cardDetails.setCaretPosition(0);
         assumptionDetails.setCaretPosition(0);
-        rulesDetails.setCaretPosition(0);
         rulesOnlyDetails.setCaretPosition(0);
         vowDetails.setCaretPosition(0);
         showDecision();
@@ -6330,14 +6207,21 @@ final class ArchvowPanel extends JPanel {
             specPart.buttons().get(1).setText(ArchvowI18n.text(project, "The vow it is written from", "Le vow dont elle est écrite"));
             label.run();
         });
-        JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
-        bar.add(specPart);
-        bar.add(openOrCopy);
-        bar.add(button(ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
-        JLabel readOnly = new JLabel(ArchvowI18n.text(project, "read only: change it with the commands (Edit spec, + Question, + Rule...)",
-            "en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)"));
+        // 1.2.1: the row wraps (the segmented switch and two buttons are wider than a narrow tab) and the
+        // read-only note is a line of its own that wraps too: it was cut off at the right edge
+        JPanel buttonsRow = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
+        buttonsRow.add(specPart);
+        buttonsRow.add(openOrCopy);
+        buttonsRow.add(button(ArchvowI18n.text(project, "Project vow", "Vow du projet"), this::openProjectVow));
+        ArchvowWrapLabel readOnly = new ArchvowWrapLabel();
+        readOnly.setText(ArchvowI18n.text(project, "Read only: change it with the commands (Edit spec, + Question, + Rule...)",
+            "En lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)"));
         readOnly.setForeground(mutedTextColor());
-        bar.add(readOnly);
+        readOnly.setOpaque(false);
+        readOnly.setBorder(BorderFactory.createEmptyBorder(0, 8, 2, 8));
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.add(buttonsRow, BorderLayout.NORTH);
+        bar.add(readOnly, BorderLayout.CENTER);
         componentFilesView.clickable(new ArchvowFilePlanView.FileActions() {
             @Override public void open(String path) { openProjectFile(path); }
             @Override public void reveal(String path) { revealProjectFile(path); }
@@ -6548,7 +6432,7 @@ final class ArchvowPanel extends JPanel {
             build.setToolTipText(String.join(", ", ready));
             String feature = ArchvowWalks.featureOf(workspaceJson, ready.get(0));
             build.addActionListener(e -> startBuild(feature));
-            JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+            JPanel line = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 8, 4));
             line.setOpaque(false);
             line.add(build);
             architectureHolder.add(line, BorderLayout.SOUTH);
@@ -7721,7 +7605,7 @@ final class ArchvowPanel extends JPanel {
         JEditorPane pane = new JEditorPane("text/html", "");
         pane.setEditable(false);
         pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
-        pane.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        pane.setFont(ArchvowFonts.ui(Font.PLAIN, 13));
         pane.setBackground(UIManager.getColor("Panel.background"));
         pane.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         return pane;
@@ -7731,7 +7615,7 @@ final class ArchvowPanel extends JPanel {
         JEditorPane pane = new ArchvowResultPane();
         pane.setEditable(false);
         pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
-        pane.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        pane.setFont(ArchvowFonts.ui(Font.PLAIN, 13));
         pane.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
         return pane;
     }

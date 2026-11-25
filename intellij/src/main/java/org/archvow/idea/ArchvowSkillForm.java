@@ -63,15 +63,27 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         setBorder(BorderFactory.createEmptyBorder(12, 14, 12, 14));
 
         JPanel head = new JPanel(new BorderLayout(0, 3));
-        JLabel title = new JLabel(pair(def, "label") + "   skill: archvow-" + skill);
+        // 1.2.1: the skill's name beside the title goes under it when the editor is narrow (one label was cut)
+        JLabel title = new JLabel(pair(def, "label"));
         title.setFont(title.getFont().deriveFont(Font.BOLD, title.getFont().getSize2D() + 4f));
-        head.add(title, BorderLayout.NORTH);
+        JLabel skillName = new JLabel("skill: archvow-" + skill);
+        skillName.setFont(new Font(Font.MONOSPACED, Font.PLAIN, Math.round(title.getFont().getSize2D() - 4f)));
+        skillName.setForeground(UIManager.getColor("Label.disabledForeground"));
+        JPanel titleRow = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 0, 0));
+        titleRow.setOpaque(false);
+        title.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        titleRow.add(title);
+        titleRow.add(skillName);
+        head.add(titleRow, BorderLayout.NORTH);
         head.add(wrap(pair(def, "does")), BorderLayout.CENTER);
         blocked.setForeground(new Color(176, 118, 26));
         head.add(blocked, BorderLayout.SOUTH);
         add(head, BorderLayout.NORTH);
 
-        JPanel left = new JPanel();
+        // stacked, the controls are as tall as they need at the width they have now (the steps may wrap)
+        JPanel left = new JPanel() {
+            @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+        };
         left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
         if ("brief".equals(str(def, "target"))) {
             JComboBox<String> brief = new JComboBox<>(briefs.toArray(String[]::new));
@@ -196,30 +208,29 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         };
         rightHost.setOpaque(false);
         rightHost.add(right, BorderLayout.NORTH);
-        JPanel body = new JPanel(new GridLayout(1, 2, 12, 0));
+        // 1.2.1: side by side or stacked is decided when the body is laid out, at its width - a resize event
+        // came after the first layout (and never headless): the explanation stayed a narrow column of words
+        final boolean[] stacked = {false};
+        JPanel body = new JPanel(new GridLayout(1, 2, 12, 0)) {
+            @Override public void doLayout() {
+                boolean narrow = getWidth() > 0 && getWidth() < STACK_BELOW;
+                if (narrow != stacked[0]) {
+                    stacked[0] = narrow;
+                    if (narrow) {
+                        // BoxLayout uses each row's natural height. GridLayout(2,1)
+                        // would force the short controls to be as tall as the explanation.
+                        right.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+                        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+                    } else setLayout(new GridLayout(1, 2, 12, 0));
+                }
+                super.doLayout();
+            }
+        };
         body.setName("archvow.skill.body");
         body.add(leftHost);
         body.add(rightHost);
         left.setAlignmentX(Component.LEFT_ALIGNMENT);
         right.setAlignmentX(Component.LEFT_ALIGNMENT);
-        // A narrow editor stacks the controls above the explanation rather than
-        // shrinking both columns until labels and controls are cut off.
-        body.addComponentListener(new ComponentAdapter() {
-            private boolean stacked;
-            @Override public void componentResized(ComponentEvent e) {
-                boolean narrow = body.getWidth() < 680;
-                if (narrow == stacked) return;
-                stacked = narrow;
-                if (narrow) {
-                    // BoxLayout uses each row's natural height. GridLayout(2,1)
-                    // would force the short controls to be as tall as the explanation.
-                    left.setMaximumSize(new Dimension(Integer.MAX_VALUE, left.getPreferredSize().height));
-                    right.setMaximumSize(new Dimension(Integer.MAX_VALUE, right.getPreferredSize().height));
-                    body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-                } else body.setLayout(new GridLayout(1, 2, 12, 0));
-                body.revalidate();
-            }
-        });
         add(body, BorderLayout.CENTER);
 
         cancel = new JButton(french ? "Annuler" : "Cancel");
@@ -246,6 +257,9 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
 
     /** What "Copy and open AI chat" opens after copying (the panel: the IDE's AI chat window). */
     void onOpenChat(Runnable action) { onOpenChat = action; }
+
+    /** Under this width the controls go above the explanation, instead of two columns of a few words each. */
+    static final int STACK_BELOW = 680;
 
     /** FlowLayout normally reports one row even when it has wrapped. Reserve the true height. */
     private static final class WrapActionLayout extends FlowLayout {

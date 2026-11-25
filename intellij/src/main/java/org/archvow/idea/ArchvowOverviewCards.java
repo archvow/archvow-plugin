@@ -129,9 +129,15 @@ final class ArchvowOverviewCards {
 
     /** A row: `west` left, `east` right, as the cards' heads ("Checks" ... "Open Checks →"). */
     static JPanel row(Component west, Component east) {
-        JPanel row = new Line(new BorderLayout(12, 0));
-        if (west != null) row.add(west, BorderLayout.WEST);
-        if (east != null) row.add(east, BorderLayout.EAST);
+        if (west == null) {
+            JPanel row = new Line(new BorderLayout(12, 0));
+            if (east != null) row.add(east, BorderLayout.EAST);
+            return row;
+        }
+        // 1.2.1: the right part goes under the left one when both do not fit (they overlapped at 240 px)
+        JPanel row = new Line(new ArchvowSideOrBelow(12, -1));
+        row.add(west);
+        if (east != null) row.add(east);
         return row;
     }
 
@@ -204,7 +210,11 @@ final class ArchvowOverviewCards {
             JPanel words = new JPanel();
             words.setOpaque(false);
             words.setLayout(new BoxLayout(words, BoxLayout.Y_AXIS));
-            words.add(label(step.title(), step.done() ? muted() : text(), step.done() ? Font.PLAIN : Font.BOLD, 13f));
+            // 1.2.1: the title wraps (it was cut: "Add the feature's comp…") and the button goes under the step when
+            // the card is narrow
+            JTextArea title = wrapped(step.title(), step.done() ? muted() : text(), 13f);
+            title.setFont(title.getFont().deriveFont(step.done() ? Font.PLAIN : Font.BOLD));
+            words.add(title);
             words.add(gap(2));
             JTextArea detail = wrapped(step.detail(), muted(), 12f);
             detail.setToolTipText(step.command());
@@ -213,16 +223,14 @@ final class ArchvowOverviewCards {
                 words.add(gap(6));
                 words.add(new Bars(step.built(), step.total()));
             }
-            line.add(words, BorderLayout.CENTER);
+            JPanel body = new JPanel(new ArchvowSideOrBelow(12, 170));
+            body.setOpaque(false);
+            body.add(words);
             if (now) {
                 String verb = stepVerb(step, fr);
-                if (!verb.isBlank()) {
-                    JPanel holder = new JPanel(new GridBagLayout());
-                    holder.setOpaque(false);
-                    holder.add(button(verb, true, () -> actions.step(step)));
-                    line.add(holder, BorderLayout.EAST);
-                }
+                if (!verb.isBlank()) body.add(button(verb, true, () -> actions.step(step)));
             }
+            line.add(body, BorderLayout.CENTER);
             card.add(line);
         }
         card.add(gap(12));
@@ -325,7 +333,7 @@ final class ArchvowOverviewCards {
                 open + " ouverts : décisions, questions et tâches. Les constats des contrôles comptent dans Contrôles."), muted(), 12f));
         }
         card.add(gap(10));
-        JPanel links = new Line(new FlowLayout(FlowLayout.LEFT, 16, 0));
+        JPanel links = new Line(new ArchvowWrapLayout(FlowLayout.LEFT, 16, 0));  // 1.2.1: the links wrap (a third one fell out of the card)
         ((FlowLayout) links.getLayout()).setHgap(0);
         links.add(link(t(fr, "Open items (" + open + ")", "Éléments ouverts (" + open + ")"), () -> actions.openItems(0)));
         links.add(Box.createHorizontalStrut(16));
@@ -342,7 +350,7 @@ final class ArchvowOverviewCards {
 
     /** "10 errors · 20 warnings", red and amber when there are some, green when there are none. */
     static JComponent totals(int errors, int warnings, boolean fr) {
-        JPanel line = new Line(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JPanel line = new Line(new ArchvowWrapLayout(FlowLayout.LEFT, 0, 0));
         line.add(label(errors + t(fr, " errors", " erreurs"), errors > 0 ? bad() : good(), errors > 0 ? Font.BOLD : Font.PLAIN, 13f));
         line.add(label(" · ", muted(), Font.PLAIN, 13f));
         line.add(label(warnings + t(fr, " warnings", " avertissements"), warnings > 0 ? warn() : errors > 0 ? muted() : good(), Font.PLAIN, 13f));

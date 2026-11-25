@@ -23,7 +23,7 @@ final class ArchvowSearchView extends JPanel {
 
     private final Actions actions;
     private final JLabel name = new JLabel();
-    private final JLabel heading = new JLabel();
+    private final ArchvowWrapLabel heading = new ArchvowWrapLabel();  // 1.2.1: it wraps under the name (it was cut)
     private final DefaultListModel<String> groupModel = new DefaultListModel<>();
     private final JList<String> groupList = new JList<>(groupModel);
     private final DefaultListModel<ArchvowSearch.Hit> hitModel = new DefaultListModel<>();
@@ -33,7 +33,7 @@ final class ArchvowSearchView extends JPanel {
     private final JButton component = new JButton();
     private final JButton rule = new JButton();
     private final JPanel nowhere = new JPanel(new BorderLayout(0, 8));
-    private final JPanel closeNames = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+    private final JPanel closeNames = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 4));
     private final JLabel nowhereText = new JLabel();
     private final JEditorPane errorPane = new JEditorPane("text/html", "");
     private final JButton errorOpen = new JButton();
@@ -54,9 +54,10 @@ final class ArchvowSearchView extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
         name.setFont(new Font(Font.MONOSPACED, Font.BOLD, Math.round(ArchvowHtml.base() * 1.3f)));
         heading.setForeground(UIManager.getColor("Label.disabledForeground"));
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        top.add(name);
-        top.add(heading);
+        heading.setOpaque(false);
+        JPanel top = new JPanel(new BorderLayout(0, 2));
+        top.add(name, BorderLayout.NORTH);
+        top.add(heading, BorderLayout.CENTER);
         add(top, BorderLayout.NORTH);
         groupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         groupList.addListSelectionListener(e -> { if (!e.getValueIsAdjusting() && !filling) fillHits(); });
@@ -74,7 +75,7 @@ final class ArchvowSearchView extends JPanel {
         open.addActionListener(e -> { ArchvowSearch.Hit h = hitList.getSelectedValue(); if (h != null && h.openable()) actions.openFile(h.file(), h.line()); });
         component.addActionListener(e -> { ArchvowSearch.Hit h = hitList.getSelectedValue(); if (h != null) actions.showComponent(h.component()); });
         rule.addActionListener(e -> { ArchvowSearch.Hit h = hitList.getSelectedValue(); if (h != null) actions.openRule(h.part()); });
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+        JPanel buttons = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
         buttons.add(open);
         buttons.add(component);
         buttons.add(rule);
@@ -83,10 +84,24 @@ final class ArchvowSearchView extends JPanel {
         right.add(buttons, BorderLayout.SOUTH);
         JScrollPane groups = new JScrollPane(groupList);
         groups.setPreferredSize(new Dimension(150, 0));
-        JSplitPane middle = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(hitList), right);
-        middle.setResizeWeight(.6);
-        middle.setBorder(BorderFactory.createEmptyBorder());
-        JPanel found = new JPanel(new BorderLayout(8, 0));
+        // 1.2.1: the places and their preview as the other views (side by side, stacked when narrow), and the
+        // groups above them under 520 px: three columns side by side left a few pixels each in a tool window
+        JScrollPane hits = new JScrollPane(hitList);
+        hits.setBorder(BorderFactory.createEmptyBorder());
+        JPanel middle = ArchvowSplitView.create(hitList, hits, right);
+        JPanel found = new JPanel(new BorderLayout(8, 8)) {
+            private boolean narrow;
+            @Override public void doLayout() {
+                boolean now = getWidth() > 0 && getWidth() < 520;
+                if (now != narrow) {
+                    narrow = now;
+                    remove(groups);
+                    groups.setPreferredSize(now ? new Dimension(0, Math.min(110, groupList.getPreferredSize().height + 6)) : new Dimension(150, 0));
+                    add(groups, now ? BorderLayout.NORTH : BorderLayout.WEST);
+                }
+                super.doLayout();
+            }
+        };
         found.add(groups, BorderLayout.WEST);
         found.add(middle, BorderLayout.CENTER);
         body.add(found, "found");
@@ -100,7 +115,7 @@ final class ArchvowSearchView extends JPanel {
         errorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
         errorOpen.addActionListener(e -> { if (errorPlace != null) actions.openFile(errorPlace.file(), errorPlace.line()); });
         errorComponent.addActionListener(e -> { if (errorPlace != null) actions.showComponent(errorPlace.component()); });
-        JPanel errorButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+        JPanel errorButtons = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
         errorButtons.add(errorOpen);
         errorButtons.add(errorComponent);
         JPanel errorBox = new JPanel(new BorderLayout(0, 6));

@@ -2,6 +2,29 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 1.2.2 - 2026-11-25
+
+Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0). Layouts that broke at some widths, found
+by a new headless check of every plain view from 240 to 1280 px (ResponsiveViewsRegression).
+
+- **Tasks** (ArchvowTasksView), as on the VS Code page:
+  - A component with no task shows one sentence, with no empty list and no blue button without a label.
+  - The list and the details are side by side, stacked when narrow.
+  - Personal data shows only what it holds.
+- **The progress bars under the component's name** (decisions, safety, tasks) share the width. Each is a thin
+  line; at 0/2 it was a grey block, 120 px wide.
+- **The answer table** stacks its rows below 520 px: label above field, two fields a line. At minimum size the
+  fields were a few pixels wide ("Pa…", "…").
+- **The AI skill form** decides side by side or stacked when it is laid out. The explanation stayed a narrow column
+  of words, and the "Review" step and the skill's name were cut.
+- **Search** puts the places and their preview side by side like the other views, the groups above them when
+  narrow. Three columns left a few pixels each.
+- **Overview cards:**
+  - A card's title and its link no longer overlap in a narrow tool window.
+  - The current step's title wraps, and its button goes under it.
+- **Button rows wrap instead of cutting the last buttons:** Rules, Spec, Examples, Checks, the init questions.
+- **Text the plugin draws uses the IDE's font**, not Java's "SansSerif", which looked wider and spaced apart.
+
 ## 1.2.1 - 2026-11-25
 
 Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0).
