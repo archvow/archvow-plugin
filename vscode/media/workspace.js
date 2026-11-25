@@ -863,13 +863,24 @@
       if (step.step === 'build') return btn(t('Check', 'Vérifier'), 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' }));
       return '';
     };
+    // 1.4.2: what archvow says can still be done at a step (also): + Feature, + Component, Build the N specified
+    const also = (step) => {
+      if (!step.also) return '';
+      const a = step.also;
+      const build = /^archvow prompt --feature (\S+)$/.exec(a.command);
+      const label = a.label === '+ Feature' ? t('+ Feature', '+ Feature') : a.label === '+ Component' ? t('+ Component', '+ Composant')
+        : t(a.label, a.label.replace(/^Build the (\d+) specified$/, 'Construire les $1 spécifiés'));
+      const action = build ? `data-a="walk" ${attrs({ kind: 'build', scope: 'feature', value: build[1] })}`
+        : /^archvow feature add\b/.test(a.command) ? 'data-a="addFeature"' : /^archvow component add\b/.test(a.command) ? 'data-a="addComponent"' : '';
+      return action ? `<button class="link step-also" ${action} title="${esc(a.command)}">${esc(label)}</button>` : '';
+    };
     const steps = f.steps.map((step, i) => {
       const now = i === f.current;
       const mark = step.done ? '✓' : String(i + 1);
       return `<li class="first-step${now ? ' now' : ''}${step.done ? ' done' : ''}"><span class="step-mark" aria-hidden="true">${mark}</span>
         <div class="step-text"><span class="step-title">${esc(step.title)}</span><span class="step-detail" title="${esc(step.command)}">${esc(step.detail)}</span>${now && step.progress && step.progress.total > 1 && step.progress.done > 0
           ? `<span class="step-bars" aria-hidden="true">${Array.from({ length: step.progress.total }, (_, k) => `<i class="${k < step.progress.done ? 'done' : ''}"></i>`).join('')}</span>` : ''}</div>
-        ${now ? button(step) : ''}</li>`;
+        ${also(step)}${now ? button(step) : ''}</li>`;
     }).join('');
     return `<section class="card first-steps" aria-label="${esc(t('First steps', 'Premiers pas'))}"><div class="card-head"><h3>${esc(t('First steps', 'Premiers pas'))}</h3>
       <span class="muted">${esc(t(`${f.done} of ${f.steps.length} done`, `${f.done} sur ${f.steps.length} faits`))}</span></div>

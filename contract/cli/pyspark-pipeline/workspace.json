@@ -717,14 +717,14 @@
     ],
     "templates": {
       "pyspark-pipeline": {
-        "version": "3.4.0",
+        "version": "3.4.1",
         "source": "archvow",
-        "digest": "1abfcd78d988"
+        "digest": "8e433af5b377"
       },
       "python-base": {
-        "version": "3.4.0",
+        "version": "3.4.1",
         "source": "archvow",
-        "digest": "ac17c0d90ee2"
+        "digest": "d55071fac333"
       }
     },
     "features": [
@@ -4279,7 +4279,7 @@
     "templates": [
       {
         "name": "pyspark-pipeline",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -4857,7 +4857,7 @@
       },
       {
         "name": "fastapi-service",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -5414,7 +5414,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -6081,7 +6081,7 @@
       },
       {
         "name": "python-app",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": true,
         "chain": [
           "python-base",
@@ -6595,7 +6595,7 @@
     "project_templates": [
       {
         "name": "pyspark-pipeline",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
         "archvow": ">=3.4,<4",
         "languages": [
@@ -6610,11 +6610,11 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "1abfcd78d988"
+        "digest": "8e433af5b377"
       },
       {
         "name": "python-base",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "description": "Shared answers, guards and CI of the Python templates.",
         "archvow": ">=3.4,<4",
         "languages": [
@@ -6632,7 +6632,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "ac17c0d90ee2"
+        "digest": "d55071fac333"
       }
     ],
     "agents": [
@@ -7199,7 +7199,7 @@
   "templates": [
     {
       "name": "pyspark-pipeline",
-      "version": "3.4.0",
+      "version": "3.4.1",
       "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
       "archvow": ">=3.4,<4",
       "languages": [
@@ -7219,7 +7219,7 @@
     },
     {
       "name": "python-base",
-      "version": "3.4.0",
+      "version": "3.4.1",
       "description": "Shared answers, guards and CI of the Python templates.",
       "archvow": ">=3.4,<4",
       "languages": [
@@ -7254,14 +7254,22 @@
       "title": "Add a feature",
       "detail": "What the product does",
       "command": "archvow feature add <name> -d \"what the product does\"",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Feature",
+        "command": "archvow feature add <name> -d \"what the product does\""
+      }
     },
     {
       "step": "component",
       "title": "Add the feature's components and answer their decisions",
-      "detail": "order_totals: 9 open",
+      "detail": "7 of 8 specified · order_totals: 9 open",
       "command": "archvow specify order_totals",
-      "done": false
+      "done": false,
+      "also": {
+        "label": "+ Component",
+        "command": "archvow component add <type> <name> -d \"what it must do\" --feature vat_report"
+      }
     },
     {
       "step": "build",
@@ -7272,6 +7280,10 @@
       "progress": {
         "done": 0,
         "total": 8
+      },
+      "also": {
+        "label": "Build the 7 specified",
+        "command": "archvow prompt --feature vat_report"
       }
     },
     {

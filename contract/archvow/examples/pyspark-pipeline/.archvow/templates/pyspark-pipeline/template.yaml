@@ -1,5 +1,5 @@
 name: pyspark-pipeline
-version: 3.4.0                  # archvow's templates carry its version
+version: 3.4.1                  # archvow's templates carry its version
 archvow: ">=3.4,<4"
 languages: [en, fr]
 extends: python-base

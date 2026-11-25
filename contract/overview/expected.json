@@ -9,7 +9,8 @@
      "detail": "Their decisions are made",
      "command": "archvow specify",
      "done": true,
-     "progress": null
+     "progress": null,
+     "also": null
     },
     {
      "step": "feature",
@@ -17,7 +18,11 @@
      "detail": "What the product does",
      "command": "archvow feature add <name> -d \"what the product does\"",
      "done": true,
-     "progress": null
+     "progress": null,
+     "also": {
+      "label": "+ Feature",
+      "command": "archvow feature add <name> -d \"what the product does\""
+     }
     },
     {
      "step": "component",
@@ -25,7 +30,11 @@
      "detail": "Their decisions are made",
      "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders",
      "done": true,
-     "progress": null
+     "progress": null,
+     "also": {
+      "label": "+ Component",
+      "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders"
+     }
     },
     {
      "step": "build",
@@ -36,7 +45,8 @@
      "progress": {
       "done": 7,
       "total": 7
-     }
+     },
+     "also": null
     },
     {
      "step": "commit",
@@ -44,7 +54,8 @@
      "detail": "The hooks run the same checks as CI; then open a merge request",
      "command": "git add -A && git commit",
      "done": false,
-     "progress": null
+     "progress": null,
+     "also": null
     }
    ],
    "done": 4,
@@ -63,7 +74,8 @@
      "detail": "Their decisions are made",
      "command": "archvow specify",
      "done": true,
-     "progress": null
+     "progress": null,
+     "also": null
     },
     {
      "step": "feature",
@@ -71,15 +83,23 @@
      "detail": "What the product does",
      "command": "archvow feature add <name> -d \"what the product does\"",
      "done": true,
-     "progress": null
+     "progress": null,
+     "also": {
+      "label": "+ Feature",
+      "command": "archvow feature add <name> -d \"what the product does\""
+     }
     },
     {
      "step": "component",
      "title": "Add the feature's components and answer their decisions",
-     "detail": "order_totals: 9 open",
+     "detail": "7 of 8 specified · order_totals: 9 open",
      "command": "archvow specify order_totals",
      "done": false,
-     "progress": null
+     "progress": null,
+     "also": {
+      "label": "+ Component",
+      "command": "archvow component add <type> <name> -d \"what it must do\" --feature vat_report"
+     }
     },
     {
      "step": "build",
@@ -90,6 +110,10 @@
      "progress": {
       "done": 0,
       "total": 8
+     },
+     "also": {
+      "label": "Build the 7 specified",
+      "command": "archvow prompt --feature vat_report"
      }
     },
     {
@@ -98,7 +122,8 @@
      "detail": "The hooks run the same checks as CI; then open a merge request",
      "command": "git add -A && git commit",
      "done": false,
-     "progress": null
+     "progress": null,
+     "also": null
     }
    ],
    "done": 2,
@@ -130,7 +155,8 @@
      "detail": "Their decisions are made",
      "command": "archvow specify",
      "done": true,
-     "progress": null
+     "progress": null,
+     "also": null
     },
     {
      "step": "feature",
@@ -138,7 +164,11 @@
      "detail": "What the product does",
      "command": "archvow feature add <name> -d \"what the product does\"",
      "done": true,
-     "progress": null
+     "progress": null,
+     "also": {
+      "label": "+ Feature",
+      "command": "archvow feature add <name> -d \"what the product does\""
+     }
     },
     {
      "step": "component",
@@ -146,7 +176,11 @@
      "detail": "Their decisions are made",
      "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices",
      "done": true,
-     "progress": null
+     "progress": null,
+     "also": {
+      "label": "+ Component",
+      "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices"
+     }
     },
     {
      "step": "build",
@@ -157,7 +191,8 @@
      "progress": {
       "done": 5,
       "total": 5
-     }
+     },
+     "also": null
     },
     {
      "step": "commit",
@@ -165,7 +200,8 @@
      "detail": "The hooks run the same checks as CI; then open a merge request",
      "command": "git add -A && git commit",
      "done": false,
-     "progress": null
+     "progress": null,
+     "also": null
     }
    ],
    "done": 4,

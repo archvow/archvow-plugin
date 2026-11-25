@@ -609,14 +609,14 @@
     ],
     "templates": {
       "fastapi-service": {
-        "version": "3.4.0",
+        "version": "3.4.1",
         "source": "archvow",
-        "digest": "746c0a79cc83"
+        "digest": "9653a014f4a4"
       },
       "python-base": {
-        "version": "3.4.0",
+        "version": "3.4.1",
         "source": "archvow",
-        "digest": "ac17c0d90ee2"
+        "digest": "d55071fac333"
       }
     },
     "features": [
@@ -3426,7 +3426,7 @@
     "templates": [
       {
         "name": "fastapi-service",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -3983,7 +3983,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -4650,7 +4650,7 @@
       },
       {
         "name": "pyspark-pipeline",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -5228,7 +5228,7 @@
       },
       {
         "name": "python-app",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": true,
         "chain": [
           "python-base",
@@ -5742,7 +5742,7 @@
     "project_templates": [
       {
         "name": "fastapi-service",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
         "archvow": ">=3.4,<4",
         "languages": [
@@ -5757,11 +5757,11 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "746c0a79cc83"
+        "digest": "9653a014f4a4"
       },
       {
         "name": "python-base",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "description": "Shared answers, guards and CI of the Python templates.",
         "archvow": ">=3.4,<4",
         "languages": [
@@ -5779,7 +5779,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "ac17c0d90ee2"
+        "digest": "d55071fac333"
       }
     ],
     "agents": [
@@ -6346,7 +6346,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "3.4.0",
+      "version": "3.4.1",
       "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
       "archvow": ">=3.4,<4",
       "languages": [
@@ -6366,7 +6366,7 @@
     },
     {
       "name": "python-base",
-      "version": "3.4.0",
+      "version": "3.4.1",
       "description": "Shared answers, guards and CI of the Python templates.",
       "archvow": ">=3.4,<4",
       "languages": [
@@ -6401,14 +6401,22 @@
       "title": "Add a feature",
       "detail": "What the product does",
       "command": "archvow feature add <name> -d \"what the product does\"",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Feature",
+        "command": "archvow feature add <name> -d \"what the product does\""
+      }
     },
     {
       "step": "component",
       "title": "Add the feature's components and answer their decisions",
       "detail": "Their decisions are made",
       "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Component",
+        "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders"
+      }
     },
     {
       "step": "build",

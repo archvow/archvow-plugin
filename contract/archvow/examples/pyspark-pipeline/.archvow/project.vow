@@ -59,10 +59,10 @@ rule R2
 
 templates
   pyspark-pipeline
-    version 3.4.0
+    version 3.4.1
     source archvow
-    digest 1abfcd78d988
+    digest 8e433af5b377
   python-base
-    version 3.4.0
+    version 3.4.1
     source archvow
-    digest ac17c0d90ee2
+    digest d55071fac333

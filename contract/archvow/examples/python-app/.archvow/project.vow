@@ -41,10 +41,10 @@ init_answers
   ci_image ""
 templates
   python-app
-    version 3.4.0
+    version 3.4.1
     source archvow
-    digest 6efb61e151d9
+    digest 0d991b44d9d7
   python-base
-    version 3.4.0
+    version 3.4.1
     source archvow
-    digest ac17c0d90ee2
+    digest d55071fac333

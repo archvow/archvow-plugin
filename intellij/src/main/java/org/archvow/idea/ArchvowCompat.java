@@ -137,7 +137,7 @@ final class ArchvowCompat {
         return new Compatibility("ok", "", "");
     }
 
-    /** The header of the tool window: "archvow 3.4.0 ✓ · this plugin works with archvow >=3.4,<4". */
+    /** The header of the tool window: "archvow 3.4.1 ✓ · this plugin works with archvow >=3.4,<4". */
     static String header(String version, String state, Range range, boolean fr) {
         String mark = "ok".equals(state) ? "✓" : "✗";
         String what = version == null || version.isEmpty() ? "archvow " + mark : "archvow " + version + " " + mark;

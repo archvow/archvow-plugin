@@ -1095,3 +1095,5 @@ button.file-open:hover code { text-decoration: underline; }
 .run-why .codicon { color: var(--vscode-editorWarning-foreground, #cca700); }
 .draft-menu .draft-why { padding: 6px 10px 8px; max-width: 320px; white-space: normal; color: var(--vscode-descriptionForeground);
   line-height: 1.45; border-bottom: 1px solid var(--vscode-widget-border, rgba(128,128,128,.3)); }
+/* 1.4.2: what can still be done at a step (+ Feature, + Component, Build the N specified): a quiet link */
+.first-step > .step-also { flex: none; align-self: center; white-space: nowrap; }

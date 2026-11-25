@@ -5,7 +5,7 @@
 # Python), ci_java (CI needs Java), rules_label (how CI names its rules), ruff_select; install_command and
 # cov_option come from the engine.
 name: python-base
-version: 3.4.0                  # archvow's templates carry its version
+version: 3.4.1                  # archvow's templates carry its version
 archvow: ">=3.4,<4"
 languages: [en, fr]
 abstract: true

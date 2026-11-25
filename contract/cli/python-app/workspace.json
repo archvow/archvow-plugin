@@ -391,14 +391,14 @@
     },
     "templates": {
       "python-app": {
-        "version": "3.4.0",
+        "version": "3.4.1",
         "source": "archvow",
-        "digest": "6efb61e151d9"
+        "digest": "0d991b44d9d7"
       },
       "python-base": {
-        "version": "3.4.0",
+        "version": "3.4.1",
         "source": "archvow",
-        "digest": "ac17c0d90ee2"
+        "digest": "d55071fac333"
       }
     },
     "features": [
@@ -1947,7 +1947,7 @@
     "templates": [
       {
         "name": "python-app",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": true,
         "chain": [
           "python-base",
@@ -2459,7 +2459,7 @@
       },
       {
         "name": "fastapi-service",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -3016,7 +3016,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -3683,7 +3683,7 @@
       },
       {
         "name": "pyspark-pipeline",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "default": false,
         "chain": [
           "python-base",
@@ -4263,7 +4263,7 @@
     "project_templates": [
       {
         "name": "python-app",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
         "archvow": ">=3.4,<4",
         "languages": [
@@ -4278,11 +4278,11 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "6efb61e151d9"
+        "digest": "0d991b44d9d7"
       },
       {
         "name": "python-base",
-        "version": "3.4.0",
+        "version": "3.4.1",
         "description": "Shared answers, guards and CI of the Python templates.",
         "archvow": ">=3.4,<4",
         "languages": [
@@ -4300,7 +4300,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "ac17c0d90ee2"
+        "digest": "d55071fac333"
       }
     ],
     "agents": [
@@ -4867,7 +4867,7 @@
   "templates": [
     {
       "name": "python-app",
-      "version": "3.4.0",
+      "version": "3.4.1",
       "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
       "archvow": ">=3.4,<4",
       "languages": [
@@ -4887,7 +4887,7 @@
     },
     {
       "name": "python-base",
-      "version": "3.4.0",
+      "version": "3.4.1",
       "description": "Shared answers, guards and CI of the Python templates.",
       "archvow": ">=3.4,<4",
       "languages": [
@@ -4922,14 +4922,22 @@
       "title": "Add a feature",
       "detail": "What the product does",
       "command": "archvow feature add <name> -d \"what the product does\"",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Feature",
+        "command": "archvow feature add <name> -d \"what the product does\""
+      }
     },
     {
       "step": "component",
       "title": "Add the feature's components and answer their decisions",
       "detail": "Their decisions are made",
       "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Component",
+        "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices"
+      }
     },
     {
       "step": "build",

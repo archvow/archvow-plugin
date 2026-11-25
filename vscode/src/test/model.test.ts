@@ -100,11 +100,11 @@ test('the CLI contract and the range: what the plugin says of the installed arch
   assert.match(byName['pinned below the range'].text, /pins archvow==2\.8\.0 \(requirements\.txt\).*init <package> --force.*nothing over the pin/);
   assert.equal(byName['pinned below the range'].install, '', 'never installed over the pin');
   assert.equal(byName['not pinned, older'].install, tested);
-  assert.equal(byName['pinned in the range, missing'].install, '3.4.1', 'the pin, when it is in the range');
+  assert.equal(byName['pinned in the range, missing'].install, '3.4.2', 'the pin, when it is in the range');
   assert.match(byName['newer'].text, /newer.*update the plugin/);
   assert.match(byName['newer, fr'].text, /plus récent.*mets le plugin à jour/);
   assert.match(byName['missing'].text, /not installed.*python -m pip install archvow==/);
-  assert.equal(headerLine('3.4.0', 'ok', range), 'archvow 3.4.0 ✓ · this plugin works with archvow >=3.4,<4');
+  assert.equal(headerLine('3.4.1', 'ok', range), 'archvow 3.4.1 ✓ · this plugin works with archvow >=3.4,<4');
 });
 
 test('show <id> --json is a component\'s view only when it names that component (a search result never is)', () => {

@@ -66,9 +66,13 @@ final class ArchvowOverviewCards {
      *  by the IDE's button look), focusable, Enter or Space does it, underlined under the mouse or the focus. */
     static final class Link extends JLabel {
         private final Runnable run;
+        private final String words;
+        private boolean underlined;
         Link(String text, Runnable run) {
-            super(text);
+            super();
             this.run = run;
+            this.words = text;
+            paintWords(false);
             setForeground(link());
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             setFocusable(true);
@@ -90,10 +94,42 @@ final class ArchvowOverviewCards {
             });
         }
         void click() { run.run(); }
+        /** The words of the link (its text is HTML, so that it can wrap). */
+        String words() { return words; }
         private void underline(boolean on) {
-            java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
-            attributes.put(java.awt.font.TextAttribute.UNDERLINE, on ? java.awt.font.TextAttribute.UNDERLINE_ON : -1);
-            setFont(getFont().deriveFont(attributes));
+            if (on != underlined) paintWords(on);
+        }
+        private void paintWords(boolean on) {
+            underlined = on;
+            String escaped = words.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+            setText("<html>" + (on ? "<u>" + escaped + "</u>" : escaped) + "</html>");
+        }
+
+        /** 1.4.2: narrower than its words (a 240 px tool window, wider fonts on Linux CI), it goes on two lines
+         *  instead of being cut: as tall as the text at the width it was given. */
+        @Override public Dimension getPreferredSize() {
+            Insets in = getInsets();
+            // its words on one line (the HTML view's own width follows the last width it was given)
+            Dimension one = new Dimension(getFontMetrics(getFont()).stringWidth(words) + in.left + in.right + 1,
+                super.getPreferredSize().height);
+            int width = getWidth();
+            Object view = getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
+            if (width <= 0 || width >= one.width || !(view instanceof javax.swing.text.View v)) {
+                if (view instanceof javax.swing.text.View v) { v.setSize(one.width - in.left - in.right, 0);
+                    one.height = (int) Math.ceil(v.getPreferredSpan(javax.swing.text.View.Y_AXIS)) + in.top + in.bottom; }
+                return one;
+            }
+            v.setSize(width - in.left - in.right, 0);
+            // as wide as its words (more room: one line again), as tall as they are at the width it has now
+            return new Dimension(one.width, (int) Math.ceil(v.getPreferredSpan(javax.swing.text.View.Y_AXIS)) + in.top + in.bottom);
+        }
+
+        @Override public Dimension getMinimumSize() { return new Dimension(Math.min(60, super.getPreferredSize().width), super.getMinimumSize().height); }
+
+        @Override public void setBounds(int x, int y, int width, int height) {
+            boolean changed = width > 0 && width != getWidth();
+            super.setBounds(x, y, width, height);
+            if (changed) SwingUtilities.invokeLater(this::revalidate);
         }
     }
 
@@ -223,9 +259,26 @@ final class ArchvowOverviewCards {
             JPanel body = new JPanel(new ArchvowSideOrBelow(12, 170));
             body.setOpaque(false);
             body.add(words);
+            // 1.4.2: beside the step, what archvow says can still be done there (+ Feature, + Component, Build the N
+            // specified), a link before the current step's button
+            JPanel east = new JPanel(new ArchvowWrapLayout(FlowLayout.RIGHT, 10, 0));
+            east.setOpaque(false);
+            ArchvowOverview.FirstStep again = step.also();
+            if (again != null) {
+                Link also = link(alsoLabel(step.alsoLabel(), fr), () -> actions.step(again));
+                also.setName("archvow.firstSteps.also." + step.step());
+                also.setToolTipText(step.alsoCommand());
+                east.add(also);
+            }
+            JButton main = null;
             if (now) {
                 String verb = stepVerb(step, fr);
-                if (!verb.isBlank()) body.add(button(verb, true, () -> actions.step(step)));
+                if (!verb.isBlank()) main = button(verb, true, () -> actions.step(step));
+            }
+            if (again == null) { if (main != null) body.add(main); }  // as before: the button alone
+            else {
+                if (main != null) east.add(main);
+                body.add(east);
             }
             line.add(body, BorderLayout.CENTER);
             card.add(line);
@@ -274,6 +327,13 @@ final class ArchvowOverviewCards {
     }
 
     /** The current step's button: what the page's firstStepsCard() shows. Empty: no button (Commit). */
+    /** archvow's words for `also`, in French when the IDE is. */
+    static String alsoLabel(String label, boolean fr) {
+        if (!fr) return label;
+        if (label.equals("+ Component")) return "+ Composant";
+        return label.replaceFirst("^Build the (\\d+) specified$", "Construire les $1 spécifiés");
+    }
+
     static String stepVerb(ArchvowOverview.FirstStep step, boolean fr) {
         if (step.command().startsWith("archvow specify ")) return t(fr, "Specify", "Spécifier");
         if (step.command().startsWith("archvow prompt ")) return t(fr, "Build ▸", "Construire ▸");  // step 4 while one is to build

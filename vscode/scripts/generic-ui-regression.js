@@ -278,3 +278,24 @@ fresh.message({ type: 'init', commands, forms, catalog: null, types: {}, rules: 
 fresh.message({ type: 'select', component: 'schema' });
 assert.match(fresh.app.innerHTML, /--split-left:333px/, 'a new tab: the split where the person left it');
 console.log('Back to the page shown before, Cancel leaves, the split kept across tabs: OK');
+
+// 1.4.2: First steps say what can still be done at a step (archvow's `also`): a link beside it
+const steps = make('nav');
+const firstSteps = { done: 3, current: 3, steps: [
+  { step: 'foundations', title: 'Answer the foundations', detail: '', command: 'archvow specify', done: true, progress: null, also: null },
+  { step: 'feature', title: 'Add a feature', detail: '', command: 'archvow feature add <name>', done: true, progress: null,
+    also: { label: '+ Feature', command: 'archvow feature add <name> -d "what the product does"' } },
+  { step: 'component', title: "Add the feature's components", detail: '2 of 2 specified', command: 'archvow component add <type> <name>', done: true, progress: null,
+    also: { label: '+ Component', command: 'archvow component add <type> <name> -d "what it must do" --feature orders' } },
+  { step: 'build', title: 'Build them, then Check', detail: '', command: 'archvow prompt --feature orders', done: false, progress: null, also: null },
+  { step: 'commit', title: 'Commit', detail: '', command: 'git commit', done: false, progress: null, also: null }] };
+steps.message({ type: 'state', state: { ...state, overview: { firstSteps, itemsDone: 0, itemsTotal: 0, itemsOpen: 0, projectItems: 0, errors: 0, warnings: 0, firstFinding: null } } });
+assert.match(steps.app.innerHTML, /<button class="link step-also" data-a="addFeature"[^>]*>\+ Feature<\/button>/, '+ Feature on a done step');
+assert.match(steps.app.innerHTML, /<button class="link step-also" data-a="addComponent"[^>]*>\+ Component<\/button>/, '+ Component on a done step');
+assert.match(steps.app.innerHTML, /data-a="walk" data-kind="build"[^>]*>Build ▸<\/button>/, 'the current step keeps its button');
+firstSteps.current = 2; firstSteps.steps[2].done = false; firstSteps.steps[2].command = 'archvow specify enrich_orders';
+firstSteps.steps[3].also = { label: 'Build the 1 specified', command: 'archvow prompt --feature orders' };
+steps.message({ type: 'state', state: { ...state, overview: { firstSteps, itemsDone: 0, itemsTotal: 0, itemsOpen: 0, projectItems: 0, errors: 0, warnings: 0, firstFinding: null } } });
+assert.match(steps.app.innerHTML, /\+ Component<\/button><button class="" data-a="walk" data-kind="specify"/, 'a new component reopens step 3: + Component, then Specify');
+assert.match(steps.app.innerHTML, /<button class="link step-also" data-a="walk" data-kind="build" data-scope="feature" data-value="orders"[^>]*>Build the 1 specified<\/button>/, 'build what is specified');
+console.log('First steps: + Feature, + Component, Build the N specified beside the steps: OK');

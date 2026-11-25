@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.2 - 2026-11-25
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **First steps say what can still be done** (archvow 3.4.1 `also`): a link beside a step once the card has moved
+  on - + Feature, + Component (add as many components as you want before building; a new one reopens step 3 with
+  Specify), and Build the N specified while others are still open. Step 3 says how many are specified.
+- **IntelliJ, a narrow tool window:** a link longer than the card ("Try archvow on an example first", "Open
+  Components for details →") goes on two lines instead of being cut (CI's layout check at 240 px).
+
 ## 1.4.1 - 2026-11-25
 
 Fixes from trying 1.4.0. Works with archvow >=3.4,<4. Built on archvow 3.4.0.

@@ -31,6 +31,12 @@ public final class OverviewRegression {
             step.addProperty("detail", s.detail());
             step.addProperty("command", s.command());
             step.addProperty("done", s.done());
+            if (!s.alsoLabel().isBlank()) {
+                JsonObject also = new JsonObject();
+                also.addProperty("label", s.alsoLabel());
+                also.addProperty("command", s.alsoCommand());
+                step.add("also", also);
+            }
             steps.add(step);
         }
         o.add("steps", steps);
@@ -62,7 +68,7 @@ public final class OverviewRegression {
 
     static void press(java.awt.Component c, String text) {
         if (c instanceof javax.swing.AbstractButton b && text.equals(b.getText())) { b.doClick(); return; }
-        if (c instanceof ArchvowOverviewCards.Link l && text.equals(l.getText())) { l.click(); return; }
+        if (c instanceof ArchvowOverviewCards.Link l && text.equals(l.words())) { l.click(); return; }
         if (c instanceof java.awt.Container k) for (java.awt.Component child : k.getComponents()) press(child, text);
     }
 
