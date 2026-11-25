@@ -1,5 +1,5 @@
 name: python-app
-version: 3.2.0                  # archvow's templates carry its version
+version: 3.2.1                  # archvow's templates carry its version
 archvow: ">=3.2,<4"
 languages: [en, fr]
 default: true                   # the template `archvow init` uses without -t

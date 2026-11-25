@@ -294,9 +294,11 @@ final class ArchvowDraftBox extends JPanel {
         for (JsonObject t : tools()) {
             boolean installed = ArchvowGrammar.flag(t, "installed");
             boolean chosen = current != null && ArchvowGrammar.str(t, "name").equals(ArchvowGrammar.str(current, "name"));
+            String program = ArchvowGrammar.str(t, "program");
             JMenuItem item = new JMenuItem((chosen ? "✓  " : "     ") + ArchvowGrammar.str(t, "title")
-                + "      " + (installed ? ArchvowGrammar.str(t, "program") : t("not installed", "non installé")));
+                + "      " + (installed ? program : t("no " + program + " command", "pas de commande " + program)));
             item.setEnabled(installed);
+            if (!installed) item.setToolTipText(missing(program));
             String name = ArchvowGrammar.str(t, "name");
             item.addActionListener(e -> { keep(name); ask(name); });
             menu.add(item);
@@ -306,6 +308,14 @@ final class ArchvowDraftBox extends JPanel {
         prompt.addActionListener(e -> copyPrompt());
         menu.add(prompt);
         return menu;
+    }
+
+    /** Why an assistant is greyed: drafts use its command, which the IDE's own plugin does not give. */
+    String missing(String program) {
+        return t("Drafts use the " + program + " command, which is not on this computer (the IDE's plugin is not "
+                + "enough). Install it, log in once, then reopen the project.",
+            "Les brouillons passent par la commande " + program + ", absente de cet ordinateur (le plugin de l'IDE ne "
+                + "suffit pas). Installe-la, connecte-toi une fois, puis rouvre le projet.");
     }
 
     enum Kind { SPARK, CARET, SPIN, STOP, AGAIN, DROP }

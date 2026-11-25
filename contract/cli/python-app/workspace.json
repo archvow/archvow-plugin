@@ -391,14 +391,14 @@
     },
     "templates": {
       "python-app": {
-        "version": "3.2.0",
+        "version": "3.2.1",
         "source": "archvow",
-        "digest": "6daede6f66d3"
+        "digest": "d153235a9a93"
       },
       "python-base": {
-        "version": "3.2.0",
+        "version": "3.2.1",
         "source": "archvow",
-        "digest": "d01e67ae61f2"
+        "digest": "8a1a1ab0ae6f"
       }
     },
     "features": [
@@ -1947,7 +1947,7 @@
     "templates": [
       {
         "name": "python-app",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "default": true,
         "chain": [
           "python-base",
@@ -2458,7 +2458,7 @@
       },
       {
         "name": "fastapi-service",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "default": false,
         "chain": [
           "python-base",
@@ -3014,7 +3014,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "default": false,
         "chain": [
           "python-base",
@@ -3680,7 +3680,7 @@
       },
       {
         "name": "pyspark-pipeline",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "default": false,
         "chain": [
           "python-base",
@@ -4259,7 +4259,7 @@
     "project_templates": [
       {
         "name": "python-app",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
         "archvow": ">=3.2,<4",
         "languages": [
@@ -4274,11 +4274,11 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "6daede6f66d3"
+        "digest": "d153235a9a93"
       },
       {
         "name": "python-base",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "description": "Shared answers, guards and CI of the Python templates.",
         "archvow": ">=3.2,<4",
         "languages": [
@@ -4296,7 +4296,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "d01e67ae61f2"
+        "digest": "8a1a1ab0ae6f"
       }
     ],
     "agents": [
@@ -4847,7 +4847,7 @@
   "templates": [
     {
       "name": "python-app",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
       "archvow": ">=3.2,<4",
       "languages": [
@@ -4867,7 +4867,7 @@
     },
     {
       "name": "python-base",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "description": "Shared answers, guards and CI of the Python templates.",
       "archvow": ">=3.2,<4",
       "languages": [

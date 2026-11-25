@@ -99,7 +99,7 @@ export function compatibility(installed: { version: string; contract: string } |
   return { state: 'ok', install: '', text: '' };
 }
 
-/** The header of the tool window: "archvow 3.2.0 ✓ · this plugin works with archvow >=3.2,<4". */
+/** The header of the tool window: "archvow 3.2.1 ✓ · this plugin works with archvow >=3.2,<4". */
 export function headerLine(version: string, state: Compatibility['state'], range: ArchvowRange, fr = false): string {
   const mark = state === 'ok' ? '✓' : '✗';
   const what = version ? `archvow ${version} ${mark}` : `archvow ${mark}`;

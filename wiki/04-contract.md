@@ -78,16 +78,16 @@ Ce qu'il faut ensuite regarder dans le diff :
 
 ## La version d'archvow et le contrat (0.20.0)
 
-archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "3.0", "archvow": "3.2.0",
+archvow 1.23 dit son contrat : `archvow version --json` donne `{"contract": "3.0", "archvow": "3.2.1",
 ...}`, et chaque objet `--json` commence par `"contract"`. Depuis 1.0.0 les plugins ont leur propre numérotation
 et disent l'intervalle des versions d'archvow avec lesquelles ils fonctionnent : `contract/archvow-range.txt`
 (`>=3.2,<4`), une seule valeur, dite dans le README, les deux textes des Marketplaces et l'en-tête de la fenêtre
-(`archvow 3.2.0 ✓ · ce plugin fonctionne avec archvow >=3.2,<4`). `compatibility()` (`compat.ts`) et
+(`archvow 3.2.1 ✓ · ce plugin fonctionne avec archvow >=3.2,<4`). `compatibility()` (`compat.ts`) et
 `ArchvowCompat.of` jugent l'archvow installé face à l'intervalle et à `contract.txt` (même MAJEURE et une MINEURE
 au moins celle du plugin), avec la version que fixe le projet (`archvow==X` dans son requirements.txt ou son
 pyproject.toml, `projectPin()`) : dans l'intervalle, rien ; plus ancien, Installer archvow 3.1.0 - ou la version
 fixée, si elle est dans l'intervalle ; une version fixée plus ancienne, comment les architectes du projet le
-mettent à jour (`pip install archvow==3.2.0`, `archvow init <package> --force`), et rien n'est installé
+mettent à jour (`pip install archvow==3.2.1`, `archvow init <package> --force`), et rien n'est installé
 par-dessus ; plus récent, « mets le plugin à jour » ; absent, la commande d'installation exacte. Les deux disent
 la même chose sur chaque cas de `contract/compat/expected.json` (`UPDATE_COMPAT=1 npm test`,
 `CompatRegression`). Une version d'archvow dans l'intervalle ne demande donc pas de nouvelle version du plugin,

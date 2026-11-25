@@ -77,15 +77,15 @@ What to look for in the diff:
 
 ## The archvow version and the contract (0.20.0)
 
-archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "3.0", "archvow": "3.2.0",
+archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "3.0", "archvow": "3.2.1",
 ...}`, and every `--json` object starts with `"contract"`. Since 1.0.0 the plugins have their own versioning and
 say the range of archvow versions they work with: `contract/archvow-range.txt` (`>=3.2,<4`), one value, said in the
-README, both Marketplace texts and the header of the tool window (`archvow 3.2.0 ✓ · this plugin works with
+README, both Marketplace texts and the header of the tool window (`archvow 3.2.1 ✓ · this plugin works with
 archvow >=3.2,<4`). `compatibility()` (`compat.ts`) and `ArchvowCompat.of` judge the installed archvow against
 the range and `contract.txt` (the same MAJOR and a MINOR at least the plugin's), with the project's pin
 (`archvow==X` in its requirements.txt or pyproject.toml, `projectPin()`): in the range, nothing; older, Install
 archvow 3.1.0 - or the pin, when it is in the range; a pin below the range, how the project's architects upgrade
-it (`pip install archvow==3.2.0`, `archvow init <package> --force`), and nothing is installed over it; newer,
+it (`pip install archvow==3.2.1`, `archvow init <package> --force`), and nothing is installed over it; newer,
 "update the plugin"; none, the exact install command. Both say the same on every case of
 `contract/compat/expected.json` (`UPDATE_COMPAT=1 npm test`, `CompatRegression`). So an archvow release in the
 range needs no plugin release, while archvow keeps no backward compatibility across MAJORs.

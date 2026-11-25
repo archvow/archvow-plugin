@@ -1927,6 +1927,12 @@
   }
 
   /** The icon in the box's corner: ✦ drafts with the AI the hover names, ▾ another AI (or the prompt alone). */
+  /** Why an assistant is greyed: drafts use its command, which the editor's own extension does not give. */
+  function draftMissing(program) {
+    return t(`Drafts use the ${program} command, which is not on this computer (the editor's extension is not enough). Install it, log in once, then reopen the project.`,
+      `Les brouillons passent par la commande ${program}, absente de cet ordinateur (l'extension de l'éditeur ne suffit pas). Installe-la, connecte-toi une fois, puis rouvre le projet.`);
+  }
+
   function draftCorner(key, disabled) {
     const at = draftRef(key);
     if (!at || !S.aiDrafts) return '';
@@ -1946,8 +1952,8 @@
         : t(`None of this project's AI assistants is on this machine (${draftTools().map((x) => x.program).join(', ') || '-'}). ▾ Copy the prompt instead.`,
           `Aucun assistant IA de ce projet n'est sur cette machine (${draftTools().map((x) => x.program).join(', ') || '-'}). ▾ Copier le prompt à la place.`);
     const menu = ui.aiMenuKey === key ? `<div class="draft-menu" role="menu"><div class="draft-menu-head">${esc(t("This project's AI assistants", 'Les assistants IA de ce projet'))}</div>`
-      + draftTools().map((x) => `<button role="menuitem" class="${tool && x.name === tool.name ? 'current' : ''}" data-a="draftWith" data-key="${esc(key)}" data-tool="${esc(x.name)}" ${x.installed ? '' : 'disabled'}>`
-        + `<span class="check">${tool && x.name === tool.name ? '✓' : ''}</span>${esc(x.title)}<span class="src">${esc(x.installed ? x.program : t('not installed', 'non installé'))}</span></button>`).join('')
+      + draftTools().map((x) => `<button role="menuitem" class="${tool && x.name === tool.name ? 'current' : ''}" data-a="draftWith" data-key="${esc(key)}" data-tool="${esc(x.name)}" ${x.installed ? '' : `disabled title="${esc(draftMissing(x.program))}"`}>`
+        + `<span class="check">${tool && x.name === tool.name ? '✓' : ''}</span>${esc(x.title)}<span class="src">${esc(x.installed ? x.program : t(`no ${x.program} command`, `pas de commande ${x.program}`))}</span></button>`).join('')
       + `<hr><button role="menuitem" data-a="draftPrompt" data-key="${esc(key)}"><span class="check"></span>${esc(t('Copy the prompt instead', 'Copier le prompt à la place'))}</button></div>` : '';
     const off = !on || disabled;
     return `<div class="draft-ai"><span class="draft-split${off ? ' off' : ''}" data-tip="${esc(tip)}">`

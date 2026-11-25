@@ -223,6 +223,7 @@ final class ArchvowCli {
 
     /** The folder and environment of an archvow process; through wsl.exe, a Windows folder and WSLENV. */
     static void prepare(ProcessBuilder builder, List<String> argv, String root) {
+        shellEnvironment(builder.environment());
         builder.environment().put("NO_COLOR", "1");
         builder.environment().put("PYTHONIOENCODING", "utf-8");
         // what archvow did, for the session log (a level the person set is kept)
@@ -233,6 +234,19 @@ final class ArchvowCli {
             builder.environment().put("WSLENV", ArchvowWsl.wslenv(builder.environment().get("WSLENV")));
         } else if (root != null) {
             builder.directory(new File(root));
+        }
+    }
+
+    /**
+     * 1.2.1: the environment of the person's login shell, as the IDE's terminal and run configurations get it. An IDE
+     * started from the Dock (macOS) has a short PATH, so archvow saw no `claude` or `copilot` command for drafts.
+     */
+    static void shellEnvironment(java.util.Map<String, String> environment) {
+        try {
+            java.util.Map<String, String> shell = com.intellij.util.EnvironmentUtil.getEnvironmentMap();
+            if (shell != null && !shell.isEmpty()) environment.putAll(shell);
+        } catch (RuntimeException | LinkageError e) {
+            // outside the IDE (the headless tests) or the shell could not be read: the IDE's own environment
         }
     }
 

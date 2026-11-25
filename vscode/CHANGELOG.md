@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.1 - 2026-11-25
+
+Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0).
+
+- **Draft with AI: an assistant greyed in the ▾ menu names the missing command** ("no copilot command"). Hovering
+  it says why: drafts use the assistant's command, and the editor's own extension is not enough. Install the
+  command, log in once, then reopen the project.
+- With archvow 3.2.1, a failing assistant gives its real reason instead of its warnings. Claude Code, for
+  instance, no longer stops on "Ignoring N permissions.allow entries" in a folder it does not trust yet.
+
 ## 1.2.0 - 2026-11-25
 
 Works with archvow >=3.2,<4. Built on archvow 3.2.0 (contract 3.0, with `ai_drafts` and the build step's progress).

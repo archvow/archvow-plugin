@@ -2,6 +2,17 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 1.2.1 - 2026-11-25
+
+Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0).
+
+- **archvow runs with your login shell's environment**, as the IDE's terminal does. An IDE started from the Dock
+  (macOS) has a short PATH, so Draft with AI said Claude Code was not installed when it was.
+- **Draft with AI: an assistant greyed in the ▾ menu names the missing command** ("no copilot command"). Hovering
+  it says why: drafts use the assistant's command, and IntelliJ's Copilot plugin is not enough. Install the
+  command, log in once, then reopen the project.
+- With archvow 3.2.1, a failing assistant gives its real reason instead of its warnings.
+
 ## 1.2.0 - 2026-11-25
 
 Works with archvow >=3.2,<4. Built on archvow 3.2.0 (contract 3.0, with `ai_drafts` and the build step's progress).

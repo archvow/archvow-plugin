@@ -715,14 +715,14 @@
   ],
   "templates": {
     "pyspark-pipeline": {
-      "version": "3.2.0",
+      "version": "3.2.1",
       "source": "archvow",
-      "digest": "1dc30a7110f2"
+      "digest": "3d1021dffd05"
     },
     "python-base": {
-      "version": "3.2.0",
+      "version": "3.2.1",
       "source": "archvow",
-      "digest": "d01e67ae61f2"
+      "digest": "8a1a1ab0ae6f"
     }
   },
   "features": [

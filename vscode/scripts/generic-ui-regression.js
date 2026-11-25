@@ -167,6 +167,8 @@ assert.match(drafting.app.innerHTML, /data-a="draftRun" data-key="d:schema:1"/, 
 assert.match(drafting.app.innerHTML, /Draft an answer with Claude Code - you read it and save it/, 'the hover names the AI');
 drafting.click('draftMenu', { key: 'd:schema:1' });
 assert.match(drafting.app.innerHTML, /data-a="draftWith"[^>]*data-tool="codex" disabled/, 'a tool not installed is greyed');
+assert.match(drafting.app.innerHTML, /data-tool="codex" disabled title="Drafts use the codex command, which is not on this computer/, 'its hover says why');
+assert.match(drafting.app.innerHTML, /<span class="src">no codex command<\/span>/, 'it names the missing command');
 assert.match(drafting.app.innerHTML, /Copy the prompt instead/);
 drafting.click('draftRun', { key: 'd:schema:1' });
 assert.equal(JSON.stringify(drafting.posted.at(-1)), JSON.stringify({ type: 'draft', key: 'd:schema:1', component: 'schema', ref: '1', tool: 'claude-code' }));

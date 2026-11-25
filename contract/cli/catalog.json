@@ -3,7 +3,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "default": false,
       "chain": [
         "python-base",
@@ -559,7 +559,7 @@
     },
     {
       "name": "langgraph-agent",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "default": false,
       "chain": [
         "python-base",
@@ -1225,7 +1225,7 @@
     },
     {
       "name": "pyspark-pipeline",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "default": false,
       "chain": [
         "python-base",
@@ -1802,7 +1802,7 @@
     },
     {
       "name": "python-app",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "default": true,
       "chain": [
         "python-base",

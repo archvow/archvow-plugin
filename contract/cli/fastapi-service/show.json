@@ -607,14 +607,14 @@
   ],
   "templates": {
     "fastapi-service": {
-      "version": "3.2.0",
+      "version": "3.2.1",
       "source": "archvow",
-      "digest": "4e6a2ffb2376"
+      "digest": "12667287652a"
     },
     "python-base": {
-      "version": "3.2.0",
+      "version": "3.2.1",
       "source": "archvow",
-      "digest": "d01e67ae61f2"
+      "digest": "8a1a1ab0ae6f"
     }
   },
   "features": [

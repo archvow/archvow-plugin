@@ -609,14 +609,14 @@
     ],
     "templates": {
       "fastapi-service": {
-        "version": "3.2.0",
+        "version": "3.2.1",
         "source": "archvow",
-        "digest": "4e6a2ffb2376"
+        "digest": "12667287652a"
       },
       "python-base": {
-        "version": "3.2.0",
+        "version": "3.2.1",
         "source": "archvow",
-        "digest": "d01e67ae61f2"
+        "digest": "8a1a1ab0ae6f"
       }
     },
     "features": [
@@ -3426,7 +3426,7 @@
     "templates": [
       {
         "name": "fastapi-service",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "default": false,
         "chain": [
           "python-base",
@@ -3982,7 +3982,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "default": false,
         "chain": [
           "python-base",
@@ -4648,7 +4648,7 @@
       },
       {
         "name": "pyspark-pipeline",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "default": false,
         "chain": [
           "python-base",
@@ -5225,7 +5225,7 @@
       },
       {
         "name": "python-app",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "default": true,
         "chain": [
           "python-base",
@@ -5738,7 +5738,7 @@
     "project_templates": [
       {
         "name": "fastapi-service",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
         "archvow": ">=3.2,<4",
         "languages": [
@@ -5753,11 +5753,11 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "4e6a2ffb2376"
+        "digest": "12667287652a"
       },
       {
         "name": "python-base",
-        "version": "3.2.0",
+        "version": "3.2.1",
         "description": "Shared answers, guards and CI of the Python templates.",
         "archvow": ">=3.2,<4",
         "languages": [
@@ -5775,7 +5775,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "d01e67ae61f2"
+        "digest": "8a1a1ab0ae6f"
       }
     ],
     "agents": [
@@ -6326,7 +6326,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
       "archvow": ">=3.2,<4",
       "languages": [
@@ -6346,7 +6346,7 @@
     },
     {
       "name": "python-base",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "description": "Shared answers, guards and CI of the Python templates.",
       "archvow": ">=3.2,<4",
       "languages": [

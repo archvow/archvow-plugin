@@ -122,6 +122,16 @@ public final class DraftBoxRegression {
         page.answer = "{\"prompt\": \"Draft an answer to one question\"}";
         box.menu();
         check(box.menu().getComponentCount() >= 4, "the menu: head, two tools, a separator and Copy the prompt");
+        javax.swing.JMenuItem codex = null;
+        for (java.awt.Component c : box.menu().getComponents())
+            if (c instanceof javax.swing.JMenuItem item && item.getText().contains("OpenAI Codex")) codex = item;
+        check(codex != null && !codex.isEnabled() && codex.getText().contains("no codex command"),
+            "a tool not installed: greyed, naming its command: " + (codex == null ? null : codex.getText()));
+        check(codex != null && codex.getToolTipText() != null && codex.getToolTipText().contains("the IDE's plugin is not enough"),
+            "its hover says why");
+        java.util.Map<String, String> environment = new java.util.HashMap<>(java.util.Map.of("NO_COLOR", "1"));
+        ArchvowCli.shellEnvironment(environment);  // outside the IDE: the shell's or nothing, never an exception
+        check("1".equals(environment.get("NO_COLOR")) || environment.containsKey("PATH"), "the environment kept");
 
         // the walk strip: no Stop button, a × that leaves, steps drawn between the words and the count
         ArchvowWalkStrip strip = new ArchvowWalkStrip();
