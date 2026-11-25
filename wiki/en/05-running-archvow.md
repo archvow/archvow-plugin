@@ -153,7 +153,7 @@ it; nothing is installed at startup or without a click. `ArchvowInstall`
 | Question | Answer |
 |---|---|
 | Into which Python? | the project's `.venv`, then `venv` (`venvPythons()`), then the IDE's interpreter, then the Python of the settings; a bare `python` is never chosen for the person (`installPython()`, `ArchvowInstall.python`): no Python found, the card says **Configure Python** |
-| Which version? | the project's pin when it is in the range, else `archvow==3.2.1` (`requirement()`): the archvow the plugins are tested with; once installed, any archvow of the range is accepted (`compatibility()`, `ArchvowCompat`) |
+| Which version? | the project's pin when it is in the range, else `archvow==3.3.0` (`requirement()`): the archvow the plugins are tested with; once installed, any archvow of the range is accepted (`compatibility()`, `ArchvowCompat`) |
 | From where? | the setting *Install archvow from* / `archvow.installFrom` (`installSource()`): empty = pip's own configuration (pip.conf, `PIP_INDEX_URL`), an http(s) URL = `--index-url`, a `.whl` file, or a folder of wheels = `--no-index --find-links` (`pipArgs()`) |
 | How? | the command is shown (`displayCommand()`), then run only after **Confirm and run**: no shell, in the project folder, 10 minutes at most, `PIP_DISABLE_PIP_VERSION_CHECK=1`; a Python in WSL through `wsl.exe`, as archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Afterwards? | success: the settings keep that Python, the version is probed again, the workspace reloads; failure: pip's output, nothing saved |

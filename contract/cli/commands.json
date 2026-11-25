@@ -2784,6 +2784,21 @@
           "help": "a person has read the report: HIGH findings no longer fail (CI passes it when the merge request has the label review-acknowledged)",
           "hidden": false,
           "metavar": "acknowledged"
+        },
+        {
+          "name": "reviewer",
+          "flags": [
+            "--with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "which of the approved reviewers (default: the first one that wrote none of the changed files)",
+          "hidden": false,
+          "metavar": "REVIEWER"
         }
       ]
     },
@@ -3121,6 +3136,92 @@
           "optionalValue": false,
           "choices": [],
           "help": "print what the AI assistant would read, and run nothing",
+          "hidden": false,
+          "metavar": "prompt"
+        }
+      ]
+    },
+    {
+      "path": [
+        "skill"
+      ],
+      "description": "Let one of the project's AI assistants do a skill on the spec, in the background (what it adds is the AI's, To review).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "skill",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "draft-spec",
+            "clarify",
+            "analyze",
+            "implement",
+            "review"
+          ],
+          "help": "the skill: draft-spec, clarify, analyze (run here); implement and review give their instructions with --prompt",
+          "hidden": false,
+          "metavar": "skill"
+        },
+        {
+          "name": "target",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the component (draft-spec: the brief, briefs/<file>.md or briefs/<file>.md#<section>)",
+          "hidden": false,
+          "metavar": "target"
+        },
+        {
+          "name": "tool",
+          "flags": [
+            "--with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "which of the project's AI assistants (default: the first one installed on this computer)",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "max",
+          "flags": [
+            "--max"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "clarify: at most N questions, the riskiest first (default 5)",
+          "hidden": false,
+          "metavar": "N"
+        },
+        {
+          "name": "prompt",
+          "flags": [
+            "--prompt"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "print the instructions, to give them to an AI yourself, and run nothing",
           "hidden": false,
           "metavar": "prompt"
         }
@@ -3895,6 +3996,36 @@
           "help": "the CI secret its review command needs",
           "hidden": false,
           "metavar": "NAME"
+        },
+        {
+          "name": "draft_command",
+          "flags": [
+            "--draft-command"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how `archvow draft` runs it, text only: no tool, no file, no command (the question is in $ARCHVOW_DRAFT_PROMPT)",
+          "hidden": false,
+          "metavar": "COMMAND"
+        },
+        {
+          "name": "skill_command",
+          "flags": [
+            "--skill-command"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how `archvow skill` runs it in the background: it may read the project and run archvow, nothing else (the task is in $ARCHVOW_SKILL_PROMPT)",
+          "hidden": false,
+          "metavar": "COMMAND"
         },
         {
           "name": "owns",

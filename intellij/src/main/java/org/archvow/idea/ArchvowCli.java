@@ -50,6 +50,15 @@ final class ArchvowCli {
             this(arguments, exitCode, "", message, false);
         }
         boolean ok() { return exitCode == 0 && !interrupted; }
+        /** stdout as a JSON object (a --json answer, even when the command failed), or null. */
+        com.google.gson.JsonObject parseJsonObject() {
+            try {
+                com.google.gson.JsonElement e = com.google.gson.JsonParser.parseString(stdout.strip());
+                return e.isJsonObject() ? e.getAsJsonObject() : null;
+            } catch (RuntimeException ex) {
+                return null;
+            }
+        }
     }
 
     private final Project project;
@@ -261,6 +270,34 @@ final class ArchvowCli {
 
     private Result invoke(List<String> arguments, String stdin, ProgressIndicator indicator,
                           boolean globalCatalog, String templateDirectory) throws Exception {
+        return invoke(arguments, stdin, indicator, globalCatalog, templateDirectory, 0, null);
+    }
+
+    /**
+     * 1.3.0: a long command beside the queue - an AI skill run, a review: minutes, while the other calls go on (and in
+     * the IDE's progress bar, cancellable there too). The returned stop ends archvow gently, so it stops the assistant
+     * it started.
+     */
+    Runnable background(String label, List<String> arguments, long timeoutSeconds, Consumer<Result> finished) {
+        java.util.concurrent.atomic.AtomicBoolean stop = new java.util.concurrent.atomic.AtomicBoolean();
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Archvow: " + label, true) {
+            @Override public void run(@NotNull ProgressIndicator indicator) {
+                long started = System.nanoTime();
+                Result result;
+                try { result = invoke(arguments, null, indicator, false, null, timeoutSeconds, stop); }
+                catch (Exception ex) { result = new Result(arguments, -1, describeFailure(ex)); }
+                ArchvowRunLog.record(project, new ArchvowRunLog.Call(withLanguage(arguments, ArchvowI18n.isFrench(project)), result.exitCode, result.stdout,
+                    result.stderr, result.interrupted, result.log, result.error == null ? "" : result.error.text()), true, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
+                Result returned = result;
+                ApplicationManager.getApplication().invokeLater(() -> { if (!project.isDisposed()) finished.accept(returned); });
+            }
+        });
+        return () -> stop.set(true);
+    }
+
+    private Result invoke(List<String> arguments, String stdin, ProgressIndicator indicator, boolean globalCatalog,
+                          String templateDirectory, long timeoutSeconds,
+                          java.util.concurrent.atomic.AtomicBoolean stop) throws Exception {
         ArchvowTrust.require(project);  // safe mode: no process at all (0.26.1)
         arguments = withLanguage(arguments, ArchvowI18n.isFrench(project));
         ArchvowSettings.Values opts = ArchvowSettings.get(project).getState();
@@ -298,11 +335,15 @@ final class ArchvowCli {
             if (stdin != null) out.write(stdin.getBytes(StandardCharsets.UTF_8));
         }
         boolean cancelled = false;
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(opts.timeoutSeconds);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds > 0 ? timeoutSeconds : opts.timeoutSeconds);
         try {
             while (!process.waitFor(200, TimeUnit.MILLISECONDS)) {
-                if (indicator.isCanceled() || System.nanoTime() >= deadline) {
+                if (indicator.isCanceled() || System.nanoTime() >= deadline || (stop != null && stop.get())) {
                     cancelled = true;
+                    if (stop != null) {  // a background run: archvow stops the assistant it started, then ends
+                        process.destroy();
+                        if (process.waitFor(15, TimeUnit.SECONDS)) break;
+                    }
                     process.destroyForcibly();
                     break;
                 }

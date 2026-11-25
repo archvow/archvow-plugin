@@ -275,18 +275,18 @@ test('Overview Open Checks runs the same full check as the toolbar, not the gene
   assert.match(page, /checks-full">\$\{title\}\$\{totals\}\$\{listPart\}/);
 });
 
-test('AI skill handoff: readable instructions, generic copy action and optional agent shortcut', () => {
+test('AI skills (1.3.0): archvow writes the instructions; the spec skills run here with the AI picked; Implement is a handoff; Review uses the reviewers', () => {
   const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
-  assert.match(page, /function skillRequest\(id, v\)/);
-  assert.match(page, /If you cannot access the project files/);
-  assert.match(page, /Brief \/ section/);
+  assert.doesNotMatch(page, /function skillRequest\(/, 'no instructions written by the page');
+  assert.match(page, /post\(\{ type: 'skillPrompt', key, skill: id, target/);
+  assert.match(host, /\['skill', skill, String\(m\.target \?\? ''\) \|\| '-', \.\.\.\(m\.max \? \['--max', String\(m\.max\)\] : \[\]\), '--prompt', '--json'\]/);
   assert.match(page, /t\('Copy instructions', 'Copier les consignes'\)/);
-  // 1.2.0: Run in Copilot chat when Copilot is one of the project's AI tools, off when agents must be sandboxed
-  assert.match(page, /t\('▶ Run in Copilot chat', '▶ Lancer dans le chat Copilot'\)/);
-  assert.match(page, /const runInChat = \(S\.aiTools \|\| \[\]\)\.includes\('copilot'\);/);
+  assert.match(page, /t\(`▶ Run with \$\{name\}`, `▶ Lancer avec \$\{name\}`\)/, 'the button names the AI');
+  assert.match(page, /t\(`▶ Review with \$\{name\}`, `▶ Relire avec \$\{name\}`\)/);
+  assert.match(page, /t\('▶ Open in Copilot chat', '▶ Ouvrir dans le chat Copilot'\)/);
   assert.match(host, /mode: 'agent'/);
-  assert.doesNotMatch(page, /'Copy for '/);
-  assert.match(host, /format === 'skill' \? skillCommand\(/);
+  assert.match(host, /\['review', '--base', String\(m\.base \?\? ''\), '--with', String\(m\.tool \?\? ''\), '--json'\]/);
+  assert.match(host, /this\.cli\.background\(args, 30 \* 60\)/, 'beside the queue: the other calls go on');
   assert.match(css, /\.skill-form \.form-actions \{ flex-wrap: wrap; \}/);
-  assert.match(css, /max-height: 220px; overflow: auto/);
+  assert.match(css, /\.run-split \.draft-menu \{ top: 34px; right: 0; \}/);
 });

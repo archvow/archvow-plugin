@@ -42,7 +42,7 @@ English by default, French as a setting. Every change runs an archvow command, a
 ## Build and test
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-1.2.2.zip, dist/archvow-1.2.2.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-1.3.0.zip, dist/archvow-1.3.0.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -60,7 +60,7 @@ When archvow changes, the contract is recorded again from its wheel: [contract/R
 ## Continuous integration and publishing
 
 GitHub Actions (`.github/workflows/ci.yml`) runs both plugins' tests, regenerates the contract with the
-archvow kept in `contract/archvow/` (the 3.2.1 wheel, its examples and rules) and requires it unchanged,
+archvow kept in `contract/archvow/` (the 3.3.0 wheel, its examples and rules) and requires it unchanged,
 runs the VS Code tests against that archvow, then opens the built `.vsix` and `.zip` as the IDEs do. The
 page [Tests](wiki/en/13-tests.md) says what each job checks.
 
@@ -102,23 +102,23 @@ both together.
   reference; the TypeScript one (`vscode/src/vow`) must give the same tokens, problems and links on
   every case of `contract/vow-reader/expected.json`.
 - **A plugin says when the installed archvow is not one it works with**, rather than misreading it: the
-  range (`contract/archvow-range.txt`, >=3.2,<4) and archvow's contract number (`archvow version --json`,
+  range (`contract/archvow-range.txt`, >=3.3,<4) and archvow's contract number (`archvow version --json`,
   MAJOR.MINOR: the same MAJOR and a MINOR at least the plugin's), so an archvow release in the range needs no
   plugin release. Both plugins say the same on every case of `contract/compat/expected.json`.
 - **No outside source at run time.** Neither plugin downloads anything on its own, runs no AI model and sends
   nothing anywhere; for a team, the `.zip` and the `.vsix` go to an internal plugin repository (JetBrains
   `updatePlugins.xml`, a self-hosted Open VSX) or a share. When archvow is missing or does not speak the
-  contract, **Install archvow 3.2.1** (or the version the project pins, when it is in the range) shows the pip command (into the project's venv, from pip's own
+  contract, **Install archvow 3.3.0** (or the version the project pins, when it is in the range) shows the pip command (into the project's venv, from pip's own
   configuration, your company's index or a wheel: the setting *Install archvow from*) and runs it only after
   **Confirm and run** - never at startup.
 
 ## Versions
 
-Both plugins have the same version (1.2.2), their own, not archvow's: from 1.0.0 they evolve on their own
-versioning. **They work with archvow >=3.2,<4** - one value, `contract/archvow-range.txt`, said here, on both
-Marketplace pages and in the header of the tool window (`archvow 3.2.1 ✓ · this plugin works with archvow
->=3.2,<4`); the release test checks they all say it. They read `.vow` format 1, speak archvow's contract 3.0
-(`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI 3.2.1
+Both plugins have the same version (1.3.0), their own, not archvow's: from 1.0.0 they evolve on their own
+versioning. **They work with archvow >=3.3,<4** - one value, `contract/archvow-range.txt`, said here, on both
+Marketplace pages and in the header of the tool window (`archvow 3.3.0 ✓ · this plugin works with archvow
+>=3.3,<4`); the release test checks they all say it. They read `.vow` format 1, speak archvow's contract 3.0
+(`contract/cli/contract.txt`) and are tested with, and install, the archvow CLI 3.3.0
 (`contract/cli/version.txt`, the version the contract was recorded from). An installed archvow outside the range
 is said, with what to do: older - Install archvow, or, when the project pins an older archvow, how its architects
 upgrade the project (the plugin never installs over a pin); newer - update the plugin; none - the exact install

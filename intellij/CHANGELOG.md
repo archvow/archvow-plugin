@@ -2,6 +2,22 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 1.3.0 - 2026-11-25
+
+Works with archvow >=3.3,<4. Built on archvow 3.3.0 (contract 3.0).
+
+- **AI skills run here, in the background** (ArchvowSkillForm): the same form as on the VS Code page.
+  - **▶ Run with <AI> ▾** for Draft from a brief, Find missing questions and Find risks, the AI picked among the
+    project's assistants.
+  - While it runs: a strip with the AI, the time, Show log and ■ Stop. At the end: what was added with Review
+    them ›, or the tool's reason.
+  - Off, with the reason on the button: `ai_skills: no`, a sandbox needed, or no assistant installed here.
+- **Implement:** Copy instructions and Copy and open AI chat (your own agent writes the code).
+- **Review:** ▶ Review with <reviewer> ▾ (`archvow review --with`), then Open the report ›.
+- **Copy instructions** copies archvow's own text (`archvow skill … --prompt`). The form has no steps any more.
+- **contract/vow-reader/expected.json** is regenerated (`./gradlew contractDump`) from the vows of archvow 3.3.0.
+- **New project:** the `ai_skills` answer is asked with the other AI answers (AI & briefs).
+
 ## 1.2.2 - 2026-11-25
 
 Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0). Layouts that broke at some widths, found

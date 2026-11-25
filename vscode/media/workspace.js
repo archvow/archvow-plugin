@@ -10,6 +10,7 @@
   // The list / answer split (1.2.0): the list's width when side by side, its height when stacked; kept by the webview.
   const splitSize = Object.assign({ left: '50%', top: '40vh' }, (vscode.getState && (vscode.getState() || {}).split) || {});
   const keptTool = (vscode.getState && (vscode.getState() || {}).aiTool) || '';
+  const keptRunTool = (vscode.getState && (vscode.getState() || {}).runTool) || '';
   function keepSplit() {
     if (!vscode.setState) return;
     try { vscode.setState(Object.assign({}, vscode.getState() || {}, { split: { left: splitSize.left, top: splitSize.top } })); } catch (e) { /* not kept */ }
@@ -28,6 +29,9 @@
     /** Draft with AI (1.2.0): the draft in a box, by its key - {tool, title, text, before}; the tool drafting it;
      *  the open ▾ menu's key; the tool chosen last (kept by the webview). */
     aiDraft: {}, aiDrafting: {}, aiMenuKey: '', aiTool: keptTool, aiError: {},
+    /** 1.3.0, AI skills run here: archvow's instructions by skill|target|max (null: asked); the run going on or
+     *  its end - {key, status, title, what, started, message, added, log, review}; the AI picked for ▶ Run (kept). */
+    skillPrompts: {}, skillRun: null, runTool: keptRunTool, runMenu: false,
     /** The walk under way (1.1.0): Specify or Build, its scope, the components done, the one shown. */
     walk: null,
     /** 1.1.0: an answer field the person edited by hand - its table no longer writes over it. */
@@ -226,6 +230,14 @@
       case 'walk':  // 1.1.0
         if (NAV) return;
         startWalk(m);
+        break;
+      case 'skillPrompt':  // 1.3.0: archvow's instructions for a skill (archvow skill --prompt)
+        ui.skillPrompts[m.key] = typeof m.text === 'string' ? m.text : t(`archvow could not write them: ${m.error || ''}`, `archvow n'a pas pu les écrire : ${m.error || ''}`);
+        break;
+      case 'skillDone':  // 1.3.0: how the run ended (archvow skill / archvow review)
+        if (ui.skillRun && ui.skillRun.key === m.key) {
+          ui.skillRun = Object.assign({}, ui.skillRun, { status: m.status || 'failed', message: m.message || '', added: !!m.added, log: !!m.log });
+        }
         break;
       case 'drafted': {  // 1.2.0: the AI's draft (or why there is none)
         const key = m.key || '';
@@ -1399,21 +1411,24 @@
   }
 
   /**
-   * The launch form of an AI skill (design A): what the AI reads, at most how many, where the request goes; on
-   * the right what will happen, what the AI may add, what you still decide, and the exact request. Nothing runs
-   * here: the request goes to the assistant, which runs archvow; what it adds comes back marked as the AI's.
+   * The launch form of an AI skill (1.3.0): what the AI reads and may add, the target, and the instructions archvow
+   * writes (`archvow skill --prompt`: the same text in both IDEs). Draft from a brief, Find missing questions and Find
+   * risks run in the background with the AI picked in ▾ (`archvow skill`, ai_skills); Implement is handed to your own
+   * agent; Review runs `archvow review` with one of the project's reviewers.
    */
   function skillForm() {
     const id = ui.skill;
     const def = skillDef(id);
     if (!def) return `<p class="muted">${esc(t('Unknown skill.', 'Skill inconnu.'))}</p>`;
     const v = ui.skillValues;
-    const tools = (S && S.aiTools && S.aiTools.length ? S.aiTools : ['copilot']);
-    if (!v.tool || !tools.includes(v.tool)) v.tool = tools[0];
     const ids = componentIds();
     const field = (name, label, control) => `<div class="field"><label for="sk-${name}">${esc(label)}</label>${control}</div>`;
     const controls = [];
-    if (def.target === 'brief') {
+    if (id === 'review') {
+      controls.push(`<p class="note">${esc(S.base ? t(`Reviews the changes of this branch since ${S.base}. The report goes to reviews/last-change.md; it never changes code.`,
+        `Relit les changements de cette branche depuis ${S.base}. Le rapport va dans reviews/last-change.md ; il ne change jamais le code.`)
+        : t('No base branch found: a review compares this branch with the one it will merge into.', "Pas de branche de base : une relecture compare cette branche à celle où elle sera fusionnée."))}</p>`);
+    } else if (def.target === 'brief') {
       const refs = (S.briefStatus ? list(S.briefStatus, 'files') : []).flatMap((f) => [str(f, 'file'), ...list(f, 'sections').filter((r) => str(r, 'section')).map((r) => str(f, 'file') + '#' + str(r, 'section'))]);
       controls.push(field('brief', t('The brief, or one section of it', "Le brief, ou une de ses sections"), `<input id="sk-brief" list="sk-briefs" data-input="skill" data-name="brief" data-keep="sk-brief" value="${esc(v.brief || '')}" placeholder="briefs/orders.md#cleaning"><datalist id="sk-briefs">${refs.map((r) => `<option value="${esc(r)}">`).join('')}</datalist>`));
     } else {
@@ -1421,93 +1436,105 @@
       if (!v.component && ids.length) v.component = ids[0];
     }
     if (def.max) controls.push(field('max', t('At most', 'Au plus'), `<span class="segmented">${['3', '5', '10'].map((n) => `<button class="${v.max === n ? 'on' : 'secondary'}" data-a="skillValue" data-name="max" data-value="${n}">${n}</button>`).join('')}</span><div class="muted small">${esc(t('The riskiest first. Fewer questions get read.', 'Les plus risquées d\'abord. Moins de questions, mieux lues.'))}</div>`));
-    controls.push(field('tool', t('AI assistant (optional)', 'Assistant IA (optionnel)'), `<span class="segmented">${tools.map((x) => `<button class="${v.tool === x ? 'on' : 'secondary'}" data-a="skillValue" data-name="tool" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</span><div class="muted small">${esc(t("Choose an integration; Copy instructions works with any AI that can read the project.", "Choisis une intégration ; Copier les consignes fonctionne avec toute IA ayant accès au projet."))}</div>`));
     const ai = aiOf(v.component);
-    const blocked = def.target !== 'brief' && ai && ai.blocked && ai.blocked[id];
-    const ready = def.target === 'brief' ? !!(v.brief || '').trim() : !!v.component;
-    const text = skillRequest(id, v);
-    const chat = v.tool === 'copilot';
-    // 1.2.0: Run in Copilot chat when Copilot is one of the project's AI assistants; off when the project needs agents in a
-    // sandbox (Copilot's agent runs in the person's own terminal: archvow would refuse it, ARCH051)
-    const runInChat = (S.aiTools || []).includes('copilot');
-    const sandboxed = sandboxRequired();
-    const steps = [
-      chat ? t('You can copy the full instructions or open Copilot Chat with them already typed.', 'Tu peux copier les consignes complètes ou ouvrir Copilot Chat avec celles-ci préremplies.')
-        : t('Copy the full instructions and paste them into an AI assistant with access to the project.', 'Copie les consignes complètes et colle-les dans un assistant IA ayant accès au projet.'),
-      pair(def.reads), pair(def.may_add),
-      t('What it adds appears in the component\'s tabs, marked AI and To review, for you to keep, change or remove.',
-        'Ce qu\'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire, pour que tu le gardes, le changes ou le retires.')];
-    const skillStages = [t('Target', 'Cible'), t('AI handoff', 'Transmission IA'), t('Review', 'Récapitulatif')];
-    ui.skillStep = Math.max(0, Math.min(ui.skillStep, skillStages.length - 1));
-    const skillNav = `<nav class="guided-steps" aria-label="${esc(t('Skill steps', 'Étapes du skill'))}">${skillStages.map((label, index) =>
-      `<button type="button" class="guided-step ${index === ui.skillStep ? 'current' : ''}" data-a="skillStage" data-index="${index}"><span>${index + 1}</span>${esc(label)}</button>`).join('')}</nav>`;
-    const shownControls = ui.skillStep === 0 ? controls.slice(0, -1).join('')
-      : ui.skillStep === 1 ? controls.slice(-1).join('')
-      : `<div class="guided-review"><div class="guided-review-item"><b>${esc(def.target === 'brief' ? t('Brief', 'Brief') : t('Component', 'Composant'))}</b><span>${esc(def.target === 'brief' ? (v.brief || '—') : (v.component || '—'))}</span></div>
-      ${def.max ? `<div class="guided-review-item"><b>${esc(t('At most', 'Au plus'))}</b><span>${esc(v.max || '5')}</span></div>` : ''}
-      <div class="guided-review-item"><b>${esc(t('AI assistant', 'Assistant IA'))}</b><span>${esc(v.tool)}</span></div></div>`;
-    const skillPager = `<div class="guided-skill-actions row wrap">${ui.skillStep > 0 ? btn(t('← Previous', '← Précédent'), 'skillPrevious', '', false, 'secondary') : ''}${ui.skillStep < 2 ? btn(t('Next →', 'Suivant →'), 'skillNext', '', false, 'secondary') : ''}</div>`;
+    const blocked = def.target !== 'brief' && id !== 'review' && ai && ai.blocked && ai.blocked[id];
+    const target = skillTarget(id, v);
+    const ready = !!target;
+    const key = skillKey(id, v);
+    if (ready && ui.skillPrompts[key] === undefined) { ui.skillPrompts[key] = null; post({ type: 'skillPrompt', key, skill: id, target, max: def.max ? (v.max || '5') : '' }); }
+    const text = ui.skillPrompts[key];
+    const steps = id === 'implement' ? [
+      t('Copy the instructions and give them to your own agent: it writes the code and its marked tests.', 'Copie les consignes et donne-les à ton propre agent : il écrit le code et ses tests marqués.'),
+      pair(def.reads), t('Check then says what follows the spec, and what does not.', 'La vérification dit ensuite ce qui suit la spec, et ce qui ne la suit pas.')]
+      : id === 'review' ? [
+        t('Run it here with one of the project\'s reviewers, or copy the instructions to a reviewer.', 'Lance-la ici avec un des relecteurs du projet, ou copie les consignes à un relecteur.'),
+        pair(def.reads), t('The report is in reviews/last-change.md: you fix or acknowledge each finding.', 'Le rapport est dans reviews/last-change.md : tu corriges ou acceptes chaque constat.')]
+      : [
+        t('Run it here with one of the project\'s AI assistants, or copy the instructions to any AI.', 'Lance-le ici avec un des assistants IA du projet, ou copie les consignes à n\'importe quelle IA.'),
+        pair(def.reads), pair(def.may_add),
+        t('What it adds appears in the component\'s tabs, marked AI and To review, for you to keep, change or remove.',
+          'Ce qu\'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire, pour que tu le gardes, le changes ou le retires.')];
     const right = `<aside class="what"><div class="what-head">${esc(t('WHAT WILL HAPPEN', 'CE QUI VA SE PASSER'))}</div>
   <ol class="steps">${steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
   <div class="two"><div class="box"><b class="tone-blue">${esc(t('The AI can', "L'IA peut"))}</b><div class="small">${esc(pair(def.may_add))}</div></div>
   <div class="box"><b class="tone-good">${esc(t('You still', 'Toi, tu'))}</b><div class="small">${esc(pair(def.you))}</div></div></div>
-  <div class="muted small">${esc(t('Instructions to copy (for any AI)', "Consignes à copier (pour toute IA)"))}</div><pre class="request">${esc(text)}</pre></aside>`;
+  <div class="muted small">${esc(t('Instructions to copy (for any AI)', "Consignes à copier (pour toute IA)"))}</div><pre class="request">${esc(!ready ? t('Choose what it works on.', 'Choisis sur quoi il travaille.') : typeof text === 'string' ? text : t('Loading…', 'Chargement…'))}</pre></aside>`;
     return `<div class="skill-form"><h2>${esc(pair(def.label))} <span class="mono small muted">skill: archvow-${esc(id)}</span></h2>
   <p>${esc(pair(def.does))}</p>${blocked ? `<div class="alert warn">${esc(pair(blocked))}</div>` : ''}
-  <div class="form-grid skill-grid"><div>${skillNav}<section class="guided-panel">${shownControls}</section>${skillPager}</div>${right}</div>
-  ${runInChat && sandboxed ? `<div class="alert warn sandbox-note">${esc(t("⚠ This project needs AI agents in a sandbox (ARCH051). Copilot's agent runs commands in your own terminal: archvow would refuse them. Copy the instructions to an agent you start in its sandbox.",
-    "⚠ Ce projet demande que les agents IA tournent dans un bac à sable (ARCH051). L'agent de Copilot lance les commandes dans ton propre terminal : archvow les refuserait. Copie les consignes vers un agent que tu démarres dans son bac à sable."))}</div>` : ''}
-  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'link')}
-  ${btn(t('Copy instructions', 'Copier les consignes'), 'askAi', attrs({ send: '0', format: 'instructions' }), !ready, runInChat ? 'secondary' : '')}
-  ${runInChat ? btn(t('▶ Run in Copilot chat', '▶ Lancer dans le chat Copilot'), 'askAi', attrs({ send: '1', format: 'instructions', tool: 'copilot' }) + ` title="${esc(t('Opens the chat in agent mode with the instructions already in the box. You press Send.', "Ouvre le chat en mode agent avec les consignes déjà dans la zone. Tu appuies sur Envoyer."))}"`, !ready || sandboxed) : ''}</div>
-  ${runInChat && !sandboxed ? `<p class="muted small end">${esc(t("Opens the chat in agent mode with the instructions already in the box. You press Send. What it adds appears in the component's tabs, marked AI · To review.",
-    "Ouvre le chat en mode agent avec les consignes déjà dans la zone. Tu appuies sur Envoyer. Ce qu'il ajoute apparaît dans les onglets du composant, marqué IA · À relire."))}</p>` : ''}</div>`;
+  <div class="form-grid skill-grid"><div><section class="guided-panel">${controls.join('')}</section>
+  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'link')}${skillActions(id, key, ready && !blocked)}</div>
+  ${skillRunState(key)}</div>${right}</div></div>`;
   }
 
-  /** A complete instruction for any agent, including one without an installed slash command. */
-  function skillRequest(id, v) {
+  /** What the skill works on: the component, the brief, or the branch's change (review). */
+  function skillTarget(id, v) {
     const def = skillDef(id) || {};
-    const wording = (key) => pair(def[key]) || '';
-    const isBrief = def.target === 'brief';
-    const target = String(v[isBrief ? 'brief' : 'component'] || '').trim();
-    if (fr()) return [
-      `Tâche Archvow : ${wording('label')}`,
-      `Skill, s'il est installé : archvow-${id}`,
-      `Répertoire de travail : le projet actuellement ouvert dans l'IDE`,
-      `${isBrief ? 'Brief / section' : 'Composant'} : ${target}`,
-      ...(id === 'clarify' ? [`Nombre maximum de questions : ${v.max || '5'}`] : []),
-      '', `Objectif : ${wording('does')}`, `À lire : ${wording('reads')}`,
-      `Modifications ou propositions possibles : ${wording('may_add')}`,
-      `Validation humaine : ${wording('you')}`,
-      '', 'Consignes :',
-      '1. Lis le brief ou composant ciblé dans le dépôt, ainsi que les spécifications Archvow et les instructions locales pertinentes. Si le chemin contient #, utilise cette section précise.',
-      `2. Si le skill archvow-${id} est disponible, utilise-le. Sinon, réalise l'objectif décrit, sans inventer de commande Archvow.`,
-      '3. Respecte le mode Archvow du projet et les validations humaines ; ne présente jamais une proposition comme acceptée.',
-      "4. Si tu ne peux pas lire les fichiers du projet, demande leur contenu avant de travailler ; un chemin seul n'est pas leur contenu.",
-      '5. Résume les changements, propositions et points restant à valider.',
-    ].join('\n');
-    return [
-      `Archvow task: ${wording('label')}`,
-      `Skill, if installed: archvow-${id}`,
-      'Workspace: the project currently open in the IDE',
-      `${isBrief ? 'Brief / section' : 'Component'}: ${target}`,
-      ...(id === 'clarify' ? [`Maximum questions: ${v.max || '5'}`] : []),
-      '', `Goal: ${wording('does')}`, `Read first: ${wording('reads')}`,
-      `You may add or propose: ${wording('may_add')}`,
-      `Human approval: ${wording('you')}`,
-      '', 'Instructions:',
-      '1. Read the targeted brief or component in this repository, the Archvow specs and relevant local instructions. If the path includes #, use that specific section.',
-      `2. If the archvow-${id} skill is installed, use it. Otherwise perform the described goal without inventing Archvow commands.`,
-      "3. Respect the project's Archvow mode and human approval gates; do not treat a proposal as accepted.",
-      '4. If you cannot access the project files, ask me for their contents before acting; the path alone is not the document.',
-      '5. Summarize changes, proposals and items requiring human review.',
-    ].join('\n');
+    if (id === 'review') return S.base || '';
+    return String(v[def.target === 'brief' ? 'brief' : 'component'] || '').trim();
+  }
+  function skillKey(id, v) { return [id, skillTarget(id, v), (skillDef(id) || {}).max ? (v.max || '5') : ''].join('|'); }
+
+  /** The project's AI assistants that can run a skill (archvow workspace: ai_skills), and the one ▶ Run uses. */
+  function runTools() {
+    const a = S.aiSkills || {};
+    return Array.isArray(a.tools) ? a.tools.filter((x) => x && typeof x.name === 'string') : [];
+  }
+  function runTool(tools) {
+    return tools.find((x) => x.name === ui.runTool && x.installed) || tools.find((x) => x.installed) || null;
+  }
+  function reviewTools() { return Array.isArray(S.reviewers) ? S.reviewers.filter((x) => x && typeof x.name === 'string') : []; }
+
+  /** ▶ Run with <AI> ▾ (a spec skill), ▶ Review with <reviewer> ▾ (review), or the handoff to your agent (implement). */
+  function skillActions(id, key, ready) {
+    const copy = (primary) => btn(t('Copy instructions', 'Copier les consignes'), 'askAi', attrs({ send: '0', format: 'instructions' }), !ready, primary ? '' : 'secondary');
+    if (id === 'implement') {
+      // your own agent writes the code: Copilot's chat when it is one of the project's assistants and no sandbox is needed
+      const chat = (S.aiTools || []).includes('copilot') && !sandboxRequired();
+      return copy(!chat) + (chat ? btn(t('▶ Open in Copilot chat', '▶ Ouvrir dans le chat Copilot'), 'askAi', attrs({ send: '1', format: 'instructions', tool: 'copilot' })
+        + ` title="${esc(t('Opens the chat in agent mode with the instructions already in the box. You press Send.', "Ouvre le chat en mode agent avec les consignes déjà dans la zone. Tu appuies sur Envoyer."))}"`, !ready) : '');
+    }
+    const review = id === 'review';
+    const tools = review ? reviewTools() : runTools();
+    const tool = runTool(tools);
+    const running = ui.skillRun && ui.skillRun.status === 'running';
+    const why = review ? (!tools.length ? t('No reviewer approved: an architect approves one at init (archvow init <package> --force -a reviewers=codex).', 'Aucun relecteur approuvé : un architecte en approuve un à l\'init (archvow init <package> --force -a reviewers=codex).') : '')
+      : ((S.aiSkills || {}).on === false || (S.aiSkills || {}).why_not ? String((S.aiSkills || {}).why_not || '') : '');
+    const off = !!why || !ready || running;
+    const name = tool ? tool.title : '';
+    const label = review ? (name ? t(`▶ Review with ${name}`, `▶ Relire avec ${name}`) : t('▶ Review', '▶ Relire')) : (name ? t(`▶ Run with ${name}`, `▶ Lancer avec ${name}`) : t('▶ Run', '▶ Lancer'));
+    const tip = why || (running ? t('A run is going on: wait for it, or stop it.', 'Un lancement est en cours : attends-le, ou arrête-le.') : !tool
+      ? t(`None of this project's ${review ? 'reviewers' : 'AI assistants'} is on this computer. ▾ shows them.`, `Aucun des ${review ? 'relecteurs' : 'assistants IA'} de ce projet n'est sur cet ordinateur. ▾ les montre.`)
+      : review ? t(`${name} reviews the change in the background and writes the report. It never changes code.`, `${name} relit le changement en arrière-plan et écrit le rapport. Il ne change jamais le code.`)
+        : t(`${name} does it in the background, while you go on. What it adds is the AI's, To review.`, `${name} le fait en arrière-plan, pendant que tu continues. Ce qu'il ajoute est de l'IA, À relire.`));
+    const menu = ui.runMenu ? `<div class="draft-menu run-menu" role="menu"><div class="draft-menu-head">${esc(review ? t("This project's reviewers", 'Les relecteurs de ce projet') : t("This project's AI assistants", 'Les assistants IA de ce projet'))}</div>`
+      + tools.map((x) => `<button role="menuitem" class="${tool && x.name === tool.name ? 'current' : ''}" data-a="runWith" data-tool="${esc(x.name)}" ${x.installed ? '' : `disabled title="${esc(t(`It runs the ${x.program} command, which is not on this computer. Install it, log in once, then reopen the project.`, `Il passe par la commande ${x.program}, absente de cet ordinateur. Installe-la, connecte-toi une fois, puis rouvre le projet.`))}"`}>`
+        + `<span class="check">${tool && x.name === tool.name ? '✓' : ''}</span>${esc(x.title)}<span class="src">${esc(x.installed ? x.program : t(`no ${x.program} command`, `pas de commande ${x.program}`))}</span></button>`).join('') + '</div>' : '';
+    return copy(off) + `<span class="run-split" data-tip="${esc(tip)}"><span class="split-button"><button class="run-main" data-a="${review ? 'reviewRun' : 'skillRun'}" data-key="${esc(key)}" title="${esc(tip)}" ${off || !tool ? 'disabled' : ''}>${esc(label)}</button>`
+      + `<button class="split-more" data-a="runMenu" aria-label="${esc(t('Choose the AI', "Choisir l'IA"))}" ${review ? (tools.length ? '' : 'disabled') : (why || !tools.length ? 'disabled' : '')}>▾</button></span>${menu}</span>`;
   }
 
-  function skillCommand(id, v) {
-    const def = skillDef(id);
-    const req = (def && def.request) || {};
-    return String(req[v.tool] || '').replace(/\{(\w+)\}/g, (_, k) => v[k] || '');
+  /** Under the form: the run going on (its AI, the time, Show log, ■ Stop), or how the last one ended. */
+  function skillRunState(key) {
+    const r = ui.skillRun;
+    if (!r || r.key !== key) return '';
+    if (r.status === 'running') {
+      return `<div class="run-strip"><span class="run-spin"></span><span><b>${esc(r.title)}</b> ${esc(r.what)}</span><span class="run-bar"><i></i></span>`
+        + `<span class="muted run-elapsed" data-since="${r.started}">${esc(elapsed(r.started))}</span>${btn(t('Show log', 'Voir le journal'), 'skillLog', '', false, 'link')}${btn(t('■ Stop', '■ Arrêter'), 'skillStop', '', false, 'secondary')}</div>`;
+    }
+    const failed = r.status !== 'done';
+    const next = !failed && r.review ? btn(t('Open the report ›', 'Ouvrir le rapport ›'), 'reviewOpen', '', false, 'link')
+      : !failed && r.added ? btn(t('Review them ›', 'Les relire ›'), 'runReview', '', false, 'link') : '';
+    return `<div class="run-result ${failed ? 'bad' : ''}"><b class="${failed ? 'tone-bad' : 'tone-good'}">${failed ? '✗' : '✓'}</b> ${esc(r.message)}`
+      + `${next ? ' · ' + next : ''}${failed && !r.review ? `<div class="muted small">${esc(t('Copy instructions gives the same task to an AI you start yourself.', "Copier les consignes donne la même tâche à une IA que tu lances toi-même."))}</div>` : ''}`
+      + `${r.log ? ' ' + btn(t('Show log', 'Voir le journal'), 'skillLog', '', false, 'link') : ''}</div>`;
+  }
+  if (typeof setInterval === "function") setInterval(() => {
+    if (!ui.skillRun || ui.skillRun.status !== 'running') return;
+    document.querySelectorAll('.run-elapsed').forEach((e) => { e.textContent = elapsed(Number(e.dataset.since)); });
+  }, 1000);
+  function elapsed(started) {
+    const s = Math.max(0, Math.round((Date.now() - started) / 1000));
+    return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`;
   }
 
   /** "1 open item" next to the component's name (the count the sidebar shows), "✓ resolved" without. */
@@ -2726,7 +2753,7 @@
         if (matching.length) stages.push({ title: t(en, fr), names: [], questions: matching });
       };
       qStage('Governance', 'Gouvernance', ['language', 'architects', 'mode', 'sandbox', 'rules', 'auto_approve']);
-      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'ai_drafts', 'reviewers', 'briefs', 'ticket_pattern']);
+      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'ai_drafts', 'ai_skills', 'reviewers', 'briefs', 'ticket_pattern']);
       qStage('CI & quality', 'CI et qualité', ['platform', 'ci', 'sonar', 'git_hooks', 'branch_naming', 'line_length']);
       qStage('Runtime', 'Exécution', ['python_version', 'spark_version', 'fastapi_version', 'scheduler', 'dependencies']);
       qStage('Limits & integration', 'Limites et intégration', ['max_components', 'max_code_lines', 'pip_index_url', 'ci_image']);
@@ -3848,9 +3875,38 @@
       ui.skillValues = Object.assign({ max: '5' }, values);
     },
     skillValue: (e) => { ui.skillValues[e.dataset.name] = e.dataset.value; },
-    skillStage: (e) => { ui.skillStep = Math.max(0, Math.min(2, Number(e.dataset.index) || 0)); },
-    skillNext: () => { ui.skillStep = Math.min(2, ui.skillStep + 1); },
-    skillPrevious: () => { ui.skillStep = Math.max(0, ui.skillStep - 1); },
+    runMenu: () => { ui.runMenu = !ui.runMenu; },
+    runWith: (e) => {
+      ui.runTool = e.dataset.tool; ui.runMenu = false;
+      try { vscode.setState(Object.assign({}, vscode.getState() || {}, { runTool: ui.runTool })); } catch (err) { /* not kept */ }
+    },
+    skillRun: (e) => {
+      const v = ui.skillValues; const def = skillDef(ui.skill) || {};
+      const tool = runTool(runTools());
+      if (!tool) return;
+      const target = skillTarget(ui.skill, v);
+      ui.skillRun = { key: e.dataset.key, status: 'running', title: tool.title, started: Date.now(), review: false,
+        what: t(`is doing "${pair(def.label)}" on ${target}`, `fait « ${pair(def.label)} » sur ${target}`) };
+      post({ type: 'skillRun', key: e.dataset.key, skill: ui.skill, target, max: def.max ? (v.max || '5') : '', tool: tool.name, component: v.component || '' });
+    },
+    reviewRun: (e) => {
+      const tool = runTool(reviewTools());
+      if (!tool || !S.base) return;
+      ui.skillRun = { key: e.dataset.key, status: 'running', title: tool.title, started: Date.now(), review: true,
+        what: t(`is reviewing the changes since ${S.base}`, `relit les changements depuis ${S.base}`) };
+      post({ type: 'reviewRun', key: e.dataset.key, base: S.base, tool: tool.name });
+    },
+    skillStop: () => post({ type: 'skillStop' }),
+    skillLog: () => post({ type: 'skillLog', review: !!(ui.skillRun && ui.skillRun.review) }),
+    reviewOpen: () => post({ type: 'reviewOpen' }),
+    runReview: () => {
+      // what the run added: the component's To review (Find risks: Safety), or the features it drafted (Features)
+      ui.originFilter = 'review';
+      if (ui.skill === 'draft-spec') { post({ type: 'sidebar' }); return; }
+      ui.forceWorkspace = true; ui.mode = 'component'; ui.back = null;
+      selectComponent(ui.skillValues.component || '', false);
+      ui.view = ui.skill === 'analyze' ? 2 : 0;
+    },
     askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: e.dataset.tool || ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1', format: e.dataset.format || 'instructions' }),
     originFilter: (e) => { ui.originFilter = e.dataset.id; },
     toReview: () => {
@@ -4040,6 +4096,11 @@
       ui.projectMore = false;
       if (!target) { render(); return; }
     }
+    // the ▾ menu of ▶ Run closes on any click but its own
+    if (ui.runMenu && !(target && ['runMenu', 'runWith'].includes(target.dataset.a))) {
+      ui.runMenu = false;
+      if (!target) { render(); return; }
+    }
     // the ▾ menu of Draft with AI closes on any click but its own
     if (ui.aiMenuKey && !(target && ['draftMenu', 'draftWith', 'draftPrompt'].includes(target.dataset.a))) {
       ui.aiMenuKey = '';
@@ -4195,9 +4256,7 @@
       case 'commandFilter': ui.commandFilter = e.value; render(); return;
       case 'skill': {
         ui.skillValues[e.dataset.name] = e.value;
-        const pre = document.querySelector('.skill-form pre.request');
-        if (pre) pre.textContent = skillRequest(ui.skill, ui.skillValues);
-        document.querySelectorAll('.skill-form [data-a="askAi"]').forEach((b) => { b.disabled = !e.value.trim(); });
+        render();  // archvow writes the instructions for the new target (skillPrompt)
         return;
       }
       case 'form':

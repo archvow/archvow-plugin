@@ -155,7 +155,7 @@ installé au démarrage ni sans un clic.
 | Question | Réponse |
 |---|---|
 | Dans quel Python ? | le `.venv` du projet, puis `venv` (`venvPythons()`), puis l'interpréteur de l'IDE, puis le Python des réglages ; jamais un `python` nu choisi à la place de la personne (`installPython()`, `ArchvowInstall.python`) : pas de Python trouvé, la carte dit **Configurer Python** |
-| Quelle version ? | la version que fixe le projet si elle est dans l'intervalle, sinon `archvow==3.2.1` (`requirement()`) : l'archvow avec lequel les plugins sont testés ; une fois installé, tout archvow de l'intervalle est accepté (`compatibility()`, `ArchvowCompat`) |
+| Quelle version ? | la version que fixe le projet si elle est dans l'intervalle, sinon `archvow==3.3.0` (`requirement()`) : l'archvow avec lequel les plugins sont testés ; une fois installé, tout archvow de l'intervalle est accepté (`compatibility()`, `ArchvowCompat`) |
 | D'où ? | le réglage *Installer archvow depuis* / `archvow.installFrom` (`installSource()`) : vide = la configuration de pip (pip.conf, `PIP_INDEX_URL`), une URL http(s) = `--index-url`, un fichier `.whl`, ou un dossier de wheels = `--no-index --find-links` (`pipArgs()`) |
 | Comment ? | la commande est affichée (`displayCommand()`), puis lancée seulement après **Confirmer et exécuter** : sans shell, dans le dossier du projet, 10 minutes au plus, `PIP_DISABLE_PIP_VERSION_CHECK=1` ; un Python dans WSL passe par `wsl.exe`, comme archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Ensuite ? | réussite : les réglages gardent ce Python, la version est sondée à nouveau, l'espace de travail se recharge ; échec : la sortie de pip, rien n'est enregistré |

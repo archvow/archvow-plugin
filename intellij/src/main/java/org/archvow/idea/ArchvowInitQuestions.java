@@ -366,7 +366,7 @@ final class ArchvowInitQuestions extends JPanel {
     private String questionGroup(String id) {
         if (List.of("language", "architects", "mode", "sandbox", "rules", "auto_approve").contains(id))
             return french ? "Gouvernance" : "Governance";
-        if (List.of("ai_tools", "ai_drafts", "reviewers", "briefs", "ticket_pattern").contains(id))
+        if (List.of("ai_tools", "ai_drafts", "ai_skills", "reviewers", "briefs", "ticket_pattern").contains(id))
             return french ? "IA et briefs" : "AI & briefs";
         if (List.of("platform", "ci", "sonar", "git_hooks", "branch_naming", "line_length").contains(id))
             return french ? "CI et qualité" : "CI & quality";

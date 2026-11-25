@@ -13,7 +13,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ArchvowCli, CliResult, CliSettings, failure } from './cli';
-import { aiView, AiView, request, skillCommand } from './aiSkills';
+import { aiView, AiView } from './aiSkills';
 import { Briefs, locate, readBriefs } from './briefs';
 import { bestBase, Book, choiceBook, missingRef, refKinds, refNames } from './choices';
 import { renderResult } from './formatter';
@@ -89,6 +89,9 @@ export interface State {
   firstSteps: Json[];
   /** 1.2.0: Draft with AI - on or off for the project, and its AI tools that can draft (`workspace --json` ai_drafts). */
   aiDrafts: Json | null;
+  /** 1.3.0: AI skills run here (`workspace --json` ai_skills) and the approved reviewers. */
+  aiSkills: Json | null;
+  reviewers: Json[];
   /** What the Overview's cards show (overview.ts, 0.25.0): first steps, own items, first finding. */
   overview: Overview;
   /** 1.1.0: the walks - Specify and Build - and each feature's Copy AI prompt (walks.ts). */
@@ -117,7 +120,7 @@ export class ArchvowProject {
   readonly known: string;
   /** The contract the plugin speaks ("1.3", contract/cli/contract.txt). */
   readonly contract: string;
-  /** The archvow versions the plugin works with (">=3.2,<4", contract/archvow-range.txt, 1.0.0). */
+  /** The archvow versions the plugin works with (">=3.3,<4", contract/archvow-range.txt, 1.0.0). */
   readonly range: ArchvowRange;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
@@ -243,7 +246,7 @@ export class ArchvowProject {
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
       runs: { program: '', source: '', version: '' }, compat: { state: 'ok', text: '', header: '' },
       refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
-      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, templates: [], features: {}, aiTools: [], firstSteps: [], aiDrafts: null,
+      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, templates: [], features: {}, aiTools: [], firstSteps: [], aiDrafts: null, aiSkills: null, reviewers: [],
       overview: overview(buildWork(null, null, '', {}, false), null, []),
       walks: walkState({}),
     };
@@ -329,6 +332,8 @@ export class ArchvowProject {
     s.features = answer.features;
     s.firstSteps = answer.firstSteps;
     s.aiDrafts = answer.aiDrafts;
+    s.aiSkills = answer.aiSkills;
+    s.reviewers = answer.reviewers;
     // the project's catalog: its templates' types and kinds (component add, template new)
     if (answer.catalog !== null && objects(answer.catalog, 'templates').length > 0) this.projectCatalog = answer.catalog;
     this.setCheck(answer.check, '');
@@ -800,6 +805,18 @@ export class ArchvowProject {
         return this.walkCopy(String(m.component));
       case 'draft':
         return this.draft(m);
+      case 'skillPrompt':
+        return this.skillPrompt(m);
+      case 'skillRun':
+      case 'reviewRun':
+        return this.skillRun(m, m.type === 'reviewRun');
+      case 'skillStop':
+        this.running?.stop();
+        return;
+      case 'skillLog':
+        return this.openRelative(m.review === true ? '' : '.archvow/doc/skill-run.log');
+      case 'reviewOpen':
+        return this.openRelative('reviews/last-change.md');
       case 'walkCheck':
         return this.walkCheck(String(m.component));
       case 'featureCheck':
@@ -949,20 +966,13 @@ export class ArchvowProject {
    * the suggestion moves on. archvow is never run here: the assistant runs it, and what it adds comes back
    * marked as the AI's (archvow 1.20) at the next refresh.
    */
-  private async askAi(skill: string, tool: string, values: Record<string, string>, send: boolean, format: string): Promise<void> {
+  private async askAi(skill: string, tool: string, values: Record<string, string>, send: boolean, _format: string): Promise<void> {
     const fr = this.state.fr;
-    const definitions = (this.forms.ai_skills ?? {}) as Json;
-    const text = format === 'skill' ? skillCommand(definitions, skill, tool, values) : request(definitions, skill, tool, values, fr);
-    if (!text) return;
+    // 1.3.0: archvow writes the instructions (archvow skill --prompt), the same text in both IDEs
+    const text = await this.skillText(skill, values);
+    if (text === null) return;
     const component = values.component ?? '';
-    if (component) {
-      const done = new Set(this.state.launched[component] ?? []);
-      done.add(skill);
-      this.state.launched = { ...this.state.launched, [component]: [...done] };
-      await this.context.workspaceState.update('archvow.launched', this.state.launched);
-      this.recompute();
-      this.publish();
-    }
+    if (component) this.launched(component, skill);
     if (send && tool === 'copilot') {
       try {
         // 1.2.0: agent mode, the instructions typed in the box; the person presses Send
@@ -973,9 +983,85 @@ export class ArchvowProject {
       }
     }
     await vscode.env.clipboard.writeText(text);
-    void vscode.window.showInformationMessage(format === 'skill'
-      ? tr(fr, 'Skill command copied (requires the installed Archvow skill).', 'Commande du skill copiée (nécessite le skill Archvow installé).')
-      : tr(fr, 'Instructions copied: paste them into your AI assistant.', 'Consignes copiées : colle-les dans ton assistant IA.'));
+    void vscode.window.showInformationMessage(tr(fr, 'Instructions copied: paste them into your AI assistant.', 'Consignes copiées : colle-les dans ton assistant IA.'));
+  }
+
+  /** The skill was started for this component (copied, or run here): the suggestion moves on. */
+  private launched(component: string, skill: string): void {
+    const done = new Set(this.state.launched[component] ?? []);
+    done.add(skill);
+    this.state.launched = { ...this.state.launched, [component]: [...done] };
+    void this.context.workspaceState.update('archvow.launched', this.state.launched);
+    this.recompute();
+    this.publish();
+  }
+
+  /** `archvow skill <skill> <target> --prompt`: what an AI reads for this skill; null (and said) when archvow cannot. */
+  private async skillText(skill: string, values: Record<string, string>): Promise<string | null> {
+    const target = skill === 'review' ? this.state.base : (values.brief || values.component || '');
+    const args = ['skill', skill, target || '-', ...(skill === 'clarify' ? ['--max', values.max || '5'] : []), '--prompt', '--json'];
+    const result = await this.cli.run(args, undefined, true);
+    try {
+      return String((JSON.parse(result.stdout) as Json).prompt ?? '');
+    } catch {
+      void vscode.window.showErrorMessage(failure(result));
+      return null;
+    }
+  }
+
+  /** The instructions shown in the skill form (archvow skill --prompt). */
+  private async skillPrompt(m: Json): Promise<void> {
+    const skill = String(m.skill ?? '');
+    const args = ['skill', skill, String(m.target ?? '') || '-', ...(m.max ? ['--max', String(m.max)] : []), '--prompt', '--json'];
+    const result = await this.cli.run(args, undefined, true);
+    let text: string | null = null;
+    try { text = String((JSON.parse(result.stdout) as Json).prompt ?? ''); } catch { text = null; }
+    this.toEditor(text === null ? { type: 'skillPrompt', key: m.key, error: failure(result) } : { type: 'skillPrompt', key: m.key, text });
+  }
+
+  /** The run going on (one at a time): its stop. */
+  private running: { stop: () => void } | null = null;
+
+  /**
+   * 1.3.0: a spec skill (archvow skill, with the AI picked) or a review (archvow review --with) in the background;
+   * the page shows it running, then how it ended; the workspace is read again (what the AI added, To review).
+   */
+  private async skillRun(m: Json, review: boolean): Promise<void> {
+    const fr = this.state.fr;
+    const key = String(m.key ?? '');
+    if (this.running) return;
+    const args = review
+      ? ['review', '--base', String(m.base ?? ''), '--with', String(m.tool ?? ''), '--json']
+      : ['skill', String(m.skill ?? ''), String(m.target ?? ''), ...(m.max ? ['--max', String(m.max)] : []), '--with', String(m.tool ?? ''), '--json'];
+    const run = this.cli.background(args, 30 * 60);
+    this.running = run;
+    const result = await run.done;
+    this.running = null;
+    let answer: Json | null = null;
+    try { answer = JSON.parse(result.stdout) as Json; } catch { answer = null; }
+    if (answer === null) {
+      const said = result.error?.message || failure(result) || tr(fr, 'it stopped', "il s'est arrêté");
+      this.toEditor({ type: 'skillDone', key, status: 'failed', message: said });
+    } else if (review) {
+      const status = String(answer.status ?? 'failed');
+      this.toEditor({ type: 'skillDone', key, status: ['passed', 'acknowledged', 'high', 'nothing'].includes(status) ? 'done' : 'failed',
+        message: String(answer.message ?? ''), log: false });
+    } else {
+      const added = answer.added !== null && typeof answer.added === 'object' && Object.keys(answer.added as Json).length > 0;
+      this.toEditor({ type: 'skillDone', key, status: String(answer.status ?? 'failed'), message: String(answer.message ?? ''), added, log: true });
+      if (typeof m.component === 'string' && m.component) this.launched(m.component, String(m.skill ?? ''));
+    }
+    await this.refresh(false);
+  }
+
+  /** A project file in the editor (the run's log, the review's report). */
+  private async openRelative(relative: string): Promise<void> {
+    if (!relative) return;
+    try {
+      await vscode.window.showTextDocument(vscode.Uri.file(path.join(this.root, relative)), { preview: true });
+    } catch {
+      void vscode.window.showWarningMessage(tr(this.state.fr, `${relative} is not there yet.`, `${relative} n'existe pas encore.`));
+    }
   }
 
   /** Check from the sidebar's title bar or the command palette: the result in the editor tab, the checks in Overview. */

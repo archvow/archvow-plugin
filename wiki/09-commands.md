@@ -128,17 +128,24 @@ rename`) et `{each_feature}` (`doc`), et un 4e élément rend une entrée condit
 montre **où** est une fonctionnalité (sa page : ses vows, son code et ses tests) et un composant (sa vue Spec :
 `componentFiles()`, `ArchvowFilePlan.componentFiles`).
 
-## Les skills IA (0.16.0)
+## Les skills IA (0.16.0, lancés par archvow depuis 1.3.0)
 
 Après les groupes propres à archvow, Commandes a **Skills IA** (`aiSkillsGroup()`, un `SkillNode` dans l'arbre
 d'IntelliJ) : les cinq en mots simples. Chacun ouvre le **formulaire de lancement** (`skillForm()`,
-`ArchvowSkillForm` dans une boîte de dialogue), design A : le composant (ou la section du brief pour draft-spec),
-au plus combien de questions (clarify), où va la demande (les `ai_tools` du projet) ; à droite ce qui va se
-passer, ce que l'IA peut ajouter, ce que la personne décide encore et la demande exacte (`request()`,
-`ArchvowAiSkills.request` : la commande slash de l'outil, sinon la phrase dans la langue de la page). Rien ne
-tourne : VS Code ouvre Copilot Chat avec la demande tapée (`workbench.action.chat.open`, `isPartialQuery`), sinon
-la copie ; IntelliJ la copie. Ce que l'assistant ajoute revient marqué comme celui de l'IA au rafraîchissement
-suivant.
+`ArchvowSkillForm`) : le composant (ou la section du brief pour draft-spec), au plus combien de questions
+(clarify) ; à droite ce qui va se passer, ce que l'IA peut ajouter, ce que la personne décide encore, et les
+consignes. Les consignes sont celles d'archvow (`archvow skill <skill> <cible> --prompt`) : aucun plugin n'écrit
+les siennes.
+
+**▶ Lancer avec <IA> ▾** (1.3.0, avec archvow 3.3 et `ai_skills: yes`) lance `archvow skill <skill> <cible> --with
+<outil> --json` en arrière-plan (`background()` dans VS Code, `ArchvowCli.background` dans IntelliJ). Le nom sur
+le bouton est l'assistant IA du projet (`ai_skills.tools` dans `workspace --json`, venu de `ai_tools`) ; ▾ en
+choisit un autre, celui qui n'est pas sur cet ordinateur grisé avec sa commande. Pendant qu'il tourne, une bande
+dit qui fait quoi, avec Voir le journal et ■ Arrêter. À la fin : ce qui a été ajouté et **Les relire ›**, ou la
+raison donnée par l'outil. Quand archvow ne lance aucun skill ici (mode strict, un bac à sable), la raison est sur
+le bouton et Copier les consignes reste. **Implémenter** se transmet seulement (Copier, et Copier et ouvrir le chat
+IA) : il écrit du code, donc il tourne dans l'agent de la personne. **Relire** lance `archvow review --with
+<relecteur>`, avec les `reviewers` approuvés du projet.
 
 ## Confirmer avant de changer
 

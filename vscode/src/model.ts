@@ -290,6 +290,10 @@ export interface WorkspaceAnswer {
   firstSteps: Record<string, unknown>[];
   /** 1.2.0 (archvow 3.2): Draft with AI - `{on, why_not, tools: [{name, title, program, installed}]}`, null before. */
   aiDrafts: Record<string, unknown> | null;
+  /** 1.3.0 (archvow 3.3): AI skills run here - `{on, why_not, runs, tools}`, null before. */
+  aiSkills: Record<string, unknown> | null;
+  /** 1.3.0 (archvow 3.3): the approved reviewers, `[{name, title, program, installed}]`. */
+  reviewers: Record<string, unknown>[];
 }
 
 /**
@@ -316,7 +320,8 @@ export function readWorkspace(answer: Record<string, unknown> | null): Workspace
     features: Object.fromEntries(Object.entries(record(answer.features) ?? {}).map(([k, v]) => [k, record(v)]).filter(([, v]) => v !== null)) as Record<string, Record<string, unknown>>,
     templates: Array.isArray(answer.templates) ? (answer.templates as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [],
     firstSteps: Array.isArray(answer.first_steps) ? (answer.first_steps as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [],
-    aiDrafts: record(answer.ai_drafts) };
+    aiDrafts: record(answer.ai_drafts), aiSkills: record(answer.ai_skills),
+    reviewers: Array.isArray(answer.reviewers) ? (answer.reviewers as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [] };
 }
 
 /** "1.23.0" from the contract's version.txt ("archvow 1.23.0"): the archvow the plugin is tested with and installs. */

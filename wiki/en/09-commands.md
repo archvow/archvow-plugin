@@ -120,16 +120,22 @@ feature: `feature rename`) and `{each_feature}` (`doc`), and a 4th item makes an
 same tree shows **where** a feature is (its page: its vows, code and tests) and a component (its Spec view:
 `componentFiles()`, `ArchvowFilePlan.componentFiles`).
 
-## The AI skills (0.16.0)
+## The AI skills (0.16.0, run by archvow since 1.3.0)
 
 After archvow's own groups, Commands has **AI skills** (`aiSkillsGroup()`, a `SkillNode` in IntelliJ's tree): the
-five in plain words. Each opens the **launch form** (`skillForm()`, `ArchvowSkillForm` in a dialog), design A:
-the component (or the brief section for draft-spec), at most how many questions (clarify), where the request goes
-(the project's `ai_tools`); on the right what will happen, what the AI may add, what the person still decides and
-the exact request (`request()`, `ArchvowAiSkills.request`: the tool's own slash command, else the sentence in the
-page's language). Nothing runs: VS Code opens Copilot Chat with the request typed
-(`workbench.action.chat.open`, `isPartialQuery`), else copies it; IntelliJ copies it. What the assistant adds
-comes back marked as the AI's at the next refresh.
+five in plain words. Each opens the **launch form** (`skillForm()`, `ArchvowSkillForm`): the component (or the
+brief section for draft-spec), at most how many questions (clarify); on the right what will happen, what the AI
+may add, what the person still decides, and the instructions. The instructions are archvow's
+(`archvow skill <skill> <target> --prompt`): neither plugin writes its own.
+
+**▶ Run with <AI> ▾** (1.3.0, with archvow 3.3 and `ai_skills: yes`) runs `archvow skill <skill> <target> --with
+<tool> --json` in the background (`background()` in VS Code, `ArchvowCli.background` in IntelliJ). The name on the
+button is the project's AI assistant (`ai_skills.tools` in `workspace --json`, from `ai_tools`); ▾ picks another,
+one that is not on this computer greyed with its command. While it runs, a strip says who does what, with
+Show log and ■ Stop. At the end: what was added and **Review them ›**, or the tool's own reason. When archvow runs
+no skill here (strict mode, a sandbox), the reason is on the button and Copy instructions stays. **Implement** is
+a handoff only (Copy, and Copy and open AI chat): it writes code, so it runs in the person's own agent.
+**Review** runs `archvow review --with <reviewer>`, with the project's approved `reviewers`.
 
 ## Confirming before changing
 

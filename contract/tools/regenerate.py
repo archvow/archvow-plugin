@@ -56,6 +56,16 @@ SPEC_PHASE = {"pyspark-pipeline": [
      "-d", "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)"]]}
 
 
+
+def unplug(whole: dict) -> None:
+    """The AI assistants' commands as on a machine with none installed (the CI): `installed` says what this computer
+    has (claude, copilot...), not what archvow prints. The live test reads the answer the same way."""
+    lists = [(whole.get(key) or {}).get("tools") or [] for key in ("ai_drafts", "ai_skills")] + [whole.get("reviewers") or []]
+    for tools in lists:
+        for tool in tools:
+            if isinstance(tool, dict) and "installed" in tool:
+                tool["installed"] = False
+
 def without_code(project: Path) -> None:
     """The project before its code: no src/, no tests but the business examples (tests/examples/)."""
     shutil.rmtree(project / "src", ignore_errors=True)
@@ -137,6 +147,7 @@ def main():
             write(out / "check.json", run([*archvow, "check", "--json"], project))
             whole = run([*archvow, "workspace", "--json"], project)
             whole["digest"] = "<digest>"  # file times: different at every copy
+            unplug(whole)  # whether an AI assistant's command is installed: this machine's, not archvow's
             portable(whole.get("catalog") or {})  # its catalog too: where archvow is installed
             write(out / "workspace.json", whole)
             for container in spec["containers"]:

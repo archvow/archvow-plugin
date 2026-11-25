@@ -21,10 +21,22 @@ public final class SkillFormRegression {
         if (!ok) throw new AssertionError(message);
     }
 
+    /** Headless, nothing is ever validated, so a child's revalidate() does not reach its parents' layout caches: as on screen, start over. */
     private static void layoutTree(java.awt.Container parent) {
+        invalidateTree(parent);
+        doLayoutTree(parent);
+    }
+
+    private static void invalidateTree(java.awt.Container parent) {
+        parent.invalidate();
+        for (java.awt.Component child : parent.getComponents())
+            if (child instanceof java.awt.Container nested) invalidateTree(nested);
+    }
+
+    private static void doLayoutTree(java.awt.Container parent) {
         parent.doLayout();
         for (java.awt.Component child : parent.getComponents())
-            if (child instanceof java.awt.Container nested) layoutTree(nested);
+            if (child instanceof java.awt.Container nested) doLayoutTree(nested);
     }
 
     private static java.awt.Container named(java.awt.Container parent, String name) {
@@ -52,17 +64,41 @@ public final class SkillFormRegression {
     private static void skillFormStaysTopAligned(ArchvowSkillForm form) {
         form.setSize(1240, 760);
         layoutTree(form);
-        java.awt.Container steps = named(form, "archvow.skill.steps");
-        check(steps != null, "skill steps are present");
+        java.awt.Container target = named(form, "archvow.skill.target");
+        java.awt.Container actions = named(form, "archvow.skill.actions");
+        check(target != null && actions != null, "the field and the buttons are present");
         javax.swing.JComboBox<?> combo = firstVisible(form, javax.swing.JComboBox.class);
         check(combo != null, "the visible target field is present");
-        int stepsBottom = SwingUtilities.convertPoint(steps, 0, steps.getHeight(), form).y;
         int fieldTop = SwingUtilities.convertPoint(combo, 0, 0, form).y;
-        check(fieldTop >= stepsBottom && fieldTop - stepsBottom < 120,
-            "the left column stays just below the steps, like VS Code");
-        java.awt.Container review = named(form, "archvow.skill.review");
-        check(review != null && review.getComponentCount() >= 2,
-            "the review step renders cards rather than a plain text block");
+        int actionsTop = SwingUtilities.convertPoint(actions, 0, 0, form).y;
+        check(actionsTop > fieldTop && actionsTop - fieldTop < 160,
+            "the buttons stay just below the field, in the left column, like VS Code");
+    }
+
+    /** What the panel does for the form: archvow --prompt, the background run, the links. */
+    static final class TestHost implements ArchvowSkillForm.Host {
+        final List<String> calls = new ArrayList<>();
+        List<String> args;
+        java.util.function.Consumer<ArchvowSkillForm.Ended> ended;
+        String kept = "";
+        boolean stopped;
+        @Override public void prompt(String skill, String target, String max, java.util.function.Consumer<String> text) {
+            text.accept("archvow says: " + skill + " on " + target + (max.isEmpty() ? "" : " at most " + max));
+        }
+        @Override public Runnable run(List<String> a, java.util.function.Consumer<ArchvowSkillForm.Ended> e) {
+            args = a; ended = e;
+            return () -> stopped = true;
+        }
+        @Override public void showLog(boolean review) { calls.add("log " + review); }
+        @Override public void openReport() { calls.add("report"); }
+        @Override public void reviewAdded(String skill, String component) { calls.add("review " + skill + " " + component); }
+        @Override public String keptTool() { return kept; }
+        @Override public void keepTool(String tool) { kept = tool; calls.add("keep " + tool); }
+    }
+
+    private static javax.swing.JButton button(java.awt.Container parent, String name) {
+        java.awt.Container found = named(parent, name);
+        return found instanceof javax.swing.JButton b ? b : null;
     }
 
     private static void compactSkillExplanation(ArchvowSkillForm form) {
@@ -95,37 +131,92 @@ public final class SkillFormRegression {
         JsonObject skills = JsonParser.parseString(Files.readString(contract.resolve("forms/forms.json")))
             .getAsJsonObject().getAsJsonObject("ai_skills");
         List<String> sent = new ArrayList<>();
+        List<ArchvowSkillForm.Tool> assistants = List.of(
+            new ArchvowSkillForm.Tool("claude-code", "Claude Code", "claude", true),
+            new ArchvowSkillForm.Tool("copilot", "GitHub Copilot CLI", "copilot", false));
+        TestHost host = new TestHost();
         ArchvowSkillForm clarify = new ArchvowSkillForm(skills, "clarify", Map.of("component", "clean_orders"),
-            List.of("orders_reader", "clean_orders"), List.of(), List.of("claude-code", "copilot"),
-            c -> null, false, (text, values) -> sent.add(text), () -> sent.add("cancel"));
-        check(clarify.request.getText().contains("Component: clean_orders")
-            && clarify.request.getText().contains("Maximum questions: 5")
-            && clarify.request.getText().contains("Human approval:"), clarify.request.getText());
-        check(clarify.copy.isEnabled(), "a component is chosen: the request can go");
+            List.of("orders_reader", "clean_orders"), List.of(), assistants, null, "main",
+            c -> null, false, host, (text, values) -> sent.add(text), () -> sent.add("cancel"));
+        // the instructions are archvow's (archvow skill clarify clean_orders --max 5 --prompt)
+        check(clarify.request.getText().equals("archvow says: clarify on clean_orders at most 5"), clarify.request.getText());
+        check(clarify.copy.isEnabled(), "a component is chosen: the instructions can go");
         clarify.copy.doClick();
-        check(sent.size() == 1 && sent.get(0).equals(clarify.request.getText()), "the displayed full instructions are copied: " + sent);
-        // 1.2.0: Copy and open AI chat copies the same instructions, then opens the IDE's AI chat
-        List<String> opened = new ArrayList<>();
-        clarify.onOpenChat(() -> opened.add("chat"));
-        check(clarify.openChat.isEnabled(), "a component is chosen: it can go to the chat");
-        clarify.openChat.doClick();
-        check(sent.size() == 2 && sent.get(1).equals(clarify.request.getText()) && opened.equals(List.of("chat")),
-            "copied, then the chat opened: " + sent + " " + opened);
-        // implement on a component with decisions to make: the form says why, in French
+        check(sent.size() == 1 && sent.get(0).equals(clarify.request.getText()), "the displayed instructions are copied: " + sent);
+        // ▶ Run with <the AI>: the name follows the project's ai_tools, not a fixed one
+        check(clarify.run.getText().equals("▶ Run with Claude Code") && clarify.run.isEnabled(), clarify.run.getText());
+        javax.swing.JPopupMenu menu = clarify.runMenu();
+        boolean greyed = false;
+        for (java.awt.Component item : menu.getComponents())
+            if (item instanceof javax.swing.JMenuItem mi && mi.getText().contains("GitHub Copilot CLI"))
+                greyed = !mi.isEnabled() && mi.getText().contains("no copilot command");
+        check(greyed, "an AI that is not on this computer is greyed, with its command");
+        clarify.run.doClick();
+        check(host.args.equals(List.of("skill", "clarify", "clean_orders", "--max", "5", "--with", "claude-code", "--json")),
+            "archvow runs it: " + host.args);
+        check(clarify.runState.isVisible() && button(clarify, "archvow.skill.stop") != null && !clarify.run.isEnabled(),
+            "running: the strip with Stop, and no second run");
+        button(clarify, "archvow.skill.stop").doClick();
+        check(host.stopped, "Stop stops archvow");
+        host.ended.accept(new ArchvowSkillForm.Ended("done", "Added 3 questions to clean_orders.", true, true));
+        java.awt.Container said = named(clarify, "archvow.skill.ended");
+        check(said instanceof ArchvowWrapLabel l && l.getText().startsWith("✓ Added 3 questions"), "done: what was added");
+        button(clarify, "archvow.skill.reviewAdded").doClick();
+        check(host.calls.contains("review clarify clean_orders") && clarify.run.isEnabled(), "Review them › opens what was added");
+        host.ended.accept(new ArchvowSkillForm.Ended("failed", "Claude Code stopped: not logged in.", false, true));
+        said = named(clarify, "archvow.skill.ended");
+        check(said instanceof ArchvowWrapLabel l && l.getText().contains("✗ Claude Code stopped: not logged in.")
+            && l.getText().contains("Copy instructions gives the same task"), "failed: the tool's reason, and the way round");
+        // the kept AI comes back, and a pick is kept
+        TestHost picked = new TestHost();
+        picked.kept = "copilot";
+        ArchvowSkillForm other = new ArchvowSkillForm(skills, "analyze", Map.of("component", "clean_orders"), List.of("clean_orders"),
+            List.of(), List.of(new ArchvowSkillForm.Tool("claude-code", "Claude Code", "claude", true),
+                new ArchvowSkillForm.Tool("copilot", "GitHub Copilot CLI", "copilot", true)), null, "main",
+            c -> null, false, picked, (text, values) -> { }, () -> { });
+        check(other.run.getText().equals("▶ Run with GitHub Copilot CLI"), "the AI picked last time: " + other.run.getText());
+        for (java.awt.Component item : other.runMenu().getComponents())
+            if (item instanceof javax.swing.JMenuItem mi && mi.getText().contains("Claude Code")) mi.doClick();
+        check(picked.kept.equals("claude-code") && other.run.getText().equals("▶ Run with Claude Code"), "a pick is kept");
+        // off (strict, or a sandbox): the reason is on the button, Copy is still there
+        String off = "AI skill runs are off in this project (ai_skills: no).";
+        ArchvowSkillForm strict = new ArchvowSkillForm(skills, "clarify", Map.of("component", "clean_orders"), List.of("clean_orders"),
+            List.of(), assistants, off, "main", c -> null, false, new TestHost(), (text, values) -> { }, () -> { });
+        check(!strict.run.isEnabled() && strict.runTip().equals(off) && strict.copy.isEnabled(), "off: said on ▶, Copy still works");
+        // implement: a handoff only, never run by archvow; the form says why it waits, in French
         ArchvowSkillForm implement = new ArchvowSkillForm(skills, "implement", Map.of(), List.of("clean_orders"), List.of(),
-            List.of("copilot"), c -> new String[] {"Not yet: 2 decisions still to make", "Pas encore : 2 décisions encore à prendre"},
-            true, (text, values) -> { }, () -> { });
-        check(implement.request.getText().contains("Validation humaine :")
-            && implement.request.getText().contains("Composant : clean_orders"), implement.request.getText());
-        // draft-spec needs a brief: nothing to send before one is given
+            assistants, null, "main", c -> new String[] {"Not yet: 2 decisions still to make", "Pas encore : 2 décisions encore à prendre"},
+            true, new TestHost(), (text, values) -> { }, () -> { });
+        check(named(implement, "archvow.skill.run") == null && named(implement, "archvow.skill.actions") != null
+            && !implement.copy.isEnabled() && !implement.openChat.isEnabled(), "implement: no run, and it waits");
+        List<String> opened = new ArrayList<>();
+        ArchvowSkillForm ready = new ArchvowSkillForm(skills, "implement", Map.of(), List.of("clean_orders"), List.of(),
+            assistants, null, "main", c -> null, false, new TestHost(), (text, values) -> sent.add(text), () -> { });
+        ready.onOpenChat(() -> opened.add("chat"));
+        ready.openChat.doClick();
+        check(opened.equals(List.of("chat")) && sent.get(sent.size() - 1).equals("archvow says: implement on clean_orders"),
+            "copied, then the chat opened: " + sent + " " + opened);
+        // review: the project's reviewers, the report at the end
+        TestHost reviewing = new TestHost();
+        ArchvowSkillForm review = new ArchvowSkillForm(skills, "review", Map.of(), List.of(), List.of(),
+            List.of(new ArchvowSkillForm.Tool("codex", "Codex", "codex", true)), null, "main",
+            c -> null, false, reviewing, (text, values) -> { }, () -> { });
+        check(review.run.getText().equals("▶ Review with Codex"), review.run.getText());
+        review.run.doClick();
+        check(reviewing.args.equals(List.of("review", "--base", "main", "--with", "codex", "--json")), "archvow review: " + reviewing.args);
+        reviewing.ended.accept(new ArchvowSkillForm.Ended("done", "3 findings.", false, true));
+        check(named(review, "archvow.skill.ended") != null, "the review ended");
+        ArchvowSkillForm noReviewer = new ArchvowSkillForm(skills, "review", Map.of(), List.of(), List.of(), List.of(), null, "main",
+            c -> null, false, new TestHost(), (text, values) -> { }, () -> { });
+        check(!noReviewer.run.isEnabled() && noReviewer.runTip().contains("No reviewer approved"), noReviewer.runTip());
+        // draft-spec needs a brief: nothing to send or run before one is given
         ArchvowSkillForm draft = new ArchvowSkillForm(skills, "draft-spec", Map.of(), List.of(), List.of("briefs/orders.md#pricing"),
-            List.of(), c -> null, false, (text, values) -> { }, () -> { });
-        check(!draft.copy.isEnabled(), "no brief yet: nothing to send");
-        check(draft.values.get("tool").equals("copilot"), "no AI tool declared: copilot");
+            assistants, null, "main", c -> null, false, new TestHost(), (text, values) -> { }, () -> { });
+        check(!draft.copy.isEnabled() && !draft.run.isEnabled(), "no brief yet: nothing to send");
         ArchvowSkillForm drafted = new ArchvowSkillForm(skills, "draft-spec", Map.of("brief", "briefs/orders.md#pricing"), List.of(),
-            List.of(), List.of("cursor"), c -> null, false, (text, values) -> { }, () -> { });
-        check(drafted.copy.isEnabled() && drafted.request.getText().contains("Brief / section: briefs/orders.md#pricing")
-            && drafted.request.getText().contains("If you cannot access the project files"), drafted.request.getText());
+            List.of(), assistants, null, "main", c -> null, false, new TestHost(), (text, values) -> { }, () -> { });
+        check(drafted.copy.isEnabled() && drafted.request.getText().equals("archvow says: draft-spec on briefs/orders.md#pricing"),
+            drafted.request.getText());
         // The editor can be tall or narrow: the numbered instructions must not
         // spread across its whole height or clip when their text wraps.
         SwingUtilities.invokeAndWait(() -> { compactSkillExplanation(drafted); skillFormStaysTopAligned(draft); });
@@ -146,7 +237,7 @@ public final class SkillFormRegression {
                 layoutTree(clarify);
                 for (java.awt.Component button : buttons.getComponents()) if (button.isVisible()) {
                     check(button.getX() + button.getWidth() <= buttons.getWidth(), "button cut off at " + width);
-                    check(button.getY() + button.getHeight() <= buttons.getHeight(), "button footer height too short at " + width);
+                    check(button.getY() + button.getHeight() <= buttons.getHeight(), "button footer height too short at " + width + ": " + button.getBounds() + " in " + buttons.getSize() + " pref " + buttons.getPreferredSize() + " parent " + buttons.getParent().getSize());
                 }
             }
         });

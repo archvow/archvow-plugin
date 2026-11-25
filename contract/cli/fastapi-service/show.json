@@ -588,6 +588,7 @@
     "auto_approve": "yes",
     "sandbox": "yes",
     "ai_drafts": "no",
+    "ai_skills": "no",
     "briefs": "briefs",
     "max_components": "",
     "max_code_lines": "",
@@ -607,14 +608,14 @@
   ],
   "templates": {
     "fastapi-service": {
-      "version": "3.2.1",
+      "version": "3.3.0",
       "source": "archvow",
-      "digest": "12667287652a"
+      "digest": "6884f344604e"
     },
     "python-base": {
-      "version": "3.2.1",
+      "version": "3.3.0",
       "source": "archvow",
-      "digest": "8a1a1ab0ae6f"
+      "digest": "152d636dc062"
     }
   },
   "features": [

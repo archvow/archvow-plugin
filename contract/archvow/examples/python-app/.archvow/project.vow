@@ -32,6 +32,7 @@ init_answers
   auto_approve yes
   sandbox yes
   ai_drafts no
+  ai_skills no
   briefs briefs
   max_components ""
   max_code_lines ""
@@ -41,10 +42,10 @@ init_answers
   ci_image ""
 templates
   python-app
-    version 3.2.1
+    version 3.3.0
     source archvow
-    digest d153235a9a93
+    digest 384404c5f963
   python-base
-    version 3.2.1
+    version 3.3.0
     source archvow
-    digest 8a1a1ab0ae6f
+    digest 152d636dc062

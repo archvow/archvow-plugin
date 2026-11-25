@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.3.0 - 2026-11-25
+
+Works with archvow >=3.3,<4. Built on archvow 3.3.0 (contract 3.0, with `ai_skills`, `reviewers` and `archvow skill`).
+
+- **AI skills run here, in the background:**
+  - Draft from a brief, Find missing questions and Find risks have a **▶ Run with <AI> ▾** button. It names the AI
+    that will run: the first installed of the project's AI assistants, or the one you picked last in ▾ (the same
+    list as Draft with AI).
+  - While it runs, a strip shows the AI, the time, Show log and ■ Stop, and you go on working. At the end it says
+    what was added ("1 question - each the AI's, To review") with **Review them ›**, or the tool's reason and
+    "Nothing was added".
+  - Off, with the reason on the button, when the project says `ai_skills: no` (the default in strict mode), needs
+    agents in a sandbox, or has none of its assistants installed here.
+- **Implement** has no Run button: it is your own agent's work. Copy instructions, or Open in Copilot chat when
+  Copilot is one of the project's assistants.
+- **Review** runs `archvow review` with one of the project's **reviewers** (▶ Review with <reviewer> ▾), then
+  Open the report ›. Greyed when no reviewer is approved.
+- **Copy instructions** copies archvow's own text (`archvow skill … --prompt`): the page no longer writes it. The
+  skill form has no steps any more: the target, then the buttons.
+- **Pipeline:**
+  - Whether an AI assistant's command is installed is this computer's, not archvow's: the contract records it as
+    on a computer with none, and the live test reads it the same way. On a machine with `claude` installed the
+    contract no longer differs.
+  - contract/vow-reader/expected.json is regenerated from the vows of archvow 3.3.0.
+- **New project:** the `ai_skills` answer is asked with the other AI answers (AI & briefs).
+
 ## 1.2.2 - 2026-11-25
 
 Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0). Layouts that broke at some widths.

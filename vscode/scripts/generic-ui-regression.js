@@ -204,3 +204,38 @@ assert.match(tasks.app.innerHTML, /No separate tasks: the AI builds schema in on
 assert.doesNotMatch(tasks.app.innerHTML, /data-a="dataAction"/, 'no task: no list, no empty button');
 assert.doesNotMatch(tasks.app.innerHTML, /handles: |writes: /, 'no empty personal data lines');
 console.log('Layouts: the skill form, the answer table, Tasks without tasks, the editor font: OK');
+
+// 1.3.0: AI skills run here - ▶ Run with <the AI picked> ▾, the run going on, how it ended; off with the reason
+const runs = make('editor');
+const aiSkills = { on: true, why_not: null, runs: ['draft-spec', 'clarify', 'analyze'], tools: [
+  { name: 'claude-code', title: 'Claude Code', program: 'claude', installed: true },
+  { name: 'copilot', title: 'GitHub Copilot', program: 'copilot', installed: true },
+  { name: 'codex', title: 'OpenAI Codex', program: 'codex', installed: false }] };
+runs.message({ type: 'state', state: { ...state, aiTools: ['claude-code', 'copilot', 'codex'], aiSkills, reviewers: [], base: 'origin/develop' } });
+runs.message({ type: 'skill', skill: 'clarify', values: { component: 'schema' } });
+const asked = runs.posted.find((m) => m.type === 'skillPrompt');
+assert.deepEqual(JSON.parse(JSON.stringify(asked)), { type: 'skillPrompt', key: 'clarify|schema|5', skill: 'clarify', target: 'schema', max: '5' }, 'archvow writes the instructions');
+assert.match(runs.app.innerHTML, /<pre class="request">Loading…<\/pre>/);
+runs.message({ type: 'skillPrompt', key: 'clarify|schema|5', text: 'Archvow task: Find missing questions (skill archvow-clarify).' });
+assert.match(runs.app.innerHTML, /<pre class="request">Archvow task: Find missing questions/, 'the text is archvow\'s');
+assert.match(runs.app.innerHTML, />▶ Run with Claude Code<\/button>/, 'the first installed AI');
+runs.click('runMenu');
+assert.match(runs.app.innerHTML, /data-a="runWith" data-tool="codex" disabled/, 'one not installed is greyed');
+runs.click('runWith', { tool: 'copilot' });
+assert.match(runs.app.innerHTML, />▶ Run with GitHub Copilot<\/button>/, 'the button follows the AI picked');
+runs.click('skillRun', { key: 'clarify|schema|5' });
+assert.equal(JSON.stringify(runs.posted.at(-1)), JSON.stringify({ type: 'skillRun', key: 'clarify|schema|5', skill: 'clarify', target: 'schema', max: '5', tool: 'copilot', component: 'schema' }));
+assert.match(runs.app.innerHTML, /class="run-strip"[\s\S]*<b>GitHub Copilot<\/b> is doing &quot;Find missing questions&quot; on schema[\s\S]*data-a="skillStop"/, 'running: the AI, Stop');
+assert.match(runs.app.innerHTML, /data-a="skillRun"[^>]*disabled/, 'one run at a time');
+runs.message({ type: 'skillDone', key: 'clarify|schema|5', status: 'done', message: 'GitHub Copilot added 3 questions - each the AI\'s, To review', added: true, log: true });
+assert.match(runs.app.innerHTML, /class="run-result "[\s\S]*added 3 questions[\s\S]*data-a="runReview"/, 'done: what was added, Review them');
+runs.message({ type: 'skillDone', key: 'clarify|schema|5', status: 'failed', message: 'x' });
+const off = make('editor');
+off.message({ type: 'state', state: { ...state, aiSkills: { ...aiSkills, why_not: 'AI skill runs are off for this project (ai_skills: no in project.vow)' }, reviewers: [], base: 'origin/develop' } });
+off.message({ type: 'skill', skill: 'analyze', values: { component: 'schema' } });
+assert.match(off.app.innerHTML, /data-tip="AI skill runs are off for this project[^"]*"[\s\S]*data-a="skillRun"[^>]*disabled/, 'off: the reason on the button');
+off.message({ type: 'skill', skill: 'implement', values: { component: 'schema' } });
+assert.doesNotMatch(off.app.innerHTML, /data-a="skillRun"/, 'Implement: a handoff');
+off.message({ type: 'skill', skill: 'review', values: {} });
+assert.match(off.app.innerHTML, /data-tip="No reviewer approved[^"]*"[\s\S]*data-a="reviewRun"[^>]*disabled/, 'Review: no reviewer, greyed');
+console.log('AI skills run here: Run with the AI picked, running, done, off with the reason, Implement a handoff, Review with a reviewer: OK');

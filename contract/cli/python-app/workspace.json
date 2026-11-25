@@ -381,6 +381,7 @@
       "auto_approve": "yes",
       "sandbox": "yes",
       "ai_drafts": "no",
+      "ai_skills": "no",
       "briefs": "briefs",
       "max_components": "",
       "max_code_lines": "",
@@ -391,14 +392,14 @@
     },
     "templates": {
       "python-app": {
-        "version": "3.2.1",
+        "version": "3.3.0",
         "source": "archvow",
-        "digest": "d153235a9a93"
+        "digest": "384404c5f963"
       },
       "python-base": {
-        "version": "3.2.1",
+        "version": "3.3.0",
         "source": "archvow",
-        "digest": "8a1a1ab0ae6f"
+        "digest": "152d636dc062"
       }
     },
     "features": [
@@ -1947,7 +1948,7 @@
     "templates": [
       {
         "name": "python-app",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "default": true,
         "chain": [
           "python-base",
@@ -2145,6 +2146,23 @@
             "id": "ai_drafts",
             "ask": true,
             "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_skills",
+            "ask": true,
+            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
             "default": "yes",
             "default_from": {
               "mode": {
@@ -2458,7 +2476,7 @@
       },
       {
         "name": "fastapi-service",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "default": false,
         "chain": [
           "python-base",
@@ -2656,6 +2674,23 @@
             "id": "ai_drafts",
             "ask": true,
             "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_skills",
+            "ask": true,
+            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
             "default": "yes",
             "default_from": {
               "mode": {
@@ -3014,7 +3049,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "default": false,
         "chain": [
           "python-base",
@@ -3212,6 +3247,23 @@
             "id": "ai_drafts",
             "ask": true,
             "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_skills",
+            "ask": true,
+            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
             "default": "yes",
             "default_from": {
               "mode": {
@@ -3680,7 +3732,7 @@
       },
       {
         "name": "pyspark-pipeline",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "default": false,
         "chain": [
           "python-base",
@@ -3878,6 +3930,23 @@
             "id": "ai_drafts",
             "ask": true,
             "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_skills",
+            "ask": true,
+            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
             "default": "yes",
             "default_from": {
               "mode": {
@@ -4259,9 +4328,9 @@
     "project_templates": [
       {
         "name": "python-app",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
-        "archvow": ">=3.2,<4",
+        "archvow": ">=3.3,<4",
         "languages": [
           "en",
           "fr"
@@ -4274,13 +4343,13 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "d153235a9a93"
+        "digest": "384404c5f963"
       },
       {
         "name": "python-base",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "description": "Shared answers, guards and CI of the Python templates.",
-        "archvow": ">=3.2,<4",
+        "archvow": ">=3.3,<4",
         "languages": [
           "en",
           "fr"
@@ -4296,7 +4365,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "8a1a1ab0ae6f"
+        "digest": "152d636dc062"
       }
     ],
     "agents": [
@@ -4321,6 +4390,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4345,6 +4415,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4372,6 +4443,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4411,6 +4483,7 @@
         },
         "review": true,
         "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
@@ -4435,6 +4508,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4467,6 +4541,7 @@
         },
         "review": true,
         "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
@@ -4493,6 +4568,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4533,6 +4609,7 @@
         },
         "review": true,
         "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
       },
@@ -4570,6 +4647,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": ""
       },
@@ -4595,6 +4673,7 @@
         },
         "review": false,
         "draft": true,
+        "skill": true,
         "seen": false,
         "unseen": ""
       },
@@ -4621,6 +4700,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4650,6 +4730,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": "in the IDE plugin (it sets no variable archvow knows)"
       },
@@ -4674,6 +4755,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4699,6 +4781,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4723,6 +4806,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -4748,6 +4832,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       }
@@ -4847,9 +4932,9 @@
   "templates": [
     {
       "name": "python-app",
-      "version": "3.2.1",
+      "version": "3.3.0",
       "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
-      "archvow": ">=3.2,<4",
+      "archvow": ">=3.3,<4",
       "languages": [
         "en",
         "fr"
@@ -4867,9 +4952,9 @@
     },
     {
       "name": "python-base",
-      "version": "3.2.1",
+      "version": "3.3.0",
       "description": "Shared answers, guards and CI of the Python templates.",
-      "archvow": ">=3.2,<4",
+      "archvow": ">=3.3,<4",
       "languages": [
         "en",
         "fr"
@@ -4938,8 +5023,26 @@
         "name": "claude-code",
         "title": "Claude Code",
         "program": "claude",
-        "installed": true
+        "installed": false
       }
     ]
-  }
+  },
+  "ai_skills": {
+    "on": false,
+    "why_not": "AI skill runs are off for this project (ai_skills: no in project.vow) - an architect turns them on: archvow init <package> --force -a ai_skills=yes",
+    "runs": [
+      "draft-spec",
+      "clarify",
+      "analyze"
+    ],
+    "tools": [
+      {
+        "name": "claude-code",
+        "title": "Claude Code",
+        "program": "claude",
+        "installed": false
+      }
+    ]
+  },
+  "reviewers": []
 }

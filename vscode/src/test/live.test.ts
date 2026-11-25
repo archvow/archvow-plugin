@@ -85,6 +85,18 @@ function vows(root: string): string {
   return hash.digest('hex');
 }
 
+/** Whether an AI assistant's command is installed is this computer's, not archvow's: recorded as on a computer with
+ *  none (contract/tools/regenerate.py unplug). */
+function unplugged(whole: Record<string, unknown>): Record<string, unknown> {
+  const copy = JSON.parse(JSON.stringify(whole)) as Record<string, unknown>;
+  const lists = ['ai_drafts', 'ai_skills'].map((k) => ((copy[k] ?? {}) as Record<string, unknown>).tools).concat([copy.reviewers]);
+  for (const tools of lists) {
+    if (!Array.isArray(tools)) continue;
+    for (const tool of tools) if (tool !== null && typeof tool === 'object' && 'installed' in tool) (tool as Record<string, unknown>).installed = false;
+  }
+  return copy;
+}
+
 test('an archvow and its source are given when the job requires them', () => {
   if (!REQUIRED) return;
   assert.ok(PYTHON || EXECUTABLE, 'ARCHVOW_LIVE=required, but neither ARCHVOW_PYTHON nor ARCHVOW_EXECUTABLE is set');
@@ -127,7 +139,7 @@ for (const name of EXAMPLES) {
     portable((whole.catalog as { templates?: { source?: string }[] } | undefined)?.templates);
     const digest = String(whole.digest);
     assert.match(digest, /^[0-9a-f]{8,}$/);
-    assert.deepEqual({ ...whole, digest: '<digest>' }, recorded(name, 'workspace.json'));
+    assert.deepEqual(unplugged({ ...whole, digest: '<digest>' }), recorded(name, 'workspace.json'));
     const { data: same } = await cli.json<Record<string, unknown>>(['workspace', '--json', '--since', digest]);
     assert.deepEqual(same, { contract: whole.contract, unchanged: true, digest });
   });

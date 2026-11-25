@@ -683,6 +683,7 @@
       "auto_approve": "yes",
       "sandbox": "yes",
       "ai_drafts": "no",
+      "ai_skills": "no",
       "briefs": "briefs",
       "max_components": "",
       "max_code_lines": "",
@@ -717,14 +718,14 @@
     ],
     "templates": {
       "pyspark-pipeline": {
-        "version": "3.2.1",
+        "version": "3.3.0",
         "source": "archvow",
-        "digest": "3d1021dffd05"
+        "digest": "637927bf786e"
       },
       "python-base": {
-        "version": "3.2.1",
+        "version": "3.3.0",
         "source": "archvow",
-        "digest": "8a1a1ab0ae6f"
+        "digest": "152d636dc062"
       }
     },
     "features": [
@@ -4279,7 +4280,7 @@
     "templates": [
       {
         "name": "pyspark-pipeline",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "default": false,
         "chain": [
           "python-base",
@@ -4477,6 +4478,23 @@
             "id": "ai_drafts",
             "ask": true,
             "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_skills",
+            "ask": true,
+            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
             "default": "yes",
             "default_from": {
               "mode": {
@@ -4856,7 +4874,7 @@
       },
       {
         "name": "fastapi-service",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "default": false,
         "chain": [
           "python-base",
@@ -5054,6 +5072,23 @@
             "id": "ai_drafts",
             "ask": true,
             "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_skills",
+            "ask": true,
+            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
             "default": "yes",
             "default_from": {
               "mode": {
@@ -5412,7 +5447,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "default": false,
         "chain": [
           "python-base",
@@ -5610,6 +5645,23 @@
             "id": "ai_drafts",
             "ask": true,
             "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_skills",
+            "ask": true,
+            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
             "default": "yes",
             "default_from": {
               "mode": {
@@ -6078,7 +6130,7 @@
       },
       {
         "name": "python-app",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "default": true,
         "chain": [
           "python-base",
@@ -6276,6 +6328,23 @@
             "id": "ai_drafts",
             "ask": true,
             "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_skills",
+            "ask": true,
+            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
             "default": "yes",
             "default_from": {
               "mode": {
@@ -6591,9 +6660,9 @@
     "project_templates": [
       {
         "name": "pyspark-pipeline",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
-        "archvow": ">=3.2,<4",
+        "archvow": ">=3.3,<4",
         "languages": [
           "en",
           "fr"
@@ -6606,13 +6675,13 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "3d1021dffd05"
+        "digest": "637927bf786e"
       },
       {
         "name": "python-base",
-        "version": "3.2.1",
+        "version": "3.3.0",
         "description": "Shared answers, guards and CI of the Python templates.",
-        "archvow": ">=3.2,<4",
+        "archvow": ">=3.3,<4",
         "languages": [
           "en",
           "fr"
@@ -6628,7 +6697,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "8a1a1ab0ae6f"
+        "digest": "152d636dc062"
       }
     ],
     "agents": [
@@ -6653,6 +6722,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -6677,6 +6747,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -6704,6 +6775,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -6743,6 +6815,7 @@
         },
         "review": true,
         "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
@@ -6767,6 +6840,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -6799,6 +6873,7 @@
         },
         "review": true,
         "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
@@ -6825,6 +6900,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -6865,6 +6941,7 @@
         },
         "review": true,
         "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
       },
@@ -6902,6 +6979,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": ""
       },
@@ -6927,6 +7005,7 @@
         },
         "review": false,
         "draft": true,
+        "skill": true,
         "seen": false,
         "unseen": ""
       },
@@ -6953,6 +7032,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -6982,6 +7062,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": "in the IDE plugin (it sets no variable archvow knows)"
       },
@@ -7006,6 +7087,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -7031,6 +7113,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -7055,6 +7138,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
@@ -7080,6 +7164,7 @@
         },
         "review": false,
         "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       }
@@ -7179,9 +7264,9 @@
   "templates": [
     {
       "name": "pyspark-pipeline",
-      "version": "3.2.1",
+      "version": "3.3.0",
       "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
-      "archvow": ">=3.2,<4",
+      "archvow": ">=3.3,<4",
       "languages": [
         "en",
         "fr"
@@ -7199,9 +7284,9 @@
     },
     {
       "name": "python-base",
-      "version": "3.2.1",
+      "version": "3.3.0",
       "description": "Shared answers, guards and CI of the Python templates.",
-      "archvow": ">=3.2,<4",
+      "archvow": ">=3.3,<4",
       "languages": [
         "en",
         "fr"
@@ -7270,8 +7355,26 @@
         "name": "claude-code",
         "title": "Claude Code",
         "program": "claude",
-        "installed": true
+        "installed": false
       }
     ]
-  }
+  },
+  "ai_skills": {
+    "on": false,
+    "why_not": "AI skill runs are off for this project (ai_skills: no in project.vow) - an architect turns them on: archvow init <package> --force -a ai_skills=yes",
+    "runs": [
+      "draft-spec",
+      "clarify",
+      "analyze"
+    ],
+    "tools": [
+      {
+        "name": "claude-code",
+        "title": "Claude Code",
+        "program": "claude",
+        "installed": false
+      }
+    ]
+  },
+  "reviewers": []
 }

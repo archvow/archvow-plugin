@@ -1073,3 +1073,19 @@ button.file-open:hover code { text-decoration: underline; }
 .first-step .step-bars { display: flex; gap: 3px; margin-top: 6px; }
 .first-step .step-bars i { width: 40px; height: 5px; border-radius: 3px; background: rgba(127, 127, 127, .45); }
 .first-step .step-bars i.done { background: #5fb865; }
+
+/* 1.3.0: an AI skill run here - ▶ Run with <AI> ▾, the run going on, how it ended */
+.run-split { position: relative; display: inline-flex; }
+.run-split .draft-menu { top: 34px; right: 0; }
+.run-strip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 0; padding: 8px 12px; border-radius: 6px;
+  background: color-mix(in srgb, var(--vscode-focusBorder, #3574f0) 14%, transparent); border: 1px solid color-mix(in srgb, var(--vscode-focusBorder, #3574f0) 45%, transparent); }
+.run-spin { width: 13px; height: 13px; border: 2px solid var(--vscode-focusBorder, #3574f0); border-top-color: transparent; border-radius: 50%;
+  animation: run-turn 1s linear infinite; flex: none; }
+@keyframes run-turn { to { transform: rotate(360deg); } }
+.run-bar { flex: 1 1 80px; min-width: 60px; height: 4px; border-radius: 2px; overflow: hidden; background: var(--vscode-panel-border); }
+.run-bar i { display: block; height: 100%; width: 35%; background: var(--vscode-focusBorder, #3574f0); animation: run-slide 1.6s ease-in-out infinite; }
+@keyframes run-slide { 0% { margin-left: -35%; } 100% { margin-left: 100%; } }
+.run-result { margin: 10px 0 0; padding: 8px 12px; border-left: 3px solid var(--vscode-charts-green, #388a34); border-radius: 4px; line-height: 1.55;
+  background: color-mix(in srgb, var(--vscode-charts-green, #388a34) 10%, transparent); }
+.run-result.bad { border-left-color: var(--vscode-errorForeground, #f14c4c); background: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 10%, transparent); }
+.run-result button.link { padding: 0 2px; }

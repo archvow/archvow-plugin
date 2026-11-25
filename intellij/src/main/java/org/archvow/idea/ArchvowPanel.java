@@ -224,7 +224,7 @@ final class ArchvowPanel extends JPanel {
     private String installReason = "";
     /** The installed archvow against the plugin's range (1.0.0): the header, the sentence, the version Install puts. */
     private ArchvowCompat.Compatibility compat = new ArchvowCompat.Compatibility("ok", "", "");
-    /** "archvow 3.2.1 ✓ · this plugin works with archvow >=3.2,<4": atop the Overview and the welcome page. */
+    /** "archvow 3.3.0 ✓ · this plugin works with archvow >=3.3,<4": atop the Overview and the welcome page. */
     private final JLabel compatHeader = new JLabel("");
     private boolean installing;
     private ArchvowProjectReadiness.Status projectStatus;
@@ -7350,6 +7350,55 @@ final class ArchvowPanel extends JPanel {
     }
 
     /** The AI skill form lives in the shared editor tab, like command forms and checks. */
+    /** 1.3.0: what the skill form asks of archvow and of the IDE (ArchvowSkillForm.Host). */
+    private ArchvowSkillForm.Host skillHost() {
+        return new ArchvowSkillForm.Host() {
+            @Override public void prompt(String skill, String target, String max, java.util.function.Consumer<String> text) {
+                List<String> args = new ArrayList<>(List.of("skill", skill, target.isBlank() ? "-" : target));
+                if (!max.isBlank()) args.addAll(List.of("--max", max));
+                args.addAll(List.of("--prompt", "--json"));
+                cli.execute("skill --prompt", args, null, r -> {
+                    JsonObject answer = r.parseJsonObject();
+                    text.accept(answer != null && answer.has("prompt") ? ArchvowGrammar.str(answer, "prompt")
+                        : ArchvowI18n.text(project, "archvow could not write them: ", "archvow n'a pas pu les écrire : ") + r.stderr.strip());
+                });
+            }
+            @Override public Runnable run(List<String> args, java.util.function.Consumer<ArchvowSkillForm.Ended> ended) {
+                boolean review = "review".equals(args.get(0));
+                return cli.background(review ? "review" : "skill " + args.get(1), args, 30 * 60, r -> {
+                    JsonObject answer = r.parseJsonObject();
+                    if (answer == null) {
+                        String said = r.error != null ? r.error.text() : r.stderr.strip();
+                        ended.accept(new ArchvowSkillForm.Ended("failed", said.isBlank() ? ArchvowI18n.text(project, "It stopped.", "Il s'est arrêté.") : said, false, !review));
+                    } else if (review) {
+                        String status = ArchvowGrammar.str(answer, "status");
+                        ended.accept(new ArchvowSkillForm.Ended(List.of("passed", "acknowledged", "high", "nothing").contains(status) ? "done" : "failed",
+                            ArchvowGrammar.str(answer, "message"), false, false));
+                    } else {
+                        JsonObject added = answer.has("added") && answer.get("added").isJsonObject() ? answer.getAsJsonObject("added") : null;
+                        ended.accept(new ArchvowSkillForm.Ended(ArchvowGrammar.str(answer, "status"), ArchvowGrammar.str(answer, "message"),
+                            added != null && !added.entrySet().isEmpty(), true));
+                        String component = args.size() > 2 ? args.get(2) : "";
+                        if (componentSnapshots.containsKey(component)) recordLaunched(component, args.get(1));
+                    }
+                    reload(false, true);
+                });
+            }
+            @Override public void showLog(boolean review) { if (!review) openProjectFile(".archvow/doc/skill-run.log"); }
+            @Override public void openReport() { openProjectFile("reviews/last-change.md"); }
+            @Override public void reviewAdded(String skill, String component) {
+                if ("draft-spec".equals(skill) || component.isBlank()) { showWorkspace(); tabs.setSelectedIndex(1); return; }
+                if (role == Role.DETAIL) {
+                    selectedComponent = new NodeComponent(component, "", "", "");
+                    loadComponent(selectedComponent);
+                    selectComponentView("analyze".equals(skill) ? 2 : 0);
+                } else ArchvowEditorTab.showComponent(project, component);
+            }
+            @Override public String keptTool() { return com.intellij.ide.util.PropertiesComponent.getInstance(project).getValue("archvow.runTool", ""); }
+            @Override public void keepTool(String tool) { com.intellij.ide.util.PropertiesComponent.getInstance(project).setValue("archvow.runTool", tool); }
+        };
+    }
+
     void openSkill(String skill, Map<String, String> initial) {
         if (role == Role.NAVIGATION) {
             ArchvowEditorTab.showSkill(project, skill, initial);
@@ -7373,15 +7422,23 @@ final class ArchvowPanel extends JPanel {
                 if (!ArchvowGrammar.str(r, "section").isBlank())
                     briefs.add(ArchvowGrammar.str(f, "file") + "#" + ArchvowGrammar.str(r, "section"));
         }
-        List<String> tools = ArchvowGrammar.strings(manifest, "ai_tools");
         JsonObject skills = ArchvowForms.section("ai_skills");
         JsonObject def = ArchvowSkillForm.def(skills, skill);
         detailSkillLabel = def == null ? skill : ArchvowSkillForm.pair(def, "label", fr);
-        ArchvowSkillForm form = new ArchvowSkillForm(skills, skill, values, components, briefs, tools,
+        // 1.3.0: who can run it here - the project's AI assistants (workspace ai_skills), for a review its reviewers
+        JsonObject aiSkills = workspaceJson != null && workspaceJson.has("ai_skills") && workspaceJson.get("ai_skills").isJsonObject()
+            ? workspaceJson.getAsJsonObject("ai_skills") : null;
+        List<JsonObject> found = "review".equals(skill) ? ArchvowGrammar.objects(workspaceJson, "reviewers") : ArchvowGrammar.objects(aiSkills, "tools");
+        List<ArchvowSkillForm.Tool> tools = new ArrayList<>();
+        for (JsonObject t : found) tools.add(new ArchvowSkillForm.Tool(ArchvowGrammar.str(t, "name"), ArchvowGrammar.str(t, "title"),
+            ArchvowGrammar.str(t, "program"), ArchvowGrammar.flag(t, "installed")));
+        String whyNot = aiSkills == null ? ArchvowI18n.text(project, "This archvow runs no skill here (archvow 3.3 does).", "Cet archvow ne lance aucun skill ici (archvow 3.3 le fait).")
+            : ArchvowGrammar.str(aiSkills, "why_not");
+        ArchvowSkillForm form = new ArchvowSkillForm(skills, skill, values, components, briefs, tools, whyNot, branch.getText().trim(),
             c -> {
                 JsonObject view = componentSnapshots.get(c);
                 return view == null ? null : ArchvowAiSkills.view(view, launched(c)).blocked.get(skill);
-            }, fr, (text, chosen) -> {
+            }, fr, skillHost(), (text, chosen) -> {
                 Toolkit.getDefaultToolkit().getSystemClipboard()
                     .setContents(new java.awt.datatransfer.StringSelection(text), null);
                 recordLaunched(chosen.get("component"), skill);

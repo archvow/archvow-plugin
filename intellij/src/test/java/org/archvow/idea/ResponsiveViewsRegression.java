@@ -176,12 +176,48 @@ public final class ResponsiveViewsRegression {
         JsonObject skills = JsonParser.parseString(Files.readString(contract().resolve("forms/forms.json")))
             .getAsJsonObject().getAsJsonObject("ai_skills");
         ArchvowSkillForm form = new ArchvowSkillForm(skills, "clarify", Map.of("component", "config"), List.of("config", "spark"),
-            List.of(), List.of("claude-code", "copilot"), c -> null, false, (text, values) -> { }, () -> { });
+            List.of(), List.of(new ArchvowSkillForm.Tool("claude-code", "Claude Code", "claude", true),
+                new ArchvowSkillForm.Tool("copilot", "GitHub Copilot CLI", "copilot", false)), null, "main",
+            c -> null, false, new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });
         for (int width : WIDTHS) {
             grown(form, width);
             probe("skill @" + width, form, form);
             shot(form, "skill-" + width);
         }
+        // 1.3.0: the run states - running (Stop), done (Review them ›), failed (the reason), off, implement, review
+        List<ArchvowSkillForm.Tool> assistants = List.of(new ArchvowSkillForm.Tool("claude-code", "Claude Code", "claude", true),
+            new ArchvowSkillForm.Tool("copilot", "GitHub Copilot CLI", "copilot", false));
+        SkillFormRegression.TestHost host = new SkillFormRegression.TestHost();
+        ArchvowSkillForm running = new ArchvowSkillForm(skills, "clarify", Map.of("component", "config"), List.of("config"),
+            List.of(), assistants, null, "main", c -> null, false, host, (text, values) -> { }, () -> { });
+        running.run.doClick();
+        ArchvowSkillForm done = new ArchvowSkillForm(skills, "analyze", Map.of("component", "config"), List.of("config"),
+            List.of(), assistants, null, "main", c -> null, false, new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });
+        done.showEnded(new ArchvowSkillForm.Ended("done", "Claude Code added 2 hazards and 1 invariant to config, to review.", true, true), false, "config");
+        ArchvowSkillForm failed = new ArchvowSkillForm(skills, "clarify", Map.of("component", "config"), List.of("config"),
+            List.of(), assistants, null, "main", c -> null, false, new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });
+        failed.showEnded(new ArchvowSkillForm.Ended("failed", "Claude Code stopped (exit 1): Not logged in. Please run /login.", false, true), false, "config");
+        ArchvowSkillForm off = new ArchvowSkillForm(skills, "clarify", Map.of("component", "config"), List.of("config"),
+            List.of(), assistants, "AI skill runs are off in this project: an architect turns them on (ai_skills in project.vow).", "main",
+            c -> null, false, new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });
+        ArchvowSkillForm implement = new ArchvowSkillForm(skills, "implement", Map.of("component", "config"), List.of("config"),
+            List.of(), assistants, null, "main", c -> null, false, new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });
+        ArchvowSkillForm review = new ArchvowSkillForm(skills, "review", Map.of(), List.of(), List.of(),
+            List.of(new ArchvowSkillForm.Tool("codex", "Codex", "codex", true)), null, "main", c -> null, false,
+            new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });
+        Map<String, ArchvowSkillForm> states = new java.util.LinkedHashMap<>();
+        states.put("running", running);
+        states.put("done", done);
+        states.put("failed", failed);
+        states.put("off", off);
+        states.put("implement", implement);
+        states.put("review", review);
+        for (Map.Entry<String, ArchvowSkillForm> state : states.entrySet())
+            for (int width : WIDTHS) {
+                grown(state.getValue(), width);
+                probe("skill " + state.getKey() + " @" + width, state.getValue(), state.getValue());
+                shot(state.getValue(), "skill-" + state.getKey() + "-" + width);
+            }
 
         // the Examples view (python-app's failing example), the Search panel, the Checks list
         Path examplesDir = contract().resolve("cli/python-app/examples");

@@ -174,17 +174,17 @@ assert.match(css, /guided-step\.complete\s*\{[^}]*background:/s,
   'a complete step turns green across the whole button');
 assert.match(css, /\.commands-list \.command-children\s*\{[^}]*padding-left:/s,
   'the VS Code command tree has the IntelliJ-like child indentation');
+// 1.3.0: one page per skill - the target, What will happen with archvow's instructions, then its buttons
 for (const skill of forms.ai_skills.order) {
   audit.ui.skill = skill;
-  audit.ui.skillValues = { component: 'config', brief: 'briefs/specs.md#should-run', max: '5', tool: 'copilot' };
-  for (let index = 0; index < 3; index++) {
-    audit.ui.skillStep = index;
-    const html = audit.skillForm();
-    assert.match(html, /data-a="skillStage"/, `${skill} page ${index} must be navigable`);
-    assert.match(html, /data-a="askAi"/, `${skill} page ${index} preserves copy actions`);
-    assert.match(html, /WHAT WILL HAPPEN/, `${skill} page ${index} preserves explanation`);
-    if (index === 2) assert.match(html, /class="guided-review"/, `${skill} review page`);
-  }
+  audit.ui.skillValues = { component: 'config', brief: 'briefs/specs.md#should-run', max: '5' };
+  const html = audit.skillForm();
+  assert.doesNotMatch(html, /data-a="skillStage"/, `${skill}: no steps`);
+  assert.match(html, /data-a="askAi"/, `${skill} keeps Copy instructions`);
+  assert.match(html, /WHAT WILL HAPPEN/, `${skill} keeps the explanation`);
+  if (skill === 'implement') assert.doesNotMatch(html, /data-a="skillRun"|data-a="reviewRun"/, 'Implement: a handoff, no run');
+  else if (skill === 'review') assert.match(html, /data-a="reviewRun"/, 'Review: with a reviewer');
+  else assert.match(html, /data-a="skillRun"/, `${skill}: ▶ Run`);
   assert.equal(audit.ui.skillValues.component, 'config');
 }
 console.log(`Guided form coverage: ${commands.length} commands, ${catalog.templates.length} templates, ${forms.ai_skills.order.length} skills, ${total} parameter/answer checks; navigation and live preview OK`);
