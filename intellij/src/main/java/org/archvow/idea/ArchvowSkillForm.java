@@ -71,6 +71,17 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
     private String tool = "";
     private Runnable stop;
     private Timer ticking;
+
+    /** 1.4.2: the running clock stops with the form (an editor tab closed during a run kept it ticking). */
+    @Override public void removeNotify() {
+        super.removeNotify();
+        if (ticking != null) ticking.stop();
+    }
+
+    @Override public void addNotify() {
+        super.addNotify();
+        if (ticking != null && stop != null) ticking.start();  // shown again while the run goes on
+    }
     private String shownKey = "";
 
     /**

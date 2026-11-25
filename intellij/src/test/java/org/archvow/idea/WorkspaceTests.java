@@ -89,6 +89,9 @@ public final class WorkspaceTests {
         run("VowWatcherRegression", () -> VowWatcherRegression.main(NONE));
         run("WslRegression", () -> WslRegression.main(NONE));
         System.out.println("workspace tests: " + passed + " test classes passed");
+        // 1.4.2: done - end the JVM now. Headless Swing stays up while its event queue gets events (a form's
+        // running clock, an animation's timer): the JVM lingered minutes after this line, and CI waited on it.
+        System.exit(0);
     }
 
     private static void run(String name, Test test) throws Exception {
