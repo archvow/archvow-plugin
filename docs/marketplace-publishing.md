@@ -63,7 +63,7 @@ receive it; stable users need nothing.
 ## Versions
 
 The plugins have their own versioning (1.0.0): MAJOR.MINOR.PATCH, chosen by people, the same for both plugins. A
-release says the archvow versions it works with (`contract/archvow-range.txt`, `>=3.1,<4` for 1.1.0). Both
+release says the archvow versions it works with (`contract/archvow-range.txt`, `>=3.2,<4` for 1.2.0). Both
 Marketplaces need a unique numeric version for each upload, higher than the one installed for the update to reach
 people; the tag check and the release test keep the version in one place per file.
 

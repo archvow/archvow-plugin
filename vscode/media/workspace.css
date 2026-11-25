@@ -258,9 +258,28 @@ body.editor .detail-only > .card.result .card-body { max-height: calc(100vh - 17
 .tabs.views .tab { border: 1px solid var(--vscode-panel-border); border-radius: 12px; padding: 3px 11px; }
 .tabs.views .tab.current { background: var(--archvow); border-color: var(--archvow); color: #fff; font-weight: 600; }
 .tabs.views .tab.has-pending:not(.current) { border-color: var(--vscode-charts-orange, #d18616); }
-.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+/* 1.2.0: the list and the answer side by side, a bar between them to drag; each scrolls on its own, Save stays in
+   sight. Under 680 px: one above the other, the bar between them dragged up or down. */
+.split { display: grid; grid-template-columns: minmax(240px, var(--split-left, 50%)) 10px minmax(320px, 1fr); gap: 0 6px; align-items: start; }
 .split.single { grid-template-columns: minmax(0, 1fr); }
-@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+.split > .split-list { max-height: calc(100vh - 16px); overflow: auto; position: sticky; top: 8px; padding-right: 4px; }
+.split > .split-answer { max-height: calc(100vh - 16px); overflow: auto; }
+.split-bar { align-self: stretch; cursor: col-resize; position: relative; min-height: 120px; outline: none; }
+.split-bar::before { content: ''; position: absolute; top: 0; bottom: 0; left: 4px; width: 2px; border-radius: 1px; background: var(--vscode-panel-border); }
+.split-bar:hover::before, .split-bar:focus-visible::before { background: var(--vscode-focusBorder, #3574f0); }
+.split-bar i { position: absolute; top: 50%; left: 1px; width: 8px; height: 28px; margin-top: -14px; border-radius: 3px; background: var(--vscode-panel-border);
+  background-image: radial-gradient(circle, #fff 1px, transparent 1.2px); background-size: 8px 6px; background-position: center 2px; }
+.split-bar:hover i, .split-bar:focus-visible i { background-color: var(--vscode-focusBorder, #3574f0); }
+.split-answer .answer-actions { position: sticky; bottom: -12px; background: var(--vscode-editorWidget-background); padding: 8px 0 4px;
+  border-top: 1px solid var(--vscode-panel-border); margin-top: 6px; z-index: 1; }
+@media (max-width: 680px) {
+  .split { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 12px auto; gap: 0; }
+  .split > .split-list { position: static; max-height: var(--split-top, 40vh); }
+  .split > .split-answer { position: static; max-height: none; }
+  .split-bar { cursor: row-resize; min-height: 12px; height: 12px; }
+  .split-bar::before { top: 5px; bottom: auto; left: 0; right: 0; width: auto; height: 2px; }
+  .split-bar i { top: 2px; left: 50%; width: 28px; height: 8px; margin: 0 0 0 -14px; background-size: 6px 8px; background-position: 2px center; }
+}
 .cards { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .item-card { border: 1px solid var(--vscode-panel-border); border-radius: 4px; padding: 8px 11px; cursor: pointer; background: var(--vscode-editorWidget-background); }
 .item-card:hover { background: var(--vscode-list-hoverBackground); }
@@ -932,8 +951,18 @@ ul.plain-list { list-style: none; padding: 0; margin: 0; display: flex; flex-dir
 .try-card .try-row { gap: 8px; align-items: center; flex-wrap: nowrap; }
 .try-card select { flex: 1; min-width: 0; }
 .try-steps { margin: 6px 0 12px; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
-.try-steps li span { display: block; color: var(--vscode-descriptionForeground); font-size: 12px; }
-.try-change { white-space: pre; overflow-x: auto; padding: 10px 12px; border-radius: 6px; background: var(--vscode-editorWidget-background, rgba(127,127,127,.12)); }
+.try-steps li span { color: var(--vscode-descriptionForeground); }
+/* 1.2.0: the change in the editor's font, + lines green; the folder once, with what to do with it */
+.try-change { overflow-x: auto; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editorWidget-background, rgba(127,127,127,.12)); font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-editor-font-size, 12.5px); line-height: 1.7; white-space: pre; }
+.try-change .try-add { color: var(--vscode-gitDecoration-addedResourceForeground, #8fd18f); }
+.try-folder { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 6px 0 10px; font-size: 12.5px; }
+.try-folder .key { color: var(--vscode-descriptionForeground); }
+.try-folder code { padding: 3px 8px; border-radius: 4px; background: var(--vscode-editorWidget-background, rgba(127,127,127,.12)); }
+.try-finding { border-left-width: 3px; }
+.try-finding-head { margin-bottom: 4px; }
+.try-fix { display: grid; grid-template-columns: max-content 1fr; gap: 6px 8px; }
 .try-follow { margin-top: 10px; }
 .checks-totals .tone-bad { font-weight: 600; }
 /* The design's accent on the Overview's links (dark themes), as IntelliJ's ArchvowOverviewCards.link(); a light
@@ -966,10 +995,19 @@ button.file-open:hover code { text-decoration: underline; }
 .ctx-menu .ctx-remove { color: var(--vscode-errorForeground); }
 
 /* 1.1.0: the strip of a walk (Specify, Build) at the top of a component's page */
-.walk-strip { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; }
-.walk-strip .walk-progress { font-size: .85em; opacity: .85; margin-bottom: 4px; }
+.walk-strip { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; position: relative; }
+.walk-strip .walk-leave { position: absolute; top: 6px; right: 8px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 4px;
+  background: transparent; color: var(--vscode-descriptionForeground); font-size: 16px; line-height: 24px; cursor: pointer; }
+.walk-strip .walk-leave:hover { background: var(--vscode-toolbar-hoverBackground, rgba(127, 127, 127, .2)); color: var(--vscode-foreground); }
+.walk-strip .walk-leave:focus-visible { outline: 1px solid var(--vscode-focusBorder); }
+.walk-strip .walk-steps { display: inline-flex; gap: 3px; vertical-align: middle; margin: 0 4px; }
+.walk-strip .walk-steps i { width: 22px; height: 5px; border-radius: 3px; background: rgba(127, 127, 127, .45); }
+.walk-strip .walk-steps i.done { background: #5fb865; }
+.walk-strip .walk-steps i.now { background: #3574f0; }
+.walk-strip .walk-progress { font-size: .85em; opacity: .85; margin-bottom: 4px; padding-right: 28px; }
 .walk-strip .walk-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .walk-strip .walk-words { flex: 1 1 260px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.walk-strip .walk-words span { white-space: pre-wrap; }
 .walk-strip.tone-done { background: rgba(95, 184, 101, .14); border-color: rgba(95, 184, 101, .55); }
 .walk-strip.tone-info { background: rgba(53, 116, 240, .12); border-color: rgba(53, 116, 240, .5); }
 .walk-strip.tone-warn { background: rgba(229, 165, 75, .14); border-color: rgba(229, 165, 75, .55); }
@@ -981,3 +1019,43 @@ button.file-open:hover code { text-decoration: underline; }
 .smart-answer .param-required { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .smart-answer input.missing { outline: 1px solid var(--vscode-inputValidation-errorBorder, #e06c75); }
 .smart-answer .hand-line { margin: 6px 0 0; }
+
+/* Draft with AI (1.2.0): an icon in the answer box's corner; the draft marked until the person saves it */
+.answer-box { position: relative; }
+.answer-box .answer-field { width: 100%; box-sizing: border-box; padding-right: 64px; }
+.answer-box.has-draft .answer-field, .answer-box.drafting .answer-field { border-left: 3px solid #e5a54b; background: rgba(229, 165, 75, .08); }
+.draft-ai { position: absolute; top: 6px; right: 6px; display: flex; gap: 2px; align-items: center; }
+.draft-split { display: inline-flex; align-items: center; border-radius: 5px; position: relative; }
+.draft-split:hover:not(.off) { background: var(--vscode-toolbar-hoverBackground, rgba(127, 127, 127, .2)); }
+.draft-split.off { opacity: .45; }
+.draft-icon, .draft-caret { background: transparent; border: 0; padding: 0; color: #c9a0ff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.draft-icon { width: 26px; height: 26px; border-radius: 5px; }
+.draft-icon:hover:not(:disabled) { background: var(--vscode-toolbar-hoverBackground, rgba(127, 127, 127, .2)); }
+.draft-caret { width: 14px; height: 26px; font-size: 9px; color: var(--vscode-descriptionForeground); border-left: 1px solid transparent; }
+.draft-split:hover .draft-caret { border-left-color: var(--vscode-panel-border); }
+.draft-icon:disabled, .draft-caret:disabled { cursor: default; }
+.draft-ai .draft-icon:not(:first-child), .answer-box.has-draft .draft-icon { color: var(--vscode-descriptionForeground); font-size: 15px; }
+.draft-spin { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; color: #e5a54b; animation: draft-spin 1.2s linear infinite; }
+@keyframes draft-spin { to { transform: rotate(360deg); } }
+.draft-split[data-tip]:hover::after { content: attr(data-tip); position: absolute; top: 30px; right: 0; width: max-content; max-width: 260px; z-index: 5;
+  background: var(--vscode-editorHoverWidget-background, #3c3f41); color: var(--vscode-editorHoverWidget-foreground, #dfe1e5);
+  border: 1px solid var(--vscode-editorHoverWidget-border, #5a5d63); border-radius: 4px; padding: 6px 9px; font-size: 12px; line-height: 1.45;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .4); white-space: normal; pointer-events: none; }
+.draft-menu { position: absolute; top: 30px; right: 0; z-index: 6; min-width: 260px; padding: 6px 0; border-radius: 6px;
+  background: var(--vscode-menu-background, #2b2d30); color: var(--vscode-menu-foreground, inherit); border: 1px solid var(--vscode-menu-border, #4e5157);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45); }
+.draft-menu-head { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--vscode-descriptionForeground); padding: 6px 12px 2px; }
+.draft-menu button { display: flex; width: 100%; align-items: center; gap: 8px; padding: 6px 12px; background: transparent; border: 0; border-radius: 0;
+  color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.draft-menu button:hover:not(:disabled), .draft-menu button.current { background: var(--vscode-menu-selectionBackground, #2e436e); color: var(--vscode-menu-selectionForeground, inherit); }
+.draft-menu button:disabled { opacity: .55; cursor: default; }
+.draft-menu .check { width: 14px; color: #8fd18f; }
+.draft-menu .src { margin-left: auto; font-size: .88em; color: var(--vscode-descriptionForeground); }
+.draft-menu hr { border: 0; border-top: 1px solid var(--vscode-panel-border); margin: 5px 0; }
+.ai-draft-line { margin: 2px 0 4px; }
+.ai-draft-tag { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 3px; padding: 1px 6px; background: rgba(229, 165, 75, .18); color: #e5a54b; white-space: nowrap; }
+.ai-draft-note { color: #e5c07b; margin: 4px 0 0; }
+.item-card .card-drafted, .drafted-mark { color: #e5c07b; }
+.first-step .step-bars { display: flex; gap: 3px; margin-top: 6px; }
+.first-step .step-bars i { width: 40px; height: 5px; border-radius: 3px; background: rgba(127, 127, 127, .45); }
+.first-step .step-bars i.done { background: #5fb865; }

@@ -41,26 +41,47 @@ public final class SplitViewRegression {
         JPanel answer = new JPanel();
         answer.setPreferredSize(new Dimension(300, 260));
         JPanel split = ArchvowSplitView.create(itemList, items, answer);
-        Component box = split.getComponent(1);
+        Component bar = split.getComponent(1);
+        Component box = split.getComponent(2);
+        check("archvow.split.bar".equals(bar.getName()), "1.2.0: a bar between the two");
         check("archvow.answer".equals(box.getName()) && SwingUtilities.isDescendingFrom(answer, box), "the answer panel is boxed");
+        ArchvowSplitView.fraction = 0.5;
+        ArchvowSplitView.top = 0;
         split.setSize(900, 500);
         layout(split);
         Rectangle left = in(items, split);
         Rectangle right = in(box, split);
-        check(left.x == 0 && left.height == 500 && right.y == 0 && right.x >= left.x + left.width + ArchvowSplitView.GAP - 1,
+        check(left.x == 0 && left.height == 500 && right.y == 0 && right.x == left.x + left.width + ArchvowSplitView.BAR,
             "side by side at 900: " + left + " / " + right);
-        check(Math.abs(left.width - right.width) <= 1, "two halves: " + left.width + " / " + right.width);
+        check(Math.abs(left.width - (right.width + ArchvowSplitView.BAR)) <= 1, "half and half: " + left.width + " / " + right.width);
+        // dragged: the list wider; never under 240 px, the answer never under 320 px; double-click: half again
+        ArchvowSplitView.drag(split, 600, 10);
+        layout(split);
+        check(in(items, split).width == 900 - ArchvowSplitView.BAR - ArchvowSplitView.MIN_ANSWER, "the answer keeps 320 px: " + in(items, split));
+        ArchvowSplitView.drag(split, 100, 10);
+        layout(split);
+        check(in(items, split).width == ArchvowSplitView.MIN_LIST, "the list keeps 240 px: " + in(items, split));
+        ArchvowSplitView.drag(split, 400, 10);
+        layout(split);
+        check(in(items, split).width == 400, "where it is left: " + in(items, split));
+        ArchvowSplitView.fraction = 0.5;
+        // Save answer pinned under the answer, outside its scrolling part
+        JButton pinnedSave = new JButton("Save answer");
+        JPanel pinnedSplit = ArchvowSplitView.create(itemList, new JScrollPane(new JList<>(model)), new JScrollPane(new JPanel()), pinnedSave);
+        Component pinnedBox = pinnedSplit.getComponent(2);
+        check(SwingUtilities.isDescendingFrom(pinnedSave, pinnedBox) && pinnedSave.getParent() != null
+            && "archvow.answer.pinned".equals(pinnedSave.getParent().getName()), "Save pinned under the answer");
         split.setSize(560, 700);
         layout(split);
         left = in(items, split);
         right = in(box, split);
-        check(left.width == 560 && right.width == 560 && right.y >= left.y + left.height, "stacked at 560: " + left + " / " + right);
+        check(left.width == 560 && right.width == 560 && right.y >= left.y + left.height + 12, "stacked at 560: " + left + " / " + right);
         check(left.height == 150, "the items at their height when it is under 2/5: " + left.height);
         // a view with no item: "Nothing to display." over the whole view, no answer panel (0.11.1)
         model.clear();
         split.setSize(900, 500);
         layout(split);
-        check(!box.isVisible() && in(items, split).width == 900, "no item, no answer panel: " + in(items, split));
+        check(!box.isVisible() && !bar.isVisible() && in(items, split).width == 900, "no item, no answer panel: " + in(items, split));
         model.addElement("1");
         layout(split);
         check(box.isVisible() && in(items, split).width < 900, "an item again: the answer panel is back");

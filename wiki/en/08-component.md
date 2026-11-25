@@ -117,12 +117,28 @@ sentence. Nothing is saved: 1.1.0, the table writes the answer field as you edit
 answer"); once the field is typed in by hand, the table stops writing over it and offers **Write it from the table
 again**. A decision's field starts with its suggestion: **Back to the suggestion** shows only once the text differs.
 
+## Draft with AI, the bar and the walk's × (1.2.0)
+
+**Draft with AI**: an icon in the corner of every answer field (a decision, a question, a safety question) - ✦
+drafts with one of the project's AI assistants, ▾ picks another (the first installed by default; one not installed
+greyed) or copies the prompt instead. Both run `archvow draft <component> <question> --json` (text only: archvow
+writes nothing) and put the draft in the field, marked "AI draft · Claude Code", with ↻ and ×; a save then adds
+`--drafted-with <assistant>` (and `--unchanged`). Off for the project (`ai_drafts`, `workspace --json`): the icon
+greyed, its hover says why (`draftCorner()`, `draftedOf()`; `ArchvowDraftBox`, `DraftBoxRegression`).
+
+**The bar** between the list and the answer (`split()`, `ArchvowSplitView.Bar`): dragged, or ← → when focused;
+double-click for half and half; kept for every view; under 680 px the two stack and the bar moves up and down. Save
+answer stays pinned under the answer (decisions, questions).
+
+**The walk's ×**: no Stop button any more; a × in the strip's corner and Esc leave the walk
+(`ArchvowWalkStrip.onLeave`), and the steps are drawn between its words and its count.
+
 ## The walks (1.1.0)
 
 **Specify** walks a list, as `archvow specify` does in a terminal: the foundations (First steps, step 1), a feature
 (its page, step 3, right-click) or a component and the rest of its feature. Order: archvow's build order (the `next`
 rows); only the components with something open. When a component's last item is saved, a strip at the top of its
-page (no modal): "✓ config specified · Next: logging_setup · 1 decision **Specify next ▸** · Stop"; at the end,
+page (no modal): "✓ config specified · Next: logging_setup · 1 decision **Specify next ▸**"; at the end,
 "✓ The foundations are specified" or "✓ orders: every decision is made · Ready to build: … **Build ▸**".
 **Build** walks the feature's ready components: 1 the code (**Copy AI prompt**), 2 **Check** (its result for this
 component), 3 **Build next ▸** once verified; it stops when `next` says the merge request is full. Both read only

@@ -108,7 +108,8 @@ final class ArchvowCli {
                     }
                     if (next != null) ApplicationManager.getApplication().invokeLater(() -> { if (!project.isDisposed()) next.run(); });
                 }
-                ArchvowRunLog.record(project, new ArchvowRunLog.Call(result.arguments, result.exitCode, result.stdout,
+                // the archvow arguments, as a person types them (1.2.0: not the interpreter's command line)
+                ArchvowRunLog.record(project, new ArchvowRunLog.Call(withLanguage(arguments, ArchvowI18n.isFrench(project)), result.exitCode, result.stdout,
                     result.stderr, result.interrupted, result.log, result.error == null ? "" : result.error.text()), action, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
                 Result returned = result;
                 ApplicationManager.getApplication().invokeLater(() -> {
@@ -235,9 +236,19 @@ final class ArchvowCli {
         }
     }
 
+    /** 1.2.0: try says what to do about each finding in the page's language (as the VS Code page). */
+    static List<String> withLanguage(List<String> arguments, boolean french) {
+        if (arguments.isEmpty() || !"try".equals(arguments.get(0)) || arguments.contains("--language")) return arguments;
+        List<String> out = new java.util.ArrayList<>(arguments);
+        out.add("--language");
+        out.add(french ? "fr" : "en");
+        return out;
+    }
+
     private Result invoke(List<String> arguments, String stdin, ProgressIndicator indicator,
                           boolean globalCatalog, String templateDirectory) throws Exception {
         ArchvowTrust.require(project);  // safe mode: no process at all (0.26.1)
+        arguments = withLanguage(arguments, ArchvowI18n.isFrench(project));
         ArchvowSettings.Values opts = ArchvowSettings.get(project).getState();
         File workingDirectory;
         List<String> argv;

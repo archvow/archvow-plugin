@@ -6,9 +6,10 @@ import java.util.List;
 
 /**
  * The strip of a walk (1.1.0), at the top of a component's page: where Specify or Build is - "✓ config specified ·
- * Next: logging_setup (1 decision) [Specify next ▸] [Stop]", "Building orders · 1 of 2" with its three steps - in
- * place of the modal "All decision and safety questions are answered" of 1.0. One line of words, the buttons on
- * its right (under it when narrow), the progress over it. Plain Swing, tested headless (WalksRegression).
+ * Next: logging_setup (1 decision) [Specify next ▸]", "Building orders ▬▬ 1 of 2" with its three steps - in
+ * place of the modal "All decision and safety questions are answered" of 1.0. The progress over the words, the
+ * buttons under them. 1.2.0: no Stop button - a small × in the corner, and Esc, leave the walk. Plain Swing,
+ * tested headless (WalksRegression).
  */
 final class ArchvowWalkStrip extends JPanel {
     /** done (green), info (blue), warn (orange), bad (red). */
@@ -20,6 +21,10 @@ final class ArchvowWalkStrip extends JPanel {
     }
 
     private final JLabel progress = new JLabel();
+    private final JLabel count = new JLabel();
+    private final Steps steps = new Steps();
+    private final JButton leave = new JButton("×");
+    private Runnable onLeave = () -> { };
     private final JLabel title = new JLabel();
     private final ArchvowWrapLabel detail = new ArchvowWrapLabel();
     private final JPanel buttons = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
@@ -37,18 +42,65 @@ final class ArchvowWalkStrip extends JPanel {
         words.setOpaque(false);
         words.add(title, BorderLayout.NORTH);
         words.add(detail, BorderLayout.CENTER);
-        add(progress, BorderLayout.NORTH);
+        count.setFont(progress.getFont());
+        JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        line.setOpaque(false);
+        line.add(progress);
+        line.add(steps);
+        line.add(count);
+        leave.setName("archvow.walk.leave");
+        leave.setFont(leave.getFont().deriveFont(15f));
+        leave.setBorderPainted(false);
+        leave.setContentAreaFilled(false);
+        leave.setFocusPainted(false);
+        leave.setMargin(new Insets(0, 4, 0, 4));
+        leave.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        leave.addActionListener(e -> onLeave.run());
+        leave.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) { leave.setContentAreaFilled(true); }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) { leave.setContentAreaFilled(false); }
+        });
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
+        top.add(line, BorderLayout.CENTER);
+        top.add(leave, BorderLayout.EAST);
+        add(top, BorderLayout.NORTH);
         add(words, BorderLayout.CENTER);
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "archvow.walk.leave");
+        getActionMap().put("archvow.walk.leave", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) { if (isShowing()) onLeave.run(); }
+        });
         add(buttons, BorderLayout.SOUTH);
         setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
         setVisible(false);
     }
 
+    /** What × and Esc do (leave the walk), and the ×'s hover text. */
+    void onLeave(String tip, Runnable action) {
+        leave.setToolTipText(tip);
+        onLeave = action;
+    }
+
     /** Shows the strip: its tone, a progress line ("" for none), a title, a detail and its buttons. */
     void show(Tone tone, String progressText, String titleText, String detailText, List<Action> actions) {
+        show(tone, progressText, 0, 0, titleText, detailText, actions);
+    }
+
+    /**
+     * The same, with the walk's steps drawn between the progress's words and its count ("Building orders ▬▬ 2 of
+     * 2"): {@code done} of {@code total} (the current one is the next); 0 total: the progress line as it is.
+     */
+    void show(Tone tone, String progressText, int done, int total, String titleText, String detailText, List<Action> actions) {
         this.tone = tone;
-        progress.setText(progressText == null ? "" : progressText);
-        progress.setVisible(progressText != null && !progressText.isBlank());
+        String text = progressText == null ? "" : progressText;
+        int cut = text.lastIndexOf(" · ");
+        boolean drawn = total > 0 && cut > 0;
+        progress.setText(drawn ? text.substring(0, cut) : text);
+        count.setText(drawn ? text.substring(cut + 3) : "");
+        count.setVisible(drawn);
+        steps.set(drawn ? done : 0, drawn ? total : 0);
+        steps.setVisible(drawn);
+        progress.setVisible(!text.isBlank());
         title.setText(titleText);
         detail.setText(detailText == null ? "" : detailText);
         detail.setVisible(detailText != null && !detailText.isBlank());
@@ -62,6 +114,8 @@ final class ArchvowWalkStrip extends JPanel {
         Color[] c = colors(tone);
         title.setForeground(c[2]);
         progress.setForeground(c[3]);
+        count.setForeground(c[3]);
+        leave.setForeground(c[3]);
         detail.setForeground(c[3]);
         setVisible(true);
         revalidate();
@@ -73,7 +127,10 @@ final class ArchvowWalkStrip extends JPanel {
     /** For the tests: the title, the detail, the progress and the buttons' labels. */
     String titleText() { return title.getText(); }
     String detailText() { return detail.getText(); }
-    String progressText() { return progress.getText(); }
+    String progressText() { return count.isVisible() ? progress.getText() + " · " + count.getText() : progress.getText(); }
+    int stepsDone() { return steps.done; }
+    int stepsTotal() { return steps.total; }
+    JButton leaveButton() { return leave; }
     List<String> buttonLabels() {
         return java.util.Arrays.stream(buttons.getComponents()).filter(JButton.class::isInstance)
             .map(b -> ((JButton) b).getText()).toList();
@@ -96,6 +153,36 @@ final class ArchvowWalkStrip extends JPanel {
             case BAD -> dark ? new Color[] {new Color(0x3A, 0x26, 0x28), new Color(0x6B, 0x3A, 0x3F), new Color(0xF0, 0x95, 0x9C), new Color(0xD9, 0xC3, 0xC5)}
                 : new Color[] {new Color(0xFC, 0xEB, 0xEC), new Color(0xE0, 0x90, 0x96), new Color(0xA0, 0x20, 0x2A), new Color(0x5A, 0x30, 0x33)};
         };
+    }
+
+    /** The walk's steps: one short bar each - green done, blue the current one, grey the rest. */
+    private static final class Steps extends JComponent {
+        int done;
+        int total;
+
+        void set(int done, int total) {
+            this.done = done;
+            this.total = total;
+            revalidate();
+            repaint();
+        }
+
+        @Override public Dimension getPreferredSize() { return new Dimension(Math.max(0, total * 25 - 3), 12); }
+
+        @Override protected void paintComponent(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            try {
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                boolean dark = ArchvowMotion.dark();
+                for (int i = 0; i < total; i++) {
+                    g.setColor(i < done ? new Color(0x5F, 0xB8, 0x65) : i == done ? new Color(0x35, 0x74, 0xF0)
+                        : dark ? new Color(0x4E, 0x51, 0x57) : new Color(0xC9, 0xCC, 0xD2));
+                    g.fillRoundRect(i * 25, getHeight() / 2 - 3, 22, 5, 5, 5);
+                }
+            } finally {
+                g.dispose();
+            }
+        }
     }
 
     @Override protected void paintComponent(Graphics graphics) {

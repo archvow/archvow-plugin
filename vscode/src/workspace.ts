@@ -87,6 +87,8 @@ export interface State {
   aiTools: string[];
   /** archvow's first steps (`workspace --json` first_steps, contract 2.1). */
   firstSteps: Json[];
+  /** 1.2.0: Draft with AI - on or off for the project, and its AI tools that can draft (`workspace --json` ai_drafts). */
+  aiDrafts: Json | null;
   /** What the Overview's cards show (overview.ts, 0.25.0): first steps, own items, first finding. */
   overview: Overview;
   /** 1.1.0: the walks - Specify and Build - and each feature's Copy AI prompt (walks.ts). */
@@ -115,7 +117,7 @@ export class ArchvowProject {
   readonly known: string;
   /** The contract the plugin speaks ("1.3", contract/cli/contract.txt). */
   readonly contract: string;
-  /** The archvow versions the plugin works with (">=3.1,<4", contract/archvow-range.txt, 1.0.0). */
+  /** The archvow versions the plugin works with (">=3.2,<4", contract/archvow-range.txt, 1.0.0). */
   readonly range: ArchvowRange;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;
@@ -241,7 +243,7 @@ export class ArchvowProject {
       install: { reason: '', version: this.known, python: '', command: '', source: '' }, briefs: { folders: [], files: [] },
       runs: { program: '', source: '', version: '' }, compat: { state: 'ok', text: '', header: '' },
       refs: [], refKinds: {}, base: '', choices: {}, addable: {}, ai: {},
-      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, templates: [], features: {}, aiTools: [], firstSteps: [],
+      launched: this.context.workspaceState.get<Record<string, string[]>>('archvow.launched', {}), briefStatus: null, templates: [], features: {}, aiTools: [], firstSteps: [], aiDrafts: null,
       overview: overview(buildWork(null, null, '', {}, false), null, []),
       walks: walkState({}),
     };
@@ -326,6 +328,7 @@ export class ArchvowProject {
     s.templates = answer.templates;
     s.features = answer.features;
     s.firstSteps = answer.firstSteps;
+    s.aiDrafts = answer.aiDrafts;
     // the project's catalog: its templates' types and kinds (component add, template new)
     if (answer.catalog !== null && objects(answer.catalog, 'templates').length > 0) this.projectCatalog = answer.catalog;
     this.setCheck(answer.check, '');
@@ -795,6 +798,8 @@ export class ArchvowProject {
         return;
       case 'walkCopy':
         return this.walkCopy(String(m.component));
+      case 'draft':
+        return this.draft(m);
       case 'walkCheck':
         return this.walkCheck(String(m.component));
       case 'featureCheck':
@@ -902,6 +907,9 @@ export class ArchvowProject {
       }
       case 'openTryCopy':
         return this.openTryCopy(String(m.folder ?? ''));
+      case 'tryOpen':  // 1.2.0: the example's copy, in the system's file manager
+        if (fs.existsSync(String(m.folder ?? ''))) await vscode.commands.executeCommand('revealFileInOS', vscode.Uri.file(String(m.folder)));
+        return;
       case 'search':
         return this.search(String(m.name ?? ''));
       case 'openBrief': {
@@ -957,7 +965,8 @@ export class ArchvowProject {
     }
     if (send && tool === 'copilot') {
       try {
-        await vscode.commands.executeCommand('workbench.action.chat.open', { query: text, isPartialQuery: true });
+        // 1.2.0: agent mode, the instructions typed in the box; the person presses Send
+        await vscode.commands.executeCommand('workbench.action.chat.open', { query: text, isPartialQuery: true, mode: 'agent' });
         return;
       } catch {
         // no chat in this VS Code: the clipboard below
@@ -1016,6 +1025,31 @@ export class ArchvowProject {
     }
     await vscode.env.clipboard.writeText(result.stdout);
     this.toEditor({ type: 'walkCopied', component });
+  }
+
+  /**
+   * 1.2.0, Draft with AI: one of the project's AI tools drafts the answer (archvow draft, text only) and the draft
+   * goes into the answer box; nothing is saved. `prompt`: only the prompt, copied (Copy the prompt instead).
+   */
+  private async draft(m: Json): Promise<void> {
+    const fr = this.state.fr;
+    const key = String(m.key ?? '');
+    const args = ['draft', String(m.component ?? ''), String(m.ref ?? ''), ...(m.prompt === true ? ['--prompt'] : ['--with', String(m.tool ?? '')]), '--json'];
+    const result = await this.cli.run(args, undefined, true);
+    let answer: Json | null = null;
+    try { answer = JSON.parse(result.stdout) as Json; } catch { answer = null; }
+    if (answer === null || result.exitCode !== 0) {
+      const said = answer !== null && answer.error !== null && typeof answer.error === 'object' ? String((answer.error as Json).message ?? '') : failure(result);
+      this.toEditor({ type: 'drafted', key, error: said || tr(fr, 'No draft came back.', "Aucun brouillon n'est revenu.") });
+      return;
+    }
+    if (m.prompt === true) {
+      await vscode.env.clipboard.writeText(String(answer.prompt ?? ''));
+      this.toEditor({ type: 'drafted', key, copied: true });
+      void vscode.window.showInformationMessage(tr(fr, 'The prompt is copied: paste it in your AI chat.', 'Le prompt est copié : colle-le dans ton chat IA.'));
+      return;
+    }
+    this.toEditor({ type: 'drafted', key, draft: String(answer.draft ?? ''), tool: String(answer.tool ?? ''), title: String(answer.title ?? '') });
   }
 
   /** 1.1.0, the Build walk's second step: archvow check, its result for this component; then the workspace follows. */
@@ -1083,6 +1117,8 @@ export class ArchvowProject {
 
   private async execute(labelText: string, args: string[], target: Target, stdin: string | undefined, change: boolean,
     then?: () => void): Promise<void> {
+    // 1.2.0: try says what to do about each finding in the page's language
+    if (args[0] === 'try' && !args.includes('--language')) args = [...args, '--language', this.state.fr ? 'fr' : 'en'];
     const running = { type: 'running', target, label: labelText, args: ['archvow', ...args].join(' ') };
     this.toEditor(running);
     if (target === 'welcome') this.toNav(running);  // Try it on the sidebar's welcome page shows its result there too (0.26.1)
@@ -1369,6 +1405,13 @@ export class ArchvowProject {
     } catch (error) {
       void vscode.window.showInformationMessage((error as Error).message);
       return;
+    }
+    // 1.2.0: the answer started as an AI draft - the person saves it as theirs; archvow notes where it came from
+    const drafted = m.drafted !== null && typeof m.drafted === 'object' ? m.drafted as Json : null;
+    if (drafted !== null && typeof drafted.tool === 'string' && drafted.tool && ['decision make', 'question', 'hazard add', 'hazard change'].includes(action)) {
+      args.push('--drafted-with', drafted.tool, ...(drafted.unchanged === true ? ['--unchanged'] : []));
+      summary += '\n\n' + tr(fr, `From ${String(drafted.title || drafted.tool)}'s draft${drafted.unchanged === true ? ', unchanged' : ', edited'}: saved as your answer.`,
+        `Depuis le brouillon de ${String(drafted.title || drafted.tool)}${drafted.unchanged === true ? ', inchangé' : ', modifié'} : enregistré comme ta réponse.`);
     }
     this.confirm(args[0] + ' ' + args[1], args, target, summary, undefined, () => void this.reloadComponent(component));
   }

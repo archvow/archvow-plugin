@@ -1072,6 +1072,36 @@
           "help": "with --type: no longer answer it for the whole type (each component answers it again)",
           "hidden": false,
           "metavar": "unset"
+        },
+        {
+          "name": "drafted_with",
+          "flags": [
+            "--drafted-with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the answer started as a draft of this AI assistant of the project (archvow draft); you read it and save it as yours - archvow notes where it came from",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "unchanged",
+          "flags": [
+            "--unchanged"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "with --drafted-with: you kept the draft word for word",
+          "hidden": false,
+          "metavar": "unchanged"
         }
       ]
     },
@@ -1610,6 +1640,36 @@
           "metavar": "description"
         },
         {
+          "name": "drafted_with",
+          "flags": [
+            "--drafted-with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the answer started as a draft of this AI assistant of the project (archvow draft); you read it and save it as yours - archvow notes where it came from",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "unchanged",
+          "flags": [
+            "--unchanged"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "with --drafted-with: you kept the draft word for word",
+          "hidden": false,
+          "metavar": "unchanged"
+        },
+        {
           "name": "why",
           "flags": [
             "--why"
@@ -1741,6 +1801,36 @@
           "help": "critical | high | medium | low",
           "hidden": false,
           "metavar": "severity"
+        },
+        {
+          "name": "drafted_with",
+          "flags": [
+            "--drafted-with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the answer started as a draft of this AI assistant of the project (archvow draft); you read it and save it as yours - archvow notes where it came from",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "unchanged",
+          "flags": [
+            "--unchanged"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "with --drafted-with: you kept the draft word for word",
+          "hidden": false,
+          "metavar": "unchanged"
         }
       ]
     },
@@ -2950,6 +3040,89 @@
           "help": "the folder to copy it into, as <folder>/<example> (default: a new temporary folder; the path is printed)",
           "hidden": false,
           "metavar": "FOLDER"
+        },
+        {
+          "name": "language",
+          "flags": [
+            "--language"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "en",
+            "fr"
+          ],
+          "help": "the language of what to do about each finding (default: the example's, English); the IDEs pass theirs",
+          "hidden": false,
+          "metavar": "language"
+        }
+      ]
+    },
+    {
+      "path": [
+        "draft"
+      ],
+      "description": "Let one of the project's AI assistants draft an answer; you read it and save it.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or `archvow show` shows it",
+          "hidden": false,
+          "metavar": "component"
+        },
+        {
+          "name": "question",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question's number in archvow show: 2, P1, or a safety question S1",
+          "hidden": false,
+          "metavar": "question"
+        },
+        {
+          "name": "tool",
+          "flags": [
+            "--with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "which of the project's AI assistants (default: the first one installed on this machine)",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "prompt",
+          "flags": [
+            "--prompt"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "print what the AI assistant would read, and run nothing",
+          "hidden": false,
+          "metavar": "prompt"
         }
       ]
     },

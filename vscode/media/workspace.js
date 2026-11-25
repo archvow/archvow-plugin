@@ -7,6 +7,13 @@
 (function () {
   'use strict';
   const vscode = acquireVsCodeApi();
+  // The list / answer split (1.2.0): the list's width when side by side, its height when stacked; kept by the webview.
+  const splitSize = Object.assign({ left: '50%', top: '40vh' }, (vscode.getState && (vscode.getState() || {}).split) || {});
+  const keptTool = (vscode.getState && (vscode.getState() || {}).aiTool) || '';
+  function keepSplit() {
+    if (!vscode.setState) return;
+    try { vscode.setState(Object.assign({}, vscode.getState() || {}, { split: { left: splitSize.left, top: splitSize.top } })); } catch (e) { /* not kept */ }
+  }
   const NAV = window.ARCHVOW_ROLE !== 'editor';
   /** What archvow said, from the extension. */
   let S = null;
@@ -18,6 +25,9 @@
     agentOther: {},
     /** The open right-click menu (1.1.0): { kind, d, x, y }. */
     ctxMenu: null,
+    /** Draft with AI (1.2.0): the draft in a box, by its key - {tool, title, text, before}; the tool drafting it;
+     *  the open ▾ menu's key; the tool chosen last (kept by the webview). */
+    aiDraft: {}, aiDrafting: {}, aiMenuKey: '', aiTool: keptTool, aiError: {},
     /** The walk under way (1.1.0): Specify or Build, its scope, the components done, the one shown. */
     walk: null,
     /** 1.1.0: an answer field the person edited by hand - its table no longer writes over it. */
@@ -217,6 +227,16 @@
         if (NAV) return;
         startWalk(m);
         break;
+      case 'drafted': {  // 1.2.0: the AI's draft (or why there is none)
+        const key = m.key || '';
+        if (!ui.aiDrafting[key] && !m.copied) break;  // stopped meanwhile: the draft is not wanted
+        delete ui.aiDrafting[key];
+        if (m.error) { ui.aiError[key] = m.error; break; }
+        if (m.copied) break;
+        ui.aiDraft[key] = { tool: m.tool, title: m.title || m.tool, text: m.draft, before: (ui.aiDraft[key] || {}).before ?? ui.drafts[key] };
+        ui.drafts[key] = m.draft;
+        break;
+      }
       case 'walkCopied':
         if (ui.walk && ui.walk.current === m.component) ui.walk.copied = true;
         break;
@@ -573,8 +593,8 @@
     let folder = '';
     const found = /"folder":\s*("(?:[^"\\]|\\.)*")/.exec(r.raw || '');  // stderr may follow the JSON
     try { folder = found ? String(JSON.parse(found[1])) : ''; } catch { folder = ''; }
-    return `<div class="row wrap try-follow">${fresh ? btn(t('Set up archvow in this repository', 'Installer archvow dans ce dépôt'), 'init') : ''}
-      ${folder ? btn(t("Read the example's spec", "Lire la spec de l'exemple"), 'openTryCopy', attrs({ folder }), false, 'secondary') : ''}</div>`;
+    // 1.2.0: the example's spec is read from the folder's line at the top of the result
+    return fresh && folder ? `<div class="row wrap try-follow">${btn(t('Set up archvow in this repository', 'Installer archvow dans ce dépôt'), 'init')}</div>` : '';
   }
 
   /** Install archvow (0.12.0): when it cannot start, or does not speak the plugin's contract. Nothing runs
@@ -806,7 +826,7 @@
         ? btn(t('Specify', 'Spécifier'), 'walk', attrs({ kind: 'specify', scope: 'foundations', value: '' }))
         : btn(t('Specify', 'Spécifier'), 'walk', attrs({ kind: 'specify', scope: 'feature', value: (W().featureOf || {})[specify[1]] || '' }));
       const build = /^archvow prompt --feature (\S+)$/.exec(step.command);
-      if (build) return btn(t('Build', 'Construire'), 'walk', attrs({ kind: 'build', scope: 'feature', value: build[1] }));
+      if (build) return btn(t('Build ▸', 'Construire ▸'), 'walk', attrs({ kind: 'build', scope: 'feature', value: build[1] }));
       if (step.step === 'feature') return btn(t('Add feature', 'Ajouter une feature'), 'addFeature', '');
       if (step.step === 'component') return btn(t('Add component', 'Ajouter un composant'), 'addComponent', '');
       if (step.step === 'build') return btn(t('Check', 'Vérifier'), 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' }));
@@ -816,7 +836,8 @@
       const now = i === f.current;
       const mark = step.done ? '✓' : String(i + 1);
       return `<li class="first-step${now ? ' now' : ''}${step.done ? ' done' : ''}"><span class="step-mark" aria-hidden="true">${mark}</span>
-        <div class="step-text"><span class="step-title">${esc(step.title)}</span><span class="step-detail" title="${esc(step.command)}">${esc(step.detail)}</span></div>
+        <div class="step-text"><span class="step-title">${esc(step.title)}</span><span class="step-detail" title="${esc(step.command)}">${esc(step.detail)}</span>${now && step.progress && step.progress.total > 1 && step.progress.done > 0
+          ? `<span class="step-bars" aria-hidden="true">${Array.from({ length: step.progress.total }, (_, k) => `<i class="${k < step.progress.done ? 'done' : ''}"></i>`).join('')}</span>` : ''}</div>
         ${now ? button(step) : ''}</li>`;
     }).join('');
     return `<section class="card first-steps" aria-label="${esc(t('First steps', 'Premiers pas'))}"><div class="card-head"><h3>${esc(t('First steps', 'Premiers pas'))}</h3>
@@ -1406,7 +1427,10 @@
     const ready = def.target === 'brief' ? !!(v.brief || '').trim() : !!v.component;
     const text = skillRequest(id, v);
     const chat = v.tool === 'copilot';
-    const shortcut = skillCommand(id, v);
+    // 1.2.0: Run in Copilot chat when Copilot is one of the project's AI assistants; off when the project needs agents in a
+    // sandbox (Copilot's agent runs in the person's own terminal: archvow would refuse it, ARCH051)
+    const runInChat = (S.aiTools || []).includes('copilot');
+    const sandboxed = sandboxRequired();
     const steps = [
       chat ? t('You can copy the full instructions or open Copilot Chat with them already typed.', 'Tu peux copier les consignes complètes ou ouvrir Copilot Chat avec celles-ci préremplies.')
         : t('Copy the full instructions and paste them into an AI assistant with access to the project.', 'Copie les consignes complètes et colle-les dans un assistant IA ayant accès au projet.'),
@@ -1431,10 +1455,13 @@
     return `<div class="skill-form"><h2>${esc(pair(def.label))} <span class="mono small muted">skill: archvow-${esc(id)}</span></h2>
   <p>${esc(pair(def.does))}</p>${blocked ? `<div class="alert warn">${esc(pair(blocked))}</div>` : ''}
   <div class="split"><div class="split-list">${skillNav}<section class="guided-panel">${shownControls}</section>${skillPager}</div>${right}</div>
-  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'secondary')}
-  ${shortcut ? btn(t('Copy skill command', 'Copier la commande skill'), 'askAi', attrs({ send: '0', format: 'skill' }), !ready, 'secondary') : ''}
-  ${chat ? btn(t('Open in Copilot Chat', 'Ouvrir dans Copilot Chat'), 'askAi', attrs({ send: '1', format: 'instructions' }), !ready, 'secondary') : ''}
-  ${btn(t('Copy instructions', 'Copier les consignes'), 'askAi', attrs({ send: '0', format: 'instructions' }), !ready)}</div></div>`;
+  ${runInChat && sandboxed ? `<div class="alert warn sandbox-note">${esc(t("⚠ This project needs AI agents in a sandbox (ARCH051). Copilot's agent runs commands in your own terminal: archvow would refuse them. Copy the instructions to an agent you start in its sandbox.",
+    "⚠ Ce projet demande que les agents IA tournent dans un bac à sable (ARCH051). L'agent de Copilot lance les commandes dans ton propre terminal : archvow les refuserait. Copie les consignes vers un agent que tu démarres dans son bac à sable."))}</div>` : ''}
+  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'link')}
+  ${btn(t('Copy instructions', 'Copier les consignes'), 'askAi', attrs({ send: '0', format: 'instructions' }), !ready, runInChat ? 'secondary' : '')}
+  ${runInChat ? btn(t('▶ Run in Copilot chat', '▶ Lancer dans le chat Copilot'), 'askAi', attrs({ send: '1', format: 'instructions', tool: 'copilot' }) + ` title="${esc(t('Opens the chat in agent mode with the instructions already in the box. You press Send.', "Ouvre le chat en mode agent avec les consignes déjà dans la zone. Tu appuies sur Envoyer."))}"`, !ready || sandboxed) : ''}</div>
+  ${runInChat && !sandboxed ? `<p class="muted small end">${esc(t("Opens the chat in agent mode with the instructions already in the box. You press Send. What it adds appears in the component's tabs, marked AI · To review.",
+    "Ouvre le chat en mode agent avec les consignes déjà dans la zone. Tu appuies sur Envoyer. Ce qu'il ajoute apparaît dans les onglets du composant, marqué IA · À relire."))}</p>` : ''}</div>`;
   }
 
   /** A complete instruction for any agent, including one without an installed slash command. */
@@ -1504,7 +1531,12 @@
    *  a view with no item shows "Nothing to display." alone, without an answer panel. */
   function split(left, right) {
     if (!right) return `<div class="split single"><div class="split-list">${left}</div></div>`;
-    return `<div class="split"><div class="split-list">${left}</div><aside class="split-answer">${right}</aside></div>`;
+    // 1.2.0: a bar between the two, dragged (or ← → when focused); double-click: half and half again. Where it
+    // is left is kept in the page's state for the project, the same for every view.
+    const tip = t('Drag to resize · double-click: half and half', 'Glisser pour redimensionner · double-clic : moitié-moitié');
+    return `<div class="split" style="--split-left:${esc(splitSize.left)};--split-top:${esc(splitSize.top)}"><div class="split-list">${left}</div>`
+      + `<div class="split-bar" data-drag="split" role="separator" tabindex="0" aria-orientation="vertical" title="${esc(tip)}" aria-label="${esc(tip)}"><i></i></div>`
+      + `<aside class="split-answer">${right}</aside></div>`;
   }
 
   /** The items as cards: "n · question", then the recorded answer (green) with who and when, or "● Open". */
@@ -1517,11 +1549,14 @@
   <div class="card-q" title="${esc(c.title)}"><b>${esc(c.number)}</b>${c.origin ? ' ' + originTag(c.origin) : ''} · ${esc(c.title)}</div>
   ${c.open ? `<div class="card-open">● ${esc(c.state || t('Open', 'Ouvert'))}</div>${c.note ? `<div class="card-note">${esc(short(c.note, 160))}</div>` : ''}`
     : `<div class="card-a" title="${esc(c.answer || '')}">${esc(short(c.answer || c.state || t('Resolved', 'Traité'), 220))}</div>`}
-  ${c.by ? `<div class="card-by muted">${esc(c.by)}</div>` : ''}</li>`;
+  ${c.by ? `<div class="card-by muted">${esc(c.by)}${c.drafted ? ` · <span class="drafted-mark">${esc(c.drafted)}</span>` : ''}</div>` : ''}</li>`;
     }).join('') || `<li class="muted empty">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}${hidden ? `<li class="muted small hidden-note">${esc(t(`${hidden} hidden by the filter`, `${hidden} masqué${hidden === 1 ? '' : 's'} par le filtre`))}</li>` : ''}</ul>`;
   }
 
   /** "architect@example.com · 2026-10-08": who recorded an answer, and the day. */
+  /** 1.2.0: "AI draft, edited" on an answer saved from an AI draft (archvow 3.2 `drafted`), else ''. */
+  const draftedWord = (row) => row && row.drafted && typeof row.drafted === 'object'
+    ? (row.drafted.edited === false ? t('AI draft, unchanged', 'brouillon IA, inchangé') : t('AI draft, edited', 'brouillon IA, modifié')) : '';
   const byOn = (row) => [str(row, 'by'), str(row, 'on').substring(0, 10)].filter((x) => x).join(' · ');
 
   /** The answer panel's heading: "ANSWER DECISION 3", "DECISION 1 · ANSWERED". */
@@ -1850,9 +1885,83 @@
    * right. Undo changes can be pressed only once the text differs from the recorded one: it puts that
    * text back, and saves or removes nothing.
    */
+  /** The project asks AI agents to run in a sandbox (init answer sandbox; yes by default in mode strict). */
+  function sandboxRequired() {
+    const spec = S.spec || {};
+    const answer = (spec.init_answers || {}).sandbox;
+    return answer === undefined || answer === null ? String(spec.mode || 'strict') === 'strict' : String(answer) === 'yes';
+  }
+
+  // ---- Draft with AI (1.2.0): one of the project's AI assistants drafts the answer; the person reads it and saves it.
+  const SPARK = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 9.4 6.6 14.5 8 9.4 9.4 8 14.5 6.6 9.4 1.5 8 6.6 6.6Z" fill="currentColor"/><path d="M13 1.5 13.5 3 15 3.5 13.5 4 13 5.5 12.5 4 11 3.5 12.5 3Z" fill="currentColor"/></svg>';
+  const AGAIN = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M12 1.8v2.8H9.2"/></svg>';
+  function draftTools() {
+    const a = S.aiDrafts || {};
+    return Array.isArray(a.tools) ? a.tools.filter((x) => x && typeof x.name === 'string') : [];
+  }
+  /** The AI that drafts: the one chosen last, else the first of the project's AI assistants installed here. */
+  function draftTool() {
+    const tools = draftTools();
+    return tools.find((x) => x.name === ui.aiTool && x.installed) || tools.find((x) => x.installed) || null;
+  }
+  /** The question a box answers, as archvow draft names it: d:<c>:2 -> 2, q:<c>:P1 -> P1, s:<c>:3 -> S3. */
+  function draftRef(key) {
+    const m = /^([dqs]):(.+):([^:]+)$/.exec(key);
+    return m ? { component: m[2], ref: m[1] === 's' ? 'S' + m[3] : m[3] } : null;
+  }
+  /** What a save sends with the answer: {tool, title, unchanged} when it started as an AI draft. */
+  function draftedOf(key, text) {
+    const d = ui.aiDraft[key];
+    return d ? { tool: d.tool, title: d.title, unchanged: String(text).trim() === String(d.text).trim() } : null;
+  }
+  function askDraft(key, tool) {
+    const at = draftRef(key);
+    ui.aiMenuKey = '';
+    delete ui.aiError[key];
+    if (!at || !tool) return;
+    ui.aiDrafting[key] = tool;
+    post({ type: 'draft', key, component: at.component, ref: at.ref, tool });
+  }
+  function keepAiTool() {
+    try { vscode.setState(Object.assign({}, vscode.getState() || {}, { aiTool: ui.aiTool })); } catch (e) { /* not kept */ }
+  }
+
+  /** The icon in the box's corner: ✦ drafts with the AI the hover names, ▾ another AI (or the prompt alone). */
+  function draftCorner(key, disabled) {
+    const at = draftRef(key);
+    if (!at || !S.aiDrafts) return '';
+    const on = S.aiDrafts.on !== false;
+    const tool = draftTool();
+    if (ui.aiDrafting[key]) {
+      return `<div class="draft-ai"><span class="draft-spin" title="${esc(t('Writing a draft…', 'Écriture du brouillon…'))}">${SPARK}</span>`
+        + `<button class="draft-icon" data-a="draftStop" data-key="${esc(key)}" title="${esc(t('Stop waiting for the draft', "Ne plus attendre le brouillon"))}">■</button></div>`;
+    }
+    if (ui.aiDraft[key]) {
+      return `<div class="draft-ai"><button class="draft-icon" data-a="draftAgain" data-key="${esc(key)}" title="${esc(t('Another draft', 'Un autre brouillon'))}">${AGAIN}</button>`
+        + `<button class="draft-icon" data-a="draftDrop" data-key="${esc(key)}" title="${esc(t('Drop the draft: the box as it was', 'Abandonner le brouillon : la case comme avant'))}">×</button></div>`;
+    }
+    const tip = !on ? t('AI drafts are off for this project - an architect turns them on (ai_drafts in project.vow).',
+      "Les brouillons IA sont désactivés pour ce projet - un architecte les active (ai_drafts dans project.vow).")
+      : tool ? t(`Draft an answer with ${tool.title} - you read it and save it. ▾ another AI`, `Rédiger un brouillon avec ${tool.title} - tu le relis et l'enregistres. ▾ une autre IA`)
+        : t(`None of this project's AI assistants is on this machine (${draftTools().map((x) => x.program).join(', ') || '-'}). ▾ Copy the prompt instead.`,
+          `Aucun assistant IA de ce projet n'est sur cette machine (${draftTools().map((x) => x.program).join(', ') || '-'}). ▾ Copier le prompt à la place.`);
+    const menu = ui.aiMenuKey === key ? `<div class="draft-menu" role="menu"><div class="draft-menu-head">${esc(t("This project's AI assistants", 'Les assistants IA de ce projet'))}</div>`
+      + draftTools().map((x) => `<button role="menuitem" class="${tool && x.name === tool.name ? 'current' : ''}" data-a="draftWith" data-key="${esc(key)}" data-tool="${esc(x.name)}" ${x.installed ? '' : 'disabled'}>`
+        + `<span class="check">${tool && x.name === tool.name ? '✓' : ''}</span>${esc(x.title)}<span class="src">${esc(x.installed ? x.program : t('not installed', 'non installé'))}</span></button>`).join('')
+      + `<hr><button role="menuitem" data-a="draftPrompt" data-key="${esc(key)}"><span class="check"></span>${esc(t('Copy the prompt instead', 'Copier le prompt à la place'))}</button></div>` : '';
+    const off = !on || disabled;
+    return `<div class="draft-ai"><span class="draft-split${off ? ' off' : ''}" data-tip="${esc(tip)}">`
+      + `<button class="draft-icon" data-a="draftRun" data-key="${esc(key)}" aria-label="${esc(tip)}" ${off || !tool ? 'disabled' : ''}>${SPARK}</button>`
+      + `<button class="draft-caret" data-a="draftMenu" data-key="${esc(key)}" aria-label="${esc(t('Choose the AI', "Choisir l'IA"))}" ${off ? 'disabled' : ''}>▾</button></span>${menu}</div>`;
+  }
+
   function answerEditor(key, initial, placeholder, secondary, save, target, disabled = false) {
     const edited = key in ui.drafts && ui.drafts[key] !== initial;
-    return `<textarea class="answer-field" rows="5" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" data-initial="${esc(initial)}" placeholder="${esc(placeholder)}" ${disabled ? 'disabled' : ''}>${esc(draft(key, initial))}</textarea>
+    const ai = ui.aiDraft[key];
+    const tag = ai ? ` <span class="ai-draft-tag">${esc(t('AI draft · ', 'Brouillon IA · ') + ai.title)}</span>` : '';
+    const problem = ui.aiError[key] ? `<p class="tone-bad small">${esc(ui.aiError[key])}</p>` : '';
+    const note = ai ? `<p class="ai-draft-note small">${esc(t('Read it and change what is wrong: when you save, it is your answer.', "Relis-le et corrige ce qui ne va pas : quand tu enregistres, c'est ta réponse."))}</p>` : '';
+    return `${tag ? `<div class="ai-draft-line">${tag}</div>` : ''}<div class="answer-box${ai ? ' has-draft' : ''}${ui.aiDrafting[key] ? ' drafting' : ''}"><textarea class="answer-field" rows="5" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" data-initial="${esc(initial)}" placeholder="${esc(placeholder)}" ${disabled ? 'disabled' : ''}>${esc(draft(key, initial))}</textarea>${draftCorner(key, disabled)}</div>${problem}${note}
   <div class="answer-actions"><span class="row wrap">${secondary}</span>
   <span class="row">${btn(t('Undo', 'Annuler'), 'cancelDraft', attrs({ key, target }) + ` title="${esc(undoTip(edited))}"`, disabled || !edited, 'link undo')}${save}</span></div>`;
   }
@@ -2013,7 +2122,7 @@
     const ai = aiOf();
     const originOf = (i) => (ai && ai.decisions[i]) || null;
     const left = cards('decision', rows, label, (r, i) => ({ number: str(r, 'number'), title: str(r, 'question'), open: isOpen(r), answer: str(r, 'answer'),
-      by: isOpen(r) ? '' : byOn(r), note: str(r, 'proposed') ? t('AI proposal: ', 'Proposition IA : ') + str(r, 'proposed') : '', origin: originOf(i) }));
+      by: isOpen(r) ? '' : byOn(r), drafted: draftedWord(r), note: str(r, 'proposed') ? t('AI proposal: ', 'Proposition IA : ') + str(r, 'proposed') : '', origin: originOf(i) }));
     let right = `<p class="muted">${esc(t('Select a decision.', 'Sélectionne une décision.'))}</p>`;
     if (row) {
       const number = str(row, 'number');
@@ -2056,7 +2165,7 @@
     const isOpen = (r) => !str(r, 'answer');
     const row = current('question', rows, label, isOpen);
     const left = cards('question', rows, label, (r) => ({ number: label(r), title: str(r, 'question'), open: isOpen(r), answer: str(r, 'answer'),
-      by: isOpen(r) ? '' : byOn(r) }));
+      by: isOpen(r) ? '' : byOn(r), drafted: draftedWord(r) }));
     let right = `<p class="muted">${esc(t('Select a question.', 'Sélectionne une question.'))}</p>`;
     if (row) {
       const answer = str(row, 'answer');
@@ -2134,7 +2243,7 @@
         const ho = hazardOrigin(h);
         const keep = ho && ho.toReview ? btn(t('Keep', 'Garder'), 'openCommand', attrs({ command: 'hazard accept', id: str(h, 'id') })
           + ` title="${esc(t('Keep this hazard and the invariants the AI added to prevent it (archvow hazard accept)', "Garder ce hazard et les invariants que l'IA a ajoutés pour l'empêcher (archvow hazard accept)"))}"`, false, 'small') : '';
-        block += `<div class="recorded ${ho && ho.toReview ? 'ai-wait' : ''}"><div class="row hazard-head"><p class="grow"><b>Hazard ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b>${ho && ho.tag ? ' ' + originTag(ho) : ''}<br>${esc(str(h, 'description'))}</p>`
+        block += `<div class="recorded ${ho && ho.toReview ? 'ai-wait' : ''}"><div class="row hazard-head"><p class="grow"><b>Hazard ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b>${ho && ho.tag ? ' ' + originTag(ho) : ''}${draftedWord(h) ? ` <span class="drafted-mark small">${esc(draftedWord(h))}</span>` : ''}<br>${esc(str(h, 'description'))}</p>`
           + `<span class="row">${keep}${btn(t('Change', 'Modifier'), 'hazardChange', attrs({ id: str(h, 'id'), text: str(h, 'description'), severity: str(h, 'severity') }) + ` title="${esc(changeTip)}"`, false, 'secondary small')}`
           + `${btn(t('Remove', 'Supprimer'), 'hazardRemove', attrs({ id: str(h, 'id') }) + ` title="${esc(t('Remove this hazard (asks first)', 'Supprimer ce hazard (demande avant)'))}"`, false, 'secondary small')}</span></div>`;
         if (ho && ho.why) block += `<p class="muted small">${esc(t('Why: ', 'Pourquoi : ') + ho.why)}</p>`;
@@ -2597,7 +2706,7 @@
         if (matching.length) stages.push({ title: t(en, fr), names: [], questions: matching });
       };
       qStage('Governance', 'Gouvernance', ['language', 'architects', 'mode', 'sandbox', 'rules', 'auto_approve']);
-      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'reviewers', 'briefs', 'ticket_pattern']);
+      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'ai_drafts', 'reviewers', 'briefs', 'ticket_pattern']);
       qStage('CI & quality', 'CI et qualité', ['platform', 'ci', 'sonar', 'git_hooks', 'branch_naming', 'line_length']);
       qStage('Runtime', 'Exécution', ['python_version', 'spark_version', 'fastapi_version', 'scheduler', 'dependencies']);
       qStage('Limits & integration', 'Limites et intégration', ['max_components', 'max_code_lines', 'pip_index_url', 'ci_image']);
@@ -3322,38 +3431,44 @@
   function walkStrip() {
     const w = ui.walk;
     if (!w || w.current !== ui.component) return '';
-    const strip = (tone, progress, title, detail, buttons) => `<div class="walk-strip tone-${tone}" role="status">${progress ? `<div class="walk-progress">${esc(progress)}</div>` : ''}
+    // 1.2.0: no Stop button - a small × in the corner (and Esc) leaves the walk; the steps drawn as short bars
+    const leaveTip = w.kind === 'build' ? t('Leave the walk (Esc) · nothing is lost: Build starts it again', 'Quitter (Échap) · rien n\'est perdu : Construire le reprend')
+      : t('Leave the walk (Esc) · nothing is lost: Specify starts it again', 'Quitter (Échap) · rien n\'est perdu : Spécifier le reprend');
+    const bars = (done, total) => `<span class="walk-steps" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${i < done ? 'done' : i === done ? 'now' : ''}"></i>`).join('')}</span>`;
+    const strip = (tone, progress, title, detail, buttons, done = -1) => {
+      const cut = progress.lastIndexOf(' · ');
+      const line = progress ? (done >= 0 && cut > 0 ? `${esc(progress.slice(0, cut))} ${bars(done, w.total)} ${esc(progress.slice(cut + 3))}` : esc(progress)) : '';
+      return `<div class="walk-strip tone-${tone}" role="status"><button class="walk-leave" data-a="walkStop" title="${esc(leaveTip)}" aria-label="${esc(leaveTip)}">×</button>${line ? `<div class="walk-progress">${line}</div>` : ''}
   <div class="walk-line"><div class="walk-words"><b>${esc(title)}</b>${detail ? `<span>${esc(detail)}</span>` : ''}</div><div class="row wrap">${buttons.join('')}</div></div></div>`;
-    const stop = btn(t('Stop', 'Arrêter'), 'walkStop', '', false, 'secondary');
-    const close = btn(t('Close', 'Fermer'), 'walkStop', '', false, 'secondary');
+    };
     const of = (k) => ` · ${k} ${t('of', 'sur')} ${w.total}`;
     if (w.kind === 'specify') {
       const progress = t('Specifying ', 'Spécifier ') + w.label;
       if (w.view === 'specified' && w.next) return strip('done', progress + of(w.done.length), `✓ ${w.current} ${t('specified', 'spécifié')}`,
         `${t('Next: ', 'Suivant : ')}${w.next.component} · ${decisionsWord(w.next.open)}`,
-        [btn(t('Specify next ▸', 'Spécifier le suivant ▸'), 'walkSpecifyNext', attrs({ id: w.next.component })), stop]);
+        [btn(t('Specify next ▸', 'Spécifier le suivant ▸'), 'walkSpecifyNext', attrs({ id: w.next.component }))], w.done.length);
       if (w.view === 'specify-end') {
         if (w.scope === 'foundations') return strip('done', '', t('✓ The foundations are specified', '✓ Les fondations sont spécifiées'), w.done.join(', '),
-          [btn(t('Back to First steps', 'Retour aux premières étapes'), 'walkOverview', '', false, 'secondary'), close]);
+          [btn(t('Back to First steps', 'Retour aux premiers pas'), 'walkOverview', '', false, 'secondary')]);
         const feature = w.scope === 'feature' ? w.value : (W().featureOf || {})[w.value] || w.value;
         const planned = (W().planned || {})[feature] || [];
         return strip('info', '', `✓ ${feature}${t(': every decision is made', ' : chaque décision est prise')}`,
           planned.length ? t('Ready to build: ', 'Prêts à construire : ') + planned.join(', ') : '',
-          [btn(t('Build ▸', 'Construire ▸'), 'walkBuild', attrs({ id: feature })), close]);
+          [btn(t('Build ▸', 'Construire ▸'), 'walkBuild', attrs({ id: feature }))]);
       }
       return strip('info', progress + of(w.done.length + 1), w.current,
-        t('What is still open is selected below; Save moves on to the next one.', 'Ce qui reste ouvert est sélectionné ci-dessous ; Enregistrer passe au suivant.'), [stop]);
+        t('What is still open is selected below; Save moves on to the next one.', 'Ce qui reste ouvert est sélectionné ci-dessous ; Enregistrer passe au suivant.'), [], w.done.length);
     }
     if (w.view === 'budget') return strip('warn', '', t('Change budget reached', 'Budget de changement atteint'),
-      t('Commit and open the merge request; the rest goes in the next one.', 'Committe et ouvre la merge request ; le reste va dans la suivante.'), [close]);
+      t('Commit and open the merge request; the rest goes in the next one.', 'Committe et ouvre la merge request ; le reste va dans la suivante.'), []);
     if (w.view === 'built') return strip('done', '', `✓ ${w.label} ${t('is built', 'est construite')}`,
-      t('Commit: the hooks run the same checks as CI; then open a merge request.', 'Committe : les hooks lancent les mêmes contrôles que la CI ; puis ouvre une merge request.'), [close]);
+      t('Commit: the hooks run the same checks as CI; then open a merge request.', 'Committe : les hooks lancent les mêmes contrôles que la CI ; puis ouvre une merge request.'), []);
     const tone = w.checkOk ? 'done' : (w.checkLine || '').startsWith('✖') ? 'bad' : 'info';
     const steps = `${t('1 · The code', '1 · Le code')}${w.copied ? t(' ✓ copied', ' ✓ copié') : ''}   2 · ${t('Check', 'Vérifier')}${w.checkLine ? ' ' + w.checkLine : ''}   3 · ${t('Next', 'Suivant')}`;
     return strip(tone, t('Building ', 'Construire ') + w.label + of(w.done.length + 1), w.current, steps, [
       btn(t('Copy AI prompt', 'Copier le prompt IA'), 'walkCopy', '', false, w.copied ? 'secondary' : ''),
       btn(t('Check', 'Vérifier'), 'walkCheck', '', false, w.copied && !w.checkOk ? '' : 'secondary'),
-      btn(t('Build next ▸', 'Construire le suivant ▸'), 'walkBuildNext', '', !w.checkOk, w.checkOk ? '' : 'secondary'), stop]);
+      btn(t('Build next ▸', 'Construire le suivant ▸'), 'walkBuildNext', '', !w.checkOk, w.checkOk ? '' : 'secondary')], w.done.length);
   }
 
   function viewForItem(item) {
@@ -3593,6 +3708,22 @@
     walk: (e) => post({ type: 'walk', kind: e.dataset.kind, scope: e.dataset.scope || '', value: e.dataset.value || '' }),
     walkSpecifyNext: (e) => continueSpecify(e.dataset.id),
     walkStop: () => { ui.walk = null; },
+    draftRun: (e) => askDraft(e.dataset.key, (draftTool() || {}).name),
+    draftAgain: (e) => askDraft(e.dataset.key, (ui.aiDraft[e.dataset.key] || draftTool() || {}).tool || (draftTool() || {}).name),
+    draftWith: (e) => { ui.aiTool = e.dataset.tool; keepAiTool(); askDraft(e.dataset.key, e.dataset.tool); },
+    draftMenu: (e) => { ui.aiMenuKey = ui.aiMenuKey === e.dataset.key ? '' : e.dataset.key; },
+    draftPrompt: (e) => {
+      ui.aiMenuKey = '';
+      const at = draftRef(e.dataset.key);
+      if (at) post({ type: 'draft', key: e.dataset.key, component: at.component, ref: at.ref, prompt: true });
+    },
+    draftStop: (e) => { delete ui.aiDrafting[e.dataset.key]; },
+    draftDrop: (e) => {
+      const d = ui.aiDraft[e.dataset.key];
+      if (!d) return;
+      if (d.before === undefined) delete ui.drafts[e.dataset.key]; else ui.drafts[e.dataset.key] = d.before;
+      delete ui.aiDraft[e.dataset.key];
+    },
     walkBuild: (e) => startWalk({ kind: 'build', scope: 'feature', value: e.dataset.id }),
     walkCopy: () => { if (ui.walk) post({ type: 'walkCopy', component: ui.walk.current }); },
     walkCheck: () => { if (ui.walk) { ui.walk.checkLine = t('… checking', '… contrôle en cours'); post({ type: 'walkCheck', component: ui.walk.current }); } },
@@ -3667,6 +3798,8 @@
       post({ type: 'run', label: 'try', args: ['try', ui.tryExample, '--json'], target: 'welcome' });
     },
     openTryCopy: (e) => post({ type: 'openTryCopy', folder: e.dataset.folder }),
+    trySpec: (e) => post({ type: 'openTryCopy', folder: e.dataset.path }),
+    tryOpen: (e) => post({ type: 'tryOpen', folder: e.dataset.path }),
     openTry: () => post({ type: 'run', label: 'try', args: ['try', 'pyspark-pipeline', '--json'], target: 'overview' }),
     openCommand: (e) => {
       const values = {};
@@ -3698,7 +3831,7 @@
     skillStage: (e) => { ui.skillStep = Math.max(0, Math.min(2, Number(e.dataset.index) || 0)); },
     skillNext: () => { ui.skillStep = Math.min(2, ui.skillStep + 1); },
     skillPrevious: () => { ui.skillStep = Math.max(0, ui.skillStep - 1); },
-    askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1', format: e.dataset.format || 'instructions' }),
+    askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: e.dataset.tool || ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1', format: e.dataset.format || 'instructions' }),
     originFilter: (e) => { ui.originFilter = e.dataset.id; },
     toReview: () => {
       // what the AI added and no person kept yet: the first view that has some, filtered to them
@@ -3725,7 +3858,9 @@
         return;
       }
       if (action !== 'decision propose') ui.advance = 'decision';
-      post({ type: 'inline', action, component: ui.component, number: str(row, 'number'), answer, question: str(row, 'question'), proposed: str(row, 'proposed') });
+      post({ type: 'inline', action, component: ui.component, number: str(row, 'number'), answer, question: str(row, 'question'), proposed: str(row, 'proposed'),
+        drafted: action === 'decision make' ? draftedOf(key, answer) : null });
+      delete ui.aiDraft[key];
     },
     cancelDraft: (e) => {
       delete ui.drafts[e.dataset.key];
@@ -3756,7 +3891,9 @@
       const label = str(row, 'key') || str(row, 'number');
       const answer = draft(`q:${ui.component}:${label}`, str(row, 'answer') || str(row, 'suggested'));
       ui.advance = 'question';
-      post({ type: 'inline', action: 'question', component: ui.component, key: label, answer, question: str(row, 'question') });
+      post({ type: 'inline', action: 'question', component: ui.component, key: label, answer, question: str(row, 'question'),
+        drafted: draftedOf(`q:${ui.component}:${label}`, answer) });
+      delete ui.aiDraft[`q:${ui.component}:${label}`];
     },
     safety: (e) => {
       const row = selectedRow('safety');
@@ -3768,7 +3905,9 @@
       post({ type: 'inline', action: e.dataset.action, component: ui.component, number: str(row, 'number'),
         word: str(row, 'guide_word') || 'S' + str(row, 'number'), text: draft(key, str(suggestion, 'hazard')), severity: ui.severity[key] || 'high',
         question: str(row, 'question'), preview: e.dataset.covered ? e.dataset.preview : d && d.safety[i] ? d.safety[i].preview : '', hazard: ui.changing[key] || '',
+        drafted: ['hazard add', 'hazard change'].includes(e.dataset.action) ? draftedOf(key, draft(key, str(suggestion, 'hazard'))) : null,
         ...(e.dataset.covered ? { covered: true, text: '' } : {}) });
+      if (['hazard add', 'hazard change'].includes(e.dataset.action)) delete ui.aiDraft[key];
     },
     useChoice: (e) => { ui.drafts[e.dataset.key] = e.dataset.value; },
     hazardChange: (e) => {
@@ -3881,6 +4020,11 @@
       ui.projectMore = false;
       if (!target) { render(); return; }
     }
+    // the ▾ menu of Draft with AI closes on any click but its own
+    if (ui.aiMenuKey && !(target && ['draftMenu', 'draftWith', 'draftPrompt'].includes(target.dataset.a))) {
+      ui.aiMenuKey = '';
+      if (!target) { render(); return; }
+    }
     // a click anywhere but on a menu's own button closes the open menus (AI, Add)
     const menus = ['aiMenu', 'addMenu'];
     if ((ui.aiMenu || ui.addMenu) && !(target && menus.includes(target.dataset.a))) {
@@ -3900,9 +4044,53 @@
     render();
   });
 
+  // The split's bar: a pointer drag sets the list's width (side by side) or height (stacked), live.
+  document.body.addEventListener('pointerdown', (event) => {
+    const bar = event.target.closest && event.target.closest('[data-drag="split"]');
+    if (!bar) return;
+    const box = bar.parentElement;
+    const stacked = getComputedStyle(bar).cursor === 'row-resize';
+    event.preventDefault();
+    bar.setPointerCapture(event.pointerId);
+    const move = (e) => {
+      const r = box.getBoundingClientRect();
+      if (stacked) splitSize.top = Math.round(Math.min(Math.max(e.clientY - r.top, 80), r.height - 160)) + 'px';
+      else splitSize.left = Math.round(Math.min(Math.max(e.clientX - r.left, 240), r.width - 330)) + 'px';
+      box.style.setProperty('--split-left', splitSize.left);
+      box.style.setProperty('--split-top', splitSize.top);
+    };
+    const up = () => { bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', up); keepSplit(); };
+    bar.addEventListener('pointermove', move);
+    bar.addEventListener('pointerup', up);
+  });
+  document.body.addEventListener('dblclick', (event) => {
+    if (!(event.target.closest && event.target.closest('[data-drag="split"]'))) return;
+    splitSize.left = '50%'; splitSize.top = '40vh';
+    keepSplit();
+    render();
+  });
+
   document.body.addEventListener('keydown', (event) => {
     const e = event.target;
+    if (e && e.dataset && e.dataset.drag === 'split' && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+      const r = e.parentElement.getBoundingClientRect();
+      const now = parseFloat(getComputedStyle(e.parentElement.firstElementChild).width) || r.width / 2;
+      const step = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -24 : 24;
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') splitSize.top = Math.max(80, (parseFloat(getComputedStyle(e.parentElement.firstElementChild).height) || 200) + step) + 'px';
+      else splitSize.left = Math.min(Math.max(now + step, 240), r.width - 330) + 'px';
+      e.parentElement.style.setProperty('--split-left', splitSize.left);
+      e.parentElement.style.setProperty('--split-top', splitSize.top);
+      keepSplit();
+      event.preventDefault();
+      return;
+    }
     if (ui.ctxMenu && event.key === 'Escape') { ui.ctxMenu = null; render(); return; }
+    // 1.2.0: Esc leaves the walk (the × of its strip), unless a field or a menu has it
+    if (event.key === 'Escape' && ui.walk && !(e && /^(TEXTAREA|INPUT|SELECT)$/.test(e.tagName)) && actions.walkStop) {
+      actions.walkStop(e);
+      render();
+      return;
+    }
     if (e && e.dataset && e.dataset.input === 'agentOther' && event.key === 'Enter') {
       event.preventDefault();
       actions.agentOther(e);

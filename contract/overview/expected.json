@@ -8,35 +8,43 @@
      "title": "Answer the foundations",
      "detail": "Their decisions are made",
      "command": "archvow specify",
-     "done": true
+     "done": true,
+     "progress": null
     },
     {
      "step": "feature",
      "title": "Add a feature",
      "detail": "What the product does",
      "command": "archvow feature add <name> -d \"what the product does\"",
-     "done": true
+     "done": true,
+     "progress": null
     },
     {
      "step": "component",
      "title": "Add the feature's components and answer their decisions",
      "detail": "Their decisions are made",
      "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders",
-     "done": true
+     "done": true,
+     "progress": null
     },
     {
      "step": "build",
      "title": "Build them, then Check",
      "detail": "Their code and tests, checked against the spec",
      "command": "archvow check",
-     "done": true
+     "done": true,
+     "progress": {
+      "done": 7,
+      "total": 7
+     }
     },
     {
      "step": "commit",
      "title": "Commit",
      "detail": "The hooks run the same checks as CI; then open a merge request",
      "command": "git add -A && git commit",
-     "done": false
+     "done": false,
+     "progress": null
     }
    ],
    "done": 4,
@@ -54,35 +62,43 @@
      "title": "Answer the foundations",
      "detail": "Their decisions are made",
      "command": "archvow specify",
-     "done": true
+     "done": true,
+     "progress": null
     },
     {
      "step": "feature",
      "title": "Add a feature",
      "detail": "What the product does",
      "command": "archvow feature add <name> -d \"what the product does\"",
-     "done": true
+     "done": true,
+     "progress": null
     },
     {
      "step": "component",
      "title": "Add the feature's components and answer their decisions",
      "detail": "order_totals: 9 open",
      "command": "archvow specify order_totals",
-     "done": false
+     "done": false,
+     "progress": null
     },
     {
      "step": "build",
      "title": "Build them, then Check",
      "detail": "The AI (or you) writes each one from its task",
      "command": "archvow prompt --feature vat_report",
-     "done": false
+     "done": false,
+     "progress": {
+      "done": 0,
+      "total": 8
+     }
     },
     {
      "step": "commit",
      "title": "Commit",
      "detail": "The hooks run the same checks as CI; then open a merge request",
      "command": "git add -A && git commit",
-     "done": false
+     "done": false,
+     "progress": null
     }
    ],
    "done": 2,
@@ -113,35 +129,43 @@
      "title": "Answer the foundations",
      "detail": "Their decisions are made",
      "command": "archvow specify",
-     "done": true
+     "done": true,
+     "progress": null
     },
     {
      "step": "feature",
      "title": "Add a feature",
      "detail": "What the product does",
      "command": "archvow feature add <name> -d \"what the product does\"",
-     "done": true
+     "done": true,
+     "progress": null
     },
     {
      "step": "component",
      "title": "Add the feature's components and answer their decisions",
      "detail": "Their decisions are made",
      "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices",
-     "done": true
+     "done": true,
+     "progress": null
     },
     {
      "step": "build",
      "title": "Build them, then Check",
      "detail": "Their code and tests, checked against the spec",
      "command": "archvow check",
-     "done": true
+     "done": true,
+     "progress": {
+      "done": 5,
+      "total": 5
+     }
     },
     {
      "step": "commit",
      "title": "Commit",
      "detail": "The hooks run the same checks as CI; then open a merge request",
      "command": "git add -A && git commit",
-     "done": false
+     "done": false,
+     "progress": null
     }
    ],
    "done": 4,

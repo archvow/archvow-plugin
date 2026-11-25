@@ -44,8 +44,8 @@ for (const [label, code, stdout, stderr, expected] of cases) {
   assert.match(html, /^<div class="archvow-result">/);
   assert.match(html, /class="result-footnote"/);
   assert.match(html, /class="result-heading /, `Result heading: ${label}`);
-  assert.match(html, /class="result-heading-eyebrow">ARCHVOW · RESULT</,
-    `Clearly identifiable visual result header: ${label}`);
+  // 1.2.0: no "ARCHVOW · RESULT" over the title - the tab already says Result
+  assert.doesNotMatch(html, /ARCHVOW · RESULT/, `one header, not two: ${label}`);
   for (const fragment of expected) assert.ok(html.includes(fragment), `${label}: missing ${fragment}`);
   if ((/next|full check|audit|doctor|catalog|show|status/.test(label)) && (stdout.startsWith('{') || stdout.startsWith('['))) {
     assert.ok(html.includes('class="card result-entry'), `${label}: expected shared card`);

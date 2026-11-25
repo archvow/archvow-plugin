@@ -3,7 +3,7 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "default": false,
       "chain": [
         "python-base",
@@ -188,6 +188,23 @@
           "default_from": {
             "mode": {
               "strict": "yes"
+            }
+          },
+          "choices": [
+            "yes",
+            "no"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "ai_drafts",
+          "ask": true,
+          "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+          "default": "yes",
+          "default_from": {
+            "mode": {
+              "strict": "no"
             }
           },
           "choices": [
@@ -542,7 +559,7 @@
     },
     {
       "name": "langgraph-agent",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "default": false,
       "chain": [
         "python-base",
@@ -727,6 +744,23 @@
           "default_from": {
             "mode": {
               "strict": "yes"
+            }
+          },
+          "choices": [
+            "yes",
+            "no"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "ai_drafts",
+          "ask": true,
+          "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+          "default": "yes",
+          "default_from": {
+            "mode": {
+              "strict": "no"
             }
           },
           "choices": [
@@ -1191,7 +1225,7 @@
     },
     {
       "name": "pyspark-pipeline",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "default": false,
       "chain": [
         "python-base",
@@ -1376,6 +1410,23 @@
           "default_from": {
             "mode": {
               "strict": "yes"
+            }
+          },
+          "choices": [
+            "yes",
+            "no"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "ai_drafts",
+          "ask": true,
+          "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+          "default": "yes",
+          "default_from": {
+            "mode": {
+              "strict": "no"
             }
           },
           "choices": [
@@ -1751,7 +1802,7 @@
     },
     {
       "name": "python-app",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "default": true,
       "chain": [
         "python-base",
@@ -1936,6 +1987,23 @@
           "default_from": {
             "mode": {
               "strict": "yes"
+            }
+          },
+          "choices": [
+            "yes",
+            "no"
+          ],
+          "required": false,
+          "multiple": false
+        },
+        {
+          "id": "ai_drafts",
+          "ask": true,
+          "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+          "default": "yes",
+          "default_from": {
+            "mode": {
+              "strict": "no"
             }
           },
           "choices": [
@@ -2266,6 +2334,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2289,6 +2358,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2315,6 +2385,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2353,6 +2424,7 @@
         "fix": "start Claude Code with its sandbox on (/sandbox; on Windows inside WSL2) and without --dangerously-skip-permissions or --permission-mode bypassPermissions"
       },
       "review": true,
+      "draft": true,
       "seen": true,
       "unseen": ""
     },
@@ -2376,6 +2448,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2407,6 +2480,7 @@
         "fix": "start Codex with --sandbox workspace-write (its default) and without --yolo or --dangerously-bypass-approvals-and-sandbox"
       },
       "review": true,
+      "draft": true,
       "seen": true,
       "unseen": ""
     },
@@ -2432,6 +2506,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2471,6 +2546,7 @@
         "fix": "run Copilot inside a container (the CLI has no sandbox of its own; in VS Code, a dev container) and start it without --yolo, --allow-all or --allow-all-tools"
       },
       "review": true,
+      "draft": true,
       "seen": true,
       "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
     },
@@ -2507,6 +2583,7 @@
         "fix": "in Cursor, choose a run mode with the sandbox on (not Run Everything); start cursor-agent without --force or --yolo"
       },
       "review": false,
+      "draft": false,
       "seen": true,
       "unseen": ""
     },
@@ -2531,6 +2608,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": true,
       "seen": false,
       "unseen": ""
     },
@@ -2556,6 +2634,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2584,6 +2663,7 @@
         "fix": "start Junie CLI in its sandbox, with brave mode off"
       },
       "review": false,
+      "draft": false,
       "seen": true,
       "unseen": "in the IDE plugin (it sets no variable archvow knows)"
     },
@@ -2607,6 +2687,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2631,6 +2712,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2654,6 +2736,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     },
@@ -2678,6 +2761,7 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
       "seen": false,
       "unseen": ""
     }

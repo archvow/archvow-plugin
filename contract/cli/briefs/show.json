@@ -383,6 +383,7 @@
     "sonar": "no",
     "auto_approve": "yes",
     "sandbox": "yes",
+    "ai_drafts": "no",
     "briefs": "briefs,specs",
     "max_components": "",
     "max_code_lines": "",
@@ -393,14 +394,14 @@
   },
   "templates": {
     "python-app": {
-      "version": "3.1.0",
+      "version": "3.2.0",
       "source": "archvow",
-      "digest": "ac0da1a100d7"
+      "digest": "6daede6f66d3"
     },
     "python-base": {
-      "version": "3.1.0",
+      "version": "3.2.0",
       "source": "archvow",
-      "digest": "a5e5ba7f7f35"
+      "digest": "d01e67ae61f2"
     }
   },
   "features": [

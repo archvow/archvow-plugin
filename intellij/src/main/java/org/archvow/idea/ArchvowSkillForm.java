@@ -29,7 +29,9 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
     final JTextArea request = new JTextArea(3, 30);
     private final JPanel skillReview = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 12, 12));
     final JButton copy;
-    final JButton copySkill;
+    /** 1.2.0: copies the instructions, then opens the IDE's AI chat (JetBrains lets no plugin send to it). */
+    final JButton openChat;
+    private Runnable onOpenChat = () -> { };
     final JButton cancel;
     private final JsonObject skills;
     private final String skill;
@@ -222,24 +224,28 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
 
         cancel = new JButton(french ? "Annuler" : "Cancel");
         cancel.addActionListener(e -> onCancel.run());
-        copy = ArchvowSplitView.primary(french ? "Copier les consignes" : "Copy instructions");
+        copy = new JButton(french ? "Copier les consignes" : "Copy instructions");
         copy.addActionListener(e -> onSend.send(request.getText(), Map.copyOf(values)));
-        copySkill = new JButton(french ? "Copier la commande skill" : "Copy skill command");
-        copySkill.setToolTipText(french ? "Seulement si l'assistant possède le skill Archvow installé"
-            : "Only for an assistant with the Archvow skill installed");
-        copySkill.addActionListener(e -> onSend.send(ArchvowAiSkills.skillCommand(skills, skill,
-            values.getOrDefault("tool", ""), values), Map.copyOf(values)));
+        openChat = ArchvowSplitView.primary(french ? "Copier et ouvrir le chat IA" : "Copy and open AI chat");
+        openChat.setToolTipText(french ? "Copie, puis ouvre ta fenêtre de chat IA : colle (⌘V) et envoie."
+            : "Copies, then opens your AI chat window: paste (⌘V) and send.");
+        openChat.addActionListener(e -> { onSend.send(request.getText(), Map.copyOf(values)); onOpenChat.run(); });
         JPanel buttons = new JPanel(new WrapActionLayout());
         buttons.setName("archvow.skill.actions");
         buttons.addComponentListener(new ComponentAdapter() {
             @Override public void componentResized(ComponentEvent e) { buttons.revalidate(); }
         });
+        cancel.setBorderPainted(false);
+        cancel.setContentAreaFilled(false);
         buttons.add(cancel);
-        buttons.add(copySkill);
         buttons.add(copy);
+        buttons.add(openChat);
         add(buttons, BorderLayout.SOUTH);
         update();
     }
+
+    /** What "Copy and open AI chat" opens after copying (the panel: the IDE's AI chat window). */
+    void onOpenChat(Runnable action) { onOpenChat = action; }
 
     /** FlowLayout normally reports one row even when it has wrapped. Reserve the true height. */
     private static final class WrapActionLayout extends FlowLayout {
@@ -331,9 +337,7 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         blocked.setText(reason == null ? "" : reason[french ? 1 : 0]);
         blocked.setVisible(reason != null);
         copy.setEnabled(ready);
-        String shorthand = ArchvowAiSkills.skillCommand(skills, skill, values.getOrDefault("tool", ""), values);
-        copySkill.setVisible(!shorthand.isBlank());
-        copySkill.setEnabled(ready && !shorthand.isBlank());
+        openChat.setEnabled(ready);
         refreshStepButtons();
     }
 

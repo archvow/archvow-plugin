@@ -175,10 +175,10 @@ source, et ne se lance qu'une fois : les développeurs clonent le dépôt.
 toute la chaîne, des données au point d'entrée :
 
 ```bash
-archvow component add model order -d "Une commande : id int, customer str, amount Decimal >= 0, status pending | paid | cancelled" -s {{ ticket(1) }}
-archvow component add service create_order -d "Créer une commande pending pour le client courant et la renvoyer" -u order_model -s {{ ticket(1) }}
-archvow component add router orders -d "L'API des commandes" -u create_order,order_model -r "post_order: POST /orders" -s {{ ticket(1) }}
-archvow component add app main -d "Le service : les routes des commandes sous /v1" -u orders_router -s {{ ticket(1) }}
+archvow component add model order -d "Une commande : id int, customer str, amount Decimal >= 0, status pending | paid | cancelled" --ticket {{ ticket(1) }}
+archvow component add service create_order -d "Créer une commande pending pour le client courant et la renvoyer" -u order_model --ticket {{ ticket(1) }}
+archvow component add router orders -d "L'API des commandes" -u create_order,order_model -r "post_order: POST /orders" --ticket {{ ticket(1) }}
+archvow component add app main -d "Le service : les routes des commandes sous /v1" -u orders_router --ticket {{ ticket(1) }}
 ```
 
 Le type fixe la structure : le fichier, la classe ou la fonction publique, la couche, le fichier
@@ -296,7 +296,7 @@ make run                                             # http://127.0.0.1:8000/doc
 | ajouter une règle pour tous les composants d'un type | `archvow rule add --type model "Étant donné un champ inconnu, quand il est lu, alors il est refusé"` |
 | écarter une question de sûreté qui ne s'applique pas | `archvow hazard dismiss order_model S2 "les commandes ne contiennent pas de données personnelles"` |
 | voir tout sur un composant | `archvow show order_model` |
-| enregistrer un exemple métier (fichiers dans `tests/examples/orders_router/<exemple>/`) | `archvow example add orders_router {{ ticket(1) }}-another-customers-order -s {{ ticket(1) }} --from briefs/<brief>.md#<section>` ; `archvow show orders_router` donne le verdict de son test et où `actual/` diffère d'`expected/` |
+| enregistrer un exemple métier (fichiers dans `tests/examples/orders_router/<exemple>/`) | `archvow example add orders_router {{ ticket(1) }}-another-customers-order --ticket {{ ticket(1) }} --from briefs/<brief>.md#<section>` ; `archvow show orders_router` donne le verdict de son test et où `actual/` diffère d'`expected/` |
 | trouver un nom partout (une fonction, une colonne, un ticket, un exemple) | `archvow show <nom>` : la spec, le code, les tests, les briefs, les problèmes qui le nomment |
 | répondre à ce qui est ouvert, une question à la fois | `archvow specify order_model` (dans un terminal) |
 | laisser l'IA proposer les risques d'un composant | dans le chat : `/archvow-analyze order_model` |

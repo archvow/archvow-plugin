@@ -28,6 +28,7 @@ init_answers
   sonar no
   auto_approve yes
   sandbox yes
+  ai_drafts no
   briefs briefs
   max_components ""
   max_code_lines ""
@@ -41,10 +42,10 @@ mode strict
 families [all]
 templates
   fastapi-service
-    version 3.1.0
+    version 3.2.0
     source archvow
-    digest 83e05d15669c
+    digest 4e6a2ffb2376
   python-base
-    version 3.1.0
+    version 3.2.0
     source archvow
-    digest a5e5ba7f7f35
+    digest d01e67ae61f2

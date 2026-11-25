@@ -2,6 +2,11 @@
   "about": "How both plugins lay out a command's form (design A, 0.14.0): plain labels, the essential fields first, the others under More options, the button's verb and what archvow will do. Pairs are [English, French]. A parameter or command missing here falls back to archvow's own words (commands.json). Both plugins test that every name here exists in contract/cli/commands.json.",
   "labels": {
     "component": ["Component", "Composant"],
+    "drafted_with": ["Drafted with (the AI assistant whose draft it was)", "Rédigé avec (l'assistant IA dont c'était le brouillon)"],
+    "unchanged": ["The draft kept word for word", "Le brouillon gardé mot pour mot"],
+    "tool": ["AI assistant (empty: the first of the project's installed here)", "Assistant IA (vide : le premier du projet installé ici)"],
+    "language": ["Language of what to do (empty: the example's, English)", "Langue de ce qu'il faut faire (vide : celle de l'exemple, l'anglais)"],
+    "prompt": ["Only the prompt, nothing run", "Seulement le prompt, rien n'est lancé"],
     "feature": ["Feature", "Fonctionnalité"],
     "type": ["Type", "Type"],
     "kind": ["Kind", "Sorte"],
@@ -107,7 +112,7 @@
     "good": ["A good example", "Un bon exemple"]
   },
   "command_groups": [
-    {"id": "project", "label": ["Project & checks", "Projet et contrôles"], "prefixes": ["init", "catalog", "show", "specify", "prompt", "next", "check", "review", "version", "freeze", "audit", "changes", "diff", "doctor", "completion", "doc", "workspace", "try"]}, {"id": "templates", "label": ["Templates", "Templates"], "prefixes": ["template"]},
+    {"id": "project", "label": ["Project & checks", "Projet et contrôles"], "prefixes": ["init", "catalog", "show", "specify", "prompt", "next", "check", "review", "version", "freeze", "audit", "changes", "diff", "doctor", "completion", "doc", "workspace", "try", "draft"]}, {"id": "templates", "label": ["Templates", "Templates"], "prefixes": ["template"]},
     {"id": "components", "label": ["Features & components", "Fonctionnalités et composants"], "prefixes": ["feature", "component"]},
     {"id": "decisions", "label": ["Decisions", "Décisions"], "prefixes": ["decision"]},
     {"id": "questions", "label": ["Questions", "Questions"], "prefixes": ["question"]},
@@ -219,6 +224,7 @@
     "dependency remove": {"title": ["Remove a third party", "Retirer un tiers"], "verb": ["Remove", "Retirer"], "does": ["Leaves the register.", "Quitte le registre."]},
     "example add": {"title": ["Record a business example", "Enregistrer un exemple métier"], "verb": ["Record", "Enregistrer"], "does": ["Locks input/, expected/ and scenario.feature by their fingerprint; --from links it to its brief section (archvow never reads the rows from it).", "Verrouille input/, expected/ et scenario.feature par leur empreinte ; --from le relie à sa section de brief (archvow n'y lit jamais les lignes)."], "essential": ["component", "name", "ticket", "source"]},
     "example remove": {"title": ["Remove a business example", "Retirer un exemple métier"], "verb": ["Remove", "Retirer"], "does": ["Its files stay.", "Ses fichiers restent."], "essential": ["component", "name"]},
+    "draft": {"title": ["An AI draft of an answer", "Un brouillon IA d'une réponse"], "verb": ["Draft it", "Le rédiger"], "does": ["One of the project's AI assistants writes a draft answer, text only. Nothing is saved: you read it and save it with the answer.", "Un des assistants IA du projet rédige un brouillon de réponse, en texte seul. Rien n'est enregistré : tu le relis et l'enregistres avec la réponse."]},
     "prompt": {"title": ["The AI's task", "La tâche de l'IA"], "verb": ["Show the task", "Afficher la tâche"], "does": ["Reads only. With a feature: the feature in a few lines, then the task of its next component.", "Lit seulement. Avec une fonctionnalité : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant."]},
     "next": {"title": ["What to build next", "Quoi construire ensuite"], "verb": ["Show", "Afficher"], "does": ["Reads only.", "Lit seulement."]},
     "workspace": {"title": ["Everything in one answer", "Tout en une réponse"], "verb": ["Show", "Afficher"], "does": ["Reads only: what the editor shows, in one call (for tools).", "Lit seulement : ce que l'éditeur montre, en un appel (pour les outils)."]},

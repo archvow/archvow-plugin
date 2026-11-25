@@ -121,13 +121,30 @@ réponse ») ; dès que le champ est modifié à la main, le tableau ne l'écras
 tableau**. Le champ d'une décision commence par sa suggestion : **Revenir à la suggestion** n'apparaît que si le
 texte en diffère.
 
+## Brouillon IA, la barre et le × du parcours (1.2.0)
+
+**Brouillon IA** : une icône dans le coin de chaque champ de réponse (une décision, une question, une question de
+sécurité) - ✦ rédige avec l'un des assistants IA du projet, ▾ en choisit un autre (le premier installé par défaut ;
+un non installé est grisé) ou copie le prompt à la place. Les deux lancent `archvow draft <component> <question>
+--json` (texte seul : archvow n'écrit rien) et mettent le brouillon dans le champ, marqué « Brouillon IA · Claude
+Code », avec ↻ et × ; l'enregistrement ajoute alors `--drafted-with <assistant>` (et `--unchanged`). Désactivé pour
+le projet (`ai_drafts`, `workspace --json`) : l'icône grisée, son survol dit pourquoi (`draftCorner()`,
+`draftedOf()` ; `ArchvowDraftBox`, `DraftBoxRegression`).
+
+**La barre** entre la liste et la réponse (`split()`, `ArchvowSplitView.Bar`) : glissée, ou ← → quand elle a le
+focus ; double-clic pour moitié-moitié ; gardée pour toutes les vues ; sous 680 px les deux s'empilent et la barre
+monte et descend. Enregistrer la réponse reste épinglé sous la réponse (décisions, questions).
+
+**Le × du parcours** : plus de bouton Arrêter ; un × dans le coin du bandeau et Échap quittent le parcours
+(`ArchvowWalkStrip.onLeave`), et les étapes sont dessinées entre ses mots et son compte.
+
 ## Les parcours (1.1.0)
 
 **Spécifier** parcourt une liste, comme `archvow specify` dans un terminal : les fondations (premières étapes,
 étape 1), une fonctionnalité (sa page, l'étape 3, clic droit) ou un composant puis le reste de sa fonctionnalité.
 Ordre : l'ordre de construction d'archvow (les lignes de `next`) ; seulement les composants qui ont quelque chose
 d'ouvert. Quand le dernier élément d'un composant est enregistré, une bande en haut de sa page (plus de fenêtre
-modale) : « ✓ config spécifié · Suivant : logging_setup · 1 décision **Spécifier le suivant ▸** · Arrêter » ; à la
+modale) : « ✓ config spécifié · Suivant : logging_setup · 1 décision **Spécifier le suivant ▸** » ; à la
 fin, « ✓ Les fondations sont spécifiées » ou « ✓ orders : chaque décision est prise · Prêts à construire : …
 **Construire ▸** ». **Construire** parcourt les composants prêts de la fonctionnalité : 1 le code (**Copier le
 prompt IA**), 2 **Vérifier** (son résultat pour ce composant), 3 **Construire le suivant ▸** une fois vérifié ; il

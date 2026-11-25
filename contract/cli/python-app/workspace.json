@@ -380,6 +380,7 @@
       "sonar": "no",
       "auto_approve": "yes",
       "sandbox": "yes",
+      "ai_drafts": "no",
       "briefs": "briefs",
       "max_components": "",
       "max_code_lines": "",
@@ -390,14 +391,14 @@
     },
     "templates": {
       "python-app": {
-        "version": "3.1.0",
+        "version": "3.2.0",
         "source": "archvow",
-        "digest": "ac0da1a100d7"
+        "digest": "6daede6f66d3"
       },
       "python-base": {
-        "version": "3.1.0",
+        "version": "3.2.0",
         "source": "archvow",
-        "digest": "a5e5ba7f7f35"
+        "digest": "d01e67ae61f2"
       }
     },
     "features": [
@@ -1946,7 +1947,7 @@
     "templates": [
       {
         "name": "python-app",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "default": true,
         "chain": [
           "python-base",
@@ -2131,6 +2132,23 @@
             "default_from": {
               "mode": {
                 "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_drafts",
+            "ask": true,
+            "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
               }
             },
             "choices": [
@@ -2440,7 +2458,7 @@
       },
       {
         "name": "fastapi-service",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "default": false,
         "chain": [
           "python-base",
@@ -2625,6 +2643,23 @@
             "default_from": {
               "mode": {
                 "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_drafts",
+            "ask": true,
+            "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
               }
             },
             "choices": [
@@ -2979,7 +3014,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "default": false,
         "chain": [
           "python-base",
@@ -3164,6 +3199,23 @@
             "default_from": {
               "mode": {
                 "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_drafts",
+            "ask": true,
+            "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
               }
             },
             "choices": [
@@ -3628,7 +3680,7 @@
       },
       {
         "name": "pyspark-pipeline",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "default": false,
         "chain": [
           "python-base",
@@ -3813,6 +3865,23 @@
             "default_from": {
               "mode": {
                 "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_drafts",
+            "ask": true,
+            "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
+            "default": "yes",
+            "default_from": {
+              "mode": {
+                "strict": "no"
               }
             },
             "choices": [
@@ -4190,9 +4259,9 @@
     "project_templates": [
       {
         "name": "python-app",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
-        "archvow": ">=3.1,<4",
+        "archvow": ">=3.2,<4",
         "languages": [
           "en",
           "fr"
@@ -4205,13 +4274,13 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "ac0da1a100d7"
+        "digest": "6daede6f66d3"
       },
       {
         "name": "python-base",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "description": "Shared answers, guards and CI of the Python templates.",
-        "archvow": ">=3.1,<4",
+        "archvow": ">=3.2,<4",
         "languages": [
           "en",
           "fr"
@@ -4227,7 +4296,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "a5e5ba7f7f35"
+        "digest": "d01e67ae61f2"
       }
     ],
     "agents": [
@@ -4251,6 +4320,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4274,6 +4344,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4300,6 +4371,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4338,6 +4410,7 @@
           "fix": "start Claude Code with its sandbox on (/sandbox; on Windows inside WSL2) and without --dangerously-skip-permissions or --permission-mode bypassPermissions"
         },
         "review": true,
+        "draft": true,
         "seen": true,
         "unseen": ""
       },
@@ -4361,6 +4434,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4392,6 +4466,7 @@
           "fix": "start Codex with --sandbox workspace-write (its default) and without --yolo or --dangerously-bypass-approvals-and-sandbox"
         },
         "review": true,
+        "draft": true,
         "seen": true,
         "unseen": ""
       },
@@ -4417,6 +4492,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4456,6 +4532,7 @@
           "fix": "run Copilot inside a container (the CLI has no sandbox of its own; in VS Code, a dev container) and start it without --yolo, --allow-all or --allow-all-tools"
         },
         "review": true,
+        "draft": true,
         "seen": true,
         "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
       },
@@ -4492,6 +4569,7 @@
           "fix": "in Cursor, choose a run mode with the sandbox on (not Run Everything); start cursor-agent without --force or --yolo"
         },
         "review": false,
+        "draft": false,
         "seen": true,
         "unseen": ""
       },
@@ -4516,6 +4594,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": true,
         "seen": false,
         "unseen": ""
       },
@@ -4541,6 +4620,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4569,6 +4649,7 @@
           "fix": "start Junie CLI in its sandbox, with brave mode off"
         },
         "review": false,
+        "draft": false,
         "seen": true,
         "unseen": "in the IDE plugin (it sets no variable archvow knows)"
       },
@@ -4592,6 +4673,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4616,6 +4698,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4639,6 +4722,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       },
@@ -4663,6 +4747,7 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
         "seen": false,
         "unseen": ""
       }
@@ -4762,9 +4847,9 @@
   "templates": [
     {
       "name": "python-app",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
-      "archvow": ">=3.1,<4",
+      "archvow": ">=3.2,<4",
       "languages": [
         "en",
         "fr"
@@ -4782,9 +4867,9 @@
     },
     {
       "name": "python-base",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "description": "Shared answers, guards and CI of the Python templates.",
-      "archvow": ">=3.1,<4",
+      "archvow": ">=3.2,<4",
       "languages": [
         "en",
         "fr"
@@ -4831,7 +4916,11 @@
       "title": "Build them, then Check",
       "detail": "Their code and tests, checked against the spec",
       "command": "archvow check",
-      "done": true
+      "done": true,
+      "progress": {
+        "done": 5,
+        "total": 5
+      }
     },
     {
       "step": "commit",
@@ -4840,5 +4929,17 @@
       "command": "git add -A && git commit",
       "done": false
     }
-  ]
+  ],
+  "ai_drafts": {
+    "on": false,
+    "why_not": "AI drafts are off for this project (ai_drafts: no in project.vow) - an architect turns them on: archvow init <package> --force -a ai_drafts=yes",
+    "tools": [
+      {
+        "name": "claude-code",
+        "title": "Claude Code",
+        "program": "claude",
+        "installed": true
+      }
+    ]
+  }
 }

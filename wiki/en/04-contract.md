@@ -11,7 +11,7 @@ from a real archvow CLI, never written by hand.
 | Folder or file | What | Written by | Read by |
 |---|---|---|---|
 | `contract/cli/version.txt` | `archvow --version` (today `archvow 2.0.1`) | `contract/tools/regenerate.py` | `ArchvowVersion.KNOWN`, `knownVersion()`: the archvow the plugin is tested with and installs |
-| `contract/archvow-range.txt` (1.0.0) | the archvow versions the plugins work with (`>=3.1,<4`) | by hand, with a plugin release | `ArchvowCompat.RANGE_OF_PLUGIN`, `compat.ts`; `release.test.ts` checks every place says it |
+| `contract/archvow-range.txt` (1.0.0) | the archvow versions the plugins work with (`>=3.2,<4`) | by hand, with a plugin release | `ArchvowCompat.RANGE_OF_PLUGIN`, `compat.ts`; `release.test.ts` checks every place says it |
 | `contract/compat/expected.json` (1.0.0) | what a plugin says of the installed archvow, case by case (EN, FR) | `UPDATE_COMPAT=1 npm test` | `CompatRegression` |
 | `contract/cli/contract.txt` (0.20.0) | the contract number of `archvow version --json` (MAJOR.MINOR, today `3.0`) | `regenerate.py` | `ArchvowVersion.CONTRACT`, `compatibility()`: the contract the plugin speaks |
 | `contract/cli/errors/` (0.20.0) | three commands that fail, as the plugins get them (`ARCHVOW_LOG=info`): `no-spec`, `refused` (the error envelope on stdout, the message and archvow's log lines on stderr), `usage` (an argparse refusal: no envelope) | `regenerate.py` (`errors()`) | `cli.test.ts`, `OutputRegression` |
@@ -77,15 +77,15 @@ What to look for in the diff:
 
 ## The archvow version and the contract (0.20.0)
 
-archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "3.0", "archvow": "3.1.0",
+archvow 1.23 says its contract: `archvow version --json` gives `{"contract": "3.0", "archvow": "3.2.0",
 ...}`, and every `--json` object starts with `"contract"`. Since 1.0.0 the plugins have their own versioning and
-say the range of archvow versions they work with: `contract/archvow-range.txt` (`>=3.1,<4`), one value, said in the
-README, both Marketplace texts and the header of the tool window (`archvow 3.1.0 ✓ · this plugin works with
-archvow >=3.1,<4`). `compatibility()` (`compat.ts`) and `ArchvowCompat.of` judge the installed archvow against
+say the range of archvow versions they work with: `contract/archvow-range.txt` (`>=3.2,<4`), one value, said in the
+README, both Marketplace texts and the header of the tool window (`archvow 3.2.0 ✓ · this plugin works with
+archvow >=3.2,<4`). `compatibility()` (`compat.ts`) and `ArchvowCompat.of` judge the installed archvow against
 the range and `contract.txt` (the same MAJOR and a MINOR at least the plugin's), with the project's pin
 (`archvow==X` in its requirements.txt or pyproject.toml, `projectPin()`): in the range, nothing; older, Install
 archvow 3.1.0 - or the pin, when it is in the range; a pin below the range, how the project's architects upgrade
-it (`pip install archvow==3.1.0`, `archvow init <package> --force`), and nothing is installed over it; newer,
+it (`pip install archvow==3.2.0`, `archvow init <package> --force`), and nothing is installed over it; newer,
 "update the plugin"; none, the exact install command. Both say the same on every case of
 `contract/compat/expected.json` (`UPDATE_COMPAT=1 npm test`, `CompatRegression`). So an archvow release in the
 range needs no plugin release, while archvow keeps no backward compatibility across MAJORs.

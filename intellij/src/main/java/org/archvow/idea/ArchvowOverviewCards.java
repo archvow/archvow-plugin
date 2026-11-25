@@ -209,6 +209,10 @@ final class ArchvowOverviewCards {
             JTextArea detail = wrapped(step.detail(), muted(), 12f);
             detail.setToolTipText(step.command());
             words.add(detail);
+            if (now && step.total() > 1 && step.built() > 0) {  // 1.2.0: the feature's components built, as bars
+                words.add(gap(6));
+                words.add(new Bars(step.built(), step.total()));
+            }
             line.add(words, BorderLayout.CENTER);
             if (now) {
                 String verb = stepVerb(step, fr);
@@ -236,10 +240,38 @@ final class ArchvowOverviewCards {
         return card;
     }
 
+    /** Step 4's components built, of how many: one short bar each, green when built. */
+    static final class Bars extends JComponent {
+        final int built;
+        final int total;
+
+        Bars(int built, int total) {
+            this.built = built;
+            this.total = total;
+            setAlignmentX(0f);
+        }
+
+        @Override public Dimension getPreferredSize() { return new Dimension(total * 43, 6); }
+        @Override public Dimension getMaximumSize() { return getPreferredSize(); }
+
+        @Override protected void paintComponent(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            try {
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                for (int i = 0; i < total; i++) {
+                    g.setColor(i < built ? new Color(0x5F, 0xB8, 0x65) : dark() ? new Color(0x4E, 0x51, 0x57) : new Color(0xC9, 0xCC, 0xD2));
+                    g.fillRoundRect(i * 43, 0, 40, 5, 5, 5);
+                }
+            } finally {
+                g.dispose();
+            }
+        }
+    }
+
     /** The current step's button: what the page's firstStepsCard() shows. Empty: no button (Commit). */
     static String stepVerb(ArchvowOverview.FirstStep step, boolean fr) {
         if (step.command().startsWith("archvow specify ")) return t(fr, "Specify", "Spécifier");
-        if (step.command().startsWith("archvow prompt ")) return t(fr, "Build", "Construire");  // 3.1: step 4 until code
+        if (step.command().startsWith("archvow prompt ")) return t(fr, "Build ▸", "Construire ▸");  // step 4 while one is to build
         return switch (step.step()) {
             case "feature" -> t(fr, "Add feature", "Ajouter une feature");
             case "component" -> t(fr, "Add component", "Ajouter un composant");

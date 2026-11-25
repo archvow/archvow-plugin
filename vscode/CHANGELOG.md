@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.2.0 - 2026-11-25
+
+Works with archvow >=3.2,<4. Built on archvow 3.2.0 (contract 3.0, with `ai_drafts` and the build step's progress).
+From the second test session.
+
+- **Draft with AI.** An icon in the corner of every answer box (decisions, questions, safety): one click and one of
+  the project's AI assistants writes a draft, in the background, into the box, marked "AI draft · Claude Code". You
+  read it, change what is wrong, and save it: it is your answer, noted "AI draft, edited" (or unchanged) in the
+  spec. ▾ picks another of the project's assistants (the first installed one by default; one not installed is
+  greyed) or copies the prompt instead; ↻ asks again, × puts the box back as it was. Off for the project
+  (`ai_drafts` in project.vow): the icon is greyed and says why.
+- **The list and the answer: a bar you drag.** Side by side, drag it left or right (up or down when narrow);
+  double-click for half and half; where you leave it is kept. Each side scrolls on its own and Save answer stays in
+  sight under the answer.
+- **First steps, Build stays** until every component of the feature is built: "1 of 2 built · next: orders_reader",
+  with a bar per component.
+- **The walk strip has no Stop button**: a small × in its corner, and Esc, leave the walk; the steps are drawn
+  between its words and its count ("Building orders ▬▬ 2 of 2").
+- **The AI skill form**: VS Code runs it in Copilot chat (agent mode, the instructions already typed: you press
+  Send) when Copilot is one of the project's assistants - off, with the reason, when the project wants agents in a
+  sandbox; IntelliJ copies and opens your AI chat window (JetBrains lets no plugin type in it).
+- **try speaks the page's language**: the findings' names and what to do (archvow try --language), "What to do:"
+  with its colon, the scratch folder once at the top with Open / Copy path / Read the example's spec, the change in
+  the editor's font. No "ARCHVOW · RESULT" over a result: the tab already says it.
+- **IntelliJ**: Specify and Build work again after the Archvow tab was closed (they did nothing); the Archvow
+  Output window has its own icon (the Y with log lines) and short lines - the command as you would type it, its
+  result, its time - instead of the Python command line.
+
 ## 1.1.0 - 2026-11-24
 
 Works with archvow >=3.1,<4. Built on archvow 3.1.0 (contract 3.0; the ticket option is `--ticket`; First steps 3

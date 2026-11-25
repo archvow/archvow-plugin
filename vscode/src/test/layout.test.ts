@@ -145,15 +145,17 @@ test('the items as cards on the left, the selected one answered on the right (0.
   // a view with no item: "Nothing to display." alone, no answer panel (0.11.1)
   const splitSource = page.match(/function split\(left, right\) \{[\s\S]*?\n  \}/);
   assert.ok(splitSource, 'split() is in the page');
-  const split = new Function(`${splitSource[0]}; return split;`)();
+  const split = new Function('t', 'esc', 'splitSize', `${splitSource[0]}; return split;`)((en: string) => en, esc, { left: '50%', top: '40vh' });
   assert.equal(split('<ul class="cards"><li class="muted empty">Nothing to display.</li></ul>', ''),
     '<div class="split single"><div class="split-list"><ul class="cards"><li class="muted empty">Nothing to display.</li></ul></div></div>');
   assert.match(split('L', 'R'), /<aside class="split-answer">R<\/aside>/);
+  assert.match(split('L', 'R'), /<div class="split-bar" data-drag="split" role="separator"/);  // 1.2.0: dragged
   assert.equal(cards('question', [], (r: { key: string }) => r.key, () => ({})), '<ul class="cards" data-scroll="cards-question"><li class="muted empty">Nothing to display.</li></ul>');
   assert.match(page, /t\(`Answer decision \$\{number\}`, `Répondre à la décision \$\{number\}`\)/);
   const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
-  assert.match(css, /\.split \{ display: grid; grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\);/);
-  assert.match(css, /@media \(max-width: 760px\) \{ \.split \{ grid-template-columns: minmax\(0, 1fr\); \} \}/);
+  // 1.2.0: the list's width is the bar's place (50% by default); under 680 px one above the other
+  assert.match(css, /\.split \{ display: grid; grid-template-columns: minmax\(240px, var\(--split-left, 50%\)\) 10px minmax\(320px, 1fr\);/);
+  assert.match(css, /@media \(max-width: 680px\) \{\n  \.split \{ grid-template-columns: minmax\(0, 1fr\);/);
 });
 
 test('Overview is a summary only; the Components browser owns the full status + pending inventory', () => {
@@ -279,8 +281,10 @@ test('AI skill handoff: readable instructions, generic copy action and optional 
   assert.match(page, /If you cannot access the project files/);
   assert.match(page, /Brief \/ section/);
   assert.match(page, /t\('Copy instructions', 'Copier les consignes'\)/);
-  assert.match(page, /t\('Copy skill command', 'Copier la commande skill'\)/);
-  assert.match(page, /t\('Open in Copilot Chat', 'Ouvrir dans Copilot Chat'\)/);
+  // 1.2.0: Run in Copilot chat when Copilot is one of the project's AI tools, off when agents must be sandboxed
+  assert.match(page, /t\('▶ Run in Copilot chat', '▶ Lancer dans le chat Copilot'\)/);
+  assert.match(page, /const runInChat = \(S\.aiTools \|\| \[\]\)\.includes\('copilot'\);/);
+  assert.match(host, /mode: 'agent'/);
   assert.doesNotMatch(page, /'Copy for '/);
   assert.match(host, /format === 'skill' \? skillCommand\(/);
   assert.match(css, /\.skill-form \.form-actions \{ flex-wrap: wrap; \}/);

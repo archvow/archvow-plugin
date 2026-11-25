@@ -131,8 +131,8 @@ la racine du projet, ou un paquet installé) et son état (ARCH060 quand sa copi
 **Voir le changement** : `diff`). En haut, **Mettre à jour** (`template update`) et **Nouveau template**
 (`template new`) ; en bas, les ajouts propres au projet (`.archvow/template/` : ses règles et ses agents) avec
 **Ajouter une question** et **Ajouter une règle** (`template question` / `template rule`, `project` rempli).
-Au-dessus de la vue d'ensemble, la ligne d'en-tête : `archvow 3.1.0 ✓ · ce plugin fonctionne avec archvow
->=3.1,<4` (`compatLine()` ; IntelliJ : `compatHeader`), et, quand l'archvow installé est hors de l'intervalle, ce
+Au-dessus de la vue d'ensemble, la ligne d'en-tête : `archvow 3.2.0 ✓ · ce plugin fonctionne avec archvow
+>=3.2,<4` (`compatLine()` ; IntelliJ : `compatHeader`), et, quand l'archvow installé est hors de l'intervalle, ce
 qu'il faut faire (`compatCard()`). Les deux plugins font la même chose : VS Code `templatesSummary()` /
 `templatesView()` dans `vscode/media/workspace.js` ; IntelliJ `ArchvowTemplates` (la ligne, la liste, ce qu'ouvre
 chaque lien `archvow-template:`), testé par `TemplatesRegression`.

@@ -49,7 +49,8 @@ assert.equal(scrolled.length, 1, 'scrolled into view when it starts');
 
 send({ type: 'result', target: 'welcome', label: 'try', html: '<p>2 errors caught</p>', raw: '{"folder": "/tmp/archvow-try-x/python-app"}', args: 'archvow try python-app --json', ok: false });
 assert.match(app.innerHTML, /2 errors caught/, 'the result itself on the sidebar');
-assert.match(app.innerHTML, /Read the example&#39;s spec|Read the example's spec/, 'its follow-up under it');
+// 1.2.0: the example's spec is opened from the folder's line of the result itself; under it, Set up archvow here
+assert.match(app.innerHTML, /Set up archvow in this repository/, 'its follow-up under it');
 assert.equal(scrolled.length, 2, 'scrolled into view when it arrives');
 send({ type: 'state', state: { readiness: 'NOT_INITIALIZED', fr: false, project: { root: '/work/new' }, install: {}, snapshots: {} } });
 assert.equal(scrolled.length, 2, 'a later re-render does not scroll again');

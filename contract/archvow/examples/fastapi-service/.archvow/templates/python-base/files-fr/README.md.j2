@@ -175,9 +175,9 @@ jamais de code source, et ne se lance qu'une fois : les développeurs clonent le
 toute la chaîne, des données au point d'entrée :
 
 ```bash
-archvow component add model invoice -d "Une facture : number str, customer str, amount Decimal >= 0, status draft | sent | paid" -s {{ ticket(1) }}
-archvow component add service send_invoice -d "Refuser une facture qui n'est pas un brouillon, la marquer envoyée, la renvoyer" -u invoice_model -s {{ ticket(1) }}
-archvow component add cli invoices -d "Ligne de commande : send NUMERO - envoie la facture et l'affiche" -u send_invoice -s {{ ticket(1) }}
+archvow component add model invoice -d "Une facture : number str, customer str, amount Decimal >= 0, status draft | sent | paid" --ticket {{ ticket(1) }}
+archvow component add service send_invoice -d "Refuser une facture qui n'est pas un brouillon, la marquer envoyée, la renvoyer" -u invoice_model --ticket {{ ticket(1) }}
+archvow component add cli invoices -d "Ligne de commande : send NUMERO - envoie la facture et l'affiche" -u send_invoice --ticket {{ ticket(1) }}
 ```
 
 Le type fixe la structure : le fichier, la classe ou la fonction publique, la couche, le fichier
@@ -292,7 +292,7 @@ make run CLI=invoices ARGS="--help"                   # la ligne de commande du 
 | ajouter une règle pour tous les composants d'un type | `archvow rule add --type model "Étant donné un champ inconnu, quand il est lu, alors il est refusé"` |
 | écarter une question de sûreté qui ne s'applique pas | `archvow hazard dismiss invoice_model S2 "les factures ne contiennent pas de données personnelles"` |
 | voir tout sur un composant | `archvow show invoice_model` |
-| enregistrer un exemple métier (fichiers dans `tests/examples/invoices_cli/<exemple>/`) | `archvow example add invoices_cli {{ ticket(1) }}-pay-a-sent-invoice -s {{ ticket(1) }} --from briefs/<brief>.md#<section>` ; `archvow show invoices_cli` donne le verdict de son test et où `actual/` diffère d'`expected/` |
+| enregistrer un exemple métier (fichiers dans `tests/examples/invoices_cli/<exemple>/`) | `archvow example add invoices_cli {{ ticket(1) }}-pay-a-sent-invoice --ticket {{ ticket(1) }} --from briefs/<brief>.md#<section>` ; `archvow show invoices_cli` donne le verdict de son test et où `actual/` diffère d'`expected/` |
 | trouver un nom partout (une fonction, une colonne, un ticket, un exemple) | `archvow show <nom>` : la spec, le code, les tests, les briefs, les problèmes qui le nomment |
 | répondre à ce qui est ouvert, une question à la fois | `archvow specify invoice_model` (dans un terminal) |
 | laisser l'IA proposer les risques d'un composant | dans le chat : `/archvow-analyze invoice_model` |

@@ -2007,6 +2007,42 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "invoice_model",
+        "label": "invoice_model — model"
+       },
+       {
+        "value": "invoice_not_found_error",
+        "label": "invoice_not_found_error — error"
+       },
+       {
+        "value": "invoices_repository",
+        "label": "invoices_repository — repository"
+       },
+       {
+        "value": "mark_paid",
+        "label": "mark_paid — service"
+       },
+       {
+        "value": "invoices_cli",
+        "label": "invoices_cli — cli"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     }
+    },
     "template new": {
      "extends": {
       "kind": "suggest",
@@ -4027,6 +4063,42 @@
        }
       ],
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
+     }
+    },
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "invoice_model",
+        "label": "invoice_model — model"
+       },
+       {
+        "value": "invoice_not_found_error",
+        "label": "invoice_not_found_error — error"
+       },
+       {
+        "value": "invoices_repository",
+        "label": "invoices_repository — repository"
+       },
+       {
+        "value": "mark_paid",
+        "label": "mark_paid — service"
+       },
+       {
+        "value": "invoices_cli",
+        "label": "invoices_cli — cli"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
      }
     },
     "template new": {
@@ -7196,6 +7268,58 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "get_current_user",
+        "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "settings",
+        "label": "settings — foundation"
+       },
+       {
+        "value": "new_order_model",
+        "label": "new_order_model — model"
+       },
+       {
+        "value": "order_model",
+        "label": "order_model — model"
+       },
+       {
+        "value": "order_not_found_error",
+        "label": "order_not_found_error — error"
+       },
+       {
+        "value": "orders_repository",
+        "label": "orders_repository — repository"
+       },
+       {
+        "value": "create_order",
+        "label": "create_order — service"
+       },
+       {
+        "value": "get_order",
+        "label": "get_order — service"
+       },
+       {
+        "value": "main",
+        "label": "main — app"
+       },
+       {
+        "value": "orders_router",
+        "label": "orders_router — router"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     }
+    },
     "template new": {
      "extends": {
       "kind": "suggest",
@@ -10361,6 +10485,58 @@
        }
       ],
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
+     }
+    },
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "get_current_user",
+        "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "settings",
+        "label": "settings — foundation"
+       },
+       {
+        "value": "new_order_model",
+        "label": "new_order_model — model"
+       },
+       {
+        "value": "order_model",
+        "label": "order_model — model"
+       },
+       {
+        "value": "order_not_found_error",
+        "label": "order_not_found_error — error"
+       },
+       {
+        "value": "orders_repository",
+        "label": "orders_repository — repository"
+       },
+       {
+        "value": "create_order",
+        "label": "create_order — service"
+       },
+       {
+        "value": "get_order",
+        "label": "get_order — service"
+       },
+       {
+        "value": "main",
+        "label": "main — app"
+       },
+       {
+        "value": "orders_router",
+        "label": "orders_router — router"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
      }
     },
     "template new": {
@@ -13812,6 +13988,62 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "spark",
+        "label": "spark — foundation"
+       },
+       {
+        "value": "clean_orders",
+        "label": "clean_orders — transformation"
+       },
+       {
+        "value": "compute_vat",
+        "label": "compute_vat — transformation"
+       },
+       {
+        "value": "order_totals",
+        "label": "order_totals — transformation"
+       },
+       {
+        "value": "orders_schema",
+        "label": "orders_schema — schema"
+       },
+       {
+        "value": "vat_schema",
+        "label": "vat_schema — schema"
+       },
+       {
+        "value": "orders_reader",
+        "label": "orders_reader — reader"
+       },
+       {
+        "value": "vat_writer",
+        "label": "vat_writer — writer"
+       },
+       {
+        "value": "my_pipeline_job",
+        "label": "my_pipeline_job — job"
+       },
+       {
+        "value": "my_pipeline_main",
+        "label": "my_pipeline_main — entrypoint"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     }
+    },
     "template new": {
      "extends": {
       "kind": "suggest",
@@ -17259,6 +17491,62 @@
        }
       ],
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
+     }
+    },
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "spark",
+        "label": "spark — foundation"
+       },
+       {
+        "value": "clean_orders",
+        "label": "clean_orders — transformation"
+       },
+       {
+        "value": "compute_vat",
+        "label": "compute_vat — transformation"
+       },
+       {
+        "value": "order_totals",
+        "label": "order_totals — transformation"
+       },
+       {
+        "value": "orders_schema",
+        "label": "orders_schema — schema"
+       },
+       {
+        "value": "vat_schema",
+        "label": "vat_schema — schema"
+       },
+       {
+        "value": "orders_reader",
+        "label": "orders_reader — reader"
+       },
+       {
+        "value": "vat_writer",
+        "label": "vat_writer — writer"
+       },
+       {
+        "value": "my_pipeline_job",
+        "label": "my_pipeline_job — job"
+       },
+       {
+        "value": "my_pipeline_main",
+        "label": "my_pipeline_main — entrypoint"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
      }
     },
     "template new": {

@@ -680,6 +680,7 @@
     "sonar": "no",
     "auto_approve": "yes",
     "sandbox": "yes",
+    "ai_drafts": "no",
     "briefs": "briefs",
     "max_components": "",
     "max_code_lines": "",
@@ -714,14 +715,14 @@
   ],
   "templates": {
     "pyspark-pipeline": {
-      "version": "3.1.0",
+      "version": "3.2.0",
       "source": "archvow",
-      "digest": "d3e9939bd059"
+      "digest": "1dc30a7110f2"
     },
     "python-base": {
-      "version": "3.1.0",
+      "version": "3.2.0",
       "source": "archvow",
-      "digest": "a5e5ba7f7f35"
+      "digest": "d01e67ae61f2"
     }
   },
   "features": [

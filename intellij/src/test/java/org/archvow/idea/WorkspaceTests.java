@@ -70,6 +70,7 @@ public final class WorkspaceTests {
         run("WalksRegression", () -> WalksRegression.main(NONE));
         run("ListFilterRegression", () -> ListFilterRegression.main(NONE));
         run("SplitViewRegression", () -> SplitViewRegression.main(NONE));
+        run("DraftBoxRegression", () -> DraftBoxRegression.main(NONE));
         run("StatusPaletteRegression", () -> StatusPaletteRegression.main(NONE));
         run("TaskPromptRegression", () -> TaskPromptRegression.main(NONE));
         run("UsesAndFileRegression", () -> UsesAndFileRegression.main(NONE));

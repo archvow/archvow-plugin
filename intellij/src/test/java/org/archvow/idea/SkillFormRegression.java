@@ -104,16 +104,19 @@ public final class SkillFormRegression {
         check(clarify.copy.isEnabled(), "a component is chosen: the request can go");
         clarify.copy.doClick();
         check(sent.size() == 1 && sent.get(0).equals(clarify.request.getText()), "the displayed full instructions are copied: " + sent);
-        check(clarify.copySkill.isVisible(), "Claude Code has a native shortcut button");
-        clarify.copySkill.doClick();
-        check(sent.get(1).equals("/archvow-clarify clean_orders (at most 5 questions)"), "native shortcut only on request");
+        // 1.2.0: Copy and open AI chat copies the same instructions, then opens the IDE's AI chat
+        List<String> opened = new ArrayList<>();
+        clarify.onOpenChat(() -> opened.add("chat"));
+        check(clarify.openChat.isEnabled(), "a component is chosen: it can go to the chat");
+        clarify.openChat.doClick();
+        check(sent.size() == 2 && sent.get(1).equals(clarify.request.getText()) && opened.equals(List.of("chat")),
+            "copied, then the chat opened: " + sent + " " + opened);
         // implement on a component with decisions to make: the form says why, in French
         ArchvowSkillForm implement = new ArchvowSkillForm(skills, "implement", Map.of(), List.of("clean_orders"), List.of(),
             List.of("copilot"), c -> new String[] {"Not yet: 2 decisions still to make", "Pas encore : 2 décisions encore à prendre"},
             true, (text, values) -> { }, () -> { });
         check(implement.request.getText().contains("Validation humaine :")
             && implement.request.getText().contains("Composant : clean_orders"), implement.request.getText());
-        check(!implement.copySkill.isVisible(), "Copilot has no Claude-specific shortcut");
         // draft-spec needs a brief: nothing to send before one is given
         ArchvowSkillForm draft = new ArchvowSkillForm(skills, "draft-spec", Map.of(), List.of(), List.of("briefs/orders.md#pricing"),
             List.of(), c -> null, false, (text, values) -> { }, () -> { });

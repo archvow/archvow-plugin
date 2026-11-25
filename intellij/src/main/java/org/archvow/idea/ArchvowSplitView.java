@@ -8,38 +8,143 @@ import java.awt.geom.RoundRectangle2D;
  * A component view whose items are answered (Decisions, Questions, Safety, Assumptions): the items as
  * cards on the left, the selected one's answer panel on the right, side by side from
  * {@link #SIDE_BY_SIDE} pixels, one above the other in a narrower tab. The VS Code page does the same
- * ({@code media/workspace.css}, {@code .split}). Plain Swing: tested headless ({@code SplitViewRegression}).
+ * ({@code media/workspace.css}, {@code .split}). 1.2.0: a bar between the two, dragged left and right (up and down
+ * when stacked), double-click for half and half; where it is left is kept for every view; Save answer can stay
+ * pinned under the answer. Plain Swing: tested headless ({@code SplitViewRegression}).
  */
 final class ArchvowSplitView {
     /** Under this width the answer panel goes under the items. */
     static final int SIDE_BY_SIDE = 680;
     static final int GAP = 14;
+    /** The bar's thickness, and the least room each side keeps. */
+    static final int BAR = 10;
+    static final int MIN_LIST = 240;
+    static final int MIN_ANSWER = 320;
+    /** The list's share of the width side by side; its height in pixels when stacked (0: two fifths). Kept. */
+    static double fraction = kept("archvow.split.left", 0.5);
+    static int top = (int) kept("archvow.split.top", 0);
 
     private ArchvowSplitView() { }
+
+    private static double kept(String key, double fallback) {
+        try {
+            String value = com.intellij.ide.util.PropertiesComponent.getInstance().getValue(key);
+            return value == null ? fallback : Double.parseDouble(value);
+        } catch (RuntimeException | LinkageError e) {
+            return fallback;  // no IDE (the headless tests): not kept
+        }
+    }
+
+    private static void keep() {
+        try {
+            com.intellij.ide.util.PropertiesComponent.getInstance().setValue("archvow.split.left", Double.toString(fraction));
+            com.intellij.ide.util.PropertiesComponent.getInstance().setValue("archvow.split.top", Integer.toString(top));
+        } catch (RuntimeException | LinkageError e) {
+            // no IDE: not kept
+        }
+    }
 
     /** {@code items} left (or above), {@code answer} right (or below), in a box with a border; while
      *  {@code list} has no item the answer panel is gone and the items take the whole width. */
     static JPanel create(JList<?> list, JComponent items, JComponent answer) {
-        JPanel box = new JPanel(new BorderLayout());
+        return create(list, items, answer, null);
+    }
+
+    /** The same, {@code pinned} (the Save row) under the answer, always in sight while the answer scrolls. */
+    static JPanel create(JList<?> list, JComponent items, JComponent answer, JComponent pinned) {
+        JPanel box = new JPanel(new BorderLayout(0, 6));
         box.setName("archvow.answer");
         box.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(ArchvowMotion.blend(UIManager.getColor("Panel.background"),
                 UIManager.getColor("Label.foreground"), .18), 1, true),
             BorderFactory.createEmptyBorder(8, 10, 8, 10)));
         box.add(answer, BorderLayout.CENTER);
+        if (pinned != null) {
+            JPanel bottom = new JPanel(new BorderLayout());
+            bottom.setName("archvow.answer.pinned");
+            bottom.setOpaque(false);
+            bottom.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, ArchvowMotion.blend(UIManager.getColor("Panel.background"),
+                    UIManager.getColor("Label.foreground"), .14)),
+                BorderFactory.createEmptyBorder(6, 0, 0, 0)));
+            bottom.add(pinned, BorderLayout.CENTER);
+            box.add(bottom, BorderLayout.SOUTH);
+        }
         JPanel panel = new JPanel(new Layout());
+        Bar bar = new Bar(panel);
         panel.add(items);
+        panel.add(bar);
         panel.add(box);
         Runnable follow = () -> {
             boolean any = list.getModel().getSize() > 0;
             if (box.isVisible() == any) return;
             box.setVisible(any);
+            bar.setVisible(any);
             panel.revalidate();
             panel.repaint();
         };
         onChange(list, follow);
         follow.run();
         return panel;
+    }
+
+    /** The bar between the list and the answer: dragged, or double-clicked for half and half. */
+    static final class Bar extends JComponent {
+        private boolean over;
+
+        Bar(JPanel split) {
+            setName("archvow.split.bar");
+            setToolTipText(ArchvowI18n.text(null, "Drag to resize · double-click: half and half", "Glisser pour redimensionner · double-clic : moitié-moitié"));
+            java.awt.event.MouseAdapter mouse = new java.awt.event.MouseAdapter() {
+                @Override public void mouseEntered(java.awt.event.MouseEvent e) { over = true; repaint(); }
+                @Override public void mouseExited(java.awt.event.MouseEvent e) { over = false; repaint(); }
+                @Override public void mouseDragged(java.awt.event.MouseEvent e) {
+                    Point at = SwingUtilities.convertPoint(Bar.this, e.getPoint(), split);
+                    drag(split, at.x, at.y);
+                }
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (e.getClickCount() == 2) { fraction = 0.5; top = 0; keep(); split.revalidate(); split.repaint(); }
+                }
+                @Override public void mouseReleased(java.awt.event.MouseEvent e) { keep(); }
+            };
+            addMouseListener(mouse);
+            addMouseMotionListener(mouse);
+        }
+
+        @Override protected void paintComponent(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            try {
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                boolean across = getWidth() > getHeight();
+                Color line = over ? new Color(0x35, 0x74, 0xF0) : ArchvowMotion.blend(UIManager.getColor("Panel.background"),
+                    UIManager.getColor("Label.foreground"), .2);
+                g.setColor(line);
+                if (across) {
+                    g.fillRect(0, getHeight() / 2 - 1, getWidth(), 2);
+                    g.fillRoundRect(getWidth() / 2 - 14, getHeight() / 2 - 4, 28, 8, 6, 6);
+                } else {
+                    g.fillRect(getWidth() / 2 - 1, 0, 2, getHeight());
+                    g.fillRoundRect(getWidth() / 2 - 4, getHeight() / 2 - 14, 8, 28, 6, 6);
+                    g.setColor(Color.WHITE);
+                    for (int i = 0; i < 4; i++) g.fillRect(getWidth() / 2 - 1, getHeight() / 2 - 9 + i * 5, 2, 2);
+                }
+            } finally {
+                g.dispose();
+            }
+        }
+    }
+
+    /** The bar dragged to (x, y) of the split: the list's width (side by side) or height (stacked). */
+    static void drag(JPanel split, int x, int y) {
+        Insets in = split.getInsets();
+        int width = split.getWidth() - in.left - in.right;
+        int height = split.getHeight() - in.top - in.bottom;
+        if (sideBySide(width)) fraction = Math.max(0.05, Math.min(0.95, (double) (x - in.left) / Math.max(1, width)));
+        else top = Math.max(80, Math.min(height - 160, y - in.top));
+        Component bar = split.getComponent(1);
+        bar.setCursor(Cursor.getPredefinedCursor(sideBySide(width) ? Cursor.E_RESIZE_CURSOR : Cursor.N_RESIZE_CURSOR));
+        split.revalidate();
+        split.repaint();
     }
 
     /**
@@ -87,7 +192,8 @@ final class ArchvowSplitView {
         return width >= SIDE_BY_SIDE;
     }
 
-    /** Side by side: half each, the whole height. Stacked: the items at their height (at most 2/5), the answer under them. */
+    /** Side by side: the list's share of the width (at least 240 px, the answer at least 320), the whole height.
+     *  Stacked: the list at its height (or where the bar was left; at most 2/5 by default), the answer under it. */
     private static final class Layout implements LayoutManager {
         @Override public void addLayoutComponent(String name, Component comp) { }
         @Override public void removeLayoutComponent(Component comp) { }
@@ -95,8 +201,8 @@ final class ArchvowSplitView {
         @Override public Dimension preferredLayoutSize(Container parent) {
             Insets in = parent.getInsets();
             Dimension items = parent.getComponent(0).getPreferredSize();
-            Dimension answer = parent.getComponent(1).getPreferredSize();
-            return new Dimension(items.width + GAP + answer.width + in.left + in.right,
+            Dimension answer = parent.getComponent(2).getPreferredSize();
+            return new Dimension(items.width + BAR + answer.width + in.left + in.right,
                 Math.max(items.height, answer.height) + in.top + in.bottom);
         }
 
@@ -105,25 +211,33 @@ final class ArchvowSplitView {
         }
 
         @Override public void layoutContainer(Container parent) {
-            if (parent.getComponentCount() < 2) return;
+            if (parent.getComponentCount() < 3) return;
             Insets in = parent.getInsets();
             int x = in.left;
             int y = in.top;
             int width = Math.max(0, parent.getWidth() - in.left - in.right);
             int height = Math.max(0, parent.getHeight() - in.top - in.bottom);
             Component items = parent.getComponent(0);
-            Component answer = parent.getComponent(1);
+            Component bar = parent.getComponent(1);
+            Component answer = parent.getComponent(2);
             if (!answer.isVisible()) {
                 // no item: "Nothing to display." over the whole view
                 items.setBounds(x, y, width, height);
+                bar.setBounds(0, 0, 0, 0);
             } else if (sideBySide(width)) {
-                int left = (width - GAP) / 2;
+                int left = (int) Math.round(width * fraction);
+                left = Math.max(MIN_LIST, Math.min(width - BAR - MIN_ANSWER, left));
                 items.setBounds(x, y, left, height);
-                answer.setBounds(x + left + GAP, y, width - left - GAP, height);
+                bar.setBounds(x + left, y, BAR, height);
+                bar.setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+                answer.setBounds(x + left + BAR, y, width - left - BAR, height);
             } else {
-                int top = Math.min(items.getPreferredSize().height, Math.max(120, height * 2 / 5));
-                items.setBounds(x, y, width, top);
-                answer.setBounds(x, y + top + GAP, width, Math.max(0, height - top - GAP));
+                int first = top > 0 ? top : Math.min(items.getPreferredSize().height, Math.max(120, height * 2 / 5));
+                first = Math.max(60, Math.min(Math.max(60, height - 160), first));
+                items.setBounds(x, y, width, first);
+                bar.setBounds(x, y + first, width, 12);
+                bar.setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
+                answer.setBounds(x, y + first + 12, width, Math.max(0, height - first - 12));
             }
         }
     }

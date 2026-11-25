@@ -156,3 +156,31 @@ assert.match(chain.app.innerHTML, /rules: TEAM/);
 assert.match(chain.app.innerHTML, /data-command="template update"/);
 assert.match(chain.app.innerHTML, /data-command="template question"[^>]*data-templatename="project"|data-templatename="project"[^>]*data-command="template question"/);
 console.log('Templates chain and sources: OK');
+
+// 1.2.0: Draft with AI - the icon in the answer box, one of the project's AI assistants, the draft marked, saved as the person's
+const drafting = make('editor');
+const aiDrafts = { on: true, why_not: null, tools: [{ name: 'claude-code', title: 'Claude Code', program: 'claude', installed: true },
+  { name: 'codex', title: 'OpenAI Codex', program: 'codex', installed: false }] };
+drafting.message({ type: 'state', state: { ...state, aiTools: ['claude-code', 'codex'], aiDrafts } });
+drafting.message({ type: 'select', component: 'schema' });
+assert.match(drafting.app.innerHTML, /data-a="draftRun" data-key="d:schema:1"/, 'the icon in the decision box');
+assert.match(drafting.app.innerHTML, /Draft an answer with Claude Code - you read it and save it/, 'the hover names the AI');
+drafting.click('draftMenu', { key: 'd:schema:1' });
+assert.match(drafting.app.innerHTML, /data-a="draftWith"[^>]*data-tool="codex" disabled/, 'a tool not installed is greyed');
+assert.match(drafting.app.innerHTML, /Copy the prompt instead/);
+drafting.click('draftRun', { key: 'd:schema:1' });
+assert.equal(JSON.stringify(drafting.posted.at(-1)), JSON.stringify({ type: 'draft', key: 'd:schema:1', component: 'schema', ref: '1', tool: 'claude-code' }));
+assert.match(drafting.app.innerHTML, /draft-spin/, 'drafting: the icon spins');
+drafting.message({ type: 'drafted', key: 'd:schema:1', draft: 'id: not null', tool: 'claude-code', title: 'Claude Code' });
+assert.match(drafting.app.innerHTML, /AI draft · Claude Code/, 'the draft is marked');
+assert.match(drafting.app.innerHTML, />id: not null<\/textarea>/, 'the draft in the box');
+assert.equal(drafting.posted.filter(m => m.type === 'inline').length, 0, 'nothing saved by a draft');
+drafting.click('decide', { action: 'decision make' });
+const saved = drafting.posted.at(-1);
+assert.equal(saved.type, 'inline');
+assert.equal(JSON.stringify(saved.drafted), JSON.stringify({ tool: 'claude-code', title: 'Claude Code', unchanged: true }), 'saved as the person\'s, from a draft');
+drafting.message({ type: 'state', state: { ...state, aiDrafts: { ...aiDrafts, on: false } } });
+drafting.message({ type: 'select', component: 'schema' });
+assert.match(drafting.app.innerHTML, /AI drafts are off for this project/, 'off: the hover says why');
+assert.match(drafting.app.innerHTML, /data-a="draftRun"[^>]*disabled/, 'off: the icon greyed');
+console.log('Draft with AI: icon, menu, draft marked, saved as the person\'s, off for the project: OK');

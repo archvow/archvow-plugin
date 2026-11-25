@@ -1,6 +1,6 @@
 name: fastapi-service
-version: 3.1.0                  # archvow's templates carry its version
-archvow: ">=3.1,<4"
+version: 3.2.0                  # archvow's templates carry its version
+archvow: ">=3.2,<4"
 languages: [en, fr]
 extends: python-base
 # What it does not take from python-base's shared guidance: a Pydantic model is validated, not frozen.

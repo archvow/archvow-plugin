@@ -25,7 +25,7 @@ function load(names: string[], ui: Json, french = false): Json {
     assert.ok(found, `${name} is in the page`);
     return found;
   }).join('\n');
-  const body = `const fr = () => ${french}; ${sources}; return { ${names.join(', ')} };`;
+  const body = `const fr = () => ${french}; const splitSize = { left: '50%', top: '40vh' }; ${sources}; return { ${names.join(', ')} };`;
   return new Function('ui', body)(ui);
 }
 

@@ -91,7 +91,7 @@
        (<code>~/.local/bin</code>, <code>/opt/homebrew/bin</code>, <code>/usr/local/bin</code>). On Windows, a Python in
        WSL works. <b>Test</b> in the settings shows which one answered, or what each said.</p>
 
-    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; <b>this plugin works with archvow &gt;=3.1,&lt;4</b> (tested with 3.1.0, contract 3.0), in Python 3.11+ - the header of
+    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; <b>this plugin works with archvow &gt;=3.2,&lt;4</b> (tested with 3.2.0, contract 3.0), in Python 3.11+ - the header of
        the tool window says it.
        <b>Languages:</b> English (default) and French. The same workspace exists for VS Code.</p>
   ]]></description>
@@ -122,7 +122,8 @@
     <toolWindow id="Archvow" anchor="left" icon="/icons/archvowToolWindow.svg"
                 factoryClass="org.archvow.idea.ArchvowToolWindowFactory"/>
     <!-- The session log opens only when its existing header button is clicked. -->
-    <toolWindow id="Archvow Output" anchor="bottom" icon="/icons/archvowToolWindow.svg"
+    <!-- 1.2.0: its own icon, the Y with log lines, so the two windows tell apart -->
+    <toolWindow id="Archvow Output" anchor="bottom" icon="/icons/archvowOutput.svg"
                 factoryClass="org.archvow.idea.ArchvowOutputToolWindowFactory"/>
     <editorTabTitleProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>
     <fileIconProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>

@@ -288,6 +288,8 @@ export interface WorkspaceAnswer {
   templates: Record<string, unknown>[];
   /** Contract 2.1: the first steps of a new project, each `{step, title, detail, command, done}` (the Overview's card). */
   firstSteps: Record<string, unknown>[];
+  /** 1.2.0 (archvow 3.2): Draft with AI - `{on, why_not, tools: [{name, title, program, installed}]}`, null before. */
+  aiDrafts: Record<string, unknown> | null;
 }
 
 /**
@@ -313,7 +315,8 @@ export function readWorkspace(answer: Record<string, unknown> | null): Workspace
     briefStatus: record(answer.briefs), catalog: record(answer.catalog),
     features: Object.fromEntries(Object.entries(record(answer.features) ?? {}).map(([k, v]) => [k, record(v)]).filter(([, v]) => v !== null)) as Record<string, Record<string, unknown>>,
     templates: Array.isArray(answer.templates) ? (answer.templates as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [],
-    firstSteps: Array.isArray(answer.first_steps) ? (answer.first_steps as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [] };
+    firstSteps: Array.isArray(answer.first_steps) ? (answer.first_steps as unknown[]).map(record).filter((p) => p !== null) as Record<string, unknown>[] : [],
+    aiDrafts: record(answer.ai_drafts) };
 }
 
 /** "1.23.0" from the contract's version.txt ("archvow 1.23.0"): the archvow the plugin is tested with and installs. */

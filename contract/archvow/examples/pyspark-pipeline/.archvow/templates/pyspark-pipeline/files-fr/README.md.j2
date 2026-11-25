@@ -184,14 +184,14 @@ n'écrit jamais de code source, et ne se lance qu'une fois : les développeurs c
 toute la chaîne, de l'entrée au point d'entrée :
 
 ```bash
-archvow component add reader sales -d "Lire les fichiers CSV des ventes au chemin donné, avec une ligne d'en-tête" -s {{ ticket(1) }}
-archvow component add schema sales -d "id string not null, montant double >= 0, date_effet date not null, commentaire string" -s {{ ticket(1) }}
+archvow component add reader sales -d "Lire les fichiers CSV des ventes au chemin donné, avec une ligne d'en-tête" --ticket {{ ticket(1) }}
+archvow component add schema sales -d "id string not null, montant double >= 0, date_effet date not null, commentaire string" --ticket {{ ticket(1) }}
 archvow component edit sales_reader -u sales_schema
-archvow component add transformation clean_sales -d "Garder les lignes où montant > 0, puis la somme de montant par date_effet, nommée chiffre_affaires" -s {{ ticket(1) }}
-archvow component add schema revenue -d "date_effet date not null, chiffre_affaires double not null" -s {{ ticket(1) }}
-archvow component add writer revenue -d "Écrire le chiffre d'affaires par jour en parquet, en remplaçant la sortie" -u revenue_schema -s {{ ticket(1) }}
-archvow component add job {{ package }} -d "Lire les ventes, les nettoyer, écrire le chiffre d'affaires" -u sales_reader,clean_sales,revenue_writer -s {{ ticket(1) }}
-archvow component add entrypoint {{ package }} -d "Ligne de commande : --input-path CHEMIN (le dossier des ventes), --output-path CHEMIN (le dossier du chiffre d'affaires)" -u {{ package }}_job -s {{ ticket(1) }}
+archvow component add transformation clean_sales -d "Garder les lignes où montant > 0, puis la somme de montant par date_effet, nommée chiffre_affaires" --ticket {{ ticket(1) }}
+archvow component add schema revenue -d "date_effet date not null, chiffre_affaires double not null" --ticket {{ ticket(1) }}
+archvow component add writer revenue -d "Écrire le chiffre d'affaires par jour en parquet, en remplaçant la sortie" -u revenue_schema --ticket {{ ticket(1) }}
+archvow component add job {{ package }} -d "Lire les ventes, les nettoyer, écrire le chiffre d'affaires" -u sales_reader,clean_sales,revenue_writer --ticket {{ ticket(1) }}
+archvow component add entrypoint {{ package }} -d "Ligne de commande : --input-path CHEMIN (le dossier des ventes), --output-path CHEMIN (le dossier du chiffre d'affaires)" -u {{ package }}_job --ticket {{ ticket(1) }}
 archvow show sales_schema                # ses décisions : colonnes nullables, données personnelles...
 ```
 
@@ -311,7 +311,7 @@ SPARK_MASTER="local[*]" ./entrypoint.sh {{ package }} <ses arguments>   # cette 
 | vérifier toute une fonctionnalité avant de coder (où ses composants ne concordent pas) | `archvow prompt --feature <fonctionnalité> --clarify` (dans le chat : `/archvow-clarify <fonctionnalité>`) |
 | écarter une question de sûreté qui ne s'applique pas | `archvow hazard dismiss sales_reader S4 "le job ne lit que le fichier qu'on lui donne"` |
 | voir tout sur un composant | `archvow show sales_reader` |
-| enregistrer un exemple métier (fichiers dans `tests/examples/clean_sales/<exemple>/`) | `archvow example add clean_sales {{ ticket(1) }}-negative-amount -s {{ ticket(1) }} --from briefs/<brief>.md#<section>` ; `archvow show clean_sales` donne le verdict de son test et où `actual/` diffère d'`expected/` |
+| enregistrer un exemple métier (fichiers dans `tests/examples/clean_sales/<exemple>/`) | `archvow example add clean_sales {{ ticket(1) }}-negative-amount --ticket {{ ticket(1) }} --from briefs/<brief>.md#<section>` ; `archvow show clean_sales` donne le verdict de son test et où `actual/` diffère d'`expected/` |
 | trouver un nom partout (une fonction, une colonne, un ticket, un exemple) | `archvow show <nom>` : la spec, le code, les tests, les briefs, les problèmes qui le nomment |
 | répondre à ce qui est ouvert, une question à la fois | `archvow specify sales_reader` (dans un terminal) |
 | laisser l'IA proposer les risques d'un composant | dans le chat : `/archvow-analyze sales_reader` |
