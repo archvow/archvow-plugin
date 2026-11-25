@@ -5,8 +5,8 @@
 # Python), ci_java (CI needs Java), rules_label (how CI names its rules), ruff_select; install_command and
 # cov_option come from the engine.
 name: python-base
-version: 3.3.0                  # archvow's templates carry its version
-archvow: ">=3.3,<4"
+version: 3.4.0                  # archvow's templates carry its version
+archvow: ">=3.4,<4"
 languages: [en, fr]
 abstract: true
 language: python
@@ -80,18 +80,13 @@ questions:
     default: "no"
     default_from: {mode: {strict: "yes"}}   # yes in mode strict, no in guided and free
     choices: ["yes", "no"]
-  - id: ai_drafts
+  - id: ai_runs
     ask: true
-    prompt: "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)"
-    default: "yes"
-    default_from: {mode: {strict: "no"}}   # no in mode strict, yes in guided and free; change it with init --force
-    choices: ["yes", "no"]
-  - id: ai_skills
-    ask: true
-    prompt: "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)"
-    default: "yes"
-    default_from: {mode: {strict: "no"}}   # no in mode strict, yes in guided and free; change it with init --force
-    choices: ["yes", "no"]
+    prompt: "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox"
+    default: "drafts,skills"
+    default_from: {mode: {strict: "none"}}   # none in mode strict, both in guided and free; change it with init --force
+    multiple: true
+    choices: ["drafts", "skills", "none"]
   - id: rules
     ask: true
     prompt: "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose"

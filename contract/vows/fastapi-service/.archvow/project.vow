@@ -17,6 +17,7 @@ container orders_api
 rules {}
 language en
 ai_tools [copilot]
+ai_runs []
 dependencies []
 init_answers
   language en
@@ -28,8 +29,6 @@ init_answers
   sonar no
   auto_approve yes
   sandbox yes
-  ai_drafts no
-  ai_skills no
   briefs briefs
   max_components ""
   max_code_lines ""
@@ -43,10 +42,10 @@ mode strict
 families [all]
 templates
   fastapi-service
-    version 3.3.0
+    version 3.4.0
     source archvow
-    digest 6884f344604e
+    digest 746c0a79cc83
   python-base
-    version 3.3.0
+    version 3.4.0
     source archvow
-    digest 152d636dc062
+    digest ac17c0d90ee2

@@ -126,7 +126,7 @@ complete application, from the empty project to a run: archvow's documentation, 
 
 ```bash
 archvow init invoicing -t python-app -d 'Marks invoices paid, from the command line' \
-    -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@acme/architects -a sonar=no -a auto_approve=yes -a sandbox=yes -a ai_drafts=no -a ai_skills=no -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,GDPR,TST
+    -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@acme/architects -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a ai_tools=claude-code -a mode=strict -a ai_runs=none -a rules=ARCH,STYLE,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
 git switch -c develop                            # once, from main

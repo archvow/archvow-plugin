@@ -198,7 +198,7 @@ public final class ResponsiveViewsRegression {
             List.of(), assistants, null, "main", c -> null, false, new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });
         failed.showEnded(new ArchvowSkillForm.Ended("failed", "Claude Code stopped (exit 1): Not logged in. Please run /login.", false, true), false, "config");
         ArchvowSkillForm off = new ArchvowSkillForm(skills, "clarify", Map.of("component", "config"), List.of("config"),
-            List.of(), assistants, "AI skill runs are off in this project: an architect turns them on (ai_skills in project.vow).", "main",
+            List.of(), assistants, "archvow does not start AI skill runs in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds skills: archvow init <package> --force -a ai_runs=skills", "main",
             c -> null, false, new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });
         ArchvowSkillForm implement = new ArchvowSkillForm(skills, "implement", Map.of("component", "config"), List.of("config"),
             List.of(), assistants, null, "main", c -> null, false, new SkillFormRegression.TestHost(), (text, values) -> { }, () -> { });

@@ -224,7 +224,7 @@ final class ArchvowPanel extends JPanel {
     private String installReason = "";
     /** The installed archvow against the plugin's range (1.0.0): the header, the sentence, the version Install puts. */
     private ArchvowCompat.Compatibility compat = new ArchvowCompat.Compatibility("ok", "", "");
-    /** "archvow 3.3.0 ✓ · this plugin works with archvow >=3.3,<4": atop the Overview and the welcome page. */
+    /** "archvow 3.4.0 ✓ · this plugin works with archvow >=3.4,<4": atop the Overview and the welcome page. */
     private final JLabel compatHeader = new JLabel("");
     private boolean installing;
     private ArchvowProjectReadiness.Status projectStatus;

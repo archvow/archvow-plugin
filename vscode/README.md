@@ -144,9 +144,9 @@ Show the archvow log, Copy the archvow log for support.
 ## Requirements
 
 - VS Code 1.90 or later.
-- **The ArchVow CLI: this extension works with archvow >=3.3,<4** (tested with 3.3.0, contract 3.0), in a Python
-  3.11+ environment. The header of the workspace says it (`archvow 3.3.0 ✓ · this plugin works with archvow
-  >=3.3,<4`); an archvow outside it is said, with what to do - and a project pinned to an older archvow is never
+- **The ArchVow CLI: this extension works with archvow >=3.4,<4** (tested with 3.4.0, contract 3.0), in a Python
+  3.11+ environment. The header of the workspace says it (`archvow 3.4.0 ✓ · this plugin works with archvow
+  >=3.4,<4`); an archvow outside it is said, with what to do - and a project pinned to an older archvow is never
   installed over.
 - Optional: the Python extension, to use the project's interpreter.
 

@@ -89,9 +89,22 @@ public final class DraftBoxRegression {
         // before archvow 3.2 (no ai_drafts): no icon at all
         check(box.tools().isEmpty() && box.tip().isEmpty(), "no ai_drafts, no Draft with AI");
         // off for the project: the icon says why
-        page.drafts = json("{\"on\": false, \"why_not\": \"off\", \"tools\": [{\"name\": \"claude-code\", \"title\": \"Claude Code\", \"program\": \"claude\", \"installed\": true}]}");
+        page.drafts = json("{\"on\": false, \"why_not\": null, \"tools\": [{\"name\": \"claude-code\", \"title\": \"Claude Code\", \"program\": \"claude\", \"installed\": true}]}");
         box.refresh();
-        check(box.tip().startsWith("AI drafts are off for this project"), "off: " + box.tip());
+        check(box.tip().startsWith("archvow does not start AI drafts in this project (ai_runs"), "off: " + box.tip());
+        // 1.4.0: on for the project, but a sandbox is needed and archvow is not in one: archvow's reason, said on a click
+        String sandboxed = "this project runs AI agents only in a sandbox (sandbox yes), and archvow is not in one here - copy the instructions to the agent you run there";
+        page.drafts = json("{\"on\": true, \"why_not\": \"" + sandboxed + "\", \"tools\": [{\"name\": \"claude-code\", \"title\": \"Claude Code\", \"program\": \"claude\", \"installed\": true}]}");
+        box.refresh();
+        check(box.tip().equals(sandboxed), "archvow's reason: " + box.tip());
+        javax.swing.JPopupMenu why = box.menu();
+        boolean said = false, prompt = false, runs = false;
+        for (java.awt.Component c : why.getComponents()) {
+            if (c instanceof javax.swing.JLabel l && "archvow.draft.why".equals(l.getName())) said = l.getText().contains("only in a sandbox (sandbox yes)");
+            if (c instanceof javax.swing.JMenuItem item && item.getText().contains("Copy the prompt instead")) prompt = true;
+            if (c instanceof javax.swing.JMenuItem item && item.getText().contains("Claude Code")) runs = true;
+        }
+        check(said && prompt && !runs, "a click says why, in words, with the prompt instead and no AI to pick");
         // on: the first of the project's AI tools installed here drafts; the hover names it
         page.drafts = json("{\"on\": true, \"tools\": [{\"name\": \"codex\", \"title\": \"OpenAI Codex\", \"program\": \"codex\", \"installed\": false},"
             + " {\"name\": \"claude-code\", \"title\": \"Claude Code\", \"program\": \"claude\", \"installed\": true}]}");

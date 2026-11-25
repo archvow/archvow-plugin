@@ -1463,7 +1463,7 @@
   <p>${esc(pair(def.does))}</p>${blocked ? `<div class="alert warn">${esc(pair(blocked))}</div>` : ''}
   <div class="form-grid skill-grid"><div><section class="guided-panel">${controls.join('')}</section>
   <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'link')}${skillActions(id, key, ready && !blocked)}</div>
-  ${skillRunState(key)}</div>${right}</div></div>`;
+  ${runWhy(id)}${skillRunState(key)}</div>${right}</div></div>`;
   }
 
   /** What the skill works on: the component, the brief, or the branch's change (review). */
@@ -1485,6 +1485,20 @@
   function reviewTools() { return Array.isArray(S.reviewers) ? S.reviewers.filter((x) => x && typeof x.name === 'string') : []; }
 
   /** ▶ Run with <AI> ▾ (a spec skill), ▶ Review with <reviewer> ▾ (review), or the handoff to your agent (implement). */
+  /** 1.4.0: why archvow starts no run here, written under the buttons (not only in their hover). */
+  function runWhy(id) {
+    if (id === 'implement') return '';
+    const why = runOff(id === 'review');
+    return why ? `<p class="run-why small"><span class="codicon">ⓘ</span> ${esc(why)}</p>` : '';
+  }
+
+  /** archvow's own reason (workspace ai_skills.why_not: not in ai_runs, a sandbox needed), or no reviewer approved. */
+  function runOff(review) {
+    if (review) return reviewTools().length ? '' : t('No reviewer approved: an architect approves one at init (archvow init <package> --force -a reviewers=codex).', 'Aucun relecteur approuvé : un architecte en approuve un à l\'init (archvow init <package> --force -a reviewers=codex).');
+    const skills = S.aiSkills || {};
+    return skills.why_not ? String(skills.why_not) : skills.on === false ? t('archvow does not start AI skill runs in this project (ai_runs in project.vow).', 'archvow ne lance pas de skills IA dans ce projet (ai_runs dans project.vow).') : '';
+  }
+
   function skillActions(id, key, ready) {
     const copy = (primary) => btn(t('Copy instructions', 'Copier les consignes'), 'askAi', attrs({ send: '0', format: 'instructions' }), !ready, primary ? '' : 'secondary');
     if (id === 'implement') {
@@ -1497,8 +1511,7 @@
     const tools = review ? reviewTools() : runTools();
     const tool = runTool(tools);
     const running = ui.skillRun && ui.skillRun.status === 'running';
-    const why = review ? (!tools.length ? t('No reviewer approved: an architect approves one at init (archvow init <package> --force -a reviewers=codex).', 'Aucun relecteur approuvé : un architecte en approuve un à l\'init (archvow init <package> --force -a reviewers=codex).') : '')
-      : ((S.aiSkills || {}).on === false || (S.aiSkills || {}).why_not ? String((S.aiSkills || {}).why_not || '') : '');
+    const why = runOff(review);
     const off = !!why || !ready || running;
     const name = tool ? tool.title : '';
     const label = review ? (name ? t(`▶ Review with ${name}`, `▶ Relire avec ${name}`) : t('▶ Review', '▶ Relire')) : (name ? t(`▶ Run with ${name}`, `▶ Lancer avec ${name}`) : t('▶ Run', '▶ Lancer'));
@@ -1973,19 +1986,22 @@
       return `<div class="draft-ai"><button class="draft-icon" data-a="draftAgain" data-key="${esc(key)}" title="${esc(t('Another draft', 'Un autre brouillon'))}">${AGAIN}</button>`
         + `<button class="draft-icon" data-a="draftDrop" data-key="${esc(key)}" title="${esc(t('Drop the draft: the box as it was', 'Abandonner le brouillon : la case comme avant'))}">×</button></div>`;
     }
-    const tip = !on ? t('AI drafts are off for this project - an architect turns them on (ai_drafts in project.vow).',
-      "Les brouillons IA sont désactivés pour ce projet - un architecte les active (ai_drafts dans project.vow).")
+    // 1.4.0: archvow's reason (not in ai_runs, or a sandbox needed): ✦ and ▾ open it in words, with Copy the prompt
+    const why = on ? String(S.aiDrafts.why_not || '') : String(S.aiDrafts.why_not || t('archvow does not start AI drafts in this project (ai_runs in project.vow).', 'archvow ne lance pas de brouillons IA dans ce projet (ai_runs dans project.vow).'));
+    const tip = why ? why
       : tool ? t(`Draft an answer with ${tool.title} - you read it and save it. ▾ another AI`, `Rédiger un brouillon avec ${tool.title} - tu le relis et l'enregistres. ▾ une autre IA`)
         : t(`None of this project's AI assistants is on this machine (${draftTools().map((x) => x.program).join(', ') || '-'}). ▾ Copy the prompt instead.`,
           `Aucun assistant IA de ce projet n'est sur cette machine (${draftTools().map((x) => x.program).join(', ') || '-'}). ▾ Copier le prompt à la place.`);
-    const menu = ui.aiMenuKey === key ? `<div class="draft-menu" role="menu"><div class="draft-menu-head">${esc(t("This project's AI assistants", 'Les assistants IA de ce projet'))}</div>`
-      + draftTools().map((x) => `<button role="menuitem" class="${tool && x.name === tool.name ? 'current' : ''}" data-a="draftWith" data-key="${esc(key)}" data-tool="${esc(x.name)}" ${x.installed ? '' : `disabled title="${esc(draftMissing(x.program))}"`}>`
-        + `<span class="check">${tool && x.name === tool.name ? '✓' : ''}</span>${esc(x.title)}<span class="src">${esc(x.installed ? x.program : t(`no ${x.program} command`, `pas de commande ${x.program}`))}</span></button>`).join('')
-      + `<hr><button role="menuitem" data-a="draftPrompt" data-key="${esc(key)}"><span class="check"></span>${esc(t('Copy the prompt instead', 'Copier le prompt à la place'))}</button></div>` : '';
-    const off = !on || disabled;
+    const items = why ? `<div class="draft-why">${esc(why)}</div>`
+      : `<div class="draft-menu-head">${esc(t("This project's AI assistants", 'Les assistants IA de ce projet'))}</div>`
+        + draftTools().map((x) => `<button role="menuitem" class="${tool && x.name === tool.name ? 'current' : ''}" data-a="draftWith" data-key="${esc(key)}" data-tool="${esc(x.name)}" ${x.installed ? '' : `disabled title="${esc(draftMissing(x.program))}"`}>`
+          + `<span class="check">${tool && x.name === tool.name ? '✓' : ''}</span>${esc(x.title)}<span class="src">${esc(x.installed ? x.program : t(`no ${x.program} command`, `pas de commande ${x.program}`))}</span></button>`).join('') + '<hr>';
+    const menu = ui.aiMenuKey === key ? `<div class="draft-menu" role="menu">${items}`
+      + `<button role="menuitem" data-a="draftPrompt" data-key="${esc(key)}"><span class="check"></span>${esc(t('Copy the prompt instead', 'Copier le prompt à la place'))}</button></div>` : '';
+    const off = !!why || disabled;
     return `<div class="draft-ai"><span class="draft-split${off ? ' off' : ''}" data-tip="${esc(tip)}">`
-      + `<button class="draft-icon" data-a="draftRun" data-key="${esc(key)}" aria-label="${esc(tip)}" ${off || !tool ? 'disabled' : ''}>${SPARK}</button>`
-      + `<button class="draft-caret" data-a="draftMenu" data-key="${esc(key)}" aria-label="${esc(t('Choose the AI', "Choisir l'IA"))}" ${off ? 'disabled' : ''}>▾</button></span>${menu}</div>`;
+      + `<button class="draft-icon" data-a="${why && !disabled ? 'draftMenu' : 'draftRun'}" data-key="${esc(key)}" aria-label="${esc(tip)}" ${disabled || (!why && !tool) ? 'disabled' : ''}>${SPARK}</button>`
+      + `<button class="draft-caret" data-a="draftMenu" data-key="${esc(key)}" aria-label="${esc(why ? t('Why not here', 'Pourquoi pas ici') : t('Choose the AI', "Choisir l'IA"))}" ${disabled ? 'disabled' : ''}>▾</button></span>${menu}</div>`;
   }
 
   function answerEditor(key, initial, placeholder, secondary, save, target, disabled = false) {
@@ -2753,7 +2769,7 @@
         if (matching.length) stages.push({ title: t(en, fr), names: [], questions: matching });
       };
       qStage('Governance', 'Gouvernance', ['language', 'architects', 'mode', 'sandbox', 'rules', 'auto_approve']);
-      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'ai_drafts', 'ai_skills', 'reviewers', 'briefs', 'ticket_pattern']);
+      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'ai_runs', 'reviewers', 'briefs', 'ticket_pattern']);
       qStage('CI & quality', 'CI et qualité', ['platform', 'ci', 'sonar', 'git_hooks', 'branch_naming', 'line_length']);
       qStage('Runtime', 'Exécution', ['python_version', 'spark_version', 'fastapi_version', 'scheduler', 'dependencies']);
       qStage('Limits & integration', 'Limites et intégration', ['max_components', 'max_code_lines', 'pip_index_url', 'ci_image']);

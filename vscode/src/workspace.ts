@@ -120,7 +120,7 @@ export class ArchvowProject {
   readonly known: string;
   /** The contract the plugin speaks ("1.3", contract/cli/contract.txt). */
   readonly contract: string;
-  /** The archvow versions the plugin works with (">=3.3,<4", contract/archvow-range.txt, 1.0.0). */
+  /** The archvow versions the plugin works with (">=3.4,<4", contract/archvow-range.txt, 1.0.0). */
   readonly range: ArchvowRange;
   /** How each command's form is laid out (contract/forms/forms.json): labels, essentials, verbs. */
   private readonly forms: Json;

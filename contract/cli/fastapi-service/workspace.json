@@ -578,6 +578,7 @@
     "ai_tools": [
       "copilot"
     ],
+    "ai_runs": [],
     "dependencies": [],
     "init_answers": {
       "language": "en",
@@ -589,8 +590,6 @@
       "sonar": "no",
       "auto_approve": "yes",
       "sandbox": "yes",
-      "ai_drafts": "no",
-      "ai_skills": "no",
       "briefs": "briefs",
       "max_components": "",
       "max_code_lines": "",
@@ -610,14 +609,14 @@
     ],
     "templates": {
       "fastapi-service": {
-        "version": "3.3.0",
+        "version": "3.4.0",
         "source": "archvow",
-        "digest": "6884f344604e"
+        "digest": "746c0a79cc83"
       },
       "python-base": {
-        "version": "3.3.0",
+        "version": "3.4.0",
         "source": "archvow",
-        "digest": "152d636dc062"
+        "digest": "ac17c0d90ee2"
       }
     },
     "features": [
@@ -3427,7 +3426,7 @@
     "templates": [
       {
         "name": "fastapi-service",
-        "version": "3.3.0",
+        "version": "3.4.0",
         "default": false,
         "chain": [
           "python-base",
@@ -3622,38 +3621,22 @@
             "multiple": false
           },
           {
-            "id": "ai_drafts",
+            "id": "ai_runs",
             "ask": true,
-            "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
-            "default": "yes",
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
             "default_from": {
               "mode": {
-                "strict": "no"
+                "strict": "none"
               }
             },
+            "multiple": true,
             "choices": [
-              "yes",
-              "no"
+              "drafts",
+              "skills",
+              "none"
             ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ai_skills",
-            "ask": true,
-            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
-            "default": "yes",
-            "default_from": {
-              "mode": {
-                "strict": "no"
-              }
-            },
-            "choices": [
-              "yes",
-              "no"
-            ],
-            "required": false,
-            "multiple": false
+            "required": false
           },
           {
             "id": "rules",
@@ -4000,7 +3983,7 @@
       },
       {
         "name": "langgraph-agent",
-        "version": "3.3.0",
+        "version": "3.4.0",
         "default": false,
         "chain": [
           "python-base",
@@ -4195,38 +4178,22 @@
             "multiple": false
           },
           {
-            "id": "ai_drafts",
+            "id": "ai_runs",
             "ask": true,
-            "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
-            "default": "yes",
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
             "default_from": {
               "mode": {
-                "strict": "no"
+                "strict": "none"
               }
             },
+            "multiple": true,
             "choices": [
-              "yes",
-              "no"
+              "drafts",
+              "skills",
+              "none"
             ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ai_skills",
-            "ask": true,
-            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
-            "default": "yes",
-            "default_from": {
-              "mode": {
-                "strict": "no"
-              }
-            },
-            "choices": [
-              "yes",
-              "no"
-            ],
-            "required": false,
-            "multiple": false
+            "required": false
           },
           {
             "id": "rules",
@@ -4683,7 +4650,7 @@
       },
       {
         "name": "pyspark-pipeline",
-        "version": "3.3.0",
+        "version": "3.4.0",
         "default": false,
         "chain": [
           "python-base",
@@ -4878,38 +4845,22 @@
             "multiple": false
           },
           {
-            "id": "ai_drafts",
+            "id": "ai_runs",
             "ask": true,
-            "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
-            "default": "yes",
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
             "default_from": {
               "mode": {
-                "strict": "no"
+                "strict": "none"
               }
             },
+            "multiple": true,
             "choices": [
-              "yes",
-              "no"
+              "drafts",
+              "skills",
+              "none"
             ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ai_skills",
-            "ask": true,
-            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
-            "default": "yes",
-            "default_from": {
-              "mode": {
-                "strict": "no"
-              }
-            },
-            "choices": [
-              "yes",
-              "no"
-            ],
-            "required": false,
-            "multiple": false
+            "required": false
           },
           {
             "id": "rules",
@@ -5277,7 +5228,7 @@
       },
       {
         "name": "python-app",
-        "version": "3.3.0",
+        "version": "3.4.0",
         "default": true,
         "chain": [
           "python-base",
@@ -5472,38 +5423,22 @@
             "multiple": false
           },
           {
-            "id": "ai_drafts",
+            "id": "ai_runs",
             "ask": true,
-            "prompt": "Let the developers ask one of the approved AI assistants for a draft answer, from the IDE (yes = Draft with AI is offered on every answer; the person reads the draft and saves it as theirs, archvow notes it came from an AI draft)",
-            "default": "yes",
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
             "default_from": {
               "mode": {
-                "strict": "no"
+                "strict": "none"
               }
             },
+            "multiple": true,
             "choices": [
-              "yes",
-              "no"
+              "drafts",
+              "skills",
+              "none"
             ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ai_skills",
-            "ask": true,
-            "prompt": "Let a developer run an AI skill on the spec in the background - draft from a brief, find missing questions, find risks - with one of the approved AI assistants (yes = the IDE's Run button; what it adds is the AI's, To review; Implement and Review are never run this way)",
-            "default": "yes",
-            "default_from": {
-              "mode": {
-                "strict": "no"
-              }
-            },
-            "choices": [
-              "yes",
-              "no"
-            ],
-            "required": false,
-            "multiple": false
+            "required": false
           },
           {
             "id": "rules",
@@ -5807,9 +5742,9 @@
     "project_templates": [
       {
         "name": "fastapi-service",
-        "version": "3.3.0",
+        "version": "3.4.0",
         "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
-        "archvow": ">=3.3,<4",
+        "archvow": ">=3.4,<4",
         "languages": [
           "en",
           "fr"
@@ -5822,13 +5757,13 @@
         "rule_families": [],
         "regimes": [],
         "source": "archvow",
-        "digest": "6884f344604e"
+        "digest": "746c0a79cc83"
       },
       {
         "name": "python-base",
-        "version": "3.3.0",
+        "version": "3.4.0",
         "description": "Shared answers, guards and CI of the Python templates.",
-        "archvow": ">=3.3,<4",
+        "archvow": ">=3.4,<4",
         "languages": [
           "en",
           "fr"
@@ -5844,7 +5779,7 @@
           "us-privacy"
         ],
         "source": "archvow",
-        "digest": "152d636dc062"
+        "digest": "ac17c0d90ee2"
       }
     ],
     "agents": [
@@ -6411,9 +6346,9 @@
   "templates": [
     {
       "name": "fastapi-service",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
-      "archvow": ">=3.3,<4",
+      "archvow": ">=3.4,<4",
       "languages": [
         "en",
         "fr"
@@ -6431,9 +6366,9 @@
     },
     {
       "name": "python-base",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "description": "Shared answers, guards and CI of the Python templates.",
-      "archvow": ">=3.3,<4",
+      "archvow": ">=3.4,<4",
       "languages": [
         "en",
         "fr"
@@ -6494,9 +6429,10 @@
       "done": false
     }
   ],
+  "ai_runs": [],
   "ai_drafts": {
     "on": false,
-    "why_not": "AI drafts are off for this project (ai_drafts: no in project.vow) - an architect turns them on: archvow init <package> --force -a ai_drafts=yes",
+    "why_not": "archvow does not start AI drafts in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds drafts: archvow init <package> --force -a ai_runs=drafts",
     "tools": [
       {
         "name": "copilot",
@@ -6508,7 +6444,7 @@
   },
   "ai_skills": {
     "on": false,
-    "why_not": "AI skill runs are off for this project (ai_skills: no in project.vow) - an architect turns them on: archvow init <package> --force -a ai_skills=yes",
+    "why_not": "archvow does not start AI skill runs in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds skills: archvow init <package> --force -a ai_runs=skills",
     "runs": [
       "draft-spec",
       "clarify",

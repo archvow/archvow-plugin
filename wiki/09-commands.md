@@ -137,13 +137,13 @@ d'IntelliJ) : les cinq en mots simples. Chacun ouvre le **formulaire de lancemen
 consignes. Les consignes sont celles d'archvow (`archvow skill <skill> <cible> --prompt`) : aucun plugin n'écrit
 les siennes.
 
-**▶ Lancer avec <IA> ▾** (1.3.0, avec archvow 3.3 et `ai_skills: yes`) lance `archvow skill <skill> <cible> --with
+**▶ Lancer avec <IA> ▾** (1.3.0 ; avec archvow 3.4, `skills` dans les `ai_runs` du projet) lance `archvow skill <skill> <cible> --with
 <outil> --json` en arrière-plan (`background()` dans VS Code, `ArchvowCli.background` dans IntelliJ). Le nom sur
 le bouton est l'assistant IA du projet (`ai_skills.tools` dans `workspace --json`, venu de `ai_tools`) ; ▾ en
 choisit un autre, celui qui n'est pas sur cet ordinateur grisé avec sa commande. Pendant qu'il tourne, une bande
 dit qui fait quoi, avec Voir le journal et ■ Arrêter. À la fin : ce qui a été ajouté et **Les relire ›**, ou la
-raison donnée par l'outil. Quand archvow ne lance aucun skill ici (mode strict, un bac à sable), la raison est sur
-le bouton et Copier les consignes reste. **Implémenter** se transmet seulement (Copier, et Copier et ouvrir le chat
+raison donnée par l'outil. Quand archvow ne lance aucun skill ici (absent de `ai_runs`, ou un bac à sable demandé
+et archvow n'y est pas), sa raison est écrite sous les boutons (`runWhy()`, 1.4.0) et Copier les consignes reste. **Implémenter** se transmet seulement (Copier, et Copier et ouvrir le chat
 IA) : il écrit du code, donc il tourne dans l'agent de la personne. **Relire** lance `archvow review --with
 <relecteur>`, avec les `reviewers` approuvés du projet.
 

@@ -128,12 +128,13 @@ brief section for draft-spec), at most how many questions (clarify); on the righ
 may add, what the person still decides, and the instructions. The instructions are archvow's
 (`archvow skill <skill> <target> --prompt`): neither plugin writes its own.
 
-**▶ Run with <AI> ▾** (1.3.0, with archvow 3.3 and `ai_skills: yes`) runs `archvow skill <skill> <target> --with
+**▶ Run with <AI> ▾** (1.3.0; with archvow 3.4, `skills` in the project's `ai_runs`) runs `archvow skill <skill> <target> --with
 <tool> --json` in the background (`background()` in VS Code, `ArchvowCli.background` in IntelliJ). The name on the
 button is the project's AI assistant (`ai_skills.tools` in `workspace --json`, from `ai_tools`); ▾ picks another,
 one that is not on this computer greyed with its command. While it runs, a strip says who does what, with
 Show log and ■ Stop. At the end: what was added and **Review them ›**, or the tool's own reason. When archvow runs
-no skill here (strict mode, a sandbox), the reason is on the button and Copy instructions stays. **Implement** is
+no skill here (not in `ai_runs`, or a sandbox needed and archvow is not in one), archvow's reason is written under
+the buttons (`runWhy()`, 1.4.0) and Copy instructions stays. **Implement** is
 a handoff only (Copy, and Copy and open AI chat): it writes code, so it runs in the person's own agent.
 **Review** runs `archvow review --with <reviewer>`, with the project's approved `reviewers`.
 

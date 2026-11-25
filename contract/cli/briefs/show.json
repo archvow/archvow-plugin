@@ -364,6 +364,7 @@
   "ai_tools": [
     "claude-code"
   ],
+  "ai_runs": [],
   "dependencies": [],
   "compliance": [
     "gdpr",
@@ -383,8 +384,6 @@
     "sonar": "no",
     "auto_approve": "yes",
     "sandbox": "yes",
-    "ai_drafts": "no",
-    "ai_skills": "no",
     "briefs": "briefs,specs",
     "max_components": "",
     "max_code_lines": "",
@@ -395,14 +394,14 @@
   },
   "templates": {
     "python-app": {
-      "version": "3.3.0",
+      "version": "3.4.0",
       "source": "archvow",
-      "digest": "384404c5f963"
+      "digest": "6efb61e151d9"
     },
     "python-base": {
-      "version": "3.3.0",
+      "version": "3.4.0",
       "source": "archvow",
-      "digest": "152d636dc062"
+      "digest": "ac17c0d90ee2"
     }
   },
   "features": [

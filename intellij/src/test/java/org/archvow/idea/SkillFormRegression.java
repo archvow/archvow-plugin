@@ -179,14 +179,18 @@ public final class SkillFormRegression {
             if (item instanceof javax.swing.JMenuItem mi && mi.getText().contains("Claude Code")) mi.doClick();
         check(picked.kept.equals("claude-code") && other.run.getText().equals("▶ Run with Claude Code"), "a pick is kept");
         // off (strict, or a sandbox): the reason is on the button, Copy is still there
-        String off = "AI skill runs are off in this project (ai_skills: no).";
+        String off = "archvow does not start AI skill runs in this project (ai_runs [] in project.vow)";
         ArchvowSkillForm strict = new ArchvowSkillForm(skills, "clarify", Map.of("component", "clean_orders"), List.of("clean_orders"),
             List.of(), assistants, off, "main", c -> null, false, new TestHost(), (text, values) -> { }, () -> { });
         check(!strict.run.isEnabled() && strict.runTip().equals(off) && strict.copy.isEnabled(), "off: said on ▶, Copy still works");
+        check(strict.runWhy.isVisible() && strict.runWhy.getText().equals("ⓘ " + off), "1.4.0: and under the buttons, in words");
+        check(!clarify.runWhy.isVisible(), "on: nothing to say");
         // implement: a handoff only, never run by archvow; the form says why it waits, in French
         ArchvowSkillForm implement = new ArchvowSkillForm(skills, "implement", Map.of(), List.of("clean_orders"), List.of(),
             assistants, null, "main", c -> new String[] {"Not yet: 2 decisions still to make", "Pas encore : 2 décisions encore à prendre"},
             true, new TestHost(), (text, values) -> { }, () -> { });
+        check(!new ArchvowSkillForm(skills, "implement", Map.of(), List.of("clean_orders"), List.of(), assistants, off, "main",
+            c -> null, false, new TestHost(), (text, values) -> { }, () -> { }).runWhy.isVisible(), "Implement: archvow runs nothing, no reason");
         check(named(implement, "archvow.skill.run") == null && named(implement, "archvow.skill.actions") != null
             && !implement.copy.isEnabled() && !implement.openChat.isEnabled(), "implement: no run, and it waits");
         List<String> opened = new ArrayList<>();

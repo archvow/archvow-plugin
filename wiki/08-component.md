@@ -127,8 +127,9 @@ texte en diffère.
 sécurité) - ✦ rédige avec l'un des assistants IA du projet, ▾ en choisit un autre (le premier installé par défaut ;
 un non installé est grisé) ou copie le prompt à la place. Les deux lancent `archvow draft <component> <question>
 --json` (texte seul : archvow n'écrit rien) et mettent le brouillon dans le champ, marqué « Brouillon IA · Claude
-Code », avec ↻ et × ; l'enregistrement ajoute alors `--drafted-with <assistant>` (et `--unchanged`). Désactivé pour
-le projet (`ai_drafts`, `workspace --json`) : l'icône grisée, son survol dit pourquoi (`draftCorner()`,
+Code », avec ↻ et × ; l'enregistrement ajoute alors `--drafted-with <assistant>` (et `--unchanged`). Désactivé ici
+(`ai_drafts.why_not` dans `workspace --json` : absent des `ai_runs` du projet, ou un bac à sable demandé) : l'icône
+grisée, son survol et un clic (1.4.0) disent pourquoi (`draftCorner()`,
 `draftedOf()` ; `ArchvowDraftBox`, `DraftBoxRegression`).
 
 **La barre** entre la liste et la réponse (`split()`, `ArchvowSplitView.Bar`) : glissée, ou ← → quand elle a le

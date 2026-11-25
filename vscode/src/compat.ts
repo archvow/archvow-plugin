@@ -1,16 +1,16 @@
-// Which archvow this plugin works with (1.0.0): one range, contract/archvow-range.txt (">=3.3,<4"), stated in the
+// Which archvow this plugin works with (1.0.0): one range, contract/archvow-range.txt (">=3.4,<4"), stated in the
 // README, both Marketplace texts and the header of the tool window, and checked against what is installed. The
 // plugin has its own version; the range says which archvow versions it works with. The IntelliJ plugin says the
 // same (ArchvowCompat.java, CompatRegression); both are tested on contract/compat/expected.json.
 
-/** A range of archvow versions, ">=3.3,<4": from `low` included to `high` left out. */
+/** A range of archvow versions, ">=3.4,<4": from `low` included to `high` left out. */
 export interface ArchvowRange {
   text: string;
   low: number[];
   high: number[];
 }
 
-/** ">=3.3,<4" -> {low: [3, 0], high: [4]}; null when it is not that shape. */
+/** ">=3.4,<4" -> {low: [3, 0], high: [4]}; null when it is not that shape. */
 export function parseRange(text: string): ArchvowRange | null {
   const m = /^\s*>=\s*(\d+(?:\.\d+)*)\s*,\s*<\s*(\d+(?:\.\d+)*)\s*$/.exec(text);
   if (m === null) return null;
@@ -99,7 +99,7 @@ export function compatibility(installed: { version: string; contract: string } |
   return { state: 'ok', install: '', text: '' };
 }
 
-/** The header of the tool window: "archvow 3.3.0 ✓ · this plugin works with archvow >=3.3,<4". */
+/** The header of the tool window: "archvow 3.4.0 ✓ · this plugin works with archvow >=3.4,<4". */
 export function headerLine(version: string, state: Compatibility['state'], range: ArchvowRange, fr = false): string {
   const mark = state === 'ok' ? '✓' : '✗';
   const what = version ? `archvow ${version} ${mark}` : `archvow ${mark}`;

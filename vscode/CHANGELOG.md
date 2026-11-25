@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.4.0 - 2026-11-25
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.0 (contract 3.0, with `ai_runs`).
+
+- **Why archvow starts no AI here, in words:**
+  - The skill form writes archvow's reason under the buttons (ⓘ …), not only in the ▶ Run hover: not in the
+    project's `ai_runs`, or the project runs AI agents only in a sandbox and this editor is not in one.
+  - Draft with AI, when off: ✦ and ▾ stay clickable, greyed, and open archvow's reason with Copy the prompt instead.
+- **One sandbox rule (archvow 3.4):** with `sandbox yes`, Draft with AI and ▶ Run work only when archvow runs inside
+  the sandbox (a dev container, the IDE's backend in it). Before, a skill run was refused there too, and a draft ran
+  anywhere.
+- **New project:** the init wizard asks `ai_runs` (drafts, skills, none) in AI & briefs, in place of `ai_drafts`
+  and `ai_skills`.
+- contract/ recorded from archvow 3.4.0; vow-reader/expected.json regenerated.
+
 ## 1.3.0 - 2026-11-25
 
 Works with archvow >=3.3,<4. Built on archvow 3.3.0 (contract 3.0, with `ai_skills`, `reviewers` and `archvow skill`).

@@ -1089,3 +1089,9 @@ button.file-open:hover code { text-decoration: underline; }
   background: color-mix(in srgb, var(--vscode-charts-green, #388a34) 10%, transparent); }
 .run-result.bad { border-left-color: var(--vscode-errorForeground, #f14c4c); background: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 10%, transparent); }
 .run-result button.link { padding: 0 2px; }
+/* 1.4.0: why archvow starts no run here, in words under the buttons */
+.run-why { margin: 8px 0 0; padding: 6px 10px; border-radius: 4px; color: var(--vscode-descriptionForeground);
+  background: color-mix(in srgb, var(--vscode-editorWarning-foreground, #cca700) 8%, transparent); line-height: 1.5; }
+.run-why .codicon { color: var(--vscode-editorWarning-foreground, #cca700); }
+.draft-menu .draft-why { padding: 6px 10px 8px; max-width: 320px; white-space: normal; color: var(--vscode-descriptionForeground);
+  line-height: 1.45; border-bottom: 1px solid var(--vscode-widget-border, rgba(128,128,128,.3)); }

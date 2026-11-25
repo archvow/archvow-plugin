@@ -133,8 +133,18 @@ final class ArchvowDraftBox extends JPanel {
     }
 
     private boolean on() {
+        return why().isEmpty();
+    }
+
+    /** 1.4.0: archvow's reason it starts no draft here (not in ai_runs, a sandbox needed), or "". */
+    String why() {
         JsonObject drafts = host.aiDrafts();
-        return drafts != null && (!drafts.has("on") || drafts.get("on").getAsBoolean());
+        if (drafts == null) return "";
+        String said = drafts.has("why_not") && drafts.get("why_not").isJsonPrimitive() ? drafts.get("why_not").getAsString() : "";
+        if (!said.isBlank()) return said;
+        boolean off = drafts.has("on") && !drafts.get("on").getAsBoolean();
+        return off ? t("archvow does not start AI drafts in this project (ai_runs in project.vow).",
+            "archvow ne lance pas de brouillons IA dans ce projet (ai_runs dans project.vow).") : "";
     }
 
     /** The page shows another question (or the same after a reload): a draft of another question goes. */
@@ -232,8 +242,7 @@ final class ArchvowDraftBox extends JPanel {
     String tip() {
         JsonObject drafts = host.aiDrafts();
         if (drafts == null) return "";  // archvow before 3.2: no Draft with AI
-        if (!on()) return t("AI drafts are off for this project - an architect turns them on (ai_drafts in project.vow).",
-            "Les brouillons IA sont désactivés pour ce projet - un architecte les active (ai_drafts dans project.vow).");
+        if (!on()) return why();
         JsonObject tool = tool();
         if (tool != null) return t("Draft an answer with " + ArchvowGrammar.str(tool, "title") + " - you read it and save it. ▾ another AI",
             "Rédiger un brouillon avec " + ArchvowGrammar.str(tool, "title") + " - tu le relis et l'enregistres. ▾ une autre IA");
@@ -258,13 +267,17 @@ final class ArchvowDraftBox extends JPanel {
         } else if (known) {
             boolean on = on() && field.isEnabled();
             JsonObject tool = tool();
-            IconButton spark = new IconButton(Kind.SPARK, tip(), tool == null ? null : () -> ask(ArchvowGrammar.str(tool, "name")));
-            spark.setName("archvow.draft.run");
-            spark.setEnabled(on && tool != null);
             IconButton caret = new IconButton(Kind.CARET, tip(), null);
+            // 1.4.0: off here, ✦ and ▾ open archvow's reason in words (not only in the hover), with Copy the prompt
+            Runnable open = () -> menu().show(caret, caret.getWidth() - 260, caret.getHeight() + 2);
+            IconButton spark = new IconButton(Kind.SPARK, tip(), !on() ? open : tool == null ? null : () -> ask(ArchvowGrammar.str(tool, "name")));
+            spark.setName("archvow.draft.run");
+            spark.setEnabled(field.isEnabled() && (!on() || tool != null));
+            spark.dimmed = !on();
             caret.setName("archvow.draft.menu");
-            caret.setEnabled(on);
-            caret.action = () -> menu().show(caret, caret.getWidth() - 260, caret.getHeight() + 2);
+            caret.setEnabled(field.isEnabled());
+            caret.dimmed = !on();
+            caret.action = open;
             corner.add(spark);
             corner.add(caret);
         }
@@ -285,6 +298,18 @@ final class ArchvowDraftBox extends JPanel {
     JPopupMenu menu() {
         JPopupMenu menu = new JPopupMenu();
         menu.setName("archvow.draft.popup");
+        if (!on()) {
+            JLabel why = new JLabel("<html><div style='width:280px'>" + why().replace("&", "&amp;").replace("<", "&lt;")
+                + "</div></html>");
+            why.setName("archvow.draft.why");
+            why.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+            menu.add(why);
+            menu.addSeparator();
+            JMenuItem prompt = new JMenuItem(t("Copy the prompt instead", "Copier le prompt à la place"));
+            prompt.addActionListener(e -> copyPrompt());
+            menu.add(prompt);
+            return menu;
+        }
         JLabel head = new JLabel(t("THIS PROJECT'S AI ASSISTANTS", "LES ASSISTANTS IA DE CE PROJET"));
         head.setFont(head.getFont().deriveFont(Font.BOLD, 10.5f));
         head.setForeground(UIManager.getColor("Label.disabledForeground"));
@@ -324,6 +349,7 @@ final class ArchvowDraftBox extends JPanel {
     final class IconButton extends JComponent {
         final Kind kind;
         Runnable action;
+        boolean dimmed;  // 1.4.0: clickable, but archvow starts no draft here (the click says why)
         private boolean over;
 
         IconButton(Kind kind, String tip, Runnable action) {
@@ -356,7 +382,7 @@ final class ArchvowDraftBox extends JPanel {
                 }
                 Color muted = UIManager.getColor("Label.disabledForeground") != null ? UIManager.getColor("Label.disabledForeground") : Color.GRAY;
                 Color violet = new Color(0xC9, 0xA0, 0xFF);
-                if (!isEnabled()) g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .45f));
+                if (!isEnabled() || dimmed) g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .45f));
                 int cx = getWidth() / 2;
                 int cy = getHeight() / 2;
                 switch (kind) {

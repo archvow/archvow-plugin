@@ -61,6 +61,8 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
     private final String skill;
     private final boolean french;
     private final JLabel blocked = new JLabel();
+    /** 1.4.0: why archvow starts no run here, in words under the buttons (not only in their hover). */
+    final ArchvowWrapLabel runWhy = new ArchvowWrapLabel();
     private final Function<String, String[]> blockedFor;
     private final List<Tool> tools;
     private final String whyNot;
@@ -75,7 +77,7 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
      * @param components the components of the project (the first one or {@code values.component} chosen)
      * @param briefs     the brief files and sections, for draft-spec
      * @param tools      who can run it here: the project's AI assistants (workspace ai_skills), for review its reviewers
-     * @param whyNot     why archvow runs no skill here (ai_skills off, a sandbox needed), or null
+     * @param whyNot     why archvow runs no skill here (archvow's own words: not in ai_runs, a sandbox needed), or null
      * @param base       the branch this one merges into (review)
      * @param blockedFor component -> why the skill cannot run on it yet ([en, fr]), or null
      */
@@ -228,7 +230,14 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         runState.setOpaque(false);
         runState.setVisible(false);
         runState.setAlignmentX(LEFT_ALIGNMENT);
+        runWhy.setName("archvow.skill.why");
+        runWhy.setOpaque(false);
+        runWhy.setForeground(UIManager.getColor("Label.disabledForeground"));
+        runWhy.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
+        runWhy.setAlignmentX(LEFT_ALIGNMENT);
+        runWhy.setVisible(false);
         left.add(buttons);
+        left.add(runWhy);
         left.add(runState);
 
         JPanel leftHost = new JPanel(new BorderLayout());
@@ -535,6 +544,9 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         String why = review ? (tools.isEmpty() ? (french ? "Aucun relecteur approuvé : un architecte en approuve un à l'init (archvow init <package> --force -a reviewers=codex)."
             : "No reviewer approved: an architect approves one at init (archvow init <package> --force -a reviewers=codex).") : null) : whyNot;
         String name = t == null ? "" : t.title();
+        boolean says = why != null && !"implement".equals(skill);
+        if (!(says ? "ⓘ " + why : "").equals(runWhy.getText())) runWhy.setText(says ? "ⓘ " + why : "");
+        runWhy.setVisible(says);
         run.setText(review ? (name.isEmpty() ? (french ? "▶ Relire" : "▶ Review") : (french ? "▶ Relire avec " : "▶ Review with ") + name)
             : (name.isEmpty() ? (french ? "▶ Lancer" : "▶ Run") : (french ? "▶ Lancer avec " : "▶ Run with ") + name));
         run.setEnabled(why == null && go && t != null && !running);

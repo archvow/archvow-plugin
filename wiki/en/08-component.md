@@ -123,8 +123,8 @@ again**. A decision's field starts with its suggestion: **Back to the suggestion
 drafts with one of the project's AI assistants, ▾ picks another (the first installed by default; one not installed
 greyed) or copies the prompt instead. Both run `archvow draft <component> <question> --json` (text only: archvow
 writes nothing) and put the draft in the field, marked "AI draft · Claude Code", with ↻ and ×; a save then adds
-`--drafted-with <assistant>` (and `--unchanged`). Off for the project (`ai_drafts`, `workspace --json`): the icon
-greyed, its hover says why (`draftCorner()`, `draftedOf()`; `ArchvowDraftBox`, `DraftBoxRegression`).
+`--drafted-with <assistant>` (and `--unchanged`). Off here (`ai_drafts.why_not` in `workspace --json`: not in the
+project's `ai_runs`, or a sandbox needed): the icon greyed, its hover and a click (1.4.0) say why (`draftCorner()`, `draftedOf()`; `ArchvowDraftBox`, `DraftBoxRegression`).
 
 **The bar** between the list and the answer (`split()`, `ArchvowSplitView.Bar`): dragged, or ← → when focused;
 double-click for half and half; kept for every view; under 680 px the two stack and the bar moves up and down. Save
