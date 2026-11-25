@@ -250,3 +250,31 @@ off.message({ type: 'skill', skill: 'review', values: {} });
 assert.match(off.app.innerHTML, /data-tip="No reviewer approved[^"]*"[\s\S]*data-a="reviewRun"[^>]*disabled/, 'Review: no reviewer, greyed');
 assert.match(off.app.innerHTML, /class="run-why small">[^<]*<span class="codicon">ⓘ<\/span> No reviewer approved/, 'Review: said under it');
 console.log('AI skills run here: Run with the AI picked, running, done, off with the reason, Implement a handoff, Review with a reviewer: OK');
+
+// 1.4.1: ← Back on a skill or command page opened from the tool window - to what this editor showed
+const backs = make('editor');
+backs.message({ type: 'select', component: 'schema' });
+backs.message({ type: 'skill', skill: 'clarify', values: { component: 'schema' } });
+assert.match(backs.app.innerHTML, /data-a="back" title="Back to schema">← schema<\/button>/, 'from a component page: back to it');
+backs.click('back');
+assert.deepEqual(JSON.parse(JSON.stringify(backs.posted[backs.posted.length - 1])), { type: 'show', component: 'schema' }, 'shown again');
+backs.message({ type: 'search', name: 'orders', result: { groups: [] } });
+backs.message({ type: 'openCommand', command: 'decision make', values: {} });
+assert.match(backs.app.innerHTML, /data-a="back" title="Back to Find">← Find<\/button>/, 'from Find: back to it');
+backs.click('back');
+assert.match(backs.app.innerHTML, /Archvow · Find/, 'Find again');
+const lone = make('editor');
+lone.message({ type: 'skill', skill: 'analyze', values: { component: 'schema' } });
+assert.doesNotMatch(lone.app.innerHTML, /data-a="back" title=/, 'nothing shown before: no back button');
+lone.click('back');  // Cancel
+assert.doesNotMatch(lone.app.innerHTML, /skill: archvow-analyze/, 'Cancel leaves the form');
+// the confirmation: the page goes down to Confirm and run; the split's place is kept by the extension
+const asks = make('editor');
+asks.message({ type: 'select', component: 'schema' });
+asks.message({ type: 'confirm', token: 't1', title: 'decision make', summary: 'D1', target: 'component', command: 'archvow decision make schema 1 x' });
+assert.match(asks.app.innerHTML, /data-a="confirm"/);
+const fresh = make('editor');
+fresh.message({ type: 'init', commands, forms, catalog: null, types: {}, rules: {}, kept: { split: { left: '333px', top: '40vh' } } });
+fresh.message({ type: 'select', component: 'schema' });
+assert.match(fresh.app.innerHTML, /--split-left:333px/, 'a new tab: the split where the person left it');
+console.log('Back to the page shown before, Cancel leaves, the split kept across tabs: OK');

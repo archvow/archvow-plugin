@@ -11,10 +11,12 @@
   const splitSize = Object.assign({ left: '50%', top: '40vh' }, (vscode.getState && (vscode.getState() || {}).split) || {});
   const keptTool = (vscode.getState && (vscode.getState() || {}).aiTool) || '';
   const keptRunTool = (vscode.getState && (vscode.getState() || {}).runTool) || '';
-  function keepSplit() {
-    if (!vscode.setState) return;
-    try { vscode.setState(Object.assign({}, vscode.getState() || {}, { split: { left: splitSize.left, top: splitSize.top } })); } catch (e) { /* not kept */ }
+  /** 1.4.1: kept by the webview (this tab) and by the extension (a new tab, a reloaded window: the init message). */
+  function keep(what) {
+    try { if (vscode.setState) vscode.setState(Object.assign({}, vscode.getState() || {}, what)); } catch (e) { /* not kept */ }
+    vscode.postMessage({ type: 'keep', kept: what });
   }
+  function keepSplit() { keep({ split: { left: splitSize.left, top: splitSize.top } }); }
   const NAV = window.ARCHVOW_ROLE !== 'editor';
   /** What archvow said, from the extension. */
   let S = null;
@@ -79,15 +81,17 @@
   /** A list of names (strings) of an object, e.g. a template's `extends`. */
   const names = (o, k) => (o && Array.isArray(o[k]) ? o[k].filter((x) => typeof x === 'string') : []);
   const short = (s, n) => (s.length <= n ? s : s.substring(0, n - 1) + '…');
+  /** 1.4.1: the page the editor shows now, as a place to come back to (← Back on a command or skill page). */
+  const here = () => {
+    if (ui.mode === 'component' && ui.component && ui.view !== 7) return { component: ui.component, view: ui.view };
+    if (ui.mode === 'briefs') return { briefs: true };
+    if (ui.mode === 'feature' && ui.feature) return { feature: ui.feature };
+    if (['result', 'search', 'checks', 'project', 'commandDocs'].includes(ui.mode)) return { mode: ui.mode };
+    return null;
+  };
   const post = (m) => {
-    // a command opened from a component (Edit spec, + Question, Accept...): the editor tab can go back to it
-    if (!NAV && ui.mode === 'component' && ui.component && ui.view !== 7 && (m.type === 'openCommand' || m.type === 'choose')) {
-      ui.backArmed = { component: ui.component, view: ui.view };
-    } else if (!NAV && ui.mode === 'briefs' && m.type === 'openCommand') {
-      ui.backArmed = { briefs: true };
-    } else if (!NAV && ui.mode === 'feature' && ui.feature && m.type === 'openCommand') {
-      ui.backArmed = { feature: ui.feature };
-    }
+    // a command opened from a page (Edit spec, + Question, Accept...): the editor tab can go back to it
+    if (!NAV && (m.type === 'openCommand' || (m.type === 'choose' && ui.mode === 'component'))) ui.backArmed = here();
     vscode.postMessage(m);
   };
   const btn = (label, action, extra = '', disabled = false, cls = '') =>
@@ -201,6 +205,9 @@
     switch (m.type) {
       case 'init':
         I = { commands: m.commands || [], catalog: m.catalog, knownVersion: m.knownVersion, rules: m.rules || { en: '', fr: '' }, types: m.types || {}, forms: m.forms || {}, icons: m.icons || {}, tmpdir: m.tmpdir || '' };
+        if (m.kept && m.kept.split) Object.assign(splitSize, m.kept.split);  // where the person left it, in any tab
+        if (m.kept && m.kept.aiTool && !ui.aiTool) ui.aiTool = m.kept.aiTool;
+        if (m.kept && m.kept.runTool && !ui.runTool) ui.runTool = m.kept.runTool;
         ICONS.clear();
         break;
       case 'state':
@@ -284,6 +291,7 @@
         break;
       case 'confirm':
         ui.confirm = { token: m.token, title: m.title, summary: m.summary, target: m.target, command: m.command };
+        ui.revealConfirm = true;  // 1.4.1: down to Confirm and run, as IntelliJ does
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.title || ''; }
         break;
       case 'commandDocs':
@@ -301,14 +309,15 @@
         break;
       case 'openCommand':
         ui.forceWorkspace = true;
-        ui.back = ui.backArmed;
+        // from this editor's page, or from the tool window: back to what this editor showed (1.4.1)
+        ui.back = ui.backArmed || (ui.mode === 'command' || ui.mode === 'skill' ? ui.back : here());
         ui.backArmed = null;
         ui.mode = 'command';
         setCommand(m.command, m.values || {}, m.help || '');
         break;
       case 'skill':
         ui.forceWorkspace = true;
-        ui.back = ui.backArmed;
+        ui.back = ui.backArmed || (ui.mode === 'command' || ui.mode === 'skill' ? ui.back : here());
         ui.backArmed = null;
         ui.mode = 'skill';
         ui.aiMenu = false;
@@ -487,8 +496,12 @@
         : ui.mode === 'search' ? t('Find', 'Recherche') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
     const named = (ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot()) || (ui.mode === 'feature' && featureOf(ui.feature));
+    const backTo = { result: t('Result', 'Résultat'), search: t('Find', 'Recherche'), checks: t('Checks', 'Contrôles'),
+      project: t('Project', 'Projet'), commandDocs: t('Reference', 'Référence') };
     const back = ui.back && ui.mode !== 'component'
-      ? ui.back.briefs
+      ? ui.back.mode
+        ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + backTo[ui.back.mode])}">← ${esc(backTo[ui.back.mode])}</button>`
+        : ui.back.briefs
         ? `<button class="secondary back" data-a="back" title="${esc(t('Back to Briefs', 'Retour aux briefs'))}">← Briefs</button>`
         : ui.back.feature
         ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.feature)}">← ${esc(ui.back.feature)}</button>`
@@ -590,6 +603,12 @@
   /** Scroll a result that just started or arrived into view (0.26.1): Try it's result shows under the welcome cards,
    *  below the fold of a sidebar or a short editor - it seemed that nothing happened. */
   function revealResult() {
+    if (ui.revealConfirm) {
+      ui.revealConfirm = false;
+      const box = document.querySelector('.confirm');
+      const go = box && box.querySelector ? box.querySelector('[data-a="confirm"]') : null;
+      if (go && go.scrollIntoView) go.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
     const target = ui.reveal;
     ui.reveal = '';
     if (!target) return;
@@ -1963,7 +1982,7 @@
     post({ type: 'draft', key, component: at.component, ref: at.ref, tool });
   }
   function keepAiTool() {
-    try { vscode.setState(Object.assign({}, vscode.getState() || {}, { aiTool: ui.aiTool })); } catch (e) { /* not kept */ }
+    keep({ aiTool: ui.aiTool });
   }
 
   /** The icon in the box's corner: ✦ drafts with the AI the hover names, ▾ another AI (or the prompt alone). */
@@ -3698,10 +3717,15 @@
     projectMore: () => { ui.projectMore = !ui.projectMore; },
     filterMenu: () => { ui.filterMenu = !ui.filterMenu; },
     back: () => {
-      // the component the command was opened from, on its view: the extension shows it again (and reads it)
+      // the page the command was opened from (a component on its view: the extension shows it again and reads it)
       const to = ui.back;
       ui.back = null;
-      if (!to) return;
+      if (!to) { ui.mode = 'empty'; return; }  // Cancel with nowhere to go back to: leave the form
+      if (to.mode) {
+        ui.forceWorkspace = true;
+        ui.mode = to.mode;
+        return;
+      }
       if (to.briefs) {
         ui.forceWorkspace = true;
         ui.mode = 'briefs';
@@ -3881,9 +3905,7 @@
     openSkill: (e) => {
       const values = { component: e.dataset.component || (ui.mode === 'component' ? ui.component : ''), brief: e.dataset.brief || '' };
       if (NAV) { post({ type: 'openSkill', skill: e.dataset.skill, values }); return; }
-      if (ui.mode === 'component' && ui.component) ui.back = { component: ui.component, view: ui.view };
-      else if (ui.mode === 'briefs') ui.back = { briefs: true };
-      else ui.back = null;
+      if (ui.mode !== 'skill' && ui.mode !== 'command') ui.back = here();
       ui.aiMenu = false;
       ui.mode = 'skill';
       ui.skill = e.dataset.skill;
@@ -3894,7 +3916,7 @@
     runMenu: () => { ui.runMenu = !ui.runMenu; },
     runWith: (e) => {
       ui.runTool = e.dataset.tool; ui.runMenu = false;
-      try { vscode.setState(Object.assign({}, vscode.getState() || {}, { runTool: ui.runTool })); } catch (err) { /* not kept */ }
+      keep({ runTool: ui.runTool });
     },
     skillRun: (e) => {
       const v = ui.skillValues; const def = skillDef(ui.skill) || {};

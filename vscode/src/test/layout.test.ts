@@ -169,9 +169,11 @@ test('Overview is a summary only; the Components browser owns the full status + 
 });
 
 test('the editor tab goes back to the component a command was opened from (0.11.3)', () => {
-  // armed when the page asks for a command from a component, kept when the command opens, cleared otherwise
-  assert.match(page, /if \(!NAV && ui\.mode === 'component' && ui\.component && ui\.view !== 7 && \(m\.type === 'openCommand' \|\| m\.type === 'choose'\)\)/);
-  assert.match(page, /case 'openCommand':\s*ui\.forceWorkspace = true;\s*ui\.back = ui\.backArmed;\s*ui\.backArmed = null;/);
+  // armed when the page asks for a command from a component, kept when the command opens, cleared otherwise;
+  // 1.4.1: from the tool window too, back to what the editor showed (a component, briefs, a feature, its home page)
+  assert.match(page, /if \(ui\.mode === 'component' && ui\.component && ui\.view !== 7\) return \{ component: ui\.component, view: ui\.view \};/);
+  assert.match(page, /if \(!NAV && \(m\.type === 'openCommand' \|\| \(m\.type === 'choose' && ui\.mode === 'component'\)\)\) ui\.backArmed = here\(\);/);
+  assert.match(page, /case 'openCommand':\s*ui\.forceWorkspace = true;\s*\/\/[^\n]*\n\s*ui\.back = ui\.backArmed \|\| \(ui\.mode === 'command' \|\| ui\.mode === 'skill' \? ui\.back : here\(\)\);\s*ui\.backArmed = null;/);
   assert.match(page, /case 'select':\s*ui\.forceWorkspace = true;\s*ui\.mode = 'component';\s*ui\.back = null;/);
   assert.match(page, /<button class="secondary back" data-a="back"/);
   assert.match(page, /ui\.view = to\.view;\s*post\(\{ type: 'show', component: to\.component \}\);/);
@@ -252,7 +254,7 @@ test('the Overview as designed (0.25.0): Next and Check named, More with the res
   assert.match(page, /post\(\{ type: 'openBriefs' \}\)/);
   assert.match(host, /case 'openBriefs':\s*\/\/ Briefs are browsed in the shared editor tab,[\s\S]*?this\.toEditor\(\{ type: 'briefs' \}\)/);
   assert.match(page, /if \(ui\.mode === 'briefs'\) return `<section class="detail-only briefs-editor">\$\{briefsView\(\)\}/);
-  assert.match(page, /ui\.back = \{ briefs: true \}/);
+  assert.match(page, /if \(ui\.mode === 'briefs'\) return \{ briefs: true \};/);
   assert.match(page, /function withCheckFiles\(html\)/);
   assert.match(page, /return filesBlock\(\[\{ path: file, change: 'location'/,
     'check diagnostics reuse the command form Files tree rather than hand-drawn icons');

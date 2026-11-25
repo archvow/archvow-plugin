@@ -2,6 +2,22 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 1.4.1 - 2026-11-25
+
+Fixes from trying 1.4.0. Works with archvow >=3.4,<4. Built on archvow 3.4.0.
+
+- **Review them ›** after a skill run opens the component's page, on what the AI added (IntelliJ left the skill page
+  in front).
+- **← Back on every command and skill page**, to what the editor showed before: a component on its view, Briefs, a
+  feature, Find, Checks or a result - also when the page was opened from the tool window. Cancel with nothing to go
+  back to leaves the form (VS Code stayed on it).
+- **Light themes (IntelliJ):** First steps' button was an empty white box (the IDE's default button drew white on
+  white): painted here, as the other main buttons. The AI ▾ menu let the page show through the row under the mouse
+  (a see-through list hover): opaque now.
+- **VS Code, a change to confirm:** the page goes down to Confirm and run, as in IntelliJ.
+- **VS Code, the list / answer split:** stays where you put it in a new editor tab and after a window reload (kept by
+  the extension, not only by the tab); the AI you picked too.
+
 ## 1.4.0 - 2026-11-25
 
 Works with archvow >=3.4,<4. Built on archvow 3.4.0 (contract 3.0, with `ai_runs`).

@@ -768,9 +768,17 @@ export class ArchvowProject {
   private async receive(m: Json, from: From): Promise<void> {
     const fr = this.state.fr;
     switch (m.type) {
+      case 'keep': {
+        const was = this.context.workspaceState.get<Json>('archvow.page', {});
+        void this.context.workspaceState.update('archvow.page', { ...was, ...((m.kept ?? {}) as Json) });
+        return;
+      }
       case 'ready': {
         const init = { type: 'init', commands: this.commands, catalog: this.bundledCatalog, knownVersion: this.known, forms: this.forms, icons: this.icons,
           types: componentTypes(this.bundledCatalog), tmpdir: os.tmpdir(),  // where `archvow try` copies by default (0.25.1)
+          // 1.4.1: where the person left the list / answer split and which AIs they picked - kept by the extension,
+          // so a new editor tab or a reloaded window has them too (the webview's own state goes with the tab)
+          kept: this.context.workspaceState.get<Json>('archvow.page', {}),
           rules: { en: fs.readFileSync(path.join(this.resources, 'rules.md'), 'utf8'), fr: fs.readFileSync(path.join(this.resources, 'rules.fr.md'), 'utf8') } };
         const state = { type: 'state', state: this.state };
         if (from === 'nav') {

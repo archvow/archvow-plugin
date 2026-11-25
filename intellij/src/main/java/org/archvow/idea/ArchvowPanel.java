@@ -192,7 +192,8 @@ final class ArchvowPanel extends JPanel {
     private final CardLayout detailHomeLayout = new CardLayout();
     private String detailHomeMode = "result";
     /** A Draft from Briefs returns to the same editor's Briefs browser. */
-    private boolean skillBackToBriefs;
+    /** 1.4.1: the editor's home page a command or skill was opened from (result, search, checks, briefs): ← Back. */
+    private String backHome;
     /** 0.18.0: the search (archvow show <name> --json) in the editor tab, the name searched, the tool window's
      *  find field, and the component's Examples view (view 8, shown right after Rules). */
     private ArchvowSearchView searchView;
@@ -474,7 +475,6 @@ final class ArchvowPanel extends JPanel {
     private String backComponent;
     private int backView;
     /** A command opened from the tool window (no way back to a component). */
-    private boolean fromToolWindow;
     /** Lives as long as this panel (the project's, or the editor tab's): the vow watcher hangs on it. */
     private final Disposable lifetime = Disposer.newDisposable("Archvow workspace");
 
@@ -988,7 +988,7 @@ final class ArchvowPanel extends JPanel {
     /** The editor tab: shows a component (a click in the tool window). */
     void showComponent(String id) {
         if (id == null || id.isBlank()) return;
-        backComponent = null;
+        backComponent = null; backHome = null;
         showWorkspace();
         tabs.setSelectedIndex(1);
         if (componentViewNav != null && componentViewNav.activeIndex() == 7) selectComponentView(0);
@@ -1033,7 +1033,7 @@ final class ArchvowPanel extends JPanel {
             }
             String id = ArchvowGrammar.str(data, "component");
             if (!id.isBlank() && !data.has("groups") && !ArchvowSearch.isError(data)) { showComponent(id); return; }
-            backComponent = null;
+            backComponent = null; backHome = null;
             showWorkspace();
             searchName = ArchvowSearch.isError(data) ? ArchvowGrammar.str(data.getAsJsonObject("error"), "error") : wanted;
             searchView.show(data, wanted, project.getBasePath(), ArchvowI18n.isFrench(project));
@@ -1049,7 +1049,7 @@ final class ArchvowPanel extends JPanel {
         if (role == Role.NAVIGATION) { ArchvowEditorTab.showFeature(project, name); return; }
         ArchvowPanel nav = navigation();
         if (nav != null && nav.manifest != null) adoptFrom(nav);
-        backComponent = null;
+        backComponent = null; backHome = null;
         shownFeature = name;
         showWorkspace();
         renderFeature();
@@ -1142,7 +1142,7 @@ final class ArchvowPanel extends JPanel {
 
     /** The editor tab: runs a command asked in the tool window's Overview, its result in the tab. */
     void runFromOverview(String label, List<String> args, String stdin, boolean refreshAfter) {
-        backComponent = null;
+        backComponent = null; backHome = null;
         showWorkspace();
         resultLabel = label;
         showDetailHome("result");
@@ -1198,7 +1198,7 @@ final class ArchvowPanel extends JPanel {
         }
         ArchvowPanel nav = navigation();
         if (nav != null) adoptFrom(nav);
-        backComponent = null;
+        backComponent = null; backHome = null;
         showWorkspace();
         resultLabel = "Briefs";
         showDetailHome("briefs");
@@ -1265,11 +1265,12 @@ final class ArchvowPanel extends JPanel {
                 : resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
         }
         detailKind.setText("ARCHVOW · " + kind.toUpperCase(java.util.Locale.ROOT));
-        boolean returnToBriefs = index == 0 && "skill".equals(detailHomeMode) && skillBackToBriefs;
-        backButton.setVisible((backComponent != null && index != 1) || returnToBriefs);
-        if (returnToBriefs) {
-            backButton.setText("← Briefs");
-            backButton.setToolTipText(ArchvowI18n.text(project, "Back to Briefs", "Retour aux briefs"));
+        boolean returnHome = backHome != null && (index == 2 || (index == 0 && "skill".equals(detailHomeMode)));
+        backButton.setVisible((backComponent != null && index != 1) || returnHome);
+        if (returnHome) {
+            String home = homeName(backHome);
+            backButton.setText("← " + home);
+            backButton.setToolTipText(ArchvowI18n.text(project, "Back to " + home, "Retour à " + home));
         } else if (backComponent != null) {
             backButton.setText("← " + backComponent);
             backButton.setToolTipText(ArchvowI18n.text(project, "Back to " + backComponent, "Retour à " + backComponent));
@@ -4367,8 +4368,8 @@ final class ArchvowPanel extends JPanel {
             // from a component (Edit spec, + Question, Accept...): Back returns to it; from the tool window: none
             boolean onComponent = tabs.getSelectedIndex() == 1 && !knownComponent.isBlank()
                 && (componentViewNav == null || componentViewNav.activeIndex() != 7);
-            if (fromToolWindow) backComponent = null;
-            else if (onComponent) { backComponent = knownComponent; backView = componentViewNav == null ? 0 : componentViewNav.activeIndex(); }
+            // 1.4.1: from the tool window too - back to what this editor tab showed (a component, or its home page)
+            rememberBack(onComponent, knownComponent);
         }
         String target = initial == null ? knownComponent : initial.getOrDefault("component", knownComponent);
         JsonObject snapshot = componentSnapshots.get(target);
@@ -4413,8 +4414,7 @@ final class ArchvowPanel extends JPanel {
 
     /** The editor tab: a command chosen in the tool window (its form, prefilled with what is known). */
     void showCommand(String name, Map<String, String> initial) {
-        fromToolWindow = true;
-        try { openCommand(name, initial); } finally { fromToolWindow = false; }
+        openCommand(name, initial);
     }
 
     /** The component's entry in the spec (module, ticket, owners...), or null. */
@@ -4425,16 +4425,41 @@ final class ArchvowPanel extends JPanel {
         return null;
     }
 
+    /** 1.4.1: where ← Back goes from a command or skill page - the page this editor tab shows now. A command or
+     *  skill page opened over another one keeps that one's way back. */
+    private void rememberBack(boolean onComponent, String component) {
+        int index = tabs.getSelectedIndex();
+        if (index == 2 || (index == 0 && "skill".equals(detailHomeMode))) return;
+        backComponent = null;
+        backHome = null;
+        if (onComponent) { backComponent = component; backView = componentViewNav == null ? 0 : componentViewNav.activeIndex(); }
+        else if (index == 0 && List.of("result", "search", "checks", "briefs").contains(detailHomeMode)) backHome = detailHomeMode;
+    }
+
+    private String homeName(String home) {
+        return switch (home) {
+            case "briefs" -> "Briefs";
+            case "search" -> ArchvowI18n.text(project, "Find", "Recherche");
+            case "checks" -> ArchvowI18n.text(project, "Checks", "Contrôles");
+            default -> resultLabel.isBlank() ? ArchvowI18n.text(project, "Result", "Résultat") : resultLabel;
+        };
+    }
+
     /** Back: the component a command was opened from, on the view it was on. */
     private void goBack() {
-        if (skillBackToBriefs && "skill".equals(detailHomeMode)) {
-            skillBackToBriefs = false;
-            openBriefsDetails();
+        if (backHome != null) {
+            String home = backHome;
+            backHome = null;
+            if ("briefs".equals(home)) { openBriefsDetails(); return; }
+            showWorkspace();
+            showDetailHome(home);
+            tabs.setSelectedIndex(0);
+            afterSelectionChange();
             return;
         }
         String id = backComponent;
         int view = backView;
-        backComponent = null;
+        backComponent = null; backHome = null;
         if (id == null) return;
         showComponent(id);
         selectComponentView(view);
@@ -7388,9 +7413,11 @@ final class ArchvowPanel extends JPanel {
             @Override public void openReport() { openProjectFile("reviews/last-change.md"); }
             @Override public void reviewAdded(String skill, String component) {
                 if ("draft-spec".equals(skill) || component.isBlank()) { showWorkspace(); tabs.setSelectedIndex(1); return; }
+                // 1.4.1: the component's page itself (the skill page stayed in front), on what the AI added
+                originFilter = "review";
                 if (role == Role.DETAIL) {
-                    selectedComponent = new NodeComponent(component, "", "", "");
-                    loadComponent(selectedComponent);
+                    showComponent(component);
+                    if (selectedView != null) renderComponent(selectedView);
                     selectComponentView("analyze".equals(skill) ? 2 : 0);
                 } else ArchvowEditorTab.showComponent(project, component);
             }
@@ -7404,7 +7431,10 @@ final class ArchvowPanel extends JPanel {
             ArchvowEditorTab.showSkill(project, skill, initial);
             return;
         }
-        skillBackToBriefs = "briefs".equals(detailHomeMode);
+        String knownComponent = selectedComponent == null ? "" : selectedComponent.id;
+        boolean onComponent = tabs.getSelectedIndex() == 1 && !knownComponent.isBlank()
+            && (componentViewNav == null || componentViewNav.activeIndex() != 7);
+        rememberBack(onComponent, knownComponent);
         ArchvowPanel nav = navigation();
         if (nav != null && nav.manifest != null) adoptFrom(nav);
         boolean fr = ArchvowI18n.isFrench(project);
@@ -7447,6 +7477,7 @@ final class ArchvowPanel extends JPanel {
                     "Copied: paste it into your AI assistant. The AI's proposals still require your review.",
                     "Copié : colle le texte dans ton assistant IA. Ses propositions restent soumises à ta validation."));
             }, () -> {
+                if (backComponent != null || backHome != null) { goBack(); return; }
                 showDetailHome("result");
                 afterSelectionChange();
             });
@@ -7461,7 +7492,6 @@ final class ArchvowPanel extends JPanel {
         skillDetails.add(scroll, BorderLayout.CENTER);
         skillDetails.revalidate();
         skillDetails.repaint();
-        backComponent = null;
         showWorkspace();
         showDetailHome("skill");
         tabs.setSelectedIndex(0);

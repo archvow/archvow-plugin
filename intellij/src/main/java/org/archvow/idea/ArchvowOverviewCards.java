@@ -103,15 +103,12 @@ final class ArchvowOverviewCards {
 
     /** A filled button: `main` the blue one that does the current step. */
     static JButton button(String text, boolean main, Runnable run) {
-        JButton b = new JButton(text);
+        // 1.4.1: the main one painted here, as the panel's other main buttons - the IDE's "default" button drew
+        // white on white in light themes (an empty box beside the current step)
+        JButton b = main ? ArchvowSplitView.primary(text) : new JButton(text);
         b.addActionListener(e -> run.run());
         b.setFocusPainted(false);
-        if (main) {
-            b.setBackground(primary());
-            b.setForeground(Color.WHITE);
-            b.setFont(b.getFont().deriveFont(Font.BOLD));
-            b.putClientProperty("JButton.buttonType", "default");
-        }
+        if (main) b.setFont(b.getFont().deriveFont(Font.BOLD));
         return b;
     }
 
