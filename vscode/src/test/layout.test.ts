@@ -292,3 +292,12 @@ test('AI skills (1.3.0): archvow writes the instructions; the spec skills run he
   assert.match(css, /\.skill-form \.form-actions \{ flex-wrap: wrap; \}/);
   assert.match(css, /\.run-split \.draft-menu \{ top: 34px; right: 0; \}/);
 });
+
+test('1.4.3: a form does not run on an archvow older than the range (its options may not exist there)', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'workspace.ts'), 'utf8');
+  const runForm = source.slice(source.indexOf('private async runForm('), source.indexOf('private async runForm(') + 1200);
+  assert.match(runForm, /if \(this\.olderArchvow\(\)\) return;[\s\S]*planForm\(/, 'stopped before the command is planned');
+  assert.match(source, /if \(compat\.state !== 'older'\) return false;/);
+  const page = fs.readFileSync(path.join(__dirname, '..', '..', 'media', 'workspace.js'), 'utf8');
+  assert.match(page, /qStage\('Runtime', 'Exécution', \[[^\]]*'langgraph_version'/, 'langgraph_version with the other runtime versions');
+});

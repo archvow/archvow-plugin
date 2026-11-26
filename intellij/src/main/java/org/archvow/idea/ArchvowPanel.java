@@ -4198,6 +4198,19 @@ final class ArchvowPanel extends JPanel {
     private void submitForm() {
         ArchvowGrammar.Command command = commandList.getSelectedValue();
         if (command == null) return;
+        // 1.4.3: the forms are built from the archvow this plugin is tested with; an older one lacks options (init
+        // --adopt failed with "unrecognized arguments"): say so before running, with Install archvow
+        ArchvowCompat.Compatibility known = knownCompat();
+        if ("older".equals(known.state())) {
+            message(known.text());
+            var note = com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Archvow")
+                .createNotification(known.text(), com.intellij.notification.NotificationType.WARNING);
+            if (!known.install().isEmpty()) note.addAction(com.intellij.notification.NotificationAction.createSimpleExpiring(
+                ArchvowI18n.text(project, "Install archvow " + known.install(), "Installer archvow " + known.install()),
+                () -> (role == Role.DETAIL && navigation() != null ? navigation() : this).askInstall()));
+            note.notify(project);
+            return;
+        }
         if ("specify".equals(command.label)) {
             String id = value("component");
             if (id.isBlank() && selectedComponent != null) id = selectedComponent.id;
@@ -4618,6 +4631,13 @@ final class ArchvowPanel extends JPanel {
         fields.put("project", String.valueOf(project.getBasePath()));
         fields.put("ide", com.intellij.openapi.application.ApplicationInfo.getInstance().getFullApplicationName());
         ArchvowRunLog.header(project, fields);
+    }
+
+    /** What archvow was judged against the plugin's range: this panel's, or the tool window's for an editor tab. */
+    private ArchvowCompat.Compatibility knownCompat() {
+        if (!"ok".equals(compat.state()) || role != Role.DETAIL) return compat;
+        ArchvowPanel nav = navigation();
+        return nav == null ? compat : nav.compat;
     }
 
     /** After archvow said its version: why the install would be offered, and the notification - with "Install

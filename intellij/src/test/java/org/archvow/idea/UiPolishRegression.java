@@ -57,6 +57,11 @@ public final class UiPolishRegression {
         java.awt.Color seeThrough = new java.awt.Color(0, 0, 0, 20);
         java.awt.Color solid = ArchvowMenu.solid(seeThrough, java.awt.Color.WHITE);
         require(solid.getAlpha() == 255 && solid.getRed() > 230, "a see-through hover becomes opaque over the menu: " + solid);
+        // 1.4.3: a form does not run on an archvow older than the range (init --adopt: "unrecognized arguments")
+        require(panel.contains("if (\"older\".equals(known.state())) {") && panel.indexOf("ArchvowCompat.Compatibility known = knownCompat();")
+            < panel.indexOf("if (\"specify\".equals(command.label)) {"), "an older archvow: forms stop before running, with Install archvow");
+        require(Files.readString(Path.of("src/main/java/org/archvow/idea/ArchvowInitQuestions.java"))
+            .contains("\"fastapi_version\", \"langgraph_version\", \"scheduler\""), "langgraph_version in Runtime");
         // 1.4.1: ← Back to the page the editor showed - a component, Briefs, Find, Checks or a result
         require(panel.contains("case \"briefs\" -> \"Briefs\";") && panel.contains("backButton.setText(\"← \" + home)")
             && panel.contains("rememberBack(onComponent, knownComponent);"), "AI skill editor needs a Back to Briefs button");

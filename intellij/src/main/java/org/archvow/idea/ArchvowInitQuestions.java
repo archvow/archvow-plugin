@@ -370,7 +370,7 @@ final class ArchvowInitQuestions extends JPanel {
             return french ? "IA et briefs" : "AI & briefs";
         if (List.of("platform", "ci", "sonar", "git_hooks", "branch_naming", "line_length").contains(id))
             return french ? "CI et qualité" : "CI & quality";
-        if (List.of("python_version", "spark_version", "fastapi_version", "scheduler", "dependencies").contains(id))
+        if (List.of("python_version", "spark_version", "fastapi_version", "langgraph_version", "scheduler", "dependencies").contains(id))
             return french ? "Exécution" : "Runtime";
         if (List.of("max_components", "max_code_lines", "pip_index_url", "ci_image").contains(id))
             return french ? "Limites et intégration" : "Limits & integration";

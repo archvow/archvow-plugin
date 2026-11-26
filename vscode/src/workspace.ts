@@ -419,6 +419,17 @@ export class ArchvowProject {
     }));
   }
 
+  /** archvow older than the plugin's range: the reason and Install archvow, and true (nothing is run). */
+  private olderArchvow(): boolean {
+    const compat = this.state.compat;
+    if (compat.state !== 'older') return false;
+    const fr = this.state.fr;
+    const install = this.state.install.reason ? tr(fr, 'Install archvow', 'Installer archvow') : '';
+    void (install ? vscode.window.showWarningMessage(compat.text, install) : vscode.window.showWarningMessage(compat.text))
+      .then((pick) => { if (pick && pick === install) this.askInstall('nav'); });
+    return true;
+  }
+
   /** The installed archvow (null: none answered) against the plugin's range and the project's pin: the header,
    *  the sentence, and the install card when Install may put an archvow (never over a pin outside the range). */
   private judge(installed: { version: string; contract: string } | null): Compatibility {
@@ -1342,6 +1353,9 @@ export class ArchvowProject {
     const fr = this.state.fr;
     const command = findCommand(this.commands, name);
     if (command === undefined) return;
+    // 1.4.3: the forms are built from the archvow this plugin is tested with; an older one lacks options (init
+    // --adopt failed with "unrecognized arguments"): say so before running, with Install archvow
+    if (this.olderArchvow()) return;
     const components = Object.keys(this.state.snapshots);
     const plan = planForm(command, values, fr, { initAnswers, components, selected, baseline });
     if (plan.kind === 'error') {

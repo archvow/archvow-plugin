@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.3 - 2026-11-26
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **An archvow older than the plugin's range:** a command form (init, and every other) no longer runs. It says
+  "archvow X is older than this plugin works with (archvow >=3.4,<4)" with **Install archvow**. The forms come from
+  the archvow the plugin is tested with: an older one lacked their options (`init --adopt` failed with
+  "unrecognized arguments").
+- **New project, langgraph-agent:** `langgraph_version` is asked in Runtime, with the Python, Spark and FastAPI
+  versions (it was alone under Other answers).
+
 ## 1.4.2 - 2026-11-25
 
 Works with archvow >=3.4,<4. Built on archvow 3.4.1.
