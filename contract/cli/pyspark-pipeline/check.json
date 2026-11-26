@@ -1,5 +1,5 @@
 {
-  "contract": "2.4",
+  "contract": "3.0",
   "ok": true,
   "errors": 0,
   "warnings": 5,
@@ -28,7 +28,8 @@
           "missing": [],
           "readOnly": true
         },
-        "file": null
+        "file": null,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)"
       }
     },
     {
@@ -55,7 +56,8 @@
           "missing": [],
           "readOnly": true
         },
-        "file": null
+        "file": null,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)"
       }
     },
     {
@@ -82,7 +84,8 @@
           "missing": [],
           "readOnly": true
         },
-        "file": null
+        "file": null,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)"
       }
     },
     {
@@ -109,7 +112,8 @@
           "missing": [],
           "readOnly": true
         },
-        "file": null
+        "file": null,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)"
       }
     },
     {
@@ -136,7 +140,8 @@
           "missing": [],
           "readOnly": true
         },
-        "file": null
+        "file": null,
+        "title": "Safety question of a component not answered (no hazard, no dismissal)"
       }
     }
   ],

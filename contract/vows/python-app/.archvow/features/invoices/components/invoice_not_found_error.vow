@@ -15,12 +15,14 @@ symbol InvoiceNotFoundError
 
 # --- decisions
 decision 1
+  id code
   question "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?"
   answer "Exit code 3"
   by noreply@anthropic.com
   on 2026-10-21T16:20:50.822682+00:00
 
 decision 2
+  id message
   question "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?"
   answer "A short fixed message, without personal data or secrets"
   by noreply@anthropic.com

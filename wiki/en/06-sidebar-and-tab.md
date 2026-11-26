@@ -17,7 +17,8 @@ A feature's page (VS Code `featureDetail()`, IntelliJ `ArchvowFeatureView`, from
 its open items, its components and tickets, what the product does in it, how many components are verified, the
 features it uses and that use it (with the uses that make each link), its components by layer and what is open in
 it; **Add component** (`component add -f <feature>`), **Open feature doc** (`archvow doc <feature>`, then the page
-in an editor), **Copy AI prompt** (`archvow prompt --feature`), **Next steps** (`next --feature`), **Rename…**. A
+in an editor), **Copy AI prompt** (`archvow prompt --feature`), **Check before coding** (`archvow prompt --feature <f> --clarify`,
+archvow 2.8.0: the AI checks the whole feature before any code and records questions), **Next steps** (`next --feature`), **Rename…**. A
 feature an AI agent added says who added it, and **Accept…** opens `feature accept` (0.26.0, archvow 2.5). A
 component's head names its feature (a link), and **Move…** opens `component move`.
 
@@ -95,6 +96,14 @@ offers archvow's close names, each a button that searches again.
 IntelliJ: `ArchvowSearch` (the groups, the places, the heading; no IDE API) and `ArchvowSearchView` (the panel),
 shown by `ArchvowEditorTab.showSearch`; VS Code: `searchView()`, `searchHits()`, and `ArchvowProject.search` in
 `src/workspace.ts`.
+
+**A pasted error** (0.26.1, archvow 2.7.0): an error or a traceback pasted in the field is what `archvow show
+"<the error>" --json` reads. Its answer has an `error` object, and the panel shows an error page instead of a
+search: what went wrong, the template's known errors it matches (the template rules kept with that error, their fix and
+why), then where it broke with the lines around it, **Open at line** and **Show <component>**, and where the lesson
+goes once it is fixed. The one-line field keeps a traceback's lines apart (IntelliJ's field puts a space for each
+line break; VS Code's `joinLines` on paste). IntelliJ: `ArchvowSearch.isError`, `errorPlace`, `errorHtml`; VS Code:
+`pastedErrorView()`.
 
 ## Back
 

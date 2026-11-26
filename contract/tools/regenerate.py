@@ -19,6 +19,8 @@ Recorded:
   contract/cli/<name>/workspace.json       `archvow workspace --json` (1.25, contract 1.1): all of the above in one
                                            process - what the plugins load; its digest (file times) as <digest>
   contract/cli/<name>/search/<name>.json   `archvow show <name> --json` (1.21): a name found, and one found nowhere
+  contract/cli/<name>/pasted-error.json    `archvow show "<pasted error>" --json` (2.7.0, contract 2.5): a traceback
+                                           naming one of the example's files (python-app)
   contract/cli/python-app/examples/        python-app's business example in each state (1.21: the test's verdict in a
                                            test-results.xml written here, actual/ against expected/): passing.json,
                                            failing.json, no-test.json (show invoices_cli --json)
@@ -54,6 +56,16 @@ SPEC_PHASE = {"pyspark-pipeline": [
      "-d", "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)"]]}
 
 
+
+def unplug(whole: dict) -> None:
+    """The AI assistants' commands as on a machine with none installed (the CI): `installed` says what this computer
+    has (claude, copilot...), not what archvow prints. The live test reads the answer the same way."""
+    lists = [(whole.get(key) or {}).get("tools") or [] for key in ("ai_drafts", "ai_skills")] + [whole.get("reviewers") or []]
+    for tools in lists:
+        for tool in tools:
+            if isinstance(tool, dict) and "installed" in tool:
+                tool["installed"] = False
+
 def without_code(project: Path) -> None:
     """The project before its code: no src/, no tests but the business examples (tests/examples/)."""
     shutil.rmtree(project / "src", ignore_errors=True)
@@ -76,16 +88,14 @@ def write(path, data):
 
 def portable(catalog):
     """A built-in template's `source` is where archvow is installed on this machine: recorded as
-    <archvow>/templates/<name> (archvow 1.26: resources/archvow/templates/<name>; before, packs/<name>), so the
+    <archvow>/templates/<name> (archvow 3.0: its wheel's archvow/resources/templates/<name>), so the
     contract is the same wherever it is regenerated (the CI job `contract` regenerates it and fails on any
     difference). The plugins do not read it."""
     for template in catalog.get("templates", []):
         source = Path(str(template.get("source") or ""))
-        if source.parent.name == "templates" and source.parent.parent.name == "archvow" \
-                and source.parent.parent.parent.name == "resources":
+        if source.parent.name == "templates" and source.parent.parent.name == "resources" \
+                and source.parent.parent.parent.name == "archvow":
             template["source"] = f"<archvow>/templates/{source.name}"
-        elif source.parent.name == "packs" and source.parent.parent.name == "archvow":
-            template["source"] = f"<archvow>/packs/{source.name}"
     return catalog
 
 
@@ -137,6 +147,7 @@ def main():
             write(out / "check.json", run([*archvow, "check", "--json"], project))
             whole = run([*archvow, "workspace", "--json"], project)
             whole["digest"] = "<digest>"  # file times: different at every copy
+            unplug(whole)  # whether an AI assistant's command is installed: this machine's, not archvow's
             portable(whole.get("catalog") or {})  # its catalog too: where archvow is installed
             write(out / "workspace.json", whole)
             for container in spec["containers"]:
@@ -145,6 +156,8 @@ def main():
                     write(out / "show" / f"{cid}.json", run([*archvow, "show", cid, "--json"], project))
             for wanted in SEARCHES[name]:  # a name found nowhere exits 2, its close names on stdout
                 write(out / "search" / f"{wanted}.json", run([*archvow, "show", wanted, "--json"], project, (0, 2)))
+            if name in PASTED_ERRORS:  # an error pasted as it was printed: where it broke (2.7.0)
+                write(out / "pasted-error.json", run([*archvow, "show", PASTED_ERRORS[name], "--json"], project, (0, 2)))
     errors(source, archvow, cli / "errors")
     examples(source, archvow, cli / "python-app" / "examples")
     briefs(source, archvow, cli / "briefs")
@@ -180,6 +193,8 @@ def errors(source, archvow, out):
             write(out / f"{case}.json", said)
 
 
+PASTED_ERRORS = {"python-app": "Traceback (most recent call last):\n  File \"src/invoicing/p3_services/mark_paid.py\", "
+                               "line 28, in mark_paid\nValueError: invoice F-1 is a draft: send it before it is paid"}
 SEARCHES = {"python-app": ("InvoiceNotFoundError", "US-001", "mark_payd"),
             "fastapi-service": ("get_current_user", "amount"), "pyspark-pipeline": ("US-002-zero-amount-kept",)}
 EXAMPLE = "tests/examples/invoices_cli/US-001-pay-a-sent-invoice"

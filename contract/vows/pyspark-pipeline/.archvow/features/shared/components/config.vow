@@ -14,12 +14,14 @@ symbol JobConfig
 
 # --- decisions
 decision 1
+  id parameters
   question "The job's parameters, name: type = default separated by commas (no default = required) - e.g. input_path: str, run_date: date, output_format: str = \"parquet\" - or none?"
   answer "input_path: str, output_path: str"
   by architect@example.com
   on 2026-11-11T19:06:55.438752+00:00
 
 decision 2
+  id invalid_value
   question "What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?"
   answer "ValueError raised in __post_init__, naming the field, for an empty or blank path"
   by architect@example.com

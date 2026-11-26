@@ -1,5 +1,5 @@
 {
-  "contract": "2.4",
+  "contract": "3.0",
   "name": "InvoiceNotFoundError",
   "summary": "a class of invoice_not_found_error",
   "total": 12,
@@ -19,7 +19,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/invoices/components/invoices_repository.vow",
-          "line": 70,
+          "line": 74,
           "component": "invoices_repository",
           "part": "not_applicable missing because",
           "text": "because \"A missing file is reported as None, the service raises InvoiceNotFoundError (decision 2)\""
@@ -27,7 +27,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/invoices/components/mark_paid.vow",
-          "line": 26,
+          "line": 28,
           "component": "mark_paid",
           "part": "decision 2 answer",
           "text": "answer \"InvoiceNotFoundError\""
@@ -35,7 +35,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/invoices/components/mark_paid.vow",
-          "line": 71,
+          "line": 75,
           "component": "mark_paid",
           "part": "not_applicable missing because",
           "text": "because \"InvoiceNotFoundError (decision 2)\""

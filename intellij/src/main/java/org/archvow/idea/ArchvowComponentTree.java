@@ -23,6 +23,11 @@ import java.util.function.Function;
 final class ArchvowComponentTree extends JTree {
     static final String PENDING = "archvow.pendingCounts";
     static final String RESOLVED = "archvow.resolvedCounts";
+    /** 1.1.0: the tasks still to build per component - never in the badge (that is what a person decides), in the tooltip. */
+    static final String TO_BUILD = "archvow.toBuildCounts";
+    /** The words of a component's tooltip: "Nothing to decide · ready to build: 2 tasks" (set by the panel). */
+    java.util.function.BiFunction<Integer, Integer, String> componentTip = (open, build) ->
+        open > 0 ? open + " to decide" : build > 0 ? "Nothing to decide · ready to build: " + build + (build == 1 ? " task" : " tasks") : "Nothing to decide";
     /** The ⊕ zone at the right edge of a layer row, and the margin on the right of the badges. */
     static final int ADD_ZONE = 26, RIGHT_MARGIN = 8;
 
@@ -48,6 +53,7 @@ final class ArchvowComponentTree extends JTree {
 
     int pending(String id) { return count(PENDING, id); }
     int resolved(String id) { return count(RESOLVED, id); }
+    int toBuild(String id) { return count(TO_BUILD, id); }
 
     private int count(String property, String id) {
         if (id == null || id.isEmpty()) return 0;
@@ -70,7 +76,11 @@ final class ArchvowComponentTree extends JTree {
 
     @Override public String getToolTipText(MouseEvent event) {
         String layer = addLayerAt(event.getPoint());
-        return layer.isEmpty() ? super.getToolTipText(event) : addTip.apply(layer);
+        if (!layer.isEmpty()) return addTip.apply(layer);
+        TreePath path = getPathForLocation(event.getX(), event.getY());
+        String id = path == null ? "" : componentId(path.getLastPathComponent());
+        if (!id.isEmpty()) return componentTip.apply(pending(id), toBuild(id));
+        return super.getToolTipText(event);
     }
 
     @Override protected void paintComponent(Graphics g) {

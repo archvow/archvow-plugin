@@ -31,7 +31,7 @@ public final class ResultFormatterRegression {
             "[{\"component\":\"config\",\"readiness\":\"blocked: 2 decisions to make\",\"tokens\":659}]",
             false, "archvow next --json", false, true);
         if (!next.contains("config") || !next.contains("&#9679;") || !next.contains("659 tokens")
-            || !next.contains("ARCHVOW &#183; RESULT"))
+            || next.contains("ARCHVOW &#183; RESULT"))  // 1.2.0: the tab says Result, not the card again
             throw new AssertionError("Next result card lost its status, token details or icon");
         // archvow 2.1: the rule in words first; next counts the suggested answers; try reads as the design shows
         String titled = ArchvowResultFormatter.render("check", 1, "{\"ok\":false,\"errors\":1,\"warnings\":0,\"violations\":[{\"code\":\"ARCH005\","
@@ -93,7 +93,7 @@ public final class ResultFormatterRegression {
                 for (boolean dark : new boolean[] {false, true}) {
                     String body = ArchvowResultFormatter.render(label.toString(), 0,
                         "{\"detail\":\"unchanged value\"}", false, label.toString(), fr, dark);
-                    if (!body.contains("&#9670;") || !body.contains("ARCHVOW &#183; RESULT")
+                    if (!body.contains("&#9670;") || body.contains("ARCHVOW &#183; RESULT")
                         || !body.contains("Exit code: ") && !body.contains("Code retour : "))
                         throw new AssertionError("Missing shared result frame for " + label);
                     if (!label.toString().equals("next") && !label.toString().equals("catalog")

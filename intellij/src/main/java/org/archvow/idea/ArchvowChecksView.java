@@ -95,7 +95,7 @@ final class ArchvowChecksView extends JPanel {
             JScrollPane info = new JScrollPane(details);
             info.setBorder(BorderFactory.createEmptyBorder());
             answer.add(info, BorderLayout.CENTER);
-            JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            JPanel actions = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 5, 0));
             actions.add(prepareFix);
             actions.add(openLocation);
             actions.add(reference);
@@ -103,7 +103,7 @@ final class ArchvowChecksView extends JPanel {
             add(answer, BorderLayout.CENTER);
         } else {
             add(listScroll, BorderLayout.CENTER);
-            JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            JPanel actions = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 5, 0));
             actions.add(inspect);
             add(actions, BorderLayout.SOUTH);
         }

@@ -5,7 +5,7 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { test } from 'node:test';
-import { aiView, request, skillCommand, SKILLS } from '../aiSkills';
+import { aiView, SKILLS } from '../aiSkills';
 import { Json } from '../workItems';
 
 const CONTRACT = path.resolve(__dirname, '..', '..', '..', 'contract');
@@ -39,24 +39,9 @@ test('one suggestion at a time, in the order of the work', () => {
   assert.ok(aiView(SCENARIOS[1].view as Json).blocked.review);  // no code yet
 });
 
-test('AI handoff: generic instructions are actionable; native slash command stays optional', () => {
+test('AI skills: the five, each with its words in English and French (the instructions are archvow\'s: archvow skill --prompt)', () => {
   const skills = FORMS.ai_skills as Json;
   assert.deepEqual(SKILLS, (skills.order as string[]));
-  const clarify = request(skills, 'clarify', 'claude-code', { component: 'clean_orders', max: '3' }, false);
-  assert.match(clarify, /Archvow task: Find missing questions/);
-  assert.match(clarify, /Component: clean_orders/);
-  assert.match(clarify, /Maximum questions: 3/);
-  assert.match(clarify, /Human approval:/);
-  assert.match(clarify, /If you cannot access the project files/);
-  assert.equal(skillCommand(skills, 'clarify', 'claude-code', { component: 'clean_orders', max: '3' }),
-    '/archvow-clarify clean_orders (at most 3 questions)');
-  assert.equal(skillCommand(skills, 'clarify', 'copilot', { component: 'clean_orders' }), '');
-  const french = request(skills, 'analyze', 'copilot', { component: 'clean_orders' }, true);
-  assert.match(french, /Tâche Archvow : Trouver les risques/);
-  assert.match(french, /Validation humaine\s*:/);
-  const brief = request(skills, 'draft-spec', 'cursor', { brief: 'briefs/orders.md#pricing' }, false);
-  assert.match(brief, /Brief \/ section: briefs\/orders\.md#pricing/);
-  assert.match(brief, /use that specific section/);
   for (const id of SKILLS) {
     const def = (skills.skills as Json)[id] as Json;
     for (const key of ['label', 'does', 'reads', 'may_add', 'you']) assert.equal((def[key] as string[]).length, 2, `${id}.${key}: [en, fr]`);

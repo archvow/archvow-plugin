@@ -1,5 +1,5 @@
 {
-  "contract": "2.4",
+  "contract": "3.0",
   "ok": true,
   "errors": 0,
   "warnings": 1,
@@ -31,7 +31,8 @@
         "file": {
           "path": "specs/001-orders/plan.md",
           "line": 0
-        }
+        },
+        "title": "A brief changed after the spec was drawn from it"
       }
     }
   ],

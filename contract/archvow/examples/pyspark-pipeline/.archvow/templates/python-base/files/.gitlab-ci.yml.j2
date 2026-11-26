@@ -1,0 +1,139 @@
+# The gate nothing can skip: on the protected branches main and develop, set "Allowed to push" to
+# No one, enable "Pipelines must succeed" and "Code owner approval" (Premium).
+# Code that works but ignores the architecture cannot be merged.
+{%- set image = ci_image or ("python:" ~ ci_python ~ "-bookworm") %}
+{%- if ci_image %}
+# Image: {{ ci_image }} (internal). It must contain Python {{ ci_python }}{% if ci_java %} and Java 17{% endif %};
+# nothing is downloaded from public registries or package mirrors at build time.
+{%- else %}
+# WARNING: public sources in use (Docker Hub image{% if ci_java %}, Debian packages{% endif %}{% if not pip_index_url %}, PyPI{% endif %}).
+# For critical projects, re-run `archvow init` with -a ci_image=... -a pip_index_url=...
+{%- endif %}
+
+stages: [guards, test]
+
+variables:
+  GIT_DEPTH: "0"  # `archvow check --base` needs the target branch history
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+{%- if pip_index_url %}
+  PIP_INDEX_URL: "{{ pip_index_url }}"
+{%- endif %}
+  # Where CI installs archvow from (Settings > CI/CD > Variables can override it).
+  ARCHVOW_PIP_SPEC: "archvow=={{ archvow_version }}"           # pinned: upgrade deliberately
+
+workflow:  # gitflow: merge requests, then main and develop after each merge
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+
+.python:
+  image: {{ image }}
+  cache:
+    paths: [.cache/pip]
+  before_script:
+    - pip install "$ARCHVOW_PIP_SPEC" "ruff>=0.6"
+
+architecture:
+  stage: guards
+  extends: .python
+  script:
+{%- if branch_naming != 'none' %}
+    - >
+      if [ -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ] && ! echo "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" |
+      grep -Eq '{{ branch_regex }}|^(main|master|develop)$'; then
+      echo "branch name must be feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name> or release/<version>"; exit 1; fi
+{%- endif %}
+    - archvow check               # code matches the spec: names, layers, safety evidence, {{ rules_label }}
+    - ruff check .                # PEP 8 and Zen of Python
+    - ruff format --check .
+
+guards-not-weakened:
+  stage: guards
+  extends: .python
+  rules:  # a release or a back-merge from main carries changes already reviewed on develop
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^(release\/|main$)/
+  script:
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - FLAGS=""
+    - >
+      if echo ",$CI_MERGE_REQUEST_LABELS," | grep -q ",architecture-approved,"; then
+      FLAGS="--accept-weakening"; fi
+    - archvow diff --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --markdown | tee spec-diff.md
+    - archvow doc --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"   # the spec to read, changes marked
+    - echo "The spec to read, changes marked - in the merge request, Spec changes (spec-diff.md, .archvow/doc/)"
+    - archvow check --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" $FLAGS
+  artifacts:
+    when: always
+    expose_as: "Spec changes"  # link shown in the merge request: the changes, the project and each feature
+    paths: [spec-diff.md, .archvow/doc/]
+
+tests:
+  stage: test
+  image: {{ image }}
+  rules:
+    - exists: [tests/**/*.py]
+  cache:
+    paths: [.cache/pip]
+  before_script:
+{%- if not ci_image and ci_java %}
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends openjdk-17-jre-headless
+{%- endif %}
+    - {{ install_command }}
+  script:
+    - pytest {{ cov_option }} --cov-report=term-missing --cov-report=xml --junitxml=test-results.xml
+    - archvow check --test-report test-results.xml      # every invariant's test ran and passed (ARCH046)
+  coverage: '/^TOTAL.*\s+(\d+(?:\.\d+)?%)$/'   # percentage shown in the merge request
+  artifacts:
+    when: always
+    paths: [coverage.xml, test-results.xml]
+    reports:
+      junit: test-results.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+{%- if reviewers %}
+
+ai-review:
+  # An approved AI reviewer ({{ reviewers | join(', ') }}) reads the change and writes a report; it never
+  # changes code (the job fails if it does) and never reviews code written with its own tool.
+  # HIGH findings fail the job until a person reads the report and adds the label review-acknowledged.
+  # ARCHVOW_REVIEW_IMAGE: an image with Python {{ ci_python }}, git and the reviewer's command line.
+  # Credentials: masked, protected CI/CD variables{% if review_secrets %} ({{ review_secrets | join(', ') }}){% endif %}.
+  # Another command: set ARCHVOW_REVIEW_COMMAND (the task is in $ARCHVOW_REVIEW_PROMPT).
+  stage: test
+  image: ${ARCHVOW_REVIEW_IMAGE}
+  variables:
+    ARCHVOW_REVIEW_IMAGE: "{{ image }}"
+  rules:  # a release or a back-merge from main carries changes already reviewed on develop
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ /^(release\/|main$)/
+  cache:
+    paths: [.cache/pip]
+  before_script:
+{%- if not ci_image and ci_java %}
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends openjdk-17-jre-headless
+{%- endif %}
+    - {{ install_command }}
+  script:
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - FLAGS=""
+    - >
+      if echo ",$CI_MERGE_REQUEST_LABELS," | grep -q ",review-acknowledged,"; then
+      FLAGS="--acknowledged"; fi
+    - archvow review --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" $FLAGS
+  artifacts:
+    when: always
+    expose_as: "AI review"  # link shown in the merge request
+    paths: [reviews/last-change.md]
+{%- endif %}
+{%- if sonar == 'yes' %}
+
+sonarqube:
+  # Set SONAR_HOST_URL and SONAR_TOKEN in Settings > CI/CD > Variables (SONAR_SCANNER_IMAGE: an internal image).
+  stage: test
+  needs: [tests]
+  image: ${SONAR_SCANNER_IMAGE}
+  variables:
+    SONAR_SCANNER_IMAGE: "sonarsource/sonar-scanner-cli:11"
+  script:
+    - sonar-scanner -Dsonar.qualitygate.wait=true
+{%- endif %}

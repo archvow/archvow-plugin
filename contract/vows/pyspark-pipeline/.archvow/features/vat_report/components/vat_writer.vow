@@ -17,30 +17,35 @@ symbol write_vat
 
 # --- decisions
 decision 1
+  id existing_output
   question "Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?"
   answer "Overwrite"
   by architect@example.com
   on 2026-11-11T19:07:01.748316+00:00
 
 decision 2
+  id half_written
   question "If the job fails while writing (e.g. it stops after 3 of 10 files), how do readers avoid a half-written output: write to a temporary folder then rename, a _SUCCESS file, or a table transaction?"
   answer "Write to a temporary folder next to the output, then rename it"
   by architect@example.com
   on 2026-11-11T19:07:01.977915+00:00
 
 decision 3
+  id rerun
   question "If the job runs again on the same input (e.g. a re-run after a failure), must the output be exactly the same, with no duplicated rows?"
   answer "Yes: the same input gives the same output"
   by architect@example.com
   on 2026-11-11T19:07:02.203667+00:00
 
 decision 4
+  id format
   question "How is the output stored: which file format (parquet, csv...), and is it split into folders by a column (e.g. date=2026-10-12) or not?"
   answer "Parquet, not partitioned"
   by architect@example.com
   on 2026-11-11T19:07:02.431744+00:00
 
 decision 5
+  id shared_library
   question "Does an approved shared library already write these files (e.g. acme_io.write_parquet, listed in requirements.txt)? Then the code calls it - which function - instead of writing them with Spark."
   answer "No: Spark writes them itself"
   by architect@example.com

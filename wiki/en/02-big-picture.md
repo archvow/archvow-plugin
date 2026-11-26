@@ -18,7 +18,7 @@ not tell them: they read what the CLI prints and run the CLI for every change.
 | **Same functions, not same code** | Swing and a web page have nothing in common | VS Code follows the IntelliJ workspace rule by rule; `vscode/src/workItems.ts`, `vscode/src/grammar.ts`, `vscode/src/formatter.ts` name the Java class they follow |
 | **One `.vow` reader, written twice** | both editors must show the same errors in the same place | the Java reader (`org.archvow.vow.core`) is the reference; the TypeScript one (`vscode/src/vow`) must give the same tokens on `contract/vow-reader/expected.json` |
 | **No shell, one command at a time** | no injection, no two writes at once | `ArchvowCli` and `vscode/src/cli.ts`: an argument list, the project folder, a time-out |
-| **The plugin says when the installed archvow does not speak its contract** | archvow keeps no backward compatibility | `ArchvowVersion`, `contractWarning()` compare `archvow version --json` with `contract/cli/contract.txt` |
+| **The plugin says which archvow it works with, and when the installed one is not** (1.0.0) | the plugins have their own versioning; archvow keeps no backward compatibility across MAJORs | `ArchvowCompat`, `compatibility()` judge `archvow version --json` against `contract/archvow-range.txt` and `contract/cli/contract.txt`, with the project's pin |
 | **No outside source at run time** | critical projects, supply chain | no plugin downloads anything; the `.zip` and the `.vsix` go through an internal repository |
 
 ## The map of the files
@@ -29,7 +29,7 @@ not tell them: they read what the CLI prints and run the CLI for every change.
 |---|---|
 | Plugging into the IDE | `plugin.xml`, `ArchvowToolWindowFactory`, `ArchvowEditorProvider`, `ArchvowMainFileEditor`, `ArchvowEditorTab`, `ArchvowEditorTabPresentation`, `ArchvowOpenOnStartup`, `ShowArchvowAction`, `ShowFileArchvowAction`, `RefreshArchvowAction` |
 | The workspace (both roles) | `ArchvowPanel` |
-| Running the CLI | `ArchvowCli`, `ArchvowProcessCommand`, `ArchvowInterpreter`, `ArchvowWsl`, `ArchvowVersion`, `ArchvowRunLog`, `ArchvowSettings`, `ArchvowSettingsConfigurable` |
+| Running the CLI | `ArchvowCli`, `ArchvowProcessCommand`, `ArchvowInterpreter`, `ArchvowWsl`, `ArchvowVersion`, `ArchvowCompat`, `ArchvowRunLog`, `ArchvowSettings`, `ArchvowSettingsConfigurable` |
 | Overview | `ArchvowArchitectureView`, `ArchvowChecksView`, `ArchvowResultFormatter`, `ArchvowRuleDocs`, `ArchvowBranchAdvice`, `ArchvowProjectReadiness` |
 | A component | `ArchvowSplitView`, `ArchvowItemCards`, `ArchvowDecisionView`, `ArchvowSafetyView`, `ArchvowSafetyState`, `ArchvowDataView`, `ArchvowAnswerEditor`, `ArchvowConfirmPanel`, `ArchvowInlineCommands`, `ArchvowLinks`, `ArchvowVowViewer`, `ArchvowTaskPrompt` |
 | Commands | `ArchvowGrammar`, `ArchvowCommandPrefill`, `ArchvowInitCatalog`, `ArchvowInitQuestions`, `ArchvowComponentTypes`, `ArchvowIssueAction` |

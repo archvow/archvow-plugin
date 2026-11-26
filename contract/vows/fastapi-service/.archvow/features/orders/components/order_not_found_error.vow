@@ -15,12 +15,14 @@ symbol OrderNotFoundError
 
 # --- decisions
 decision 1
+  id code
   question "Which HTTP status does the app answer with it (404, 409, 422...)?"
   answer "404 Not Found"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 2
+  id message
   question "What does its message say - and never say (internal ids, personal data, whether the resource exists)?"
   answer "\"Order not found\" - never the id's owner, never whether it exists"
   by architect@example.com

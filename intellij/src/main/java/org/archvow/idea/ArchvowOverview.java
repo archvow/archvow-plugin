@@ -15,7 +15,16 @@ import java.util.List;
 final class ArchvowOverview {
     private ArchvowOverview() {}
 
-    record FirstStep(String step, String title, String detail, String command, boolean done) {}
+    /** {@code built} of {@code total}: 1.2.0 (archvow 3.2), the build step's components built (0 of 0 for the others). */
+    record FirstStep(String step, String title, String detail, String command, boolean done, int built, int total,
+                     String alsoLabel, String alsoCommand) {
+        FirstStep(String step, String title, String detail, String command, boolean done) { this(step, title, detail, command, done, 0, 0, "", ""); }
+        /** 1.4.2 (archvow 3.4.1): what can still be done at the step - + Feature, + Component, Build the N specified -
+         *  as a step of its own, so that the same action runs it; null when archvow says nothing. */
+        FirstStep also() {
+            return alsoLabel.isBlank() ? null : new FirstStep(step, title, detail, alsoCommand, false, built, total, "", "");
+        }
+    }
 
     /** The steps, how many are done, and the first not done: the one with the action button. */
     record FirstSteps(List<FirstStep> steps, int done, int current) {}
@@ -31,8 +40,11 @@ final class ArchvowOverview {
             JsonObject s = e.getAsJsonObject();
             boolean done = s.has("done") && s.get("done").isJsonPrimitive() && s.get("done").getAsJsonPrimitive().isBoolean()
                 && s.get("done").getAsBoolean();
+            JsonObject progress = s.has("progress") && s.get("progress").isJsonObject() ? s.getAsJsonObject("progress") : null;
+            JsonObject also = s.has("also") && s.get("also").isJsonObject() ? s.getAsJsonObject("also") : null;
             steps.add(new FirstStep(ArchvowGrammar.str(s, "step"), ArchvowGrammar.str(s, "title"), ArchvowGrammar.str(s, "detail"),
-                ArchvowGrammar.str(s, "command"), done));
+                ArchvowGrammar.str(s, "command"), done, ArchvowGrammar.number(progress, "done"), ArchvowGrammar.number(progress, "total"),
+                ArchvowGrammar.str(also, "label"), ArchvowGrammar.str(also, "command")));
         }
         int done = (int) steps.stream().filter(FirstStep::done).count();
         if (steps.isEmpty() || done == steps.size()) return null;

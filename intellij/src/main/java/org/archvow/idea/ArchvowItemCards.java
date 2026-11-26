@@ -52,12 +52,19 @@ final class ArchvowItemCards {
     }
 
     /** "architect@example.com · 2026-10-08": who recorded the answer, and the day. */
-    static String byOn(JsonObject row) {
+    static String byOn(JsonObject row) { return byOn(row, false); }
+
+    static String byOn(JsonObject row, boolean french) {
         String by = ArchvowGrammar.str(row, "by");
         String on = ArchvowGrammar.str(row, "on");
         if (on.length() > 10) on = on.substring(0, 10);
-        if (by.isBlank()) return on;
-        return on.isBlank() ? by : by + " · " + on;
+        String who = by.isBlank() ? on : on.isBlank() ? by : by + " · " + on;
+        // 1.2.0 (archvow 3.2): an answer saved from an AI draft says so
+        JsonObject drafted = row != null && row.has("drafted") && row.get("drafted").isJsonObject() ? row.getAsJsonObject("drafted") : null;
+        if (drafted == null || who.isBlank()) return who;
+        boolean edited = !drafted.has("edited") || ArchvowGrammar.flag(drafted, "edited");
+        return who + " · " + (french ? (edited ? "brouillon IA, modifié" : "brouillon IA, inchangé")
+            : (edited ? "AI draft, edited" : "AI draft, unchanged"));
     }
 
     static Card decision(JsonObject d, boolean french) {
@@ -65,7 +72,7 @@ final class ArchvowItemCards {
         String proposed = ArchvowGrammar.str(d, "proposed");
         boolean open = answer.isBlank();
         return new Card(ArchvowGrammar.str(d, "number"), ArchvowGrammar.str(d, "question"), open,
-            french ? "Ouvert" : "Open", answer, open ? "" : byOn(d),
+            french ? "Ouvert" : "Open", answer, open ? "" : byOn(d, french),
             open && !proposed.isBlank() ? (french ? "Proposition IA : " : "AI proposal: ") + proposed : "");
     }
 
@@ -75,7 +82,7 @@ final class ArchvowItemCards {
         String answer = ArchvowGrammar.str(q, "answer");
         boolean open = answer.isBlank();
         return new Card(key, ArchvowGrammar.str(q, "question"), open, french ? "Ouverte" : "Open", answer,
-            open ? "" : byOn(q), "");
+            open ? "" : byOn(q, french), "");
     }
 
     static Card safety(JsonObject q, boolean french) {

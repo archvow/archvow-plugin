@@ -18,7 +18,7 @@ qu'archvow ne leur dise : ils lisent ce que la CLI affiche et lancent la CLI pou
 | **Les mêmes fonctions, pas le même code** | Swing et une page web n'ont rien en commun | VS Code reprend l'espace de travail IntelliJ règle par règle ; `vscode/src/workItems.ts`, `vscode/src/grammar.ts`, `vscode/src/formatter.ts` nomment la classe Java qu'ils suivent |
 | **Un seul lecteur `.vow`, écrit deux fois** | les deux éditeurs doivent voir les mêmes erreurs au même endroit | le lecteur Java (`org.archvow.vow.core`) est la référence ; le TypeScript (`vscode/src/vow`) doit donner les mêmes jetons sur `contract/vow-reader/expected.json` |
 | **Pas de shell, une commande à la fois** | pas d'injection, pas deux écritures en même temps | `ArchvowCli` et `vscode/src/cli.ts` : liste d'arguments, dossier du projet, délai maximal |
-| **Le plugin dit quand l'archvow installé ne parle pas son contrat** | archvow ne garde pas de compatibilité ascendante | `ArchvowVersion`, `contractWarning()` comparent `archvow version --json` avec `contract/cli/contract.txt` |
+| **Le plugin dit avec quel archvow il fonctionne, et quand l'archvow installé n'en est pas** (1.0.0) | les plugins ont leur propre numérotation ; archvow ne garde pas de compatibilité ascendante d'une MAJEURE à l'autre | `ArchvowCompat`, `compatibility()` jugent `archvow version --json` face à `contract/archvow-range.txt` et `contract/cli/contract.txt`, avec la version que fixe le projet |
 | **Aucune source extérieure à l'exécution** | projets critiques, chaîne d'approvisionnement | aucun plugin ne télécharge ; le `.zip` et le `.vsix` passent par un dépôt interne |
 
 ## La carte des fichiers
@@ -29,7 +29,7 @@ qu'archvow ne leur dise : ils lisent ce que la CLI affiche et lancent la CLI pou
 |---|---|
 | Brancher le plugin dans l'IDE | `plugin.xml`, `ArchvowToolWindowFactory`, `ArchvowEditorProvider`, `ArchvowMainFileEditor`, `ArchvowEditorTab`, `ArchvowEditorTabPresentation`, `ArchvowOpenOnStartup`, `ShowArchvowAction`, `ShowFileArchvowAction`, `RefreshArchvowAction` |
 | L'espace de travail (les deux rôles) | `ArchvowPanel` |
-| Lancer la CLI | `ArchvowCli`, `ArchvowProcessCommand`, `ArchvowInterpreter`, `ArchvowWsl`, `ArchvowVersion`, `ArchvowRunLog`, `ArchvowSettings`, `ArchvowSettingsConfigurable` |
+| Lancer la CLI | `ArchvowCli`, `ArchvowProcessCommand`, `ArchvowInterpreter`, `ArchvowWsl`, `ArchvowVersion`, `ArchvowCompat`, `ArchvowRunLog`, `ArchvowSettings`, `ArchvowSettingsConfigurable` |
 | Overview | `ArchvowArchitectureView`, `ArchvowChecksView`, `ArchvowResultFormatter`, `ArchvowRuleDocs`, `ArchvowBranchAdvice`, `ArchvowProjectReadiness` |
 | Un composant | `ArchvowSplitView`, `ArchvowItemCards`, `ArchvowDecisionView`, `ArchvowSafetyView`, `ArchvowSafetyState`, `ArchvowDataView`, `ArchvowAnswerEditor`, `ArchvowConfirmPanel`, `ArchvowInlineCommands`, `ArchvowLinks`, `ArchvowVowViewer`, `ArchvowTaskPrompt` |
 | Les commandes | `ArchvowGrammar`, `ArchvowCommandPrefill`, `ArchvowInitCatalog`, `ArchvowInitQuestions`, `ArchvowComponentTypes`, `ArchvowIssueAction` |

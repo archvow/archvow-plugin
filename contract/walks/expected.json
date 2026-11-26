@@ -1,0 +1,2048 @@
+{
+ "about": "What the walks give (1.1.0) on each example, as recorded and in each mode. Written by UPDATE_WALKS=1 npm test (vscode/walks.ts); the IntelliJ plugin must give the same (WalksRegression).",
+ "cases": [
+  {
+   "example": "fastapi-service",
+   "mode": "",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "mode": "",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "mode": "",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "mode": "strict",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "mode": "strict",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "mode": "strict",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "mode": "guided",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "mode": "guided",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "fastapi-service",
+   "mode": "guided",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "orders": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "orders": [],
+      "shared": []
+     },
+     "components": {
+      "new_order_model": [],
+      "order_model": [],
+      "order_not_found_error": [],
+      "orders_repository": [],
+      "create_order": [],
+      "get_order": [],
+      "orders_router": [],
+      "get_current_user": [],
+      "logging_setup": [],
+      "settings": [],
+      "main": []
+     }
+    },
+    "build": {
+     "orders": [],
+     "shared": []
+    },
+    "featureOf": {
+     "new_order_model": "orders",
+     "order_model": "orders",
+     "order_not_found_error": "orders",
+     "orders_repository": "orders",
+     "create_order": "orders",
+     "get_order": "orders",
+     "orders_router": "orders",
+     "get_current_user": "shared",
+     "logging_setup": "shared",
+     "settings": "shared",
+     "main": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "ready",
+      "component": "clean_orders",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": [
+      "clean_orders",
+      "compute_vat",
+      "orders_schema",
+      "vat_schema"
+     ]
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": false,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark",
+     "clean_orders",
+     "compute_vat",
+     "orders_schema",
+     "vat_schema"
+    ]
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "specify-first",
+      "component": "",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": []
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": false,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark"
+    ]
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "ready",
+      "component": "clean_orders",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": [
+      "clean_orders",
+      "compute_vat",
+      "orders_schema",
+      "vat_schema"
+     ]
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": true,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark",
+     "clean_orders",
+     "compute_vat",
+     "orders_schema",
+     "vat_schema"
+    ]
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "strict",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "ready",
+      "component": "clean_orders",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": [
+      "clean_orders",
+      "compute_vat",
+      "orders_schema",
+      "vat_schema"
+     ]
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": false,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark",
+     "clean_orders",
+     "compute_vat",
+     "orders_schema",
+     "vat_schema"
+    ]
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "strict",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "specify-first",
+      "component": "",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": []
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": false,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark"
+    ]
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "strict",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "ready",
+      "component": "clean_orders",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": [
+      "clean_orders",
+      "compute_vat",
+      "orders_schema",
+      "vat_schema"
+     ]
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": true,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark",
+     "clean_orders",
+     "compute_vat",
+     "orders_schema",
+     "vat_schema"
+    ]
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "guided",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "ready",
+      "component": "clean_orders",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": [
+      "clean_orders",
+      "compute_vat",
+      "orders_schema",
+      "vat_schema"
+     ]
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": false,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark",
+     "clean_orders",
+     "compute_vat",
+     "orders_schema",
+     "vat_schema"
+    ]
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "guided",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "propose-first",
+      "component": "clean_orders",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": []
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": false,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark"
+    ]
+   }
+  },
+  {
+   "example": "pyspark-pipeline",
+   "mode": "guided",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "shared": {
+      "state": "ready",
+      "component": "config",
+      "open": 0
+     },
+     "vat_report": {
+      "state": "ready",
+      "component": "clean_orders",
+      "open": 9
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "shared": [],
+      "vat_report": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     },
+     "components": {
+      "config": [],
+      "logging_setup": [],
+      "spark": [],
+      "my_pipeline_main": [],
+      "clean_orders": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "compute_vat": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "order_totals": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_schema": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "orders_reader": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "vat_writer": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ],
+      "my_pipeline_job": [
+       {
+        "component": "order_totals",
+        "open": 9
+       }
+      ]
+     }
+    },
+    "build": {
+     "shared": [
+      "config",
+      "logging_setup",
+      "spark"
+     ],
+     "vat_report": [
+      "clean_orders",
+      "compute_vat",
+      "orders_schema",
+      "vat_schema"
+     ]
+    },
+    "featureOf": {
+     "config": "shared",
+     "logging_setup": "shared",
+     "spark": "shared",
+     "my_pipeline_main": "shared",
+     "clean_orders": "vat_report",
+     "compute_vat": "vat_report",
+     "order_totals": "vat_report",
+     "orders_schema": "vat_report",
+     "vat_schema": "vat_report",
+     "orders_reader": "vat_report",
+     "vat_writer": "vat_report",
+     "my_pipeline_job": "vat_report"
+    },
+    "budget": true,
+    "ready": [
+     "config",
+     "logging_setup",
+     "spark",
+     "clean_orders",
+     "compute_vat",
+     "orders_schema",
+     "vat_schema"
+    ]
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "strict",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "strict",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "strict",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "guided",
+   "variant": "",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "guided",
+   "variant": "blocked",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  },
+  {
+   "example": "python-app",
+   "mode": "guided",
+   "variant": "budget",
+   "walks": {
+    "prompt": {
+     "invoices": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     },
+     "shared": {
+      "state": "built",
+      "component": "",
+      "open": 0
+     }
+    },
+    "specify": {
+     "foundations": [],
+     "features": {
+      "invoices": [],
+      "shared": []
+     },
+     "components": {
+      "invoice_model": [],
+      "invoice_not_found_error": [],
+      "invoices_repository": [],
+      "mark_paid": [],
+      "invoices_cli": [],
+      "config": [],
+      "logging_setup": []
+     }
+    },
+    "build": {
+     "invoices": [],
+     "shared": []
+    },
+    "featureOf": {
+     "invoice_model": "invoices",
+     "invoice_not_found_error": "invoices",
+     "invoices_repository": "invoices",
+     "mark_paid": "invoices",
+     "invoices_cli": "invoices",
+     "config": "shared",
+     "logging_setup": "shared"
+    },
+    "budget": false,
+    "ready": []
+   }
+  }
+ ]
+}

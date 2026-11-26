@@ -14,7 +14,7 @@ runs them with `JavaExec` (`intellij/build.gradle.kts`). Gradle's `test` task is
 | Task | Class | What it checks |
 |---|---|---|
 | `coreTest` | `CoreTests` (`org.archvow.vow.core`) | the `.vow` reader on every vow of `contract/vows`: the scanner covers all the text, restarts at any token, one colour per depth; vows broken on purpose give the right problems |
-| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 62 regression classes: everything that does not need a running IntelliJ |
+| `workspaceTest` | `WorkspaceTests` (`org.archvow.idea`), with `java.awt.headless=true` | the 70 regression classes: everything that does not need a running IntelliJ |
 | `contractDump` (not in `check`) | `DumpContract` | writes `contract/vow-reader/expected.json`, the TypeScript reader's reference |
 
 The panel itself (`ArchvowPanel`) needs a running IntelliJ; that is why **the logic is taken out into
@@ -28,6 +28,14 @@ what it protects:
 | `ArchitectureViewRegression` | Component, State, Pending always visible at any width |
 | `CommandPrefillRegression`, `InlineCommandRegression`, `LaunchCommandRegression` | what a form receives, the exact command line |
 | `TrustRegression` | nothing runs in an untrusted project (safe mode, 0.26.1): every archvow, Test and Install process asks `ArchvowTrust` first; `-P` on every Python command line |
+| `TryItRegression` | "Try it" shows its result (0.26.1): the welcome page scrolls, and the result area keeps its 260 px in a narrow, a short and a wide tool window (22 px before: the GridBagLayout gave each part its minimum size) |
+| `FindArchvowRegression` | Where archvow is looked for: a Python chosen in the settings first (0.26.1), then the IDE's interpreter, the folder's .venv, the executable, then what else exists; `init --dir` runs in that folder |
+| `PythonsRegression` | The Pythons of Settings > Tools > Archvow (0.26.1): where they are looked for, each once (a venv stays its own), the probe read back, those with archvow first, each line in one language |
+| `SettingsTextRegression` | One language at a time (0.26.1): every text of Settings > Tools > Archvow in one language, and no text of the plugin puts English and French side by side |
+| `InitTargetRegression` | After init (0.26.1): another folder (`--dir`) opens as the IDE's project; PyCharm Home (PyCharmMiscProject) is never initialized itself, a new project's folder follows its package |
+| `AgentPickerRegression` | The AI assistants of init (0.26.1): picked from the agents archvow knows, any other added by name (archvow's rule), `none` alone, each change the form's |
+| `PastedErrorRegression` | An error pasted in Find (archvow 2.7.0): shown as an error from archvow's real output - known errors with their fix and why, where it broke, buttons that go there - never as a search found nowhere |
+| `PlatformApiRegression` | No API the Plugin Verifier reported (2024.3 to 2026.3 EAP): files open through `OpenFileDescriptor.navigate`; the trust check is the platform's newest that exists (2025.1 `isProjectTrusted`, else 2024.3 `isTrusted`), none or a failing one means not trusted |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, the `\\wsl.localhost\...` paths |
 | `TextDialogRegression` | a dialog's size, Copy command |
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |
@@ -40,9 +48,10 @@ what it protects:
 | `AiSkillsRegression` | the AI view of a component (`ArchvowAiSkills`): exactly VS Code's on `contract/forms/ai-skills.expected.json` (origins, To review counts, suggestion, blocked skills); the requests each tool gets |
 | `SkillFormRegression` | the launch form of a skill (`ArchvowSkillForm`): the request, Copy disabled without a brief, "Not yet"; Overview › Briefs (`ArchvowBriefs.statusHtml`); the cards' origin tags and the All / Open / To review filter |
 | `LoadChainRegression` | the project's load is one `workspace --json` call (0.21.0), with no other command started inside it, and the old six-command chain gone: ArchvowCli refuses a command started beside another (0.16.0: no counts) |
-| `WorkspaceAnswerRegression` | `WorkspaceAnswer` on the contract's `workspace.json` (0.21.0): each part equals what show, show <id>, next and check print alone, briefs, catalog and packs (0.22.0) present; `unchanged`, the error envelope and a missing part told apart |
-| `FeatureViewRegression` | a feature's page (`ArchvowFeatureView`, 0.24.0; run since 0.26.0): head, map, components by layer, what is open; a feature an AI agent added says who added it and offers Accept… (EN and FR) |
-| `PacksRegression` | the overview's Packs row (0.22.0): the count of packs and of those changed by hand, the list (what each brings, its source, ARCH060), what each link opens (`pack update/remove/check`, its name filled in; `pack add`, `pack new`, `diff`), commands that exist in the grammar |
+| `WorkspaceAnswerRegression` | `WorkspaceAnswer` on the contract's `workspace.json` (0.21.0): each part equals what show, show <id>, next and check print alone, briefs, catalog and templates (1.0.0) present; `unchanged`, the error envelope and a missing part told apart |
+| `FeatureViewRegression` | a feature's page (`ArchvowFeatureView`, 0.24.0; run since 0.26.0): head, map, components by layer, what is open; a feature an AI agent added says who added it and offers Accept…; **Check before coding** after Copy AI prompt copies `prompt --feature <f> --clarify` (archvow 2.8.0) (EN and FR) |
+| `TemplatesRegression` | the overview's Templates row (1.0.0): the chain, bases first, and the copies changed by hand, the list (what each extends, its source, ARCH060, the project's own additions), what each link opens (`template update`, `template new`, `template question` / `template rule` with `project`, `diff`), commands that exist in the grammar |
+| `CompatRegression` | what the plugin says of the installed archvow (1.0.0) is VS Code's on every case of `contract/compat/expected.json`: state, sentence (EN, FR), the archvow Install puts (none over a pin outside the range); the pin read from requirements.txt or pyproject.toml |
 | `RunLogRegression` | the session log (0.19.0), like `runlog.test.ts`: an action in full with archvow's answer, a refresh in one line, `check` exiting 1 is not a failure, a failure says what archvow said, slow calls marked, the support text (a person's words hidden), the component an action touches |
 | `ListFilterRegression` | the line under the views (`ArchvowListFilter`), a done view says where the work is, the next open item after a save, the links, the four quiet actions |
 | `OverviewRegression` | the Overview's cards (`ArchvowOverview`, `ArchvowOverviewCards`, 0.25.0): on each example's `workspace.json`, the first steps, the first finding and each row's suggested answers exactly as VS Code reads them (`contract/overview/expected.json`); the cards' texts and what their buttons do |

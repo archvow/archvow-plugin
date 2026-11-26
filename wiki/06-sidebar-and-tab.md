@@ -19,7 +19,8 @@ IntelliJ `ArchvowFeatureView`, à partir des `features` de `workspace --json`) :
 et tickets, ce que fait le produit dans celle-ci, combien de composants sont vérifiés, les fonctionnalités qu'elle
 utilise et qui l'utilisent (avec les usages qui font chaque lien), ses composants par couche et ce qui y est ouvert ;
 **Ajouter un composant** (`component add -f <fonctionnalité>`), **Ouvrir la doc** (`archvow doc <fonctionnalité>`,
-puis la page dans un éditeur), **Copier le prompt IA** (`archvow prompt --feature`), **Prochaines étapes**
+puis la page dans un éditeur), **Copier le prompt IA** (`archvow prompt --feature`), **Vérifier avant de coder** (`archvow prompt --feature <f>
+--clarify`, archvow 2.8.0 : l'IA vérifie toute la fonctionnalité avant tout code et enregistre des questions), **Prochaines étapes**
 (`next --feature`), **Renommer…**. Une fonctionnalité ajoutée par un agent IA dit qui l'a ajoutée, et
 **Accepter…** ouvre `feature accept` (0.26.0, archvow 2.5). L'en-tête d'un composant nomme sa fonctionnalité (un lien), et **Déplacer…**
 ouvre `component move`.
@@ -96,6 +97,14 @@ recherche montre où archvow trouve le nom : la spec, le code, les tests, les ex
 problèmes. À gauche les groupes avec leur nombre, au milieu les endroits, à droite les lignes autour de l'endroit
 choisi (`around()` côté hôte) ; un double-clic ouvre le fichier à la ligne. Un nom introuvable propose les noms
 proches d'archvow, chacun un bouton qui relance la recherche.
+
+**Une erreur collée** (0.26.1, archvow 2.7.0) : une erreur ou une trace collée dans le champ est ce que lit
+`archvow show "<l'erreur>" --json`. Sa réponse a un objet `error`, et le panneau montre une page d'erreur au lieu
+d'une recherche : ce qui a mal tourné, les erreurs connues du template qu'elle reconnaît (les règles de template gardées
+avec cette erreur, leur correction et leur raison), puis où ça a cassé avec les lignes autour, **Ouvrir à la ligne**
+et **Afficher <composant>**, et où va la leçon une fois corrigée. Le champ d'une ligne garde les lignes d'une trace
+séparées (celui d'IntelliJ met une espace à chaque saut de ligne ; celui de VS Code, `joinLines` au collage).
+IntelliJ : `ArchvowSearch.isError`, `errorPlace`, `errorHtml` ; VS Code : `pastedErrorView()`.
 
 IntelliJ : `ArchvowSearch` (les groupes, les endroits, le titre ; sans API d'IDE) et `ArchvowSearchView` (le
 panneau), affiché par `ArchvowEditorTab.showSearch` ; VS Code : `searchView()`, `searchHits()`, et

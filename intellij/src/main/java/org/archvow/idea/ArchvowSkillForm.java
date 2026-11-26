@@ -14,64 +14,134 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * The launch form of an AI skill (0.16.0, design A, the same as the VS Code page's {@code skillForm()}): on the
- * left what the AI reads - the component, or the brief section - at most how many questions and where the
- * request goes; on the right what will happen, what the AI may add, what the person still decides and the exact
- * request. Nothing runs here: the request goes to the assistant (here: the clipboard, IntelliJ has no way to
- * type into an AI chat), which runs archvow; what it adds comes back marked as the AI's. Plain Swing and JSON,
- * tested headless ({@code SkillFormRegression}).
+ * The launch form of an AI skill (1.3.0, the same as the VS Code page's {@code skillForm()}): on the left the target -
+ * the component, or the brief section - at most how many questions, the buttons and the run; on the right what will
+ * happen and archvow's instructions ({@code archvow skill --prompt}: the same text in both IDEs). Draft from a brief,
+ * Find missing questions and Find risks run in the background with the AI picked in ▾ ({@code archvow skill});
+ * Implement is handed to your own agent; Review runs {@code archvow review} with one of the project's reviewers. Plain
+ * Swing and JSON, tested headless ({@code SkillFormRegression}): archvow is reached through {@link Host}.
  */
 final class ArchvowSkillForm extends JPanel implements Scrollable {
     /** What the person chose: the request's text and the values it was made of. */
     interface Send { void send(String request, Map<String, String> values); }
 
+    /** One of the project's AI assistants (or reviewers) that archvow can run here: workspace --json. */
+    record Tool(String name, String title, String program, boolean installed) { }
+
+    /** How a run ended: done or failed, archvow's sentence, whether it added something, whether there is a log. */
+    record Ended(String status, String message, boolean added, boolean log) { }
+
+    /** What the form asks of archvow and of the IDE (the panel; a test gives its own). */
+    interface Host {
+        /** archvow skill <skill> <target> --prompt: the instructions, given back on the UI thread. */
+        void prompt(String skill, String target, String max, java.util.function.Consumer<String> text);
+        /** Runs archvow (skill, or review) in the background; `ended` on the UI thread; returns how to stop it. */
+        Runnable run(List<String> args, java.util.function.Consumer<Ended> ended);
+        void showLog(boolean review);
+        void openReport();
+        /** Review them ›: the component's To review (Find risks: Safety), or the features (Draft from a brief). */
+        void reviewAdded(String skill, String component);
+        String keptTool();
+        void keepTool(String tool);
+    }
+
     final Map<String, String> values = new LinkedHashMap<>();
     final JTextArea request = new JTextArea(3, 30);
-    private final JPanel skillReview = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 12, 12));
     final JButton copy;
-    final JButton copySkill;
+    /** 1.2.0: copies the instructions, then opens the IDE's AI chat (JetBrains lets no plugin send to it): Implement. */
+    final JButton openChat;
+    private Runnable onOpenChat = () -> { };
     final JButton cancel;
+    /** 1.3.0: ▶ Run with <AI> (▶ Review with <reviewer>), and ▾ for another one. */
+    final JButton run = ArchvowSplitView.primary("");
+    final JButton runMore = new JButton("▾");
+    /** Under the buttons: the run going on, or how the last one ended. */
+    final JPanel runState = new JPanel(new BorderLayout(8, 4));
     private final JsonObject skills;
     private final String skill;
     private final boolean french;
     private final JLabel blocked = new JLabel();
+    /** 1.4.0: why archvow starts no run here, in words under the buttons (not only in their hover). */
+    final ArchvowWrapLabel runWhy = new ArchvowWrapLabel();
     private final Function<String, String[]> blockedFor;
-    private final java.util.List<JToggleButton> stepButtons = new java.util.ArrayList<>();
-    private int currentStep;
+    private final List<Tool> tools;
+    private final String whyNot;
+    private final String base;
+    private final Host host;
+    private String tool = "";
+    private Runnable stop;
+    private Timer ticking;
+
+    /** 1.4.2: the running clock stops with the form (an editor tab closed during a run kept it ticking). */
+    @Override public void removeNotify() {
+        super.removeNotify();
+        if (ticking != null) ticking.stop();
+    }
+
+    @Override public void addNotify() {
+        super.addNotify();
+        if (ticking != null && stop != null) ticking.start();  // shown again while the run goes on
+    }
+    private String shownKey = "";
 
     /**
      * @param components the components of the project (the first one or {@code values.component} chosen)
      * @param briefs     the brief files and sections, for draft-spec
-     * @param tools      the project's AI tools (init answer ai_tools)
+     * @param tools      who can run it here: the project's AI assistants (workspace ai_skills), for review its reviewers
+     * @param whyNot     why archvow runs no skill here (archvow's own words: not in ai_runs, a sandbox needed), or null
+     * @param base       the branch this one merges into (review)
      * @param blockedFor component -> why the skill cannot run on it yet ([en, fr]), or null
      */
     ArchvowSkillForm(JsonObject skills, String skill, Map<String, String> initial, List<String> components,
-                     List<String> briefs, List<String> tools, Function<String, String[]> blockedFor, boolean french,
-                     Send onSend, Runnable onCancel) {
+                     List<String> briefs, List<Tool> tools, String whyNot, String base, Function<String, String[]> blockedFor,
+                     boolean french, Host host, Send onSend, Runnable onCancel) {
         super(new BorderLayout(0, 10));
         this.skills = skills;
         this.skill = skill;
         this.french = french;
+        this.tools = tools == null ? List.of() : tools;
+        this.whyNot = whyNot == null || whyNot.isBlank() ? null : whyNot;
+        this.base = base == null ? "" : base;
+        this.host = host;
         this.blockedFor = blockedFor == null ? c -> null : blockedFor;
         values.putAll(initial);
         values.putIfAbsent("max", "5");
-        List<String> toolList = tools.isEmpty() ? List.of("copilot") : tools;
-        if (!toolList.contains(values.getOrDefault("tool", ""))) values.put("tool", toolList.get(0));
         JsonObject def = def(skills, skill);
         setBorder(BorderFactory.createEmptyBorder(12, 14, 12, 14));
 
         JPanel head = new JPanel(new BorderLayout(0, 3));
-        JLabel title = new JLabel(pair(def, "label") + "   skill: archvow-" + skill);
+        // 1.2.1: the skill's name beside the title goes under it when the editor is narrow (one label was cut)
+        JLabel title = new JLabel(pair(def, "label"));
         title.setFont(title.getFont().deriveFont(Font.BOLD, title.getFont().getSize2D() + 4f));
-        head.add(title, BorderLayout.NORTH);
+        JLabel skillName = new JLabel("skill: archvow-" + skill);
+        skillName.setFont(new Font(Font.MONOSPACED, Font.PLAIN, Math.round(title.getFont().getSize2D() - 4f)));
+        skillName.setForeground(UIManager.getColor("Label.disabledForeground"));
+        JPanel titleRow = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 0, 0));
+        titleRow.setOpaque(false);
+        title.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        titleRow.add(title);
+        titleRow.add(skillName);
+        head.add(titleRow, BorderLayout.NORTH);
         head.add(wrap(pair(def, "does")), BorderLayout.CENTER);
         blocked.setForeground(new Color(176, 118, 26));
         head.add(blocked, BorderLayout.SOUTH);
         add(head, BorderLayout.NORTH);
 
-        JPanel left = new JPanel();
+        // stacked, the controls are as tall as they need at the width they have now
+        JPanel left = new JPanel() {
+            @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+        };
         left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-        if ("brief".equals(str(def, "target"))) {
+        left.setName("archvow.skill.target");
+        if ("review".equals(skill)) {
+            JComponent what = wrap(this.base.isBlank()
+                ? (french ? "Pas de branche de base : une relecture compare cette branche à celle où elle sera fusionnée."
+                    : "No base branch found: a review compares this branch with the one it will merge into.")
+                : (french ? "Relit les changements de cette branche depuis " + this.base + ". Le rapport va dans reviews/last-change.md ; il ne change jamais le code."
+                    : "Reviews the changes of this branch since " + this.base + ". The report goes to reviews/last-change.md; it never changes code."));
+            left.add(what);
+            left.add(Box.createVerticalStrut(12));
+        } else if ("brief".equals(str(def, "target"))) {
             JComboBox<String> brief = new JComboBox<>(briefs.toArray(String[]::new));
             brief.setEditable(true);
             brief.setSelectedItem(values.getOrDefault("brief", ""));
@@ -89,48 +159,6 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
             max.onChange(() -> { values.put("max", max.value()); update(); });
             field(left, french ? "Au plus" : "At most", max);
         }
-        int handoffStart = left.getComponentCount();
-        ArchvowSegmented tool = new ArchvowSegmented(toolList, values.get("tool"), true);
-        tool.onChange(() -> { values.put("tool", tool.value()); update(); });
-        field(left, french ? "Assistant IA (optionnel)" : "AI assistant (optional)", tool);
-        List<Component> targetParts = new java.util.ArrayList<>();
-        List<Component> handoffParts = new java.util.ArrayList<>();
-        for (int i = 0; i < left.getComponentCount(); i++) {
-            (i < handoffStart ? targetParts : handoffParts).add(left.getComponent(i));
-        }
-        skillReview.setName("archvow.skill.review");
-        skillReview.setOpaque(false);
-        skillReview.setAlignmentX(LEFT_ALIGNMENT);
-        JPanel reviewPage = new JPanel(new BorderLayout());
-        reviewPage.setOpaque(false);
-        reviewPage.add(skillReview, BorderLayout.NORTH);
-        reviewPage.setAlignmentX(LEFT_ALIGNMENT);
-        left.add(reviewPage);
-        JPanel navigator = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 5, 2));
-        navigator.setName("archvow.skill.steps");
-        navigator.setOpaque(false);
-        navigator.setAlignmentX(LEFT_ALIGNMENT);
-        Runnable[] showStep = new Runnable[1];
-        showStep[0] = () -> {
-            for (Component component : targetParts) component.setVisible(currentStep == 0);
-            for (Component component : handoffParts) component.setVisible(currentStep == 1);
-            reviewPage.setVisible(currentStep == 2);
-            refreshStepButtons();
-            left.revalidate();
-            left.repaint();
-        };
-        String[] stepNames = french ? new String[] {"Cible", "Transmission IA", "Récapitulatif"}
-            : new String[] {"Target", "AI handoff", "Review"};
-        for (int i = 0; i < stepNames.length; i++) {
-            final int target = i;
-            JToggleButton step = new JToggleButton(stepNames[i]);
-            step.setName("archvow.skill.step." + i);
-            step.addActionListener(e -> { currentStep = target; showStep[0].run(); });
-            stepButtons.add(step);
-            navigator.add(step);
-        }
-        left.add(navigator, 0);
-        showStep[0].run();
 
         JPanel right = new JPanel(new BorderLayout(0, 10));
         right.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(128, 128, 128, 90)),
@@ -146,13 +174,8 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         explanation.setName("archvow.skill.explanation");
         explanation.add(what);
         explanation.add(Box.createVerticalStrut(8));
-        explanation.add(wrap(french ? "1. Copie les consignes complètes et colle-les dans ton assistant IA (ou utilise un skill installé)."
-            : "1. Copy the complete instructions and paste them into your AI assistant (or use an installed skill)."));
-        explanation.add(wrap("2. " + pair(def, "reads")));
-        explanation.add(wrap("3. " + (french ? "L'IA peut : " : "The AI can: ") + pair(def, "may_add")));
-        explanation.add(wrap("4. " + (french ? "Toi, tu : " : "You still: ") + pair(def, "you")));
-        explanation.add(wrap(french ? "Ce qu'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire."
-            : "What it adds appears in the component's tabs, marked AI and To review."));
+        List<String> steps = steps(def);
+        for (int i = 0; i < steps.size(); i++) explanation.add(wrap((i + 1) + ". " + steps.get(i)));
         explanation.add(Box.createVerticalStrut(10));
         JPanel highlights = new JPanel(new GridLayout(1, 2, 10, 0));
         highlights.setOpaque(false);
@@ -179,6 +202,55 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         explanation.add(bottom);
         right.add(explanation, BorderLayout.CENTER);
 
+        cancel = new JButton(french ? "Annuler" : "Cancel");
+        cancel.addActionListener(e -> onCancel.run());
+        copy = new JButton(french ? "Copier les consignes" : "Copy instructions");
+        copy.addActionListener(e -> onSend.send(request.getText(), Map.copyOf(values)));
+        openChat = ArchvowSplitView.primary(french ? "Copier et ouvrir le chat IA" : "Copy and open AI chat");
+        openChat.setToolTipText(french ? "Copie, puis ouvre ta fenêtre de chat IA : colle (⌘V) et envoie. Ton agent écrit le code."
+            : "Copies, then opens your AI chat window: paste (⌘V) and send. Your agent writes the code.");
+        openChat.addActionListener(e -> { onSend.send(request.getText(), Map.copyOf(values)); onOpenChat.run(); });
+        run.setName("archvow.skill.run");
+        run.addActionListener(e -> startRun());
+        runMore.setName("archvow.skill.runMore");
+        runMore.setMargin(new Insets(2, 6, 2, 6));
+        runMore.addActionListener(e -> runMenu().show(runMore, 0, runMore.getHeight()));
+        String kept = host == null ? "" : host.keptTool();
+        tool = this.tools.stream().filter(t -> t.name().equals(kept) && t.installed()).map(Tool::name).findFirst()
+            .orElse(this.tools.stream().filter(Tool::installed).map(Tool::name).findFirst().orElse(""));
+        JPanel buttons = new JPanel(new WrapActionLayout());
+        buttons.setName("archvow.skill.actions");
+        buttons.setOpaque(false);
+        buttons.addComponentListener(new ComponentAdapter() {
+            @Override public void componentResized(ComponentEvent e) { buttons.revalidate(); }
+        });
+        cancel.setBorderPainted(false);
+        cancel.setContentAreaFilled(false);
+        buttons.add(cancel);
+        buttons.add(copy);
+        if ("implement".equals(skill)) buttons.add(openChat);
+        else {
+            JPanel split = new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 0));
+            split.setOpaque(false);
+            split.add(run);
+            split.add(runMore);
+            buttons.add(split);
+        }
+        buttons.setAlignmentX(LEFT_ALIGNMENT);
+        runState.setName("archvow.skill.runState");
+        runState.setOpaque(false);
+        runState.setVisible(false);
+        runState.setAlignmentX(LEFT_ALIGNMENT);
+        runWhy.setName("archvow.skill.why");
+        runWhy.setOpaque(false);
+        runWhy.setForeground(UIManager.getColor("Label.disabledForeground"));
+        runWhy.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
+        runWhy.setAlignmentX(LEFT_ALIGNMENT);
+        runWhy.setVisible(false);
+        left.add(buttons);
+        left.add(runWhy);
+        left.add(runState);
+
         JPanel leftHost = new JPanel(new BorderLayout());
         leftHost.setOpaque(false);
         leftHost.add(left, BorderLayout.NORTH);
@@ -194,73 +266,216 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         };
         rightHost.setOpaque(false);
         rightHost.add(right, BorderLayout.NORTH);
-        JPanel body = new JPanel(new GridLayout(1, 2, 12, 0));
+        // 1.2.1: side by side or stacked is decided when the body is laid out, at its width - a resize event
+        // came after the first layout (and never headless): the explanation stayed a narrow column of words
+        final boolean[] stacked = {false};
+        JPanel body = new JPanel(new GridLayout(1, 2, 12, 0)) {
+            @Override public void doLayout() {
+                boolean narrow = getWidth() > 0 && getWidth() < STACK_BELOW;
+                if (narrow != stacked[0]) {
+                    stacked[0] = narrow;
+                    if (narrow) {
+                        // BoxLayout uses each row's natural height. GridLayout(2,1)
+                        // would force the short controls to be as tall as the explanation.
+                        right.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+                        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+                    } else setLayout(new GridLayout(1, 2, 12, 0));
+                }
+                super.doLayout();
+            }
+        };
         body.setName("archvow.skill.body");
         body.add(leftHost);
         body.add(rightHost);
         left.setAlignmentX(Component.LEFT_ALIGNMENT);
         right.setAlignmentX(Component.LEFT_ALIGNMENT);
-        // A narrow editor stacks the controls above the explanation rather than
-        // shrinking both columns until labels and controls are cut off.
-        body.addComponentListener(new ComponentAdapter() {
-            private boolean stacked;
-            @Override public void componentResized(ComponentEvent e) {
-                boolean narrow = body.getWidth() < 680;
-                if (narrow == stacked) return;
-                stacked = narrow;
-                if (narrow) {
-                    // BoxLayout uses each row's natural height. GridLayout(2,1)
-                    // would force the short controls to be as tall as the explanation.
-                    left.setMaximumSize(new Dimension(Integer.MAX_VALUE, left.getPreferredSize().height));
-                    right.setMaximumSize(new Dimension(Integer.MAX_VALUE, right.getPreferredSize().height));
-                    body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-                } else body.setLayout(new GridLayout(1, 2, 12, 0));
-                body.revalidate();
-            }
-        });
         add(body, BorderLayout.CENTER);
-
-        cancel = new JButton(french ? "Annuler" : "Cancel");
-        cancel.addActionListener(e -> onCancel.run());
-        copy = ArchvowSplitView.primary(french ? "Copier les consignes" : "Copy instructions");
-        copy.addActionListener(e -> onSend.send(request.getText(), Map.copyOf(values)));
-        copySkill = new JButton(french ? "Copier la commande skill" : "Copy skill command");
-        copySkill.setToolTipText(french ? "Seulement si l'assistant possède le skill Archvow installé"
-            : "Only for an assistant with the Archvow skill installed");
-        copySkill.addActionListener(e -> onSend.send(ArchvowAiSkills.skillCommand(skills, skill,
-            values.getOrDefault("tool", ""), values), Map.copyOf(values)));
-        JPanel buttons = new JPanel(new WrapActionLayout());
-        buttons.setName("archvow.skill.actions");
-        buttons.addComponentListener(new ComponentAdapter() {
-            @Override public void componentResized(ComponentEvent e) { buttons.revalidate(); }
-        });
-        buttons.add(cancel);
-        buttons.add(copySkill);
-        buttons.add(copy);
-        add(buttons, BorderLayout.SOUTH);
         update();
     }
+
+    /** What will happen, in the order it happens: a run here, a handoff (Implement), a review. */
+    private List<String> steps(JsonObject def) {
+        if ("implement".equals(skill)) return List.of(
+            french ? "Copie les consignes et donne-les à ton propre agent : il écrit le code et ses tests marqués."
+                : "Copy the instructions and give them to your own agent: it writes the code and its marked tests.",
+            pair(def, "reads"),
+            french ? "La vérification dit ensuite ce qui suit la spec, et ce qui ne la suit pas." : "Check then says what follows the spec, and what does not.");
+        if ("review".equals(skill)) return List.of(
+            french ? "Lance-la ici avec un des relecteurs du projet, ou copie les consignes à un relecteur."
+                : "Run it here with one of the project's reviewers, or copy the instructions to a reviewer.",
+            pair(def, "reads"),
+            french ? "Le rapport est dans reviews/last-change.md : tu corriges ou acceptes chaque constat."
+                : "The report is in reviews/last-change.md: you fix or acknowledge each finding.");
+        return List.of(
+            french ? "Lance-le ici avec un des assistants IA du projet, ou copie les consignes à n'importe quelle IA."
+                : "Run it here with one of the project's AI assistants, or copy the instructions to any AI.",
+            pair(def, "reads"), pair(def, "may_add"),
+            french ? "Ce qu'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire, pour que tu le gardes, le changes ou le retires."
+                : "What it adds appears in the component's tabs, marked AI and To review, for you to keep, change or remove.");
+    }
+
+    /** What it works on: the component, the brief, or the branch's change (review). */
+    String target() {
+        if ("review".equals(skill)) return base;
+        return values.getOrDefault("brief".equals(str(def(skills, skill), "target")) ? "brief" : "component", "").trim();
+    }
+
+    private String key() {
+        JsonObject def = def(skills, skill);
+        boolean max = def != null && def.has("max") && def.get("max").getAsBoolean();
+        return skill + "|" + target() + "|" + (max ? values.getOrDefault("max", "5") : "");
+    }
+
+    private Tool chosen() {
+        return tools.stream().filter(t -> t.name().equals(tool)).findFirst().orElse(null);
+    }
+
+    /** ▾: the project's AI assistants (its reviewers), one not installed here greyed with its command. */
+    JPopupMenu runMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        menu.setName("archvow.skill.runMenu");
+        JLabel head = new JLabel("review".equals(skill) ? (french ? "LES RELECTEURS DE CE PROJET" : "THIS PROJECT'S REVIEWERS")
+            : (french ? "LES ASSISTANTS IA DE CE PROJET" : "THIS PROJECT'S AI ASSISTANTS"));
+        head.setFont(head.getFont().deriveFont(Font.BOLD, 10.5f));
+        head.setForeground(UIManager.getColor("Label.disabledForeground"));
+        head.setBorder(BorderFactory.createEmptyBorder(4, 10, 2, 10));
+        menu.add(head);
+        for (Tool t : tools) {
+            JMenuItem item = new JMenuItem((t.name().equals(tool) ? "✓  " : "     ") + t.title() + "      "
+                + (t.installed() ? t.program() : (french ? "pas de commande " : "no ") + t.program() + (french ? "" : " command")));
+            item.setEnabled(t.installed());
+            if (!t.installed()) item.setToolTipText(french
+                ? "Il passe par la commande " + t.program() + ", absente de cet ordinateur. Installe-la, connecte-toi une fois, puis rouvre le projet."
+                : "It runs the " + t.program() + " command, which is not on this computer. Install it, log in once, then reopen the project.");
+            item.addActionListener(e -> { tool = t.name(); if (host != null) host.keepTool(tool); update(); });
+            menu.add(item);
+        }
+        return menu;
+    }
+
+    /** ▶: archvow skill (or review) in the background; the strip while it runs, then how it ended. */
+    private void startRun() {
+        Tool t = chosen();
+        if (t == null || host == null || stop != null) return;
+        boolean review = "review".equals(skill);
+        List<String> args = new java.util.ArrayList<>();
+        if (review) args.addAll(List.of("review", "--base", base, "--with", t.name(), "--json"));
+        else {
+            args.addAll(List.of("skill", skill, target()));
+            JsonObject def = def(skills, skill);
+            if (def != null && def.has("max") && def.get("max").getAsBoolean()) args.addAll(List.of("--max", values.getOrDefault("max", "5")));
+            args.addAll(List.of("--with", t.name(), "--json"));
+        }
+        String doing = review ? (french ? "relit les changements depuis " + base : "is reviewing the changes since " + base)
+            : (french ? "fait « " + pair(def(skills, skill), "label") + " » sur " + target() : "is doing \"" + pair(def(skills, skill), "label") + "\" on " + target());
+        String component = values.getOrDefault("component", "");
+        boolean[] over = {false};
+        stop = () -> { };
+        showRunning(t.title(), doing);
+        Runnable halt = host.run(args, ended -> { over[0] = true; stop = null; showEnded(ended, review, component); });
+        if (!over[0]) { stop = halt; update(); }
+    }
+
+    private void showRunning(String who, String doing) {
+        runState.removeAll();
+        runState.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0),
+            BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(53, 116, 240, 140), 1, true),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10))));
+        JLabel line = new JLabel("<html><b>" + escape(who) + "</b> " + escape(doing) + "</html>");
+        JProgressBar bar = new JProgressBar();
+        bar.setIndeterminate(true);
+        bar.setPreferredSize(new Dimension(80, 6));
+        JLabel elapsed = new JLabel("0 s");
+        elapsed.setName("archvow.skill.elapsed");
+        elapsed.setForeground(UIManager.getColor("Label.disabledForeground"));
+        long started = System.currentTimeMillis();
+        if (ticking != null) ticking.stop();
+        ticking = new Timer(1000, e -> elapsed.setText(elapsed(System.currentTimeMillis() - started)));
+        ticking.start();
+        JButton log = ArchvowSplitView.link(french ? "Voir le journal" : "Show log");
+        log.addActionListener(e -> { if (host != null) host.showLog("review".equals(skill)); });
+        JButton halt = new JButton(french ? "■ Arrêter" : "■ Stop");
+        halt.setName("archvow.skill.stop");
+        halt.addActionListener(e -> { if (stop != null) stop.run(); });
+        JPanel tail = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 8, 0));
+        tail.setOpaque(false);
+        tail.add(bar);
+        tail.add(elapsed);
+        tail.add(log);
+        tail.add(halt);
+        runState.add(line, BorderLayout.NORTH);
+        runState.add(tail, BorderLayout.CENTER);
+        runState.setVisible(true);
+        update();
+    }
+
+    /** Done: what was added and Review them › (the report ›); failed: the tool's reason, and Copy instructions instead. */
+    void showEnded(Ended ended, boolean review, String component) {
+        if (ticking != null) ticking.stop();
+        stop = null;
+        boolean failed = !"done".equals(ended.status());
+        Color tone = failed ? new Color(240, 113, 120) : new Color(95, 184, 101);
+        runState.removeAll();
+        runState.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0),
+            BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 3, 0, 0, tone), BorderFactory.createEmptyBorder(6, 10, 6, 10))));
+        ArchvowWrapLabel said = new ArchvowWrapLabel();
+        said.setName("archvow.skill.ended");
+        said.setOpaque(false);
+        said.setText((failed ? "✗ " : "✓ ") + ended.message()
+            + (failed && !review ? (french ? "\nCopier les consignes donne la même tâche à une IA que tu lances toi-même."
+                : "\nCopy instructions gives the same task to an AI you start yourself.") : ""));
+        JPanel links = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 8, 0));
+        links.setOpaque(false);
+        if (!failed && review) {
+            JButton open = ArchvowSplitView.link(french ? "Ouvrir le rapport ›" : "Open the report ›");
+            open.addActionListener(e -> { if (host != null) host.openReport(); });
+            links.add(open);
+        } else if (!failed && ended.added()) {
+            JButton them = ArchvowSplitView.link(french ? "Les relire ›" : "Review them ›");
+            them.setName("archvow.skill.reviewAdded");
+            them.addActionListener(e -> { if (host != null) host.reviewAdded(skill, component); });
+            links.add(them);
+        }
+        if (ended.log()) {
+            JButton log = ArchvowSplitView.link(french ? "Voir le journal" : "Show log");
+            log.addActionListener(e -> { if (host != null) host.showLog(review); });
+            links.add(log);
+        }
+        runState.add(said, BorderLayout.NORTH);
+        runState.add(links, BorderLayout.CENTER);
+        runState.setVisible(true);
+        update();
+    }
+
+    private static String elapsed(long millis) {
+        long s = Math.max(0, millis / 1000);
+        return s < 60 ? s + " s" : (s / 60) + " min " + (s % 60) + " s";
+    }
+
+    /** What "Copy and open AI chat" opens after copying (the panel: the IDE's AI chat window). */
+    void onOpenChat(Runnable action) { onOpenChat = action; }
+
+    /** Under this width the controls go above the explanation, instead of two columns of a few words each. */
+    static final int STACK_BELOW = 680;
 
     /** FlowLayout normally reports one row even when it has wrapped. Reserve the true height. */
     private static final class WrapActionLayout extends FlowLayout {
         WrapActionLayout() { super(FlowLayout.RIGHT, 8, 4); }
         @Override public Dimension preferredLayoutSize(Container target) {
             Dimension single = super.preferredLayoutSize(target);
-            int available = target.getWidth() - target.getInsets().left - target.getInsets().right;
+            // the same rule as FlowLayout.layoutContainer, so the rows counted are the rows drawn
+            int available = target.getWidth() - target.getInsets().left - target.getInsets().right - 2 * getHgap();
             if (available <= 0) return single;
-            int x = 0, rows = 1, rowHeight = 0, height = 0;
+            int x = 0, rowHeight = 0, height = 0;
             for (Component component : target.getComponents()) {
                 if (!component.isVisible()) continue;
                 Dimension d = component.getPreferredSize();
-                int extra = x == 0 ? 0 : getHgap();
-                if (x > 0 && x + extra + d.width > available) {
+                if (x > 0 && x + d.width > available) {
                     height += rowHeight + getVgap();
-                    rows++;
                     x = 0;
                     rowHeight = 0;
-                    extra = 0;
                 }
-                x += extra + d.width;
+                x += (x > 0 ? getHgap() : 0) + d.width;
                 rowHeight = Math.max(rowHeight, d.height);
             }
             height += rowHeight + 2 * getVgap();
@@ -313,91 +528,56 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
         }
     }
 
-    /** The request, the button and the "not yet" line, after each change. */
+    /** The instructions (archvow's), the buttons and the "not yet" line, after each change. */
     private void update() {
-        request.setText(ArchvowAiSkills.request(skills, skill, values.getOrDefault("tool", ""), values, french));
         JsonObject def = def(skills, skill);
-        boolean brief = "brief".equals(str(def, "target"));
-        skillReview.removeAll();
-        skillReview.add(reviewItem(brief ? (french ? "Brief" : "Brief") : (french ? "Composant" : "Component"),
-            values.getOrDefault(brief ? "brief" : "component", "—")));
-        if (def != null && def.has("max") && def.get("max").getAsBoolean())
-            skillReview.add(reviewItem(french ? "Au plus" : "At most", values.getOrDefault("max", "5")));
-        skillReview.add(reviewItem(french ? "Assistant IA" : "AI assistant", values.getOrDefault("tool", "—")));
-        skillReview.revalidate();
-        skillReview.repaint();
-        boolean ready = brief ? !values.getOrDefault("brief", "").isBlank() : !values.getOrDefault("component", "").isBlank();
-        String[] reason = brief ? null : blockedFor.apply(values.getOrDefault("component", ""));
+        boolean review = "review".equals(skill);
+        String target = target();
+        boolean ready = !target.isBlank();
+        String key = key();
+        if (!key.equals(shownKey)) {
+            shownKey = key;
+            if (!ready) request.setText(french ? "Choisis sur quoi il travaille." : "Choose what it works on.");
+            else if (host != null) {
+                request.setText(french ? "Chargement…" : "Loading…");
+                host.prompt(skill, target, def != null && def.has("max") && def.get("max").getAsBoolean() ? values.getOrDefault("max", "5") : "",
+                    text -> { if (key.equals(shownKey)) { request.setText(text); request.setCaretPosition(0); } });
+            }
+        }
+        String[] reason = review || "brief".equals(str(def, "target")) ? null : blockedFor.apply(values.getOrDefault("component", ""));
         blocked.setText(reason == null ? "" : reason[french ? 1 : 0]);
         blocked.setVisible(reason != null);
-        copy.setEnabled(ready);
-        String shorthand = ArchvowAiSkills.skillCommand(skills, skill, values.getOrDefault("tool", ""), values);
-        copySkill.setVisible(!shorthand.isBlank());
-        copySkill.setEnabled(ready && !shorthand.isBlank());
-        refreshStepButtons();
+        boolean go = ready && reason == null;
+        copy.setEnabled(go);
+        openChat.setEnabled(go);
+        Tool t = chosen();
+        boolean running = stop != null;
+        String why = review ? (tools.isEmpty() ? (french ? "Aucun relecteur approuvé : un architecte en approuve un à l'init (archvow init <package> --force -a reviewers=codex)."
+            : "No reviewer approved: an architect approves one at init (archvow init <package> --force -a reviewers=codex).") : null) : whyNot;
+        String name = t == null ? "" : t.title();
+        boolean says = why != null && !"implement".equals(skill);
+        if (!(says ? "ⓘ " + why : "").equals(runWhy.getText())) runWhy.setText(says ? "ⓘ " + why : "");
+        runWhy.setVisible(says);
+        run.setText(review ? (name.isEmpty() ? (french ? "▶ Relire" : "▶ Review") : (french ? "▶ Relire avec " : "▶ Review with ") + name)
+            : (name.isEmpty() ? (french ? "▶ Lancer" : "▶ Run") : (french ? "▶ Lancer avec " : "▶ Run with ") + name));
+        run.setEnabled(why == null && go && t != null && !running);
+        runMore.setEnabled(!tools.isEmpty() && (review || why == null));
+        String tip = why != null ? why : running ? (french ? "Un lancement est en cours : attends-le, ou arrête-le." : "A run is going on: wait for it, or stop it.")
+            : t == null ? (french ? "Aucun de ces outils n'est sur cet ordinateur. ▾ les montre." : "None of them is on this computer. ▾ shows them.")
+            : review ? (french ? name + " relit le changement en arrière-plan et écrit le rapport. Il ne change jamais le code."
+                : name + " reviews the change in the background and writes the report. It never changes code.")
+            : (french ? name + " le fait en arrière-plan, pendant que tu continues. Ce qu'il ajoute est de l'IA, À relire."
+                : name + " does it in the background, while you go on. What it adds is the AI's, To review.");
+        run.setToolTipText(tip);
+        runMore.setToolTipText(why != null ? why : (french ? "Choisir l'IA" : "Choose the AI"));
+        // Copy is the main button when nothing can run here
+        copy.setFont(copy.getFont().deriveFont(run.isEnabled() || "implement".equals(skill) ? Font.PLAIN : Font.BOLD));
+        revalidate();
+        repaint();
     }
 
-    /** Match the command forms' circled numbers, completion checks and orange/green step states. */
-    private void refreshStepButtons() {
-        boolean brief = "brief".equals(str(def(skills, skill), "target"));
-        boolean targetReady = !values.getOrDefault(brief ? "brief" : "component", "").isBlank();
-        // The AI assistant is optional, but the selected default is a valid handoff.
-        boolean handoffReady = !values.getOrDefault("tool", "").isBlank();
-        boolean[] complete = {targetReady, handoffReady, targetReady && handoffReady};
-        Color panel = UIManager.getColor("Panel.background");
-        boolean dark = panel != null && (panel.getRed() + panel.getGreen() + panel.getBlue()) / 3 < 128;
-        Color green = new Color(dark ? 0x44C79A : 0x13814F);
-        Color orange = new Color(dark ? 0xF2B95D : 0xB97812);
-        Color muted = UIManager.getColor("Label.disabledForeground");
-        Color neutralBorder = UIManager.getColor("Component.borderColor");
-        if (muted == null) muted = Color.GRAY;
-        if (neutralBorder == null) neutralBorder = muted;
-        for (int i = 0; i < stepButtons.size(); i++) {
-            JToggleButton button = stepButtons.get(i);
-            boolean done = complete[i];
-            boolean selected = i == currentStep;
-            Color tone = done ? green : orange;
-            button.setSelected(selected);
-            button.setIcon(stepNumberIcon(i + 1, tone, done));
-            button.setForeground(done || selected ? tone : muted);
-            button.setOpaque(true);
-            button.setContentAreaFilled(true);
-            button.setBackground(done ? new Color(dark ? 0x183D30 : 0xE4F4EB)
-                : selected ? new Color(dark ? 0x383229 : 0xFFF3DE) : panel);
-            button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(done || selected ? tone : neutralBorder, 1, true),
-                BorderFactory.createEmptyBorder(4, 9, 4, 9)));
-            button.setToolTipText(done ? (french ? "Étape complète" : "Step complete")
-                : (french ? "Informations obligatoires manquantes" : "Required information missing"));
-        }
-    }
-
-    private static Icon stepNumberIcon(int number, Color color, boolean complete) {
-        return new Icon() {
-            @Override public int getIconWidth() { return 22; }
-            @Override public int getIconHeight() { return 22; }
-            @Override public void paintIcon(Component component, Graphics graphics, int x, int y) {
-                Graphics2D g = (Graphics2D) graphics.create();
-                try {
-                    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g.setColor(color);
-                    g.setStroke(new BasicStroke(1.5f));
-                    g.drawOval(x + 1, y + 1, 19, 19);
-                    if (complete) {
-                        g.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                        g.drawLine(x + 6, y + 11, x + 9, y + 14);
-                        g.drawLine(x + 9, y + 14, x + 16, y + 7);
-                    } else {
-                        g.setFont(component.getFont().deriveFont(Font.BOLD, 11f));
-                        String text = Integer.toString(number);
-                        FontMetrics metrics = g.getFontMetrics();
-                        g.drawString(text, x + 11 - metrics.stringWidth(text) / 2,
-                            y + 11 + (metrics.getAscent() - metrics.getDescent()) / 2);
-                    }
-                } finally { g.dispose(); }
-            }
-        };
-    }
+    /** Why ▶ cannot run (for a test, and the tooltip). */
+    String runTip() { return run.getToolTipText(); }
 
     static JsonObject def(JsonObject skills, String skill) {
         JsonObject all = skills == null ? null : skills.getAsJsonObject("skills");
@@ -418,27 +598,6 @@ final class ArchvowSkillForm extends JPanel implements Scrollable {
 
     private static String str(JsonObject o, String key) {
         return o != null && o.has(key) && o.get(key).isJsonPrimitive() ? o.get(key).getAsString() : "";
-    }
-
-    private static JPanel reviewItem(String title, String value) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setOpaque(false);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(ArchvowMotion.blend(UIManager.getColor("Panel.background"),
-                UIManager.getColor("Label.foreground"), .18), 1, true),
-            BorderFactory.createEmptyBorder(10, 12, 10, 12)));
-        JLabel head = new JLabel(title);
-        head.setFont(head.getFont().deriveFont(Font.BOLD));
-        JLabel body = new JLabel("<html>" + escape(value == null || value.isBlank() ? "—" : value) + "</html>");
-        Color muted = UIManager.getColor("Label.disabledForeground");
-        if (muted != null) body.setForeground(muted);
-        head.setAlignmentX(LEFT_ALIGNMENT);
-        body.setAlignmentX(LEFT_ALIGNMENT);
-        card.add(head);
-        card.add(Box.createVerticalStrut(6));
-        card.add(body);
-        return card;
     }
 
     private static JPanel infoBox(String title, String text, Color accent) {

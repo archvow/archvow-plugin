@@ -16,24 +16,28 @@ symbol mark_paid
 
 # --- decisions
 decision 1
+  id steps
   question "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?"
   answer "Read the invoice; refuse a draft (ValueError); set status paid; save; return it"
   by noreply@anthropic.com
   on 2026-10-21T16:20:52.845862+00:00
 
 decision 2
+  id not_found
   question "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?"
   answer "InvoiceNotFoundError"
   by noreply@anthropic.com
   on 2026-10-21T16:20:53.155922+00:00
 
 decision 3
+  id twice
   question "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?"
   answer "The same result: an invoice already paid stays paid, saved again unchanged"
   by noreply@anthropic.com
   on 2026-10-21T16:20:53.455983+00:00
 
 decision 4
+  id all_or_nothing
   question "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?"
   answer "Only one change, one save: nothing to undo"
   by noreply@anthropic.com

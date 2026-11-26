@@ -48,12 +48,15 @@ final class ArchvowSafetyState {
         return suggestion(question, "not_applicable");
     }
 
-    static String preview(JsonObject question) {
+    static String preview(JsonObject question) { return preview(question, false); }
+
+    /** What the question suggests and what protects it, in one language (0.26.1). */
+    static String preview(JsonObject question, boolean fr) {
         StringBuilder text = new StringBuilder();
         String hazard = suggestedHazard(question);
         String invariant = suggestedInvariant(question);
-        if (!hazard.isBlank()) text.append("Suggested hazard / Hazard suggéré: ").append(hazard).append("\n");
-        if (!invariant.isBlank()) text.append("Suggested invariant / Invariant suggéré: ").append(invariant).append("\n");
+        if (!hazard.isBlank()) text.append((fr ? "Hazard suggéré : " : "Suggested hazard: ")).append(hazard).append("\n");
+        if (!invariant.isBlank()) text.append((fr ? "Invariant suggéré : " : "Suggested invariant: ")).append(invariant).append("\n");
         for (JsonObject h : ArchvowGrammar.objects(question, "hazards")) {
             text.append("Hazard ").append(ArchvowGrammar.str(h, "id")).append(" (")
                 .append(ArchvowGrammar.str(h, "severity")).append(") — ")
@@ -63,11 +66,11 @@ final class ArchvowSafetyState {
                 text.append("  ↳ Invariant ").append(ArchvowGrammar.str(i, "id")).append(": ")
                     .append(ArchvowGrammar.str(i, "statement"));
                 if (i.has("tested") && !i.get("tested").isJsonNull() && !i.get("tested").getAsBoolean())
-                    text.append(" [test not verified / test non vérifié]");
+                    text.append((fr ? " [test non vérifié]" : " [test not verified]"));
                 text.append("\n");
             }
             if (protections.isEmpty() && requiresInvariant(h))
-                text.append("  ⚠ ARCH030 — invariant required / invariant obligatoire\n");
+                text.append((fr ? "  ⚠ ARCH030 — invariant obligatoire\n" : "  ⚠ ARCH030 — invariant required\n"));
         }
         return text.toString();
     }

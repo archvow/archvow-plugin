@@ -2,7 +2,7 @@
   "name": "archvow",
   "displayName": "archvow",
   "description": "Spec-driven development with AI: manage architecture specs, decisions and checks, prepare AI coding prompts, and review changes with ArchVow.",
-  "version": "0.26.1",
+  "version": "1.4.2",
   "publisher": "archvow",
   "license": "Apache-2.0",
   "private": true,
@@ -151,6 +151,12 @@
         "icon": "$(new-folder)"
       },
       {
+        "command": "archvow.choosePython",
+        "title": "Choose the Python that runs archvow",
+        "category": "archvow",
+        "icon": "$(symbol-namespace)"
+      },
+      {
         "command": "archvow.open",
         "title": "Show the workspace",
         "category": "archvow",
@@ -262,13 +268,13 @@
         "archvow.useProjectInterpreter": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Look for archvow first in the Python interpreter VS Code uses for the project (the Python extension's), then in `#archvow.python#`, then `#archvow.executable#`. The first that answers `--version` runs the commands."
+          "markdownDescription": "Automatic (when `#archvow.python#` is empty): look for archvow first in the Python interpreter VS Code uses for the project (the Python extension's), then the project's .venv, then `#archvow.executable#`. The first that answers `--version` runs the commands."
         },
         "archvow.python": {
           "type": "string",
           "default": "",
           "scope": "machine-overridable",
-          "markdownDescription": "A Python that has archvow installed (e.g. `/path/venv/bin/python3`): the extension runs `<python> -m archvow`. On Windows, a Python in WSL (`\\\\wsl.localhost\\Ubuntu\\home\\you\\.venv\\bin\\python3`, `wsl://Ubuntu/home/you/.venv/bin/python3` or `/home/you/.venv/bin/python3`) runs through `wsl.exe`, with the project folder as a Linux path."
+          "markdownDescription": "A Python that has archvow installed (e.g. `/path/venv/bin/python3`): the extension runs `<python> -m archvow`, before any other. Empty: Automatic. Run **Archvow: Choose the Python that runs archvow** to pick one from the Pythons of this computer. On Windows, a Python in WSL (`\\\\wsl.localhost\\Ubuntu\\home\\you\\.venv\\bin\\python3`, `wsl://Ubuntu/home/you/.venv/bin/python3` or `/home/you/.venv/bin/python3`) runs through `wsl.exe`, with the project folder as a Linux path."
         },
         "archvow.installFrom": {
           "type": "string",
@@ -336,7 +342,7 @@
   "scripts": {
     "compile": "npm run clean && node scripts/sync-contract.js && tsc -p .",
     "watch": "tsc -watch -p .",
-    "test": "npm run compile && node scripts/test.js && node scripts/checks-single-detail-regression.js && node scripts/generic-ui-regression.js && node scripts/briefs-toolbar-regression.js && node scripts/root-files-regression.js && node scripts/terminal-style-regression.js && node scripts/result-card-design-regression.js && node scripts/guided-forms-regression.js",
+    "test": "npm run compile && node scripts/test.js && node scripts/checks-single-detail-regression.js && node scripts/generic-ui-regression.js && node scripts/briefs-toolbar-regression.js && node scripts/root-files-regression.js && node scripts/terminal-style-regression.js && node scripts/result-card-design-regression.js && node scripts/guided-forms-regression.js && node scripts/try-it-regression.js && node scripts/agent-picker-regression.js && node scripts/pasted-error-regression.js && node scripts/feature-check-regression.js",
     "package": "node -e \"require('fs').mkdirSync('../dist',{recursive:true})\" && npm run compile && vsce package --no-dependencies --skip-license --allow-missing-repository --out ../dist/",
     "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
   },

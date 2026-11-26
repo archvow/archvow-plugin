@@ -135,25 +135,27 @@ test('the items as cards on the left, the selected one answered on the right (0.
   const rows = view.decisions.slice(0, 2).concat([{ number: 3, question: 'Header row missing: infer the columns or fail?', answer: null }]);
   const html = cards('decision', rows, (r: { number: number }) => 'D' + r.number, (r: Record<string, string>) => ({
     number: String(r.number), title: r.question, open: !r.answer, answer: r.answer || '', by: r.answer ? `${r.by} · ${r.on}` : '' }));
-  assert.match(html, /<li class="item-card  done" data-a="sel" data-kind="decision" data-key="D1">/);
+  assert.match(html, /<li class="item-card  done" data-a="sel" data-kind="decision" data-key="D1" data-menu="decision" data-text="[^"]*" data-number="1">/);  // 1.1.0: its right-click menu
   assert.match(html, /<div class="card-a" title="Fail with a clear error: a missing input is an operations problem">Fail with a clear error: a missing input is an operations problem<\/div>/);
   assert.match(html, /<div class="card-by muted">architect@example\.com · 2026-11-11<\/div>/);
-  assert.match(html, /<li class="item-card selected open" data-a="sel" data-kind="decision" data-key="D3">/);
+  assert.match(html, /<li class="item-card selected open" data-a="sel" data-kind="decision" data-key="D3" data-menu="decision" data-text="Header row missing: infer the columns or fail\?" data-number="3">/);
   assert.match(html, /<div class="card-open">● Open<\/div>/);
   // the four views whose items are answered are split; the answer heading says what is answered
   assert.equal(page.match(/return split\(left, rows\.length \? right : ''\);/g)?.length, 4);
   // a view with no item: "Nothing to display." alone, no answer panel (0.11.1)
   const splitSource = page.match(/function split\(left, right\) \{[\s\S]*?\n  \}/);
   assert.ok(splitSource, 'split() is in the page');
-  const split = new Function(`${splitSource[0]}; return split;`)();
+  const split = new Function('t', 'esc', 'splitSize', `${splitSource[0]}; return split;`)((en: string) => en, esc, { left: '50%', top: '40vh' });
   assert.equal(split('<ul class="cards"><li class="muted empty">Nothing to display.</li></ul>', ''),
     '<div class="split single"><div class="split-list"><ul class="cards"><li class="muted empty">Nothing to display.</li></ul></div></div>');
   assert.match(split('L', 'R'), /<aside class="split-answer">R<\/aside>/);
+  assert.match(split('L', 'R'), /<div class="split-bar" data-drag="split" role="separator"/);  // 1.2.0: dragged
   assert.equal(cards('question', [], (r: { key: string }) => r.key, () => ({})), '<ul class="cards" data-scroll="cards-question"><li class="muted empty">Nothing to display.</li></ul>');
   assert.match(page, /t\(`Answer decision \$\{number\}`, `Répondre à la décision \$\{number\}`\)/);
   const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
-  assert.match(css, /\.split \{ display: grid; grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\);/);
-  assert.match(css, /@media \(max-width: 760px\) \{ \.split \{ grid-template-columns: minmax\(0, 1fr\); \} \}/);
+  // 1.2.0: the list's width is the bar's place (50% by default); under 680 px one above the other
+  assert.match(css, /\.split \{ display: grid; grid-template-columns: minmax\(240px, var\(--split-left, 50%\)\) 10px minmax\(320px, 1fr\);/);
+  assert.match(css, /@media \(max-width: 680px\) \{\n  \.split \{ grid-template-columns: minmax\(0, 1fr\);/);
 });
 
 test('Overview is a summary only; the Components browser owns the full status + pending inventory', () => {
@@ -167,9 +169,11 @@ test('Overview is a summary only; the Components browser owns the full status + 
 });
 
 test('the editor tab goes back to the component a command was opened from (0.11.3)', () => {
-  // armed when the page asks for a command from a component, kept when the command opens, cleared otherwise
-  assert.match(page, /if \(!NAV && ui\.mode === 'component' && ui\.component && ui\.view !== 7 && \(m\.type === 'openCommand' \|\| m\.type === 'choose'\)\)/);
-  assert.match(page, /case 'openCommand':\s*ui\.forceWorkspace = true;\s*ui\.back = ui\.backArmed;\s*ui\.backArmed = null;/);
+  // armed when the page asks for a command from a component, kept when the command opens, cleared otherwise;
+  // 1.4.1: from the tool window too, back to what the editor showed (a component, briefs, a feature, its home page)
+  assert.match(page, /if \(ui\.mode === 'component' && ui\.component && ui\.view !== 7\) return \{ component: ui\.component, view: ui\.view \};/);
+  assert.match(page, /if \(!NAV && \(m\.type === 'openCommand' \|\| \(m\.type === 'choose' && ui\.mode === 'component'\)\)\) ui\.backArmed = here\(\);/);
+  assert.match(page, /case 'openCommand':\s*ui\.forceWorkspace = true;\s*\/\/[^\n]*\n\s*ui\.back = ui\.backArmed \|\| \(ui\.mode === 'command' \|\| ui\.mode === 'skill' \? ui\.back : here\(\)\);\s*ui\.backArmed = null;/);
   assert.match(page, /case 'select':\s*ui\.forceWorkspace = true;\s*ui\.mode = 'component';\s*ui\.back = null;/);
   assert.match(page, /<button class="secondary back" data-a="back"/);
   assert.match(page, /ui\.view = to\.view;\s*post\(\{ type: 'show', component: to\.component \}\);/);
@@ -241,7 +245,7 @@ test('the Overview as designed (0.25.0): Next and Check named, More with the res
   // the cards: First steps before the toolbar, then Architecture, Checks, Packs
   const overview = page.match(/function overviewTab\(\) \{[\s\S]*?\n  \}/);
   assert.ok(overview);
-  const order = ['firstStepsCard()', 'projectToolbar()', 'architectureView()', 'checksCard()', 'packsSummary()'].map((f) => overview[0].indexOf(f));
+  const order = ['firstStepsCard()', 'projectToolbar()', 'architectureView()', 'checksCard()', 'templatesSummary()'].map((f) => overview[0].indexOf(f));
   assert.ok(order.every((at, i) => at > 0 && (i === 0 || at > order[i - 1])), 'First steps, toolbar, Architecture, Checks, Packs');
   assert.match(page, /First finding', 'Premier constat'/);
   assert.match(page, /Check findings count in Checks\./);
@@ -250,7 +254,7 @@ test('the Overview as designed (0.25.0): Next and Check named, More with the res
   assert.match(page, /post\(\{ type: 'openBriefs' \}\)/);
   assert.match(host, /case 'openBriefs':\s*\/\/ Briefs are browsed in the shared editor tab,[\s\S]*?this\.toEditor\(\{ type: 'briefs' \}\)/);
   assert.match(page, /if \(ui\.mode === 'briefs'\) return `<section class="detail-only briefs-editor">\$\{briefsView\(\)\}/);
-  assert.match(page, /ui\.back = \{ briefs: true \}/);
+  assert.match(page, /if \(ui\.mode === 'briefs'\) return \{ briefs: true \};/);
   assert.match(page, /function withCheckFiles\(html\)/);
   assert.match(page, /return filesBlock\(\[\{ path: file, change: 'location'/,
     'check diagnostics reuse the command form Files tree rather than hand-drawn icons');
@@ -260,7 +264,7 @@ test('the Overview as designed (0.25.0): Next and Check named, More with the res
   assert.match(page, /class="card checks-card"/);
   assert.match(page, /data-a="openChecks"/);
   assert.doesNotMatch(page, /class="checks-badges"/, 'diagnostic counters live in the Checks card');
-  assert.match(css, /\.checks-summary, \.packs-summary \{ display: flex; align-items: center; justify-content: space-between;/,
+  assert.match(css, /\.checks-summary, \.templates-summary \{ display: flex; align-items: center; justify-content: space-between;/,
     'the Packs card is one row like Architecture and Checks: its link on the right, not under the title');
 });
 
@@ -273,16 +277,18 @@ test('Overview Open Checks runs the same full check as the toolbar, not the gene
   assert.match(page, /checks-full">\$\{title\}\$\{totals\}\$\{listPart\}/);
 });
 
-test('AI skill handoff: readable instructions, generic copy action and optional agent shortcut', () => {
+test('AI skills (1.3.0): archvow writes the instructions; the spec skills run here with the AI picked; Implement is a handoff; Review uses the reviewers', () => {
   const css = fs.readFileSync(path.join(ROOT, 'media', 'workspace.css'), 'utf8');
-  assert.match(page, /function skillRequest\(id, v\)/);
-  assert.match(page, /If you cannot access the project files/);
-  assert.match(page, /Brief \/ section/);
+  assert.doesNotMatch(page, /function skillRequest\(/, 'no instructions written by the page');
+  assert.match(page, /post\(\{ type: 'skillPrompt', key, skill: id, target/);
+  assert.match(host, /\['skill', skill, String\(m\.target \?\? ''\) \|\| '-', \.\.\.\(m\.max \? \['--max', String\(m\.max\)\] : \[\]\), '--prompt', '--json'\]/);
   assert.match(page, /t\('Copy instructions', 'Copier les consignes'\)/);
-  assert.match(page, /t\('Copy skill command', 'Copier la commande skill'\)/);
-  assert.match(page, /t\('Open in Copilot Chat', 'Ouvrir dans Copilot Chat'\)/);
-  assert.doesNotMatch(page, /'Copy for '/);
-  assert.match(host, /format === 'skill' \? skillCommand\(/);
+  assert.match(page, /t\(`▶ Run with \$\{name\}`, `▶ Lancer avec \$\{name\}`\)/, 'the button names the AI');
+  assert.match(page, /t\(`▶ Review with \$\{name\}`, `▶ Relire avec \$\{name\}`\)/);
+  assert.match(page, /t\('▶ Open in Copilot chat', '▶ Ouvrir dans le chat Copilot'\)/);
+  assert.match(host, /mode: 'agent'/);
+  assert.match(host, /\['review', '--base', String\(m\.base \?\? ''\), '--with', String\(m\.tool \?\? ''\), '--json'\]/);
+  assert.match(host, /this\.cli\.background\(args, 30 \* 60\)/, 'beside the queue: the other calls go on');
   assert.match(css, /\.skill-form \.form-actions \{ flex-wrap: wrap; \}/);
-  assert.match(css, /max-height: 220px; overflow: auto/);
+  assert.match(css, /\.run-split \.draft-menu \{ top: 34px; right: 0; \}/);
 });

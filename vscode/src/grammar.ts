@@ -215,7 +215,7 @@ export function prefill(command: string, requested: Record<string, string>, sele
   if (command === 'component edit' && snapshot && target === snapshot.component) {
     const specific = Object.keys(data).some((k) => k !== 'component');
     if (!specific) {
-      const fields: [string, string][] = [['description', 'description'], ['spec', 'spec'], ['signature', 'signature'],
+      const fields: [string, string][] = [['description', 'description'], ['ticket', 'spec'], ['signature', 'signature'],
         ['uses', 'uses'], ['group', 'group'], ['owners', 'owners'], ['source', 'from'], ['source', 'brief']];
       for (const [field, key] of fields) {
         if (field in data) continue;
@@ -294,6 +294,13 @@ export function promptCommand(component: string, task: string): string[] {
   const n = taskNumber(task);
   if (!n) throw new Error('Invalid task number: ' + task);
   return ['prompt', component, '--task', n];
+}
+
+/** `archvow prompt --feature <feature>`; `check`: with --clarify, the AI checks the whole feature before any code
+ *  (archvow 2.8.0) - where its components disagree - and writes none. */
+export function featurePromptCommand(feature: string, check = false): string[] {
+  if (!feature) throw new Error('Missing feature');
+  return ['prompt', '--feature', feature, ...(check ? ['--clarify'] : [])];
 }
 
 /** archvow refuses --task on a component too small to cut into tasks: show the whole card then. */

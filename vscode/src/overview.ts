@@ -9,6 +9,11 @@ export interface FirstStep {
   detail: string;
   command: string;
   done: boolean;
+  /** 1.2.0: the build step's components built, of how many (null for the other steps). */
+  progress: { done: number; total: number } | null;
+  /** 1.4.2 (archvow 3.4.1): what can still be done there once the card has moved on - + Feature, + Component,
+   *  Build the N specified - a link beside the step; null when archvow says nothing. */
+  also: { label: string; command: string } | null;
 }
 
 export interface FirstSteps {
@@ -45,7 +50,10 @@ export interface Overview {
 /** archvow's `first_steps` (workspace --json, contract 2.1), or null when the card has nothing left to show. */
 export function firstSteps(raw: unknown): FirstSteps | null {
   const steps: FirstStep[] = (Array.isArray(raw) ? raw : []).filter((s) => s !== null && typeof s === 'object')
-    .map((s: Json) => ({ step: str(s, 'step'), title: str(s, 'title'), detail: str(s, 'detail'), command: str(s, 'command'), done: s.done === true }));
+    .map((s: Json) => ({ step: str(s, 'step'), title: str(s, 'title'), detail: str(s, 'detail'), command: str(s, 'command'), done: s.done === true,
+      // 1.2.0 (archvow 3.2): how many of the feature's components are built, drawn under step 4
+      progress: s.progress !== null && typeof s.progress === 'object' ? { done: Number((s.progress as Json).done) || 0, total: Number((s.progress as Json).total) || 0 } : null,
+      also: s.also !== null && typeof s.also === 'object' && str(s.also as Json, 'label') ? { label: str(s.also as Json, 'label'), command: str(s.also as Json, 'command') } : null }));
   const done = steps.filter((s) => s.done).length;
   if (steps.length === 0 || done === steps.length) return null;
   return { steps, done, current: steps.findIndex((s) => !s.done) };

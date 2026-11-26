@@ -83,7 +83,7 @@
         "label": "utility — A small helper every layer may use (no business rule, no I/O beyond what it says)."
        }
       ],
-      "note": "The types of archvow/python-app, the template of this project."
+      "note": "The types of python-app, the template of this project."
      },
      "feature": {
       "kind": "select",
@@ -139,7 +139,7 @@
         "label": "invoice_model — model",
         "fill": {
          "description": "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -147,7 +147,7 @@
         "label": "invoice_not_found_error — error",
         "fill": {
          "description": "No invoice with this number",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -155,7 +155,7 @@
         "label": "invoices_repository — repository",
         "fill": {
          "description": "Stores and finds invoices, one JSON file per invoice in the data folder",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "invoice_model"
         }
        },
@@ -164,7 +164,7 @@
         "label": "mark_paid — service",
         "fill": {
          "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "invoice_model,invoice_not_found_error,invoices_repository"
         }
        },
@@ -173,7 +173,7 @@
         "label": "invoices_cli — cli",
         "fill": {
          "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "mark_paid,invoice_not_found_error"
         }
        }
@@ -2007,28 +2007,64 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
-    "pack template": {
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "invoice_model",
+        "label": "invoice_model — model"
+       },
+       {
+        "value": "invoice_not_found_error",
+        "label": "invoice_not_found_error — error"
+       },
+       {
+        "value": "invoices_repository",
+        "label": "invoices_repository — repository"
+       },
+       {
+        "value": "mark_paid",
+        "label": "mark_paid — service"
+       },
+       {
+        "value": "invoices_cli",
+        "label": "invoices_cli — cli"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     }
+    },
+    "template new": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "archvow/fastapi-service",
-        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
+        "value": "fastapi-service",
+        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
-        "value": "archvow/langgraph-agent",
-        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
        },
        {
-        "value": "archvow/pyspark-pipeline",
-        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
+        "value": "pyspark-pipeline",
+        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
        {
-        "value": "archvow/python-app",
-        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
+        "value": "python-app",
+        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
        }
       ],
-      "note": "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
+      "note": "Empty: a template from scratch. A base's settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
      }
     }
    }
@@ -2105,7 +2141,7 @@
         "label": "utility — A small helper every layer may use (no business rule, no I/O beyond what it says)."
        }
       ],
-      "note": "Les types de archvow/python-app, le modèle de ce projet."
+      "note": "Les types de python-app, le modèle de ce projet."
      },
      "feature": {
       "kind": "select",
@@ -2161,7 +2197,7 @@
         "label": "invoice_model — model",
         "fill": {
          "description": "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -2169,7 +2205,7 @@
         "label": "invoice_not_found_error — error",
         "fill": {
          "description": "No invoice with this number",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -2177,7 +2213,7 @@
         "label": "invoices_repository — repository",
         "fill": {
          "description": "Stores and finds invoices, one JSON file per invoice in the data folder",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "invoice_model"
         }
        },
@@ -2186,7 +2222,7 @@
         "label": "mark_paid — service",
         "fill": {
          "description": "Find the invoice in the data folder, refuse a draft, mark it paid, save it, return it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "invoice_model,invoice_not_found_error,invoices_repository"
         }
        },
@@ -2195,7 +2231,7 @@
         "label": "invoices_cli — cli",
         "fill": {
          "description": "Command line: pay NUMBER - marks the invoice paid and prints it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "mark_paid,invoice_not_found_error"
         }
        }
@@ -4029,28 +4065,64 @@
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
-    "pack template": {
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "invoice_model",
+        "label": "invoice_model — model"
+       },
+       {
+        "value": "invoice_not_found_error",
+        "label": "invoice_not_found_error — error"
+       },
+       {
+        "value": "invoices_repository",
+        "label": "invoices_repository — repository"
+       },
+       {
+        "value": "mark_paid",
+        "label": "mark_paid — service"
+       },
+       {
+        "value": "invoices_cli",
+        "label": "invoices_cli — cli"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
+     }
+    },
+    "template new": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "archvow/fastapi-service",
-        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
+        "value": "fastapi-service",
+        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
-        "value": "archvow/langgraph-agent",
-        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
        },
        {
-        "value": "archvow/pyspark-pipeline",
-        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
+        "value": "pyspark-pipeline",
+        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
        {
-        "value": "archvow/python-app",
-        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
+        "value": "python-app",
+        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
        }
       ],
-      "note": "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."
+      "note": "Vide : un template de zéro. Les réglages d'une base sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."
      }
     }
    }
@@ -4135,7 +4207,7 @@
         "label": "utility — A small helper every layer may use (no business rule, no I/O beyond what it says)."
        }
       ],
-      "note": "The types of archvow/fastapi-service, the template of this project."
+      "note": "The types of fastapi-service, the template of this project."
      },
      "feature": {
       "kind": "select",
@@ -4157,10 +4229,10 @@
       "by": "type",
       "lists": {
        "utility": [],
-       "dependency": [],
        "model": [],
        "error": [],
        "logic": [],
+       "dependency": [],
        "repository": [],
        "client": [],
        "service": [],
@@ -4179,7 +4251,7 @@
         "label": "get_current_user — dependency",
         "fill": {
          "description": "The authenticated customer's id, from the X-Customer header",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -4201,7 +4273,7 @@
         "label": "new_order_model — model",
         "fill": {
          "description": "What a customer sends to create an order: amount Decimal > 0",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -4209,7 +4281,7 @@
         "label": "order_model — model",
         "fill": {
          "description": "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -4217,7 +4289,7 @@
         "label": "order_not_found_error — error",
         "fill": {
          "description": "The order does not exist, or belongs to another customer",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -4225,7 +4297,7 @@
         "label": "orders_repository — repository",
         "fill": {
          "description": "Stores and finds orders (in memory to start)",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model"
         }
        },
@@ -4234,7 +4306,7 @@
         "label": "create_order — service",
         "fill": {
          "description": "Create a pending order for the current customer and save it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model,new_order_model,orders_repository"
         }
        },
@@ -4243,7 +4315,7 @@
         "label": "get_order — service",
         "fill": {
          "description": "Return one order of the current customer",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model,order_not_found_error,orders_repository"
         }
        },
@@ -4252,7 +4324,7 @@
         "label": "main — app",
         "fill": {
          "description": "The service: the order routes under /v1, domain errors mapped to HTTP statuses",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "orders_router,order_not_found_error"
         }
        },
@@ -4261,7 +4333,7 @@
         "label": "orders_router — router",
         "fill": {
          "description": "The order API",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "create_order,get_order,order_model,new_order_model"
         }
        }
@@ -7196,28 +7268,80 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
-    "pack template": {
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "get_current_user",
+        "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "settings",
+        "label": "settings — foundation"
+       },
+       {
+        "value": "new_order_model",
+        "label": "new_order_model — model"
+       },
+       {
+        "value": "order_model",
+        "label": "order_model — model"
+       },
+       {
+        "value": "order_not_found_error",
+        "label": "order_not_found_error — error"
+       },
+       {
+        "value": "orders_repository",
+        "label": "orders_repository — repository"
+       },
+       {
+        "value": "create_order",
+        "label": "create_order — service"
+       },
+       {
+        "value": "get_order",
+        "label": "get_order — service"
+       },
+       {
+        "value": "main",
+        "label": "main — app"
+       },
+       {
+        "value": "orders_router",
+        "label": "orders_router — router"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     }
+    },
+    "template new": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "archvow/fastapi-service",
-        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
+        "value": "fastapi-service",
+        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
-        "value": "archvow/langgraph-agent",
-        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
        },
        {
-        "value": "archvow/pyspark-pipeline",
-        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
+        "value": "pyspark-pipeline",
+        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
        {
-        "value": "archvow/python-app",
-        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
+        "value": "python-app",
+        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
        }
       ],
-      "note": "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
+      "note": "Empty: a template from scratch. A base's settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
      }
     }
    }
@@ -7302,7 +7426,7 @@
         "label": "utility — A small helper every layer may use (no business rule, no I/O beyond what it says)."
        }
       ],
-      "note": "Les types de archvow/fastapi-service, le modèle de ce projet."
+      "note": "Les types de fastapi-service, le modèle de ce projet."
      },
      "feature": {
       "kind": "select",
@@ -7324,10 +7448,10 @@
       "by": "type",
       "lists": {
        "utility": [],
-       "dependency": [],
        "model": [],
        "error": [],
        "logic": [],
+       "dependency": [],
        "repository": [],
        "client": [],
        "service": [],
@@ -7346,7 +7470,7 @@
         "label": "get_current_user — dependency",
         "fill": {
          "description": "The authenticated customer's id, from the X-Customer header",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -7368,7 +7492,7 @@
         "label": "new_order_model — model",
         "fill": {
          "description": "What a customer sends to create an order: amount Decimal > 0",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -7376,7 +7500,7 @@
         "label": "order_model — model",
         "fill": {
          "description": "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -7384,7 +7508,7 @@
         "label": "order_not_found_error — error",
         "fill": {
          "description": "The order does not exist, or belongs to another customer",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -7392,7 +7516,7 @@
         "label": "orders_repository — repository",
         "fill": {
          "description": "Stores and finds orders (in memory to start)",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model"
         }
        },
@@ -7401,7 +7525,7 @@
         "label": "create_order — service",
         "fill": {
          "description": "Create a pending order for the current customer and save it",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model,new_order_model,orders_repository"
         }
        },
@@ -7410,7 +7534,7 @@
         "label": "get_order — service",
         "fill": {
          "description": "Return one order of the current customer",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "order_model,order_not_found_error,orders_repository"
         }
        },
@@ -7419,7 +7543,7 @@
         "label": "main — app",
         "fill": {
          "description": "The service: the order routes under /v1, domain errors mapped to HTTP statuses",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "orders_router,order_not_found_error"
         }
        },
@@ -7428,7 +7552,7 @@
         "label": "orders_router — router",
         "fill": {
          "description": "The order API",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "create_order,get_order,order_model,new_order_model"
         }
        }
@@ -10363,28 +10487,80 @@
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
-    "pack template": {
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "get_current_user",
+        "label": "get_current_user — dependency"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "settings",
+        "label": "settings — foundation"
+       },
+       {
+        "value": "new_order_model",
+        "label": "new_order_model — model"
+       },
+       {
+        "value": "order_model",
+        "label": "order_model — model"
+       },
+       {
+        "value": "order_not_found_error",
+        "label": "order_not_found_error — error"
+       },
+       {
+        "value": "orders_repository",
+        "label": "orders_repository — repository"
+       },
+       {
+        "value": "create_order",
+        "label": "create_order — service"
+       },
+       {
+        "value": "get_order",
+        "label": "get_order — service"
+       },
+       {
+        "value": "main",
+        "label": "main — app"
+       },
+       {
+        "value": "orders_router",
+        "label": "orders_router — router"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
+     }
+    },
+    "template new": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "archvow/fastapi-service",
-        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
+        "value": "fastapi-service",
+        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
-        "value": "archvow/langgraph-agent",
-        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
        },
        {
-        "value": "archvow/pyspark-pipeline",
-        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
+        "value": "pyspark-pipeline",
+        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
        {
-        "value": "archvow/python-app",
-        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
+        "value": "python-app",
+        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
        }
       ],
-      "note": "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."
+      "note": "Vide : un template de zéro. Les réglages d'une base sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."
      }
     }
    }
@@ -10457,7 +10633,7 @@
         "label": "writer — Writes one dataset."
        }
       ],
-      "note": "The types of archvow/pyspark-pipeline, the template of this project."
+      "note": "The types of pyspark-pipeline, the template of this project."
      },
      "feature": {
       "kind": "select",
@@ -10561,7 +10737,7 @@
         "label": "clean_orders — transformation",
         "fill": {
          "description": "Keep only the valid rows: order_id not null and amount >= 0",
-         "spec": "US-002"
+         "ticket": "US-002"
         }
        },
        {
@@ -10569,7 +10745,7 @@
         "label": "compute_vat — transformation",
         "fill": {
          "description": "Add the column vat = amount * 0.2",
-         "spec": "US-002"
+         "ticket": "US-002"
         }
        },
        {
@@ -10577,7 +10753,7 @@
         "label": "order_totals — transformation",
         "fill": {
          "description": "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)",
-         "spec": "US-004"
+         "ticket": "US-004"
         }
        },
        {
@@ -10585,7 +10761,7 @@
         "label": "orders_schema — schema",
         "fill": {
          "description": "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -10593,7 +10769,7 @@
         "label": "vat_schema — schema",
         "fill": {
          "description": "Output orders with their VAT: order_id string, customer_id string, amount decimal(18,2), order_date date, vat decimal(18,2)",
-         "spec": "US-003"
+         "ticket": "US-003"
         }
        },
        {
@@ -10601,7 +10777,7 @@
         "label": "orders_reader — reader",
         "fill": {
          "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "orders_schema"
         }
        },
@@ -10610,7 +10786,7 @@
         "label": "vat_writer — writer",
         "fill": {
          "description": "Write the orders with their VAT as parquet",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "vat_schema"
         }
        },
@@ -10619,7 +10795,7 @@
         "label": "my_pipeline_job — job",
         "fill": {
          "description": "Read the orders, clean them, compute their VAT, write the result",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "orders_reader,clean_orders,compute_vat,vat_writer"
         }
        },
@@ -10628,7 +10804,7 @@
         "label": "my_pipeline_main — entrypoint",
         "fill": {
          "description": "Command line: --input-path PATH (the input folder), --output-path PATH (the output folder)",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "my_pipeline_job"
         }
        }
@@ -13812,28 +13988,84 @@
       "note": "Local branches, fetched remote branches and tags are different Git references. Choose the exact one to compare; remote branches reflect the last fetch."
      }
     },
-    "pack template": {
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "spark",
+        "label": "spark — foundation"
+       },
+       {
+        "value": "clean_orders",
+        "label": "clean_orders — transformation"
+       },
+       {
+        "value": "compute_vat",
+        "label": "compute_vat — transformation"
+       },
+       {
+        "value": "order_totals",
+        "label": "order_totals — transformation"
+       },
+       {
+        "value": "orders_schema",
+        "label": "orders_schema — schema"
+       },
+       {
+        "value": "vat_schema",
+        "label": "vat_schema — schema"
+       },
+       {
+        "value": "orders_reader",
+        "label": "orders_reader — reader"
+       },
+       {
+        "value": "vat_writer",
+        "label": "vat_writer — writer"
+       },
+       {
+        "value": "my_pipeline_job",
+        "label": "my_pipeline_job — job"
+       },
+       {
+        "value": "my_pipeline_main",
+        "label": "my_pipeline_main — entrypoint"
+       }
+      ],
+      "empty": "No component yet: add one with component add."
+     }
+    },
+    "template new": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "archvow/fastapi-service",
-        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
+        "value": "fastapi-service",
+        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
-        "value": "archvow/langgraph-agent",
-        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
        },
        {
-        "value": "archvow/pyspark-pipeline",
-        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
+        "value": "pyspark-pipeline",
+        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
        {
-        "value": "archvow/python-app",
-        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
+        "value": "python-app",
+        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
        }
       ],
-      "note": "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
+      "note": "Empty: a template from scratch. A base's settings are filled in below: change what the company wants different; what the base imposes cannot be changed."
      }
     }
    }
@@ -13906,7 +14138,7 @@
         "label": "writer — Writes one dataset."
        }
       ],
-      "note": "Les types de archvow/pyspark-pipeline, le modèle de ce projet."
+      "note": "Les types de pyspark-pipeline, le modèle de ce projet."
      },
      "feature": {
       "kind": "select",
@@ -14010,7 +14242,7 @@
         "label": "clean_orders — transformation",
         "fill": {
          "description": "Keep only the valid rows: order_id not null and amount >= 0",
-         "spec": "US-002"
+         "ticket": "US-002"
         }
        },
        {
@@ -14018,7 +14250,7 @@
         "label": "compute_vat — transformation",
         "fill": {
          "description": "Add the column vat = amount * 0.2",
-         "spec": "US-002"
+         "ticket": "US-002"
         }
        },
        {
@@ -14026,7 +14258,7 @@
         "label": "order_totals — transformation",
         "fill": {
          "description": "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)",
-         "spec": "US-004"
+         "ticket": "US-004"
         }
        },
        {
@@ -14034,7 +14266,7 @@
         "label": "orders_schema — schema",
         "fill": {
          "description": "Input orders: order_id string, customer_id string, amount decimal(18,2), order_date date",
-         "spec": "US-001"
+         "ticket": "US-001"
         }
        },
        {
@@ -14042,7 +14274,7 @@
         "label": "vat_schema — schema",
         "fill": {
          "description": "Output orders with their VAT: order_id string, customer_id string, amount decimal(18,2), order_date date, vat decimal(18,2)",
-         "spec": "US-003"
+         "ticket": "US-003"
         }
        },
        {
@@ -14050,7 +14282,7 @@
         "label": "orders_reader — reader",
         "fill": {
          "description": "Read the orders from CSV files with a header at the given path and enforce ORDERS_SCHEMA",
-         "spec": "US-001",
+         "ticket": "US-001",
          "uses": "orders_schema"
         }
        },
@@ -14059,7 +14291,7 @@
         "label": "vat_writer — writer",
         "fill": {
          "description": "Write the orders with their VAT as parquet",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "vat_schema"
         }
        },
@@ -14068,7 +14300,7 @@
         "label": "my_pipeline_job — job",
         "fill": {
          "description": "Read the orders, clean them, compute their VAT, write the result",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "orders_reader,clean_orders,compute_vat,vat_writer"
         }
        },
@@ -14077,7 +14309,7 @@
         "label": "my_pipeline_main — entrypoint",
         "fill": {
          "description": "Command line: --input-path PATH (the input folder), --output-path PATH (the output folder)",
-         "spec": "US-003",
+         "ticket": "US-003",
          "uses": "my_pipeline_job"
         }
        }
@@ -17261,28 +17493,84 @@
       "note": "Branches locales, branches distantes récupérées et tags sont des références Git distinctes. Choisis celle à comparer ; une branche distante reflète le dernier fetch."
      }
     },
-    "pack template": {
+    "draft": {
+     "component": {
+      "kind": "select",
+      "choices": [
+       {
+        "value": "config",
+        "label": "config — foundation"
+       },
+       {
+        "value": "logging_setup",
+        "label": "logging_setup — foundation"
+       },
+       {
+        "value": "spark",
+        "label": "spark — foundation"
+       },
+       {
+        "value": "clean_orders",
+        "label": "clean_orders — transformation"
+       },
+       {
+        "value": "compute_vat",
+        "label": "compute_vat — transformation"
+       },
+       {
+        "value": "order_totals",
+        "label": "order_totals — transformation"
+       },
+       {
+        "value": "orders_schema",
+        "label": "orders_schema — schema"
+       },
+       {
+        "value": "vat_schema",
+        "label": "vat_schema — schema"
+       },
+       {
+        "value": "orders_reader",
+        "label": "orders_reader — reader"
+       },
+       {
+        "value": "vat_writer",
+        "label": "vat_writer — writer"
+       },
+       {
+        "value": "my_pipeline_job",
+        "label": "my_pipeline_job — job"
+       },
+       {
+        "value": "my_pipeline_main",
+        "label": "my_pipeline_main — entrypoint"
+       }
+      ],
+      "empty": "Aucun composant : en ajouter un avec component add."
+     }
+    },
+    "template new": {
      "extends": {
       "kind": "suggest",
       "choices": [
        {
-        "value": "archvow/fastapi-service",
-        "label": "archvow/fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other s…"
+        "value": "fastapi-service",
+        "label": "fastapi-service — FastAPI web service. Business rules live in a pure domain, the database and other services …"
        },
        {
-        "value": "archvow/langgraph-agent",
-        "label": "archvow/langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundati…"
+        "value": "langgraph-agent",
+        "label": "langgraph-agent — AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tool…"
        },
        {
-        "value": "archvow/pyspark-pipeline",
-        "label": "archvow/pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O…"
+        "value": "pyspark-pipeline",
+        "label": "pyspark-pipeline — Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessio…"
        },
        {
-        "value": "archvow/python-app",
-        "label": "archvow/python-app — Python application or library, no framework imposed. Business rules live in a pure domai…"
+        "value": "python-app",
+        "label": "python-app — Python application or library, no framework imposed. Business rules live in a pure domain, files…"
        }
       ],
-      "note": "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."
+      "note": "Vide : un template de zéro. Les réglages d'une base sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas."
      }
     }
    }

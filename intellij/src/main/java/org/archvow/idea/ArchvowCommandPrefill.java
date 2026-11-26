@@ -37,7 +37,7 @@ final class ArchvowCommandPrefill {
             boolean specific = data.keySet().stream().anyMatch(k -> !"component".equals(k));
             if (!specific) {
                 // field of the form <- where its value is: show <component>, then the spec's entry
-                String[][] fields = {{"description", "description"}, {"spec", "spec"}, {"signature", "signature"},
+                String[][] fields = {{"description", "description"}, {"ticket", "spec"}, {"signature", "signature"},
                     {"uses", "uses"}, {"group", "group"}, {"owners", "owners"}, {"source", "from"}, {"source", "brief"}};
                 for (String[] field : fields) {
                     if (data.containsKey(field[0])) continue;

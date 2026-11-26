@@ -1,17 +1,224 @@
 # Changelog
 
+## 1.4.2 - 2026-11-25
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **First steps say what can still be done** (archvow 3.4.1 `also`): a link beside a step once the card has moved
+  on - + Feature, + Component (add as many components as you want before building; a new one reopens step 3 with
+  Specify), and Build the N specified while others are still open. Step 3 says how many are specified.
+- **IntelliJ, a narrow tool window:** a link longer than the card ("Try archvow on an example first", "Open
+  Components for details →") goes on two lines instead of being cut (CI's layout check at 240 px).
+
+## 1.4.1 - 2026-11-25
+
+Fixes from trying 1.4.0. Works with archvow >=3.4,<4. Built on archvow 3.4.0.
+
+- **Review them ›** after a skill run opens the component's page, on what the AI added (IntelliJ left the skill page
+  in front).
+- **← Back on every command and skill page**, to what the editor showed before: a component on its view, Briefs, a
+  feature, Find, Checks or a result - also when the page was opened from the tool window. Cancel with nothing to go
+  back to leaves the form (VS Code stayed on it).
+- **Light themes (IntelliJ):** First steps' button was an empty white box (the IDE's default button drew white on
+  white): painted here, as the other main buttons. The AI ▾ menu let the page show through the row under the mouse
+  (a see-through list hover): opaque now.
+- **VS Code, a change to confirm:** the page goes down to Confirm and run, as in IntelliJ.
+- **VS Code, the list / answer split:** stays where you put it in a new editor tab and after a window reload (kept by
+  the extension, not only by the tab); the AI you picked too.
+
+## 1.4.0 - 2026-11-25
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.0 (contract 3.0, with `ai_runs`).
+
+- **Why archvow starts no AI here, in words:**
+  - The skill form writes archvow's reason under the buttons (ⓘ …), not only in the ▶ Run hover: not in the
+    project's `ai_runs`, or the project runs AI agents only in a sandbox and this editor is not in one.
+  - Draft with AI, when off: ✦ and ▾ stay clickable, greyed, and open archvow's reason with Copy the prompt instead.
+- **One sandbox rule (archvow 3.4):** with `sandbox yes`, Draft with AI and ▶ Run work only when archvow runs inside
+  the sandbox (a dev container, the IDE's backend in it). Before, a skill run was refused there too, and a draft ran
+  anywhere.
+- **New project:** the init wizard asks `ai_runs` (drafts, skills, none) in AI & briefs, in place of `ai_drafts`
+  and `ai_skills`.
+- contract/ recorded from archvow 3.4.0; vow-reader/expected.json regenerated.
+
+## 1.3.0 - 2026-11-25
+
+Works with archvow >=3.3,<4. Built on archvow 3.3.0 (contract 3.0, with `ai_skills`, `reviewers` and `archvow skill`).
+
+- **AI skills run here, in the background:**
+  - Draft from a brief, Find missing questions and Find risks have a **▶ Run with <AI> ▾** button. It names the AI
+    that will run: the first installed of the project's AI assistants, or the one you picked last in ▾ (the same
+    list as Draft with AI).
+  - While it runs, a strip shows the AI, the time, Show log and ■ Stop, and you go on working. At the end it says
+    what was added ("1 question - each the AI's, To review") with **Review them ›**, or the tool's reason and
+    "Nothing was added".
+  - Off, with the reason on the button, when the project says `ai_skills: no` (the default in strict mode), needs
+    agents in a sandbox, or has none of its assistants installed here.
+- **Implement** has no Run button: it is your own agent's work. Copy instructions, or Open in Copilot chat when
+  Copilot is one of the project's assistants.
+- **Review** runs `archvow review` with one of the project's **reviewers** (▶ Review with <reviewer> ▾), then
+  Open the report ›. Greyed when no reviewer is approved.
+- **Copy instructions** copies archvow's own text (`archvow skill … --prompt`): the page no longer writes it. The
+  skill form has no steps any more: the target, then the buttons.
+- **Pipeline:**
+  - Whether an AI assistant's command is installed is this computer's, not archvow's: the contract records it as
+    on a computer with none, and the live test reads it the same way. On a machine with `claude` installed the
+    contract no longer differs.
+  - contract/vow-reader/expected.json is regenerated from the vows of archvow 3.3.0.
+- **New project:** the `ai_skills` answer is asked with the other AI answers (AI & briefs).
+
+## 1.2.2 - 2026-11-25
+
+Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0). Layouts that broke at some widths.
+
+- **AI skill form: "What will happen" was a column one word wide.** It took the list/answer split of 1.2.0, whose
+  middle column is the 10 px bar. It has its own two columns again (stacked under 760 px). "The AI can" and
+  "You still" go one under the other when there is no room for both.
+- **The answer table follows the answer pane, not the window.** Beside the list, the pane is narrower than the
+  window, and the last columns (Default, Notes, the bin) went past its edge. Below 560 px each row is a small form,
+  with its labels.
+- **Tasks:**
+  - A component with no task says so ("No separate tasks: the AI builds config in one go, from its spec"). It said
+    "every task is done".
+  - The list and the details are side by side like the other views.
+  - Personal data shows only what the component handles, writes, removes or pseudonymises, or "None declared".
+- **The editor font falls back to monospace.** When the editor's font is missing in the page, text such as
+  "skill: archvow-clarify" was drawn in a serif font.
+
+## 1.2.1 - 2026-11-25
+
+Works with archvow >=3.2,<4. Built on archvow 3.2.1 (contract 3.0).
+
+- **Draft with AI: an assistant greyed in the ▾ menu names the missing command** ("no copilot command"). Hovering
+  it says why: drafts use the assistant's command, and the editor's own extension is not enough. Install the
+  command, log in once, then reopen the project.
+- With archvow 3.2.1, a failing assistant gives its real reason instead of its warnings. Claude Code, for
+  instance, no longer stops on "Ignoring N permissions.allow entries" in a folder it does not trust yet.
+
+## 1.2.0 - 2026-11-25
+
+Works with archvow >=3.2,<4. Built on archvow 3.2.0 (contract 3.0, with `ai_drafts` and the build step's progress).
+From the second test session.
+
+- **Draft with AI.** An icon in the corner of every answer box (decisions, questions, safety): one click and one of
+  the project's AI assistants writes a draft, in the background, into the box, marked "AI draft · Claude Code". You
+  read it, change what is wrong, and save it: it is your answer, noted "AI draft, edited" (or unchanged) in the
+  spec. ▾ picks another of the project's assistants (the first installed one by default; one not installed is
+  greyed) or copies the prompt instead; ↻ asks again, × puts the box back as it was. Off for the project
+  (`ai_drafts` in project.vow): the icon is greyed and says why.
+- **The list and the answer: a bar you drag.** Side by side, drag it left or right (up or down when narrow);
+  double-click for half and half; where you leave it is kept. Each side scrolls on its own and Save answer stays in
+  sight under the answer.
+- **First steps, Build stays** until every component of the feature is built: "1 of 2 built · next: orders_reader",
+  with a bar per component.
+- **The walk strip has no Stop button**: a small × in its corner, and Esc, leave the walk; the steps are drawn
+  between its words and its count ("Building orders ▬▬ 2 of 2").
+- **The AI skill form**: VS Code runs it in Copilot chat (agent mode, the instructions already typed: you press
+  Send) when Copilot is one of the project's assistants - off, with the reason, when the project wants agents in a
+  sandbox; IntelliJ copies and opens your AI chat window (JetBrains lets no plugin type in it).
+- **try speaks the page's language**: the findings' names and what to do (archvow try --language), "What to do:"
+  with its colon, the scratch folder once at the top with Open / Copy path / Read the example's spec, the change in
+  the editor's font. No "ARCHVOW · RESULT" over a result: the tab already says it.
+- **IntelliJ**: Specify and Build work again after the Archvow tab was closed (they did nothing); the Archvow
+  Output window has its own icon (the Y with log lines) and short lines - the command as you would type it, its
+  result, its time - instead of the Python command line.
+
+## 1.1.0 - 2026-11-24
+
+Works with archvow >=3.1,<4. Built on archvow 3.1.0 (contract 3.0; the ticket option is `--ticket`; First steps 3
+and 4 wait for every component, then Build). From the first test session: easier to find your way, from the first
+decision to the merge request.
+
+- **Specify walks on.** After a component's last answer, a strip says so and offers the next one ("✓ config
+  specified · Next: logging_setup · Specify next ▸ · Stop") - no modal any more. It walks the foundations, a
+  feature, or a component and the rest of its feature, in archvow's build order, and ends on "every decision is
+  made · Ready to build: … Build ▸".
+- **Build is its own walk**, apart from Check: 1 Copy AI prompt, 2 Check (its result for this component), 3 Build
+  next ▸ once verified; it stops when the merge request is full (ARCH022). First steps, step 4, shows Build until
+  code exists, then Check; the Overview shows "Ready to build: N → Build".
+- **A feature's Copy AI prompt says what it will do**: "Copy AI prompt · build orders_schema" when a component is
+  ready; Specify first in strict mode when nothing is (the AI would only stop and ask); in guided or free mode, the
+  AI proposes the open decisions first.
+- **To decide, to build.** A task is work for the AI or a developer: it no longer counts as pending, never turns a
+  component amber, and the Tasks view lists it once, in blue, with Copy task prompt and Open code. A component with
+  nothing to decide gets its ✓ ("ready to build: 2 tasks" on hover).
+- **One answer, written once.** An answer table writes the answer field as you edit (no preview, no Use this
+  answer); typed by hand, the field is left alone ("Write it from the table again"). Parameters: a Required box in
+  its own column, the default "—" when ticked. "Back to the suggestion" only once the text differs from it.
+- **"Where it is" on the right** of the task or the vow, its files opening on a click; above the text in a narrow
+  panel. The task's button says Copy.
+- **Right-click menus** on components, features, layers, decisions, questions, safety questions, tasks and files:
+  the buttons of the row, nothing hidden there.
+- **Ticket**: the component form shows `--ticket` (archvow 3.1).
+- IntelliJ: a command asked for while another runs waits its turn (it was refused, with a message in French).
+- Releases are published from a tag (`v1.1.0`; `v1.2.0-beta` for a pre-release), its version checked against the
+  manifests and this changelog - not from every push to `main`.
+
+## 1.0.0 - 2026-11-24
+
+Works with archvow >=3.0,<4. Built on archvow 3.0.0 (contract 3.0: templates replace packs; every question has an
+id). The plugins now have their own versioning, from 1.0.0: a plugin release says the range of archvow versions it
+works with, and an archvow release in that range needs no plugin release.
+
+- **The range is said where you look**: the header of the workspace (`archvow 3.0.0 ✓ · this plugin works with
+  archvow >=3.0,<4`), the README and the Marketplace page - one value, `contract/archvow-range.txt`, checked by the
+  release test.
+- **An archvow outside the range is said, with what to do.** Older: Install archvow 3.0.0 - or, when the project
+  pins an older archvow (`archvow==2.8.0` in its requirements.txt or pyproject.toml), how its architects upgrade
+  the project on a branch (`pip install archvow==3.0.0`, `archvow init <package> --force`); the plugin never
+  installs over a pin. A project pinned inside the range gets its own pin installed. Newer: update the plugin.
+  None: the exact install command. Both plugins say the same on every case of `contract/compat/expected.json`.
+- **Overview › Templates** replaces Packs: the project's chain of templates, bases first (`python-base ←
+  pyspark-pipeline ← acme-pyspark`), each with what it extends, where it came from and whether its copy in
+  `.archvow/templates/` is as copied (ARCH060 otherwise, with See the change); **Update** (`archvow template
+  update`), **New template**, and the project's own additions (`.archvow/template/`) with **Add a question** and
+  **Add a rule**.
+- **The template commands as forms**: `template new` (extend one or more templates - a base's settings filled in
+  - or start from scratch), `template rule` (with **Final**), `template question`, `template agent`, `template
+  check`, `template update`, each with the files it writes. The `pack` commands are gone with archvow 3.0.
+- **Init**: template names are plain (`pyspark-pipeline`, no `archvow/`); a company template is given by its
+  folder; without one, the template archvow marks as the default (python-app).
+
 ## 0.26.1 - 2026-11-20
 
-Built on archvow 2.6.1 (contract 2.4, unchanged: 2.6.1 prints what 2.6.0 printed, but the version). Security and
-release fixes from the review of 0.26.0.
+Built on archvow 2.8.0 (contract 2.5: `archvow show` of a pasted error; an installed archvow of contract 2.4 is said to
+be older, with Install archvow 2.8.0). Security and release fixes from the review of 0.26.0.
 
 - **Nothing runs in a project you have not trusted.** As before, archvow runs only in a trusted workspace (Restricted Mode: the `.vow` language only).
 - **Python runs with `-P`** (`<python> -P -m archvow`, `<python> -P -m pip`): archvow and pip run in the project's
   root, and `-m` put that folder first on `sys.path` - a repository holding `archvow/__main__.py` ran its own code
   each time the plugin called archvow (reproduced). Python 3.11 or later, as archvow itself needs; an older Python
   found first is passed over for the next candidate.
-- **archvow 2.6.1 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 789
-  check messages, 100 codes, harvested from its suite, which now passes as delivered).
+- **archvow 2.8.0 is the archvow both IDEs install and are tested with** (`contract/` regenerated from it; 803
+  check messages, 100 codes, harvested from its suite, which now passes as delivered). Since 2.6.2, a first rule
+  parameter set stricter than its default (a lower ARCH022 budget) is no longer reported as a weakened guard
+  (ARCH020).
+- **Check before coding**, on a feature's page after **Copy AI prompt**: copies `archvow prompt --feature <feature>
+  --clarify` (archvow 2.8.0) - the AI checks the whole feature before any code, where its components disagree or
+  leave a gap between them (one writes one folder per run date, another reads everything under the path), and
+  records each finding as a question on the component that must change; it writes no code. **Copy AI prompt** now
+  also gives what the feature's other components already decided (`featurePromptCommand`, `feature-check-regression.js`).
+- **An error pasted in Find is shown as an error.** `archvow show "<the error>"` (archvow 2.7.0): what went wrong,
+  the template's known errors it matches - each pack rule kept with that error (`pack rule --error`), with its fix
+  and why - then where it broke, with the lines around it, **Open at line** and **Show <component>**, and where the
+  lesson goes once it is fixed. A traceback pasted in the one-line field keeps its lines apart
+  (`pasted-error-regression.js`; contract `cli/python-app/pasted-error.json`).
+- **AI assistants picked from a list, or added by name.** In init (ai_tools, reviewers), the assistants are no longer
+  typed "comma-separated": each chosen one is a chip, **Add an assistant…** lists those archvow knows (the catalog's
+  suggestions: archvow's 16 agents, and a pack's own), and a box adds any other name - archvow takes any agent name
+  and gives an unknown one the standard AGENTS.md and .agents/skills, as its chip says. `none` stays alone; a wrong
+  name is refused with the rule (`agent-picker-regression.js`). archvow itself is unchanged.
+- **Choose the Python from a list, and see which one runs.** **Configure Python** (the command *Choose the Python
+  that runs archvow*) lists the Pythons of this computer - the project's interpreter, its `.venv`, the Python
+  extension's environments, python.org, Homebrew, the system's, pyenv, conda, the PATH - each with its version and
+  the archvow it has, those with archvow first; *Automatic* stays the default. The welcome page says what runs:
+  `archvow 2.8.0 with /usr/local/bin/python3.12 — the project's Python interpreter`. `archvow.python`, when set,
+  now comes before the project's interpreter: a Python the person chose is the one that runs (`pythons.ts`).
+- **Init into another folder opens it.** `init` with a Folder (`--dir`) other than the workspace's offers to open
+  that folder here or in a new window: it is the new project (`initTarget.ts`).
+- **One language at a time.** The few texts that said everything twice ("Review signature / Vérifier la
+  signature", "Answer / Réponse", the safety previews) are in the chosen language; a test keeps it so.
+- **"Try it" shows its result where you clicked.** On the welcome page of a folder without archvow, the sidebar's Try it ran `archvow try` but sent the running state and the result to the editor tab only: the sidebar never changed, and in the editor tab the result sat under the cards, below the fold - nothing seemed to happen. The result now shows under the Try card in the sidebar as well, and scrolls into view wherever it shows (`scripts/try-it-regression.js`).
 - `SECURITY.md` says how to report a vulnerability privately; the extension's license field says Apache-2.0, as
   `LICENSE`; `./build.sh sign` takes your `JAVA_HOME` (it forced a Homebrew JDK 17); CI runs the IntelliJ Plugin
   Verifier on the recommended IDE releases (`intellij-verify`) before publishing.

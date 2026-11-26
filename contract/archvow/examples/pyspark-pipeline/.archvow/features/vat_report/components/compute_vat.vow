@@ -16,54 +16,63 @@ symbol compute_vat
 
 # --- decisions
 decision 1
+  id rows_kept
   question "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?"
   answer "All rows"
   by architect@example.com
   on 2026-11-11T19:06:59.639864+00:00
 
 decision 2
+  id output_columns
   question "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?"
   answer "The input columns plus vat decimal(18,2) = amount * 0.2, not null"
   by architect@example.com
   on 2026-11-11T19:06:59.880187+00:00
 
 decision 3
+  id grouping
   question "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?"
   answer "No grouping"
   by architect@example.com
   on 2026-11-11T19:07:00.099733+00:00
 
 decision 4
+  id join
   question "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")"
   answer "No join"
   by architect@example.com
   on 2026-11-11T19:07:00.326719+00:00
 
 decision 5
+  id empty_input
   question "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?"
   answer "Return an empty DataFrame with the output schema"
   by architect@example.com
   on 2026-11-11T19:07:00.523733+00:00
 
 decision 6
+  id null_keys
   question "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?"
   answer "Not possible here: clean_orders runs first"
   by architect@example.com
   on 2026-11-11T19:07:00.760615+00:00
 
 decision 7
+  id duplicate_keys
   question "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?"
   answer "Not possible here: clean_orders runs first"
   by architect@example.com
   on 2026-11-11T19:07:00.776642+00:00
 
 decision 8
+  id out_of_range
   question "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?"
   answer "Not possible here: clean_orders runs first"
   by architect@example.com
   on 2026-11-11T19:07:00.792858+00:00
 
 decision 9
+  id extra_columns
   question "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?"
   answer "Keep them unchanged"
   by architect@example.com

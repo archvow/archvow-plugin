@@ -1,5 +1,5 @@
 {
-  "contract": "2.4",
+  "contract": "3.0",
   "name": "amount",
   "summary": "a column of new_order_model",
   "total": 28,
@@ -11,7 +11,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/create_order.vow",
-          "line": 53,
+          "line": 58,
           "component": "create_order",
           "part": "hazard H1 never",
           "text": "never \"An order is saved with an amount of zero or less\""
@@ -19,7 +19,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/create_order.vow",
-          "line": 80,
+          "line": 85,
           "component": "create_order",
           "part": "invariant INV1 always",
           "text": "always \"every saved order has an amount greater than zero\""
@@ -35,7 +35,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/new_order_model.vow",
-          "line": 19,
+          "line": 20,
           "component": "new_order_model",
           "part": "decision 1 answer",
           "text": "answer \"amount required\""
@@ -43,7 +43,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/new_order_model.vow",
-          "line": 25,
+          "line": 27,
           "component": "new_order_model",
           "part": "decision 2 answer",
           "text": "answer \"amount > 0 with at most 2 decimals\""
@@ -51,7 +51,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/new_order_model.vow",
-          "line": 37,
+          "line": 40,
           "component": "new_order_model",
           "part": "columns",
           "text": "amount none"
@@ -59,7 +59,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/new_order_model.vow",
-          "line": 57,
+          "line": 60,
           "component": "new_order_model",
           "part": "not_applicable exposed because",
           "text": "because \"Holds only the amount: no personal data, no secret\""
@@ -75,7 +75,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/order_model.vow",
-          "line": 25,
+          "line": 27,
           "component": "order_model",
           "part": "decision 2 answer",
           "text": "answer \"amount >= 0 with 2 decimals; status pending, paid or cancelled\""
@@ -83,7 +83,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/orders/components/order_model.vow",
-          "line": 37,
+          "line": 40,
           "component": "order_model",
           "part": "columns",
           "text": "amount none"

@@ -10,13 +10,14 @@ system
 
 # --- containers
 container invoicing
-  template archvow/python-app@2.6.1
+  template python-app
   package invoicing
   path src/invoicing
 
 rules {}
 language en
 ai_tools [claude-code]
+ai_runs []
 dependencies []
 compliance [gdpr, tst]
 mode strict
@@ -38,3 +39,12 @@ init_answers
   branch_naming gitflow
   pip_index_url ""
   ci_image ""
+templates
+  python-app
+    version 3.4.1
+    source archvow
+    digest 0d991b44d9d7
+  python-base
+    version 3.4.1
+    source archvow
+    digest d55071fac333

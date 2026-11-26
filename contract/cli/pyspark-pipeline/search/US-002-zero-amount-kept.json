@@ -1,5 +1,5 @@
 {
-  "contract": "2.4",
+  "contract": "3.0",
   "name": "US-002-zero-amount-kept",
   "summary": "a business example of clean_orders",
   "total": 2,
@@ -11,7 +11,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/vat_report/components/clean_orders.vow",
-          "line": 85,
+          "line": 94,
           "component": "clean_orders",
           "part": "example US-002-zero-amount-kept",
           "text": "example US-002-zero-amount-kept"

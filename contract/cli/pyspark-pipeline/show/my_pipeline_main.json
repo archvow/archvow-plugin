@@ -1,5 +1,5 @@
 {
-  "contract": "2.4",
+  "contract": "3.0",
   "component": "my_pipeline_main",
   "type": "entrypoint",
   "layer": "p4_entrypoints",

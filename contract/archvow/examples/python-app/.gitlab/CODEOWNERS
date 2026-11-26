@@ -10,7 +10,8 @@
 /.archvow/README.md          @acme/architects
 /.archvow/features/          @acme/architects
 /.archvow/frozen.json        @acme/architects
-/.archvow/packs/             @acme/architects
+/.archvow/templates/         @acme/architects
+/.archvow/template/          @acme/architects
 /AGENTS.md                  @acme/architects
 /CLAUDE.md                  @acme/architects
 /.aiassistant/              @acme/architects

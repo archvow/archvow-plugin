@@ -28,15 +28,25 @@ final class ArchvowFeatureView extends JPanel {
         /** A command form, prefilled: component add (feature), feature accept, rename, remove. */
         void openCommand(String command, Map<String, String> values);
         void openDoc(String feature);
-        void copyPrompt(String feature);
+        /** {@code check}: the feature's check before any code ({@code --clarify}, archvow 2.8.0). */
+        void copyPrompt(String feature, boolean check);
         void nextSteps(String feature);
+        /** 1.1.0: the Specify walk over the feature's components with something open. */
+        default void specify(String feature) { }
     }
 
     private final Actions actions;
     private final JEditorPane page = new JEditorPane("text/html", "");
-    private final JButton add = ArchvowSplitView.primary("Add component");
+    /** 1.1.0: the page's main action follows the state (ArchvowWalks.promptState): Copy AI prompt · build X,
+     *  Specify, or Add component once everything is built. */
+    private final JButton primary = ArchvowSplitView.primary("Add component");
+    private Runnable primaryRun = () -> { };
+    private final JButton add = new JButton("Add component");
+    private final JButton specify = new JButton("Specify");
+    private final ArchvowWrapLabel stateNote = new ArchvowWrapLabel();
     private final JButton doc = new JButton("Open feature doc");
     private final JButton prompt = new JButton("Copy AI prompt");
+    private final JButton check = new JButton("Check before coding");
     private final JButton next = new JButton("Next steps");
     private final JButton accept = new JButton("Accept…");
     private final JButton rename = new JButton("Rename…");
@@ -64,21 +74,44 @@ final class ArchvowFeatureView extends JPanel {
                 default -> { }
             }
         });
+        primary.setName("archvow.feature.primary");
+        primary.addActionListener(e -> primaryRun.run());
         add.addActionListener(e -> actions.openCommand("component add", Map.of("feature", feature)));
+        specify.setName("archvow.feature.specify");
+        specify.addActionListener(e -> actions.specify(feature));
+        prompt.setName("archvow.feature.prompt");
         doc.addActionListener(e -> actions.openDoc(feature));
-        prompt.addActionListener(e -> actions.copyPrompt(feature));
+        prompt.addActionListener(e -> actions.copyPrompt(feature, false));
+        check.setName("archvow.feature.check");
+        check.addActionListener(e -> actions.copyPrompt(feature, true));
         next.addActionListener(e -> actions.nextSteps(feature));
         accept.addActionListener(e -> actions.openCommand("feature accept", Map.of("feature", feature)));
         rename.addActionListener(e -> actions.openCommand("feature rename", Map.of("feature", feature)));
         remove.addActionListener(e -> actions.openCommand("feature remove", Map.of("feature", feature)));
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
-        for (JButton b : List.of(add, doc, prompt, next, accept, rename, remove)) buttons.add(b);
-        add(buttons, BorderLayout.NORTH);
+        JPanel buttons = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
+        for (JButton b : List.of(primary, specify, add, doc, prompt, check, next, accept, rename, remove)) buttons.add(b);
+        stateNote.setName("archvow.feature.state");
+        stateNote.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+        JPanel top = new JPanel(new BorderLayout(0, 4));
+        top.add(buttons, BorderLayout.NORTH);
+        top.add(stateNote, BorderLayout.SOUTH);
+        add(top, BorderLayout.NORTH);
         add(new JScrollPane(page), BorderLayout.CENTER);
+    }
+
+    /** {@code archvow prompt --feature <feature>}; {@code check}: with {@code --clarify} (archvow 2.8.0). */
+    static List<String> promptArgs(String feature, boolean check) {
+        return check ? List.of("prompt", "--feature", feature, "--clarify") : List.of("prompt", "--feature", feature);
     }
 
     /** The feature {@code view} ({@code show <feature> --json}); {@code pending}: open items per component. */
     void show(JsonObject view, JsonObject spec, Map<String, Integer> pending, Map<String, String> openItems, boolean french) {
+        show(view, spec, pending, openItems, null, french);
+    }
+
+    /** {@code state}: what Copy AI prompt does now (1.1.0; null: as before 1.1.0, the plain buttons). */
+    void show(JsonObject view, JsonObject spec, Map<String, Integer> pending, Map<String, String> openItems,
+              ArchvowWalks.PromptState state, boolean french) {
         feature = view == null ? "" : ArchvowGrammar.str(view, "feature");
         add.setText(french ? "Ajouter un composant" : "Add component");
         doc.setText(french ? "Ouvrir la doc" : "Open feature doc");
@@ -87,6 +120,9 @@ final class ArchvowFeatureView extends JPanel {
         prompt.setText(french ? "Copier le prompt IA" : "Copy AI prompt");
         prompt.setToolTipText(french ? "archvow prompt --feature " + feature + " : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant"
             : "archvow prompt --feature " + feature + ": the feature in a few lines, then the task of its next component");
+        check.setText(french ? "Vérifier avant de coder" : "Check before coding");
+        check.setToolTipText(french ? "archvow prompt --feature " + feature + " --clarify : l'IA vérifie toute la fonctionnalité avant tout code - là où ses composants ne concordent pas ou laissent un trou entre eux - et enregistre chaque point en question. Elle n'écrit pas de code."
+            : "archvow prompt --feature " + feature + " --clarify: the AI checks the whole feature before any code - where its components disagree or leave a gap between them - and records each finding as a question. It writes no code.");
         next.setText(french ? "Prochaines étapes" : "Next steps");
         accept.setText(french ? "Accepter…" : "Accept…");
         accept.setToolTipText(french ? "archvow feature accept " + feature + " : une personne la prend comme celle de l'équipe"
@@ -97,9 +133,73 @@ final class ArchvowFeatureView extends JPanel {
         boolean shared = "shared".equals(feature);
         rename.setVisible(!shared);
         remove.setVisible(!shared && components(view).isEmpty());
+        specify.setText(french ? "Spécifier" : "Specify");
+        specify.setToolTipText(french ? "Répondre à ce qui reste ouvert, composant après composant" : "Answer what is still open, component after component");
+        applyState(state, french);
         page.setText(html(view, spec, pending, openItems, french));
         page.setCaretPosition(0);
     }
+
+    /** The buttons and the line under them, for what Copy AI prompt does now (1.1.0, the design's artboard 3). */
+    private void applyState(ArchvowWalks.PromptState state, boolean french) {
+        String kind = state == null ? "built" : state.state();
+        int open = state == null ? 0 : state.open();
+        String decisions = open + (french ? (open == 1 ? " décision" : " décisions") : (open == 1 ? " decision" : " decisions"));
+        stateNote.setText("");
+        stateNote.setVisible(false);
+        prompt.setEnabled(true);
+        switch (kind) {
+            case "ready" -> {
+                primary.setText((french ? "Copier le prompt IA · construire " : "Copy AI prompt · build ") + state.component());
+                primary.setToolTipText(french ? "archvow prompt --feature " + feature + " : la tâche de " + state.component()
+                    + ", le prochain composant prêt ; puis Vérifier, puis le suivant"
+                    : "archvow prompt --feature " + feature + ": the task of " + state.component()
+                    + ", the next ready component; then Check, then the next one");
+                primaryRun = () -> actions.copyPrompt(feature, false);
+                specify.setVisible(open > 0);
+                prompt.setVisible(false);
+                add.setVisible(true);
+            }
+            case "specify-first" -> {
+                primary.setText(french ? "Spécifier" : "Specify");
+                primary.setToolTipText(specify.getToolTipText());
+                primaryRun = () -> actions.specify(feature);
+                specify.setVisible(false);
+                prompt.setVisible(true);
+                prompt.setEnabled(false);
+                prompt.setToolTipText(french ? "Rien à construire encore : " + decisions + " à prendre (mode strict)"
+                    : "Nothing to build yet: " + decisions + " to make (strict mode)");
+                add.setVisible(true);
+                stateNote.setText(french ? "Rien à construire encore : " + decisions + " à prendre. En mode strict, l'IA s'arrêterait pour les poser et n'écrirait pas de code."
+                    : "Nothing to build yet: " + decisions + " to make. In strict mode the AI would stop and ask them, and write no code.");
+                stateNote.setForeground(new Color(0xE5, 0xA5, 0x4B));
+                stateNote.setVisible(true);
+            }
+            case "propose-first" -> {
+                primary.setText((french ? "Copier le prompt IA · " : "Copy AI prompt · ") + state.component());
+                primary.setToolTipText(french ? "L'IA propose d'abord les " + decisions + " ouvertes, puis construit ; tu revois ses propositions (IA ▾)"
+                    : "The AI proposes the " + decisions + " still open first, then builds; you review its proposals (AI ▾)");
+                primaryRun = () -> actions.copyPrompt(feature, false);
+                specify.setVisible(true);
+                prompt.setVisible(false);
+                add.setVisible(true);
+            }
+            default -> {  // built (or no state): Add component leads, as before 1.1.0
+                primary.setText(french ? "Ajouter un composant" : "Add component");
+                primary.setToolTipText(null);
+                primaryRun = () -> actions.openCommand("component add", Map.of("feature", feature));
+                specify.setVisible(false);
+                prompt.setVisible(true);
+                add.setVisible(false);
+            }
+        }
+    }
+
+    /** The main button's text and whether a control is shown, for the tests. */
+    String primaryText() { return primary.getText(); }
+    boolean specifyShown() { return specify.isVisible(); }
+    boolean promptEnabled() { return prompt.isVisible() && prompt.isEnabled(); }
+    String stateLine() { return stateNote.isVisible() ? stateNote.getText() : ""; }
 
     /** Contract 2.3: a feature an AI agent added waits for a person to accept it (ARCH043 until then). */
     static boolean addedByAi(JsonObject view) {

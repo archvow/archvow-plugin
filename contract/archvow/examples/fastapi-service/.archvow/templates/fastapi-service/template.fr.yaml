@@ -1,0 +1,156 @@
+# French texts of fastapi-service (projects initialised with -a language=fr, the default).
+# Merged over template.yaml: mappings key by key, layers and initial components by name / id,
+# lists replaced. Keywords (guide words, statuses, codes) stay as they are.
+
+layers:
+  - name: p0_common
+    description: Fondations partagées - réglages, session de base de données, dépendances que demandent les routes
+    must_never: ["contenir de règles métier"]
+  - name: p1_domain
+    description: Règles métier - modèles Pydantic et fonctions pures, ni HTTP ni base de données
+    must_never:
+      - "lire ou écrire quoi que ce soit (ni base de données, ni fichiers, ni réseau)"
+      - "connaître HTTP (FastAPI, codes de statut, requêtes)"
+  - name: p2_io
+    description: Repositories et clients - le seul endroit qui parle à la base de données et aux autres services
+    must_never: ["contenir de règle métier au-delà de la conversion des données", "connaître les routes HTTP"]
+  - name: p3_services
+    description: Services - une opération métier chacun, qui appelle repositories et clients et gère la transaction
+    must_never: ["connaître HTTP (requêtes, codes de statut, HTTPException)"]
+  - name: p4_api
+    description: HTTP - routeurs et app, qui valident l'entrée, vérifient qui peut appeler, appellent un service, mettent en forme la réponse
+    must_never: ["appeler la base de données ou un autre service directement (passer par un service)", "contenir de règles métier"]
+
+# Suggested answers to the safety questions (archvow show): `hazard add <component> S<number>
+# <severity>` without text takes the hazard, and for critical or high its invariant too.
+safety_suggestions:
+  missing:
+    hazard: "une requête échoue mal quand une dépendance est en panne ou que la ressource n'existe pas"
+    invariant: "une dépendance ou une ressource absente donne une erreur métier claire, jamais un plantage ni une mauvaise réponse"
+  more:
+    hazard: "un résultat sans limite ou un afflux de requêtes surcharge le service"
+    invariant: "chaque liste a une taille maximale"
+  wrong:
+    hazard: "une entrée invalide est acceptée et enregistrée"
+    invariant: "une entrée invalide est refusée avant tout enregistrement"
+  partial:
+    hazard: "un changement est à moitié appliqué"
+    invariant: "un changement est enregistré entièrement ou pas du tout"
+  repeated:
+    hazard: "une requête réessayée est appliquée deux fois"
+    invariant: "la même requête envoyée deux fois a l'effet d'une seule"
+  stale:
+    hazard: "des données anciennes sont présentées comme actuelles"
+    invariant: "une lecture voit toujours la dernière écriture validée"
+  exposed:
+    hazard: "un utilisateur voit ou modifie des données qui ne sont pas les siennes, ou un secret fuit"
+    invariant: "un utilisateur ne lit et ne modifie que ses propres données, et les secrets n'apparaissent jamais dans une réponse ou un journal"
+  concurrent:
+    hazard: "deux changements simultanés s'écrasent"
+    invariant: "des changements simultanés du même enregistrement ne perdent jamais une mise à jour"
+
+guide_words:
+  missing: "Une dépendance en panne ou lente, ou la ressource n'existe pas : qu'est-ce qui ne doit jamais arriver ?"
+  more: "Trop (résultats sans limite, enregistrements en double, afflux de requêtes) : qu'est-ce qui ne doit jamais arriver ?"
+  wrong: "Entrée fausse (valeurs invalides, hors limites, changement d'état interdit) : qu'est-ce qui ne doit jamais arriver ?"
+  partial: "Un changement à moitié appliqué (enregistré ici, pas là ; échec au milieu d'une transaction) : qu'est-ce qui ne doit jamais arriver ?"
+  repeated: "Envoyé deux fois (un client réessaie ou envoie deux fois) : qu'est-ce qui ne doit jamais arriver ?"
+  stale: "Données anciennes présentées comme actuelles (cache, réplique, lecture qui ne voit pas la dernière écriture) : qu'est-ce qui ne doit jamais arriver ?"
+  exposed: "Données exposées (un utilisateur voit ou modifie des données qui ne sont pas les siennes ; secrets ou données personnelles dans une réponse ou un journal) : qu'est-ce qui ne doit jamais arriver ?"
+  concurrent: "Deux requêtes modifient les mêmes données en même temps (mise à jour perdue, stock négatif) : qu'est-ce qui ne doit jamais arriver ?"
+
+test_kinds:
+  unit: >-
+    Purs et rapides : de simples objets Python, ni base de données, ni réseau, ni app. Lancés à chaque commit.
+  integration: >-
+    Via le TestClient de FastAPI ou une vraie base dans un fichier temporaire (SQLite), marqués
+    @pytest.mark.integration. Jamais une base partagée ni un vrai service externe : les clients se
+    testent avec un faux transport (httpx.MockTransport).
+
+component_types:
+  foundation:
+    description: Module de fondation fourni par le template.
+  utility:
+    description: Un petit utilitaire que toutes les couches peuvent utiliser (pas de règle métier, pas d'E/S au-delà de ce qu'il dit).
+    edge_cases:
+      - {id: contract, question: "Que prend-il et que renvoie-t-il exactement - par ex. format_amount(Decimal(\"9.9\")) -> \"9.90\" ?"}
+      - {id: invalid_input, question: "Entrée invalide : quelle erreur, ou quel résultat - par ex. ValueError(\"pas un montant : ...\") ?"}
+  dependency:
+    description: Ce que les routes reçoivent par Depends (la session de base de données, l'utilisateur courant...).
+    edge_cases:
+      - {id: provides, question: "Que fournit-elle, et pour combien de temps (une requête, toute l'app) - par ex. une session de base par requête ?"}
+      - {id: cannot, question: "Que se passe-t-il quand elle ne peut pas (pas de jeton, base en panne) : quelle erreur, quel statut HTTP en fin de compte - par ex. pas de jeton -> 401, base en panne -> 503 ?"}
+  model:
+    description: Un modèle Pydantic - la forme et la validation d'un type de données.
+    edge_cases:
+      - {id: fields, question: "Quels champs sont obligatoires, et lesquels sont facultatifs (avec quelle valeur par défaut) - par ex. id_client: int obligatoire, note: str | None = None ?"}
+      - {id: valid_values, question: "Quelles valeurs sont valides pour chaque champ (bornes, formats, longueurs, états autorisés) - par ex. montant > 0, devise sur 3 lettres, statut NOUVEAU ou PAYE ?"}
+      - {id: never_shown, question: "Quels champs ne doivent jamais apparaître dans une réponse ou un journal (mots de passe, identifiants internes, données personnelles) - par ex. hash_mot_de_passe, iban - ou aucun ?"}
+  error:
+    description: Une erreur métier - levée par les services et le domaine, traduite en statut HTTP par l'app.
+    edge_cases:
+      - {id: code, question: "En quel statut HTTP l'app la traduit-elle (404, 409, 422...) - par ex. CommandeIntrouvable -> 404 ?"}
+      - {id: message, question: "Que dit son message - et que ne dit-il jamais (identifiants internes, données personnelles, existence de la ressource) - par ex. \"Commande introuvable\", sans l'id ?", suggested: "Un message court et fixe, sans identifiant ni donnée personnelle"}
+  logic:
+    description: Une règle métier pure - une fonction de ses entrées, sans E/S.
+    edge_cases:
+      - {id: computes, question: "Que calcule ou décide-t-elle exactement (la formule, la règle) - par ex. total = somme(prix * quantité) - remise ?"}
+      - {id: invalid_range, question: "Entrée invalide ou hors limites : quelle erreur métier, ou quel résultat - par ex. quantité <= 0 -> QuantiteInvalide ?"}
+      - {id: rounding, question: "Arrondi et précision (argent : Decimal, combien de décimales, quel arrondi) - par ex. Decimal, 2 décimales, ROUND_HALF_EVEN ?", choices: ["Decimal, 2 décimales, ROUND_HALF_EVEN", "Pas d'arrondi : ni argent ni décimales ici"]}
+  repository:
+    description: Enregistre et retrouve un type de données (la base de données, ou la mémoire pour commencer).
+    edge_cases:
+      - {id: not_found, question: "Introuvable (par ex. get(42) alors que 42 n'existe pas) : renvoyer None, ou lever quelle erreur métier ?", suggested: "Renvoyer None ; le service lève l'erreur métier"}
+      - {id: commit, question: "Qui enregistre les changements pour de bon (le commit) - par ex. le service, une fois par cas d'usage : le service qui l'appelle, ou le repository lui-même ?", suggested: "Le service qui l'appelle, une fois par cas d'usage"}
+      - {id: same_record, question: "Deux utilisateurs modifient le même enregistrement au même moment (par ex. deux agents modifient la commande 42) : le dernier gagne, le second est refusé (contrôle de version), ou le second attend (verrou) ?", suggested: "Le second est refusé (contrôle de version, 409)"}
+      - {id: many_rows, question: "Quelles requêtes peuvent renvoyer beaucoup de lignes, et quel est leur maximum - par ex. list_commandes, 100 au plus ?"}
+  client:
+    description: Appelle un autre service (API HTTP, file de messages...).
+    edge_cases:
+      - {id: timeout, question: "Combien de temps attend-il une réponse avant d'abandonner (en secondes) - par ex. 5 ?", suggested: "5 secondes"}
+      - {id: retries, question: "Si un appel échoue, est-il relancé, combien de fois, sur quelles erreurs, et le même appel peut-il partir deux fois sans être exécuté deux fois (par ex. payer deux fois) - par ex. 3 relances sur délai dépassé et 503, chacune avec la même clé de requête ?"}
+      - {id: down, question: "L'autre service est en panne ou répond une erreur : échouer avec quelle erreur métier, ou quel mode dégradé - par ex. PaiementIndisponible, répondue en 503 ?"}
+  service:
+    description: Une opération métier - appelle repositories et clients, applique les règles, gère la transaction.
+    edge_cases:
+      - {id: steps, question: "Que fait-il, étape par étape (lire, vérifier, modifier, enregistrer, appeler) - par ex. lire la commande, vérifier qu'elle est NOUVELLE, la marquer PAYEE, enregistrer, appeler le paiement ?"}
+      - {id: not_found, question: "Une chose dont il a besoin n'existe pas : quelle erreur métier - par ex. CommandeIntrouvable ?"}
+      - {id: twice, question: "Appelé deux fois avec la même entrée (un client qui réessaie) - par ex. \"payer la commande 42\" envoyé deux fois : même résultat et aucun effet en double (idempotent), ou une erreur de doublon ?", suggested: "Le même résultat, aucun effet en double (idempotent)"}
+      - {id: who_may, question: "Qui peut l'effectuer, et est-ce vérifié ici ou dans le routeur - par ex. seul le propriétaire de la commande, vérifié ici ?", choices: ["Vérifié ici, dans le service", "Vérifié dans le routeur"]}
+      - {id: all_or_nothing, question: "Qu'est-ce qui doit être tout ou rien (une transaction), et que se passe-t-il si l'appel à un autre service échoue au milieu - par ex. la commande et ses lignes ensemble ; le paiement échoue -> rien n'est enregistré ?"}
+  router:
+    description: Les routes HTTP d'une ressource - entrée, permissions, codes de statut, réponse.
+    edge_cases:
+      - {id: who_may_call, question: "Qui peut appeler chaque route : tout le monde, un utilisateur authentifié, le propriétaire de la ressource, quel rôle - par ex. GET tout utilisateur authentifié, DELETE le rôle admin ?"}
+      - {id: status_codes, question: "Codes de statut : succès, introuvable, conflit, interdit - et le format du corps des erreurs - par ex. 201, 404, 409, 403 avec {\"detail\": \"...\"} ?"}
+      - {id: invalid_input, question: "Entrée invalide (par ex. du texte à la place d'un nombre) : le 422 de FastAPI, ou 400 avec votre propre format d'erreur ?", suggested: "Le 422 de FastAPI"}
+      - {id: pagination, question: "Listes : pagination, taille de page par défaut et maximale - par ex. ?page=1&size=50, 200 au plus - ou pas de route de liste ?", choices: ["Pas de route de liste", "?page et size, 50 par défaut, au plus 200"]}
+      - {id: twice, question: "Un client envoie deux fois le même POST ou PUT (il réessaie) - par ex. le réseau coupe après \"créer la commande\" : le faire deux fois, ou reconnaître la répétition grâce à une clé envoyée par le client (clé d'idempotence) ?", choices: ["Le faire deux fois (pas de clé)", "Reconnaître la répétition avec un en-tête Idempotency-Key"]}
+    test_hints:
+      - "Tester via le TestClient de FastAPI avec l'app du composant app, un test par route et par code de statut ; pour qui peut appeler, un test Hypothesis qui génère deux utilisateurs et vérifie que l'un ne voit jamais les données de l'autre."
+      - "Contrat avec des fichiers de référence : les exemples métier de la spec (archvow example add : tests/examples/<composant>/<exemple>/input/request.json et expected/response.json, verrouillés, avec un scenario.feature facultatif en Given/When/Then), et un test qui envoie chaque requête via le TestClient et compare la réponse à celle attendue (identifiants et dates générés remplacés d'abord). Jamais modifiés : sans exemple, une personne en enregistre un d'abord."
+  app:
+    description: L'app FastAPI - routeurs, préfixe, lifespan, traduction des erreurs. Lancée avec uvicorn --factory.
+    edge_cases:
+      - {id: routers, question: "Quels routeurs, sous quel préfixe (par ex. /v1) ?"}
+      - {id: domain_errors, question: "Quelle erreur métier devient quel statut HTTP - par ex. CommandeIntrouvable -> 404, CommandeEnConflit -> 409 ?"}
+      - {id: lifespan, question: "Que se passe-t-il au démarrage et à l'arrêt (lifespan : connexions, préchauffage), et si le démarrage échoue - par ex. ouvrir le pool de la base ; en cas d'échec, l'app ne démarre pas ?", suggested: "Si le démarrage échoue, l'app s'arrête : elle ne sert jamais à moitié démarrée"}
+      - {id: cors, question: "CORS : quelles origines peuvent l'appeler depuis un navigateur - par ex. https://app.example.com - ou aucune ?", suggested: "Aucune"}
+    requirements:
+      - "Seul ce composant crée FastAPI() (FAPI003) ; le démarrage et l'arrêt vont dans son lifespan, jamais dans on_event (FAPI004)."
+      - "Traduire ici les erreurs métier en statuts HTTP, avec app.add_exception_handler : les services et le domaine ne lèvent jamais HTTPException (FAPI002)."
+      - "Appeler setup_logging une fois, dans le lifespan ; journaliser une ligne par requête (méthode, route, statut, durée et un identifiant de requête), jamais un en-tête, un jeton ni un corps avec des données personnelles."
+
+initial_components:
+  - id: settings
+    description: Les réglages du service, lus dans l'environnement (pydantic-settings), jamais dans le code.
+    edge_cases:
+      - {id: settings, question: "Réglages, nom: type = défaut séparés par des virgules (sans défaut = obligatoire) - par ex. database_url: str, page_size: int = 50 - ou aucun ?"}
+      - {id: secrets, question: "Quels réglages sont des secrets (jamais journalisés, jamais dans une réponse), et d'où viennent-ils - par ex. database_url, d'une variable d'environnement ?"}
+  - id: logging_setup
+    description: Configure la journalisation une fois, au démarrage de l'app - le seul endroit qui la configure (ARCH059 - aucun basicConfig, handler ni niveau du journal racine ailleurs) ; chaque module prend son propre journal avec logging.getLogger(__name__). Niveau tiré des réglages, une ligne par événement avec l'identifiant de la requête, jamais un secret, un jeton ni une donnée personnelle ; les tests remettent la journalisation comme avant après chaque test (une fixture commune de tests/conftest.py - les journaux suivants ne doivent pas écrire dans le flux fermé d'un test).
+    edge_cases:
+      - {id: destination, question: "Où vont les journaux et dans quel format - par ex. stderr, une ligne par événement avec l'heure, le niveau, l'identifiant de requête et le message ?", suggested: "stderr, une ligne par événement : heure, niveau, identifiant de requête, message"}
+
+rule_families:
+  FAPI: {title: "FastAPI : async, erreurs HTTP, app et routes"}

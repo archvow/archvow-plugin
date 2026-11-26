@@ -1,5 +1,5 @@
 {
-  "contract": "2.4",
+  "contract": "3.0",
   "digest": "<digest>",
   "project": {
     "schema_version": 2,
@@ -10,7 +10,7 @@
     "containers": [
       {
         "id": "my_pipeline",
-        "template": "archvow/pyspark-pipeline@2.6.1",
+        "template": "pyspark-pipeline",
         "package": "my_pipeline",
         "path": "src/my_pipeline",
         "components": [
@@ -33,12 +33,14 @@
               {
                 "question": "The job's parameters, name: type = default separated by commas (no default = required) - e.g. input_path: str, run_date: date, output_format: str = \"parquet\" - or none?",
                 "answer": "input_path: str, output_path: str",
+                "id": "parameters",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:55.438752+00:00"
               },
               {
                 "question": "What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?",
                 "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
+                "id": "invalid_value",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:55.678901+00:00"
               }
@@ -65,6 +67,7 @@
               {
                 "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?",
                 "answer": "stderr, one line per event: time, level, component, message",
+                "id": "destination",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:55.222737+00:00"
               }
@@ -91,6 +94,7 @@
               {
                 "question": "Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?",
                 "answer": "spark.sql.session.timeZone=UTC, nothing else",
+                "id": "spark_settings",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:54.996388+00:00"
               }
@@ -118,54 +122,63 @@
               {
                 "question": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
                 "answer": "Rows where order_id is not null and amount >= 0",
+                "id": "rows_kept",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:57.511014+00:00"
               },
               {
                 "question": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
                 "answer": "The schema columns, unchanged",
+                "id": "output_columns",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:57.730649+00:00"
               },
               {
                 "question": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
                 "answer": "No grouping",
+                "id": "grouping",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:57.982258+00:00"
               },
               {
                 "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
                 "answer": "No join",
+                "id": "join",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:58.218911+00:00"
               },
               {
                 "question": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
                 "answer": "Return an empty DataFrame with the output schema",
+                "id": "empty_input",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:58.450589+00:00"
               },
               {
                 "question": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
                 "answer": "Drop rows with a null order_id",
+                "id": "null_keys",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:58.685578+00:00"
               },
               {
                 "question": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
                 "answer": "Keep one row per order_id",
+                "id": "duplicate_keys",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:58.910478+00:00"
               },
               {
                 "question": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
                 "answer": "Drop rows where amount is negative",
+                "id": "out_of_range",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:59.145793+00:00"
               },
               {
                 "question": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
                 "answer": "Drop them: output only the schema columns",
+                "id": "extra_columns",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:59.389243+00:00"
               }
@@ -220,54 +233,63 @@
               {
                 "question": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
                 "answer": "All rows",
+                "id": "rows_kept",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:59.639864+00:00"
               },
               {
                 "question": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
                 "answer": "The input columns plus vat decimal(18,2) = amount * 0.2, not null",
+                "id": "output_columns",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:59.880187+00:00"
               },
               {
                 "question": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
                 "answer": "No grouping",
+                "id": "grouping",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:00.099733+00:00"
               },
               {
                 "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
                 "answer": "No join",
+                "id": "join",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:00.326719+00:00"
               },
               {
                 "question": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
                 "answer": "Return an empty DataFrame with the output schema",
+                "id": "empty_input",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:00.523733+00:00"
               },
               {
                 "question": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
                 "answer": "Not possible here: clean_orders runs first",
+                "id": "null_keys",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:00.760615+00:00"
               },
               {
                 "question": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
                 "answer": "Not possible here: clean_orders runs first",
+                "id": "duplicate_keys",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:00.776642+00:00"
               },
               {
                 "question": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
                 "answer": "Not possible here: clean_orders runs first",
+                "id": "out_of_range",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:00.792858+00:00"
               },
               {
                 "question": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
                 "answer": "Keep them unchanged",
+                "id": "extra_columns",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:01.036934+00:00"
               }
@@ -309,39 +331,48 @@
             "decisions": [
               {
                 "question": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
-                "answer": null
+                "answer": null,
+                "id": "rows_kept"
               },
               {
                 "question": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
-                "answer": null
+                "answer": null,
+                "id": "output_columns"
               },
               {
                 "question": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
-                "answer": null
+                "answer": null,
+                "id": "grouping"
               },
               {
                 "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
-                "answer": null
+                "answer": null,
+                "id": "join"
               },
               {
                 "question": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
-                "answer": null
+                "answer": null,
+                "id": "empty_input"
               },
               {
                 "question": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
-                "answer": null
+                "answer": null,
+                "id": "null_keys"
               },
               {
                 "question": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
-                "answer": null
+                "answer": null,
+                "id": "duplicate_keys"
               },
               {
                 "question": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
-                "answer": null
+                "answer": null,
+                "id": "out_of_range"
               },
               {
                 "question": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
-                "answer": null
+                "answer": null,
+                "id": "extra_columns"
               }
             ],
             "assumptions": []
@@ -367,12 +398,14 @@
               {
                 "question": "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?",
                 "answer": "order_id and amount are never null; customer_id may be null",
+                "id": "nullable",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:55.893812+00:00"
               },
               {
                 "question": "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?",
                 "answer": "None: the input holds no personal data",
+                "id": "personal_columns",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:56.089632+00:00"
               }
@@ -406,12 +439,14 @@
               {
                 "question": "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?",
                 "answer": "order_id, amount and vat are never null; customer_id may be null",
+                "id": "nullable",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:07.022040+00:00"
               },
               {
                 "question": "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?",
                 "answer": "None: the output holds no personal data",
+                "id": "personal_columns",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:07.221374+00:00"
               }
@@ -449,24 +484,28 @@
               {
                 "question": "The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?",
                 "answer": "Fail with a clear error: a missing input is an operations problem",
+                "id": "missing_path",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:56.526320+00:00"
               },
               {
                 "question": "Rows that do not match the schema (wrong type, missing column) - e.g. amount = \"abc\": stop the job, drop them, or set them aside in a reject file (where)?",
                 "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream",
+                "id": "bad_rows",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:56.749135+00:00"
               },
               {
                 "question": "On each run, what does it read: everything at the path, or only one date (e.g. the folder date=2026-10-12)? If that date's data is not there yet: fail, wait, or read the previous date?",
                 "answer": "Everything under the given path, no partitions",
+                "id": "each_run",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:57.015876+00:00"
               },
               {
                 "question": "Does an approved shared library already read these files (e.g. acme_io.read_csv, listed in requirements.txt)? Then the code calls it - which function - instead of reading them with Spark.",
                 "answer": "No: Spark reads it itself",
+                "id": "shared_library",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:06:57.244572+00:00"
               }
@@ -497,30 +536,35 @@
               {
                 "question": "Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?",
                 "answer": "Overwrite",
+                "id": "existing_output",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:01.748316+00:00"
               },
               {
                 "question": "If the job fails while writing (e.g. it stops after 3 of 10 files), how do readers avoid a half-written output: write to a temporary folder then rename, a _SUCCESS file, or a table transaction?",
                 "answer": "Write to a temporary folder next to the output, then rename it",
+                "id": "half_written",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:01.977915+00:00"
               },
               {
                 "question": "If the job runs again on the same input (e.g. a re-run after a failure), must the output be exactly the same, with no duplicated rows?",
                 "answer": "Yes: the same input gives the same output",
+                "id": "rerun",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:02.203667+00:00"
               },
               {
                 "question": "How is the output stored: which file format (parquet, csv...), and is it split into folders by a column (e.g. date=2026-10-12) or not?",
                 "answer": "Parquet, not partitioned",
+                "id": "format",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:02.431744+00:00"
               },
               {
                 "question": "Does an approved shared library already write these files (e.g. acme_io.write_parquet, listed in requirements.txt)? Then the code calls it - which function - instead of writing them with Spark.",
                 "answer": "No: Spark writes them itself",
+                "id": "shared_library",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:02.657617+00:00"
               }
@@ -553,18 +597,21 @@
               {
                 "question": "If one of its inputs is missing (e.g. the refunds file was not delivered): stop with an error, skip this run (nothing written), or continue without it?",
                 "answer": "Fail",
+                "id": "missing_input",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:02.918672+00:00"
               },
               {
                 "question": "If a run fails, is it retried automatically, how many times, and can a retry run after a half-finished run without duplicating data - e.g. 2 retries 10 minutes apart, the output is overwritten?",
                 "answer": "No automatic retry; a re-run is safe (the writer overwrites)",
+                "id": "retries",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:03.145824+00:00"
               },
               {
                 "question": "Which date does one run process (e.g. yesterday's data), and where does that date come from: an argument from the scheduler, or computed by the job?",
                 "answer": "No run date: the job processes the input it is given",
+                "id": "run_date",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:03.379962+00:00"
               }
@@ -594,12 +641,14 @@
               {
                 "question": "Invalid arguments (e.g. --run-date 2026-13-01): which exit code and message?",
                 "answer": "Exit code 2 with a usage message",
+                "id": "invalid_arguments",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:03.587374+00:00"
               },
               {
                 "question": "Which exit code for which problem, so the scheduler knows what happened (e.g. 0 ok, 1 error, 2 bad arguments, 3 input not ready)?",
                 "answer": "0 success, 1 job failure, 2 invalid arguments",
+                "id": "code",
                 "by": "architect@example.com",
                 "on": "2026-11-11T19:07:03.845914+00:00"
               }
@@ -614,6 +663,7 @@
     "ai_tools": [
       "claude-code"
     ],
+    "ai_runs": [],
     "dependencies": [],
     "compliance": [
       "gdpr",
@@ -665,6 +715,18 @@
         "on": "2026-11-11T19:07:01.516139+00:00"
       }
     ],
+    "templates": {
+      "pyspark-pipeline": {
+        "version": "3.4.1",
+        "source": "archvow",
+        "digest": "8e433af5b377"
+      },
+      "python-base": {
+        "version": "3.4.1",
+        "source": "archvow",
+        "digest": "d55071fac333"
+      }
+    },
     "features": [
       {
         "name": "shared",
@@ -3695,7 +3757,8 @@
             "missing": [],
             "readOnly": true
           },
-          "file": null
+          "file": null,
+          "title": "Safety question of a component not answered (no hazard, no dismissal)"
         }
       },
       {
@@ -3722,7 +3785,8 @@
             "missing": [],
             "readOnly": true
           },
-          "file": null
+          "file": null,
+          "title": "Safety question of a component not answered (no hazard, no dismissal)"
         }
       },
       {
@@ -3749,7 +3813,8 @@
             "missing": [],
             "readOnly": true
           },
-          "file": null
+          "file": null,
+          "title": "Safety question of a component not answered (no hazard, no dismissal)"
         }
       },
       {
@@ -3776,7 +3841,8 @@
             "missing": [],
             "readOnly": true
           },
-          "file": null
+          "file": null,
+          "title": "Safety question of a component not answered (no hazard, no dismissal)"
         }
       },
       {
@@ -3803,7 +3869,8 @@
             "missing": [],
             "readOnly": true
           },
-          "file": null
+          "file": null,
+          "title": "Safety question of a component not answered (no hazard, no dismissal)"
         }
       }
     ],
@@ -4211,15 +4278,597 @@
   "catalog": {
     "templates": [
       {
-        "name": "archvow/fastapi-service",
-        "pack": "archvow",
-        "version": "2.6.1",
+        "name": "pyspark-pipeline",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "pyspark-pipeline"
+        ],
+        "language": "python",
+        "kind": "data-pipeline",
+        "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
+        "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
+            "default": "en",
+            "choices": [
+              "en",
+              "fr"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.11",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
+              "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
+              "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
+              "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
+              "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,SPARK,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "SPARK",
+              "DORA",
+              "GDPR",
+              "GLBA",
+              "US-PRIVACY",
+              "TST",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides pyspark, pytest and hypothesis, comma-separated, as imported (e.g. yaml, requests)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (and Java 17 for Spark) (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "spark_version",
+            "prompt": "PySpark version",
+            "default": "3.5",
+            "choices": [
+              "3.4",
+              "3.5",
+              "4.0"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "scheduler",
+            "ask": true,
+            "prompt": "Scheduler that runs the pipeline (none = run entrypoint.sh yourself or from your own scheduler)",
+            "default": "none",
+            "choices": [
+              "none",
+              "airflow",
+              "oozie"
+            ],
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - SparkSession factory, configuration, constants",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Schemas and pure, lazy DataFrame -> DataFrame transformations",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Readers and writers - the only place that touches storage",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_jobs",
+            "description": "Jobs wiring readers, transformations and writers together",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_entrypoints",
+            "description": "Process entry points (CLI, scheduler, Databricks/EMR job)",
+            "may_import": [
+              "p0_common",
+              "p3_jobs"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "Shared helper or constants module (no Spark actions, no I/O).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}",
+                "signature": "() -> None"
+              }
+            ],
+            "implicit_dependency": true,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "schema": {
+            "layer": "p1_domain",
+            "description": "Explicit StructType contract for a dataset.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders",
+            "module": "{name}_schema",
+            "symbols": [
+              {
+                "kind": "constant",
+                "name": "{NAME}_SCHEMA",
+                "annotation": "T.StructType"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "transformation": {
+            "layer": "p1_domain",
+            "description": "Pure, lazy DataFrame -> DataFrame function.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. clean_orders",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}",
+                "signature": "(df: DataFrame) -> DataFrame"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "reader": {
+            "layer": "p2_io",
+            "description": "Reads one dataset and enforces its schema.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders",
+            "module": "{name}_reader",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "read_{name}",
+                "signature": "(spark: SparkSession, path: str) -> DataFrame"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": [
+              {
+                "name": "files",
+                "description": "Reads one dataset and enforces its schema.",
+                "default": true
+              },
+              {
+                "name": "table",
+                "description": "Reads one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi) and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "jdbc",
+                "description": "Reads a table or a query of a database over JDBC (spark.read.jdbc) and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "connector",
+                "description": "Reads with a Spark connector (spark.read.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka read in batch... - and enforces its schema.",
+                "default": false
+              },
+              {
+                "name": "custom",
+                "description": "Reads a source Spark has no reader for (a REST API, SFTP, a SaaS export, an in-house file format) with its own Python code - a Python data source (Spark 4.0) or calls on the executors - and enforces its schema.",
+                "default": false
+              }
+            ]
+          },
+          "writer": {
+            "layer": "p2_io",
+            "description": "Writes one dataset.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "dataset name, e.g. orders_clean",
+            "module": "{name}_writer",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "write_{name}",
+                "signature": "(df: DataFrame, path: str) -> None"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": [
+              {
+                "name": "files",
+                "description": "Writes one dataset.",
+                "default": true
+              },
+              {
+                "name": "table",
+                "description": "Writes one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi).",
+                "default": false
+              },
+              {
+                "name": "jdbc",
+                "description": "Writes a table of a database over JDBC (df.write.jdbc).",
+                "default": false
+              },
+              {
+                "name": "connector",
+                "description": "Writes with a Spark connector (df.write.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka...",
+                "default": false
+              },
+              {
+                "name": "custom",
+                "description": "Writes to a target Spark has no writer for (a REST API, SFTP, a SaaS import, an in-house format) with its own Python code - foreachPartition, or a Python data source writer (Spark 4.0).",
+                "default": false
+              }
+            ]
+          },
+          "job": {
+            "layer": "p3_jobs",
+            "description": "Orchestrates read -> transform -> write for one output.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "output name, e.g. daily_sales",
+            "module": "{name}_job",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "run_{name}",
+                "signature": "(spark: SparkSession, config: JobConfig) -> None"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "entrypoint": {
+            "layer": "p4_entrypoints",
+            "description": "Process entry point that parses arguments and runs one job.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "",
+            "module": "{name}_main",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "main",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "archvow",
+        "abstract": false
+      },
+      {
+        "name": "fastapi-service",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "fastapi-service"
+        ],
         "language": "python",
         "kind": "web-service",
         "style": "layered (common -> domain -> io -> services -> api)",
         "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -4401,6 +5050,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -4586,23 +5253,6 @@
             "signature_overridable": true,
             "kinds": []
           },
-          "dependency": {
-            "layer": "p0_common",
-            "description": "Something routes receive through Depends (the database session, the current user...).",
-            "addable": true,
-            "name_pattern": "^get_[a-z0-9_]+$",
-            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
-            "module": "{name}",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "{name}"
-              }
-            ],
-            "implicit_dependency": true,
-            "signature_overridable": true,
-            "kinds": []
-          },
           "model": {
             "layer": "p1_domain",
             "description": "A Pydantic model - the shape and the validation of one kind of data.",
@@ -4651,6 +5301,23 @@
               }
             ],
             "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "dependency": {
+            "layer": "p0_common",
+            "description": "Something routes receive through Depends (the database session, the current user...).",
+            "addable": true,
+            "name_pattern": "^get_[a-z0-9_]+$",
+            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": true,
             "signature_overridable": true,
             "kinds": []
           },
@@ -4742,18 +5409,23 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/fastapi-service"
+        "source": "<archvow>/templates/fastapi-service",
+        "abstract": false
       },
       {
-        "name": "archvow/langgraph-agent",
-        "pack": "archvow",
-        "version": "2.6.1",
+        "name": "langgraph-agent",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "langgraph-agent"
+        ],
         "language": "python",
         "kind": "ai-application",
         "style": "layered (common -> domain -> tools -> agents -> app)",
         "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -4935,6 +5607,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -5386,573 +6076,23 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/langgraph-agent"
+        "source": "<archvow>/templates/langgraph-agent",
+        "abstract": false
       },
       {
-        "name": "archvow/pyspark-pipeline",
-        "pack": "archvow",
-        "version": "2.6.1",
-        "language": "python",
-        "kind": "data-pipeline",
-        "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
-        "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
-        "extends": [
-          "archvow/python-base"
+        "name": "python-app",
+        "version": "3.4.1",
+        "default": true,
+        "chain": [
+          "python-base",
+          "python-app"
         ],
-        "questions": [
-          {
-            "id": "language",
-            "ask": true,
-            "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
-            "default": "en",
-            "choices": [
-              "en",
-              "fr"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "python_version",
-            "prompt": "Minimum Python version",
-            "default": "3.11",
-            "choices": [
-              "3.11",
-              "3.12",
-              "3.13"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "line_length",
-            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
-            "default": "88",
-            "choices": [
-              "79",
-              "88",
-              "99"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "platform",
-            "ask": true,
-            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
-            "default": "gitlab",
-            "choices": [
-              "gitlab",
-              "github",
-              "none"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ci",
-            "ask": true,
-            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
-            "default": "auto",
-            "choices": [
-              "auto",
-              "gitlab",
-              "github",
-              "jenkins",
-              "none"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "architects",
-            "ask": true,
-            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
-            "required": true,
-            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
-            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
-            "multiple": false
-          },
-          {
-            "id": "ai_tools",
-            "ask": true,
-            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
-            "default": "copilot",
-            "multiple": true,
-            "choices_from": "agents",
-            "suggestions": [
-              "aider",
-              "amazonq",
-              "antigravity",
-              "claude-code",
-              "cline",
-              "codex",
-              "continue",
-              "copilot",
-              "cursor",
-              "gemini-cli",
-              "jetbrains-ai-chat",
-              "junie",
-              "kiro",
-              "opencode",
-              "roo",
-              "windsurf",
-              "none"
-            ],
-            "required": false
-          },
-          {
-            "id": "reviewers",
-            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
-            "default": "",
-            "multiple": true,
-            "choices_from": "agents",
-            "suggestions": [
-              "aider",
-              "amazonq",
-              "antigravity",
-              "claude-code",
-              "cline",
-              "codex",
-              "continue",
-              "copilot",
-              "cursor",
-              "gemini-cli",
-              "jetbrains-ai-chat",
-              "junie",
-              "kiro",
-              "opencode",
-              "roo",
-              "windsurf",
-              "none"
-            ],
-            "required": false
-          },
-          {
-            "id": "sonar",
-            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
-            "default": "no",
-            "choices": [
-              "no",
-              "yes"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "auto_approve",
-            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
-            "default": "yes",
-            "choices": [
-              "yes",
-              "no"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "mode",
-            "ask": true,
-            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
-            "default": "strict",
-            "choices": [
-              "strict",
-              "guided",
-              "free"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "sandbox",
-            "ask": true,
-            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
-            "default": "no",
-            "default_from": {
-              "mode": {
-                "strict": "yes"
-              }
-            },
-            "choices": [
-              "yes",
-              "no"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "rules",
-            "ask": true,
-            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
-            "multiple": true,
-            "choices_from": "rule_families",
-            "default": "ARCH,STYLE,SPARK,GDPR,TST",
-            "choices": [
-              "ARCH",
-              "STYLE",
-              "SPARK",
-              "DORA",
-              "GDPR",
-              "GLBA",
-              "US-PRIVACY",
-              "TST",
-              "all",
-              "none"
-            ],
-            "required": false
-          },
-          {
-            "id": "dependencies",
-            "prompt": "Approved third-party packages besides pyspark, pytest and hypothesis, comma-separated, as imported (e.g. yaml, requests)",
-            "default": "",
-            "multiple": true,
-            "required": false
-          },
-          {
-            "id": "briefs",
-            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
-            "default": "briefs",
-            "multiple": true,
-            "required": false
-          },
-          {
-            "id": "max_components",
-            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
-            "default": "",
-            "pattern": "^([1-9][0-9]*)?$",
-            "pattern_hint": "a whole number, or empty for no limit",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "max_code_lines",
-            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
-            "default": "",
-            "pattern": "^([1-9][0-9]*)?$",
-            "pattern_hint": "a whole number, or empty for no limit",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "git_hooks",
-            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
-            "default": "githooks",
-            "choices": [
-              "githooks",
-              "pre-commit",
-              "none"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "branch_naming",
-            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
-            "default": "gitflow",
-            "choices": [
-              "gitflow",
-              "none"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ticket_pattern",
-            "ask": true,
-            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
-            "default": "[A-Z][A-Z0-9]*-[0-9]+",
-            "pattern": "^[^'\"\\s/]+$",
-            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "pip_index_url",
-            "prompt": "Internal Python package index for CI (empty = public PyPI)",
-            "default": "",
-            "pattern": "^(https?://\\S+)?$",
-            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ci_image",
-            "prompt": "Internal CI image with Python and git (and Java 17 for Spark) (empty = public python image)",
-            "default": "",
-            "pattern": "^(\\S+)?$",
-            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "spark_version",
-            "prompt": "PySpark version",
-            "default": "3.5",
-            "choices": [
-              "3.4",
-              "3.5",
-              "4.0"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "scheduler",
-            "ask": true,
-            "prompt": "Scheduler that runs the pipeline (none = run entrypoint.sh yourself or from your own scheduler)",
-            "default": "none",
-            "choices": [
-              "none",
-              "airflow",
-              "oozie"
-            ],
-            "required": false,
-            "multiple": false
-          }
-        ],
-        "layers": [
-          {
-            "name": "p0_common",
-            "description": "Shared foundations - SparkSession factory, configuration, constants",
-            "may_import": []
-          },
-          {
-            "name": "p1_domain",
-            "description": "Schemas and pure, lazy DataFrame -> DataFrame transformations",
-            "may_import": [
-              "p0_common"
-            ]
-          },
-          {
-            "name": "p2_io",
-            "description": "Readers and writers - the only place that touches storage",
-            "may_import": [
-              "p0_common",
-              "p1_domain"
-            ]
-          },
-          {
-            "name": "p3_jobs",
-            "description": "Jobs wiring readers, transformations and writers together",
-            "may_import": [
-              "p0_common",
-              "p1_domain",
-              "p2_io"
-            ]
-          },
-          {
-            "name": "p4_entrypoints",
-            "description": "Process entry points (CLI, scheduler, Databricks/EMR job)",
-            "may_import": [
-              "p0_common",
-              "p3_jobs"
-            ]
-          }
-        ],
-        "component_types": {
-          "foundation": {
-            "layer": "p0_common",
-            "description": "Template-owned foundation module.",
-            "addable": false,
-            "name_pattern": null,
-            "name_hint": "",
-            "module": null,
-            "symbols": [],
-            "implicit_dependency": true,
-            "signature_overridable": false,
-            "kinds": []
-          },
-          "utility": {
-            "layer": "p0_common",
-            "description": "Shared helper or constants module (no Spark actions, no I/O).",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "",
-            "module": "{name}",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "{name}",
-                "signature": "() -> None"
-              }
-            ],
-            "implicit_dependency": true,
-            "signature_overridable": true,
-            "kinds": []
-          },
-          "schema": {
-            "layer": "p1_domain",
-            "description": "Explicit StructType contract for a dataset.",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "dataset name, e.g. orders",
-            "module": "{name}_schema",
-            "symbols": [
-              {
-                "kind": "constant",
-                "name": "{NAME}_SCHEMA",
-                "annotation": "T.StructType"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": []
-          },
-          "transformation": {
-            "layer": "p1_domain",
-            "description": "Pure, lazy DataFrame -> DataFrame function.",
-            "addable": true,
-            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
-            "name_hint": "verb_noun, e.g. clean_orders",
-            "module": "{name}",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "{name}",
-                "signature": "(df: DataFrame) -> DataFrame"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": true,
-            "kinds": []
-          },
-          "reader": {
-            "layer": "p2_io",
-            "description": "Reads one dataset and enforces its schema.",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "dataset name, e.g. orders",
-            "module": "{name}_reader",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "read_{name}",
-                "signature": "(spark: SparkSession, path: str) -> DataFrame"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": [
-              {
-                "name": "files",
-                "description": "Reads one dataset and enforces its schema.",
-                "default": true
-              },
-              {
-                "name": "table",
-                "description": "Reads one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi) and enforces its schema.",
-                "default": false
-              },
-              {
-                "name": "jdbc",
-                "description": "Reads a table or a query of a database over JDBC (spark.read.jdbc) and enforces its schema.",
-                "default": false
-              },
-              {
-                "name": "connector",
-                "description": "Reads with a Spark connector (spark.read.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka read in batch... - and enforces its schema.",
-                "default": false
-              },
-              {
-                "name": "custom",
-                "description": "Reads a source Spark has no reader for (a REST API, SFTP, a SaaS export, an in-house file format) with its own Python code - a Python data source (Spark 4.0) or calls on the executors - and enforces its schema.",
-                "default": false
-              }
-            ]
-          },
-          "writer": {
-            "layer": "p2_io",
-            "description": "Writes one dataset.",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "dataset name, e.g. orders_clean",
-            "module": "{name}_writer",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "write_{name}",
-                "signature": "(df: DataFrame, path: str) -> None"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": [
-              {
-                "name": "files",
-                "description": "Writes one dataset.",
-                "default": true
-              },
-              {
-                "name": "table",
-                "description": "Writes one table of the catalog (Hive metastore, Unity, Glue; Delta, Iceberg or Hudi).",
-                "default": false
-              },
-              {
-                "name": "jdbc",
-                "description": "Writes a table of a database over JDBC (df.write.jdbc).",
-                "default": false
-              },
-              {
-                "name": "connector",
-                "description": "Writes with a Spark connector (df.write.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka...",
-                "default": false
-              },
-              {
-                "name": "custom",
-                "description": "Writes to a target Spark has no writer for (a REST API, SFTP, a SaaS import, an in-house format) with its own Python code - foreachPartition, or a Python data source writer (Spark 4.0).",
-                "default": false
-              }
-            ]
-          },
-          "job": {
-            "layer": "p3_jobs",
-            "description": "Orchestrates read -> transform -> write for one output.",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "output name, e.g. daily_sales",
-            "module": "{name}_job",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "run_{name}",
-                "signature": "(spark: SparkSession, config: JobConfig) -> None"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": []
-          },
-          "entrypoint": {
-            "layer": "p4_entrypoints",
-            "description": "Process entry point that parses arguments and runs one job.",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "",
-            "module": "{name}_main",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "main",
-                "signature": "(argv: Sequence[str] | None = None) -> int"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": []
-          }
-        },
-        "source": "<archvow>/templates/pyspark-pipeline"
-      },
-      {
-        "name": "archvow/python-app",
-        "pack": "archvow",
-        "version": "2.6.1",
         "language": "python",
         "kind": "application",
         "style": "layered (common -> domain -> io -> services -> entrypoints)",
         "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -6134,6 +6274,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -6430,55 +6588,58 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/python-app"
+        "source": "<archvow>/templates/python-app",
+        "abstract": false
       }
     ],
-    "packs": [
+    "project_templates": [
       {
-        "name": "archvow",
-        "version": "2.6.1",
-        "description": "The templates, agents and languages archvow ships.",
-        "archvow": "",
-        "builtin": true,
-        "templates": [
-          "fastapi-service",
-          "langgraph-agent",
-          "pyspark-pipeline",
-          "python-app",
+        "name": "pyspark-pipeline",
+        "version": "3.4.1",
+        "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
+        "archvow": ">=3.4,<4",
+        "languages": [
+          "en",
+          "fr"
+        ],
+        "extends": [
           "python-base"
         ],
-        "agents": [
-          "aider",
-          "amazonq",
-          "antigravity",
-          "claude-code",
-          "cline",
-          "codex",
-          "continue",
-          "copilot",
-          "cursor",
-          "gemini-cli",
-          "jetbrains-ai-chat",
-          "junie",
-          "kiro",
-          "opencode",
-          "roo",
-          "windsurf"
+        "abstract": false,
+        "agents": [],
+        "rule_families": [],
+        "regimes": [],
+        "source": "archvow",
+        "digest": "8e433af5b377"
+      },
+      {
+        "name": "python-base",
+        "version": "3.4.1",
+        "description": "Shared answers, guards and CI of the Python templates.",
+        "archvow": ">=3.4,<4",
+        "languages": [
+          "en",
+          "fr"
         ],
+        "extends": [],
+        "abstract": true,
+        "agents": [],
         "rule_families": [],
         "regimes": [
           "dora",
           "gdpr",
           "glba",
           "us-privacy"
-        ]
+        ],
+        "source": "archvow",
+        "digest": "d55071fac333"
       }
     ],
     "agents": [
       {
         "name": "aider",
         "title": "Aider",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6495,13 +6656,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "amazonq",
         "title": "Amazon Q Developer",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6518,13 +6681,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "antigravity",
         "title": "Google Antigravity",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6544,13 +6709,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "claude-code",
         "title": "Claude Code",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills",
@@ -6582,13 +6749,15 @@
           "fix": "start Claude Code with its sandbox on (/sandbox; on Windows inside WSL2) and without --dangerously-skip-permissions or --permission-mode bypassPermissions"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "cline",
         "title": "Cline",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6605,13 +6774,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "codex",
         "title": "OpenAI Codex",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6636,13 +6807,15 @@
           "fix": "start Codex with --sandbox workspace-write (its default) and without --yolo or --dangerously-bypass-approvals-and-sandbox"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "continue",
         "title": "Continue",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6661,13 +6834,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "copilot",
         "title": "GitHub Copilot",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6700,13 +6875,15 @@
           "fix": "run Copilot inside a container (the CLI has no sandbox of its own; in VS Code, a dev container) and start it without --yolo, --allow-all or --allow-all-tools"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
       },
       {
         "name": "cursor",
         "title": "Cursor",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6736,13 +6913,15 @@
           "fix": "in Cursor, choose a run mode with the sandbox on (not Run Everything); start cursor-agent without --force or --yolo"
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "gemini-cli",
         "title": "Gemini CLI",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6760,13 +6939,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": true,
+        "skill": true,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "jetbrains-ai-chat",
         "title": "JetBrains AI chat, with its own built-in assistant",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6785,13 +6966,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "junie",
         "title": "JetBrains Junie",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6813,13 +6996,15 @@
           "fix": "start Junie CLI in its sandbox, with brave mode off"
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": "in the IDE plugin (it sets no variable archvow knows)"
       },
       {
         "name": "kiro",
         "title": "Kiro",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6836,13 +7021,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "opencode",
         "title": "OpenCode",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6860,13 +7047,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "roo",
         "title": "Roo Code",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6883,13 +7072,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "windsurf",
         "title": "Windsurf",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6907,6 +7098,8 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       }
@@ -6916,7 +7109,7 @@
         "id": "dora",
         "name": "DORA",
         "kind": "resilience",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "DORA",
         "letter": "O",
         "default": false,
@@ -6938,7 +7131,7 @@
         "id": "gdpr",
         "name": "GDPR",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "GDPR",
         "letter": "P",
         "default": true,
@@ -6957,7 +7150,7 @@
         "id": "glba",
         "name": "GLBA",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "GLBA",
         "letter": "G",
         "default": false,
@@ -6981,7 +7174,7 @@
         "id": "us-privacy",
         "name": "US-PRIVACY",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "USP",
         "letter": "U",
         "default": false,
@@ -7003,7 +7196,51 @@
       }
     ]
   },
-  "packs": [],
+  "templates": [
+    {
+      "name": "pyspark-pipeline",
+      "version": "3.4.1",
+      "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
+      "archvow": ">=3.4,<4",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "extends": [
+        "python-base"
+      ],
+      "abstract": false,
+      "agents": [],
+      "rule_families": [],
+      "regimes": [],
+      "source": "archvow",
+      "state": "ok",
+      "why": ""
+    },
+    {
+      "name": "python-base",
+      "version": "3.4.1",
+      "description": "Shared answers, guards and CI of the Python templates.",
+      "archvow": ">=3.4,<4",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "extends": [],
+      "abstract": true,
+      "agents": [],
+      "rule_families": [],
+      "regimes": [
+        "dora",
+        "gdpr",
+        "glba",
+        "us-privacy"
+      ],
+      "source": "archvow",
+      "state": "ok",
+      "why": ""
+    }
+  ],
   "first_steps": [
     {
       "step": "foundations",
@@ -7017,21 +7254,37 @@
       "title": "Add a feature",
       "detail": "What the product does",
       "command": "archvow feature add <name> -d \"what the product does\"",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Feature",
+        "command": "archvow feature add <name> -d \"what the product does\""
+      }
     },
     {
       "step": "component",
-      "title": "Add its first component and answer its decisions",
-      "detail": "Next then shows it ready to build",
+      "title": "Add the feature's components and answer their decisions",
+      "detail": "7 of 8 specified · order_totals: 9 open",
       "command": "archvow specify order_totals",
-      "done": true
+      "done": false,
+      "also": {
+        "label": "+ Component",
+        "command": "archvow component add <type> <name> -d \"what it must do\" --feature vat_report"
+      }
     },
     {
       "step": "build",
-      "title": "Build it, then Check",
-      "detail": "Its code and tests, checked against the spec",
-      "command": "archvow check",
-      "done": false
+      "title": "Build them, then Check",
+      "detail": "The AI (or you) writes each one from its task",
+      "command": "archvow prompt --feature vat_report",
+      "done": false,
+      "progress": {
+        "done": 0,
+        "total": 8
+      },
+      "also": {
+        "label": "Build the 7 specified",
+        "command": "archvow prompt --feature vat_report"
+      }
     },
     {
       "step": "commit",
@@ -7040,5 +7293,36 @@
       "command": "git add -A && git commit",
       "done": false
     }
-  ]
+  ],
+  "ai_runs": [],
+  "ai_drafts": {
+    "on": false,
+    "why_not": "archvow does not start AI drafts in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds drafts: archvow init <package> --force -a ai_runs=drafts",
+    "tools": [
+      {
+        "name": "claude-code",
+        "title": "Claude Code",
+        "program": "claude",
+        "installed": false
+      }
+    ]
+  },
+  "ai_skills": {
+    "on": false,
+    "why_not": "archvow does not start AI skill runs in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds skills: archvow init <package> --force -a ai_runs=skills",
+    "runs": [
+      "draft-spec",
+      "clarify",
+      "analyze"
+    ],
+    "tools": [
+      {
+        "name": "claude-code",
+        "title": "Claude Code",
+        "program": "claude",
+        "installed": false
+      }
+    ]
+  },
+  "reviewers": []
 }

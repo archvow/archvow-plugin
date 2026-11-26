@@ -304,11 +304,11 @@ final class ArchvowFilePlan {
                     : "component add".equals(name) ? defaultFeature(spec) : "";
                 if ((pattern.contains("{home}") && home.isEmpty()) || (pattern.contains("{feature}") && feature.isEmpty())) continue;
                 if (pattern.contains("{name}") && value(values, "name").isEmpty()) continue;
-                if (pattern.contains("{pack}") && value(values, "pack").isEmpty()) continue;
+                if (pattern.contains("{template}") && value(values, "template").isEmpty()) continue;
                 String one = pattern.replace("{new}", id).replace("{component}", id).replace("{name}", value(values, "name"))
                     .replace("{home}", home).replace("{feature}", feature)
-                    .replace("{dir}", packFolder(value(values, "dir"), true))
-                    .replace("{pack}", packFolder(value(values, "pack"), false));
+                    .replace("{dir}", templateFolder(value(values, "dir"), true))
+                    .replace("{template}", templateFolder(value(values, "template"), false));
                 // {member}: each component of the form's feature; {each_feature}: each feature of the project
                 List<String> each = null;
                 if (one.contains("{member}")) {
@@ -357,12 +357,13 @@ final class ArchvowFilePlan {
     }
 
     /**
-     * Where a pack command writes (0.22.0): {@code {dir}} the folder {@code pack new --dir} names (empty: inside this
-     * project, .archvow/packs); {@code {pack}} a pack's folder, or the name of a project's pack (.archvow/packs/name).
+     * Where a template command writes (1.0.0): {@code {dir}} the folder {@code template new --dir} names (empty: where
+     * archvow runs); {@code {template}} a template's folder, or {@code project}: this project's own additions
+     * (.archvow/template). As VS Code's templateFolder.
      */
-    static String packFolder(String value, boolean parent) {
+    static String templateFolder(String value, boolean parent) {
         String text = value == null ? "" : value.trim().replaceAll("[/\\\\]+$", "");
-        if (parent) return text.isEmpty() ? ".archvow/packs" : text;
-        return text.contains("/") || text.contains("\\") || text.startsWith(".") ? text : ".archvow/packs/" + text;
+        if (parent) return text.isEmpty() ? "." : text;
+        return "project".equals(text) ? ".archvow/template" : text;
     }
 }

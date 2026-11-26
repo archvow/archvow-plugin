@@ -10,13 +10,14 @@ system
 
 # --- containers
 container orders_api
-  template archvow/fastapi-service@2.6.1
+  template fastapi-service
   package orders_api
   path src/orders_api
 
 rules {}
 language en
 ai_tools [copilot]
+ai_runs []
 dependencies []
 init_answers
   language en
@@ -39,3 +40,12 @@ init_answers
 compliance [gdpr, tst]
 mode strict
 families [all]
+templates
+  fastapi-service
+    version 3.4.1
+    source archvow
+    digest 9653a014f4a4
+  python-base
+    version 3.4.1
+    source archvow
+    digest d55071fac333

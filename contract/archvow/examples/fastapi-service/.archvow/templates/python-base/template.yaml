@@ -1,0 +1,485 @@
+# Shared base of archvow's Python templates: the init answers every project asks, the guards
+# (Git hook, code owners, CI, AI assistants' files), the file header and the safety floor.
+# Abstract: templates extend it (`extends: python-base`); a project is never created from it.
+# Its `context` gives the defaults a template changes in its own `context`/`derived`: ci_python (the CI's
+# Python), ci_java (CI needs Java), rules_label (how CI names its rules), ruff_select; install_command and
+# cov_option come from the engine.
+name: python-base
+version: 3.4.1                  # archvow's templates carry its version
+archvow: ">=3.4,<4"
+languages: [en, fr]
+abstract: true
+language: python
+kind: base
+style: layered
+description: Shared answers, guards and CI of the Python templates.
+
+context:
+  ci_python: "3.12"                 # the CI's Python
+  ci_java: false
+  rules_label: Python rules         # how the CI names this template's rules
+  ruff_select: []                   # ruff rule families a template adds (python-base has the rest)
+
+questions:
+  - id: language
+    ask: true
+    prompt: Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project
+    default: "en"
+    choices: ["en", "fr"]
+  - id: python_version
+    prompt: Minimum Python version
+    default: "3.11"
+    choices: ["3.11", "3.12", "3.13"]
+  - id: line_length
+    prompt: Maximum line length (PEP 8 says 79; teams may agree on up to 99)
+    default: "88"
+    choices: ["79", "88", "99"]
+  - id: platform
+    ask: true
+    prompt: Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)
+    default: "gitlab"
+    choices: ["gitlab", "github", "none"]
+  - id: ci
+    ask: true
+    prompt: What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)
+    default: "auto"
+    choices: ["auto", "gitlab", "github", "jenkins", "none"]
+  - id: architects
+    ask: true
+    prompt: Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)
+    required: true
+    pattern: "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$"
+    pattern_hint: "one or more @user or @group/subgroup, separated by spaces"
+  - id: ai_tools
+    ask: true
+    prompt: Approved AI assistants, comma-separated (only these get instructions; others are flagged)
+    default: "copilot"   # works in VS Code, JetBrains IDEs, Visual Studio and on GitHub
+    multiple: true
+    choices_from: agents   # any agent name: the agents with a profile are offered (plus `none`); docs/templates.md
+  - id: reviewers
+    prompt: Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)
+    default: ""
+    multiple: true
+    choices_from: agents
+  - id: sonar
+    prompt: Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)
+    default: "no"
+    choices: ["no", "yes"]
+  - id: auto_approve
+    prompt: "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)"
+    default: "yes"
+    choices: ["yes", "no"]
+  - id: mode
+    ask: true
+    prompt: "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)"
+    default: "strict"
+    choices: ["strict", "guided", "free"]
+  - id: sandbox
+    ask: true
+    prompt: "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)"
+    default: "no"
+    default_from: {mode: {strict: "yes"}}   # yes in mode strict, no in guided and free
+    choices: ["yes", "no"]
+  - id: ai_runs
+    ask: true
+    prompt: "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox"
+    default: "drafts,skills"
+    default_from: {mode: {strict: "none"}}   # none in mode strict, both in guided and free; change it with init --force
+    multiple: true
+    choices: ["drafts", "skills", "none"]
+  - id: rules
+    ask: true
+    prompt: "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose"
+    # no default: every family but DORA (for banks and insurers)
+    multiple: true
+    choices_from: rule_families
+  - id: dependencies
+    prompt: Approved third-party packages besides the template's own, comma-separated, as imported (e.g. yaml, requests)
+    default: ""
+    multiple: true
+  - id: briefs
+    prompt: >-
+      Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit
+      `specs` folder), comma-separated (e.g. briefs,specs)
+    default: "briefs"
+    multiple: true
+  - id: max_components
+    prompt: >-
+      The most components this project may hold, foundations included (empty = no limit; past it, split the project)
+      (e.g. 40)
+    default: ""
+    pattern: "^([1-9][0-9]*)?$"
+    pattern_hint: "a whole number, or empty for no limit"
+  - id: max_code_lines
+    prompt: >-
+      The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted
+      (empty = no limit) (e.g. 8000)
+    default: ""
+    pattern: "^([1-9][0-9]*)?$"
+    pattern_hint: "a whole number, or empty for no limit"
+  - id: git_hooks
+    prompt: Local checks before each commit (githooks = plain Git hook, no extra tool, no download)
+    default: "githooks"
+    choices: ["githooks", "pre-commit", "none"]
+  - id: branch_naming
+    prompt: Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)
+    default: "gitflow"
+    choices: ["gitflow", "none"]
+  - id: ticket_pattern
+    ask: true
+    prompt: >-
+      How this project's tickets are written, as a regular expression - branch names and `component add -s` must
+      follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)
+    default: "[A-Z][A-Z0-9]*-[0-9]+"
+    pattern: "^[^'\"\\s/]+$"
+    pattern_hint: "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+"
+  - id: pip_index_url
+    prompt: Internal Python package index for CI (empty = public PyPI)
+    default: ""
+    pattern: "^(https?://\\S+)?$"
+    pattern_hint: "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty"
+  - id: ci_image
+    prompt: Internal CI image with Python and git (empty = public python image)
+    default: ""
+    pattern: "^(\\S+)?$"
+    pattern_hint: "an image reference such as registry.acme.local/data/python-spark:3.12, or empty"
+
+# Answers checked together, and values computed from them (available to every generated file).
+answer_rules:
+  - check: "ci in ('auto', 'jenkins', 'none') or ci == platform"
+    message: "-a ci={{ ci }} runs only on {{ ci }}, and the code is on {{ platform }}: use -a ci=auto (the platform's own CI), -a ci=jenkins or -a ci=none"
+derived:
+  ci_tool: "(platform if platform != 'none' else 'none') if ci == 'auto' else ci"
+  # the branch names gitflow allows (main and develop change only through merge requests)
+  branch_regex: "'^(feature|hotfix)/(' ~ ticket_pattern ~ ')-[A-Za-z0-9._-]+$|^release/[0-9]+([.][0-9]+)*$'"
+
+# Skeleton files written only when the expression is true (paths are prefixes).
+file_conditions:
+  ".github/": "platform == 'github'"
+  ".github/workflows/": "ci_tool == 'github'"
+  ".gitlab/": "platform == 'gitlab'"
+  ".gitlab-ci.yml": "ci_tool == 'gitlab'"
+  "Jenkinsfile": "ci_tool == 'jenkins'"
+  "requirements.txt": "not requirements_file_exists"
+  "pyproject.toml": "not pyproject_exists"
+  "Makefile": "not makefile_exists"
+  "sonar-project.properties": "sonar == 'yes'"
+  ".githooks/": "git_hooks == 'githooks'"
+  ".githooks/commit-msg": "git_hooks == 'githooks' and ('dora' in compliance or agents_approved)"
+  ".pre-commit-config.yaml": "git_hooks == 'pre-commit'"
+  # the test settings go in the generated pyproject.toml; pytest.ini only for a project that has
+  # its own pyproject.toml without them (never next to an existing pytest configuration)
+  "pytest.ini": "not pytest_configured and pyproject_exists"
+
+# The agents (their files, how archvow sees them, how they review) are profiles: archvow's own, or a template's agents/ folders
+# (archvow/agents.py); every project gets AGENTS.md and the skills in .agents/skills, whatever its agents.
+# What the approved AI assistants may do without asking when `auto_approve` is yes, written in each
+# agent's own permission file (Claude Code: .claude/settings.json; Cursor: .cursor/cli.json) or printed
+# by init for the agents that keep their permissions outside the project. A command ending with " *"
+# takes any arguments; any other is that exact command. Never a command that writes the spec, a guard
+# file, a commit or a push: those always ask (and the spec commands are denied).
+auto_approved:
+  commands:
+    - archvow check
+    - archvow check *
+    - archvow next
+    - archvow next *
+    - archvow show *
+    - archvow catalog
+    - archvow --help
+    - archvow * --help
+    - archvow prompt *
+    - archvow changes *
+    - archvow question add *
+    - archvow assumption add *
+    - archvow brief show
+    - archvow brief show *
+    - ruff check *
+    - ruff format *
+    - pytest
+    - pytest *
+    - python -m pytest *
+    - python3 -m pytest *
+    - python{{ python_version }} -m pytest *
+    - make test
+    - make check
+    - git status *
+    - git diff *
+    - git log *
+    - git branch --show-current
+    - git config user.name
+    - sort
+  edit: ["{{ src }}", tests]
+
+# Written with the executable bit (Git keeps it when committed).
+executable_files: [.githooks/pre-commit, .githooks/commit-msg, .githooks/post-checkout]
+# shared with the team: archvow writes only between its markers (<!-- archvow:begin/end -->)
+merged_files: [README.md]
+
+# Printed after `archvow init` (rendered with the answers).
+next_steps: |
+  {% if platform == 'gitlab' -%}
+  To do once in GitLab (Settings):
+    > Repository > Branch rules > main and develop: push = No one, force push off, Code owner approval on (Premium)
+    > Repository > Branch defaults: develop (gitflow: features merge into develop)
+    > Merge requests: Pipelines must succeed on, Prevent approval by author on
+  {%- if 'dora' in compliance %}
+    > Merge requests > Approvals: Prevent approvals by users who add commits on (DORA: separation of duties)
+  {%- endif %}
+  {%- elif platform == 'github' -%}
+  To do once in GitHub (Settings > Rules > Rulesets, branches main and develop; default branch: develop):
+    > Require a pull request + review from Code Owners
+    > Require the status checks of the CI{% if ci_tool == 'github' %} "architecture-guards" and "architecture-tests" (they appear after the first run){% endif %}
+    > Block force pushes, empty bypass list
+  {%- else -%}
+  To do once on your Git server:
+    > Protect main and develop: merge through reviewed pull/merge requests only, with a green build
+    > Architects ({{ architects }}) approve changes to .archvow/ and the guard files
+  {%- endif %}
+  {%- if ci_tool == 'jenkins' %}
+
+  To do once in Jenkins:
+    > Create a Multibranch Pipeline job on this repository (it reads Jenkinsfile)
+    > Let Jenkins report the build status to {{ {'gitlab': 'GitLab', 'github': 'GitHub'}.get(platform, 'your Git server') }}{% if platform == 'gitlab' %} (GitLab plugin){% elif platform == 'github' %} (GitHub Branch Source plugin){% endif %}, so a red build blocks the merge
+  {%- elif ci_tool == 'none' %}
+
+  To do once in your CI:
+    > Run `archvow check`, ruff and pytest on every change
+    > On pull/merge requests also run `archvow check --base <target branch>`
+  {%- endif %}
+
+  Gitflow - after the first commit: git switch -c develop && git push -u origin main develop
+    > git switch -c feature/<ticket>-<short-name> develop for each change, merged into develop; release/<version> from develop, merged into main
+      (tag it), then main back into develop; hotfix/<ticket>-<short-name> from main, merged into main and develop
+
+  Good to know:
+  {%- if architects.split() | length == 1 %}
+    ! Code Owners: {{ architects }} - only one: add a second person when you can
+  {%- else %}
+    - Code Owners: {{ architects }}
+  {%- endif %}
+    - AI assistants: {{ ai_tools | join(', ') }} - give the AI agent its own account, not your token
+  {%- if agents_approved %}
+    - archvow stops inside an AI agent in YOLO mode{% if sandbox == 'yes' %} or outside a sandbox{% endif %} (docs: agent security)
+  {%- endif %}
+  {%- if compliance and 'none' not in compliance %}
+    - Compliance rules: {{ compliance | join(', ') }}{% if privacy %} - classify every column: archvow column set <schema> <columns> personal|special|none{% endif %}
+  {%- endif %}
+  {%- if reviewers %}
+    - AI reviewers: {{ reviewers | join(', ') }} - each merge request gets a review report; HIGH findings need the label review-acknowledged{% if ci_tool == 'jenkins' %} (Jenkins: REVIEW_ACKNOWLEDGED=true){% endif %}
+  {%- endif %}
+  {%- if not ci_image or not pip_index_url %}
+    ! CI downloads from public sources ({% if not ci_image %}Docker Hub{% endif %}{% if not ci_image and not pip_index_url %}, {% endif %}{% if not pip_index_url %}PyPI{% endif %}) - for critical projects add -a ci_image=... -a pip_index_url=...
+  {%- endif %}
+  {%- if git_hooks == 'githooks' %}
+    - Other clones enable local checks once: git config core.hooksPath .githooks
+  {%- elif git_hooks == 'pre-commit' %}
+    - Each clone enables local checks once: pre-commit install{% if 'dora' in compliance or agents_approved %} --hook-type pre-commit --hook-type commit-msg{% endif %}
+  {%- endif %}
+
+test_layout: mirror
+
+# Every component file starts with this header in its module docstring, after a one-line
+# summary. The component's task (archvow prompt) shows it pre-filled; the implementer fills the <...> values (the AI
+# assistant used must be an approved one, or none). Checked by ARCH018.
+file_header:
+  - "@component  {id} ({type}, {layer})"
+  - "@spec       {spec}"
+  - "@project    {project}"
+  - "@author     <your name>"
+  - "@assisted   <{assistants}>"
+  - "@date       <YYYY-MM-DD>"
+
+# Tests per component type (`test:` in each template): unit, integration or none. An implemented
+# component without its test file tests/<layer>/[<group>/]test_<component>.py fails the build (ARCH017).
+# End-to-end scenarios spanning several components go in tests/integration/ (any test_*.py).
+free_test_dirs: [tests/integration]
+
+protected_paths:
+  - AGENTS.md
+  - CLAUDE.md
+  - ruff.toml
+  - .github
+  - .gitlab
+  - .gitlab-ci.yml
+  - Jenkinsfile
+  - .aiassistant
+  - .junie
+  - .pre-commit-config.yaml
+  - pytest.ini
+  - .githooks
+  - .claude
+  - .cursor
+  - .continue
+  - .agents
+  - .archvow/README.md
+  - .archvow/templates
+  - .archvow/template
+
+# One section per family of checks in the project's doc (archvow doc, "Checks"). The family of a code is its longest
+# matching prefix; a code no family claims (a company template's rule, say ACME001) gets the family
+# of its letters (ACME) - declare it here only to give it a title. `compliance: true`: switched on by the
+# `rules` answer and kept as `compliance` in project.vow (TST, and the regimes of the templates - regimes/*.yaml:
+# DORA, GDPR, GLBA, US-PRIVACY - which archvow adds here); `default: false`: not in the default answer;
+# `automatic: true`: never chosen, on with what needs it (PRIV, with any privacy regime).
+#
+# A company's own rules are data in its template, rules/<FAMILY>.yaml (archvow template rule; docs/templates.md).
+# A component's task with more items than this (decisions, rules, invariants, P/O questions) is cut into
+# tasks the implementer does one at a time (archvow show and archvow prompt list them).
+task_items: 6
+
+rule_families:
+  ARCH: {name: ARCH, title: "Architecture: structure, layers, tests, hazards, AI policy"}
+  STY: {name: STYLE, title: "Size, scripts and comments"}
+  PRIV: {name: PRIV, title: "Personal data in the code (every privacy regime): every column classified, never logged, special data protected", compliance: true, automatic: true}
+  TST: {name: TST, title: "Test data: no real data in tests", compliance: true}
+
+# The template's own packages in the DORA third-party register (with DORA in -a rules=...): init
+# records those its requirements.txt lists; a project adds the others with `archvow dependency add`.
+third_parties:
+  - {name: ruff, supplier: "Astral Software Inc.", licence: MIT, criticality: minor}
+  - {name: pytest, supplier: "pytest-dev", licence: MIT, criticality: important}
+  - {name: pytest-cov, supplier: "pytest-dev", licence: MIT, criticality: minor}
+  - {name: hypothesis, supplier: "Hypothesis developers (David R. MacIver)", licence: MPL-2.0, criticality: important}
+  - {name: pre-commit, supplier: "Anthony Sottile (pre-commit)", licence: MIT, criticality: minor}
+
+# Weakest acceptable evidence per hazard severity ("prove the few essential properties
+# without compromise"). Example tests alone are not enough for critical hazards.
+verification_floor:
+  critical: [property_test, runtime, static, model_check, proof]
+  high: [property_test, runtime, static, model_check, proof, example_test]
+
+# ---------------------------------------------------------------------------------------
+# The shared Python guidance: what every template built on python-base asks and checks, before its
+# stack adds its own. A template keeps it, rewords a question by its id, or removes one
+# (`remove: [component_types.model.edge_cases.frozen]`).
+# ---------------------------------------------------------------------------------------
+
+# The first two layers of every stack; a stack adds the others, and its own rules for these two.
+layers:
+  - name: p0_common
+    description: Shared foundations - settings, logging, small helpers every layer may use
+    may_import: []
+  - name: p1_domain
+    description: Business rules - data classes, domain errors and pure functions, no I/O
+    may_import: [p0_common]
+
+component_types:
+  foundation:
+    layer: p0_common
+    description: Template-owned foundation module.
+    addable: false
+    implicit_dependency: true
+    test: none
+
+  utility:
+    layer: p0_common
+    test: unit
+    examples: true   # business examples: archvow example add <component> <name>
+    description: A small helper every layer may use (no business rule, no I/O beyond what it says).
+    module: "{name}"
+    name_pattern: "^[a-z]+_[a-z0-9_]+$"
+    name_hint: "verb_noun, e.g. parse_date"
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}"}   # its parameters are the implementer's, unless --signature fixes them
+    guide_words: [wrong]
+    edge_cases:
+      - {id: contract, question: "What exactly does it take and return - e.g. parse_date(\"2026-10-21\") -> date(2026, 10, 21)?"}
+      - {id: invalid_input, question: "Invalid input: which error, or which result - e.g. ValueError(\"not a date: ...\")?"}
+
+  model:
+    layer: p1_domain
+    test: unit
+    description: A data class - the shape and the validation of one kind of data.
+    module: "{name}_model"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "the data, e.g. invoice"
+    symbols:
+      - {kind: class, name: "{Name}"}
+    columns: fields        # its fields are classified (archvow column set, PRIV001)
+    guide_words: [wrong, exposed]
+    safety_decisions: {wrong: valid_values, exposed: never_shown}  # the decision that already answers it
+    edge_cases:
+      - {id: fields, question: "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?"}
+      - {id: valid_values, question: "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?"}
+      - {id: never_shown, question: "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?"}
+      - {id: frozen, question: "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?", suggested: "Frozen: a change builds a new one (dataclasses.replace)"}
+
+  error:
+    layer: p1_domain
+    test: unit
+    description: A domain error - raised by the domain and the services, turned into a message and an exit code by the entry point.
+    module: "{name}_error"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "what went wrong, e.g. invoice_not_found"
+    symbols:
+      - {kind: class, name: "{Name}Error"}
+    guide_words: [exposed]
+    safety_decisions: {exposed: message}  # the decision that already answers it
+    edge_cases:
+      - {id: code, question: "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?"}
+      - {id: message, question: "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?", suggested: "A short fixed message, without personal data or secrets"}
+
+  logic:
+    layer: p1_domain
+    test: unit
+    examples: true   # business examples: archvow example add <component> <name>
+    description: A pure business rule - a function of its inputs, no I/O.
+    module: "{name}"
+    name_pattern: "^[a-z]+_[a-z0-9_]+$"
+    name_hint: "verb_noun, e.g. compute_total"
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}"}   # its parameters are the implementer's, unless --signature fixes them
+    guide_words: [wrong]
+    safety_decisions: {wrong: invalid_range}  # the decision that already answers it
+    edge_cases:
+      - {id: computes, question: "What exactly does it compute or decide (the formula, the rule) - e.g. total = sum(price * quantity) - discount?"}
+      - {id: invalid_range, question: "Invalid or out-of-range input: which domain error, or which result - e.g. quantity <= 0 -> InvalidQuantity?"}
+      - {id: rounding, question: "Rounding and precision (money: Decimal, how many decimals, which rounding) - e.g. Decimal, 2 decimals, ROUND_HALF_EVEN - or none?", choices: ["Decimal, 2 decimals, ROUND_HALF_EVEN", "No rounding: no money or decimals here"]}
+
+# ---------------------------------------------------------------------------------------
+# Safety analysis (HAZOP-style guide words). `archvow specify` asks every applicable question
+# for every component; each must end as a hazard or a dismissal.
+# ---------------------------------------------------------------------------------------
+# Suggested answers to the safety questions (archvow show): `hazard add <component> S<number>
+# <severity>` without text takes the hazard, and for critical or high its invariant too.
+safety_suggestions:
+  missing:
+    hazard: "a missing input, file or dependency is processed as if everything were there"
+    invariant: "a missing input, file or dependency stops with a clear error, never a wrong result"
+  more:
+    hazard: "too much data (duplicates, an unbounded list) is processed or kept"
+    invariant: "every list it reads or returns has a maximum size, and a key appears at most once"
+  wrong:
+    hazard: "invalid input is accepted and used"
+    invariant: "invalid input is refused before anything is changed"
+  partial:
+    hazard: "a change or a file is half written"
+    invariant: "a change or a file is written completely or not at all"
+  repeated:
+    hazard: "running it twice applies the change twice"
+    invariant: "running twice with the same input has the effect of once"
+  stale:
+    hazard: "old data is used as if it were current"
+    invariant: "it always reads the last saved data"
+  exposed:
+    hazard: "a secret or personal data appears in a log, an output or an error message"
+    invariant: "secrets and personal data never appear in a log, an output or an error message"
+  concurrent:
+    hazard: "two runs at the same time overwrite each other"
+    invariant: "two runs at the same time never lose a change"
+
+guide_words:
+  missing: "Something missing (an input, a file, a setting, a dependency down): what must never happen?"
+  more: "Too much (duplicates, an unbounded list, a huge file): what must never happen?"
+  wrong: "Wrong input (invalid values, out of range, a wrong format): what must never happen?"
+  partial: "Half done (a file half written, a change saved here and not there, a crash in the middle): what must never happen?"
+  repeated: "Done twice (run twice, retried, the same input twice): what must never happen?"
+  stale: "Old data used as current (a cache, an old file): what must never happen?"
+  exposed: "Data exposed (secrets or personal data in a log, an output, an error message): what must never happen?"
+  concurrent: "Two runs at the same time (two processes, two users): what must never happen?"
+
+
+rules: {}

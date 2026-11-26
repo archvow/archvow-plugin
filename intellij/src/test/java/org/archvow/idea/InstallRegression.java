@@ -58,9 +58,11 @@ public final class InstallRegression {
         check(ArchvowInstall.workingFolder(plain, "/p").equals("/p"), "pip runs in the project");
 
         // why the card shows
-        check(ArchvowInstall.reason(new ArchvowVersion.Said("1.99.0", ArchvowVersion.CONTRACT)).isEmpty(), "same contract offered");
-        check(ArchvowInstall.reason(new ArchvowVersion.Said("1.22.0", "")).equals("version"), "an older archvow not offered");
-        check(ArchvowInstall.reason(new ArchvowVersion.Said("", "")).equals("missing"), "missing not offered");
+        check(ArchvowInstall.reason(new ArchvowCompat.Compatibility("ok", "", "")).isEmpty(), "an archvow in the range offered");
+        check(ArchvowInstall.reason(new ArchvowCompat.Compatibility("older", "...", "3.0.0")).equals("version"), "an older archvow not offered");
+        check(ArchvowInstall.reason(new ArchvowCompat.Compatibility("missing", "...", "3.0.0")).equals("missing"), "missing not offered");
+        check(ArchvowInstall.reason(new ArchvowCompat.Compatibility("older", "...", "")).isEmpty(), "offered over a pin outside the range");
+        check(ArchvowInstall.reason(new ArchvowCompat.Compatibility("newer", "...", "")).isEmpty(), "a newer archvow offered to install");
 
         // the offer, the card's words
         ArchvowInstall.Offer shown = ArchvowInstall.offer("missing", "1.17.0", "/p/.venv/bin/python", "/p", ArchvowInstall.source(""), false, false);

@@ -1,0 +1,493 @@
+name: fastapi-service
+version: 3.4.1                  # archvow's templates carry its version
+archvow: ">=3.4,<4"
+languages: [en, fr]
+extends: python-base
+# What it does not take from python-base's shared guidance: a Pydantic model is validated, not frozen.
+remove: [component_types.model.edge_cases.frozen]
+language: python
+kind: web-service
+style: layered (common -> domain -> io -> services -> api)
+description: >-
+  FastAPI web service. Business rules live in a pure domain, the database and other services
+  behind repositories and clients, each operation in a service, and HTTP only in the API layer.
+
+# The answers of python-base (language, platform, CI, AI assistants...) plus these.
+questions:
+  - id: dependencies
+    prompt: Approved third-party packages besides fastapi, pydantic, uvicorn, httpx, pytest and hypothesis, comma-separated, as imported (e.g. sqlalchemy, jwt)
+  - id: python_version
+    default: "3.12"
+    choices: ["3.11", "3.12", "3.13"]
+  - id: fastapi_version
+    prompt: FastAPI version line the project pins (upgrade deliberately; doctor checks it)
+    default: "0.143"
+    pattern: "^0\\.[0-9]+$"
+    pattern_hint: "a FastAPI minor line such as 0.143"
+
+# Rule families on top of archvow's generic rules: FastAPI's event loop, where HTTP lives,
+# one app, lifespan, typed responses (FAPI001-FAPI005). Ruff adds its own FastAPI rules (FAST).
+# archvow's FastAPI checks (FAPI001-005), with what they need to know: the layers that may speak HTTP
+# (HTTPException: the dependencies routes ask for, and the API), and the component type that creates the app.
+rule_sets:
+  fastapi: {http_layers: [p0_common, p4_api], app_type: app}
+
+context:
+  ci_python: "3.12"                 # the CI's Python
+  ci_java: false
+  rules_label: FastAPI rules        # how the CI names this template's rules
+  ruff_select:                      # ruff rule families this template adds
+    - [FAST, "FastAPI: Annotated dependencies, path parameters, response models"]
+    - [ASYNC, "blocking calls inside async functions"]
+
+# Third-party packages the code may import without approval (ARCH023); the `dependencies` answer
+# adds a project's own (e.g. -a dependencies=sqlalchemy). Names as imported.
+dependencies: [fastapi, starlette, pydantic, pydantic_settings, uvicorn, httpx, pytest, hypothesis]
+# Database migrations (Alembic) live in migrations/ and may import their own tools.
+dependencies_by_path:
+  migrations: [alembic, sqlalchemy]
+
+# What `archvow doctor` checks on a developer's machine, besides Python, archvow and Git.
+doctor:
+  - name: FastAPI {{ fastapi_version }}
+    module: fastapi
+    version: "{{ fastapi_version }}"
+    fix: python3 -m pip install "fastapi=={{ fastapi_version }}.*"
+  - name: Pydantic 2
+    module: pydantic
+    version: "2"
+    fix: python3 -m pip install "pydantic>=2"
+  - name: httpx (FastAPI's TestClient)
+    module: httpx
+    fix: make install (or python3 -m pip install -r requirements.txt)
+  - name: ruff
+    command: ruff --version
+    fix: make install (or python3 -m pip install -r requirements.txt)
+  - name: pytest
+    module: pytest
+    fix: make install (or python3 -m pip install -r requirements.txt)
+  - name: Hypothesis
+    module: hypothesis
+    fix: make install (or python3 -m pip install -r requirements.txt)
+
+# Lines archvow adds to .gitignore (merged: existing lines are kept, missing ones appended).
+gitignore:
+  - "# archvow: the spec to read and the local status (archvow doc writes them; never committed)"
+  - .archvow/doc/
+  - "# Secrets: settings come from the environment, never from a committed file"
+  - .env
+  - "# Python"
+  - __pycache__/
+  - "*.py[cod]"
+  - .venv/
+  - venv/
+  - "*.egg-info/"
+  - build/
+  - dist/
+  - .coverage
+  - coverage.xml
+  - test-results.xml
+  - htmlcov/
+  - "# Tool caches"
+  - .pytest_cache/
+  - .ruff_cache/
+  - .hypothesis/
+  - .cache/
+  - "# OS and IDE"
+  - .DS_Store
+  - .idea/
+  - .vscode/
+
+allowed_paths: [tests, docs, migrations]
+test_kinds:
+  unit: >-
+    Pure and fast: plain Python objects, no database, no network, no app. Runs on every commit.
+  integration: >-
+    Through FastAPI's TestClient or a real database in a temporary file (SQLite), marked
+    @pytest.mark.integration. Never a shared database or a real external service: clients are
+    tested against a fake transport (httpx.MockTransport).
+
+# The template's own packages in the DORA third-party register (adds to python-base's list).
+third_parties:
+  - {name: ruff, supplier: "Astral Software Inc.", licence: MIT, criticality: minor}
+  - {name: pytest, supplier: "pytest-dev", licence: MIT, criticality: important}
+  - {name: pytest-cov, supplier: "pytest-dev", licence: MIT, criticality: minor}
+  - {name: hypothesis, supplier: "Hypothesis developers (David R. MacIver)", licence: MPL-2.0, criticality: important}
+  - {name: pre-commit, supplier: "Anthony Sottile (pre-commit)", licence: MIT, criticality: minor}
+  - {name: fastapi, supplier: "Sebastián Ramírez (tiangolo)", licence: MIT, criticality: critical}
+  - {name: pydantic, supplier: "Pydantic Services Inc.", licence: MIT, criticality: important}
+  - {name: pydantic-settings, supplier: "Pydantic Services Inc.", licence: MIT, criticality: important}
+  - {name: uvicorn, supplier: "Encode OSS Ltd.", licence: BSD-3-Clause, criticality: important}
+  - {name: httpx, supplier: "Encode OSS Ltd.", licence: BSD-3-Clause, criticality: minor}
+
+# One section of checks per family in the project's doc, archvow doc (see python-base).
+# The run line of `archvow next` and `archvow show <app>`: how to try the service on a laptop, once
+# the app and everything it uses are coded (never a deployment), then a curl for a GET route.
+run:
+  types: [app]
+  command: make run
+  then: "curl localhost:8000<prefix>{path}"   # <prefix>: the app's include_router prefix, if any
+
+rule_families:
+  FAPI: {name: FASTAPI, title: "FastAPI: async, HTTP errors, app and routes"}
+
+# The roles its component types play, for the regimes (regimes/*.yaml of the templates: GDPR, US-PRIVACY, GLBA,
+# DORA...): `purpose` processes personal data, `store` writes it, `share` sends it to a third party, `run` runs
+# (a job, an app: DORA's operations questions). Each regime asks its own questions there (P1, U1, G1, O1...).
+roles: {purpose: [router], store: [repository], share: [client], run: [app]}
+
+# ---------------------------------------------------------------------------------------
+# Safety analysis (HAZOP-style guide words adapted to web services). `archvow specify` asks
+# every applicable question for every component; each must end as a hazard or a dismissal.
+# ---------------------------------------------------------------------------------------
+# Suggested answers to the safety questions (archvow show): `hazard add <component> S<number>
+# <severity>` without text takes the hazard, and for critical or high its invariant too.
+safety_suggestions:
+  missing:
+    hazard: "a request fails badly when a dependency is down or the resource does not exist"
+    invariant: "a missing dependency or resource gives a clear domain error, never a crash or a wrong answer"
+  more:
+    hazard: "an unbounded result or a flood of requests overloads the service"
+    invariant: "every list has a maximum size"
+  wrong:
+    hazard: "invalid input is accepted and saved"
+    invariant: "invalid input is refused before anything is saved"
+  partial:
+    hazard: "a change is half applied"
+    invariant: "a change is saved completely or not at all"
+  repeated:
+    hazard: "a retried request is applied twice"
+    invariant: "the same request sent twice has the effect of one"
+  stale:
+    hazard: "old data is shown as current"
+    invariant: "a read always sees the last committed write"
+  exposed:
+    hazard: "a user sees or changes data that is not theirs, or a secret leaks"
+    invariant: "a user only reads and changes their own data, and secrets never appear in a response or a log"
+  concurrent:
+    hazard: "two simultaneous changes overwrite each other"
+    invariant: "concurrent changes to the same record never lose an update"
+
+guide_words:
+  missing: "A dependency down or slow, or the resource does not exist: what must never happen?"
+  more: "Too much (unbounded results, duplicated records, a flood of requests): what must never happen?"
+  wrong: "Wrong input (invalid values, out of range, an illegal state change): what must never happen?"
+  partial: "A change half applied (saved here, not there; a failure mid-transaction): what must never happen?"
+  repeated: "Sent twice (a client retries or submits twice): what must never happen?"
+  stale: "Old data shown as current (a cache, a replica, a read that misses the last write): what must never happen?"
+  exposed: "Data exposed (a user sees or changes data that is not theirs; secrets or personal data in a response or a log): what must never happen?"
+  concurrent: "Two requests change the same data at the same time (lost update, negative stock): what must never happen?"
+
+# Examples shown by `archvow <command> --help` for this template's component types
+# (commands not listed show archvow's generic examples).
+help_examples:
+  component add: |
+    archvow component add model order -d "An order: id int, customer str, total Decimal >= 0, status" --ticket US-001
+    archvow component add repository orders -d "Stores and finds orders" -u order_model
+    archvow component add error order_not_found -d "The order does not exist, or belongs to someone else"
+    archvow component add logic check_transition -d "Allowed status changes: pending -> paid | cancelled"
+    archvow component add service create_order -d "Validate, save, return the new order" -u order_model,orders_repository
+    archvow component add router orders -d "Order API" -u create_order,order_model \
+        -r "post_order: POST /orders" -r "read_order: GET /orders/{order_id}"
+    archvow component add app main -d "The service: routers under /v1, domain errors mapped to HTTP" -u orders_router
+    archvow component add service create_invoice -g billing -d "..."    # in the folder p3_services/billing/
+  component edit: |
+    archvow component edit orders_router -r "post_order: POST /orders" -r "list_orders: GET /orders"
+    archvow component edit create_order -d "Validate, save, return the new order; reject a duplicate key"
+    archvow component edit create_invoice -g invoices
+  component remove: |
+    archvow component remove create_order   # with its decisions, hazards and invariants; then delete its files
+  decision make: |
+    archvow decision make orders_router 1 "Authenticated customers, each only on their own orders"
+    archvow decision make orders_router 4,5 "No list route; a repeated POST creates two orders"
+    archvow decision make orders_router 3        # no answer: the suggested one ("show" prints it)
+  decision add: |
+    archvow decision add create_order "May a customer have two pending orders?" "Yes, without limit"
+  question add: |
+    archvow question add orders_router "Do partners call this API too?"
+  question remove: |
+    archvow question remove orders_router 7      # a question a person added (the template's questions stay)
+  rule add: |
+    archvow rule add create_order "Given an idempotency key already used, when posted, then the first order is returned"
+    archvow rule add create_order "When the stock service times out, create_order answers 503 and saves nothing"
+    archvow rule add --type router "Given an unauthenticated request, when it arrives, then the answer is 401"
+  rule edit: |
+    archvow rule edit R1 "Given a used idempotency key, when posted again, then the first order is returned"
+  rule remove: |
+    archvow rule remove R1
+  show: |
+    archvow show orders_router            # its questions, rules, safety questions S1, S2...
+    archvow show orders_router INV1       # one of its hazards (H1) or invariants (INV1); a rule: archvow show R1
+  hazard add: |
+    archvow hazard add orders_router S1 critical      # the suggestion of question S1, and its invariant
+    archvow hazard add orders_router S1 critical "A customer reads another customer's order"
+    archvow hazard add create_order repeated high "A retried POST creates two orders"
+    archvow hazard add orders_repository concurrent high "Two updates of one order: one is lost"
+  hazard remove: |
+    archvow hazard remove create_order.H1         # its invariants stay, no longer pointing to it
+    archvow hazard remove orders_router S2        # undo a "not applicable": the question is open again
+  invariant add: |
+    archvow invariant add orders_router "a customer only ever reads their own orders"
+    archvow invariant add create_order "one idempotency key creates at most one order" --prevents H1
+  invariant remove: |
+    archvow invariant remove orders_router.INV1   # never the last guard of a critical or high hazard
+
+# The folder of each layer: src/<package>/<folder>/ and tests/<folder>/. A company template may
+# rename some (layer_names: {p1_domain: domain}); archvow then uses the new folder everywhere -
+# layers, component types, starting components and the files it writes.
+layer_names:
+  p0_common: p0_common
+  p1_domain: p1_domain
+  p2_io: p2_io
+  p3_services: p3_services
+  p4_api: p4_api
+
+layers:
+  - name: p0_common
+    description: Shared foundations - settings, database session, the dependencies routes ask for
+    may_import: []
+    io_allowed: true
+    must_never: ["hold business rules"]
+  - name: p1_domain
+    description: Business rules - Pydantic models and pure functions, no HTTP, no database
+    may_import: [p0_common]
+    io_allowed: false
+    forbidden_imports: [fastapi, starlette, sqlalchemy, httpx, requests, os, pathlib, subprocess, socket]
+    must_never:
+      - "read or write anything (no database, files or network)"
+      - "know about HTTP (FastAPI, status codes, requests)"
+  - name: p2_io
+    description: Repositories and clients - the only place that talks to the database and other services
+    may_import: [p0_common, p1_domain]
+    io_allowed: true
+    forbidden_imports: [fastapi, starlette, subprocess]
+    must_never: ["hold business rules beyond mapping data", "know about HTTP routes"]
+  - name: p3_services
+    description: Services - one business operation each, calling repositories and clients and owning the transaction
+    may_import: [p0_common, p1_domain, p2_io]
+    io_allowed: false
+    forbidden_imports: [fastapi, starlette]
+    must_never: ["know about HTTP (requests, status codes, HTTPException)"]
+  - name: p4_api
+    description: HTTP - routers and the app, which validate input, check who may call, call a service, shape the response
+    may_import: [p0_common, p1_domain, p3_services]
+    io_allowed: false
+    must_never: ["call the database or another service directly (use a service)", "hold business rules"]
+
+component_types:
+  foundation:
+    layer: p0_common
+    description: Template-owned foundation module.
+    addable: false
+    implicit_dependency: true
+    test: none
+
+  utility:
+    layer: p0_common
+    test: unit
+    examples: true   # business examples: archvow example add <component> <name>
+    description: A small helper every layer may use (no business rule, no I/O beyond what it says).
+    module: "{name}"
+    name_pattern: "^[a-z]+_[a-z0-9_]+$"
+    name_hint: "verb_noun, e.g. format_amount"
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}"}   # its parameters are the implementer's, unless --signature fixes them
+    guide_words: [wrong]
+    edge_cases:
+      - {id: contract, question: "What exactly does it take and return - e.g. format_amount(Decimal(\"9.9\")) -> \"9.90\"?"}
+      - {id: invalid_input, question: "Invalid input: which error, or which result - e.g. ValueError(\"not an amount: ...\")?"}
+
+  dependency:
+    layer: p0_common
+    test: unit
+    description: Something routes receive through Depends (the database session, the current user...).
+    module: "{name}"
+    name_pattern: "^get_[a-z0-9_]+$"
+    name_hint: "get_<what it provides>, e.g. get_session, get_current_user"
+    implicit_dependency: true
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}"}   # its parameters are the implementer's, unless --signature fixes them
+    guide_words: [missing, exposed]
+    safety_decisions: {missing: cannot}  # the decision that already answers it
+    edge_cases:
+      - {id: provides, question: "What does it provide, and for how long (one request, the whole app) - e.g. a database session per request?"}
+      - {id: cannot, question: "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end - e.g. no token -> 401, database down -> 503?"}
+
+  model:
+    layer: p1_domain
+    test: unit
+    description: A Pydantic model - the shape and the validation of one kind of data.
+    module: "{name}_model"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "the data, e.g. order"
+    symbols:
+      - {kind: class, name: "{Name}"}
+    columns: fields        # its fields are classified (archvow column set, PRIV001)
+    guide_words: [wrong, exposed]
+    safety_decisions: {wrong: valid_values, exposed: never_shown}  # the decision that already answers it
+    edge_cases:
+      - {id: fields, question: "Which fields are required, and which are optional (with which default) - e.g. customer_id: int required, note: str | None = None?"}
+      - {id: valid_values, question: "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount > 0, currency 3 letters, status NEW or PAID?"}
+      - {id: never_shown, question: "Which fields must never appear in a response or a log (passwords, internal ids, personal data) - e.g. password_hash, iban - or none?"}
+
+  error:
+    layer: p1_domain
+    test: unit
+    description: A domain error - raised by services and the domain, mapped to an HTTP status by the app.
+    module: "{name}_error"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "what went wrong, e.g. order_not_found"
+    symbols:
+      - {kind: class, name: "{Name}Error"}
+    guide_words: [exposed]
+    safety_decisions: {exposed: message}  # the decision that already answers it
+    edge_cases:
+      - {id: code, question: "Which HTTP status does the app answer with it (404, 409, 422...) - e.g. OrderNotFound -> 404?"}
+      - {id: message, question: "What does its message say - and never say (internal ids, personal data, whether the resource exists) - e.g. \"Order not found\", without the id?", suggested: "A short fixed message, without ids or personal data"}
+
+  logic:
+    layer: p1_domain
+    test: unit
+    examples: true   # business examples: archvow example add <component> <name>
+    description: A pure business rule - a function of its inputs, no I/O.
+    module: "{name}"
+    name_pattern: "^[a-z]+_[a-z0-9_]+$"
+    name_hint: "verb_noun, e.g. compute_total"
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}"}   # its parameters are the implementer's, unless --signature fixes them
+    guide_words: [wrong]
+    safety_decisions: {wrong: invalid_range}  # the decision that already answers it
+    edge_cases:
+      - {id: computes, question: "What exactly does it compute or decide (the formula, the rule) - e.g. total = sum(price * quantity) - discount?"}
+      - {id: invalid_range, question: "Invalid or out-of-range input: which domain error, or which result - e.g. quantity <= 0 -> InvalidQuantity?"}
+      - {id: rounding, question: "Rounding and precision (money: Decimal, how many decimals, which rounding) - e.g. Decimal, 2 decimals, ROUND_HALF_EVEN?", choices: ["Decimal, 2 decimals, ROUND_HALF_EVEN", "No rounding: no money or decimals here"]}
+
+  repository:
+    layer: p2_io
+    requires_uses: [model]   # the columns it works on are a model component (ARCH019)
+    test: integration
+    description: Stores and finds one kind of data (the database, or memory to start).
+    module: "{name}_repository"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "the data, plural, e.g. orders"
+    symbols:
+      - {kind: class, name: "{Name}Repository"}
+    writes_data: true      # stores the personal fields of the models it uses (PRIV003, and the regimes' store questions)
+    guide_words: [missing, more, partial, stale, concurrent, exposed]
+    safety_decisions: {missing: not_found, more: many_rows, partial: commit, concurrent: same_record}  # the decision that already answers it
+    edge_cases:
+      - {id: not_found, question: "Not found (e.g. get(42) when 42 does not exist): return None, or raise which domain error?", suggested: "Return None; the service raises the domain error"}
+      - {id: commit, question: "Who saves the changes for good (the commit) - e.g. the service, once per use case: the service that calls it, or the repository itself?", suggested: "The service that calls it, once per use case"}
+      - {id: same_record, question: "Two users change the same record at the same moment (e.g. two clerks edit order 42): the last one wins, the second one is refused (version check), or the second one waits (lock)?", suggested: "The second one is refused (version check, 409)"}
+      - {id: many_rows, question: "Which queries can return many rows, and what is their maximum - e.g. list_orders, at most 100?"}
+
+  client:
+    layer: p2_io
+    test: integration
+    description: Calls one other service (HTTP API, message broker...).
+    module: "{name}_client"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "the other service, e.g. payments"
+    symbols:
+      - {kind: class, name: "{Name}Client"}
+    writes_data: true      # sends the personal fields of the models it uses to a third party (the regimes' share questions)
+    guide_words: [missing, wrong, repeated]
+    safety_decisions: {missing: down, repeated: retries}  # the decision that already answers it
+    edge_cases:
+      - {id: timeout, question: "How long does it wait for an answer before giving up (in seconds) - e.g. 5?", suggested: "5 seconds"}
+      - {id: retries, question: "If a call fails, is it retried, how many times, on which errors, and can the same call be sent twice without doing it twice (e.g. paying twice) - e.g. 3 retries on timeouts and 503, each with the same request key?"}
+      - {id: down, question: "The other service is down or answers an error: fail with which domain error, or degrade how - e.g. PaymentUnavailable, answered 503?"}
+
+  service:
+    layer: p3_services
+    test: integration
+    description: One business operation - calls repositories and clients, applies the rules, owns the transaction.
+    module: "{name}"
+    name_pattern: "^[a-z]+_[a-z0-9_]+$"
+    name_hint: "verb_noun, e.g. create_order"
+    signature_overridable: true
+    symbols:
+      - {kind: function, name: "{name}"}   # its parameters are the implementer's, unless --signature fixes them
+    guide_words: [missing, repeated, partial, concurrent, exposed]
+    safety_decisions: {missing: not_found, repeated: twice, partial: all_or_nothing, exposed: who_may}  # the decision that already answers it
+    edge_cases:
+      - {id: steps, question: "What does it do, step by step (read, check, change, save, call) - e.g. read the order, check it is NEW, mark it PAID, save, call the payment service?"}
+      - {id: not_found, question: "Something it needs does not exist: which domain error - e.g. OrderNotFound?"}
+      - {id: twice, question: "Called twice with the same input (a client retry) - e.g. \"pay order 42\" sent twice: same result and no duplicate effect (idempotent), or a duplicate error?", suggested: "The same result, no duplicate effect (idempotent)"}
+      - {id: who_may, question: "Who may perform it, and is that checked here or in the router - e.g. only the order's owner, checked here?", choices: ["Checked here, in the service", "Checked in the router"]}
+      - {id: all_or_nothing, question: "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle - e.g. the order and its lines together; payment fails -> nothing saved?"}
+
+  router:
+    layer: p4_api
+    test: integration
+    examples: true   # business examples: archvow example add <component> <name>
+    description: The HTTP routes of one resource - input, permissions, status codes, response.
+    module: "{name}_router"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "the resource, plural, e.g. orders"
+    routes: true             # its routes are declared: archvow component add/edit router ... -r "name: METHOD /path"
+    extra_symbols: true
+    symbols:
+      - {kind: constant, name: router, annotation: APIRouter}
+    guide_words: [exposed, more, wrong, repeated]
+    safety_decisions: {exposed: who_may_call, more: pagination, wrong: invalid_input, repeated: twice}  # the decision that already answers it
+    edge_cases:
+      - {id: who_may_call, question: "Who may call each route: anyone, an authenticated user, the owner of the resource, which role - e.g. GET any authenticated user, DELETE the admin role?"}
+      - {id: status_codes, question: "Status codes: success, not found, conflict, forbidden - and the error body format - e.g. 201, 404, 409, 403 with {\"detail\": \"...\"}?"}
+      - {id: invalid_input, question: "Invalid input (e.g. text where a number is expected): FastAPI's 422, or 400 with your own error format?", suggested: "FastAPI's 422"}
+      - {id: pagination, question: "Lists: pagination, default and maximum page size - e.g. ?page=1&size=50, at most 200 - or no list route?", choices: ["No list route", "?page and size, default 50, at most 200"]}
+      - {id: twice, question: "A client sends the same POST or PUT twice (a retry) - e.g. the network drops after \"create order\": do it twice, or recognise the repeat with a key the client sends (idempotency key)?", choices: ["Do it twice (no key)", "Recognise the repeat with an Idempotency-Key header"]}
+    test_hints:
+      - "Test through FastAPI's TestClient with the app from the app component, one test per route and status code; for who may call it, a Hypothesis test that generates two users and checks one never sees the other's data."
+      - "Contract with golden files: the business examples of the spec (archvow example add: tests/examples/<component>/<example>/input/request.json and expected/response.json, locked, with an optional scenario.feature in Given/When/Then words), and one test that sends each request through the TestClient and compares the response with its expected one (generated ids and dates replaced first). Never change them: no example yet means a person records one first."
+
+  app:
+    layer: p4_api
+    test: integration
+    description: The FastAPI app - routers, prefix, lifespan, error mapping. Run with uvicorn --factory.
+    module: "{name}"
+    name_pattern: "^[a-z][a-z0-9_]*$"
+    name_hint: "e.g. main"
+    symbols:
+      - {kind: function, name: create_app, signature: "() -> FastAPI"}
+    guide_words: [missing, exposed]
+    edge_cases:
+      - {id: routers, question: "Which routers, under which prefix (e.g. /v1)?"}
+      - {id: domain_errors, question: "Which domain errors map to which HTTP status - e.g. OrderNotFound -> 404, OrderConflict -> 409?"}
+      - {id: lifespan, question: "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails - e.g. open the database pool; if it fails, the app does not start?", suggested: "If startup fails, the app stops: it never serves half-started"}
+      - {id: cors, question: "CORS: which origins may call it from a browser - e.g. https://app.example.com - or none?", suggested: "None"}
+    requirements:
+      - "Only this component creates FastAPI() (FAPI003); startup and shutdown go in its lifespan, never on_event (FAPI004)."
+      - "Map domain errors to HTTP statuses here, with app.add_exception_handler: services and the domain never raise HTTPException (FAPI002)."
+      - "Call setup_logging once, in the lifespan; log one line per request (method, route, status, duration and a request id), never a header, a token or a body with personal data."
+
+initial_components:
+  - id: settings
+    name: settings
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.settings"
+    description: The service's settings, read from the environment (pydantic-settings), never from code.
+    uses: []
+    symbols:
+      - {kind: class, name: Settings}
+      - {kind: function, name: get_settings, signature: "() -> Settings"}
+    edge_cases:
+      - {id: settings, question: "Settings, name: type = default separated by commas (no default = required) - e.g. database_url: str, page_size: int = 50 - or none?"}
+      - {id: secrets, question: "Which settings are secrets (never logged, never in a response), and where do they come from - e.g. database_url, from an environment variable?"}
+  - id: logging_setup
+    name: logging_setup
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.logging_setup"
+    description: Configures logging once, at the app's startup - the only place that configures it (ARCH059 - no basicConfig, handler or root level anywhere else); every module takes its own logger with logging.getLogger(__name__). Level from the settings, one line per event with the request id, never a secret, a token or personal data; the tests put the logging back as it was after each test (a shared fixture of tests/conftest.py - later logs must not write to a test's closed stream).
+    uses: []
+    symbols:
+      - {kind: function, name: setup_logging, signature: "(level: str = \"INFO\") -> None"}
+    edge_cases:
+      - {id: destination, question: "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id and message?", suggested: "stderr, one line per event: time, level, request id, message"}
+
+rules: {}

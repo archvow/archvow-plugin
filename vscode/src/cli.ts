@@ -1,6 +1,6 @@
 // Runs the archvow CLI: no shell, in the project folder, one command at a time (the next one waits),
 // stdout and stderr apart, stopped after the time-out. The extension never writes a vow itself.
-import { spawn } from 'node:child_process';
+import { ChildProcess, spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 
@@ -72,7 +72,8 @@ export function wslenv(previous: string | undefined): string {
   return names.join(':');
 }
 
-/** Where archvow is looked for, in order: VS Code's interpreter, archvow.python, the folder's .venv (0.25.2),
+/** Where archvow is looked for, in order: archvow.python (0.26.1: a Python the person chose comes first), VS Code's
+ *  interpreter, the folder's .venv (0.25.2),
  *  archvow.executable, then archvow where pip and pipx put it (0.25.2) - as IntelliJ's ArchvowProcessCommand. */
 export interface Candidate { source: 'ide' | 'python' | 'venv' | 'executable' | 'found'; executable: string; python: string }
 
@@ -81,8 +82,8 @@ export function candidates(settings: CliSettings, found: Candidate[] = []): Cand
   const ide = (settings.interpreter || '').trim();
   const python = settings.python.trim();
   const program = (c: Candidate): string => c.python || c.executable;
-  if (settings.useProjectInterpreter !== false && ide) out.push({ source: 'ide', executable: '', python: ide });
-  if (python && !out.some((c) => c.python === python)) out.push({ source: 'python', executable: '', python });
+  if (python) out.push({ source: 'python', executable: '', python });
+  if (settings.useProjectInterpreter !== false && ide && !out.some((c) => c.python === ide)) out.push({ source: 'ide', executable: '', python: ide });
   for (const c of found) if (c.source === 'venv' && !out.some((o) => program(o) === program(c))) out.push(c);
   out.push({ source: 'executable', executable: settings.executable.trim() || 'archvow', python: '' });
   for (const c of found) if (c.source !== 'venv' && !out.some((o) => program(o) === program(c))) out.push(c);
@@ -289,6 +290,11 @@ export class ArchvowCli {
     return c === undefined ? '' : c.python || c.executable;
   }
 
+  /** Where that program was found (Candidate.source): shown on the welcome page (0.26.1). */
+  get source(): string {
+    return this.chosen?.candidate.source ?? '';
+  }
+
   /** Whether a command runs or waits. */
   get running(): boolean {
     return this.busy || this.waiting.length > 0;
@@ -333,7 +339,27 @@ export class ArchvowCli {
     return this.spawnOnce({ ...settings, executable: chosen.executable, python: chosen.python }, args, stdin, settings.timeoutSeconds);
   }
 
-  private spawnOnce(settings: CliSettings, args: string[], stdin: string | undefined, timeoutSeconds: number): Promise<CliResult> {
+  /**
+   * 1.3.0: a long command beside the queue - an AI skill run, a review: minutes, while the other calls go on. Its
+   * own time-out; `stop()` ends archvow, which stops the assistant it started.
+   */
+  background(args: string[], timeoutSeconds: number): { done: Promise<CliResult>; stop: () => void } {
+    let child: ChildProcess | undefined;
+    let stopped = false;
+    const done = (async () => {
+      const settings = this.settings();
+      const chosen = await this.choose(settings);
+      if (chosen === null) return { args, exitCode: -1, stdout: '', stderr: '', timedOut: false, startError: this.notFound, millis: 0 };
+      const result = await this.spawnOnce({ ...settings, executable: chosen.executable, python: chosen.python }, args, undefined, timeoutSeconds,
+        (c) => { child = c; if (stopped) c.kill(); });
+      this.onCall(result, true);
+      return result;
+    })();
+    return { done, stop: () => { stopped = true; child?.kill(); } };
+  }
+
+  private spawnOnce(settings: CliSettings, args: string[], stdin: string | undefined, timeoutSeconds: number,
+    onStart?: (child: ChildProcess) => void): Promise<CliResult> {
     let program: string;
     let argv: string[];
     try {
@@ -377,6 +403,7 @@ export class ArchvowCli {
         windowsHide: true,
         env,
       });
+      onStart?.(child);
       const timer = setTimeout(() => {
         timedOut = true;
         child.kill();

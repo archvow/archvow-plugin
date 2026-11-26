@@ -58,12 +58,12 @@ public final class WslRegression {
         equal("PATH/l:NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG", ArchvowWsl.wslenv("PATH/l"), "WSLENV keeps what was shared");
         equal("NO_COLOR:PYTHONIOENCODING:ARCHVOW_LOG", ArchvowWsl.wslenv("NO_COLOR"), "WSLENV once each");
 
-        // the search order: the IDE's interpreter, then the settings' Python, then the executable
+        // the search order (0.26.1): the Python chosen in the settings, then the IDE's interpreter, then the executable
         var order = ArchvowProcessCommand.candidates(true, python, "archvow", "/usr/bin/python3");
-        equal(List.of("ide", "python", "executable"), order.stream().map(ArchvowProcessCommand.Candidate::source).toList(), "order");
+        equal(List.of("python", "ide", "executable"), order.stream().map(ArchvowProcessCommand.Candidate::source).toList(), "order");
         equal(List.of("python", "executable"), ArchvowProcessCommand.candidates(false, python, "", "/usr/bin/python3").stream()
             .map(ArchvowProcessCommand.Candidate::source).toList(), "IDE interpreter not used when unticked");
-        equal(List.of("ide", "executable"), ArchvowProcessCommand.candidates(true, "/p", "", "/p").stream()
+        equal(List.of("python", "executable"), ArchvowProcessCommand.candidates(true, "/p", "", "/p").stream()
             .map(ArchvowProcessCommand.Candidate::source).toList(), "the same Python once");
         equal("archvow", ArchvowProcessCommand.candidates(true, "", "", "").get(0).executable(), "nothing set: archvow on the PATH");
 
@@ -74,14 +74,14 @@ public final class WslRegression {
 
         if (File.separatorChar != '/') { System.out.println("OK: WSL paths and order (process checks skipped on Windows)"); return; }
 
-        // the first candidate that answers --version: the IDE's interpreter has no archvow, the settings' Python has
+        // the first candidate that answers --version: the settings' Python has no archvow, the IDE's interpreter has
         Path dir = Files.createTempDirectory("archvow-wsl");
         Path without = script(dir.resolve("python-without"), "echo \"No module named archvow\" >&2; exit 1");
         Path with = script(dir.resolve("python-with"), "for a; do last=$a; done; if [ \"$last\" = --version ]; then echo archvow 1.16.0; else echo \"$@\"; fi");
-        ArchvowCli.Probe probe = ArchvowCli.probe(ArchvowProcessCommand.candidates(true, without.toString(), "/nonexistent/archvow",
-            with.toString()), dir.toString(), false);
-        equal("python", probe.chosen() == null ? "none" : probe.chosen().source(), "the settings' Python answered");
-        equal(true, probe.report().contains("No module named archvow"), "what the IDE's interpreter said is kept");
+        ArchvowCli.Probe probe = ArchvowCli.probe(ArchvowProcessCommand.candidates(true, with.toString(), "/nonexistent/archvow",
+            without.toString()), dir.toString(), false);
+        equal("ide", probe.chosen() == null ? "none" : probe.chosen().source(), "the IDE's interpreter answered");
+        equal(true, probe.report().contains("No module named archvow"), "what the settings' Python said is kept");
         ArchvowCli.Probe none = ArchvowCli.probe(ArchvowProcessCommand.candidates(true, without.toString(), "/nonexistent/archvow", ""),
             dir.toString(), true);
         equal(true, none.chosen() == null && none.report().startsWith("Archvow introuvable") && none.report().contains("/nonexistent/archvow"),

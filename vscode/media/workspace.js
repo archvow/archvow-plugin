@@ -7,6 +7,16 @@
 (function () {
   'use strict';
   const vscode = acquireVsCodeApi();
+  // The list / answer split (1.2.0): the list's width when side by side, its height when stacked; kept by the webview.
+  const splitSize = Object.assign({ left: '50%', top: '40vh' }, (vscode.getState && (vscode.getState() || {}).split) || {});
+  const keptTool = (vscode.getState && (vscode.getState() || {}).aiTool) || '';
+  const keptRunTool = (vscode.getState && (vscode.getState() || {}).runTool) || '';
+  /** 1.4.1: kept by the webview (this tab) and by the extension (a new tab, a reloaded window: the init message). */
+  function keep(what) {
+    try { if (vscode.setState) vscode.setState(Object.assign({}, vscode.getState() || {}, what)); } catch (e) { /* not kept */ }
+    vscode.postMessage({ type: 'keep', kept: what });
+  }
+  function keepSplit() { keep({ split: { left: splitSize.left, top: splitSize.top } }); }
   const NAV = window.ARCHVOW_ROLE !== 'editor';
   /** What archvow said, from the extension. */
   let S = null;
@@ -14,7 +24,21 @@
   let I = { commands: [], catalog: null, knownVersion: '', rules: { en: '', fr: '' }, types: {}, forms: {}, icons: {} };
   /** What the person chose on the page. */
   const ui = {
-    tab: 'overview', overSub: 'architecture', packsOpen: false, tryExample: 'pyspark-pipeline', forceWorkspace: false, filterMenu: false, projectMore: false,
+    /** What is typed in "another assistant" of each AI-assistant question (0.26.1), by kind and question. */
+    agentOther: {},
+    /** The open right-click menu (1.1.0): { kind, d, x, y }. */
+    ctxMenu: null,
+    /** Draft with AI (1.2.0): the draft in a box, by its key - {tool, title, text, before}; the tool drafting it;
+     *  the open ▾ menu's key; the tool chosen last (kept by the webview). */
+    aiDraft: {}, aiDrafting: {}, aiMenuKey: '', aiTool: keptTool, aiError: {},
+    /** 1.3.0, AI skills run here: archvow's instructions by skill|target|max (null: asked); the run going on or
+     *  its end - {key, status, title, what, started, message, added, log, review}; the AI picked for ▶ Run (kept). */
+    skillPrompts: {}, skillRun: null, runTool: keptRunTool, runMenu: false,
+    /** The walk under way (1.1.0): Specify or Build, its scope, the components done, the one shown. */
+    walk: null,
+    /** 1.1.0: an answer field the person edited by hand - its table no longer writes over it. */
+    byHand: {},
+    tab: 'overview', overSub: 'architecture', templatesOpen: false, tryExample: 'pyspark-pipeline', reveal: '', forceWorkspace: false, filterMenu: false, projectMore: false,
     /** The editor tab: 'empty', 'feature', 'component', 'briefs', 'checks', 'project', 'command', 'result' or 'search'. */
     mode: 'empty', resultLabel: '', title: '',
     component: '', view: 0, filter: 'all',
@@ -31,7 +55,7 @@
     /** The form's live preview (design A): the command line, or what is still missing. */
     preview: { text: '', missing: '', files: [] },
     catalog: null, catalogSource: '', initTemplate: '', initAnswers: {}, initTouched: {}, advanced: false,
-    /** Edit spec: the values the form opened with (only the changed ones are sent); pack template: its settings. */
+    /** Edit spec: the values the form opened with (only the changed ones are sent); template new: its settings. */
     formBaseline: {}, tplAnswers: {}, tplLayers: {}, smartRows: {}, smartQuestions: {}, paramRows: {},
     /** The layer whose "+" is open in the Components tab (its types to add), or ''. */
     addLayer: '',
@@ -54,16 +78,20 @@
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const str = (o, k) => (o && o[k] !== null && o[k] !== undefined ? (typeof o[k] === 'object' ? JSON.stringify(o[k]) : String(o[k])) : '');
   const list = (o, k) => (o && Array.isArray(o[k]) ? o[k].filter((x) => x && typeof x === 'object') : []);
+  /** A list of names (strings) of an object, e.g. a template's `extends`. */
+  const names = (o, k) => (o && Array.isArray(o[k]) ? o[k].filter((x) => typeof x === 'string') : []);
   const short = (s, n) => (s.length <= n ? s : s.substring(0, n - 1) + '…');
+  /** 1.4.1: the page the editor shows now, as a place to come back to (← Back on a command or skill page). */
+  const here = () => {
+    if (ui.mode === 'component' && ui.component && ui.view !== 7) return { component: ui.component, view: ui.view };
+    if (ui.mode === 'briefs') return { briefs: true };
+    if (ui.mode === 'feature' && ui.feature) return { feature: ui.feature };
+    if (['result', 'search', 'checks', 'project', 'commandDocs'].includes(ui.mode)) return { mode: ui.mode };
+    return null;
+  };
   const post = (m) => {
-    // a command opened from a component (Edit spec, + Question, Accept...): the editor tab can go back to it
-    if (!NAV && ui.mode === 'component' && ui.component && ui.view !== 7 && (m.type === 'openCommand' || m.type === 'choose')) {
-      ui.backArmed = { component: ui.component, view: ui.view };
-    } else if (!NAV && ui.mode === 'briefs' && m.type === 'openCommand') {
-      ui.backArmed = { briefs: true };
-    } else if (!NAV && ui.mode === 'feature' && ui.feature && m.type === 'openCommand') {
-      ui.backArmed = { feature: ui.feature };
-    }
+    // a command opened from a page (Edit spec, + Question, Accept...): the editor tab can go back to it
+    if (!NAV && (m.type === 'openCommand' || (m.type === 'choose' && ui.mode === 'component'))) ui.backArmed = here();
     vscode.postMessage(m);
   };
   const btn = (label, action, extra = '', disabled = false, cls = '') =>
@@ -177,11 +205,15 @@
     switch (m.type) {
       case 'init':
         I = { commands: m.commands || [], catalog: m.catalog, knownVersion: m.knownVersion, rules: m.rules || { en: '', fr: '' }, types: m.types || {}, forms: m.forms || {}, icons: m.icons || {}, tmpdir: m.tmpdir || '' };
+        if (m.kept && m.kept.split) Object.assign(splitSize, m.kept.split);  // where the person left it, in any tab
+        if (m.kept && m.kept.aiTool && !ui.aiTool) ui.aiTool = m.kept.aiTool;
+        if (m.kept && m.kept.runTool && !ui.runTool) ui.runTool = m.kept.runTool;
         ICONS.clear();
         break;
       case 'state':
         S = m.state;
         if (ui.component && !(ui.component in (S.snapshots || {})) && S.spec && !componentIds().includes(ui.component)) ui.component = '';
+        walkAfterState();
         break;
       case 'select':
         ui.forceWorkspace = true;
@@ -202,6 +234,40 @@
       case 'featureSelected':
         ui.feature = m.feature || '';
         break;
+      case 'walk':  // 1.1.0
+        if (NAV) return;
+        startWalk(m);
+        break;
+      case 'skillPrompt':  // 1.3.0: archvow's instructions for a skill (archvow skill --prompt)
+        ui.skillPrompts[m.key] = typeof m.text === 'string' ? m.text : t(`archvow could not write them: ${m.error || ''}`, `archvow n'a pas pu les écrire : ${m.error || ''}`);
+        break;
+      case 'skillDone':  // 1.3.0: how the run ended (archvow skill / archvow review)
+        if (ui.skillRun && ui.skillRun.key === m.key) {
+          ui.skillRun = Object.assign({}, ui.skillRun, { status: m.status || 'failed', message: m.message || '', added: !!m.added, log: !!m.log });
+        }
+        break;
+      case 'drafted': {  // 1.2.0: the AI's draft (or why there is none)
+        const key = m.key || '';
+        if (!ui.aiDrafting[key] && !m.copied) break;  // stopped meanwhile: the draft is not wanted
+        delete ui.aiDrafting[key];
+        if (m.error) { ui.aiError[key] = m.error; break; }
+        if (m.copied) break;
+        ui.aiDraft[key] = { tool: m.tool, title: m.title || m.tool, text: m.draft, before: (ui.aiDraft[key] || {}).before ?? ui.drafts[key] };
+        ui.drafts[key] = m.draft;
+        break;
+      }
+      case 'walkCopied':
+        if (ui.walk && ui.walk.current === m.component) ui.walk.copied = true;
+        break;
+      case 'walkChecked':
+        if (ui.walk && ui.walk.current === m.component) {
+          const codes = Array.isArray(m.codes) ? m.codes : [];
+          ui.walk.checkOk = !codes.length && ['tested', 'verified'].includes(m.status);
+          ui.walk.checkLine = ui.walk.checkOk ? `✓ ${m.status} · ${t('0 findings', '0 constat')}`
+            : '✖ ' + (codes.length ? t(`${codes.length} finding(s): `, `${codes.length} constat(s) : `) + codes.join(', ')
+              : t(`not tested yet (${m.status})`, `pas encore testé (${m.status})`));
+        }
+        break;
       case 'commandSelected':
         ui.command = m.command;
         break;
@@ -213,16 +279,19 @@
         break;
       case 'running':
         ui.results[m.target] = { running: true, args: m.args };
+        if (m.target === 'welcome') ui.reveal = 'welcome';  // Try it: its result shows under the cards, maybe below the fold
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; ui.back = null; }
         break;
       case 'result':
         ui.results[m.target] = { html: m.html, raw: m.raw, args: m.args, ok: m.ok, label: m.label, refusal: m.refusal || '', warnings: m.warnings || [] };
         ui.raw[m.target] = false;
+        if (m.target === 'welcome') ui.reveal = 'welcome';
         if (ui.confirm && ui.confirm.target === m.target) ui.confirm = null;
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.label || ''; }
         break;
       case 'confirm':
         ui.confirm = { token: m.token, title: m.title, summary: m.summary, target: m.target, command: m.command };
+        ui.revealConfirm = true;  // 1.4.1: down to Confirm and run, as IntelliJ does
         if (m.target === 'overview') { ui.mode = 'result'; ui.resultLabel = m.title || ''; }
         break;
       case 'commandDocs':
@@ -240,14 +309,15 @@
         break;
       case 'openCommand':
         ui.forceWorkspace = true;
-        ui.back = ui.backArmed;
+        // from this editor's page, or from the tool window: back to what this editor showed (1.4.1)
+        ui.back = ui.backArmed || (ui.mode === 'command' || ui.mode === 'skill' ? ui.back : here());
         ui.backArmed = null;
         ui.mode = 'command';
         setCommand(m.command, m.values || {}, m.help || '');
         break;
       case 'skill':
         ui.forceWorkspace = true;
-        ui.back = ui.backArmed;
+        ui.back = ui.backArmed || (ui.mode === 'command' || ui.mode === 'skill' ? ui.back : here());
         ui.backArmed = null;
         ui.mode = 'skill';
         ui.aiMenu = false;
@@ -340,8 +410,9 @@
     // The step strip is horizontal and survives field/preview rerenders.
     const previousSteps = document.querySelector('.guided-command-column .guided-steps');
     const previousStepScroll = previousSteps ? previousSteps.scrollLeft : 0;
-    app.innerHTML = page();
+    app.innerHTML = page() + contextMenu();
     layoutExpandedResult();
+    revealResult();
     if (!NAV) {
       const title = editorTitle();
       if (title !== ui.title) {
@@ -425,8 +496,12 @@
         : ui.mode === 'search' ? t('Find', 'Recherche') : '';
     // a component's name is the heading of its page, with its open items (componentDetail)
     const named = (ui.mode === 'component' && ui.view !== 7 && ui.component && snapshot()) || (ui.mode === 'feature' && featureOf(ui.feature));
+    const backTo = { result: t('Result', 'Résultat'), search: t('Find', 'Recherche'), checks: t('Checks', 'Contrôles'),
+      project: t('Project', 'Projet'), commandDocs: t('Reference', 'Référence') };
     const back = ui.back && ui.mode !== 'component'
-      ? ui.back.briefs
+      ? ui.back.mode
+        ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + backTo[ui.back.mode])}">← ${esc(backTo[ui.back.mode])}</button>`
+        : ui.back.briefs
         ? `<button class="secondary back" data-a="back" title="${esc(t('Back to Briefs', 'Retour aux briefs'))}">← Briefs</button>`
         : ui.back.feature
         ? `<button class="secondary back" data-a="back" title="${esc(t('Back to ', 'Retour à ') + ui.back.feature)}">← ${esc(ui.back.feature)}</button>`
@@ -464,6 +539,34 @@
   /** The examples `archvow try` copies (2.1): value, label. */
   const TRY_EXAMPLES = [['pyspark-pipeline', 'PySpark pipeline'], ['fastapi-service', 'FastAPI service'], ['python-app', 'Python app'], ['langgraph-agent', 'LangGraph agent']];
 
+  /** Which archvow runs, and why (0.26.1): the first thing a developer needs to trust what the buttons do. */
+  function runsLine() {
+    const r = S.runs || {};
+    if (!r.program) return '';
+    const where = { python: t('the Python chosen for archvow (archvow.python)', 'le Python choisi pour archvow (archvow.python)'),
+      ide: t("the project's Python interpreter", "l'interpréteur Python du projet"), venv: t("the project's .venv", 'le .venv du projet'),
+      found: t('where pip or pipx installed it', "là où pip ou pipx l'a installé") }[r.source]
+      || t('the archvow executable (archvow.executable)', "l'exécutable archvow (archvow.executable)");
+    const what = r.version ? `archvow ${r.version}` : 'archvow';
+    return `${compatLine()}<p class="small muted runs">${esc(t(`${what} with ${r.program} — ${where}. To choose another Python: Configure Python.`,
+      `${what} avec ${r.program} — ${where}. Pour choisir un autre Python : Configurer Python.`))}</p>`;
+  }
+
+  /** "archvow 3.0.0 ✓ · this plugin works with archvow >=3.0,<4" (1.0.0): the installed archvow against the plugin's range. */
+  function compatLine() {
+    const c = S.compat || {};
+    return c.header ? `<p class="small compat ${c.state === 'ok' ? 'tone-good' : 'tone-warn'}">${esc(c.header)}</p>` : '';
+  }
+
+  /** An archvow outside the range (1.0.0): what to do - install, upgrade the project, update the plugin. */
+  function compatCard() {
+    const c = S.compat || {};
+    if (!c.state || c.state === 'ok' || c.state === 'missing') return '';
+    const offer = S.install && S.install.reason === 'version';
+    return offer ? installCard() + confirmation('welcome') + resultCard('welcome')
+      : `<div class="card install"><p class="tone-warn">${esc(c.header)}</p><p><b>${esc(c.text)}</b></p></div>`;
+  }
+
   function welcomeView() {
     const texts = {
       NO_PROJECT: [t('No project', 'Aucun projet'), t('Open a folder to use Archvow.', 'Ouvre un dossier pour utiliser Archvow.')],
@@ -482,7 +585,9 @@
     ${btn(t('Try it', "L'essayer"), 'tryExample', '', false, 'secondary')}</div></section>` : '';
     return `<section class="welcome"><h2>${esc(t('Archvow · Getting started', 'Archvow · Démarrage'))}</h2>
   <section class="card"><h3>${esc(title)}</h3><p>${esc(detail)}</p><p class="mono small muted">${esc(S.project.root)}</p>
+  ${runsLine()}
   ${S.welcomeError ? `<pre class="error">${esc(S.welcomeError)}</pre>` : ''}
+  ${S.compat && S.compat.state !== 'ok' && !(S.install && S.install.reason) ? `<p><b>${esc(S.compat.text)}</b></p>` : ''}
   ${installCard()}
   <div class="row wrap">${btn(t('Initialize Archvow', 'Initialiser Archvow'), 'init', '', !fresh)}
   ${btn(t('Configure Python', 'Configurer Python'), 'settings', '', false, 'secondary')}${btn(t('Retry', 'Réessayer'), 'refresh', '', false, 'secondary')}</div>
@@ -495,6 +600,23 @@
     "Après Initialiser, la Vue d'ensemble montre les premiers pas. Les développeurs et relecteurs qui clonent un projet avec archvow partent de son README."))}</p>` : ''}</section>`;
   }
 
+  /** Scroll a result that just started or arrived into view (0.26.1): Try it's result shows under the welcome cards,
+   *  below the fold of a sidebar or a short editor - it seemed that nothing happened. */
+  function revealResult() {
+    if (ui.revealConfirm) {
+      ui.revealConfirm = false;
+      const box = document.querySelector('.confirm');
+      const go = box && box.querySelector ? box.querySelector('[data-a="confirm"]') : null;
+      if (go && go.scrollIntoView) go.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    const target = ui.reveal;
+    ui.reveal = '';
+    if (!target) return;
+    const body = document.querySelector(`[data-body="${CSS.escape(target)}"]`);
+    const card = body && body.closest ? body.closest('.card.result') : null;
+    if (card && card.scrollIntoView) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
   /** Under a `try` result (2.1): set archvow up here (only where it is not yet), or read the example's spec. */
   function tryFollowUp(target, fresh) {
     const r = ui.results[target];
@@ -502,8 +624,8 @@
     let folder = '';
     const found = /"folder":\s*("(?:[^"\\]|\\.)*")/.exec(r.raw || '');  // stderr may follow the JSON
     try { folder = found ? String(JSON.parse(found[1])) : ''; } catch { folder = ''; }
-    return `<div class="row wrap try-follow">${fresh ? btn(t('Set up archvow in this repository', 'Installer archvow dans ce dépôt'), 'init') : ''}
-      ${folder ? btn(t("Read the example's spec", "Lire la spec de l'exemple"), 'openTryCopy', attrs({ folder }), false, 'secondary') : ''}</div>`;
+    // 1.2.0: the example's spec is read from the folder's line at the top of the result
+    return fresh && folder ? `<div class="row wrap try-follow">${btn(t('Set up archvow in this repository', 'Installer archvow dans ce dépôt'), 'init')}</div>` : '';
   }
 
   /** Install archvow (0.12.0): when it cannot start, or does not speak the plugin's contract. Nothing runs
@@ -511,9 +633,9 @@
   function installCard() {
     const i = S.install || {};
     if (!i.reason) return '';
-    const why = i.reason === 'missing'
+    const why = (S.compat && S.compat.text) || (i.reason === 'missing'
       ? t(`archvow is not installed where the plugin looks. Install archvow ${i.version}:`, `archvow n'est pas installé là où le plugin le cherche. Installer archvow ${i.version} :`)
-      : t(`The installed archvow is not ${i.version}, the version this plugin knows:`, `L'archvow installé n'est pas ${i.version}, la version que ce plugin connaît :`);
+      : t(`The installed archvow is not one this plugin works with. Install archvow ${i.version}:`, `L'archvow installé n'est pas un de ceux avec lesquels ce plugin fonctionne. Installer archvow ${i.version} :`));
     const where = i.python
       ? `${terminalCommand(i.command)}<p class="muted small">${esc(t('From', 'Depuis'))}: ${esc(i.source === "pip's configuration" ? t("pip's configuration", 'la configuration de pip') : i.source)} · ${esc(t('setting archvow.installFrom', 'réglage archvow.installFrom'))}</p>`
       : `<p class="tone-warn">${esc(t('No Python found for this project (.venv, venv, the Python extension\'s interpreter, archvow.python): choose one with Configure Python.',
@@ -533,7 +655,7 @@
   /** The sidebar's find field (0.18.0): a name - a function, a column, a ticket, an example - and Enter runs
    *  archvow show <name> --json; the result opens in the editor tab. */
   function findBox() {
-    const searchTitle = t('Find in the project (Enter to search)', 'Chercher dans le projet (Entrée pour chercher)');
+    const searchTitle = t('Find in the project - a name, or a pasted error (Enter to search)', 'Chercher dans le projet - un nom, ou une erreur collée (Entrée pour chercher)');
     const filterTitle = t('Filter components', 'Filtrer les composants');
     const filters = [['all', t('All', 'Tous')], ['pending', t('Pending', 'En attente')], ['resolved', t('Resolved', 'Traités')]];
     return `<div class="top-search" role="search"><div class="search-field">${icon('search') || '⌕'}<input id="find" aria-label="${esc(searchTitle)}" data-input="find" data-keep="find" value="${esc(ui.findText)}" placeholder="${esc(t('Search…', 'Rechercher…'))}" title="${esc(searchTitle)}"></div>
@@ -553,6 +675,7 @@
   /** archvow show <name> --json: groups left (with counts, a click filters), the places in the middle, the
    *  selected one's lines right; a name found nowhere gives its close names. As IntelliJ's search panel. */
   function searchView(result) {
+    if (result && typeof result.error === 'object' && result.error !== null) return pastedErrorView(result);
     if (!result) return `<p class="muted">${esc(t('Type a name in the find field of the Archvow sidebar.', 'Tape un nom dans le champ de recherche du panneau Archvow.'))}</p>`;
     const name = str(result, 'name');
     const total = Number(result.total) || 0;
@@ -589,6 +712,37 @@
     return `<div class="search-head"><h2 class="mono">${esc(name)}</h2><span class="muted">${esc(t(`found in ${total} place${total === 1 ? '' : 's'}`, `trouvé à ${total} endroit${total === 1 ? '' : 's'}`))}${str(result, 'summary') ? ' · ' + esc(str(result, 'summary')) : ''}</span>
   <p class="muted small">${esc(t(`archvow show ${name} --json · whole words only`, `archvow show ${name} --json · mots entiers seulement`))}</p></div>
   <div class="search-grid"><nav class="search-groups">${nav}</nav><ul class="search-hits" data-scroll="search-hits">${rows}</ul><aside class="search-preview">${preview}</aside></div>`;
+  }
+
+  /**
+   * A pasted error (archvow show "<the error>" --json, archvow 2.7.0): what went wrong, the template's known errors it
+   * matches - each template rule with its fix and why - then where it broke, the lines around it, and where its lesson
+   * goes once it is fixed. As IntelliJ's ArchvowSearch.errorHtml.
+   */
+  function pastedErrorView(result) {
+    const error = result.error;
+    const known = list(error, 'known');
+    const file = str(result, 'file');
+    const line = Number(result.line) || 0;
+    const component = str(result, 'component');
+    const symbol = result.symbol && typeof result.symbol === 'object' ? str(result.symbol, 'name') : '';
+    const around = Array.isArray(result.around) ? result.around : [];
+    const rules = known.map((k) => `<div class="alert ${str(k, 'severity') === 'warning' ? 'warn' : 'bad'}"><b>${esc(str(k, 'code'))}</b> ${esc(str(k, 'message'))}
+  <span class="muted small">${esc(t("(a known error: a rule of the project's templates)", '(une erreur connue : une règle des templates du projet)'))}</span>
+  ${str(k, 'fix') ? `<div>${esc(t('Fix: ', 'Correction : '))}${esc(str(k, 'fix'))}</div>` : ''}${str(k, 'why') ? `<div class="muted">${esc(t('Why: ', 'Pourquoi : '))}${esc(str(k, 'why'))}</div>` : ''}</div>`).join('');
+    const where = !file
+      ? `<p class="muted">${esc(t('No file of this project in it: once you know where it broke, archvow show <file>:<line>.', "Aucun fichier de ce projet dedans : quand tu sais où ça a cassé, archvow show <fichier>:<ligne>."))}</p>`
+      : `<h3>${esc(t('Where it broke', 'Où ça a cassé'))}</h3><p class="mono small hit-where">${esc(file + (line ? ':' + line : ''))}</p>
+  <p>${esc(component ? t(`code of ${component}`, `code de ${component}`) + (symbol ? t(`, inside ${symbol}`, `, dans ${symbol}`) : '') : str(result, 'hint'))}</p>
+  ${around.length ? `<pre class="plain around">${around.map((l) => `<span class="${Number(l.n) === line ? 'here' : ''}">${esc(String(l.n).padStart(4))}  ${esc(str(l, 'text'))}</span>`).join('\n')}</pre>` : ''}
+  <div class="row wrap">${btn(line ? t(`Open at line ${line}`, `Ouvrir à la ligne ${line}`) : t('Open', 'Ouvrir'), 'openFile', attrs({ file, line }))}
+  ${component ? btn(t(`Show ${component}`, `Afficher ${component}`), 'pick', attrs({ id: component }), false, 'secondary') : ''}</div>`;
+    return `<div class="card pasted-error"><div class="answer-head"><span>${esc(t('Error', 'Erreur'))}</span></div>
+  <h2 class="mono">${esc(str(error, 'error'))}</h2>
+  ${rules || `<p class="muted">${esc(t("Not a known error of this project's template.", 'Pas une erreur connue du template de ce projet.'))}</p>`}
+  ${where}
+  <p class="muted small">${esc(t('Fixed? Record the lesson where it reaches: the component\'s decision or rule, a template rule with this error (--error), or the template\'s troubleshooting page. The AI says which at the end of "Fix a bug".',
+    "Corrigé ? Enregistre la leçon où elle porte : la décision ou la règle du composant, une règle de template avec cette erreur (--error), ou la page de dépannage du template. L'IA le dit à la fin de « Corrige un bug »."))}</p></div>`;
   }
 
   // ---------------------------------------------------------------- shared: result card, confirmation
@@ -697,19 +851,36 @@
     const f = S.overview && S.overview.firstSteps;
     if (!f) return '';
     const button = (step) => {
+      // 1.1.0: Specify walks the foundations or the feature's components; Build walks the ready ones, then Check
       const specify = /^archvow specify (\S+)$/.exec(step.command);
-      if (specify) return btn(t('Specify', 'Spécifier'), 'openCommand', attrs({ command: 'specify', component: specify[1] }));
+      if (specify) return step.step === 'foundations'
+        ? btn(t('Specify', 'Spécifier'), 'walk', attrs({ kind: 'specify', scope: 'foundations', value: '' }))
+        : btn(t('Specify', 'Spécifier'), 'walk', attrs({ kind: 'specify', scope: 'feature', value: (W().featureOf || {})[specify[1]] || '' }));
+      const build = /^archvow prompt --feature (\S+)$/.exec(step.command);
+      if (build) return btn(t('Build ▸', 'Construire ▸'), 'walk', attrs({ kind: 'build', scope: 'feature', value: build[1] }));
       if (step.step === 'feature') return btn(t('Add feature', 'Ajouter une feature'), 'addFeature', '');
       if (step.step === 'component') return btn(t('Add component', 'Ajouter un composant'), 'addComponent', '');
-      if (step.step === 'build') return btn('Check', 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' }));
+      if (step.step === 'build') return btn(t('Check', 'Vérifier'), 'run', attrs({ label: 'full check', args: 'check --complete --json', target: 'overview' }));
       return '';
+    };
+    // 1.4.2: what archvow says can still be done at a step (also): + Feature, + Component, Build the N specified
+    const also = (step) => {
+      if (!step.also) return '';
+      const a = step.also;
+      const build = /^archvow prompt --feature (\S+)$/.exec(a.command);
+      const label = a.label === '+ Feature' ? t('+ Feature', '+ Feature') : a.label === '+ Component' ? t('+ Component', '+ Composant')
+        : t(a.label, a.label.replace(/^Build the (\d+) specified$/, 'Construire les $1 spécifiés'));
+      const action = build ? `data-a="walk" ${attrs({ kind: 'build', scope: 'feature', value: build[1] })}`
+        : /^archvow feature add\b/.test(a.command) ? 'data-a="addFeature"' : /^archvow component add\b/.test(a.command) ? 'data-a="addComponent"' : '';
+      return action ? `<button class="link step-also" ${action} title="${esc(a.command)}">${esc(label)}</button>` : '';
     };
     const steps = f.steps.map((step, i) => {
       const now = i === f.current;
       const mark = step.done ? '✓' : String(i + 1);
       return `<li class="first-step${now ? ' now' : ''}${step.done ? ' done' : ''}"><span class="step-mark" aria-hidden="true">${mark}</span>
-        <div class="step-text"><span class="step-title">${esc(step.title)}</span><span class="step-detail" title="${esc(step.command)}">${esc(step.detail)}</span></div>
-        ${now ? button(step) : ''}</li>`;
+        <div class="step-text"><span class="step-title">${esc(step.title)}</span><span class="step-detail" title="${esc(step.command)}">${esc(step.detail)}</span>${now && step.progress && step.progress.total > 1 && step.progress.done > 0
+          ? `<span class="step-bars" aria-hidden="true">${Array.from({ length: step.progress.total }, (_, k) => `<i class="${k < step.progress.done ? 'done' : ''}"></i>`).join('')}</span>` : ''}</div>
+        ${also(step)}${now ? button(step) : ''}</li>`;
     }).join('');
     return `<section class="card first-steps" aria-label="${esc(t('First steps', 'Premiers pas'))}"><div class="card-head"><h3>${esc(t('First steps', 'Premiers pas'))}</h3>
       <span class="muted">${esc(t(`${f.done} of ${f.steps.length} done`, `${f.done} sur ${f.steps.length} faits`))}</span></div>
@@ -720,18 +891,19 @@
   }
 
   function overviewTab() {
-    if (ui.packsOpen) return packsView();  // Overview › Packs, in the same tab (0.22.0)
+    if (ui.templatesOpen) return templatesView();  // Overview › Templates, in the same tab (1.0.0)
     const branchWarning = needsFeatureBranch(S.branch) ? `<div class="warning" title="${esc(t('Advice only. Archvow does not automatically change Git branches.',
       'Conseil uniquement. Archvow ne change pas automatiquement de branche Git.'))}">${esc(t(`⚠ You are on ${S.branch}. For development, create a feature branch (e.g. feature/my-change) first.`,
       `⚠ Branche ${S.branch} : crée une branche de fonctionnalité (ex. feature/ma-modification) avant de développer.`))}</div>` : '';
     return `<section class="overview">
+  ${compatLine()}
   ${branchWarning}
-  ${S.install && S.install.reason === 'version' ? installCard() + confirmation('welcome') + resultCard('welcome') : ''}
+  ${compatCard()}
   ${firstStepsCard()}
   <div class="project-action-container">${projectToolbar()}</div>
   ${architectureView()}
   ${checksCard()}
-  ${packsSummary()}
+  ${templatesSummary()}
   <footer class="hint"><label>${esc(t('Language', 'Langue'))} <select data-change="language">${[['auto', t('Follow VS Code', 'Suivre VS Code')], ['en', 'English'], ['fr', 'Français']]
     .map(([v, l]) => `<option value="${v}" ${S.languageMode === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
     <span class="row wrap">${btn(t('Open settings', 'Ouvrir les paramètres'), 'settings', '', false, 'secondary')}
@@ -754,56 +926,61 @@
       ${f.file ? btn(checkFileLabel(f.file), 'openFile', attrs({ file: f.file, line: f.line }), false, 'secondary') : btn(t('Open Checks', 'Voir les contrôles'), 'openChecks', '', false, 'secondary')}</div></section>`;
   }
 
-  /** Overview › Packs (0.22.0): one row, as Architecture and Checks - how many packs, the copies changed by hand. */
-  function packsSummary() {
-    const packs = (S && S.packs) || [];
-    const changed = packs.filter((p) => str(p, 'state') === 'changed').length;
-    const line = `${packs.length} ${esc(t(packs.length === 1 ? 'pack' : 'packs', packs.length === 1 ? 'pack' : 'packs'))}`
+  /** Overview › Templates (1.0.0): one row, as Architecture and Checks - the project's chain, the copies changed by hand. */
+  function templatesSummary() {
+    const chain = ((S && S.templates) || []).filter((p) => str(p, 'name') !== 'project');
+    const changed = chain.filter((p) => str(p, 'state') === 'changed').length;
+    const line = `${esc(chain.map((p) => str(p, 'name')).join(' ← ') || t('none', 'aucun'))}`
       + (changed ? ` · <span class="tone-warn">${changed} ${esc(t('changed by hand', 'modifiés à la main'))}</span>` : '');
-    return `<div class="card packs-summary" data-a="openPacks" title="${esc(t('Open Packs', 'Voir les packs'))}"><div class="checks-summary-info"><div>
-    <h3>${esc(t('Packs', 'Packs'))}</h3>
+    return `<div class="card templates-summary" data-a="openTemplates" title="${esc(t('Open Templates', 'Voir les templates'))}"><div class="checks-summary-info"><div>
+    <h3>${esc(t('Templates', 'Templates'))}</h3>
     <p class="muted small">${line}</p></div></div>
-    <button class="link" data-a="openPacks">${esc(t('Open Packs', 'Voir les packs'))} →</button></div>`;
+    <button class="link" data-a="openTemplates">${esc(t('Open Templates', 'Voir les templates'))} →</button></div>`;
   }
 
-  /** Where a pack came from, as archvow 2.6 records it: a folder by its path from the project's root (the same in
-   *  every clone laid out alike), an installed package by its name; an absolute path is an earlier archvow's, which
-   *  its next Update rewrites. */
-  function packSource(source) {
+  /** Where a template came from, as archvow 3.0 records it: archvow's own, a folder by its path from the project's
+   *  root (the same in every clone laid out alike), or an installed package by its name. */
+  function templateSource(source) {
     if (!source) return t('Source: unknown', 'Source : inconnue');
-    if (/^(\/|[A-Za-z]:[\\/]|\\\\)/.test(source)) return t(`Source: ${source} (an absolute path: true on this machine only; Update records it from the project's root)`,
-      `Source : ${source} (un chemin absolu : vrai sur cette machine seulement ; Mettre à jour l'enregistre depuis la racine du projet)`);
+    if (source === 'archvow') return t('Source: archvow', 'Source : archvow');
+    if (/^(\/|[A-Za-z]:[\\/]|\\\\)/.test(source)) return t(`Source: ${source} (an absolute path: true on this machine only)`,
+      `Source : ${source} (un chemin absolu : vrai sur cette machine seulement)`);
     if (/[\\/]/.test(source) || source.startsWith('.')) return t(`Source: ${source} (a folder, from the project's root)`, `Source : ${source} (un dossier, depuis la racine du projet)`);
     return t(`Source: ${source} (an installed package)`, `Source : ${source} (un paquet installé)`);
   }
 
-  /** The project's packs (0.22.0): what each brings and its state, with Update / Remove, and Add a pack / New pack. */
-  function packsView() {
-    const packs = (S && S.packs) || [];
-    const brings = (p) => [['templates', t('templates', 'templates')], ['agents', t('agents', 'agents')], ['rule_families', t('rules', 'règles')],
-      ['regimes', t('privacy regimes', 'régimes de protection')]]
-      .map(([key, label]) => list(p, key).length ? `${label}: ${list(p, key).map((x) => esc(String(x))).join(', ')}` : '').filter((x) => x).join(' · ');
-    const rows = packs.map((p) => {
+  /** The project's templates (1.0.0): its chain's copies, bases first, each with what it extends, its source and
+   *  state; then the project's own additions. Update takes them again; questions and rules go to `project`. */
+  function templatesView() {
+    const all = (S && S.templates) || [];
+    const chain = all.filter((p) => str(p, 'name') !== 'project');
+    const own = all.find((p) => str(p, 'name') === 'project');
+    const rows = chain.map((p) => {
       const name = str(p, 'name');
       const changed = str(p, 'state') === 'changed';
-      return `<div class="card pack"><div class="card-head"><h3>${esc(name)} <span class="muted small">${esc(str(p, 'version'))}</span></h3>
-        <span class="${changed ? 'tone-warn' : 'tone-good'}">${esc(changed ? t('changed by hand', 'modifié à la main') : t('as added', 'tel qu\'ajouté'))}</span></div>
+      const bases = names(p, 'extends').map((x) => esc(x)).join(', ');
+      return `<div class="card template"><div class="card-head"><h3>${esc(name)} <span class="muted small">${esc(str(p, 'version'))}</span></h3>
+        <span class="${changed ? 'tone-warn' : 'tone-good'}">${esc(changed ? t('changed by hand', 'modifié à la main') : t('as copied', 'tel que copié'))}</span></div>
         <p class="muted small">${esc(str(p, 'description'))}</p>
-        <p class="small">${brings(p) || esc(t('Nothing yet.', 'Rien pour l\'instant.'))}</p>
-        <p class="muted small">${esc(packSource(str(p, 'source')))}</p>
-        ${changed ? `<p class="small tone-warn">${esc(str(p, 'why'))} (ARCH060)</p>` : ''}
-        <span class="row wrap">${btn(t('Update', 'Mettre à jour'), 'openCommand', attrs({ command: 'pack update', packname: name }), false, 'secondary')}
-        ${btn(t('Remove', 'Retirer'), 'openCommand', attrs({ command: 'pack remove', packname: name }), false, 'secondary')}
-        ${changed ? btn(t('See the change', 'Voir le changement'), 'openCommand', attrs({ command: 'diff', field: 'base' }), false, 'secondary') : ''}
-        ${btn(t('Check', 'Vérifier'), 'openCommand', attrs({ command: 'pack check', pack: name }), false, 'secondary')}</span></div>`;
+        ${bases ? `<p class="small">${esc(t('Extends', 'Étend'))}: ${bases}</p>` : ''}
+        <p class="muted small">${esc(templateSource(str(p, 'source')))}</p>
+        ${changed ? `<p class="small tone-warn">${esc(str(p, 'why'))} (ARCH060)</p>
+        ${btn(t('See the change', 'Voir le changement'), 'openCommand', attrs({ command: 'diff', field: 'base' }), false, 'secondary')}` : ''}</div>`;
     }).join('');
-    return `<section class="overview packs-list"><div class="card-head"><h3>${esc(t('Packs', 'Packs'))}</h3>
-      <span class="row wrap">${btn(t('Add a pack', 'Ajouter un pack'), 'openCommand', attrs({ command: 'pack add' }))}
-      ${btn(t('New pack', 'Nouveau pack'), 'openCommand', attrs({ command: 'pack new' }), false, 'secondary')}</span></div>
-      <p class="muted small">${esc(t("A pack brings a company's templates, agents and rules; its copy in .archvow/packs/ is what every clone and the CI read.",
-        "Un pack apporte les templates, agents et règles d'une entreprise ; sa copie dans .archvow/packs/ est ce que lisent chaque clone et la CI."))}</p>
-      ${rows || `<p class="muted">${esc(t('No pack in this project: its templates come from archvow.', 'Aucun pack dans ce projet : ses templates viennent d\'archvow.'))}</p>`}
-      <button class="link" data-a="closePacks">← ${esc(t('Overview', 'Vue d\'ensemble'))}</button></section>`;
+    const ownLine = own ? [['rule_families', t('rules', 'règles')], ['agents', t('agents', 'agents')]]
+      .map(([key, label]) => names(own, key).length ? `${label}: ${names(own, key).map((x) => esc(x)).join(', ')}` : '').filter((x) => x).join(' · ') : '';
+    return `<section class="overview templates-list"><div class="card-head"><h3>${esc(t('Templates', 'Templates'))}</h3>
+      <span class="row wrap">${btn(t('Update', 'Mettre à jour'), 'openCommand', attrs({ command: 'template update' }))}
+      ${btn(t('New template', 'Nouveau template'), 'openCommand', attrs({ command: 'template new' }), false, 'secondary')}</span></div>
+      <p class="muted small">${esc(t("The project's templates, bases first: their copies in .archvow/templates/ are what every clone and the CI read.",
+        "Les templates du projet, bases d'abord : leurs copies dans .archvow/templates/ sont ce que lisent chaque clone et la CI."))}</p>
+      ${rows || `<p class="muted">${esc(t('No template copied in this project yet: run archvow init --force.', 'Aucun template copié dans ce projet : lance archvow init --force.'))}</p>`}
+      <div class="card template"><div class="card-head"><h3>${esc(t("This project's own additions", 'Les ajouts propres à ce projet'))}</h3>
+        <span class="mono small muted">.archvow/template/</span></div>
+        <p class="small">${ownLine || esc(t('None yet: a question or a rule for this project only.', 'Aucun pour l\'instant : une question ou une règle pour ce seul projet.'))}</p>
+        <span class="row wrap">${btn(t('Add a question', 'Ajouter une question'), 'openCommand', attrs({ command: 'template question', templatename: 'project' }), false, 'secondary')}
+        ${btn(t('Add a rule', 'Ajouter une règle'), 'openCommand', attrs({ command: 'template rule', templatename: 'project' }), false, 'secondary')}</span></div>
+      <button class="link" data-a="closeTemplates">← ${esc(t('Overview', 'Vue d\'ensemble'))}</button></section>`;
   }
 
   /** Overview › Architecture (0.25.0): its own items only - decisions, questions and tasks; check findings are
@@ -822,6 +999,7 @@
       <div class="items-bar" role="img" aria-label="${esc(label)}">${pct ? `<div style="width:${pct}%"></div>` : ''}</div>
       ${o.itemsOpen && !o.firstSteps ? `<p class="muted small">${esc(t(`${o.itemsOpen} open: decisions, questions and tasks. Check findings count in Checks.`,
         `${o.itemsOpen} ouverts : décisions, questions et tâches. Les constats des contrôles comptent dans Contrôles.`))}</p>` : ''}
+      ${(W().ready || []).length ? `<p class="ready-line"><button class="link" data-a="walk" ${attrs({ kind: 'build', scope: 'feature', value: (W().featureOf || {})[W().ready[0]] || '' })} title="${esc(W().ready.join(', '))}">${esc(t(`Ready to build: ${W().ready.length} → Build`, `Prêts à construire : ${W().ready.length} → Construire`))}</button></p>` : ''}
       <div class="row item-links"><button class="link" data-a="quickList" data-i="0">${esc(t(`Open items (${o.itemsOpen || 0})`, `Éléments ouverts (${o.itemsOpen || 0})`))}</button>
       <button class="link" data-a="quickList" data-i="1">${esc(t(`Done items (${done})`, `Éléments faits (${done})`))}</button>
       ${o.projectItems ? `<button class="link" data-a="projectWork" title="${esc(t('Project-wide items, not attributed to components', 'Éléments du projet non attribués aux composants'))}">${esc(t(`Project items (${o.projectItems})`, `Éléments projet (${o.projectItems})`))}</button>` : ''}</div></section>`;
@@ -957,12 +1135,21 @@
   }
 
   /** One component's row of the trees: its status dot, its name, its type, and its layer or its open items. */
+  /** 1.1.0: a component row's tooltip - what is to decide, or that it is ready to build and how much. */
+  function rowTip(id) {
+    const open = (S.work.pendingByComponent || {})[id] || 0;
+    const build = (S.work.toBuildByComponent || {})[id] || 0;
+    if (open) return t(`${open} to decide`, `${open} à décider`);
+    if (build) return t(`Nothing to decide · ready to build: ${build} task${build === 1 ? '' : 's'}`, `Rien à décider · prêt à construire : ${build} tâche${build === 1 ? '' : 's'}`);
+    return t('Nothing to decide', 'Rien à décider');
+  }
+
   function componentRow(comp, aside) {
     const pending = S.work.pendingByComponent || {};
     const id = str(comp, 'id');
     const p = pending[id] || 0;
     const state = (S.rows.find((r) => r.id === id) || {}).state || str(comp, 'status') || 'planned';
-    return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${aside ? `<span class="muted small mono layer-tag">${esc(aside)}</span>` : ''}${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
+    return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}" data-menu="component" title="${esc(rowTip(id))}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${aside ? `<span class="muted small mono layer-tag">${esc(aside)}</span>` : ''}${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
   }
 
   /** By feature: each feature, folded or not, its components; its name opens its page, its "+" adds a component to it. */
@@ -983,7 +1170,7 @@
       const rows = folded ? '' : `<ul>${shown.map((c) => componentRow(c, str(c, 'layer').split('_')[0])).join('')
         || `<li class="muted small empty-layer">${esc(t('No component yet: + adds the first one', 'Pas encore de composant : + ajoute le premier'))}</li>`}</ul>`;
       return `<li class="feature ${name === ui.feature && ui.mode !== 'component' ? 'selected' : ''} ${name === 'shared' ? 'shared' : ''}"><div class="node">${chevron}${icon('feature') || icon('folder')}
-  <button class="link feature-name" data-a="pickFeature" data-id="${esc(name)}" title="${esc(described[name] || '')}">${esc(name)}</button><span class="muted small">${comps.length}</span><span class="grow"></span>${open ? `<span class="count">${open}</span>` : ''}${plus}</div>${rows}</li>`;
+  <button class="link feature-name" data-a="pickFeature" data-id="${esc(name)}" data-menu="feature" data-name="${esc(name)}" title="${esc(described[name] || '')}">${esc(name)}</button><span class="muted small">${comps.length}</span><span class="grow"></span>${open ? `<span class="count">${open}</span>` : ''}${plus}</div>${rows}</li>`;
     }).join('');
     return `${filterWords()}<ul class="tree features" data-scroll="tree">${tree || `<li class="muted">${esc(S.spec ? t('No feature.', 'Aucune fonctionnalité.') : t('Loading…', 'Chargement…'))}</li>`}</ul>`;
   }
@@ -1016,7 +1203,7 @@
           const id = str(comp, 'id');
           const p = pending[id] || 0;
           const state = (S.rows.find((r) => r.id === id) || {}).state || str(comp, 'status') || 'planned';
-          return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
+          return `<li class="component ${id === ui.component ? 'selected' : ''} ${p ? 'pending' : 'done'}" data-a="pick" data-id="${esc(id)}" data-menu="component" title="${esc(rowTip(id))}">${icon(typeIcon(str(comp, 'type')), p ? 'warn' : 'good')}<span>${esc(id)} <span class="muted">· ${esc(str(comp, 'type'))}</span></span>${aiBadge(comp)} <span class="component-state ${esc(stateTone(state))}">${esc(localizedState(state))}</span>${p ? `<span class="count">${p}</span>` : '<span class="ok">✓</span>'}</li>`;
         }).join('') || `<li class="muted small empty-layer">${esc(t('No component yet', 'Pas encore de composant'))}</li>`;
         return `<li class="layer"><div class="node">${icon('layer')}<span>${esc(layer)}</span>${plus}</div>${chooser}<ul>${rows}</ul></li>`;
       }).join('')}</ul></li>`;
@@ -1058,10 +1245,30 @@
     // 10 % steps (no inline style in the page), never full when not complete, never empty when started
     const fill = !comps.length ? 0 : verified === comps.length ? 100 : Math.min(90, Math.max(verified ? 10 : 0, Math.round((10 * verified) / comps.length) * 10));
     const shared = name === 'shared';
+    // 1.1.0: the main action follows the state (walks.ts promptState): build the next ready component, Specify
+    // first (strict, nothing ready), let the AI propose first (guided, free), or add a component once all is built
+    const ps = (W().prompt || {})[name] || { state: 'built', component: '', open: 0 };
+    const specifyBtn = (primary) => btn(t('Specify', 'Spécifier'), 'walk', attrs({ kind: 'specify', scope: 'feature', value: name })
+      + ` title="${esc(t('Answer what is still open, component after component', 'Répondre à ce qui reste ouvert, composant après composant'))}"`, false, primary ? '' : 'secondary');
+    const lead = ps.state === 'ready'
+      ? btn(t(`Copy AI prompt · build ${ps.component}`, `Copier le prompt IA · construire ${ps.component}`), 'featurePrompt', attrs({ id: name })
+        + ` title="${esc(t(`archvow prompt --feature ${name}: the task of ${ps.component}, the next ready component; then Check, then the next one`, `archvow prompt --feature ${name} : la tâche de ${ps.component}, le prochain composant prêt ; puis Vérifier, puis le suivant`))}"`, false, '')
+        + (ps.open ? specifyBtn(false) : '')
+      : ps.state === 'specify-first'
+        ? specifyBtn(true) + btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name })
+          + ` title="${esc(t(`Nothing to build yet: ${decisionsWord(ps.open)} to make (strict mode)`, `Rien à construire encore : ${decisionsWord(ps.open)} à prendre (mode strict)`))}"`, true, 'secondary')
+        : ps.state === 'propose-first'
+          ? btn(t(`Copy AI prompt · ${ps.component}`, `Copier le prompt IA · ${ps.component}`), 'featurePrompt', attrs({ id: name })
+            + ` title="${esc(t(`The AI proposes the ${decisionsWord(ps.open)} still open first, then builds; you review its proposals (AI ▾)`, `L'IA propose d'abord les ${decisionsWord(ps.open)} ouvertes, puis construit ; tu revois ses propositions (IA ▾)`))}"`, false, '') + specifyBtn(false)
+          : '';
+    const stateLine = ps.state === 'specify-first'
+      ? `<p class="feature-state tone-warn"><b>${esc(t(`Nothing to build yet: ${decisionsWord(ps.open)} to make.`, `Rien à construire encore : ${decisionsWord(ps.open)} à prendre.`))}</b> ${esc(t('In strict mode the AI would stop and ask them, and write no code.', "En mode strict, l'IA s'arrêterait pour les poser et n'écrirait pas de code."))}</p>` : '';
     const actions = [
-      btn(t('Add component', 'Ajouter un composant'), 'addToFeature', attrs({ id: name }), false, ''),
+      lead,
+      btn(t('Add component', 'Ajouter un composant'), 'addToFeature', attrs({ id: name }), false, lead ? 'secondary' : ''),
       btn(t('Open feature doc', 'Ouvrir la doc'), 'featureDoc', attrs({ id: name }) + ` title="${esc(t(`archvow doc ${name}: its page, written into .archvow/doc/ (ignored by Git)`, `archvow doc ${name} : sa page, écrite dans .archvow/doc/ (ignoré par Git)`))}"`, false, 'secondary'),
-      btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name}: the feature in a few lines, then the task of its next component`, `archvow prompt --feature ${name} : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant`))}"`, false, 'secondary'),
+      lead ? '' : btn(t('Copy AI prompt', 'Copier le prompt IA'), 'featurePrompt', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name}: the feature in a few lines, then the task of its next component`, `archvow prompt --feature ${name} : la fonctionnalité en quelques lignes, puis la tâche de son prochain composant`))}"`, false, 'secondary'),
+      btn(t('Check before coding', 'Vérifier avant de coder'), 'featureCheck', attrs({ id: name }) + ` title="${esc(t(`archvow prompt --feature ${name} --clarify: the AI checks the whole feature before any code - where its components disagree or leave a gap between them - and records each finding as a question. It writes no code.`, `archvow prompt --feature ${name} --clarify : l'IA vérifie toute la fonctionnalité avant tout code - là où ses composants ne concordent pas ou laissent un trou entre eux - et enregistre chaque point en question. Elle n'écrit pas de code.`))}"`, false, 'secondary'),
       btn(t('Next steps', 'Prochaines étapes'), 'run', attrs({ label: `next --feature ${name}`, args: `next --feature ${name} --json`, target: 'overview' }), false, 'secondary'),
       byAi ? btn(t('Accept…', 'Accepter…'), 'openCommand', attrs({ command: 'feature accept', feature: name }) + ` title="${esc(t(`archvow feature accept ${name}: a person takes it as the team's`, `archvow feature accept ${name} : une personne la prend comme celle de l'équipe`))}"`, false, 'secondary') : '',
       shared ? '' : btn(t('Rename…', 'Renommer…'), 'openCommand', attrs({ command: 'feature rename', feature: name }), false, 'link quiet'),
@@ -1098,7 +1305,7 @@
   ${str(f, 'description') ? `<p class="description">${esc(str(f, 'description'))}</p>` : ''}
   <div class="progress-line"><div class="progress-track"><div class="progress-fill p${fill}"></div></div><span class="muted small">${esc(t(`${verified} of ${comps.length} components verified`, `${verified} composants vérifiés sur ${comps.length}`))}</span></div>
   ${uses.length || usedBy.length ? `<p class="links muted small">${uses.length ? `${esc(t('Uses', 'Utilise'))} ${pairs(f.uses)}` : ''}${uses.length && usedBy.length ? '  ·  ' : ''}${usedBy.length ? `${esc(t('Used by', 'Utilisée par'))} ${pairs(f.used_by)}` : ''}</p>` : ''}</div>
-<div class="row wrap actions">${actions}</div>
+<div class="row wrap actions">${actions}</div>${stateLine}
 <div class="feature-body"><section class="feature-main"><h3>${esc(t('Components, by layer', 'Composants, par couche'))}</h3>${table}${featureFiles(name, comps)}</section>
 <aside class="feature-side">${map}${openCard}</aside></div>`;
   }
@@ -1136,15 +1343,17 @@
     const ex = exampleCounts(view);
     const viewBar = VIEW_ORDER.map((i) => {  // every view always shows, Examples too (before Tasks)
       const name = names[i];
-      const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] : counts.total[i] > 0 ? ' ✓' : '')
+      const label = i < 6 ? name + (counts.pending[i] > 0 ? ' · ' + counts.pending[i] + (i === 5 ? t(' to build', ' à construire') : '') : counts.total[i] > 0 ? ' ✓' : '')
         : i === 7 ? name + (localOtherPending ? ' · ' + localOtherPending : localOtherResolved ? ' ✓' : '')
         : i === 8 ? name + (!ex.total ? '' : ' ' + ex.total + (ex.failing ? ' · ' + ex.failing + ' ✖' : ex.passing === ex.total ? ' ✓' : '')) : name;
       const dot = aiCount(i);
-      const tip = i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('pending items', 'éléments en attente')}` : t('No open items', 'Aucun élément ouvert'))
+      const tip = i === 5 ? (counts.pending[i] > 0 ? t(`${counts.pending[i]} to build: the AI (or you) writes the code and its marked tests; each task is done when they exist`,
+          `${counts.pending[i]} à construire : l'IA (ou toi) écrit le code et ses tests marqués ; chaque tâche est faite quand ils existent`) : t('Nothing to build', 'Rien à construire'))
+        : i < 6 ? (counts.pending[i] > 0 ? `${counts.pending[i]} ${t('to decide', 'à décider')}` : t('No open items', 'Aucun élément ouvert'))
         : i === 7 ? t('Only issues of this component; project checks are in Check & Gates.', 'Seulement les éléments de ce composant ; les contrôles globaux sont dans Check & Gates.')
         : i === 8 ? t(`Business examples: ${ex.passing} passing, ${ex.failing} failing, ${ex.total - ex.passing - ex.failing} without a passing run`,
           `Exemples métier : ${ex.passing} réussis, ${ex.failing} en échec, ${ex.total - ex.passing - ex.failing} sans lancement réussi`) : '';
-      const pendingTab = (i < 6 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) || (i === 8 && ex.failing > 0);
+      const pendingTab = (i < 5 && counts.pending[i] > 0) || (i === 7 && localOtherPending > 0) || (i === 8 && ex.failing > 0);  // tasks: to build, not a warning
       return `<button class="tab ${ui.view === i ? 'current' : ''} ${pendingTab ? 'has-pending' : ''}${i === 8 ? ' examples-tab' : ''}" data-a="view" data-i="${i}" title="${esc(tip)}">${esc(label)}${aiDot(dot)}</button>`;
     }).join('');
     const listBar = listFilter(counts, aiCount, localOtherPending);
@@ -1163,7 +1372,7 @@
     ? `<p class="tone-warn">${esc(t('Missing', 'Manquant'))}: ${esc(view.missing.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(', '))}</p>` : ''}</div>` : '';
     // the head, the actions and the view chips over the whole width; under them, for the views whose
     // items are answered (decisions, questions, safety, assumptions), the items left and the answer right
-    return `${head}<div class="row wrap actions">${actions.join('')}</div>
+    return `${head}${walkStrip()}<div class="row wrap actions">${actions.join('')}</div>
   <nav class="tabs views">${viewBar}</nav>${listBar || pendingExplanation()}
   <div class="view-body" data-scroll="view-${ui.view}">${body}</div>${confirmation('component')}${resultCard('component')}`;
   }
@@ -1232,21 +1441,24 @@
   }
 
   /**
-   * The launch form of an AI skill (design A): what the AI reads, at most how many, where the request goes; on
-   * the right what will happen, what the AI may add, what you still decide, and the exact request. Nothing runs
-   * here: the request goes to the assistant, which runs archvow; what it adds comes back marked as the AI's.
+   * The launch form of an AI skill (1.3.0): what the AI reads and may add, the target, and the instructions archvow
+   * writes (`archvow skill --prompt`: the same text in both IDEs). Draft from a brief, Find missing questions and Find
+   * risks run in the background with the AI picked in ▾ (`archvow skill`, ai_skills); Implement is handed to your own
+   * agent; Review runs `archvow review` with one of the project's reviewers.
    */
   function skillForm() {
     const id = ui.skill;
     const def = skillDef(id);
     if (!def) return `<p class="muted">${esc(t('Unknown skill.', 'Skill inconnu.'))}</p>`;
     const v = ui.skillValues;
-    const tools = (S && S.aiTools && S.aiTools.length ? S.aiTools : ['copilot']);
-    if (!v.tool || !tools.includes(v.tool)) v.tool = tools[0];
     const ids = componentIds();
     const field = (name, label, control) => `<div class="field"><label for="sk-${name}">${esc(label)}</label>${control}</div>`;
     const controls = [];
-    if (def.target === 'brief') {
+    if (id === 'review') {
+      controls.push(`<p class="note">${esc(S.base ? t(`Reviews the changes of this branch since ${S.base}. The report goes to reviews/last-change.md; it never changes code.`,
+        `Relit les changements de cette branche depuis ${S.base}. Le rapport va dans reviews/last-change.md ; il ne change jamais le code.`)
+        : t('No base branch found: a review compares this branch with the one it will merge into.', "Pas de branche de base : une relecture compare cette branche à celle où elle sera fusionnée."))}</p>`);
+    } else if (def.target === 'brief') {
       const refs = (S.briefStatus ? list(S.briefStatus, 'files') : []).flatMap((f) => [str(f, 'file'), ...list(f, 'sections').filter((r) => str(r, 'section')).map((r) => str(f, 'file') + '#' + str(r, 'section'))]);
       controls.push(field('brief', t('The brief, or one section of it', "Le brief, ou une de ses sections"), `<input id="sk-brief" list="sk-briefs" data-input="skill" data-name="brief" data-keep="sk-brief" value="${esc(v.brief || '')}" placeholder="briefs/orders.md#cleaning"><datalist id="sk-briefs">${refs.map((r) => `<option value="${esc(r)}">`).join('')}</datalist>`));
     } else {
@@ -1254,87 +1466,118 @@
       if (!v.component && ids.length) v.component = ids[0];
     }
     if (def.max) controls.push(field('max', t('At most', 'Au plus'), `<span class="segmented">${['3', '5', '10'].map((n) => `<button class="${v.max === n ? 'on' : 'secondary'}" data-a="skillValue" data-name="max" data-value="${n}">${n}</button>`).join('')}</span><div class="muted small">${esc(t('The riskiest first. Fewer questions get read.', 'Les plus risquées d\'abord. Moins de questions, mieux lues.'))}</div>`));
-    controls.push(field('tool', t('AI assistant (optional)', 'Assistant IA (optionnel)'), `<span class="segmented">${tools.map((x) => `<button class="${v.tool === x ? 'on' : 'secondary'}" data-a="skillValue" data-name="tool" data-value="${esc(x)}">${esc(x)}</button>`).join('')}</span><div class="muted small">${esc(t("Choose an integration; Copy instructions works with any AI that can read the project.", "Choisis une intégration ; Copier les consignes fonctionne avec toute IA ayant accès au projet."))}</div>`));
     const ai = aiOf(v.component);
-    const blocked = def.target !== 'brief' && ai && ai.blocked && ai.blocked[id];
-    const ready = def.target === 'brief' ? !!(v.brief || '').trim() : !!v.component;
-    const text = skillRequest(id, v);
-    const chat = v.tool === 'copilot';
-    const shortcut = skillCommand(id, v);
-    const steps = [
-      chat ? t('You can copy the full instructions or open Copilot Chat with them already typed.', 'Tu peux copier les consignes complètes ou ouvrir Copilot Chat avec celles-ci préremplies.')
-        : t('Copy the full instructions and paste them into an AI assistant with access to the project.', 'Copie les consignes complètes et colle-les dans un assistant IA ayant accès au projet.'),
-      pair(def.reads), pair(def.may_add),
-      t('What it adds appears in the component\'s tabs, marked AI and To review, for you to keep, change or remove.',
-        'Ce qu\'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire, pour que tu le gardes, le changes ou le retires.')];
-    const skillStages = [t('Target', 'Cible'), t('AI handoff', 'Transmission IA'), t('Review', 'Récapitulatif')];
-    ui.skillStep = Math.max(0, Math.min(ui.skillStep, skillStages.length - 1));
-    const skillNav = `<nav class="guided-steps" aria-label="${esc(t('Skill steps', 'Étapes du skill'))}">${skillStages.map((label, index) =>
-      `<button type="button" class="guided-step ${index === ui.skillStep ? 'current' : ''}" data-a="skillStage" data-index="${index}"><span>${index + 1}</span>${esc(label)}</button>`).join('')}</nav>`;
-    const shownControls = ui.skillStep === 0 ? controls.slice(0, -1).join('')
-      : ui.skillStep === 1 ? controls.slice(-1).join('')
-      : `<div class="guided-review"><div class="guided-review-item"><b>${esc(def.target === 'brief' ? t('Brief', 'Brief') : t('Component', 'Composant'))}</b><span>${esc(def.target === 'brief' ? (v.brief || '—') : (v.component || '—'))}</span></div>
-      ${def.max ? `<div class="guided-review-item"><b>${esc(t('At most', 'Au plus'))}</b><span>${esc(v.max || '5')}</span></div>` : ''}
-      <div class="guided-review-item"><b>${esc(t('AI assistant', 'Assistant IA'))}</b><span>${esc(v.tool)}</span></div></div>`;
-    const skillPager = `<div class="guided-skill-actions row wrap">${ui.skillStep > 0 ? btn(t('← Previous', '← Précédent'), 'skillPrevious', '', false, 'secondary') : ''}${ui.skillStep < 2 ? btn(t('Next →', 'Suivant →'), 'skillNext', '', false, 'secondary') : ''}</div>`;
+    const blocked = def.target !== 'brief' && id !== 'review' && ai && ai.blocked && ai.blocked[id];
+    const target = skillTarget(id, v);
+    const ready = !!target;
+    const key = skillKey(id, v);
+    if (ready && ui.skillPrompts[key] === undefined) { ui.skillPrompts[key] = null; post({ type: 'skillPrompt', key, skill: id, target, max: def.max ? (v.max || '5') : '' }); }
+    const text = ui.skillPrompts[key];
+    const steps = id === 'implement' ? [
+      t('Copy the instructions and give them to your own agent: it writes the code and its marked tests.', 'Copie les consignes et donne-les à ton propre agent : il écrit le code et ses tests marqués.'),
+      pair(def.reads), t('Check then says what follows the spec, and what does not.', 'La vérification dit ensuite ce qui suit la spec, et ce qui ne la suit pas.')]
+      : id === 'review' ? [
+        t('Run it here with one of the project\'s reviewers, or copy the instructions to a reviewer.', 'Lance-la ici avec un des relecteurs du projet, ou copie les consignes à un relecteur.'),
+        pair(def.reads), t('The report is in reviews/last-change.md: you fix or acknowledge each finding.', 'Le rapport est dans reviews/last-change.md : tu corriges ou acceptes chaque constat.')]
+      : [
+        t('Run it here with one of the project\'s AI assistants, or copy the instructions to any AI.', 'Lance-le ici avec un des assistants IA du projet, ou copie les consignes à n\'importe quelle IA.'),
+        pair(def.reads), pair(def.may_add),
+        t('What it adds appears in the component\'s tabs, marked AI and To review, for you to keep, change or remove.',
+          'Ce qu\'elle ajoute apparaît dans les onglets du composant, marqué IA et À relire, pour que tu le gardes, le changes ou le retires.')];
     const right = `<aside class="what"><div class="what-head">${esc(t('WHAT WILL HAPPEN', 'CE QUI VA SE PASSER'))}</div>
   <ol class="steps">${steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
   <div class="two"><div class="box"><b class="tone-blue">${esc(t('The AI can', "L'IA peut"))}</b><div class="small">${esc(pair(def.may_add))}</div></div>
   <div class="box"><b class="tone-good">${esc(t('You still', 'Toi, tu'))}</b><div class="small">${esc(pair(def.you))}</div></div></div>
-  <div class="muted small">${esc(t('Instructions to copy (for any AI)', "Consignes à copier (pour toute IA)"))}</div><pre class="request">${esc(text)}</pre></aside>`;
+  <div class="muted small">${esc(t('Instructions to copy (for any AI)', "Consignes à copier (pour toute IA)"))}</div><pre class="request">${esc(!ready ? t('Choose what it works on.', 'Choisis sur quoi il travaille.') : typeof text === 'string' ? text : t('Loading…', 'Chargement…'))}</pre></aside>`;
     return `<div class="skill-form"><h2>${esc(pair(def.label))} <span class="mono small muted">skill: archvow-${esc(id)}</span></h2>
   <p>${esc(pair(def.does))}</p>${blocked ? `<div class="alert warn">${esc(pair(blocked))}</div>` : ''}
-  <div class="split"><div class="split-list">${skillNav}<section class="guided-panel">${shownControls}</section>${skillPager}</div>${right}</div>
-  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'secondary')}
-  ${shortcut ? btn(t('Copy skill command', 'Copier la commande skill'), 'askAi', attrs({ send: '0', format: 'skill' }), !ready, 'secondary') : ''}
-  ${chat ? btn(t('Open in Copilot Chat', 'Ouvrir dans Copilot Chat'), 'askAi', attrs({ send: '1', format: 'instructions' }), !ready, 'secondary') : ''}
-  ${btn(t('Copy instructions', 'Copier les consignes'), 'askAi', attrs({ send: '0', format: 'instructions' }), !ready)}</div></div>`;
+  <div class="form-grid skill-grid"><div><section class="guided-panel">${controls.join('')}</section>
+  <div class="row end form-actions">${btn(t('Cancel', 'Annuler'), 'back', '', false, 'link')}${skillActions(id, key, ready && !blocked)}</div>
+  ${runWhy(id)}${skillRunState(key)}</div>${right}</div></div>`;
   }
 
-  /** A complete instruction for any agent, including one without an installed slash command. */
-  function skillRequest(id, v) {
+  /** What the skill works on: the component, the brief, or the branch's change (review). */
+  function skillTarget(id, v) {
     const def = skillDef(id) || {};
-    const wording = (key) => pair(def[key]) || '';
-    const isBrief = def.target === 'brief';
-    const target = String(v[isBrief ? 'brief' : 'component'] || '').trim();
-    if (fr()) return [
-      `Tâche Archvow : ${wording('label')}`,
-      `Skill, s'il est installé : archvow-${id}`,
-      `Répertoire de travail : le projet actuellement ouvert dans l'IDE`,
-      `${isBrief ? 'Brief / section' : 'Composant'} : ${target}`,
-      ...(id === 'clarify' ? [`Nombre maximum de questions : ${v.max || '5'}`] : []),
-      '', `Objectif : ${wording('does')}`, `À lire : ${wording('reads')}`,
-      `Modifications ou propositions possibles : ${wording('may_add')}`,
-      `Validation humaine : ${wording('you')}`,
-      '', 'Consignes :',
-      '1. Lis le brief ou composant ciblé dans le dépôt, ainsi que les spécifications Archvow et les instructions locales pertinentes. Si le chemin contient #, utilise cette section précise.',
-      `2. Si le skill archvow-${id} est disponible, utilise-le. Sinon, réalise l'objectif décrit, sans inventer de commande Archvow.`,
-      '3. Respecte le mode Archvow du projet et les validations humaines ; ne présente jamais une proposition comme acceptée.',
-      "4. Si tu ne peux pas lire les fichiers du projet, demande leur contenu avant de travailler ; un chemin seul n'est pas leur contenu.",
-      '5. Résume les changements, propositions et points restant à valider.',
-    ].join('\n');
-    return [
-      `Archvow task: ${wording('label')}`,
-      `Skill, if installed: archvow-${id}`,
-      'Workspace: the project currently open in the IDE',
-      `${isBrief ? 'Brief / section' : 'Component'}: ${target}`,
-      ...(id === 'clarify' ? [`Maximum questions: ${v.max || '5'}`] : []),
-      '', `Goal: ${wording('does')}`, `Read first: ${wording('reads')}`,
-      `You may add or propose: ${wording('may_add')}`,
-      `Human approval: ${wording('you')}`,
-      '', 'Instructions:',
-      '1. Read the targeted brief or component in this repository, the Archvow specs and relevant local instructions. If the path includes #, use that specific section.',
-      `2. If the archvow-${id} skill is installed, use it. Otherwise perform the described goal without inventing Archvow commands.`,
-      "3. Respect the project's Archvow mode and human approval gates; do not treat a proposal as accepted.",
-      '4. If you cannot access the project files, ask me for their contents before acting; the path alone is not the document.',
-      '5. Summarize changes, proposals and items requiring human review.',
-    ].join('\n');
+    if (id === 'review') return S.base || '';
+    return String(v[def.target === 'brief' ? 'brief' : 'component'] || '').trim();
+  }
+  function skillKey(id, v) { return [id, skillTarget(id, v), (skillDef(id) || {}).max ? (v.max || '5') : ''].join('|'); }
+
+  /** The project's AI assistants that can run a skill (archvow workspace: ai_skills), and the one ▶ Run uses. */
+  function runTools() {
+    const a = S.aiSkills || {};
+    return Array.isArray(a.tools) ? a.tools.filter((x) => x && typeof x.name === 'string') : [];
+  }
+  function runTool(tools) {
+    return tools.find((x) => x.name === ui.runTool && x.installed) || tools.find((x) => x.installed) || null;
+  }
+  function reviewTools() { return Array.isArray(S.reviewers) ? S.reviewers.filter((x) => x && typeof x.name === 'string') : []; }
+
+  /** ▶ Run with <AI> ▾ (a spec skill), ▶ Review with <reviewer> ▾ (review), or the handoff to your agent (implement). */
+  /** 1.4.0: why archvow starts no run here, written under the buttons (not only in their hover). */
+  function runWhy(id) {
+    if (id === 'implement') return '';
+    const why = runOff(id === 'review');
+    return why ? `<p class="run-why small"><span class="codicon">ⓘ</span> ${esc(why)}</p>` : '';
   }
 
-  function skillCommand(id, v) {
-    const def = skillDef(id);
-    const req = (def && def.request) || {};
-    return String(req[v.tool] || '').replace(/\{(\w+)\}/g, (_, k) => v[k] || '');
+  /** archvow's own reason (workspace ai_skills.why_not: not in ai_runs, a sandbox needed), or no reviewer approved. */
+  function runOff(review) {
+    if (review) return reviewTools().length ? '' : t('No reviewer approved: an architect approves one at init (archvow init <package> --force -a reviewers=codex).', 'Aucun relecteur approuvé : un architecte en approuve un à l\'init (archvow init <package> --force -a reviewers=codex).');
+    const skills = S.aiSkills || {};
+    return skills.why_not ? String(skills.why_not) : skills.on === false ? t('archvow does not start AI skill runs in this project (ai_runs in project.vow).', 'archvow ne lance pas de skills IA dans ce projet (ai_runs dans project.vow).') : '';
+  }
+
+  function skillActions(id, key, ready) {
+    const copy = (primary) => btn(t('Copy instructions', 'Copier les consignes'), 'askAi', attrs({ send: '0', format: 'instructions' }), !ready, primary ? '' : 'secondary');
+    if (id === 'implement') {
+      // your own agent writes the code: Copilot's chat when it is one of the project's assistants and no sandbox is needed
+      const chat = (S.aiTools || []).includes('copilot') && !sandboxRequired();
+      return copy(!chat) + (chat ? btn(t('▶ Open in Copilot chat', '▶ Ouvrir dans le chat Copilot'), 'askAi', attrs({ send: '1', format: 'instructions', tool: 'copilot' })
+        + ` title="${esc(t('Opens the chat in agent mode with the instructions already in the box. You press Send.', "Ouvre le chat en mode agent avec les consignes déjà dans la zone. Tu appuies sur Envoyer."))}"`, !ready) : '');
+    }
+    const review = id === 'review';
+    const tools = review ? reviewTools() : runTools();
+    const tool = runTool(tools);
+    const running = ui.skillRun && ui.skillRun.status === 'running';
+    const why = runOff(review);
+    const off = !!why || !ready || running;
+    const name = tool ? tool.title : '';
+    const label = review ? (name ? t(`▶ Review with ${name}`, `▶ Relire avec ${name}`) : t('▶ Review', '▶ Relire')) : (name ? t(`▶ Run with ${name}`, `▶ Lancer avec ${name}`) : t('▶ Run', '▶ Lancer'));
+    const tip = why || (running ? t('A run is going on: wait for it, or stop it.', 'Un lancement est en cours : attends-le, ou arrête-le.') : !tool
+      ? t(`None of this project's ${review ? 'reviewers' : 'AI assistants'} is on this computer. ▾ shows them.`, `Aucun des ${review ? 'relecteurs' : 'assistants IA'} de ce projet n'est sur cet ordinateur. ▾ les montre.`)
+      : review ? t(`${name} reviews the change in the background and writes the report. It never changes code.`, `${name} relit le changement en arrière-plan et écrit le rapport. Il ne change jamais le code.`)
+        : t(`${name} does it in the background, while you go on. What it adds is the AI's, To review.`, `${name} le fait en arrière-plan, pendant que tu continues. Ce qu'il ajoute est de l'IA, À relire.`));
+    const menu = ui.runMenu ? `<div class="draft-menu run-menu" role="menu"><div class="draft-menu-head">${esc(review ? t("This project's reviewers", 'Les relecteurs de ce projet') : t("This project's AI assistants", 'Les assistants IA de ce projet'))}</div>`
+      + tools.map((x) => `<button role="menuitem" class="${tool && x.name === tool.name ? 'current' : ''}" data-a="runWith" data-tool="${esc(x.name)}" ${x.installed ? '' : `disabled title="${esc(t(`It runs the ${x.program} command, which is not on this computer. Install it, log in once, then reopen the project.`, `Il passe par la commande ${x.program}, absente de cet ordinateur. Installe-la, connecte-toi une fois, puis rouvre le projet.`))}"`}>`
+        + `<span class="check">${tool && x.name === tool.name ? '✓' : ''}</span>${esc(x.title)}<span class="src">${esc(x.installed ? x.program : t(`no ${x.program} command`, `pas de commande ${x.program}`))}</span></button>`).join('') + '</div>' : '';
+    return copy(off) + `<span class="run-split" data-tip="${esc(tip)}"><span class="split-button"><button class="run-main" data-a="${review ? 'reviewRun' : 'skillRun'}" data-key="${esc(key)}" title="${esc(tip)}" ${off || !tool ? 'disabled' : ''}>${esc(label)}</button>`
+      + `<button class="split-more" data-a="runMenu" aria-label="${esc(t('Choose the AI', "Choisir l'IA"))}" ${review ? (tools.length ? '' : 'disabled') : (why || !tools.length ? 'disabled' : '')}>▾</button></span>${menu}</span>`;
+  }
+
+  /** Under the form: the run going on (its AI, the time, Show log, ■ Stop), or how the last one ended. */
+  function skillRunState(key) {
+    const r = ui.skillRun;
+    if (!r || r.key !== key) return '';
+    if (r.status === 'running') {
+      return `<div class="run-strip"><span class="run-spin"></span><span><b>${esc(r.title)}</b> ${esc(r.what)}</span><span class="run-bar"><i></i></span>`
+        + `<span class="muted run-elapsed" data-since="${r.started}">${esc(elapsed(r.started))}</span>${btn(t('Show log', 'Voir le journal'), 'skillLog', '', false, 'link')}${btn(t('■ Stop', '■ Arrêter'), 'skillStop', '', false, 'secondary')}</div>`;
+    }
+    const failed = r.status !== 'done';
+    const next = !failed && r.review ? btn(t('Open the report ›', 'Ouvrir le rapport ›'), 'reviewOpen', '', false, 'link')
+      : !failed && r.added ? btn(t('Review them ›', 'Les relire ›'), 'runReview', '', false, 'link') : '';
+    return `<div class="run-result ${failed ? 'bad' : ''}"><b class="${failed ? 'tone-bad' : 'tone-good'}">${failed ? '✗' : '✓'}</b> ${esc(r.message)}`
+      + `${next ? ' · ' + next : ''}${failed && !r.review ? `<div class="muted small">${esc(t('Copy instructions gives the same task to an AI you start yourself.', "Copier les consignes donne la même tâche à une IA que tu lances toi-même."))}</div>` : ''}`
+      + `${r.log ? ' ' + btn(t('Show log', 'Voir le journal'), 'skillLog', '', false, 'link') : ''}</div>`;
+  }
+  if (typeof setInterval === "function") setInterval(() => {
+    if (!ui.skillRun || ui.skillRun.status !== 'running') return;
+    document.querySelectorAll('.run-elapsed').forEach((e) => { e.textContent = elapsed(Number(e.dataset.since)); });
+  }, 1000);
+  function elapsed(started) {
+    const s = Math.max(0, Math.round((Date.now() - started) / 1000));
+    return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`;
   }
 
   /** "1 open item" next to the component's name (the count the sidebar shows), "✓ resolved" without. */
@@ -1358,7 +1601,12 @@
    *  a view with no item shows "Nothing to display." alone, without an answer panel. */
   function split(left, right) {
     if (!right) return `<div class="split single"><div class="split-list">${left}</div></div>`;
-    return `<div class="split"><div class="split-list">${left}</div><aside class="split-answer">${right}</aside></div>`;
+    // 1.2.0: a bar between the two, dragged (or ← → when focused); double-click: half and half again. Where it
+    // is left is kept in the page's state for the project, the same for every view.
+    const tip = t('Drag to resize · double-click: half and half', 'Glisser pour redimensionner · double-clic : moitié-moitié');
+    return `<div class="split" style="--split-left:${esc(splitSize.left)};--split-top:${esc(splitSize.top)}"><div class="split-list">${left}</div>`
+      + `<div class="split-bar" data-drag="split" role="separator" tabindex="0" aria-orientation="vertical" title="${esc(tip)}" aria-label="${esc(tip)}"><i></i></div>`
+      + `<aside class="split-answer">${right}</aside></div>`;
   }
 
   /** The items as cards: "n · question", then the recorded answer (green) with who and when, or "● Open". */
@@ -1367,15 +1615,18 @@
     const hidden = rows.length - shown.length;
     return `<ul class="cards" data-scroll="cards-${kind}">${shown.map(([row, i, c]) => {
       const key = label(row, i);
-      return `<li class="item-card ${ui.sel[kind] === key ? 'selected' : ''} ${c.open ? 'open' : 'done'}${c.origin && c.origin.toReview ? ' ai-wait' : ''}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}">
+      return `<li class="item-card ${ui.sel[kind] === key ? 'selected' : ''} ${c.open ? 'open' : 'done'}${c.origin && c.origin.toReview ? ' ai-wait' : ''}" data-a="sel" data-kind="${kind}" data-key="${esc(key)}"${['decision', 'question', 'safety'].includes(kind) ? ` data-menu="${kind}" data-text="${esc(c.title)}" data-number="${esc(c.number)}"` : ''}>
   <div class="card-q" title="${esc(c.title)}"><b>${esc(c.number)}</b>${c.origin ? ' ' + originTag(c.origin) : ''} · ${esc(c.title)}</div>
   ${c.open ? `<div class="card-open">● ${esc(c.state || t('Open', 'Ouvert'))}</div>${c.note ? `<div class="card-note">${esc(short(c.note, 160))}</div>` : ''}`
     : `<div class="card-a" title="${esc(c.answer || '')}">${esc(short(c.answer || c.state || t('Resolved', 'Traité'), 220))}</div>`}
-  ${c.by ? `<div class="card-by muted">${esc(c.by)}</div>` : ''}</li>`;
+  ${c.by ? `<div class="card-by muted">${esc(c.by)}${c.drafted ? ` · <span class="drafted-mark">${esc(c.drafted)}</span>` : ''}</div>` : ''}</li>`;
     }).join('') || `<li class="muted empty">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}${hidden ? `<li class="muted small hidden-note">${esc(t(`${hidden} hidden by the filter`, `${hidden} masqué${hidden === 1 ? '' : 's'} par le filtre`))}</li>` : ''}</ul>`;
   }
 
   /** "architect@example.com · 2026-10-08": who recorded an answer, and the day. */
+  /** 1.2.0: "AI draft, edited" on an answer saved from an AI draft (archvow 3.2 `drafted`), else ''. */
+  const draftedWord = (row) => row && row.drafted && typeof row.drafted === 'object'
+    ? (row.drafted.edited === false ? t('AI draft, unchanged', 'brouillon IA, inchangé') : t('AI draft, edited', 'brouillon IA, modifié')) : '';
   const byOn = (row) => [str(row, 'by'), str(row, 'on').substring(0, 10)].filter((x) => x).join(' · ');
 
   /** The answer panel's heading: "ANSWER DECISION 3", "DECISION 1 · ANSWERED". */
@@ -1642,19 +1893,18 @@
   function pendingExplanation() {
     if (!ui.component) return '';
     let total = 0;
-    let data = 0;
     let other = 0;
     for (const item of S.work.pending) {
       if (item.component !== ui.component || item.source === 'check') continue;
       total++;
       const category = item.preset.view || 'other';
-      if (category === 'data') data++;
       if (category === 'other' && isLocalOther(item)) other++;
     }
     if (!total) return '';
+    // 1.1.0: what a person decides only - the tasks to build are in the Tasks view
     return `<p class="muted small" title="${esc(t('Component-local pending work only. Project checks are separate.', 'Uniquement le travail local au composant ; les contrôles du projet sont distincts.'))}">${esc(fr()
-      ? `${total} en attente pour ${ui.component} · ${data} dans Données et tâches` + (other ? ` · ${other} dans Autres` : '')
-      : `${total} pending for ${ui.component} · ${data} in Data & tasks` + (other ? ` · ${other} in Others` : ''))}</p>`;
+      ? `${total} à décider pour ${ui.component}` + (other ? ` · ${other} dans Autres` : '')
+      : `${total} to decide for ${ui.component}` + (other ? ` · ${other} in Others` : ''))}</p>`;
   }
 
   /** The selected row of a view; none yet (a component just opened): the first open one, else the first. */
@@ -1678,14 +1928,119 @@
     return key in ui.drafts ? ui.drafts[key] : initial;
   }
 
+  /** 1.1.0: what a table writes - one answer, in the answer field (no preview, no button to copy it there). */
+  function tableAnswer(key) {
+    if (ui.paramRows[key]) return parametersAnswer(ui.paramRows[key]);
+    if (ui.smartRows[key]) return structuredAnswer(ui.smartRows[key], ui.smartQuestions[key] || '');
+    return null;
+  }
+
+  /** A change in a table: the answer field follows it, unless the person typed in that field (then it stays). */
+  function fromTable(key) {
+    if (ui.byHand[key]) return;
+    const text = tableAnswer(key);
+    if (text !== null) ui.drafts[key] = text;
+  }
+
+  /** The same while typing in the table: the field's text changes in place (no redraw under the cursor). */
+  function writeField(key) {
+    fromTable(key);
+    if (ui.byHand[key]) return;
+    const field = document.querySelector(`textarea.answer-field[data-key="${CSS.escape(key)}"]`);
+    if (field) field.value = ui.drafts[key] || '';
+  }
+
   /**
    * The answer field and its buttons: secondary ones on the left, Undo changes and the main one on the
    * right. Undo changes can be pressed only once the text differs from the recorded one: it puts that
    * text back, and saves or removes nothing.
    */
+  /** The project asks AI agents to run in a sandbox (init answer sandbox; yes by default in mode strict). */
+  function sandboxRequired() {
+    const spec = S.spec || {};
+    const answer = (spec.init_answers || {}).sandbox;
+    return answer === undefined || answer === null ? String(spec.mode || 'strict') === 'strict' : String(answer) === 'yes';
+  }
+
+  // ---- Draft with AI (1.2.0): one of the project's AI assistants drafts the answer; the person reads it and saves it.
+  const SPARK = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 9.4 6.6 14.5 8 9.4 9.4 8 14.5 6.6 9.4 1.5 8 6.6 6.6Z" fill="currentColor"/><path d="M13 1.5 13.5 3 15 3.5 13.5 4 13 5.5 12.5 4 11 3.5 12.5 3Z" fill="currentColor"/></svg>';
+  const AGAIN = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M12 1.8v2.8H9.2"/></svg>';
+  function draftTools() {
+    const a = S.aiDrafts || {};
+    return Array.isArray(a.tools) ? a.tools.filter((x) => x && typeof x.name === 'string') : [];
+  }
+  /** The AI that drafts: the one chosen last, else the first of the project's AI assistants installed here. */
+  function draftTool() {
+    const tools = draftTools();
+    return tools.find((x) => x.name === ui.aiTool && x.installed) || tools.find((x) => x.installed) || null;
+  }
+  /** The question a box answers, as archvow draft names it: d:<c>:2 -> 2, q:<c>:P1 -> P1, s:<c>:3 -> S3. */
+  function draftRef(key) {
+    const m = /^([dqs]):(.+):([^:]+)$/.exec(key);
+    return m ? { component: m[2], ref: m[1] === 's' ? 'S' + m[3] : m[3] } : null;
+  }
+  /** What a save sends with the answer: {tool, title, unchanged} when it started as an AI draft. */
+  function draftedOf(key, text) {
+    const d = ui.aiDraft[key];
+    return d ? { tool: d.tool, title: d.title, unchanged: String(text).trim() === String(d.text).trim() } : null;
+  }
+  function askDraft(key, tool) {
+    const at = draftRef(key);
+    ui.aiMenuKey = '';
+    delete ui.aiError[key];
+    if (!at || !tool) return;
+    ui.aiDrafting[key] = tool;
+    post({ type: 'draft', key, component: at.component, ref: at.ref, tool });
+  }
+  function keepAiTool() {
+    keep({ aiTool: ui.aiTool });
+  }
+
+  /** The icon in the box's corner: ✦ drafts with the AI the hover names, ▾ another AI (or the prompt alone). */
+  /** Why an assistant is greyed: drafts use its command, which the editor's own extension does not give. */
+  function draftMissing(program) {
+    return t(`Drafts use the ${program} command, which is not on this computer (the editor's extension is not enough). Install it, log in once, then reopen the project.`,
+      `Les brouillons passent par la commande ${program}, absente de cet ordinateur (l'extension de l'éditeur ne suffit pas). Installe-la, connecte-toi une fois, puis rouvre le projet.`);
+  }
+
+  function draftCorner(key, disabled) {
+    const at = draftRef(key);
+    if (!at || !S.aiDrafts) return '';
+    const on = S.aiDrafts.on !== false;
+    const tool = draftTool();
+    if (ui.aiDrafting[key]) {
+      return `<div class="draft-ai"><span class="draft-spin" title="${esc(t('Writing a draft…', 'Écriture du brouillon…'))}">${SPARK}</span>`
+        + `<button class="draft-icon" data-a="draftStop" data-key="${esc(key)}" title="${esc(t('Stop waiting for the draft', "Ne plus attendre le brouillon"))}">■</button></div>`;
+    }
+    if (ui.aiDraft[key]) {
+      return `<div class="draft-ai"><button class="draft-icon" data-a="draftAgain" data-key="${esc(key)}" title="${esc(t('Another draft', 'Un autre brouillon'))}">${AGAIN}</button>`
+        + `<button class="draft-icon" data-a="draftDrop" data-key="${esc(key)}" title="${esc(t('Drop the draft: the box as it was', 'Abandonner le brouillon : la case comme avant'))}">×</button></div>`;
+    }
+    // 1.4.0: archvow's reason (not in ai_runs, or a sandbox needed): ✦ and ▾ open it in words, with Copy the prompt
+    const why = on ? String(S.aiDrafts.why_not || '') : String(S.aiDrafts.why_not || t('archvow does not start AI drafts in this project (ai_runs in project.vow).', 'archvow ne lance pas de brouillons IA dans ce projet (ai_runs dans project.vow).'));
+    const tip = why ? why
+      : tool ? t(`Draft an answer with ${tool.title} - you read it and save it. ▾ another AI`, `Rédiger un brouillon avec ${tool.title} - tu le relis et l'enregistres. ▾ une autre IA`)
+        : t(`None of this project's AI assistants is on this machine (${draftTools().map((x) => x.program).join(', ') || '-'}). ▾ Copy the prompt instead.`,
+          `Aucun assistant IA de ce projet n'est sur cette machine (${draftTools().map((x) => x.program).join(', ') || '-'}). ▾ Copier le prompt à la place.`);
+    const items = why ? `<div class="draft-why">${esc(why)}</div>`
+      : `<div class="draft-menu-head">${esc(t("This project's AI assistants", 'Les assistants IA de ce projet'))}</div>`
+        + draftTools().map((x) => `<button role="menuitem" class="${tool && x.name === tool.name ? 'current' : ''}" data-a="draftWith" data-key="${esc(key)}" data-tool="${esc(x.name)}" ${x.installed ? '' : `disabled title="${esc(draftMissing(x.program))}"`}>`
+          + `<span class="check">${tool && x.name === tool.name ? '✓' : ''}</span>${esc(x.title)}<span class="src">${esc(x.installed ? x.program : t(`no ${x.program} command`, `pas de commande ${x.program}`))}</span></button>`).join('') + '<hr>';
+    const menu = ui.aiMenuKey === key ? `<div class="draft-menu" role="menu">${items}`
+      + `<button role="menuitem" data-a="draftPrompt" data-key="${esc(key)}"><span class="check"></span>${esc(t('Copy the prompt instead', 'Copier le prompt à la place'))}</button></div>` : '';
+    const off = !!why || disabled;
+    return `<div class="draft-ai"><span class="draft-split${off ? ' off' : ''}" data-tip="${esc(tip)}">`
+      + `<button class="draft-icon" data-a="${why && !disabled ? 'draftMenu' : 'draftRun'}" data-key="${esc(key)}" aria-label="${esc(tip)}" ${disabled || (!why && !tool) ? 'disabled' : ''}>${SPARK}</button>`
+      + `<button class="draft-caret" data-a="draftMenu" data-key="${esc(key)}" aria-label="${esc(why ? t('Why not here', 'Pourquoi pas ici') : t('Choose the AI', "Choisir l'IA"))}" ${disabled ? 'disabled' : ''}>▾</button></span>${menu}</div>`;
+  }
+
   function answerEditor(key, initial, placeholder, secondary, save, target, disabled = false) {
     const edited = key in ui.drafts && ui.drafts[key] !== initial;
-    return `<textarea class="answer-field" rows="5" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" data-initial="${esc(initial)}" placeholder="${esc(placeholder)}" ${disabled ? 'disabled' : ''}>${esc(draft(key, initial))}</textarea>
+    const ai = ui.aiDraft[key];
+    const tag = ai ? ` <span class="ai-draft-tag">${esc(t('AI draft · ', 'Brouillon IA · ') + ai.title)}</span>` : '';
+    const problem = ui.aiError[key] ? `<p class="tone-bad small">${esc(ui.aiError[key])}</p>` : '';
+    const note = ai ? `<p class="ai-draft-note small">${esc(t('Read it and change what is wrong: when you save, it is your answer.', "Relis-le et corrige ce qui ne va pas : quand tu enregistres, c'est ta réponse."))}</p>` : '';
+    return `${tag ? `<div class="ai-draft-line">${tag}</div>` : ''}<div class="answer-box${ai ? ' has-draft' : ''}${ui.aiDrafting[key] ? ' drafting' : ''}"><textarea class="answer-field" rows="5" data-input="draft" data-key="${esc(key)}" data-keep="${esc(key)}" data-initial="${esc(initial)}" placeholder="${esc(placeholder)}" ${disabled ? 'disabled' : ''}>${esc(draft(key, initial))}</textarea>${draftCorner(key, disabled)}</div>${problem}${note}
   <div class="answer-actions"><span class="row wrap">${secondary}</span>
   <span class="row">${btn(t('Undo', 'Annuler'), 'cancelDraft', attrs({ key, target }) + ` title="${esc(undoTip(edited))}"`, disabled || !edited, 'link undo')}${save}</span></div>`;
   }
@@ -1757,26 +2112,23 @@
     if (!rows.length) rows.push({ name: '', type: '', nullable: 'unknown', personal: 'unknown', note: '' });
     ui.smartQuestions[key] = str(row, 'question');
     const asks = columnAsks(ui.smartQuestions[key]);
-    const answerText = structuredAnswer(rows, ui.smartQuestions[key]);
     // only what this question asks about: a personal-data question has no Nullable column
     const heads = [t('Column', 'Colonne'), ...(asks.type ? [t('Type', 'Type')] : []), ...(asks.nullable ? [t('Nullable?', 'Nullable ?')] : []),
       ...(asks.personal ? [t('Personal data?', 'Donnée personnelle ?')] : []), t('Notes', 'Notes'), ''];
     const cols = ['minmax(110px,1.2fr)', ...(asks.type ? ['minmax(90px,.9fr)'] : []), ...(asks.nullable ? ['auto'] : []), ...(asks.personal ? ['auto'] : []), 'minmax(90px,1fr)', '28px'].join(' ');
     const field = (i, name, value, extra = '') => `<input data-input="smartField" data-key="${esc(key)}" data-row="${i}" data-name="${name}" value="${esc(value)}" ${extra}>`;
     return `<details class="card smart-answer"${ui.smartExpanded === key ? ' open' : ''} data-smart-key="${esc(key)}"><summary>${esc(t('Answer with a table (optional)', 'Répondre avec un tableau (facultatif)'))}</summary>
-      <p class="muted small">${esc(t('One row per column: what is not known stays Unknown. It writes the answer below for you to read before saving.', 'Une ligne par colonne : ce qui n’est pas connu reste Inconnu. Cela écrit la réponse ci-dessous, à relire avant d’enregistrer.'))}</p>
+      <p class="muted small">${esc(t('One row per column: what is not known stays Unknown. The table writes your answer below as you edit it.', 'Une ligne par colonne : ce qui n’est pas connu reste Inconnu. Le tableau écrit ta réponse ci-dessous au fil des modifications.'))}</p>
       <datalist id="archvow-type-suggestions">${['string','integer','long','float','double','decimal','boolean','date','timestamp'].map((type) => `<option value="${type}">`).join('')}</datalist>
       <div class="smart-grid" style="grid-template-columns:${cols}">${heads.map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
-      ${rows.map((r, i) => [field(i, 'name', r.name, `placeholder="${esc(t('column', 'colonne'))}"`),
-        ...(asks.type ? [field(i, 'type', r.type, `list="archvow-type-suggestions" placeholder="${esc(t('Unknown', 'Inconnu'))}"`)] : []),
-        ...(asks.nullable ? [smartSegments('column', key, i, 'nullable', r.nullable, [['no', t('Never null', 'Jamais nul')], ['yes', 'Nullable'], ['unknown', t('Unknown', 'Inconnu')]])] : []),
-        ...(asks.personal ? [smartSegments('column', key, i, 'personal', r.personal, [['yes', t('Yes', 'Oui')], ['no', t('No', 'Non')], ['unknown', t('Unknown', 'Inconnu')]])] : []),
-        field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`),
-        `<button class="icon smart-remove" data-a="smartRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this column from the table', 'Retirer cette colonne du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`].join('')).join('')}</div>
-      <div class="row wrap">${btn(t('+ Add column', '+ Ajouter une colonne'), 'smartAdd', attrs({ key }), false, 'secondary')}
-      ${btn(t('Use this answer', 'Utiliser cette réponse'), 'smartUse', attrs({ key }), !answerText.trim(), 'secondary')}</div>
-      <div class="muted small">${esc(t('Answer preview', 'Aperçu de la réponse'))}</div>
-      <pre class="smart-preview" data-preview="column">${esc(answerText || t('Add a column to prepare a response.', 'Ajoute une colonne pour préparer la réponse.'))}</pre>
+      ${rows.map((r, i) => smartLine([[heads[0], field(i, 'name', r.name, `placeholder="${esc(t('column', 'colonne'))}"`), 'wide'],
+        ...(asks.type ? [[t('Type', 'Type'), field(i, 'type', r.type, `list="archvow-type-suggestions" placeholder="${esc(t('Unknown', 'Inconnu'))}"`)]] : []),
+        ...(asks.nullable ? [[t('Nullable?', 'Nullable ?'), smartSegments('column', key, i, 'nullable', r.nullable, [['no', t('Never null', 'Jamais nul')], ['yes', 'Nullable'], ['unknown', t('Unknown', 'Inconnu')]]), 'wide']] : []),
+        ...(asks.personal ? [[t('Personal data?', 'Donnée personnelle ?'), smartSegments('column', key, i, 'personal', r.personal, [['yes', t('Yes', 'Oui')], ['no', t('No', 'Non')], ['unknown', t('Unknown', 'Inconnu')]]), 'wide']] : []),
+        [t('Notes', 'Notes'), field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`), 'wide'],
+        ['', `<button class="icon smart-remove" data-a="smartRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this column from the table', 'Retirer cette colonne du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`, 'remove']])).join('')}</div>
+      <div class="row wrap">${btn(t('+ Add column', '+ Ajouter une colonne'), 'smartAdd', attrs({ key }), false, 'secondary')}</div>
+      <p class="muted small hand-line" data-hand="${esc(key)}"${ui.byHand[key] ? '' : ' hidden'}>${esc(t('Edited by hand: the table no longer writes over it ·', "Modifiée à la main : le tableau ne l'écrase plus ·"))} ${btn(t('Write it from the table again', 'La réécrire depuis le tableau'), 'smartRewrite', attrs({ key }), false, 'link')}</p>
     </details>`;
   }
 
@@ -1800,15 +2152,16 @@
       // a type is a word (str, date, list[str], str | None): a sentence is not a list of parameters
       if (!m || !/^[A-Za-z_][\w.]*(\[[\w., |]*\])?( *\| *[A-Za-z_][\w.]*)*$/.test(m[2].trim())) return null;
       const note = (m[5] || '').replace(/^(required|obligatoire)$/i, '');
-      rows.push({ name: m[1], type: m[2].trim(), default: (m[3] || '').trim(), note: note.trim() });
+      rows.push({ name: m[1], type: m[2].trim(), default: (m[3] || '').trim(), note: note.trim(), required: !(m[3] || '').trim() });
     }
     return rows;
   }
 
+  /** 1.1.0: Required ticked, no default; not ticked, its default - a row with neither is left out (marked in red). */
   function parametersAnswer(rows) {
-    return rows.filter((r) => r.name.trim()).map((r) => {
+    return rows.filter((r) => r.name.trim() && (r.required !== false || String(r.default || '').trim())).map((r) => {
       const type = r.type.trim() || 'str';
-      const value = String(r.default || '').trim();
+      const value = r.required !== false ? '' : String(r.default || '').trim();
       const note = String(r.note || '').trim().replace(/[()]/g, '');
       return `${r.name.trim()}: ${type}${value ? ' = ' + value : ''}${note ? ` (${note})` : ''}`;
     }).join(', ');
@@ -1818,26 +2171,32 @@
     if (!canEditParameters(str(row, 'question'))) return '';
     if (!ui.paramRows[key]) ui.paramRows[key] = (parseParameters(initial) || []).map((x) => ({ ...x }));
     const rows = ui.paramRows[key];
-    if (!rows.length) rows.push({ name: '', type: 'str', default: '', note: '' });
+    if (!rows.length) rows.push({ name: '', type: 'str', default: '', note: '', required: true });
     const conf = (((I.forms || {}).smart_answers || {}).parameters || {});
     const types = Array.isArray(conf.types) ? conf.types : ['str', 'int', 'float', 'bool', 'date'];
-    const answerText = parametersAnswer(rows);
     const field = (i, name, value, extra = '') => `<input data-input="paramField" data-key="${esc(key)}" data-row="${i}" data-name="${name}" value="${esc(value)}" ${extra}>`;
+    const required = (r, i) => `<label class="param-required"><input type="checkbox" data-input="paramRequired" data-key="${esc(key)}" data-row="${i}" ${r.required !== false ? 'checked' : ''}> ${esc(r.required !== false ? t('yes', 'oui') : t('no', 'non'))}</label>`;
+    const missing = (r) => r.required === false && !String(r.default || '').trim() && r.name.trim();
     return `<details class="card smart-answer"${ui.smartExpanded === key ? ' open' : ''} data-smart-key="${esc(key)}"><summary>${esc(t('Answer with a table (optional)', 'Répondre avec un tableau (facultatif)'))}</summary>
-      <p class="muted small">${esc(pair(conf.note) || t('One row per parameter. No default = required.', 'Une ligne par paramètre. Sans défaut = obligatoire.'))}</p>
+      <p class="muted small">${esc(t('One row per parameter: Required, or a default. The table writes your answer below as you edit it.', 'Une ligne par paramètre : Obligatoire, ou une valeur par défaut. Le tableau écrit ta réponse ci-dessous au fil des modifications.'))}</p>
       <datalist id="archvow-param-types">${types.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
-      <div class="smart-grid" style="grid-template-columns:minmax(110px,1.1fr) minmax(70px,.6fr) minmax(110px,1fr) auto minmax(90px,1fr) 28px">
-      ${[t('Parameter', 'Paramètre'), t('Type', 'Type'), t('Default', 'Défaut'), '', t('Notes', 'Notes'), ''].map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
-      ${rows.map((r, i) => [field(i, 'name', r.name, 'placeholder="input_path"'), field(i, 'type', r.type, 'list="archvow-param-types"'),
-        field(i, 'default', r.default, `placeholder="${esc(t('none: required', 'aucun : obligatoire'))}"`),
-        `<span class="chip ${String(r.default || '').trim() ? '' : 'warn'}" data-required="${i}">${esc(String(r.default || '').trim() ? t('optional', 'facultatif') : t('required', 'obligatoire'))}</span>`,
-        field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`),
-        `<button class="icon smart-remove" data-a="paramRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this parameter from the table', 'Retirer ce paramètre du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`].join('')).join('')}</div>
-      <div class="row wrap">${btn(t('+ Add parameter', '+ Ajouter un paramètre'), 'paramAdd', attrs({ key }), false, 'secondary')}
-      ${btn(t('Use this answer', 'Utiliser cette réponse'), 'paramUse', attrs({ key }), !answerText.trim(), 'secondary')}</div>
-      <div class="muted small">${esc(t('Answer preview', 'Aperçu de la réponse'))}</div>
-      <pre class="smart-preview" data-preview="param">${esc(answerText || t('Add a parameter to prepare a response.', 'Ajoute un paramètre pour préparer la réponse.'))}</pre>
+      <div class="smart-grid" style="grid-template-columns:minmax(110px,1.1fr) minmax(70px,.6fr) auto minmax(110px,1fr) minmax(90px,1fr) 28px">
+      ${[t('Parameter', 'Paramètre'), t('Type', 'Type'), t('Required', 'Obligatoire'), t('Default', 'Défaut'), t('Notes', 'Notes'), ''].map((h) => `<div class="smart-head">${esc(h)}</div>`).join('')}
+      ${rows.map((r, i) => smartLine([[t('Parameter', 'Paramètre'), field(i, 'name', r.name, 'placeholder="input_path"'), 'wide'],
+        [t('Type', 'Type'), field(i, 'type', r.type, 'list="archvow-param-types"')],
+        [t('Required', 'Obligatoire'), required(r, i)],
+        [t('Default', 'Défaut'), r.required !== false ? field(i, 'default', '', 'disabled placeholder="—"')
+          : field(i, 'default', r.default, missing(r) ? `class="missing" title="${esc(t('a default, or tick Required', 'une valeur par défaut, ou cocher Obligatoire'))}" placeholder="${esc(t('a default, or tick Required', 'une valeur par défaut, ou cocher Obligatoire'))}"` : '')],
+        [t('Notes', 'Notes'), field(i, 'note', r.note || '', `placeholder="${esc(t('optional', 'facultatif'))}"`)],
+        ['', `<button class="icon smart-remove" data-a="paramRemove" ${attrs({ key, row: i })} title="${esc(t('Remove this parameter from the table', 'Retirer ce paramètre du tableau'))}" aria-label="${esc(t('Remove', 'Retirer'))}">${TRASH()}</button>`, 'remove']])).join('')}</div>
+      <div class="row wrap">${btn(t('+ Add parameter', '+ Ajouter un paramètre'), 'paramAdd', attrs({ key }), false, 'secondary')}</div>
+      <p class="muted small hand-line" data-hand="${esc(key)}"${ui.byHand[key] ? '' : ' hidden'}>${esc(t('Edited by hand: the table no longer writes over it ·', "Modifiée à la main : le tableau ne l'écrase plus ·"))} ${btn(t('Write it from the table again', 'La réécrire depuis le tableau'), 'smartRewrite', attrs({ key }), false, 'link')}</p>
     </details>`;
+  }
+
+  /** 1.2.1: one row of an answer table: its cells, each with its label (shown above it when the pane is narrow). */
+  function smartLine(cells) {
+    return `<div class="smart-line">${cells.map(([label, html, cls]) => `<div class="smart-cell${cls ? ' ' + cls : ''}" data-label="${esc(label)}">${html}</div>`).join('')}</div>`;
   }
 
   function decisionsView(view) {
@@ -1848,7 +2207,7 @@
     const ai = aiOf();
     const originOf = (i) => (ai && ai.decisions[i]) || null;
     const left = cards('decision', rows, label, (r, i) => ({ number: str(r, 'number'), title: str(r, 'question'), open: isOpen(r), answer: str(r, 'answer'),
-      by: isOpen(r) ? '' : byOn(r), note: str(r, 'proposed') ? t('AI proposal: ', 'Proposition IA : ') + str(r, 'proposed') : '', origin: originOf(i) }));
+      by: isOpen(r) ? '' : byOn(r), drafted: draftedWord(r), note: str(r, 'proposed') ? t('AI proposal: ', 'Proposition IA : ') + str(r, 'proposed') : '', origin: originOf(i) }));
     let right = `<p class="muted">${esc(t('Select a decision.', 'Sélectionne une décision.'))}</p>`;
     if (row) {
       const number = str(row, 'number');
@@ -1873,7 +2232,8 @@
         + (asked ? `<p class="muted small">${esc(t('Save answer keeps the question and records your decision in one step.', 'Enregistrer la réponse garde la question et enregistre ta décision en une fois.'))}</p>` : '')
         + (answer && byOn(row) ? `<p class="muted small">${esc(t('Recorded by ', 'Enregistrée par ') + byOn(row))}</p>` : '')
         + (proposed ? `<p class="hint"><b class="tone-blue">${esc(t('AI proposal', 'Proposition IA'))}</b> ${esc(proposed)}${pending ? ' · ' + btn(t('Accept', 'Accepter'), 'decide', attrs({ action: 'decision accept' }) + ` title="${esc(t('Take the AI\'s proposal as the answer (decision accept)', "Prendre la proposition de l'IA comme réponse (decision accept)"))}"`, false, 'link') : ''}</p>` : '')
-        + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)} · ${btn(t('Use', 'Utiliser'), 'useSuggestion', ` title="${esc(t('Put the suggestion in the answer field', 'Mettre la suggestion dans le champ de réponse'))}"`, false, 'link')}</p>` : '')
+        // 1.1.0: the field starts with the suggestion - "Back to the suggestion" only once its text differs
+        + (suggested && pending ? `<p class="hint"><b>${esc(t('Suggested', 'Suggéré'))}</b> ${esc(suggested)} ${`<button class="link" data-a="useSuggestion" data-key="${esc(key)}" data-suggested="${esc(suggested)}"${draft(key, answer || proposed || suggested).trim() === suggested.trim() ? ' hidden' : ''} title="${esc(t('Put the suggestion back in the answer field', 'Remettre la suggestion dans le champ de réponse'))}">${esc(t('· Back to the suggestion', '· Revenir à la suggestion'))}</button>`}</p>` : '')
         // archvow 1.19: a question with no safe default offers answers to start from, none chosen
         + (pending && Array.isArray(row.choices) && row.choices.length ? `<p class="hint"><b>${esc(t('No default (it depends on this project) - to start from:', 'Pas de défaut (cela dépend de ce projet) - pour partir de :'))}</b></p>
   <div class="row wrap choices">${row.choices.map((c) => btn(String(c), 'useChoice', attrs({ key, value: String(c) }), false, 'secondary small')).join('')}</div>` : '')
@@ -1890,7 +2250,7 @@
     const isOpen = (r) => !str(r, 'answer');
     const row = current('question', rows, label, isOpen);
     const left = cards('question', rows, label, (r) => ({ number: label(r), title: str(r, 'question'), open: isOpen(r), answer: str(r, 'answer'),
-      by: isOpen(r) ? '' : byOn(r) }));
+      by: isOpen(r) ? '' : byOn(r), drafted: draftedWord(r) }));
     let right = `<p class="muted">${esc(t('Select a question.', 'Sélectionne une question.'))}</p>`;
     if (row) {
       const answer = str(row, 'answer');
@@ -1968,7 +2328,7 @@
         const ho = hazardOrigin(h);
         const keep = ho && ho.toReview ? btn(t('Keep', 'Garder'), 'openCommand', attrs({ command: 'hazard accept', id: str(h, 'id') })
           + ` title="${esc(t('Keep this hazard and the invariants the AI added to prevent it (archvow hazard accept)', "Garder ce hazard et les invariants que l'IA a ajoutés pour l'empêcher (archvow hazard accept)"))}"`, false, 'small') : '';
-        block += `<div class="recorded ${ho && ho.toReview ? 'ai-wait' : ''}"><div class="row hazard-head"><p class="grow"><b>Hazard ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b>${ho && ho.tag ? ' ' + originTag(ho) : ''}<br>${esc(str(h, 'description'))}</p>`
+        block += `<div class="recorded ${ho && ho.toReview ? 'ai-wait' : ''}"><div class="row hazard-head"><p class="grow"><b>Hazard ${esc(str(h, 'id'))} · ${esc(str(h, 'severity'))}</b>${ho && ho.tag ? ' ' + originTag(ho) : ''}${draftedWord(h) ? ` <span class="drafted-mark small">${esc(draftedWord(h))}</span>` : ''}<br>${esc(str(h, 'description'))}</p>`
           + `<span class="row">${keep}${btn(t('Change', 'Modifier'), 'hazardChange', attrs({ id: str(h, 'id'), text: str(h, 'description'), severity: str(h, 'severity') }) + ` title="${esc(changeTip)}"`, false, 'secondary small')}`
           + `${btn(t('Remove', 'Supprimer'), 'hazardRemove', attrs({ id: str(h, 'id') }) + ` title="${esc(t('Remove this hazard (asks first)', 'Supprimer ce hazard (demande avant)'))}"`, false, 'secondary small')}</span></div>`;
         if (ho && ho.why) block += `<p class="muted small">${esc(t('Why: ', 'Pourquoi : ') + ho.why)}</p>`;
@@ -2062,6 +2422,8 @@
   }).join('') : `<p class="muted">${esc(t('No applicable rules.', 'Aucune règle applicable.'))}</p>`}</div>`;
   }
 
+  /** 1.1.0: one list - a task is work to build (blue), a column to classify a person's decision (amber); the selected
+   *  task's buttons: Copy task prompt, Open code. No second listing of the same tasks under it. */
   function tasksView(view, d) {
     const items = d ? [...d.data.filter((x) => x.pending), ...d.data.filter((x) => !x.pending)] : [];
     const key = (x) => x.kind + ':' + x.id;
@@ -2070,25 +2432,38 @@
       selected = items[0];
       ui.sel.data = key(selected);
     }
-    const rows = items.map((x) => `<li class="${key(x) === ui.sel.data ? 'selected' : ''} ${x.pending ? 'pending' : 'done'}" data-a="sel" data-kind="data" data-key="${esc(key(x))}">${x.kind === 'COLUMN' ? '◉' : '▸'} ${esc(x.title)} · ${esc(x.pending ? t('Pending', 'En attente') : t('Resolved', 'Traité'))}</li>`).join('');
-    const detail = selected ? `${esc(selected.title)} · ${esc(selected.pending ? t('Pending', 'En attente') : t('Resolved', 'Traité'))}\n\n${esc(selected.detail
+    const word = (x) => x.kind === 'COLUMN' ? (x.pending ? t('To classify', 'À classer') : t('Classified', 'Classée'))
+      : (x.pending ? t('To build', 'À construire') : t('Done', 'Faite'));
+    const tone = (x) => !x.pending ? 'done' : x.kind === 'COLUMN' ? 'pending' : 'to-build';
+    const rows = items.map((x) => `<li class="${key(x) === ui.sel.data ? 'selected' : ''} ${tone(x)}" data-a="sel" data-kind="data" data-key="${esc(key(x))}"${x.kind === 'TASK' ? ` data-menu="task" data-id="${esc(x.id)}"` : ''}>${x.kind === 'COLUMN' ? '◉' : '▸'} ${esc(x.title)} · ${esc(word(x))}</li>`).join('');
+    const detail = selected ? `${esc(selected.title)} · ${esc(word(selected))}\n\n${esc(selected.detail
       || t('No further description is recorded for this item in the component spec.', "Aucune description supplémentaire n'est enregistrée pour cet élément dans la spec du composant."))}`
       : esc(t('Select a task or column to see its details.', 'Sélectionne une tâche ou une colonne pour voir ses détails.'));
-    const outstanding = items.filter((x) => x.pending);
-    const summary = [`<h4>${esc(t('Data & tasks', 'Données et tâches'))}</h4>`,
-      `<p class="${outstanding.length ? 'tone-warn' : 'tone-good'}"><b>${esc(t('Pending actions', 'Actions en attente'))}: ${outstanding.length}</b></p>`,
-      outstanding.map((x) => `<p class="tone-warn">● ${esc(x.kind === 'COLUMN' ? t('Column', 'Colonne') : t('Task', 'Tâche'))} : ${esc(x.title)}</p>`).join(''),
-      `<h5>${esc(t('Columns and classifications', 'Colonnes et classifications'))}</h5>`,
+    const tasks = items.filter((x) => x.kind === 'TASK');
+    const toBuild = tasks.filter((x) => x.pending).length;
+    // 1.2.1: no tasks is not "every task is done": a small component has none, the AI builds it in one go
+    const heading = toBuild ? t(`${toBuild} task${toBuild === 1 ? '' : 's'} to build: the AI (or you) writes the code and its marked tests. Each one is done when they exist.`,
+      `${toBuild} tâche${toBuild === 1 ? '' : 's'} à construire : l'IA (ou toi) écrit le code et ses tests marqués. Chacune est faite quand ils existent.`)
+      : tasks.length ? t('Nothing to build: every task is done.', 'Rien à construire : chaque tâche est faite.')
+      : t(`No separate tasks: the AI builds ${ui.component} in one go, from its spec.`, `Pas de tâches séparées : l'IA construit ${ui.component} d'un seul tenant, depuis sa spec.`);
+    const column = selected && selected.kind === 'COLUMN';
+    const columnsOpen = items.filter((x) => x.kind === 'COLUMN' && x.pending).length;
+    const flows = [['handles', t('Handles', 'Manipule')], ['writes', t('Writes', 'Écrit')], ['removed', t('Removes', 'Retire')], ['pseudonymised', t('Pseudonymises', 'Pseudonymise')]]
+      .map(([k, l]) => {
+        const v = view.personal && typeof view.personal === 'object' ? view.personal[k] : null;
+        const words = Array.isArray(v) ? v.map(String) : v && typeof v === 'object' ? Object.entries(v).map(([name, kind]) => `${name} (${kind})`) : [];
+        return words.length ? `<p>${esc(l)}: ${esc(words.join(', '))}</p>` : '';
+      }).join('');
+    const summary = [`<h5>${esc(t('Columns and classifications', 'Colonnes et classifications') + (columnsOpen ? t(` · ${columnsOpen} to classify`, ` · ${columnsOpen} à classer`) : ''))}</h5>`,
       items.filter((x) => x.kind === 'COLUMN').map((x) => `<p class="${x.pending ? 'tone-warn' : 'tone-good'}">${x.pending ? '●' : '✓'} ${esc(x.title)} — ${esc(x.detail)}</p>`).join('')
         || `<p class="muted">${esc(t('No columns declared.', 'Aucune colonne déclarée.'))}</p>`,
       `<h5>${esc(t('Personal data', 'Données personnelles'))}</h5>`,
-      view.personal && typeof view.personal === 'object' && Object.keys(view.personal).length
-        ? Object.entries(view.personal).map(([k, v]) => `<p>${esc(k)}: ${esc(readable(v))}</p>`).join('')
-        : `<p class="muted">${esc(t('No personal data flows declared.', 'Aucun flux de données personnelles déclaré.'))}</p>`].join('');
-    return `<h4>${esc(t('Actions to complete', 'Actions à terminer'))}</h4><ul class="list items" data-scroll="list-data">${rows || `<li class="muted">${esc(t('Nothing to display.', 'Rien à afficher.'))}</li>`}</ul>
-  <div class="row">${btn(selected && selected.kind === 'COLUMN' ? t('Classify column…', 'Classifier la colonne…') : t('Open task prompt', 'Ouvrir les instructions de la tâche'), 'dataAction', '', !selected)}</div>
-  <div class="details"><h5>${esc(t('Details and description', 'Détails et description'))}</h5><pre class="plain">${detail}</pre>
-  ${btn(t('Edit component description…', 'Modifier la description du composant…'), 'openCommand', attrs({ command: 'component edit', component: ui.component }), false, 'secondary')}</div>
+      flows || `<p class="muted">${esc(t('None declared.', 'Aucune déclarée.'))}</p>`].join('');
+    const left = `<ul class="list items" data-scroll="list-data">${rows}</ul>
+  <div class="row wrap">${btn(column ? t('Classify column…', 'Classifier la colonne…') : t('Copy task prompt', 'Copier la tâche'), 'dataAction', '', !selected)}${column || !selected ? '' : btn(t('Open code', 'Ouvrir le code'), 'openCode', '', false, 'secondary')}</div>`;
+    const right = `<h5>${esc(t('Details and description', 'Détails et description'))}</h5><pre class="plain">${detail}</pre>
+  ${btn(t('Edit component description…', 'Modifier la description du composant…'), 'openCommand', attrs({ command: 'component edit', component: ui.component }), false, 'secondary')}`;
+    return `<h4>${esc(heading)}</h4>${items.length ? split(left, right) : ''}
   ${resultCard('data')}<div class="details">${summary}</div>`;
   }
 
@@ -2109,19 +2484,21 @@
     const file = part === 'vow' ? `.archvow/features/${str(entry, 'feature') || '…'}/components/${ui.component}.vow` : `archvow prompt ${ui.component}`;
     const bar = `<div class="row wrap">${toggle}<span class="muted small"><code>${esc(file)}</code> - ${esc(t('read only: change it with the commands (Edit spec, + Question, + Rule...)', 'en lecture seule : la changer avec les commandes (Modifier la spec, + Question, + Règle...)'))}</span>
   ${part === 'vow' ? btn(t('Open in the editor', "Ouvrir dans l'éditeur"), 'openVowFile', '', false, 'secondary') : btn(t('Copy', 'Copier'), 'aiPrompt', '', false, 'secondary')}${btn(t('Project vow', 'Vow du projet'), 'openProjectVow', '', false, 'secondary')}</div>`;
-    const where = filesBlock(componentFiles(ui.component), t('Where it is', 'Où il est'));
+    // 1.1.0: "Where it is" on the right of the text, its own title and scroll; above it when the panel is narrow
+    const where = filesBlock(componentFiles(ui.component), t('Where it is', 'Où il est'), true);
+    const split = (inner) => `<div class="spec-split"><div class="spec-text">${inner}</div>${where ? `<aside class="spec-where">${where}</aside>` : ''}</div>`;
     if (part === 'card') {
       const card = ui.cards[ui.component] || '';
-      return bar + where + (card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('archvow prompt gave nothing for this component.', "archvow prompt n'a rien donné pour ce composant."))}</p>`);
+      return bar + split(card ? `<pre class="plain card-md">${esc(card)}</pre>` : `<p class="muted">${esc(t('archvow prompt gave nothing for this component.', "archvow prompt n'a rien donné pour ce composant."))}</p>`);
     }
-    if (!text) return bar + where + `<p class="muted">${esc(t('No vow for this component.', 'Pas de vow pour ce composant.'))}</p>`;
+    if (!text) return bar + split(`<p class="muted">${esc(t('No vow for this component.', 'Pas de vow pour ce composant.'))}</p>`);
     const lines = text.split('\n').map((line) => {
       const m = /^(\s*)("(?:[^"\\]|\\.)*"|[A-Za-z_][A-Za-z0-9_./-]*)(.*)$/.exec(line);
       if (line.trimStart().startsWith('#') || !m) return `<span class="${line.trimStart().startsWith('#') ? 'comment' : ''}">${esc(line)}</span>`;
       const depth = Math.min(3, Math.floor(m[1].length / 2));
       return `${esc(m[1])}<span class="key${depth}">${esc(m[2])}</span>${esc(m[3])}`;
     });
-    return bar + where + `<pre class="vow">${lines.join('\n')}</pre>`;
+    return bar + split(`<pre class="vow">${lines.join('\n')}</pre>`);
   }
 
   /** Component and project issues have distinct destinations; check violations stay in Check & Gates. */
@@ -2199,8 +2576,8 @@
       if (!('no_input' in ui.form)) ui.form.no_input = 'true';
       post({ type: 'catalog', template: ui.form.template || '' });
     }
-    // pack template: the templates to extend and their settings, from the installed archvow
-    if (name === 'pack template') post({ type: 'catalog', template: '' });
+    // template new: the templates to extend and their settings, from the installed archvow
+    if (name === 'template new') post({ type: 'catalog', template: '' });
   }
 
   /** Edit spec's baseline: the fields the component already has, as choosing the component fills them. */
@@ -2404,7 +2781,7 @@
     const name = command.path.join(' ');
     const seen = new Set();
     const possible = params.filter((p) => !((name === 'init' && ['template', 'answer'].includes(p.name))
-      || (name === 'pack template' && ['answer', 'layer'].includes(p.name))));
+      || (name === 'template new' && ['answer', 'layer'].includes(p.name))));
     const stage = (en, fr, names, extra = '') => {
       const own = names.filter((key) => possible.some((p) => p.name === key) && !seen.has(key));
       own.forEach((key) => seen.add(key));
@@ -2422,7 +2799,7 @@
         if (matching.length) stages.push({ title: t(en, fr), names: [], questions: matching });
       };
       qStage('Governance', 'Gouvernance', ['language', 'architects', 'mode', 'sandbox', 'rules', 'auto_approve']);
-      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'reviewers', 'briefs', 'ticket_pattern']);
+      qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'ai_runs', 'reviewers', 'briefs', 'ticket_pattern']);
       qStage('CI & quality', 'CI et qualité', ['platform', 'ci', 'sonar', 'git_hooks', 'branch_naming', 'line_length']);
       qStage('Runtime', 'Exécution', ['python_version', 'spark_version', 'fastapi_version', 'scheduler', 'dependencies']);
       qStage('Limits & integration', 'Limites et intégration', ['max_components', 'max_code_lines', 'pip_index_url', 'ci_image']);
@@ -2431,12 +2808,12 @@
       stages.push(stage('Advanced CLI', 'Options CLI avancées', ['force', 'no_git', 'no_input', 'adopt'], 'init-other'));
     } else if (name === 'component add') {
       stages.push(stage('Basics', 'Essentiel', ['type', 'name', 'description', 'feature']));
-      stages.push(stage('Architecture', 'Architecture', ['kind', 'spec', 'uses', 'container', 'group']));
+      stages.push(stage('Architecture', 'Architecture', ['kind', 'ticket', 'uses', 'container', 'group']));
       stages.push(stage('Source & advanced', 'Source et options', ['signature', 'route', 'source', 'file']));
     } else if (name === 'component edit') {
-      stages.push(stage('Identity & changes', 'Identité et modifications', ['component', 'description', 'spec', 'uses']));
+      stages.push(stage('Identity & changes', 'Identité et modifications', ['component', 'description', 'ticket', 'uses']));
       stages.push(stage('Advanced changes', 'Modifications avancées', ['signature', 'group', 'route', 'owners', 'source']));
-    } else if (name === 'pack template') {
+    } else if (name === 'template new') {
       stages.push(stage('Template basics', 'Création du modèle', ['name', 'extends', 'dir', 'description'], 'template-basics'));
       stages.push(stage('Other options', 'Autres options', ['allowed_paths', 'verbatim_folders', 'no_input'], 'template-layers'));
       const base = baseTemplate();
@@ -2459,7 +2836,7 @@
     for (let i = 0; i < expert.length; i += 5) stages.push(stage('Expert checks', 'Contrôles experts', expert.slice(i, i + 5)));
     const result = stages.filter((s) => s.names.length || (s.questions && s.questions.length) || s.extra);
     // A parameterless/read-only command stays a single direct form.
-    if (result.length <= 1 && name !== 'init' && name !== 'pack template') return result;
+    if (result.length <= 1 && name !== 'init' && name !== 'template new') return result;
     result.push({ title: t('Review', 'Récapitulatif'), names: [], review: true });
     return result;
   }
@@ -2472,7 +2849,7 @@
         if (p.boolean) value = value === 'true' ? t('Yes', 'Oui') : t('No', 'Non');
         return `<div class="guided-review-item"><b>${esc(fieldLabel(name, p.name))}</b><span>${esc(value || '—')}</span></div>`;
       }).join('');
-      const template = name === 'init' ? templates().find((x) => str(x, 'name') === ui.initTemplate) : name === 'pack template' ? baseTemplate() : null;
+      const template = name === 'init' ? templates().find((x) => str(x, 'name') === ui.initTemplate) : name === 'template new' ? baseTemplate() : null;
       const answers = template ? list(template, 'questions').map((q) => {
         const id = str(q, 'id');
         const value = name === 'init' ? (id in ui.initAnswers ? ui.initAnswers[id] : str(q, 'default'))
@@ -2506,7 +2883,7 @@
     if (!fieldsReady) return false;
     if (stage.extra === 'init-template' && !String(ui.form.template || ui.initTemplate || '').trim()) return false;
     const source = command.path.join(' ') === 'init' ? templates().find((x) => str(x, 'name') === ui.initTemplate)
-      : command.path.join(' ') === 'pack template' ? baseTemplate() : null;
+      : command.path.join(' ') === 'template new' ? baseTemplate() : null;
     const questions = source ? list(source, 'questions') : [];
     return (stage.questions || []).every((id) => {
       const question = questions.find((q) => str(q, 'id') === id);
@@ -2632,7 +3009,73 @@
     return lines;
   }
 
-  function filesBlock(rows, heading) {
+  /**
+   * 1.1.0: a right-click menu - the buttons of the row it was opened on, never an action found only there.
+   * `data-menu` names the row's kind; its other data- attributes say which one. Each item runs an existing action.
+   */
+  function menuItems(kind, d) {
+    const item = (label, a, attrs, removal) => ({ label, a, attrs: attrs || {}, removal });
+    const sep = 'sep';
+    switch (kind) {
+      case 'file':
+        return { head: d.path, items: [item(t('Open', 'Ouvrir'), 'openFile', { file: d.path }),
+          item(t('Show in the explorer', "Afficher dans l'explorateur"), 'revealFile', { file: d.path }),
+          item(t('Copy path', 'Copier le chemin'), 'copyText', { text: d.path })] };
+      default:
+        return componentMenu(kind, d, item, sep);
+    }
+  }
+
+  /** The menus of a component, a feature, an item and a task row (1.1.0, the design's artboard 10). */
+  function componentMenu(kind, d, item, sep) {
+    const id = d.id || '';
+    switch (kind) {
+      case 'component':
+        return { head: id, items: [
+          item(t('Specify', 'Spécifier'), 'walk', { kind: 'specify', scope: 'component', value: id }),
+          item(t('Build (copy AI prompt)', 'Construire (copier le prompt IA)'), 'walk', { kind: 'build', scope: 'component', value: id }),
+          item(t('Check', 'Vérifier'), 'run', { label: 'full check', args: 'check --complete --json', target: 'overview' }), sep,
+          item(t('Open code', 'Ouvrir le code'), 'menuOpenCode', { id }),
+          item(t('Open vow', 'Ouvrir le vow'), 'menuOpenVow', { id }), sep,
+          item(t('Edit spec…', 'Modifier la spec…'), 'openCommand', { command: 'component edit', component: id }),
+          item(t('Add question…', 'Ajouter une question…'), 'openCommand', { command: 'question add', component: id }),
+          item(t('Add rule…', 'Ajouter une règle…'), 'menuRule', { id }),
+          item(t('Move to feature…', 'Déplacer vers une feature…'), 'openCommand', { command: 'component move', component: id }), sep,
+          item(t('Remove…', 'Retirer…'), 'openCommand', { command: 'component remove', component: id }, true)] };
+      case 'feature':
+        return { head: d.name, items: [
+          item(t('Specify', 'Spécifier'), 'walk', { kind: 'specify', scope: 'feature', value: d.name }),
+          item(t('Build', 'Construire'), 'walk', { kind: 'build', scope: 'feature', value: d.name }),
+          item(t('Check before coding', 'Vérifier avant de coder'), 'featureCheck', { id: d.name }), sep,
+          item(t('Open feature doc', 'Ouvrir la doc'), 'featureDoc', { id: d.name }),
+          item(t('Add component…', 'Ajouter un composant…'), 'addToFeature', { id: d.name })] };
+      case 'decision': case 'question': case 'safety':
+        return { head: '', items: [
+          item(t('Answer', 'Répondre'), 'sel', { kind, key: d.key }),
+          ...(kind === 'decision' ? [item(t('Save as a proposal…', 'Enregistrer comme proposition…'), 'menuPropose', { number: d.number || '' })] : []), sep,
+          item(t('Copy the question', 'Copier la question'), 'copyText', { text: d.text || '' })] };
+      case 'task':
+        return { head: '', items: [item(t('Copy task prompt', 'Copier la tâche'), 'menuTask', { id }),
+          item(t('Open code', 'Ouvrir le code'), 'openCode', {})] };
+      default:
+        return null;
+    }
+  }
+
+  function contextMenu() {
+    if (!ui.ctxMenu) return '';
+    const { kind, d, x, y } = ui.ctxMenu;
+    const menu = menuItems(kind, d);
+    if (!menu || !menu.items.length) return '';
+    const attrs = (o) => Object.entries(o).map(([k, v]) => `data-${k}="${esc(String(v))}"`).join(' ');
+    const body = menu.items.map((i) => i === 'sep' ? '<hr>'
+      : `<button type="button" role="menuitem" class="${i.removal ? 'ctx-remove' : ''}" data-a="${esc(i.a)}" ${attrs(i.attrs)}>${esc(i.label)}</button>`).join('');
+    const left = Math.max(4, Math.min(x, window.innerWidth - 240));
+    const top = Math.max(4, Math.min(y, window.innerHeight - 24 * menu.items.length - 40));
+    return `<div class="ctx-menu" role="menu" style="left:${left}px;top:${top}px">${menu.head ? `<div class="ctx-head">${esc(menu.head)}</div>` : ''}${body}</div>`;
+  }
+
+  function filesBlock(rows, heading, clickable) {
     if (!Array.isArray(rows) || !rows.length) return '';
     const word = { new: t('new', 'nouveau'), updated: t('updated', 'modifié'), removed: t('removed', 'retiré'), kept: t('kept', 'gardé'), planned: t('planned', 'prévu') };
     // nested lists: the connectors are drawn by CSS (.file-tree li::before / ::after), so they run on beside a note
@@ -2643,7 +3086,11 @@
       const locationOnly = change === 'location';
       const status = r && word[change] ? `<span class="badge ${esc(change)}">${esc(word[change])}</span>` : '';
       const line = locationOnly && Number(r.line) > 0 ? `<span class="muted small">${esc(t('line', 'ligne'))} ${Number(r.line)}</span>` : '';
-      const head = `<div class="file-row change-${esc(change)}${r ? '' : ' file-dir'}">${icon(k.dir ? 'folder' : 'document')}${r ? `<code>${esc(k.name)}</code>` : `<span>${esc(k.name)}</span>`}${status}${line}</div>`;
+      // 1.1.0: in "Where it is", a file opens on a click; its right-click menu: Open, Show in the explorer, Copy path
+      const name = r && clickable && change !== 'planned' && r.path
+        ? `<button type="button" class="file-open" data-a="openFile" data-file="${esc(r.path)}" data-menu="file" data-path="${esc(r.path)}" title="${esc(t('Open ', 'Ouvrir ') + r.path + t(' · right-click: more', ' · clic droit : plus'))}"><code>${esc(k.name)}</code></button>`
+        : r ? `<code>${esc(k.name)}</code>` : `<span>${esc(k.name)}</span>`;
+      const head = `<div class="file-row change-${esc(change)}${r ? '' : ' file-dir'}">${icon(k.dir ? 'folder' : 'document')}${name}${status}${line}</div>`;
       const note = r && r.note && !locationOnly ? `<div class="file-note muted small">${esc(r.note)}</div>` : '';
       const kids = [...k.children.values()];
       return `<li>${head}${note}${kids.length ? `<ul>${kids.map(item).join('')}</ul>` : ''}</li>`;
@@ -2702,23 +3149,88 @@
   function chooseInitTemplate() {
     const requested = (ui.form.template || '').trim();
     const names = templates().map((x) => str(x, 'name'));
-    const match = templates().find((x) => requested && (str(x, 'name') === requested || str(x, 'source') === requested || requested.endsWith('/' + str(x, 'name'))))
-      // a short name (python-app) is a pack's template (archvow/python-app), as archvow's init --template reads it
-      || templates().find((x) => requested && str(x, 'name').endsWith('/' + requested));
+    // a name, or the folder of one (a company template: -t <its folder>)
+    const match = templates().find((x) => requested && (str(x, 'name') === requested || str(x, 'source') === requested || requested.endsWith('/' + str(x, 'name'))));
     if (match) ui.initTemplate = str(match, 'name');
     else if (requested) ui.initTemplate = ''; // a custom template path: its questions are not in this catalog
     else {
       // in a project: its own template (init --force there rewrites its files); else python-app
       const own = projectTemplate();
-      const builtin = names.includes('archvow/python-app') ? 'archvow/python-app' : names.includes('python-app') ? 'python-app' : '';
+      const marked = templates().find((x) => x.default === true);  // archvow 3.0: the one marked default (python-app)
+      const builtin = marked ? str(marked, 'name') : names.includes('python-app') ? 'python-app' : '';
       ui.initTemplate = names.includes(own) ? own : builtin || names[0] || '';
       if (ui.initTemplate) ui.form.template = ui.initTemplate;
     }
   }
 
+  /** Several lines on one: each line's words kept apart by one space. */
+  function joinLines(text) {
+    return text.split(/\r?\n/).map((line) => line.trim()).filter((line) => line).join(' ');
+  }
+
+  /** An agent's name, as archvow takes it (agents.NAME_RE): lowercase letters and digits, words joined by - or _. */
+  const AGENT_NAME = /^[a-z][a-z0-9]*([_-][a-z0-9]+)*$/;
+
+  /** The list after adding one: `none` alone, or the assistants without `none`; each once. */
+  function agentsWith(current, name) {
+    if (name === 'none') return ['none'];
+    const rest = current.filter((x) => x !== 'none' && x !== name);
+    return [...rest, name];
+  }
+
+  /**
+   * The AI assistants of a question that names agents (`suggestions`, 0.26.1): the chosen ones as chips, a list of
+   * the assistants archvow knows, and a box for any other name - archvow takes any agent name, so nothing is closed.
+   */
+  function agentPicker(q, value, kind) {
+    const id = str(q, 'id');
+    const known = q.suggestions.map(String);
+    const picked = value.split(',').map((x) => x.trim()).filter((x) => x);
+    const named = (n) => (n === 'none' ? t('none (no AI assistant)', "aucun (pas d'assistant IA)") : n);
+    const data = `data-kind="${kind}" data-id="${esc(id)}"`;
+    const chips = picked.map((n) => {
+      const own = known.includes(n);
+      const note = own ? t('Known to archvow: it writes this assistant\'s own files.', 'Connu d\'archvow : il écrit les fichiers propres à cet assistant.')
+        : t(`Not known to archvow: ${n} gets the standard files (AGENTS.md, .agents/skills); archvow recognises it when it runs with AI_AGENT=${n}.`,
+          `Inconnu d'archvow : ${n} reçoit les fichiers standard (AGENTS.md, .agents/skills) ; archvow le reconnaît quand il tourne avec AI_AGENT=${n}.`);
+      return `<span class="chip ${own ? 'blue' : 'warn'}" title="${esc(note)}">${esc(named(n))} <button class="link" data-a="agentRemove" ${data} data-name="${esc(n)}" aria-label="${esc(t('Remove ', 'Retirer ') + n)}">×</button></span>`;
+    }).join('');
+    const offered = known.filter((n) => !picked.includes(n));
+    const typed = ui.agentOther[kind + ':' + id] || '';
+    const bad = typed.trim() !== '' && !AGENT_NAME.test(typed.trim().toLowerCase());
+    return `<div class="chips agents">${chips || `<span class="muted small">${esc(t('None chosen yet', 'Aucun choisi pour l\'instant'))}</span>`}</div>
+  <div class="row wrap"><select data-change="agentAdd" ${data} aria-label="${esc(t('Add an assistant archvow knows', 'Ajouter un assistant connu d\'archvow'))}"><option value="">${esc(t('Add an assistant…', 'Ajouter un assistant…'))}</option>${offered.map((n) => `<option value="${esc(n)}">${esc(named(n))}</option>`).join('')}</select>
+  <input class="${bad ? 'invalid' : ''}" data-input="agentOther" ${data} data-keep="agent-${kind}-${esc(id)}" value="${esc(typed)}" placeholder="${esc(t('or another one, e.g. my-agent', 'ou un autre, ex. mon-agent'))}">${btn(t('Add', 'Ajouter'), 'agentOther', data, false, 'secondary')}</div>
+  ${bad ? `<div class="error small">${esc(t('A name is lowercase letters and digits, words joined by - or _ (my-agent).', 'Un nom : lettres minuscules et chiffres, mots reliés par - ou _ (mon-agent).'))}</div>` : ''}
+  <div class="muted small">${esc(t('The list holds the assistants archvow knows: it writes their own files. Any other name works too: it gets the standard files (AGENTS.md, .agents/skills), and archvow recognises it when it runs with AI_AGENT=<name>.',
+    "La liste contient les assistants qu'archvow connaît : il écrit leurs fichiers propres. Tout autre nom marche aussi : il reçoit les fichiers standard (AGENTS.md, .agents/skills), et archvow le reconnaît quand il tourne avec AI_AGENT=<nom>."))}</div>`;
+  }
+
+  /** The answer of a question, as it stands: what was chosen, or its default (init and template new). */
+  function answerOf(kind, id) {
+    if (kind === 'tpl') {
+      const q = list(baseTemplate(), 'questions').find((x) => str(x, 'id') === id);
+      return id in ui.tplAnswers ? ui.tplAnswers[id] : str(q, 'default');
+    }
+    const template = templates().find((x) => str(x, 'name') === ui.initTemplate);
+    const q = template && list(template, 'questions').find((x) => str(x, 'id') === id);
+    return id in ui.initAnswers ? ui.initAnswers[id] : str(q, 'default');
+  }
+
+  function setAnswer(kind, id, value) {
+    if (kind === 'tpl') ui.tplAnswers[id] = value;
+    else { ui.initAnswers[id] = value; ui.initTouched[id] = true; }
+  }
+
+  function addAgent(kind, id, name) {
+    const current = answerOf(kind, id).split(',').map((x) => x.trim()).filter((x) => x);
+    setAnswer(kind, id, agentsWith(current, name).join(','));
+  }
+
   /** A question of a template as a field: its choices only, several of them, or text (checked against its format). */
   function questionControl(q, value, kind) {
     const id = str(q, 'id');
+    if (q.multiple === true && Array.isArray(q.suggestions) && q.suggestions.length) return agentPicker(q, value, kind);
     const choices = Array.isArray(q.choices) ? q.choices.map(String) : [];
     if (q.multiple === true && choices.length) {
       const picked = new Set(value.split(',').map((x) => x.trim()));
@@ -2768,14 +3280,14 @@
   <textarea rows="2" data-input="form" data-name="answer" data-keep="f-answer" title="${esc(t('Optional extra answers, one KEY=VALUE per line', 'Réponses supplémentaires : KEY=VALUE par ligne'))}">${esc(ui.form.answer || '')}</textarea></fieldset>`;
   }
 
-  /** pack template: the base chosen in --extends, as the catalog knows it. */
+  /** template new: the base chosen in --extends (the first of a list), as the catalog knows it; none: from scratch. */
   function baseTemplate() {
-    const name = (ui.form.extends || '').trim();
+    const name = (ui.form.extends || '').split(',')[0].trim();
     return name ? templates().concat(list(I.catalog, 'templates')).find((x) => str(x, 'name') === name) : undefined;
   }
 
   /**
-   * pack template: the settings of the base, filled in with its values. What the company may set - the
+   * template new: the settings of the base, filled in with its values. What the company may set - the
    * defaults of the init answers, the folder of each layer - is editable, within what the base allows
    * (its choices, its formats); what the base imposes - its layers, its version, what it extends - is shown,
    * not editable. Only what differs from the base is written into the new template.
@@ -2813,7 +3325,7 @@
   ${showLayers ? `<p class="muted small">${esc(t('The folder of each layer (src/<package>/<folder>/, tests/<folder>/):', 'Le dossier de chaque couche (src/<package>/<dossier>/, tests/<dossier>/) :'))}</p><div class="form">${layers}</div>` : ''}</fieldset>`;
   }
 
-  /** pack template: the -a and --layer lines of what differs from the base; a format the base refuses, as a message. */
+  /** template new: the -a and --layer lines of what differs from the base; a format the base refuses, as a message. */
   function templateSettings() {
     const base = baseTemplate();
     const out = { answer: [], layer: [], problem: '' };
@@ -2888,7 +3400,168 @@
     if (question) { ui.view = 1; ui.sel.question = str(question, 'key') || str(question, 'number'); return; }
     const safety = list(view, 'safety').find((r) => str(r, 'status').toLowerCase() === 'open');
     if (safety) { ui.view = 2; ui.sel.safety = 'S' + str(safety, 'number'); return; }
-    post({ type: 'message', text: t('All decision and safety questions are answered for this component.', 'Toutes les décisions et questions de sécurité sont traitées pour ce composant.') });
+    onSpecified(ui.component);  // 1.1.0: the strip, not a message - and the next component
+  }
+
+  // ---------------------------------------------------------------- the walks (1.1.0): Specify and Build
+
+  const W = () => (S && S.walks) || { featureOf: {}, open: {}, prompt: {}, foundations: [], features: {}, order: {}, build: {}, planned: {}, budget: false, ready: [] };
+  const decisionsWord = (n) => t(`${n} decision${n === 1 ? '' : 's'}`, `${n} décision${n === 1 ? '' : 's'}`);
+
+  /** The scope's components with something open, in build order (as walks.ts specifyQueue). */
+  function specifyQueue(scope, value) {
+    const w = W();
+    if (scope === 'foundations') return w.foundations || [];
+    if (scope === 'feature') return (w.features || {})[value] || [];
+    const feature = (w.featureOf || {})[value] || '';
+    const ids = [value, ...(((w.order || {})[feature]) || []).filter((id) => id !== value)];
+    return ids.filter((id) => ((w.open || {})[id] || 0) > 0).map((id) => ({ component: id, open: (w.open || {})[id] || 0 }));
+  }
+
+  function scopeLabel(scope, value) {
+    if (scope === 'foundations') return t('the foundations', 'les fondations');
+    if (scope === 'component') return (W().featureOf || {})[value] || value;
+    return value;
+  }
+
+  /** A view still has something for a person to decide. */
+  function hasOpen(view) {
+    return list(view, 'decisions').some((r) => !str(r, 'answer')) || list(view, 'questions').some((r) => !str(r, 'answer'))
+      || list(view, 'safety').some((r) => str(r, 'status').toLowerCase() === 'open');
+  }
+
+  function showWalkComponent(id) {
+    ui.forceWorkspace = true;
+    ui.mode = 'component';
+    ui.back = null;
+    selectComponent(id);
+  }
+
+  /** A walk starts (the 'walk' message): Specify from the foundations, a feature or a component; Build a feature. */
+  function startWalk(m) {
+    if (m.kind === 'specify') {
+      const queue = specifyQueue(m.scope, m.value);
+      const label = scopeLabel(m.scope, m.value);
+      if (!queue.length) { post({ type: 'message', text: t(`Nothing open in ${label}: every decision is made.`, `Rien d'ouvert dans ${label} : tout est décidé.`) }); return; }
+      ui.walk = { kind: 'specify', scope: m.scope, value: m.value, label, total: queue.length, done: [], current: '', view: 'progress' };
+      continueSpecify(queue[0].component);
+      return;
+    }
+    if (m.kind === 'build') {
+      if (m.scope === 'component') { buildOne(m.value); return; }
+      const queue = (W().build || {})[m.value] || [];
+      if (!queue.length) {
+        post({ type: 'message', text: W().budget ? t('The change budget is reached: commit and open the merge request; the rest goes in the next one.', 'Le budget de changement est atteint : committe et ouvre la merge request ; le reste va dans la suivante.')
+          : t(`Nothing ready to build in ${m.value}: Specify first.`, `Rien de prêt à construire dans ${m.value} : Spécifier d'abord.`) });
+        return;
+      }
+      ui.walk = { kind: 'build', scope: 'feature', value: m.value, label: m.value, total: queue.length, done: [], current: '', view: 'build' };
+      buildComponent(queue[0], m.copied === true);
+    }
+  }
+
+  function continueSpecify(id) {
+    if (!ui.walk) return;
+    ui.walk.current = id;
+    ui.walk.view = 'progress';
+    ui.walk.choose = true;  // its first open item, once its view is here
+    showWalkComponent(id);
+    if (snapshot()) { ui.walk.choose = false; chooseNext(); }
+  }
+
+  /** A component has nothing open any more: say so, offer the next one of the walk, or its end. */
+  function onSpecified(id) {
+    if (!id) return;
+    if (!ui.walk || ui.walk.kind !== 'specify') {
+      const rest = specifyQueue('component', id);
+      ui.walk = { kind: 'specify', scope: 'component', value: id, label: scopeLabel('component', id), total: Math.max(1, rest.length), done: [], current: id };
+    }
+    const w = ui.walk;
+    if (!w.done.includes(id)) w.done.push(id);
+    w.current = id;
+    const rest = specifyQueue(w.scope, w.value).filter((s) => !w.done.includes(s.component));
+    w.total = Math.max(w.total, w.done.length + rest.length);
+    w.next = rest.length ? rest[0] : null;
+    w.view = rest.length ? 'specified' : 'specify-end';
+  }
+
+  /** After a new state: the walk's component gets its first open item, or - nothing open any more - moves on. */
+  function walkAfterState() {
+    const w = ui.walk;
+    if (!w || w.kind !== 'specify' || w.current !== ui.component) return;
+    const view = snapshot();
+    if (!view) return;
+    if (w.choose) { w.choose = false; chooseNext(); return; }
+    if (!w.done.includes(w.current) && !hasOpen(view)) onSpecified(w.current);
+  }
+
+  function buildComponent(id, copied) {
+    const w = ui.walk;
+    if (!w) return;
+    Object.assign(w, { current: id, copied: !!copied, checkOk: false, checkLine: '', view: 'build' });
+    showWalkComponent(id);
+  }
+
+  function buildOne(id) {
+    const feature = (W().featureOf || {})[id] || '';
+    ui.walk = { kind: 'build', scope: 'feature', value: feature, label: feature || id, total: Math.max(1, ((W().build || {})[feature] || []).length), done: [], current: '', view: 'build' };
+    buildComponent(id, false);
+    post({ type: 'walkCopy', component: id });
+  }
+
+  function buildNext() {
+    const w = ui.walk;
+    if (!w) return;
+    if (!w.done.includes(w.current)) w.done.push(w.current);
+    const rest = ((W().build || {})[w.value] || []).filter((id) => !w.done.includes(id));
+    w.total = Math.max(w.total, w.done.length + rest.length);
+    if (W().budget) { w.view = 'budget'; return; }
+    if (!rest.length) { w.view = 'built'; return; }
+    buildComponent(rest[0], false);
+  }
+
+  /** The strip at the top of the walk's component (the design's artboards 6 and 9). */
+  function walkStrip() {
+    const w = ui.walk;
+    if (!w || w.current !== ui.component) return '';
+    // 1.2.0: no Stop button - a small × in the corner (and Esc) leaves the walk; the steps drawn as short bars
+    const leaveTip = w.kind === 'build' ? t('Leave the walk (Esc) · nothing is lost: Build starts it again', 'Quitter (Échap) · rien n\'est perdu : Construire le reprend')
+      : t('Leave the walk (Esc) · nothing is lost: Specify starts it again', 'Quitter (Échap) · rien n\'est perdu : Spécifier le reprend');
+    const bars = (done, total) => `<span class="walk-steps" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${i < done ? 'done' : i === done ? 'now' : ''}"></i>`).join('')}</span>`;
+    const strip = (tone, progress, title, detail, buttons, done = -1) => {
+      const cut = progress.lastIndexOf(' · ');
+      const line = progress ? (done >= 0 && cut > 0 ? `${esc(progress.slice(0, cut))} ${bars(done, w.total)} ${esc(progress.slice(cut + 3))}` : esc(progress)) : '';
+      return `<div class="walk-strip tone-${tone}" role="status"><button class="walk-leave" data-a="walkStop" title="${esc(leaveTip)}" aria-label="${esc(leaveTip)}">×</button>${line ? `<div class="walk-progress">${line}</div>` : ''}
+  <div class="walk-line"><div class="walk-words"><b>${esc(title)}</b>${detail ? `<span>${esc(detail)}</span>` : ''}</div><div class="row wrap">${buttons.join('')}</div></div></div>`;
+    };
+    const of = (k) => ` · ${k} ${t('of', 'sur')} ${w.total}`;
+    if (w.kind === 'specify') {
+      const progress = t('Specifying ', 'Spécifier ') + w.label;
+      if (w.view === 'specified' && w.next) return strip('done', progress + of(w.done.length), `✓ ${w.current} ${t('specified', 'spécifié')}`,
+        `${t('Next: ', 'Suivant : ')}${w.next.component} · ${decisionsWord(w.next.open)}`,
+        [btn(t('Specify next ▸', 'Spécifier le suivant ▸'), 'walkSpecifyNext', attrs({ id: w.next.component }))], w.done.length);
+      if (w.view === 'specify-end') {
+        if (w.scope === 'foundations') return strip('done', '', t('✓ The foundations are specified', '✓ Les fondations sont spécifiées'), w.done.join(', '),
+          [btn(t('Back to First steps', 'Retour aux premiers pas'), 'walkOverview', '', false, 'secondary')]);
+        const feature = w.scope === 'feature' ? w.value : (W().featureOf || {})[w.value] || w.value;
+        const planned = (W().planned || {})[feature] || [];
+        return strip('info', '', `✓ ${feature}${t(': every decision is made', ' : chaque décision est prise')}`,
+          planned.length ? t('Ready to build: ', 'Prêts à construire : ') + planned.join(', ') : '',
+          [btn(t('Build ▸', 'Construire ▸'), 'walkBuild', attrs({ id: feature }))]);
+      }
+      return strip('info', progress + of(w.done.length + 1), w.current,
+        t('What is still open is selected below; Save moves on to the next one.', 'Ce qui reste ouvert est sélectionné ci-dessous ; Enregistrer passe au suivant.'), [], w.done.length);
+    }
+    if (w.view === 'budget') return strip('warn', '', t('Change budget reached', 'Budget de changement atteint'),
+      t('Commit and open the merge request; the rest goes in the next one.', 'Committe et ouvre la merge request ; le reste va dans la suivante.'), []);
+    if (w.view === 'built') return strip('done', '', `✓ ${w.label} ${t('is built', 'est construite')}`,
+      t('Commit: the hooks run the same checks as CI; then open a merge request.', 'Committe : les hooks lancent les mêmes contrôles que la CI ; puis ouvre une merge request.'), []);
+    const tone = w.checkOk ? 'done' : (w.checkLine || '').startsWith('✖') ? 'bad' : 'info';
+    const steps = `${t('1 · The code', '1 · Le code')}${w.copied ? t(' ✓ copied', ' ✓ copié') : ''}   2 · ${t('Check', 'Vérifier')}${w.checkLine ? ' ' + w.checkLine : ''}   3 · ${t('Next', 'Suivant')}`;
+    return strip(tone, t('Building ', 'Construire ') + w.label + of(w.done.length + 1), w.current, steps, [
+      btn(t('Copy AI prompt', 'Copier le prompt IA'), 'walkCopy', '', false, w.copied ? 'secondary' : ''),
+      btn(t('Check', 'Vérifier'), 'walkCheck', '', false, w.copied && !w.checkOk ? '' : 'secondary'),
+      btn(t('Build next ▸', 'Construire le suivant ▸'), 'walkBuildNext', '', !w.checkOk, w.checkOk ? '' : 'secondary')], w.done.length);
   }
 
   function viewForItem(item) {
@@ -3031,6 +3704,20 @@
   }
 
   const actions = {
+    agentRemove: (e) => {
+      const current = answerOf(e.dataset.kind, e.dataset.id).split(',').map((x) => x.trim()).filter((x) => x);
+      setAnswer(e.dataset.kind, e.dataset.id, current.filter((x) => x !== e.dataset.name).join(','));
+    },
+    agentOther: (e) => {
+      const key = e.dataset.kind + ':' + e.dataset.id;
+      const name = (ui.agentOther[key] || '').trim().toLowerCase();
+      if (!AGENT_NAME.test(name)) {
+        post({ type: 'message', text: t('A name is lowercase letters and digits, words joined by - or _ (my-agent).', 'Un nom : lettres minuscules et chiffres, mots reliés par - ou _ (mon-agent).') });
+        return;
+      }
+      addAgent(e.dataset.kind, e.dataset.id, name);
+      ui.agentOther[key] = '';
+    },
     tab: (e) => { ui.tab = e.dataset.tab; ui.filterMenu = false; ui.projectMore = false; },
     openComponents: () => { ui.tab = 'components'; ui.filter = 'all'; },
     openBriefCommands: () => {
@@ -3041,10 +3728,15 @@
     projectMore: () => { ui.projectMore = !ui.projectMore; },
     filterMenu: () => { ui.filterMenu = !ui.filterMenu; },
     back: () => {
-      // the component the command was opened from, on its view: the extension shows it again (and reads it)
+      // the page the command was opened from (a component on its view: the extension shows it again and reads it)
       const to = ui.back;
       ui.back = null;
-      if (!to) return;
+      if (!to) { ui.mode = 'empty'; return; }  // Cancel with nowhere to go back to: leave the form
+      if (to.mode) {
+        ui.forceWorkspace = true;
+        ui.mode = to.mode;
+        return;
+      }
       if (to.briefs) {
         ui.forceWorkspace = true;
         ui.mode = 'briefs';
@@ -3084,8 +3776,8 @@
     },
     openProjectVow: () => post({ type: 'openProjectVow' }),
     openChecks: () => post({ type: 'openChecks' }),
-    openPacks: () => { ui.packsOpen = true; },
-    closePacks: () => { ui.packsOpen = false; },
+    openTemplates: () => { ui.templatesOpen = true; },
+    closeTemplates: () => { ui.templatesOpen = false; },
     openChecksReference: () => post({ type: 'openChecksReference' }),
     projectWork: () => post({ type: 'showProjectWork', index: 0 }),
     openRule: (e) => post({ type: 'openRule', code: e.dataset.code }),
@@ -3110,6 +3802,38 @@
       post({ type: 'openCommand', command: item.command, values: item.preset, selected: item.component || ui.component });
     },
     openFile: (e) => post({ type: 'openFile', file: e.dataset.file, line: Number(e.dataset.line) || 0 }),
+    // 1.1.0: the walks
+    walk: (e) => post({ type: 'walk', kind: e.dataset.kind, scope: e.dataset.scope || '', value: e.dataset.value || '' }),
+    walkSpecifyNext: (e) => continueSpecify(e.dataset.id),
+    walkStop: () => { ui.walk = null; },
+    draftRun: (e) => askDraft(e.dataset.key, (draftTool() || {}).name),
+    draftAgain: (e) => askDraft(e.dataset.key, (ui.aiDraft[e.dataset.key] || draftTool() || {}).tool || (draftTool() || {}).name),
+    draftWith: (e) => { ui.aiTool = e.dataset.tool; keepAiTool(); askDraft(e.dataset.key, e.dataset.tool); },
+    draftMenu: (e) => { ui.aiMenuKey = ui.aiMenuKey === e.dataset.key ? '' : e.dataset.key; },
+    draftPrompt: (e) => {
+      ui.aiMenuKey = '';
+      const at = draftRef(e.dataset.key);
+      if (at) post({ type: 'draft', key: e.dataset.key, component: at.component, ref: at.ref, prompt: true });
+    },
+    draftStop: (e) => { delete ui.aiDrafting[e.dataset.key]; },
+    draftDrop: (e) => {
+      const d = ui.aiDraft[e.dataset.key];
+      if (!d) return;
+      if (d.before === undefined) delete ui.drafts[e.dataset.key]; else ui.drafts[e.dataset.key] = d.before;
+      delete ui.aiDraft[e.dataset.key];
+    },
+    walkBuild: (e) => startWalk({ kind: 'build', scope: 'feature', value: e.dataset.id }),
+    walkCopy: () => { if (ui.walk) post({ type: 'walkCopy', component: ui.walk.current }); },
+    walkCheck: () => { if (ui.walk) { ui.walk.checkLine = t('… checking', '… contrôle en cours'); post({ type: 'walkCheck', component: ui.walk.current }); } },
+    walkBuildNext: () => buildNext(),
+    // 1.1.0: what a right-click menu does on a row that is not the selected one
+    menuOpenCode: (e) => post({ type: 'openCode', component: e.dataset.id }),
+    menuOpenVow: (e) => post({ type: 'openVowFile', component: e.dataset.id }),
+    menuRule: (e) => post({ type: 'openCommand', command: 'rule add', values: { words: e.dataset.id + '\n' }, selected: e.dataset.id }),
+    menuPropose: (e) => post({ type: 'openCommand', command: 'decision propose', values: { component: ui.component, question: e.dataset.number }, selected: ui.component }),
+    menuTask: (e) => { if (ui.component) post({ type: 'taskPrompt', component: ui.component, task: e.dataset.id }); },
+    walkOverview: () => { ui.walk = null; post({ type: 'show' }); },
+    revealFile: (e) => post({ type: 'revealFile', file: e.dataset.file }),
     quickList: (e) => {
       // the sidebar shows the components with such work; the editor tab opens the first of them
       const index = Number(e.dataset.i);
@@ -3136,6 +3860,7 @@
     addToFeature: (e) => post({ type: 'openCommand', command: 'component add', values: { feature: e.dataset.id }, selected: '' }),
     featureDoc: (e) => post({ type: 'openDoc', feature: e.dataset.id }),
     featurePrompt: (e) => post({ type: 'featurePrompt', feature: e.dataset.id }),
+    featureCheck: (e) => post({ type: 'featureCheck', feature: e.dataset.id }),
     addHere: (e) => { ui.addLayer = ui.addLayer === e.dataset.id ? '' : e.dataset.id; },
     addType: (e) => { ui.addLayer = ''; post({ type: 'openCommand', command: 'component add', values: { type: e.dataset.id }, selected: '' }); },
     view: (e) => {
@@ -3171,6 +3896,8 @@
       post({ type: 'run', label: 'try', args: ['try', ui.tryExample, '--json'], target: 'welcome' });
     },
     openTryCopy: (e) => post({ type: 'openTryCopy', folder: e.dataset.folder }),
+    trySpec: (e) => post({ type: 'openTryCopy', folder: e.dataset.path }),
+    tryOpen: (e) => post({ type: 'tryOpen', folder: e.dataset.path }),
     openTry: () => post({ type: 'run', label: 'try', args: ['try', 'pyspark-pipeline', '--json'], target: 'overview' }),
     openCommand: (e) => {
       const values = {};
@@ -3179,8 +3906,7 @@
       if (e.dataset.number) values.number = e.dataset.number;
       if (e.dataset.id) values.id = e.dataset.id;  // hazard accept, rule accept / remove (0.16.0)
       if (e.dataset.brief) values.brief = e.dataset.brief;  // brief accept, from Overview › Briefs
-      if (e.dataset.packname) values.name = e.dataset.packname;  // pack update / remove, from Overview › Packs (0.22.0)
-      if (e.dataset.pack) values.pack = e.dataset.pack;  // pack check
+      if (e.dataset.templatename) values.template = e.dataset.templatename;  // template question / rule project, from Overview › Templates
       if (e.dataset.field === 'base' && baseNow().trim()) values.base = baseNow().trim();
       post({ type: 'openCommand', command: e.dataset.command, values, selected: ui.component });
     },
@@ -3190,9 +3916,7 @@
     openSkill: (e) => {
       const values = { component: e.dataset.component || (ui.mode === 'component' ? ui.component : ''), brief: e.dataset.brief || '' };
       if (NAV) { post({ type: 'openSkill', skill: e.dataset.skill, values }); return; }
-      if (ui.mode === 'component' && ui.component) ui.back = { component: ui.component, view: ui.view };
-      else if (ui.mode === 'briefs') ui.back = { briefs: true };
-      else ui.back = null;
+      if (ui.mode !== 'skill' && ui.mode !== 'command') ui.back = here();
       ui.aiMenu = false;
       ui.mode = 'skill';
       ui.skill = e.dataset.skill;
@@ -3200,10 +3924,39 @@
       ui.skillValues = Object.assign({ max: '5' }, values);
     },
     skillValue: (e) => { ui.skillValues[e.dataset.name] = e.dataset.value; },
-    skillStage: (e) => { ui.skillStep = Math.max(0, Math.min(2, Number(e.dataset.index) || 0)); },
-    skillNext: () => { ui.skillStep = Math.min(2, ui.skillStep + 1); },
-    skillPrevious: () => { ui.skillStep = Math.max(0, ui.skillStep - 1); },
-    askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1', format: e.dataset.format || 'instructions' }),
+    runMenu: () => { ui.runMenu = !ui.runMenu; },
+    runWith: (e) => {
+      ui.runTool = e.dataset.tool; ui.runMenu = false;
+      keep({ runTool: ui.runTool });
+    },
+    skillRun: (e) => {
+      const v = ui.skillValues; const def = skillDef(ui.skill) || {};
+      const tool = runTool(runTools());
+      if (!tool) return;
+      const target = skillTarget(ui.skill, v);
+      ui.skillRun = { key: e.dataset.key, status: 'running', title: tool.title, started: Date.now(), review: false,
+        what: t(`is doing "${pair(def.label)}" on ${target}`, `fait « ${pair(def.label)} » sur ${target}`) };
+      post({ type: 'skillRun', key: e.dataset.key, skill: ui.skill, target, max: def.max ? (v.max || '5') : '', tool: tool.name, component: v.component || '' });
+    },
+    reviewRun: (e) => {
+      const tool = runTool(reviewTools());
+      if (!tool || !S.base) return;
+      ui.skillRun = { key: e.dataset.key, status: 'running', title: tool.title, started: Date.now(), review: true,
+        what: t(`is reviewing the changes since ${S.base}`, `relit les changements depuis ${S.base}`) };
+      post({ type: 'reviewRun', key: e.dataset.key, base: S.base, tool: tool.name });
+    },
+    skillStop: () => post({ type: 'skillStop' }),
+    skillLog: () => post({ type: 'skillLog', review: !!(ui.skillRun && ui.skillRun.review) }),
+    reviewOpen: () => post({ type: 'reviewOpen' }),
+    runReview: () => {
+      // what the run added: the component's To review (Find risks: Safety), or the features it drafted (Features)
+      ui.originFilter = 'review';
+      if (ui.skill === 'draft-spec') { post({ type: 'sidebar' }); return; }
+      ui.forceWorkspace = true; ui.mode = 'component'; ui.back = null;
+      selectComponent(ui.skillValues.component || '', false);
+      ui.view = ui.skill === 'analyze' ? 2 : 0;
+    },
+    askAi: (e) => post({ type: 'askAi', skill: ui.skill, tool: e.dataset.tool || ui.skillValues.tool || '', values: ui.skillValues, send: e.dataset.send === '1', format: e.dataset.format || 'instructions' }),
     originFilter: (e) => { ui.originFilter = e.dataset.id; },
     toReview: () => {
       // what the AI added and no person kept yet: the first view that has some, filtered to them
@@ -3230,7 +3983,9 @@
         return;
       }
       if (action !== 'decision propose') ui.advance = 'decision';
-      post({ type: 'inline', action, component: ui.component, number: str(row, 'number'), answer, question: str(row, 'question'), proposed: str(row, 'proposed') });
+      post({ type: 'inline', action, component: ui.component, number: str(row, 'number'), answer, question: str(row, 'question'), proposed: str(row, 'proposed'),
+        drafted: action === 'decision make' ? draftedOf(key, answer) : null });
+      delete ui.aiDraft[key];
     },
     cancelDraft: (e) => {
       delete ui.drafts[e.dataset.key];
@@ -3245,18 +4000,12 @@
       const row = (rows || [])[Number(e.dataset.row)];
       if (row) row[e.dataset.name] = e.dataset.value;
       ui.smartExpanded = e.dataset.key;
+      fromTable(e.dataset.key);
     },
-    paramAdd: (e) => { (ui.paramRows[e.dataset.key] ||= []).push({ name: '', type: 'str', default: '', note: '' }); ui.smartExpanded = e.dataset.key; },
-    paramRemove: (e) => { (ui.paramRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; },
-    paramUse: (e) => {
-      const text = parametersAnswer(ui.paramRows[e.dataset.key] || []);
-      if (text.trim()) { ui.drafts[e.dataset.key] = text; ui.smartExpanded = e.dataset.key; }
-    },
-    smartRemove: (e) => { (ui.smartRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; },
-    smartUse: (e) => {
-      const text = structuredAnswer(ui.smartRows[e.dataset.key] || [], ui.smartQuestions[e.dataset.key] || '');
-      if (text.trim()) { ui.drafts[e.dataset.key] = text; ui.smartExpanded = e.dataset.key; }
-    },
+    paramAdd: (e) => { (ui.paramRows[e.dataset.key] ||= []).push({ name: '', type: 'str', default: '', note: '', required: true }); ui.smartExpanded = e.dataset.key; },
+    paramRemove: (e) => { (ui.paramRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; fromTable(e.dataset.key); },
+    smartRemove: (e) => { (ui.smartRows[e.dataset.key] ||= []).splice(Number(e.dataset.row), 1); ui.smartExpanded = e.dataset.key; fromTable(e.dataset.key); },
+    smartRewrite: (e) => { ui.byHand[e.dataset.key] = false; ui.smartExpanded = e.dataset.key; fromTable(e.dataset.key); },
     useSuggestion: () => {
       const row = selectedRow('decision');
       if (row) ui.drafts[`d:${ui.component}:${str(row, 'number')}`] = str(row, 'suggested');
@@ -3267,7 +4016,9 @@
       const label = str(row, 'key') || str(row, 'number');
       const answer = draft(`q:${ui.component}:${label}`, str(row, 'answer') || str(row, 'suggested'));
       ui.advance = 'question';
-      post({ type: 'inline', action: 'question', component: ui.component, key: label, answer, question: str(row, 'question') });
+      post({ type: 'inline', action: 'question', component: ui.component, key: label, answer, question: str(row, 'question'),
+        drafted: draftedOf(`q:${ui.component}:${label}`, answer) });
+      delete ui.aiDraft[`q:${ui.component}:${label}`];
     },
     safety: (e) => {
       const row = selectedRow('safety');
@@ -3279,7 +4030,9 @@
       post({ type: 'inline', action: e.dataset.action, component: ui.component, number: str(row, 'number'),
         word: str(row, 'guide_word') || 'S' + str(row, 'number'), text: draft(key, str(suggestion, 'hazard')), severity: ui.severity[key] || 'high',
         question: str(row, 'question'), preview: e.dataset.covered ? e.dataset.preview : d && d.safety[i] ? d.safety[i].preview : '', hazard: ui.changing[key] || '',
+        drafted: ['hazard add', 'hazard change'].includes(e.dataset.action) ? draftedOf(key, draft(key, str(suggestion, 'hazard'))) : null,
         ...(e.dataset.covered ? { covered: true, text: '' } : {}) });
+      if (['hazard add', 'hazard change'].includes(e.dataset.action)) delete ui.aiDraft[key];
     },
     useChoice: (e) => { ui.drafts[e.dataset.key] = e.dataset.value; },
     hazardChange: (e) => {
@@ -3326,7 +4079,7 @@
     cancelForm: () => { setCommand(ui.command, {}, ''); },
     runForm: () => {
       const values = Object.assign({}, ui.form);
-      if (ui.command === 'pack template') {
+      if (ui.command === 'template new') {
         const settings = templateSettings();
         if (settings.problem) { post({ type: 'message', text: settings.problem }); return; }
         values.answer = settings.answer.join('\n');
@@ -3370,12 +4123,36 @@
     }, 0);
   }
 
+  document.body.addEventListener('contextmenu', (event) => {
+    const row = event.target.closest('[data-menu]');
+    if (!row) { if (ui.ctxMenu) { ui.ctxMenu = null; render(); } return; }
+    event.preventDefault();  // the row's own menu, not the webview's Cut / Copy / Paste
+    ui.ctxMenu = { kind: row.dataset.menu, d: Object.assign({}, row.dataset), x: event.clientX, y: event.clientY };
+    render();
+    const first = document.querySelector('.ctx-menu button');
+    if (first) first.focus();
+  });
+
   document.body.addEventListener('click', (event) => {
+    if (ui.ctxMenu) {  // a click closes the menu; on one of its items, the item runs below
+      ui.ctxMenu = null;
+      if (!event.target.closest('.ctx-menu [data-a]')) { render(); return; }
+    }
     const target = event.target.closest('[data-a]');
     // The responsive More menu closes after an action or on an outside click.
     // The same action is used in either the toolbar or its overflow menu.
     if (ui.projectMore && (!target || target.dataset.a !== 'projectMore')) {
       ui.projectMore = false;
+      if (!target) { render(); return; }
+    }
+    // the ▾ menu of ▶ Run closes on any click but its own
+    if (ui.runMenu && !(target && ['runMenu', 'runWith'].includes(target.dataset.a))) {
+      ui.runMenu = false;
+      if (!target) { render(); return; }
+    }
+    // the ▾ menu of Draft with AI closes on any click but its own
+    if (ui.aiMenuKey && !(target && ['draftMenu', 'draftWith', 'draftPrompt'].includes(target.dataset.a))) {
+      ui.aiMenuKey = '';
       if (!target) { render(); return; }
     }
     // a click anywhere but on a menu's own button closes the open menus (AI, Add)
@@ -3397,22 +4174,101 @@
     render();
   });
 
+  // The split's bar: a pointer drag sets the list's width (side by side) or height (stacked), live.
+  document.body.addEventListener('pointerdown', (event) => {
+    const bar = event.target.closest && event.target.closest('[data-drag="split"]');
+    if (!bar) return;
+    const box = bar.parentElement;
+    const stacked = getComputedStyle(bar).cursor === 'row-resize';
+    event.preventDefault();
+    bar.setPointerCapture(event.pointerId);
+    const move = (e) => {
+      const r = box.getBoundingClientRect();
+      if (stacked) splitSize.top = Math.round(Math.min(Math.max(e.clientY - r.top, 80), r.height - 160)) + 'px';
+      else splitSize.left = Math.round(Math.min(Math.max(e.clientX - r.left, 240), r.width - 330)) + 'px';
+      box.style.setProperty('--split-left', splitSize.left);
+      box.style.setProperty('--split-top', splitSize.top);
+    };
+    const up = () => { bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', up); keepSplit(); };
+    bar.addEventListener('pointermove', move);
+    bar.addEventListener('pointerup', up);
+  });
+  document.body.addEventListener('dblclick', (event) => {
+    if (!(event.target.closest && event.target.closest('[data-drag="split"]'))) return;
+    splitSize.left = '50%'; splitSize.top = '40vh';
+    keepSplit();
+    render();
+  });
+
   document.body.addEventListener('keydown', (event) => {
     const e = event.target;
+    if (e && e.dataset && e.dataset.drag === 'split' && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+      const r = e.parentElement.getBoundingClientRect();
+      const now = parseFloat(getComputedStyle(e.parentElement.firstElementChild).width) || r.width / 2;
+      const step = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -24 : 24;
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') splitSize.top = Math.max(80, (parseFloat(getComputedStyle(e.parentElement.firstElementChild).height) || 200) + step) + 'px';
+      else splitSize.left = Math.min(Math.max(now + step, 240), r.width - 330) + 'px';
+      e.parentElement.style.setProperty('--split-left', splitSize.left);
+      e.parentElement.style.setProperty('--split-top', splitSize.top);
+      keepSplit();
+      event.preventDefault();
+      return;
+    }
+    if (ui.ctxMenu && event.key === 'Escape') { ui.ctxMenu = null; render(); return; }
+    // 1.2.0: Esc leaves the walk (the × of its strip), unless a field or a menu has it
+    if (event.key === 'Escape' && ui.walk && !(e && /^(TEXTAREA|INPUT|SELECT)$/.test(e.tagName)) && actions.walkStop) {
+      actions.walkStop(e);
+      render();
+      return;
+    }
+    if (e && e.dataset && e.dataset.input === 'agentOther' && event.key === 'Enter') {
+      event.preventDefault();
+      actions.agentOther(e);
+      render();
+      return;
+    }
     if (e && e.dataset && e.dataset.input === 'find' && event.key === 'Enter') {
       ui.findText = e.value;
       actions.find(e);
     }
   });
 
+  // A traceback pasted in the find field (2.7.0): an input drops its line breaks and glues the lines together
+  // ("in mark_paidValueError: ..."); a space keeps each line's words apart, so archvow still reads the error.
+  document.body.addEventListener('paste', (event) => {
+    const e = event.target;
+    if (!e || e.id !== 'find' || !event.clipboardData) return;
+    const text = event.clipboardData.getData('text');
+    if (!/[\r\n]/.test(text)) return;
+    event.preventDefault();
+    e.setRangeText(joinLines(text), e.selectionStart, e.selectionEnd, 'end');
+    ui.findText = e.value;
+  });
+
   document.body.addEventListener('input', (event) => {
     const e = event.target;
     switch (e.dataset.input) {
+      case 'agentOther': {
+        const key = e.dataset.kind + ':' + e.dataset.id;
+        const was = (ui.agentOther[key] || '').trim() !== '' && !AGENT_NAME.test((ui.agentOther[key] || '').trim().toLowerCase());
+        ui.agentOther[key] = e.value;
+        const bad = e.value.trim() !== '' && !AGENT_NAME.test(e.value.trim().toLowerCase());
+        if (bad !== was) render();  // the hint appears or goes; typing is kept (data-keep)
+        return;
+      }
       case 'find':
         ui.findText = e.value;
         return;
       case 'draft': {
         ui.drafts[e.dataset.key] = e.value;
+        // 1.1.0: typed by hand in a field a table writes - the table stops writing over it
+        if (ui.smartRows[e.dataset.key] || ui.paramRows[e.dataset.key]) {
+          ui.byHand[e.dataset.key] = true;
+          const line = document.querySelector(`.hand-line[data-hand="${CSS.escape(e.dataset.key)}"]`);
+          if (line) line.hidden = false;
+        }
+        const back = document.querySelector(`[data-a="useSuggestion"][data-key="${CSS.escape(e.dataset.key)}"]`);
+        if (back) back.hidden = e.value.trim() === (back.dataset.suggested || '').trim();
         // Undo changes: pressable as soon as the text differs from the recorded one (no redraw while typing)
         const undo = document.querySelector(`[data-a="cancelDraft"][data-key="${CSS.escape(e.dataset.key)}"]`);
         if (undo) {
@@ -3426,27 +4282,30 @@
         const rows = ui.smartRows[e.dataset.key] || [];
         const row = rows[Number(e.dataset.row)];
         if (row && ['name', 'type', 'nullable', 'personal', 'note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
-        const preview = document.querySelector('.smart-answer .smart-preview[data-preview="column"]');
-        if (preview) preview.textContent = structuredAnswer(rows, ui.smartQuestions[e.dataset.key] || '');
+        writeField(e.dataset.key);
         return;
       }
       case 'paramField': {
         const rows = ui.paramRows[e.dataset.key] || [];
         const row = rows[Number(e.dataset.row)];
         if (row && ['name', 'type', 'default', 'note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
-        const preview = document.querySelector('.smart-answer .smart-preview[data-preview="param"]');
-        if (preview) preview.textContent = parametersAnswer(rows);
-        const chip = row && e.dataset.name === 'default' ? document.querySelector(`.smart-answer [data-required="${Number(e.dataset.row)}"]`) : null;
-        if (chip) { chip.textContent = e.value.trim() ? t('optional', 'facultatif') : t('required', 'obligatoire'); chip.classList.toggle('warn', !e.value.trim()); }
+        if (row && e.dataset.name === 'default') e.classList.toggle('missing', row.required === false && !e.value.trim() && !!row.name.trim());
+        writeField(e.dataset.key);
+        return;
+      }
+      case 'paramRequired': {  // 1.1.0: the Required box
+        const row = (ui.paramRows[e.dataset.key] || [])[Number(e.dataset.row)];
+        if (row) row.required = e.checked;
+        ui.smartExpanded = e.dataset.key;
+        fromTable(e.dataset.key);
+        render();
         return;
       }
       case 'base': ui.base = e.value; ui.baseTouched = true; return;
       case 'commandFilter': ui.commandFilter = e.value; render(); return;
       case 'skill': {
         ui.skillValues[e.dataset.name] = e.value;
-        const pre = document.querySelector('.skill-form pre.request');
-        if (pre) pre.textContent = skillRequest(ui.skill, ui.skillValues);
-        document.querySelectorAll('.skill-form [data-a="askAi"]').forEach((b) => { b.disabled = !e.value.trim(); });
+        render();  // archvow writes the instructions for the new target (skillPrompt)
         return;
       }
       case 'form':
@@ -3540,7 +4399,7 @@
         const rows = ui.smartRows[e.dataset.key] || [];
         const row = rows[Number(e.dataset.row)];
         if (row && ['name','type','nullable','personal','note'].includes(e.dataset.name)) row[e.dataset.name] = e.value;
-        ui.smartExpanded = e.dataset.key; render(); return;
+        ui.smartExpanded = e.dataset.key; fromTable(e.dataset.key); render(); return;
       }
       case 'formBool': ui.form[e.dataset.name] = e.checked ? 'true' : ''; askPreview(0); refreshCommandStepIndicators(); return;
       case 'choice': choose(e.dataset.name, e.value); askPreview(0); render(); return;
@@ -3554,6 +4413,9 @@
         render();
         return;
       }
+      case 'agentAdd':
+        if (e.value) { addAgent(e.dataset.kind, e.dataset.id, e.value); render(); }
+        return;
       case 'initTemplate':
         ui.initTemplate = e.value;
         ui.form.template = e.value;

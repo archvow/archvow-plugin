@@ -26,30 +26,35 @@ symbol read_order
 
 # --- decisions
 decision 1
+  id who_may_call
   question "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?"
   answer "Authenticated customers (get_current_user), each only on their own orders"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 2
+  id status_codes
   question "Status codes: success, not found, conflict, forbidden - and the error body format?"
   answer "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 3
+  id invalid_input
   question "Invalid input: FastAPI's 422, or 400 with your own error format?"
   answer "FastAPI's 422"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 4
+  id pagination
   question "Lists: pagination, default and maximum page size - or no list route?"
   answer "No list route; POST repeated: two orders (no idempotency key yet)"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 5
+  id twice
   question "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?"
   answer "No list route; POST repeated: two orders (no idempotency key yet)"
   by architect@example.com

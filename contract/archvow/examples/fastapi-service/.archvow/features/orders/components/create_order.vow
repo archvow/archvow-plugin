@@ -15,30 +15,35 @@ symbol create_order
 
 # --- decisions
 decision 1
+  id steps
   question "What does it do, step by step (read, check, change, save, call)?"
   answer "Build a pending order with the next id, save it, return it"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 2
+  id not_found
   question "Something it needs does not exist: which domain error?"
   answer "Not applicable: it needs nothing that may be missing"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 3
+  id twice
   question "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?"
   answer "Two orders: a retry is a new order (customers cancel the extra one)"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 4
+  id who_may
   question "Who may perform it, and is that checked here or in the router?"
   answer "Any authenticated customer, for themselves; checked by the router"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 5
+  id all_or_nothing
   question "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?"
   answer "One save, nothing else to undo"
   by architect@example.com

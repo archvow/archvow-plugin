@@ -11,7 +11,7 @@ import java.util.Map;
  * {@code archvow workspace --json} (archvow 1.26, contract 1.2), read: what the plugin shows of a project, from one
  * process - the spec ({@code show --json}), each component's view ({@code show <id> --json}), the build plan
  * ({@code next --json}), the findings ({@code check --json}), the briefs ({@code brief show --json}) and the templates
- * ({@code catalog --json}), each in its own command's shape, the project's packs (1.26), each feature (2.0) and the first steps (2.1). VS Code reads it the same way (model.ts readWorkspace).
+ * ({@code catalog --json}), each in its own command's shape, the project's templates (3.0), each feature (2.0) and the first steps (2.1). VS Code reads it the same way (model.ts readWorkspace).
  */
 final class WorkspaceAnswer {
     /** Given back with --since: archvow answers {@code unchanged} while no file of the project changed. */
@@ -26,15 +26,18 @@ final class WorkspaceAnswer {
     final JsonObject check;
     final JsonObject briefs;
     final JsonObject catalog;
-    /** The project's packs (archvow 1.26): name, version, what each brings, source, state ok / changed. */
-    final JsonArray packs;
+    /** The project's templates (archvow 3.0): its chain's copies, bases first - name, version, extends, source, state
+     *  ok / changed - then `project`, its own additions. */
+    final JsonArray templates;
     /** Contract 2.0: each feature, as {@code show <feature> --json}, by name. */
     final Map<String, JsonObject> features;
     /** Contract 2.1: the first steps of a new project, each {step, title, detail, command, done} (the Overview's card). */
     final JsonArray firstSteps;
+    /** The whole answer (1.1.0): the walks read its next rows, check and features together (ArchvowWalks). */
+    JsonObject raw;
 
     private WorkspaceAnswer(String digest, boolean unchanged, JsonObject spec, Map<String, JsonObject> snapshots, String next,
-                            JsonObject check, JsonObject briefs, JsonObject catalog, JsonArray packs, Map<String, JsonObject> features,
+                            JsonObject check, JsonObject briefs, JsonObject catalog, JsonArray templates, Map<String, JsonObject> features,
                             JsonArray firstSteps) {
         this.digest = digest;
         this.unchanged = unchanged;
@@ -44,7 +47,7 @@ final class WorkspaceAnswer {
         this.check = check;
         this.briefs = briefs;
         this.catalog = catalog;
-        this.packs = packs;
+        this.templates = templates;
         this.features = features;
         this.firstSteps = firstSteps;
     }
@@ -72,10 +75,12 @@ final class WorkspaceAnswer {
         JsonObject byName = object(answer, "features");
         if (byName != null) for (Map.Entry<String, JsonElement> entry : byName.entrySet())
             if (entry.getValue().isJsonObject()) features.put(entry.getKey(), entry.getValue().getAsJsonObject());
-        return new WorkspaceAnswer(digest, false, spec, snapshots, next.toString(), check, object(answer, "briefs"),
-            object(answer, "catalog"), answer.has("packs") && answer.get("packs").isJsonArray()
-                ? answer.getAsJsonArray("packs") : new JsonArray(), features,
+        WorkspaceAnswer read = new WorkspaceAnswer(digest, false, spec, snapshots, next.toString(), check, object(answer, "briefs"),
+            object(answer, "catalog"), answer.has("templates") && answer.get("templates").isJsonArray()
+                ? answer.getAsJsonArray("templates") : new JsonArray(), features,
             answer.has("first_steps") && answer.get("first_steps").isJsonArray() ? answer.getAsJsonArray("first_steps") : new JsonArray());
+        read.raw = answer;
+        return read;
     }
 
     private static JsonObject object(JsonObject parent, String key) {

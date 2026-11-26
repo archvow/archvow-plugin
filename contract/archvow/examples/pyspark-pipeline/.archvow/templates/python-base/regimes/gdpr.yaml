@@ -1,0 +1,62 @@
+# The GDPR (EU / EEA) as archvow checks it. The checks every privacy law needs (columns classified, never logged,
+# special data protected...) are archvow's own PRIV rules; this file adds what the GDPR asks on top: the
+# questions of art. 6, 9, 17, 28, 30 and 46, and the input of the record of processing.
+# archvow supports compliance work; it does not certify it and is not legal advice.
+name: GDPR
+prefix: GDPR
+letter: P
+default: true
+title: "Personal data (GDPR / RGPD): purpose, legal basis, retention, location, recipients"
+title_fr: "Données personnelles (RGPD) : finalité, base légale, conservation, localisation, destinataires"
+law: "Regulation (EU) 2016/679 (General Data Protection Regulation)"
+law_fr: "Règlement (UE) 2016/679 (règlement général sur la protection des données)"
+checked: "2026-11-11"
+sources:
+  - https://eur-lex.europa.eu/eli/reg/2016/679/oj
+
+rules:
+  GDPR002: {title: "Personal data processed without a decided purpose and legal basis", title_fr: "Données personnelles traitées sans finalité ni base légale décidées"}
+  GDPR003: {title: "Personal data written without a decided retention and erasure", title_fr: "Données personnelles écrites sans conservation ni effacement décidés"}
+  GDPR008: {title: "Personal data stored or sent without a decided location, recipient and transfer safeguard", title_fr: "Données personnelles stockées ou envoyées sans localisation, destinataire ni garantie de transfert décidés"}
+
+questions:
+  purpose:
+    - id: purpose
+      rule: GDPR002
+      text: "Purpose: why does it process personal data (the columns or fields its spec lists), and for whom - e.g. to bill customers for their orders, for the finance team?"
+      text_fr: "Finalité : pourquoi traite-t-il des données personnelles (les colonnes ou champs que liste sa spec), et pour qui - par ex. facturer les clients de leurs commandes, pour la finance ?"
+    - id: legal_basis
+      rule: GDPR002
+      text: "Legal basis (GDPR art. 6): consent, contract, legal obligation, vital interests, public task or legitimate interests - and where is it recorded - e.g. contract, in the record of processing?"
+      text_fr: "Base légale (RGPD art. 6) : consentement, contrat, obligation légale, intérêts vitaux, mission d'intérêt public ou intérêt légitime - et où est-elle consignée - par ex. contrat, dans le registre des traitements ?"
+    - id: special_condition
+      rule: GDPR002
+      when: special
+      text: "Special categories (GDPR art. 9): which condition allows processing them (explicit consent, employment or social security law, health care...) - e.g. explicit consent for health data?"
+      text_fr: "Catégories particulières (RGPD art. 9) : quelle condition permet de les traiter (consentement explicite, droit du travail ou de la sécurité sociale, soins...) - par ex. consentement explicite pour des données de santé ?"
+  store:
+    - id: retention
+      rule: GDPR003
+      when: writes
+      text: "Retention: how long is the personal data it writes kept, how is it deleted then, and how is one person's data erased on request (art. 17) - e.g. 5 years, then deleted; one person's rows deleted by id?"
+      text_fr: "Conservation : combien de temps les données personnelles écrites sont-elles gardées, comment sont-elles supprimées ensuite, et comment efface-t-on celles d'une personne qui le demande (art. 17) - par ex. 5 ans, puis supprimées ; les lignes d'une personne supprimées par son id ?"
+    - id: location
+      rule: GDPR008
+      when: writes
+      text: "Location: in which country or region is it stored? Outside the EU/EEA, which safeguard applies (adequacy decision, standard contractual clauses - art. 46) - e.g. France, cloud region eu-west-3?"
+      text_fr: "Localisation : dans quel pays ou quelle région sont-elles stockées ? Hors UE/EEE, quelle garantie s'applique (décision d'adéquation, clauses contractuelles types - art. 46) - par ex. France, région cloud eu-west-3 ?"
+  share:
+    - id: recipient
+      rule: GDPR008
+      when: writes
+      text: "Recipient: which third party receives the personal data, where (country or region), and under which contract (art. 28) and safeguard (art. 46) - e.g. a payment provider in the EU, under its data processing agreement?"
+      text_fr: "Destinataire : quel tiers reçoit les données personnelles, où (pays ou région), et sous quel contrat (art. 28) et quelle garantie (art. 46) - par ex. un prestataire de paiement dans l'UE, sous son contrat de sous-traitance ?"
+
+register:
+  file: PERSONAL_DATA.md
+  title: "Personal data"
+  title_fr: "Données personnelles"
+  intro: "Every column the spec classifies as personal or special (GDPR art. 9), and the components that read, change and write it. Input for the record of processing (GDPR art. 30)."
+  intro_fr: "Chaque colonne que la spec classe comme personnelle ou particulière (RGPD art. 9), et les composants qui la lisent, la modifient et l'écrivent. Entrée du registre des traitements (RGPD art. 30)."
+  answers: "Purpose, legal basis, retention, location"
+  answers_fr: "Finalité, base légale, conservation, localisation"

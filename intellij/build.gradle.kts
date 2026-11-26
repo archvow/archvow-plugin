@@ -64,6 +64,10 @@ tasks.named<ProcessResources>("processResources") {
         include("commands.json", "catalog.json", "kinds.json", "rules.md", "rules.fr.md", "version.txt", "contract.txt")
         into("archvow")
     }
+    from(layout.projectDirectory.dir("../contract")) {   // the archvow versions the plugin works with (1.0.0)
+        include("archvow-range.txt")
+        into("archvow")
+    }
     from(layout.projectDirectory.dir("../contract/forms")) {   // how each command's form is laid out, the trees' icons
         include("forms.json", "icons.json")
         into("archvow")

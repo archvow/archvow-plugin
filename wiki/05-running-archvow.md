@@ -49,11 +49,11 @@ rafraîchissement partiel lançait quatre commandes) ; le changement de vow qui 
 l'observateur des vows l'ignore (`ownChangeUntil`). Quand un vow change sur le disque, le plugin passe le
 condensé de la dernière réponse (`--since`, gardé avec les réglages ou l'archvow qui l'a donnée) : si aucun
 fichier du projet n'a changé, archvow répond `unchanged` et rien n'est redessiné. Jamais après une action
-ni quand une personne rafraîchit. Depuis 0.22.0 (archvow 1.26), la réponse donne aussi les packs du projet
-(`packs` : la ligne Packs de la vue d'ensemble, page 7) et son catalogue est celui du projet.
+ni quand une personne rafraîchit. La réponse donne aussi les templates du projet (`templates` depuis archvow 3.0 :
+la ligne Templates de la vue d'ensemble, page 7) et son catalogue est celui du projet.
 
 Le catalogue de l'assistant init (0.22.0) : `archvow catalog --json` lancé dans le dossier du projet, même avant
-`init` (archvow 1.26 y lit `.archvow/packs/` quand `pack add` y a copié un pack) ; avant 0.22.0 il était lancé
+`init` (dans un projet, archvow 3.0 liste ses propres templates d'abord, tels qu'il les utilise) ; avant 0.22.0 il était lancé
 hors du projet, avec `ARCHVOW_TEMPLATES`.
 
 ## Où archvow est cherché
@@ -69,7 +69,10 @@ processus archvow, Test et Installer). Python tourne toujours avec `-P` (`<pytho
 `sys.path`, donc un fichier ou un dossier du dépôt nommé `archvow` ou `pip` ne tourne jamais à sa place
 (Python 3.11+, comme archvow le demande).
 
-1. **L'interpréteur Python de l'IDE pour le projet** : `<python> -P -m archvow`.
+1. **Le Python choisi pour archvow** (Settings > Tools > Archvow / `archvow.python`) : `<python> -P -m archvow`.
+   Depuis 0.26.1 il passe en premier : un Python que la personne a choisi est celui qui tourne. Vide :
+   *Automatique*, les étapes suivantes.
+2. **L'interpréteur Python de l'IDE pour le projet** : `<python> -P -m archvow`.
    - IntelliJ / PyCharm : le SDK Python du projet, sinon celui d'un module (`ArchvowInterpreter.projectPython`,
      par `ProjectRootManager` et `ModuleRootManager`, sans dépendre du plugin Python : le type de SDK
      est reconnu à son nom) ; sans aucun, le seul interpréteur Python de l'IDE quand il n'en connaît
@@ -78,7 +81,6 @@ processus archvow, Test et Installer). Python tourne toujours avec `-P` (`<pytho
      `environments.getActiveEnvironmentPath`), relu quand il change.
    - Réglage *Use the project's Python interpreter first* / `archvow.useProjectInterpreter`, actif
      par défaut.
-2. **Le Python des réglages** (Settings > Tools > Archvow / `archvow.python`) : `<python> -P -m archvow`.
 3. **L'environnement virtuel du dossier** (0.25.2) : `.venv` ou `venv` du projet - pour `init --dir` dans
    IntelliJ, de ce dossier, où la commande tourne alors.
 4. **L'exécutable des réglages** (`archvow` par défaut, cherché dans le PATH de l'IDE).
@@ -95,6 +97,21 @@ au lieu d'une erreur sans contexte.
 Pourquoi l'interpréteur de l'IDE en premier : sur macOS, un IDE lancé depuis le Dock n'a pas le PATH
 du terminal, donc `archvow` n'y est souvent pas ; le Python du projet, lui, est connu de l'IDE.
 
+
+### Choisir le Python (0.26.1)
+
+Personne n'a à taper un chemin. Settings > Tools > Archvow (IntelliJ) et **Configurer Python** (VS Code : la
+commande *Choose the Python that runs archvow*) listent les Python de cet ordinateur - l'interpréteur du
+projet, son `.venv`, les interpréteurs de l'IDE (VS Code : les environnements de l'extension Python),
+python.org, Homebrew, celui du système, pyenv, conda et le PATH - chacun une fois, avec sa version et l'archvow
+qu'il a (`ArchvowPythons`, `pythons.ts` : chacun lance quelques lignes de Python depuis un dossier vide,
+seulement dans un projet approuvé). Ceux qui ont archvow d'abord ; un Python plus ancien que 3.11 dit qu'il
+est trop ancien. *Automatique* garde l'ordre ci-dessus.
+
+Ce qui tourne est dit là où un développeur commence : en haut de la page des réglages (**Lance** : `archvow
+3.1.0 avec /usr/local/bin/python3.12 — l'interpréteur Python du projet`, avec **Tester**) et sur la page
+d'accueil de la fenêtre Archvow, la même ligne. Settings > Tools > Archvow est dans une seule langue, celle
+choisie sur la page (l'anglais par défaut, comme archvow).
 ## Le champ Python, et `python3 -m archvow`
 
 `ArchvowProcessCommand.build` accepte le chemin seul (`/chemin/venv/bin/python3`, la forme conseillée)
@@ -123,20 +140,22 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
   comme chaque argument qui est un chemin Windows (`ArchvowWsl.argument`).
 - `--exec` : pas de shell côté Linux non plus.
 - `WSLENV` transmet `NO_COLOR`, `PYTHONIOENCODING` et `ARCHVOW_LOG` (0.22.0 : plus `ARCHVOW_TEMPLATES`,
-  qu'archvow 1.26 ne lit plus : les modèles d'entreprise viennent des packs du projet).
+  qu'archvow 1.26 ne lit plus : les modèles d'entreprise sont copiés dans le projet, `.archvow/templates/`).
 - La première réponse peut attendre que WSL démarre : la sonde attend 60 s par `wsl.exe` (10 s sinon).
 - Avec VS Code ouvert *dans* WSL (Remote - WSL), l'extension tourne côté Linux : rien de tout cela ne sert.
 
 ## Installer archvow (0.12.0)
 
-Quand archvow ne démarre pas, ou ne parle pas le contrat du plugin (0.20.0, page [Le contrat](/04-contract)), les
-plugins proposent **Installer archvow 2.6.1** ; rien n'est installé au démarrage ni sans un clic.
+Quand archvow ne démarre pas, ou n'est pas un de ceux avec lesquels le plugin fonctionne (1.0.0 : son intervalle,
+page [Le contrat](/04-contract)), les plugins proposent **Installer archvow 3.1.0** - ou la version que fixe le
+projet, si elle est dans l'intervalle ; jamais par-dessus une version fixée hors de l'intervalle ; rien n'est
+installé au démarrage ni sans un clic.
 `ArchvowInstall` (IntelliJ) et `vscode/src/install.ts` (VS Code) portent les mêmes règles :
 
 | Question | Réponse |
 |---|---|
 | Dans quel Python ? | le `.venv` du projet, puis `venv` (`venvPythons()`), puis l'interpréteur de l'IDE, puis le Python des réglages ; jamais un `python` nu choisi à la place de la personne (`installPython()`, `ArchvowInstall.python`) : pas de Python trouvé, la carte dit **Configurer Python** |
-| Quelle version ? | `archvow==2.6.1` (`requirement()`) : exactement l'archvow avec lequel les plugins sont testés (0.20.0) ; une fois installé, tout archvow du contrat est accepté |
+| Quelle version ? | la version que fixe le projet si elle est dans l'intervalle, sinon `archvow==3.4.0` (`requirement()`) : l'archvow avec lequel les plugins sont testés ; une fois installé, tout archvow de l'intervalle est accepté (`compatibility()`, `ArchvowCompat`) |
 | D'où ? | le réglage *Installer archvow depuis* / `archvow.installFrom` (`installSource()`) : vide = la configuration de pip (pip.conf, `PIP_INDEX_URL`), une URL http(s) = `--index-url`, un fichier `.whl`, ou un dossier de wheels = `--no-index --find-links` (`pipArgs()`) |
 | Comment ? | la commande est affichée (`displayCommand()`), puis lancée seulement après **Confirmer et exécuter** : sans shell, dans le dossier du projet, 10 minutes au plus, `PIP_DISABLE_PIP_VERSION_CHECK=1` ; un Python dans WSL passe par `wsl.exe`, comme archvow (`installCommand()`, `ArchvowInstall.command`) |
 | Ensuite ? | réussite : les réglages gardent ce Python, la version est sondée à nouveau, l'espace de travail se recharge ; échec : la sortie de pip, rien n'est enregistré |

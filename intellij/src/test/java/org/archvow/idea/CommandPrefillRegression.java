@@ -34,7 +34,7 @@ public final class CommandPrefillRegression {
         JsonObject entry = JsonParser.parseString("{\"id\":\"sales_reader\",\"spec\":\"FATTRIB-12\",\"group\":\"readers\","
             + "\"owners\":[\"@alice\",\"@data-team\"],\"from\":\"briefs/sales.md#reader\"}").getAsJsonObject();
         Map<String,String> whole = ArchvowCommandPrefill.prepare("component edit", Map.of("component", "sales_reader"), "", component, entry);
-        assertEqual("FATTRIB-12", whole.get("spec"));
+        assertEqual("FATTRIB-12", whole.get("ticket"));
         assertEqual("readers", whole.get("group"));
         assertEqual("@alice,@data-team", whole.get("owners"));
         assertEqual("briefs/sales.md#reader", whole.get("source"));

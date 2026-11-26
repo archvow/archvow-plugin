@@ -1,16 +1,20 @@
 {
-  "contract": "2.4",
+  "contract": "3.0",
   "templates": [
     {
-      "name": "archvow/fastapi-service",
-      "pack": "archvow",
-      "version": "2.6.1",
+      "name": "fastapi-service",
+      "version": "3.4.1",
+      "default": false,
+      "chain": [
+        "python-base",
+        "fastapi-service"
+      ],
       "language": "python",
       "kind": "web-service",
       "style": "layered (common -> domain -> io -> services -> api)",
       "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
       "extends": [
-        "archvow/python-base"
+        "python-base"
       ],
       "questions": [
         {
@@ -192,6 +196,24 @@
           ],
           "required": false,
           "multiple": false
+        },
+        {
+          "id": "ai_runs",
+          "ask": true,
+          "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+          "default": "drafts,skills",
+          "default_from": {
+            "mode": {
+              "strict": "none"
+            }
+          },
+          "multiple": true,
+          "choices": [
+            "drafts",
+            "skills",
+            "none"
+          ],
+          "required": false
         },
         {
           "id": "rules",
@@ -377,23 +399,6 @@
           "signature_overridable": true,
           "kinds": []
         },
-        "dependency": {
-          "layer": "p0_common",
-          "description": "Something routes receive through Depends (the database session, the current user...).",
-          "addable": true,
-          "name_pattern": "^get_[a-z0-9_]+$",
-          "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
-          "module": "{name}",
-          "symbols": [
-            {
-              "kind": "function",
-              "name": "{name}"
-            }
-          ],
-          "implicit_dependency": true,
-          "signature_overridable": true,
-          "kinds": []
-        },
         "model": {
           "layer": "p1_domain",
           "description": "A Pydantic model - the shape and the validation of one kind of data.",
@@ -442,6 +447,23 @@
             }
           ],
           "implicit_dependency": false,
+          "signature_overridable": true,
+          "kinds": []
+        },
+        "dependency": {
+          "layer": "p0_common",
+          "description": "Something routes receive through Depends (the database session, the current user...).",
+          "addable": true,
+          "name_pattern": "^get_[a-z0-9_]+$",
+          "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
+          "module": "{name}",
+          "symbols": [
+            {
+              "kind": "function",
+              "name": "{name}"
+            }
+          ],
+          "implicit_dependency": true,
           "signature_overridable": true,
           "kinds": []
         },
@@ -533,18 +555,23 @@
           "kinds": []
         }
       },
-      "source": "<archvow>/templates/fastapi-service"
+      "source": "<archvow>/templates/fastapi-service",
+      "abstract": false
     },
     {
-      "name": "archvow/langgraph-agent",
-      "pack": "archvow",
-      "version": "2.6.1",
+      "name": "langgraph-agent",
+      "version": "3.4.1",
+      "default": false,
+      "chain": [
+        "python-base",
+        "langgraph-agent"
+      ],
       "language": "python",
       "kind": "ai-application",
       "style": "layered (common -> domain -> tools -> agents -> app)",
       "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
       "extends": [
-        "archvow/python-base"
+        "python-base"
       ],
       "questions": [
         {
@@ -726,6 +753,24 @@
           ],
           "required": false,
           "multiple": false
+        },
+        {
+          "id": "ai_runs",
+          "ask": true,
+          "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+          "default": "drafts,skills",
+          "default_from": {
+            "mode": {
+              "strict": "none"
+            }
+          },
+          "multiple": true,
+          "choices": [
+            "drafts",
+            "skills",
+            "none"
+          ],
+          "required": false
         },
         {
           "id": "rules",
@@ -1177,18 +1222,23 @@
           "kinds": []
         }
       },
-      "source": "<archvow>/templates/langgraph-agent"
+      "source": "<archvow>/templates/langgraph-agent",
+      "abstract": false
     },
     {
-      "name": "archvow/pyspark-pipeline",
-      "pack": "archvow",
-      "version": "2.6.1",
+      "name": "pyspark-pipeline",
+      "version": "3.4.1",
+      "default": false,
+      "chain": [
+        "python-base",
+        "pyspark-pipeline"
+      ],
       "language": "python",
       "kind": "data-pipeline",
       "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
       "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
       "extends": [
-        "archvow/python-base"
+        "python-base"
       ],
       "questions": [
         {
@@ -1370,6 +1420,24 @@
           ],
           "required": false,
           "multiple": false
+        },
+        {
+          "id": "ai_runs",
+          "ask": true,
+          "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+          "default": "drafts,skills",
+          "default_from": {
+            "mode": {
+              "strict": "none"
+            }
+          },
+          "multiple": true,
+          "choices": [
+            "drafts",
+            "skills",
+            "none"
+          ],
+          "required": false
         },
         {
           "id": "rules",
@@ -1732,18 +1800,23 @@
           "kinds": []
         }
       },
-      "source": "<archvow>/templates/pyspark-pipeline"
+      "source": "<archvow>/templates/pyspark-pipeline",
+      "abstract": false
     },
     {
-      "name": "archvow/python-app",
-      "pack": "archvow",
-      "version": "2.6.1",
+      "name": "python-app",
+      "version": "3.4.1",
+      "default": true,
+      "chain": [
+        "python-base",
+        "python-app"
+      ],
       "language": "python",
       "kind": "application",
       "style": "layered (common -> domain -> io -> services -> entrypoints)",
       "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
       "extends": [
-        "archvow/python-base"
+        "python-base"
       ],
       "questions": [
         {
@@ -1925,6 +1998,24 @@
           ],
           "required": false,
           "multiple": false
+        },
+        {
+          "id": "ai_runs",
+          "ask": true,
+          "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+          "default": "drafts,skills",
+          "default_from": {
+            "mode": {
+              "strict": "none"
+            }
+          },
+          "multiple": true,
+          "choices": [
+            "drafts",
+            "skills",
+            "none"
+          ],
+          "required": false
         },
         {
           "id": "rules",
@@ -2221,55 +2312,16 @@
           "kinds": []
         }
       },
-      "source": "<archvow>/templates/python-app"
+      "source": "<archvow>/templates/python-app",
+      "abstract": false
     }
   ],
-  "packs": [
-    {
-      "name": "archvow",
-      "version": "2.6.1",
-      "description": "The templates, agents and languages archvow ships.",
-      "archvow": "",
-      "builtin": true,
-      "templates": [
-        "fastapi-service",
-        "langgraph-agent",
-        "pyspark-pipeline",
-        "python-app",
-        "python-base"
-      ],
-      "agents": [
-        "aider",
-        "amazonq",
-        "antigravity",
-        "claude-code",
-        "cline",
-        "codex",
-        "continue",
-        "copilot",
-        "cursor",
-        "gemini-cli",
-        "jetbrains-ai-chat",
-        "junie",
-        "kiro",
-        "opencode",
-        "roo",
-        "windsurf"
-      ],
-      "rule_families": [],
-      "regimes": [
-        "dora",
-        "gdpr",
-        "glba",
-        "us-privacy"
-      ]
-    }
-  ],
+  "project_templates": [],
   "agents": [
     {
       "name": "aider",
       "title": "Aider",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2286,13 +2338,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "amazonq",
       "title": "Amazon Q Developer",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2309,13 +2363,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "antigravity",
       "title": "Google Antigravity",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2335,13 +2391,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "claude-code",
       "title": "Claude Code",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills",
@@ -2373,13 +2431,15 @@
         "fix": "start Claude Code with its sandbox on (/sandbox; on Windows inside WSL2) and without --dangerously-skip-permissions or --permission-mode bypassPermissions"
       },
       "review": true,
+      "draft": true,
+      "skill": true,
       "seen": true,
       "unseen": ""
     },
     {
       "name": "cline",
       "title": "Cline",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2396,13 +2456,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "codex",
       "title": "OpenAI Codex",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2427,13 +2489,15 @@
         "fix": "start Codex with --sandbox workspace-write (its default) and without --yolo or --dangerously-bypass-approvals-and-sandbox"
       },
       "review": true,
+      "draft": true,
+      "skill": true,
       "seen": true,
       "unseen": ""
     },
     {
       "name": "continue",
       "title": "Continue",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2452,13 +2516,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "copilot",
       "title": "GitHub Copilot",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2491,13 +2557,15 @@
         "fix": "run Copilot inside a container (the CLI has no sandbox of its own; in VS Code, a dev container) and start it without --yolo, --allow-all or --allow-all-tools"
       },
       "review": true,
+      "draft": true,
+      "skill": true,
       "seen": true,
       "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
     },
     {
       "name": "cursor",
       "title": "Cursor",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2527,13 +2595,15 @@
         "fix": "in Cursor, choose a run mode with the sandbox on (not Run Everything); start cursor-agent without --force or --yolo"
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": true,
       "unseen": ""
     },
     {
       "name": "gemini-cli",
       "title": "Gemini CLI",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2551,13 +2621,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": true,
+      "skill": true,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "jetbrains-ai-chat",
       "title": "JetBrains AI chat, with its own built-in assistant",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2576,13 +2648,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "junie",
       "title": "JetBrains Junie",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2604,13 +2678,15 @@
         "fix": "start Junie CLI in its sandbox, with brave mode off"
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": true,
       "unseen": "in the IDE plugin (it sets no variable archvow knows)"
     },
     {
       "name": "kiro",
       "title": "Kiro",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2627,13 +2703,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "opencode",
       "title": "OpenCode",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2651,13 +2729,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "roo",
       "title": "Roo Code",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2674,13 +2754,15 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     },
     {
       "name": "windsurf",
       "title": "Windsurf",
-      "pack": "archvow",
+      "source": "archvow",
       "standard": false,
       "skills": [
         ".agents/skills"
@@ -2698,6 +2780,8 @@
         "fix": ""
       },
       "review": false,
+      "draft": false,
+      "skill": false,
       "seen": false,
       "unseen": ""
     }
@@ -2707,7 +2791,7 @@
       "id": "dora",
       "name": "DORA",
       "kind": "resilience",
-      "pack": "archvow",
+      "template": "python-base",
       "prefix": "DORA",
       "letter": "O",
       "default": false,
@@ -2729,7 +2813,7 @@
       "id": "gdpr",
       "name": "GDPR",
       "kind": "privacy",
-      "pack": "archvow",
+      "template": "python-base",
       "prefix": "GDPR",
       "letter": "P",
       "default": true,
@@ -2748,7 +2832,7 @@
       "id": "glba",
       "name": "GLBA",
       "kind": "privacy",
-      "pack": "archvow",
+      "template": "python-base",
       "prefix": "GLBA",
       "letter": "G",
       "default": false,
@@ -2772,7 +2856,7 @@
       "id": "us-privacy",
       "name": "US-PRIVACY",
       "kind": "privacy",
-      "pack": "archvow",
+      "template": "python-base",
       "prefix": "USP",
       "letter": "U",
       "default": false,

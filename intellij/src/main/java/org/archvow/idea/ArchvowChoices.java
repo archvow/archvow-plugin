@@ -413,12 +413,12 @@ final class ArchvowChoices {
                     List<Choice> choices = new ArrayList<>();
                     for (JsonObject d : objects(input.spec(), "dependencies")) choices.add(item(str(d, "name"), str(d, "supplier")));
                     field = select(choices, tr(fr, "No dependency declared.", "Aucune dépendance déclarée."));
-                } else if ("pack template".equals(name) && "extends".equals(p)) {
+                } else if ("template new".equals(name) && "extends".equals(p)) {
                     field = new Field("suggest");
                     field.choices = new ArrayList<>();
                     for (JsonObject t : objects(input.catalog(), "templates")) field.choices.add(item(str(t, "name"), str(t, "description")));
-                    field.note = tr(fr, "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed.",
-                        "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas.");
+                    field.note = tr(fr, "Empty: a template from scratch. A base's settings are filled in below: change what the company wants different; what the base imposes cannot be changed.",
+                        "Vide : un template de zéro. Les réglages d'une base sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas.");
                 } else if ("component add".equals(name) && "type".equals(p)) {
                     field = new Field("select");
                     field.choices = type;

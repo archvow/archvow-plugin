@@ -1,0 +1,57 @@
+# DORA - the EU Digital Operational Resilience Act, for banks, insurers, investment firms and the other
+# financial entities of its article 2. It applies since 17 January 2025.
+# What archvow can follow of it, in a code repository:
+# - business continuity (art. 11): for each component that runs, how a failure is detected and how it is
+#   recovered, within which recovery time (RTO) and data loss (RPO) - the questions below (O1, O2);
+# - the register of information on ICT third-party providers (art. 28(3); its templates: Commission
+#   Implementing Regulation (EU) 2024/2956) - here, the packages the code depends on (archvow dependency add);
+# - archvow's own checks (checks/families/dora.py): every component has a ticket, two people approve guard
+#   changes, critical packages pinned, the tests of invariants never skipped, no CI job allowed to fail.
+# The Digital Omnibus proposal (2025/0360(COD), November 2025) would change DORA's incident reporting, not
+# what is asked here; it is not law yet.
+# archvow supports compliance work; it does not certify it and is not legal advice.
+name: DORA
+kind: resilience
+prefix: DORA
+letter: O
+default: false
+title: "DORA: traceability, separation of duties, third parties, tested resilience"
+title_fr: "DORA : traçabilité, séparation des tâches, tiers, résilience testée"
+law: "Regulation (EU) 2022/2554 (DORA): ICT business continuity (art. 11), the register of information on ICT third-party providers (art. 28(3); Commission Implementing Regulation (EU) 2024/2956); Commission Delegated Regulation (EU) 2024/1774 (ICT risk management)"
+law_fr: "Règlement (UE) 2022/2554 (DORA) : continuité d'activité des TIC (art. 11), registre d'informations sur les prestataires tiers de TIC (art. 28, paragraphe 3 ; règlement d'exécution (UE) 2024/2956 de la Commission) ; règlement délégué (UE) 2024/1774 de la Commission (gestion du risque lié aux TIC)"
+checked: "2026-11-11"
+sources:
+  - https://www.fma.gv.at/en/cross-sectoral-topics/dora/dora-legal-bases/
+  - https://www.esma.europa.eu/node/207346
+  - https://oeil.europarl.europa.eu/oeil/en/procedure-document-summary/pdf?id=1866785
+
+rules:
+  DORA001: {title: "Component without a ticket", title_fr: "Composant sans ticket"}
+  DORA002: {title: "Separation of duties: fewer than two people can approve guard changes", title_fr: "Séparation des tâches : moins de deux personnes peuvent approuver les changements de garde"}
+  DORA003: {title: "Third-party package missing from the register, or a critical one not pinned", title_fr: "Paquet tiers absent du registre, ou paquet critique sans version figée"}
+  DORA004: {title: "An invariant's test can be skipped, or a failing test job allowed to pass", title_fr: "Le test d'un invariant peut être sauté, ou un job de tests peut échouer sans bloquer"}
+  DORA005: {title: "Operational question not answered (failure detection, recovery)", title_fr: "Question d'exploitation sans réponse (détection des pannes, reprise)"}
+  DORA006: {title: "Registered licence differs from the installed package's", title_fr: "La licence enregistrée diffère de celle du paquet installé", severity: warning}
+
+questions:
+  run:
+    - id: detection
+      rule: DORA005
+      when: always
+      text: "Failure detection: how is a failure or a late run noticed (exit code, health check, alert), and who is alerted - e.g. the health check fails -> the on-call team is alerted?"
+      text_fr: "Détection des pannes : comment une panne ou une exécution en retard est-elle remarquée (code de sortie, contrôle de santé, alerte), et qui est alerté - par ex. le contrôle de santé échoue -> l'astreinte est alertée ?"
+    - id: recovery
+      rule: DORA005
+      when: always
+      text: "Recovery: how is it restored or run again after a failure, how long may it be down at most (RTO), and how much recent data may be lost at most (RPO) - e.g. 4 hours, the last day?"
+      text_fr: "Reprise : comment est-il rétabli ou relancé après une panne, combien de temps peut-il être arrêté au plus (RTO), et combien de données récentes peut-on perdre au plus (RPO) - par ex. 4 heures, la dernière journée ?"
+
+register:
+  file: THIRD_PARTIES.md
+  lists: third_parties
+  title: "Third parties"
+  title_fr: "Tiers"
+  intro: "The register of ICT third-party providers this project depends on (DORA art. 28): every package of requirements.txt, recorded with `archvow dependency add`."
+  intro_fr: "Le registre des prestataires tiers de TIC dont dépend ce projet (DORA art. 28) : chaque paquet de requirements.txt, enregistré avec `archvow dependency add`."
+  answers: "Supplier, licence, criticality"
+  answers_fr: "Fournisseur, licence, criticité"

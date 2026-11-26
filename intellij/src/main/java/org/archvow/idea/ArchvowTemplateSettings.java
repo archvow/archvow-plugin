@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * {@code pack template}: the settings of the template it extends, filled in with the base's values (0.12.1).
+ * {@code template new}: the settings of the template it extends, filled in with the base's values (0.12.1).
  * What the company may set - the defaults of the init answers, the folder of each layer - is editable,
  * within what the base allows (its choices only, its formats); what the base imposes - what it extends,
  * its version, its layers, its choices - is shown, not editable. Only what differs from the base becomes
@@ -108,8 +108,10 @@ final class ArchvowTemplateSettings extends JPanel {
             JsonElement c = q.get("choices");
             if (c != null && c.isJsonArray()) for (JsonElement e : c.getAsJsonArray()) if (e.isJsonPrimitive()) choices.add(e.getAsString());
             JComponent field;
-            if (isTrue(q, "multiple") && !choices.isEmpty()) {
-                JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+            if (ArchvowAgentPicker.names(q)) {
+                field = new ArchvowAgentPicker(ArchvowAgentPicker.suggestions(q), value, french);  // 0.26.1
+            } else if (isTrue(q, "multiple") && !choices.isEmpty()) {
+                JPanel chips = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
                 Set<String> picked = new LinkedHashSet<>(List.of(value.split(",")));
                 for (String choice : choices) chips.add(new JCheckBox(choice, picked.contains(choice.trim())));
                 field = chips;
@@ -181,7 +183,8 @@ final class ArchvowTemplateSettings extends JPanel {
         Map<String, String> values = new LinkedHashMap<>();
         for (Map.Entry<String, JComponent> e : inputs.entrySet()) {
             JComponent field = e.getValue();
-            if (field instanceof JComboBox<?> combo) values.put(e.getKey(), String.valueOf(combo.getSelectedItem()));
+            if (field instanceof ArchvowAgentPicker picker) values.put(e.getKey(), picker.value());
+            else if (field instanceof JComboBox<?> combo) values.put(e.getKey(), String.valueOf(combo.getSelectedItem()));
             else if (field instanceof JTextField text) values.put(e.getKey(), text.getText().trim());
             else if (field instanceof JPanel chips) {
                 List<String> picked = new ArrayList<>();

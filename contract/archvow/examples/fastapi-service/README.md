@@ -6,7 +6,7 @@
 Orders
 
 A **FastAPI web service**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/fastapi-service@2.6.1`).
+(template `fastapi-service`).
 
 ## For developers
 
@@ -125,8 +125,8 @@ complete service, from the empty project to a run: archvow's documentation, *Fas
 **1. Create the project** - this one was created with:
 
 ```bash
-archvow init orders_api -t archvow/fastapi-service -d Orders \
-    -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a fastapi_version=0.143 -a ai_tools=copilot -a mode=strict -a rules=ARCH,STYLE,FASTAPI,GDPR,TST
+archvow init orders_api -t fastapi-service -d Orders \
+    -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@my-team -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a fastapi_version=0.143 -a ai_tools=copilot -a mode=strict -a ai_runs=none -a rules=ARCH,STYLE,FASTAPI,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
 git switch -c develop                            # once, from main
@@ -147,10 +147,10 @@ once: developers clone the repository instead.
 chain, from the data to the entry point:
 
 ```bash
-archvow component add model order -d "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled" -s US-001
-archvow component add service create_order -d "Create a pending order for the current customer and return it" -u order_model -s US-001
-archvow component add router orders -d "The order API" -u create_order,order_model -r "post_order: POST /orders" -s US-001
-archvow component add app main -d "The service: the order routes under /v1" -u orders_router -s US-001
+archvow component add model order -d "An order: id int, customer str, amount Decimal >= 0, status pending | paid | cancelled" --ticket US-001
+archvow component add service create_order -d "Create a pending order for the current customer and return it" -u order_model --ticket US-001
+archvow component add router orders -d "The order API" -u create_order,order_model -r "post_order: POST /orders" --ticket US-001
+archvow component add app main -d "The service: the order routes under /v1" -u orders_router --ticket US-001
 ```
 
 The type fixes the structure: the file, the public class or function, the layer, the test file;
@@ -257,10 +257,11 @@ make run                                             # http://127.0.0.1:8000/doc
 | add a pure business rule | `archvow component add logic compute_total -d "Sum of the lines" --signature "(lines: list[Line]) -> Decimal"` |
 | ask a question, as a developer | `archvow question add order_model "May an order have an amount of zero?"` |
 | let the AI find what is unclear | `archvow prompt order_model --clarify` (in the chat: `/archvow-clarify order_model`) |
+| check a whole feature before coding (where its components disagree) | `archvow prompt --feature <feature> --clarify` (in the chat: `/archvow-clarify <feature>`) |
 | add a rule for every component of a type | `archvow rule add --type model "Given an unknown field, when it is parsed, then it is refused"` |
 | dismiss a safety question that does not apply | `archvow hazard dismiss order_model S2 "orders hold no personal data"` |
 | see everything about a component | `archvow show order_model` |
-| record a business example (files in `tests/examples/orders_router/<example>/`) | `archvow example add orders_router US-001-another-customers-order -s US-001 --from briefs/<brief>.md#<section>`; `archvow show orders_router` gives its test's verdict and where `actual/` differs from `expected/` |
+| record a business example (files in `tests/examples/orders_router/<example>/`) | `archvow example add orders_router US-001-another-customers-order --ticket US-001 --from briefs/<brief>.md#<section>`; `archvow show orders_router` gives its test's verdict and where `actual/` differs from `expected/` |
 | find a name everywhere (a function, a column, a ticket, an example) | `archvow show <name>`: the spec, the code, the tests, the briefs, the problems naming it |
 | answer what is open, one question at a time | `archvow specify order_model` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/archvow-analyze order_model` |
