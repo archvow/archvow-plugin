@@ -1,0 +1,86 @@
+# French texts of python-base (projects initialised with -a language=fr, the default).
+# Merged over template.yaml.
+
+file_header:
+  - "@component  {id} ({type}, {layer})"
+  - "@spec       {spec}"
+  - "@project    {project}"
+  - "@author     <votre nom>"
+  - "@assisted   <{assistants}>"
+  - "@date       <AAAA-MM-JJ>"
+
+# Affiché après `archvow init` (rendu avec les réponses).
+rule_families:
+  ARCH: {title: "Architecture : structure, couches, tests, hazards, politique IA"}
+  STY: {title: "Taille, scripts et commentaires"}
+  PRIV: {title: "Données personnelles dans le code (chaque régime de protection) : chaque colonne classée, jamais journalisée, données particulières protégées"}
+  TST: {title: "Données de test : aucune donnée réelle dans les tests"}
+
+layers:
+  - name: p0_common
+    description: Fondations partagées - réglages, journalisation, petits utilitaires que toutes les couches peuvent utiliser
+  - name: p1_domain
+    description: Règles métier - data classes, erreurs métier et fonctions pures, sans E/S
+
+component_types:
+  foundation:
+    description: Module de fondation fourni par le template.
+  utility:
+    description: Un petit utilitaire que toutes les couches peuvent utiliser (pas de règle métier, pas d'E/S au-delà de ce qu'il dit).
+    edge_cases:
+      - {id: contract, question: "Que prend-il et que renvoie-t-il exactement - par ex. parse_date(\"2026-10-21\") -> date(2026, 10, 21) ?"}
+      - {id: invalid_input, question: "Entrée invalide : quelle erreur, ou quel résultat - par ex. ValueError(\"pas une date : ...\") ?"}
+  model:
+    description: Une data class - la forme et la validation d'un type de données.
+    edge_cases:
+      - {id: fields, question: "Quels champs sont obligatoires, et lesquels sont facultatifs (avec quelle valeur par défaut) - par ex. number: str obligatoire, note: str = \"\" ?"}
+      - {id: valid_values, question: "Quelles valeurs sont valides pour chaque champ (bornes, formats, longueurs, états autorisés) - par ex. amount >= 0 avec 2 décimales, status draft, sent ou paid ?"}
+      - {id: never_shown, question: "Quels champs ne doivent jamais apparaître dans un journal, une sortie ou un message d'erreur (mots de passe, identifiants internes, données personnelles) - par ex. iban - ou aucun ?"}
+      - {id: frozen, question: "Est-il modifié après sa création, ou figé (un nouveau à chaque changement) - par ex. dataclass figée ?", suggested: "Figé : un changement en construit un nouveau (dataclasses.replace)"}
+  error:
+    description: Une erreur métier - levée par le domaine et les services, traduite en message et en code de sortie par le point d'entrée.
+    edge_cases:
+      - {id: code, question: "Quel code de sortie la ligne de commande donne-t-elle pour elle - par ex. FactureIntrouvable -> 3 ?"}
+      - {id: message, question: "Que dit son message - et que ne dit-il jamais (identifiants internes, données personnelles, secrets) - par ex. \"Facture introuvable\", sans le client ?", suggested: "Un message court et fixe, sans données personnelles ni secrets"}
+  logic:
+    description: Une règle métier pure - une fonction de ses entrées, sans E/S.
+    edge_cases:
+      - {id: computes, question: "Que calcule ou décide-t-elle exactement (la formule, la règle) - par ex. total = somme(prix * quantité) - remise ?"}
+      - {id: invalid_range, question: "Entrée invalide ou hors limites : quelle erreur métier, ou quel résultat - par ex. quantité <= 0 -> QuantiteInvalide ?"}
+      - {id: rounding, question: "Arrondi et précision (argent : Decimal, combien de décimales, quel arrondi) - par ex. Decimal, 2 décimales, ROUND_HALF_EVEN - ou aucun ?", choices: ["Decimal, 2 décimales, ROUND_HALF_EVEN", "Pas d'arrondi : ni argent ni décimales ici"]}
+
+safety_suggestions:
+  missing:
+    hazard: "une entrée, un fichier ou une dépendance absente est traitée comme si tout était là"
+    invariant: "une entrée, un fichier ou une dépendance absente arrête avec une erreur claire, jamais un résultat faux"
+  more:
+    hazard: "trop de données (doublons, liste sans limite) sont traitées ou gardées"
+    invariant: "chaque liste lue ou renvoyée a une taille maximale, et une clé n'apparaît qu'une fois"
+  wrong:
+    hazard: "une entrée invalide est acceptée et utilisée"
+    invariant: "une entrée invalide est refusée avant tout changement"
+  partial:
+    hazard: "un changement ou un fichier est à moitié écrit"
+    invariant: "un changement ou un fichier est écrit entièrement ou pas du tout"
+  repeated:
+    hazard: "le lancer deux fois applique le changement deux fois"
+    invariant: "lancé deux fois avec la même entrée, il a l'effet d'une seule fois"
+  stale:
+    hazard: "des données anciennes sont utilisées comme actuelles"
+    invariant: "il lit toujours les dernières données enregistrées"
+  exposed:
+    hazard: "un secret ou une donnée personnelle apparaît dans un journal, une sortie ou un message d'erreur"
+    invariant: "les secrets et les données personnelles n'apparaissent jamais dans un journal, une sortie ou un message d'erreur"
+  concurrent:
+    hazard: "deux exécutions simultanées s'écrasent"
+    invariant: "deux exécutions simultanées ne perdent jamais un changement"
+
+guide_words:
+  missing: "Quelque chose manque (une entrée, un fichier, un réglage, une dépendance en panne) : qu'est-ce qui ne doit jamais arriver ?"
+  more: "Trop (doublons, liste sans limite, fichier énorme) : qu'est-ce qui ne doit jamais arriver ?"
+  wrong: "Entrée fausse (valeurs invalides, hors limites, mauvais format) : qu'est-ce qui ne doit jamais arriver ?"
+  partial: "À moitié fait (fichier à moitié écrit, changement enregistré ici et pas là, plantage au milieu) : qu'est-ce qui ne doit jamais arriver ?"
+  repeated: "Fait deux fois (lancé deux fois, relancé, la même entrée deux fois) : qu'est-ce qui ne doit jamais arriver ?"
+  stale: "Données anciennes utilisées comme actuelles (un cache, un vieux fichier) : qu'est-ce qui ne doit jamais arriver ?"
+  exposed: "Données exposées (secrets ou données personnelles dans un journal, une sortie, un message d'erreur) : qu'est-ce qui ne doit jamais arriver ?"
+  concurrent: "Deux exécutions en même temps (deux processus, deux utilisateurs) : qu'est-ce qui ne doit jamais arriver ?"

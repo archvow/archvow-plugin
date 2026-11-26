@@ -10,7 +10,8 @@
 /.archvow/README.md          @my-team
 /.archvow/features/          @my-team
 /.archvow/frozen.json        @my-team
-/.archvow/packs/             @my-team
+/.archvow/templates/         @my-team
+/.archvow/template/          @my-team
 /AGENTS.md                  @my-team
 /CLAUDE.md                  @my-team
 /.aiassistant/              @my-team

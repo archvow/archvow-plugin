@@ -32,7 +32,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "architecture template: <pack>/<template>, or its short name when one pack only has it (default: archvow/python-app; list: archvow catalog); a company template comes in a pack: archvow pack add <folder> first",
+          "help": "the template: its name, or its folder (a company template); several, comma-separated: one stack and building blocks (default: the one marked default, python-app; list: archvow catalog). Its whole chain is copied into .archvow/templates/",
           "hidden": false,
           "metavar": "TEMPLATE"
         },
@@ -164,9 +164,38 @@
       "path": [
         "catalog"
       ],
-      "description": "List templates, their init answers and component types.",
+      "description": "List templates, their init answers and component types; one template: where each of its questions, guide words and rules comes from.",
       "json": true,
-      "parameters": []
+      "parameters": [
+        {
+          "name": "template",
+          "flags": [],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": true,
+          "choices": [],
+          "help": "one template, by name or folder: its chain, merged",
+          "hidden": false,
+          "metavar": "template"
+        },
+        {
+          "name": "all",
+          "flags": [
+            "--all"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "every question, guide word and rule, with the template of its chain it comes from",
+          "hidden": false,
+          "metavar": "all"
+        }
+      ]
     },
     {
       "path": [
@@ -371,10 +400,10 @@
           "metavar": "FEATURE"
         },
         {
-          "name": "spec",
+          "name": "ticket",
           "flags": [
-            "-s",
-            "--spec"
+            "-t",
+            "--ticket"
           ],
           "required": false,
           "boolean": false,
@@ -550,10 +579,10 @@
           "metavar": "TEXT"
         },
         {
-          "name": "spec",
+          "name": "ticket",
           "flags": [
-            "-s",
-            "--spec"
+            "-t",
+            "--ticket"
           ],
           "required": false,
           "boolean": false,
@@ -1043,6 +1072,36 @@
           "help": "with --type: no longer answer it for the whole type (each component answers it again)",
           "hidden": false,
           "metavar": "unset"
+        },
+        {
+          "name": "drafted_with",
+          "flags": [
+            "--drafted-with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the answer started as a draft of this AI assistant of the project (archvow draft); you read it and save it as yours - archvow notes where it came from",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "unchanged",
+          "flags": [
+            "--unchanged"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "with --drafted-with: you kept the draft word for word",
+          "hidden": false,
+          "metavar": "unchanged"
         }
       ]
     },
@@ -1581,6 +1640,36 @@
           "metavar": "description"
         },
         {
+          "name": "drafted_with",
+          "flags": [
+            "--drafted-with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the answer started as a draft of this AI assistant of the project (archvow draft); you read it and save it as yours - archvow notes where it came from",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "unchanged",
+          "flags": [
+            "--unchanged"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "with --drafted-with: you kept the draft word for word",
+          "hidden": false,
+          "metavar": "unchanged"
+        },
+        {
           "name": "why",
           "flags": [
             "--why"
@@ -1712,6 +1801,36 @@
           "help": "critical | high | medium | low",
           "hidden": false,
           "metavar": "severity"
+        },
+        {
+          "name": "drafted_with",
+          "flags": [
+            "--drafted-with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the answer started as a draft of this AI assistant of the project (archvow draft); you read it and save it as yours - archvow notes where it came from",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "unchanged",
+          "flags": [
+            "--unchanged"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "with --drafted-with: you kept the draft word for word",
+          "hidden": false,
+          "metavar": "unchanged"
         }
       ]
     },
@@ -2285,10 +2404,10 @@
           "metavar": "example"
         },
         {
-          "name": "spec",
+          "name": "ticket",
           "flags": [
-            "-s",
-            "--spec"
+            "-t",
+            "--ticket"
           ],
           "required": false,
           "boolean": false,
@@ -2665,6 +2784,21 @@
           "help": "a person has read the report: HIGH findings no longer fail (CI passes it when the merge request has the label review-acknowledged)",
           "hidden": false,
           "metavar": "acknowledged"
+        },
+        {
+          "name": "reviewer",
+          "flags": [
+            "--with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "which of the approved reviewers (default: the first one that wrote none of the changed files)",
+          "hidden": false,
+          "metavar": "REVIEWER"
         }
       ]
     },
@@ -2902,13 +3036,8 @@
           "append": false,
           "multiToken": false,
           "optionalValue": true,
-          "choices": [
-            "pyspark-pipeline",
-            "fastapi-service",
-            "python-app",
-            "langgraph-agent"
-          ],
-          "help": "the finished example to copy (pyspark-pipeline if none is named)",
+          "choices": [],
+          "help": "the finished example to copy, by the name of its template (the default template's if none is named)",
           "hidden": false,
           "metavar": "example"
         },
@@ -2926,15 +3055,184 @@
           "help": "the folder to copy it into, as <folder>/<example> (default: a new temporary folder; the path is printed)",
           "hidden": false,
           "metavar": "FOLDER"
+        },
+        {
+          "name": "language",
+          "flags": [
+            "--language"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "en",
+            "fr"
+          ],
+          "help": "the language of what to do about each finding (default: the example's, English); the IDEs pass theirs",
+          "hidden": false,
+          "metavar": "language"
         }
       ]
     },
     {
       "path": [
-        "pack",
+        "draft"
+      ],
+      "description": "Let one of the project's AI assistants draft an answer; you read it and save it.",
+      "json": true,
+      "parameters": [
+        {
+          "name": "component",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "component id, as `archvow next` or `archvow show` shows it",
+          "hidden": false,
+          "metavar": "component"
+        },
+        {
+          "name": "question",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question's number in archvow show: 2, P1, or a safety question S1",
+          "hidden": false,
+          "metavar": "question"
+        },
+        {
+          "name": "tool",
+          "flags": [
+            "--with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "which of the project's AI assistants (default: the first one installed on this machine)",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "prompt",
+          "flags": [
+            "--prompt"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "print what the AI assistant would read, and run nothing",
+          "hidden": false,
+          "metavar": "prompt"
+        }
+      ]
+    },
+    {
+      "path": [
+        "skill"
+      ],
+      "description": "Let one of the project's AI assistants do a skill on the spec, in the background (what it adds is the AI's, To review).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "skill",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "draft-spec",
+            "clarify",
+            "analyze",
+            "implement",
+            "review"
+          ],
+          "help": "the skill: draft-spec, clarify, analyze (run here); implement and review give their instructions with --prompt",
+          "hidden": false,
+          "metavar": "skill"
+        },
+        {
+          "name": "target",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the component (draft-spec: the brief, briefs/<file>.md or briefs/<file>.md#<section>)",
+          "hidden": false,
+          "metavar": "target"
+        },
+        {
+          "name": "tool",
+          "flags": [
+            "--with"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "which of the project's AI assistants (default: the first one installed on this computer)",
+          "hidden": false,
+          "metavar": "TOOL"
+        },
+        {
+          "name": "max",
+          "flags": [
+            "--max"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "clarify: at most N questions, the riskiest first (default 5)",
+          "hidden": false,
+          "metavar": "N"
+        },
+        {
+          "name": "prompt",
+          "flags": [
+            "--prompt"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "print the instructions, to give them to an AI yourself, and run nothing",
+          "hidden": false,
+          "metavar": "prompt"
+        }
+      ]
+    },
+    {
+      "path": [
+        "template",
         "new"
       ],
-      "description": "Create a pack: pack.yaml, README.md, commented examples.",
+      "description": "Create a template: from scratch, or extending others.",
       "json": true,
       "parameters": [
         {
@@ -2946,7 +3244,7 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "the pack's name: lowercase letters, digits and dashes (acme)",
+          "help": "its name: lowercase letters, digits and dashes (acme-pyspark)",
           "hidden": false,
           "metavar": "name"
         },
@@ -2962,9 +3260,24 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "what the pack brings, in one line",
+          "help": "what it is for, in one line",
           "hidden": false,
           "metavar": "TEXT"
+        },
+        {
+          "name": "extends",
+          "flags": [
+            "--extends"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the templates it builds on, comma-separated: one stack (the one with layers) and building blocks; none: from scratch",
+          "hidden": false,
+          "metavar": "TEMPLATES"
         },
         {
           "name": "dir",
@@ -2977,7 +3290,22 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "create it in this folder (a company pack; no project needed); default: inside this project",
+          "help": "the folder to create it in (default: here)",
+          "hidden": false,
+          "metavar": "FOLDER"
+        },
+        {
+          "name": "source",
+          "flags": [
+            "--from"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": true,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "a folder holding a template it extends (repeatable); archvow's and installed packages' are found without it",
           "hidden": false,
           "metavar": "FOLDER"
         },
@@ -3010,73 +3338,6 @@
           "help": "its languages, English always (default: en,fr)",
           "hidden": false,
           "metavar": "languages"
-        }
-      ]
-    },
-    {
-      "path": [
-        "pack",
-        "template"
-      ],
-      "description": "Add a template to a pack, extending another one.",
-      "json": true,
-      "parameters": [
-        {
-          "name": "pack",
-          "flags": [],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the pack's folder, or the name of a pack of this project",
-          "hidden": false,
-          "metavar": "pack"
-        },
-        {
-          "name": "name",
-          "flags": [],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the template's name (acme-pyspark)",
-          "hidden": false,
-          "metavar": "name"
-        },
-        {
-          "name": "extends",
-          "flags": [
-            "--extends"
-          ],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the template it builds on: <pack>/<template>, or a short name (one of this pack too)",
-          "hidden": false,
-          "metavar": "TEMPLATE"
-        },
-        {
-          "name": "description",
-          "flags": [
-            "-d",
-            "--description"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "what the template is for (one line)",
-          "hidden": false,
-          "metavar": "TEXT"
         },
         {
           "name": "answer",
@@ -3158,14 +3419,14 @@
     },
     {
       "path": [
-        "pack",
-        "agent"
+        "template",
+        "rule"
       ],
-      "description": "Add an agent profile to a pack (only what differs from the standard).",
+      "description": "Add a declarative rule (refused unless it catches its bad example and passes its good one).",
       "json": true,
       "parameters": [
         {
-          "name": "pack",
+          "name": "template",
           "flags": [],
           "required": true,
           "boolean": false,
@@ -3173,9 +3434,405 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "the pack's folder, or the name of a pack of this project",
+          "help": "a template's folder, or `project` (this project's own additions, .archvow/template/)",
           "hidden": false,
-          "metavar": "pack"
+          "metavar": "template"
+        },
+        {
+          "name": "code",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its code: the company's letters and 3 digits (ACME001)",
+          "hidden": false,
+          "metavar": "code"
+        },
+        {
+          "name": "kind",
+          "flags": [
+            "--kind"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "forbid_import",
+            "forbid_call",
+            "forbid_pattern",
+            "forbid_file",
+            "only_in",
+            "require_keyword",
+            "require_question"
+          ],
+          "help": "what it checks",
+          "hidden": false,
+          "metavar": "kind"
+        },
+        {
+          "name": "target",
+          "flags": [
+            "--target"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the kind looks for (modules, calls or files: comma-separated; a pattern, a keyword or a question: as it is)",
+          "hidden": false,
+          "metavar": "target"
+        },
+        {
+          "name": "in_types",
+          "flags": [
+            "--in-types"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "only in these component types, comma-separated",
+          "hidden": false,
+          "metavar": "TYPES"
+        },
+        {
+          "name": "in_layers",
+          "flags": [
+            "--in-layers"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "only in these layers, comma-separated",
+          "hidden": false,
+          "metavar": "LAYERS"
+        },
+        {
+          "name": "severity",
+          "flags": [
+            "--severity"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [
+            "error",
+            "warning"
+          ],
+          "help": "error (default) or warning",
+          "hidden": false,
+          "metavar": "severity"
+        },
+        {
+          "name": "final",
+          "flags": [
+            "--final"
+          ],
+          "required": false,
+          "boolean": true,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "no template below and no project may make it weaker",
+          "hidden": false,
+          "metavar": "final"
+        },
+        {
+          "name": "message",
+          "flags": [
+            "--message"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "what the finding says",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "message_fr",
+          "flags": [
+            "--message-fr"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the same, in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "fix",
+          "flags": [
+            "--fix"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how to fix it",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "fix_fr",
+          "flags": [
+            "--fix-fr"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the same, in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "why",
+          "flags": [
+            "--why"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "why the rule exists",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "why_fr",
+          "flags": [
+            "--why-fr"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the same, in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "error",
+          "flags": [
+            "--error"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the error people saw when it went wrong (Java heap space): archvow show \"<pasted error>\" finds this rule by it",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "bad",
+          "flags": [
+            "--bad"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "an example it must catch (a file path for forbid_file)",
+          "hidden": false,
+          "metavar": "CODE"
+        },
+        {
+          "name": "good",
+          "flags": [
+            "--good"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "an example it must pass",
+          "hidden": false,
+          "metavar": "CODE"
+        }
+      ]
+    },
+    {
+      "path": [
+        "template",
+        "question"
+      ],
+      "description": "Add a question to a component type (in the project: every existing component of that type gets it).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "template",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "a template's folder, or `project` (this project's own additions, .archvow/template/)",
+          "hidden": false,
+          "metavar": "template"
+        },
+        {
+          "name": "type",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the component type that asks it",
+          "hidden": false,
+          "metavar": "type"
+        },
+        {
+          "name": "id",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "its id: lower case letters, digits and _ (rate_limit); a template below may reword it",
+          "hidden": false,
+          "metavar": "id"
+        },
+        {
+          "name": "text",
+          "flags": [
+            "--text"
+          ],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question, with an example answer: \"... - e.g. ...?\"",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "suggested",
+          "flags": [
+            "--suggested"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the answer it suggests (decision make takes it)",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "choices",
+          "flags": [
+            "--choices"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "answers to start from, comma-separated (none pre-selected)",
+          "hidden": false,
+          "metavar": "ANSWERS"
+        },
+        {
+          "name": "text_fr",
+          "flags": [
+            "--text-fr"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the question in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        },
+        {
+          "name": "suggested_fr",
+          "flags": [
+            "--suggested-fr"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "the suggested answer in French",
+          "hidden": false,
+          "metavar": "TEXT"
+        }
+      ]
+    },
+    {
+      "path": [
+        "template",
+        "agent"
+      ],
+      "description": "Add an agent profile (only what differs from the standard).",
+      "json": true,
+      "parameters": [
+        {
+          "name": "template",
+          "flags": [],
+          "required": true,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "a template's folder, or `project` (this project's own additions, .archvow/template/)",
+          "hidden": false,
+          "metavar": "template"
         },
         {
           "name": "name",
@@ -3341,6 +3998,36 @@
           "metavar": "NAME"
         },
         {
+          "name": "draft_command",
+          "flags": [
+            "--draft-command"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how `archvow draft` runs it, text only: no tool, no file, no command (the question is in $ARCHVOW_DRAFT_PROMPT)",
+          "hidden": false,
+          "metavar": "COMMAND"
+        },
+        {
+          "name": "skill_command",
+          "flags": [
+            "--skill-command"
+          ],
+          "required": false,
+          "boolean": false,
+          "append": false,
+          "multiToken": false,
+          "optionalValue": false,
+          "choices": [],
+          "help": "how `archvow skill` runs it in the background: it may read the project and run archvow, nothing else (the task is in $ARCHVOW_SKILL_PROMPT)",
+          "hidden": false,
+          "metavar": "COMMAND"
+        },
+        {
           "name": "owns",
           "flags": [
             "--owns"
@@ -3374,14 +4061,14 @@
     },
     {
       "path": [
-        "pack",
-        "rule"
+        "template",
+        "check"
       ],
-      "description": "Add a declarative rule to a pack (refused unless it catches its bad example and passes its good one).",
+      "description": "Test a template before sharing it (its chain, every part, every language, a project from it).",
       "json": true,
       "parameters": [
         {
-          "name": "pack",
+          "name": "template",
           "flags": [],
           "required": true,
           "boolean": false,
@@ -3389,305 +4076,20 @@
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "the pack's folder, or the name of a pack of this project",
+          "help": "the template's folder",
           "hidden": false,
-          "metavar": "pack"
-        },
-        {
-          "name": "code",
-          "flags": [],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "its code: the company's letters and 3 digits (ACME001)",
-          "hidden": false,
-          "metavar": "code"
-        },
-        {
-          "name": "kind",
-          "flags": [
-            "--kind"
-          ],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [
-            "forbid_import",
-            "forbid_call",
-            "forbid_pattern",
-            "forbid_file",
-            "only_in",
-            "require_keyword",
-            "require_question"
-          ],
-          "help": "what it checks",
-          "hidden": false,
-          "metavar": "kind"
-        },
-        {
-          "name": "target",
-          "flags": [
-            "--target"
-          ],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "what the kind looks for (modules, calls or files: comma-separated; a pattern, a keyword or a question: as it is)",
-          "hidden": false,
-          "metavar": "target"
-        },
-        {
-          "name": "in_types",
-          "flags": [
-            "--in-types"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "only in these component types, comma-separated",
-          "hidden": false,
-          "metavar": "TYPES"
-        },
-        {
-          "name": "in_layers",
-          "flags": [
-            "--in-layers"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "only in these layers, comma-separated",
-          "hidden": false,
-          "metavar": "LAYERS"
-        },
-        {
-          "name": "severity",
-          "flags": [
-            "--severity"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [
-            "error",
-            "warning"
-          ],
-          "help": "error (default) or warning",
-          "hidden": false,
-          "metavar": "severity"
-        },
-        {
-          "name": "message",
-          "flags": [
-            "--message"
-          ],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "what the finding says",
-          "hidden": false,
-          "metavar": "TEXT"
-        },
-        {
-          "name": "message_fr",
-          "flags": [
-            "--message-fr"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the same, in French",
-          "hidden": false,
-          "metavar": "TEXT"
-        },
-        {
-          "name": "fix",
-          "flags": [
-            "--fix"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "how to fix it",
-          "hidden": false,
-          "metavar": "TEXT"
-        },
-        {
-          "name": "fix_fr",
-          "flags": [
-            "--fix-fr"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the same, in French",
-          "hidden": false,
-          "metavar": "TEXT"
-        },
-        {
-          "name": "why",
-          "flags": [
-            "--why"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "why the rule exists",
-          "hidden": false,
-          "metavar": "TEXT"
-        },
-        {
-          "name": "why_fr",
-          "flags": [
-            "--why-fr"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the same, in French",
-          "hidden": false,
-          "metavar": "TEXT"
-        },
-        {
-          "name": "error",
-          "flags": [
-            "--error"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the error people saw when it went wrong (Java heap space): archvow show \"<pasted error>\" finds this rule by it",
-          "hidden": false,
-          "metavar": "TEXT"
-        },
-        {
-          "name": "bad",
-          "flags": [
-            "--bad"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "an example it must catch (a file path for forbid_file)",
-          "hidden": false,
-          "metavar": "CODE"
-        },
-        {
-          "name": "good",
-          "flags": [
-            "--good"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "an example it must pass",
-          "hidden": false,
-          "metavar": "CODE"
+          "metavar": "template"
         }
       ]
     },
     {
       "path": [
-        "pack",
-        "add"
-      ],
-      "description": "Copy a pack into the project and record it (version, source, digest).",
-      "json": true,
-      "parameters": [
-        {
-          "name": "source",
-          "flags": [],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the pack's folder, or an installed package that carries one",
-          "hidden": false,
-          "metavar": "source"
-        },
-        {
-          "name": "project",
-          "flags": [
-            "--project"
-          ],
-          "required": false,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the project's folder before init (default: here)",
-          "hidden": false,
-          "metavar": "FOLDER"
-        }
-      ]
-    },
-    {
-      "path": [
-        "pack",
+        "template",
         "update"
       ],
-      "description": "A new version of a pack, from the source it was added from.",
+      "description": "Take the project's templates again from where they came from (a new version, reviewed in the merge request).",
       "json": true,
       "parameters": [
-        {
-          "name": "name",
-          "flags": [],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the pack's name",
-          "hidden": false,
-          "metavar": "name"
-        },
         {
           "name": "source",
           "flags": [
@@ -3695,59 +4097,13 @@
           ],
           "required": false,
           "boolean": false,
-          "append": false,
+          "append": true,
           "multiToken": false,
           "optionalValue": false,
           "choices": [],
-          "help": "another folder or package to take it from",
+          "help": "a folder of templates, a template's folder or an installed package to take them from (repeatable)",
           "hidden": false,
           "metavar": "SOURCE"
-        }
-      ]
-    },
-    {
-      "path": [
-        "pack",
-        "remove"
-      ],
-      "description": "Take a pack out of the project.",
-      "json": true,
-      "parameters": [
-        {
-          "name": "name",
-          "flags": [],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the pack's name",
-          "hidden": false,
-          "metavar": "name"
-        }
-      ]
-    },
-    {
-      "path": [
-        "pack",
-        "check"
-      ],
-      "description": "Test a whole pack before sharing it (every part, every language).",
-      "json": true,
-      "parameters": [
-        {
-          "name": "pack",
-          "flags": [],
-          "required": true,
-          "boolean": false,
-          "append": false,
-          "multiToken": false,
-          "optionalValue": false,
-          "choices": [],
-          "help": "the pack's folder, or the name of a pack of this project",
-          "hidden": false,
-          "metavar": "pack"
         }
       ]
     }

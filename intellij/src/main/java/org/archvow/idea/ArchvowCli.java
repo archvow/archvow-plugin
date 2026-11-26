@@ -50,10 +50,21 @@ final class ArchvowCli {
             this(arguments, exitCode, "", message, false);
         }
         boolean ok() { return exitCode == 0 && !interrupted; }
+        /** stdout as a JSON object (a --json answer, even when the command failed), or null. */
+        com.google.gson.JsonObject parseJsonObject() {
+            try {
+                com.google.gson.JsonElement e = com.google.gson.JsonParser.parseString(stdout.strip());
+                return e.isJsonObject() ? e.getAsJsonObject() : null;
+            } catch (RuntimeException ex) {
+                return null;
+            }
+        }
     }
 
     private final Project project;
     private final AtomicBoolean running = new AtomicBoolean(false);
+    /** 1.1.0: a command asked for while another runs waits its turn (as VS Code's runner) - never refused. */
+    private final java.util.ArrayDeque<Runnable> waiting = new java.util.ArrayDeque<>();
     ArchvowCli(Project project) { this.project = project; }
     boolean isRunning() { return running.get(); }
 
@@ -75,8 +86,8 @@ final class ArchvowCli {
     }
 
     /**
-     * The catalog for init (0.22.0): what archvow lists in the project's folder - its own pack and the packs
-     * `archvow pack add` copied there (.archvow/packs/), templates named {@code <pack>/<template>}.
+     * The catalog for init: what archvow lists in the project's folder - its templates (in a project, the project's
+     * first, as it uses them) and those of the packages that declare some, by name (archvow 3.0).
      */
     void executeGlobalCatalog(String ignored, Consumer<Result> finished) {
         executeInternal("Catalog", List.of("catalog", "--json"), null, false, null, false, finished);
@@ -85,9 +96,11 @@ final class ArchvowCli {
     private void executeInternal(String label, List<String> arguments, String stdin,
                                  boolean globalCatalog, String templateDirectory, boolean action,
                                  Consumer<Result> finished) {
-        if (!running.compareAndSet(false, true)) {
-            finished.accept(new Result(arguments, -1, "Une autre commande Archvow est déjà en cours."));
-            return;
+        synchronized (waiting) {
+            if (!running.compareAndSet(false, true)) {
+                waiting.add(() -> executeInternal(label, arguments, stdin, globalCatalog, templateDirectory, action, finished));
+                return;
+            }
         }
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Archvow: " + label, true) {
             @Override public void run(@NotNull ProgressIndicator indicator) {
@@ -96,8 +109,16 @@ final class ArchvowCli {
                 try { result = invoke(arguments, stdin, indicator, globalCatalog, templateDirectory); }
                 catch (Exception ex) {
                     result = new Result(arguments, -1, describeFailure(ex));
-                } finally { running.set(false); }
-                ArchvowRunLog.record(project, new ArchvowRunLog.Call(result.arguments, result.exitCode, result.stdout,
+                } finally {
+                    Runnable next;
+                    synchronized (waiting) {
+                        running.set(false);
+                        next = waiting.poll();
+                    }
+                    if (next != null) ApplicationManager.getApplication().invokeLater(() -> { if (!project.isDisposed()) next.run(); });
+                }
+                // the archvow arguments, as a person types them (1.2.0: not the interpreter's command line)
+                ArchvowRunLog.record(project, new ArchvowRunLog.Call(withLanguage(arguments, ArchvowI18n.isFrench(project)), result.exitCode, result.stdout,
                     result.stderr, result.interrupted, result.log, result.error == null ? "" : result.error.text()), action, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
                 Result returned = result;
                 ApplicationManager.getApplication().invokeLater(() -> {
@@ -211,6 +232,7 @@ final class ArchvowCli {
 
     /** The folder and environment of an archvow process; through wsl.exe, a Windows folder and WSLENV. */
     static void prepare(ProcessBuilder builder, List<String> argv, String root) {
+        shellEnvironment(builder.environment());
         builder.environment().put("NO_COLOR", "1");
         builder.environment().put("PYTHONIOENCODING", "utf-8");
         // what archvow did, for the session log (a level the person set is kept)
@@ -224,9 +246,60 @@ final class ArchvowCli {
         }
     }
 
+    /**
+     * 1.2.1: the environment of the person's login shell, as the IDE's terminal and run configurations get it. An IDE
+     * started from the Dock (macOS) has a short PATH, so archvow saw no `claude` or `copilot` command for drafts.
+     */
+    static void shellEnvironment(java.util.Map<String, String> environment) {
+        try {
+            java.util.Map<String, String> shell = com.intellij.util.EnvironmentUtil.getEnvironmentMap();
+            if (shell != null && !shell.isEmpty()) environment.putAll(shell);
+        } catch (RuntimeException | LinkageError e) {
+            // outside the IDE (the headless tests) or the shell could not be read: the IDE's own environment
+        }
+    }
+
+    /** 1.2.0: try says what to do about each finding in the page's language (as the VS Code page). */
+    static List<String> withLanguage(List<String> arguments, boolean french) {
+        if (arguments.isEmpty() || !"try".equals(arguments.get(0)) || arguments.contains("--language")) return arguments;
+        List<String> out = new java.util.ArrayList<>(arguments);
+        out.add("--language");
+        out.add(french ? "fr" : "en");
+        return out;
+    }
+
     private Result invoke(List<String> arguments, String stdin, ProgressIndicator indicator,
                           boolean globalCatalog, String templateDirectory) throws Exception {
+        return invoke(arguments, stdin, indicator, globalCatalog, templateDirectory, 0, null);
+    }
+
+    /**
+     * 1.3.0: a long command beside the queue - an AI skill run, a review: minutes, while the other calls go on (and in
+     * the IDE's progress bar, cancellable there too). The returned stop ends archvow gently, so it stops the assistant
+     * it started.
+     */
+    Runnable background(String label, List<String> arguments, long timeoutSeconds, Consumer<Result> finished) {
+        java.util.concurrent.atomic.AtomicBoolean stop = new java.util.concurrent.atomic.AtomicBoolean();
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Archvow: " + label, true) {
+            @Override public void run(@NotNull ProgressIndicator indicator) {
+                long started = System.nanoTime();
+                Result result;
+                try { result = invoke(arguments, null, indicator, false, null, timeoutSeconds, stop); }
+                catch (Exception ex) { result = new Result(arguments, -1, describeFailure(ex)); }
+                ArchvowRunLog.record(project, new ArchvowRunLog.Call(withLanguage(arguments, ArchvowI18n.isFrench(project)), result.exitCode, result.stdout,
+                    result.stderr, result.interrupted, result.log, result.error == null ? "" : result.error.text()), true, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
+                Result returned = result;
+                ApplicationManager.getApplication().invokeLater(() -> { if (!project.isDisposed()) finished.accept(returned); });
+            }
+        });
+        return () -> stop.set(true);
+    }
+
+    private Result invoke(List<String> arguments, String stdin, ProgressIndicator indicator, boolean globalCatalog,
+                          String templateDirectory, long timeoutSeconds,
+                          java.util.concurrent.atomic.AtomicBoolean stop) throws Exception {
         ArchvowTrust.require(project);  // safe mode: no process at all (0.26.1)
+        arguments = withLanguage(arguments, ArchvowI18n.isFrench(project));
         ArchvowSettings.Values opts = ArchvowSettings.get(project).getState();
         File workingDirectory;
         List<String> argv;
@@ -262,11 +335,15 @@ final class ArchvowCli {
             if (stdin != null) out.write(stdin.getBytes(StandardCharsets.UTF_8));
         }
         boolean cancelled = false;
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(opts.timeoutSeconds);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds > 0 ? timeoutSeconds : opts.timeoutSeconds);
         try {
             while (!process.waitFor(200, TimeUnit.MILLISECONDS)) {
-                if (indicator.isCanceled() || System.nanoTime() >= deadline) {
+                if (indicator.isCanceled() || System.nanoTime() >= deadline || (stop != null && stop.get())) {
                     cancelled = true;
+                    if (stop != null) {  // a background run: archvow stops the assistant it started, then ends
+                        process.destroy();
+                        if (process.waitFor(15, TimeUnit.SECONDS)) break;
+                    }
                     process.destroyForcibly();
                     break;
                 }

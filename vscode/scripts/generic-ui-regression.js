@@ -113,12 +113,13 @@ assert.equal(editor.posted.at(-1).values.uses, 'schema,config');
 editor.message({ type: 'select', component: 'schema' });
 assert.match(editor.app.innerHTML, /Answer with a table \(optional\)/);
 assert.match(editor.app.innerHTML, /id/);
-assert.match(editor.app.innerHTML, /personal-data classification unknown|not personal data/);
+assert.match(editor.app.innerHTML, /data-name="personal"[^>]*data-value="unknown"/, 'personal-data choices include Unknown');
+assert.match(editor.app.innerHTML, /data-name="personal"[^>]*data-value="no"/, 'known non-personal columns are prefilled');
+assert.match(editor.app.innerHTML, /data-name="personal"[^>]*data-value="yes"/, 'known personal columns are prefilled');
 // 0.15.0: each row has Never null / Nullable / Unknown and Yes / No / Unknown as buttons, and a bin to remove it
 assert.match(editor.app.innerHTML, /data-a="smartSeg"[^>]*data-name="nullable"[^>]*data-value="no"/);
 assert.equal((editor.app.innerHTML.match(/data-a="smartRemove"/g) || []).length, 2, 'one bin per column');
 editor.click('smartSeg', { kind: 'column', key: 'd:schema:1', row: '0', name: 'nullable', value: 'no' });
-editor.click('smartUse', { key: 'd:schema:1' });
 assert.match(editor.app.innerHTML, /id: not null, not personal data/);
 editor.click('smartRemove', { key: 'd:schema:1', row: '1' });
 assert.equal((editor.app.innerHTML.match(/data-a="smartRemove"/g) || []).length, 1, 'the bin removes its row');
@@ -137,14 +138,164 @@ page.message({ type: 'feature', feature: 'orders' });
 assert.doesNotMatch(page.app.innerHTML, /feature accept|ARCH043/, 'a person\'s feature: nothing to accept');
 console.log('A feature an AI agent added: OK');
 
-// archvow 2.6 records a pack folder by its path from the project's root (0.26.0): the Packs list says what a source is
-const packs = make('nav');
-packs.message({ type: 'state', state: { ...state, packs: [
-  { name: 'acme', version: '1.0.0', description: '', source: '../company-packs/acme', state: 'ok', why: '' },
-  { name: 'bank', version: '0.1.0', description: '', source: 'bank_packs', state: 'ok', why: '' },
-  { name: 'old', version: '0.1.0', description: '', source: '/home/alice/packs/old', state: 'ok', why: '' }] } });
-packs.click('openPacks');
-assert.match(packs.app.innerHTML, /Source: \.\.\/company-packs\/acme \(a folder, from the project&#39;s root\)|Source: \.\.\/company-packs\/acme \(a folder, from the project's root\)/);
-assert.match(packs.app.innerHTML, /Source: bank_packs \(an installed package\)/);
-assert.match(packs.app.innerHTML, /\/home\/alice\/packs\/old \(an absolute path: true on this machine only/);
-console.log('Packs sources: OK');
+// archvow 3.0 records each template of the project's chain with its source: the Templates list says what a source is
+const chain = make('nav');
+chain.message({ type: 'state', state: { ...state, templates: [
+  { name: 'python-base', version: '3.0.0', description: '', extends: [], source: 'archvow', state: 'ok', why: '' },
+  { name: 'acme-app', version: '1.0.0', description: '', extends: ['python-app', 'acme'], source: '../company-templates', state: 'ok', why: '' },
+  { name: 'bank', version: '0.1.0', description: '', extends: [], source: 'bank_templates', state: 'changed', why: 'its copy was edited by hand' },
+  { name: 'project', version: null, source: '.archvow/template', state: 'ok', why: '', rule_families: ['TEAM'], agents: [] }] } });
+assert.match(chain.app.innerHTML, /python-base ← acme-app ← bank/);
+chain.click('openTemplates');
+assert.match(chain.app.innerHTML, /Source: \.\.\/company-templates \(a folder, from the project&#39;s root\)|Source: \.\.\/company-templates \(a folder, from the project's root\)/);
+assert.match(chain.app.innerHTML, /Source: bank_templates \(an installed package\)/);
+assert.match(chain.app.innerHTML, /Source: archvow</);
+assert.match(chain.app.innerHTML, /Extends: python-app, acme/);
+assert.match(chain.app.innerHTML, /its copy was edited by hand \(ARCH060\)/);
+assert.match(chain.app.innerHTML, /rules: TEAM/);
+assert.match(chain.app.innerHTML, /data-command="template update"/);
+assert.match(chain.app.innerHTML, /data-command="template question"[^>]*data-templatename="project"|data-templatename="project"[^>]*data-command="template question"/);
+console.log('Templates chain and sources: OK');
+
+// 1.2.0: Draft with AI - the icon in the answer box, one of the project's AI assistants, the draft marked, saved as the person's
+const drafting = make('editor');
+const aiDrafts = { on: true, why_not: null, tools: [{ name: 'claude-code', title: 'Claude Code', program: 'claude', installed: true },
+  { name: 'codex', title: 'OpenAI Codex', program: 'codex', installed: false }] };
+drafting.message({ type: 'state', state: { ...state, aiTools: ['claude-code', 'codex'], aiDrafts } });
+drafting.message({ type: 'select', component: 'schema' });
+assert.match(drafting.app.innerHTML, /data-a="draftRun" data-key="d:schema:1"/, 'the icon in the decision box');
+assert.match(drafting.app.innerHTML, /Draft an answer with Claude Code - you read it and save it/, 'the hover names the AI');
+drafting.click('draftMenu', { key: 'd:schema:1' });
+assert.match(drafting.app.innerHTML, /data-a="draftWith"[^>]*data-tool="codex" disabled/, 'a tool not installed is greyed');
+assert.match(drafting.app.innerHTML, /data-tool="codex" disabled title="Drafts use the codex command, which is not on this computer/, 'its hover says why');
+assert.match(drafting.app.innerHTML, /<span class="src">no codex command<\/span>/, 'it names the missing command');
+assert.match(drafting.app.innerHTML, /Copy the prompt instead/);
+drafting.click('draftRun', { key: 'd:schema:1' });
+assert.equal(JSON.stringify(drafting.posted.at(-1)), JSON.stringify({ type: 'draft', key: 'd:schema:1', component: 'schema', ref: '1', tool: 'claude-code' }));
+assert.match(drafting.app.innerHTML, /draft-spin/, 'drafting: the icon spins');
+drafting.message({ type: 'drafted', key: 'd:schema:1', draft: 'id: not null', tool: 'claude-code', title: 'Claude Code' });
+assert.match(drafting.app.innerHTML, /AI draft · Claude Code/, 'the draft is marked');
+assert.match(drafting.app.innerHTML, />id: not null<\/textarea>/, 'the draft in the box');
+assert.equal(drafting.posted.filter(m => m.type === 'inline').length, 0, 'nothing saved by a draft');
+drafting.click('decide', { action: 'decision make' });
+const saved = drafting.posted.at(-1);
+assert.equal(saved.type, 'inline');
+assert.equal(JSON.stringify(saved.drafted), JSON.stringify({ tool: 'claude-code', title: 'Claude Code', unchanged: true }), 'saved as the person\'s, from a draft');
+const sandboxed = 'this project runs AI agents only in a sandbox (sandbox yes), and archvow is not in one here - copy the instructions to the agent you run there';
+drafting.message({ type: 'state', state: { ...state, aiDrafts: { ...aiDrafts, on: true, why_not: sandboxed } } });
+drafting.message({ type: 'select', component: 'schema' });
+assert.match(drafting.app.innerHTML, /only in a sandbox \(sandbox yes\)/, 'off here: the hover says archvow\'s reason');
+assert.match(drafting.app.innerHTML, /draft-split off/, 'off here: the icon greyed');
+assert.doesNotMatch(drafting.app.innerHTML, /data-a="draftRun"/, 'off here: no draft is asked for');
+drafting.click('draftMenu', { key: 'd:schema:1' });
+assert.match(drafting.app.innerHTML, /class="draft-why">this project runs AI agents only in a sandbox/, '1.4.0: a click says why, in words');
+assert.match(drafting.app.innerHTML, /data-a="draftPrompt"/, 'and offers the prompt instead');
+drafting.message({ type: 'state', state: { ...state, aiDrafts: { ...aiDrafts, on: false, why_not: null } } });
+drafting.message({ type: 'select', component: 'schema' });
+assert.match(drafting.app.innerHTML, /archvow does not start AI drafts in this project \(ai_runs in project.vow\)/, 'not in ai_runs: said');
+console.log('Draft with AI: icon, menu, draft marked, saved as the person\'s, off here with archvow\'s reason: OK');
+
+// 1.2.1: layouts that squeezed or cut at some width (the real widths are measured in a browser; here, their markup)
+const css = fs.readFileSync(path.join(root, 'vscode/media/workspace.css'), 'utf8');
+const shaped = make('editor');
+shaped.message({ type: 'skill', skill: 'clarify', values: { component: 'schema' } });
+assert.match(shaped.app.innerHTML, /<div class="form-grid skill-grid">/, 'the skill form has its own two columns');
+assert.doesNotMatch(shaped.app.innerHTML, /<div class="split"><div class="split-list">/, 'not the list/answer split (its middle column is the 10 px bar)');
+assert.match(css, /\.what \.two \{ display: grid; grid-template-columns: repeat\(auto-fit, minmax\(150px, 1fr\)\)/, 'The AI can / You still stack when narrow');
+assert.match(css, /\.smart-answer \{ container: smart \/ inline-size; \}/, 'the answer table follows its pane, not the window');
+assert.match(css, /@container smart \(max-width: 560px\)/, 'and stacks its rows when the pane is narrow');
+assert.doesNotMatch(css, /var\(--vscode-editor-font-family\)(?!, ?monospace)/, 'the editor font always falls back to monospace (never serif)');
+const tasks = make('editor');
+tasks.message({ type: 'select', component: 'schema' });
+tasks.click('view', { i: '5' });
+assert.match(tasks.app.innerHTML, /No separate tasks: the AI builds schema in one go, from its spec\./, 'no task: says what it means');
+assert.doesNotMatch(tasks.app.innerHTML, /data-a="dataAction"/, 'no task: no list, no empty button');
+assert.doesNotMatch(tasks.app.innerHTML, /handles: |writes: /, 'no empty personal data lines');
+console.log('Layouts: the skill form, the answer table, Tasks without tasks, the editor font: OK');
+
+// 1.3.0: AI skills run here - ▶ Run with <the AI picked> ▾, the run going on, how it ended; off with the reason
+const runs = make('editor');
+const aiSkills = { on: true, why_not: null, runs: ['draft-spec', 'clarify', 'analyze'], tools: [
+  { name: 'claude-code', title: 'Claude Code', program: 'claude', installed: true },
+  { name: 'copilot', title: 'GitHub Copilot', program: 'copilot', installed: true },
+  { name: 'codex', title: 'OpenAI Codex', program: 'codex', installed: false }] };
+runs.message({ type: 'state', state: { ...state, aiTools: ['claude-code', 'copilot', 'codex'], aiSkills, reviewers: [], base: 'origin/develop' } });
+runs.message({ type: 'skill', skill: 'clarify', values: { component: 'schema' } });
+const asked = runs.posted.find((m) => m.type === 'skillPrompt');
+assert.deepEqual(JSON.parse(JSON.stringify(asked)), { type: 'skillPrompt', key: 'clarify|schema|5', skill: 'clarify', target: 'schema', max: '5' }, 'archvow writes the instructions');
+assert.match(runs.app.innerHTML, /<pre class="request">Loading…<\/pre>/);
+runs.message({ type: 'skillPrompt', key: 'clarify|schema|5', text: 'Archvow task: Find missing questions (skill archvow-clarify).' });
+assert.match(runs.app.innerHTML, /<pre class="request">Archvow task: Find missing questions/, 'the text is archvow\'s');
+assert.match(runs.app.innerHTML, />▶ Run with Claude Code<\/button>/, 'the first installed AI');
+runs.click('runMenu');
+assert.match(runs.app.innerHTML, /data-a="runWith" data-tool="codex" disabled/, 'one not installed is greyed');
+runs.click('runWith', { tool: 'copilot' });
+assert.match(runs.app.innerHTML, />▶ Run with GitHub Copilot<\/button>/, 'the button follows the AI picked');
+runs.click('skillRun', { key: 'clarify|schema|5' });
+assert.equal(JSON.stringify(runs.posted.at(-1)), JSON.stringify({ type: 'skillRun', key: 'clarify|schema|5', skill: 'clarify', target: 'schema', max: '5', tool: 'copilot', component: 'schema' }));
+assert.match(runs.app.innerHTML, /class="run-strip"[\s\S]*<b>GitHub Copilot<\/b> is doing &quot;Find missing questions&quot; on schema[\s\S]*data-a="skillStop"/, 'running: the AI, Stop');
+assert.match(runs.app.innerHTML, /data-a="skillRun"[^>]*disabled/, 'one run at a time');
+runs.message({ type: 'skillDone', key: 'clarify|schema|5', status: 'done', message: 'GitHub Copilot added 3 questions - each the AI\'s, To review', added: true, log: true });
+assert.match(runs.app.innerHTML, /class="run-result "[\s\S]*added 3 questions[\s\S]*data-a="runReview"/, 'done: what was added, Review them');
+runs.message({ type: 'skillDone', key: 'clarify|schema|5', status: 'failed', message: 'x' });
+const off = make('editor');
+off.message({ type: 'state', state: { ...state, aiSkills: { ...aiSkills, why_not: 'archvow does not start AI skill runs in this project (ai_runs [] in project.vow)' }, reviewers: [], base: 'origin/develop' } });
+off.message({ type: 'skill', skill: 'analyze', values: { component: 'schema' } });
+assert.match(off.app.innerHTML, /data-tip="archvow does not start AI skill runs[^"]*"[\s\S]*data-a="skillRun"[^>]*disabled/, 'off: the reason on the button');
+assert.match(off.app.innerHTML, /class="run-why small">[^<]*<span class="codicon">ⓘ<\/span> archvow does not start AI skill runs in this project/, '1.4.0: and under it, in words');
+off.message({ type: 'skill', skill: 'implement', values: { component: 'schema' } });
+assert.doesNotMatch(off.app.innerHTML, /data-a="skillRun"/, 'Implement: a handoff');
+assert.doesNotMatch(off.app.innerHTML, /class="run-why/, 'Implement: nothing archvow would run, so no reason');
+off.message({ type: 'skill', skill: 'review', values: {} });
+assert.match(off.app.innerHTML, /data-tip="No reviewer approved[^"]*"[\s\S]*data-a="reviewRun"[^>]*disabled/, 'Review: no reviewer, greyed');
+assert.match(off.app.innerHTML, /class="run-why small">[^<]*<span class="codicon">ⓘ<\/span> No reviewer approved/, 'Review: said under it');
+console.log('AI skills run here: Run with the AI picked, running, done, off with the reason, Implement a handoff, Review with a reviewer: OK');
+
+// 1.4.1: ← Back on a skill or command page opened from the tool window - to what this editor showed
+const backs = make('editor');
+backs.message({ type: 'select', component: 'schema' });
+backs.message({ type: 'skill', skill: 'clarify', values: { component: 'schema' } });
+assert.match(backs.app.innerHTML, /data-a="back" title="Back to schema">← schema<\/button>/, 'from a component page: back to it');
+backs.click('back');
+assert.deepEqual(JSON.parse(JSON.stringify(backs.posted[backs.posted.length - 1])), { type: 'show', component: 'schema' }, 'shown again');
+backs.message({ type: 'search', name: 'orders', result: { groups: [] } });
+backs.message({ type: 'openCommand', command: 'decision make', values: {} });
+assert.match(backs.app.innerHTML, /data-a="back" title="Back to Find">← Find<\/button>/, 'from Find: back to it');
+backs.click('back');
+assert.match(backs.app.innerHTML, /Archvow · Find/, 'Find again');
+const lone = make('editor');
+lone.message({ type: 'skill', skill: 'analyze', values: { component: 'schema' } });
+assert.doesNotMatch(lone.app.innerHTML, /data-a="back" title=/, 'nothing shown before: no back button');
+lone.click('back');  // Cancel
+assert.doesNotMatch(lone.app.innerHTML, /skill: archvow-analyze/, 'Cancel leaves the form');
+// the confirmation: the page goes down to Confirm and run; the split's place is kept by the extension
+const asks = make('editor');
+asks.message({ type: 'select', component: 'schema' });
+asks.message({ type: 'confirm', token: 't1', title: 'decision make', summary: 'D1', target: 'component', command: 'archvow decision make schema 1 x' });
+assert.match(asks.app.innerHTML, /data-a="confirm"/);
+const fresh = make('editor');
+fresh.message({ type: 'init', commands, forms, catalog: null, types: {}, rules: {}, kept: { split: { left: '333px', top: '40vh' } } });
+fresh.message({ type: 'select', component: 'schema' });
+assert.match(fresh.app.innerHTML, /--split-left:333px/, 'a new tab: the split where the person left it');
+console.log('Back to the page shown before, Cancel leaves, the split kept across tabs: OK');
+
+// 1.4.2: First steps say what can still be done at a step (archvow's `also`): a link beside it
+const steps = make('nav');
+const firstSteps = { done: 3, current: 3, steps: [
+  { step: 'foundations', title: 'Answer the foundations', detail: '', command: 'archvow specify', done: true, progress: null, also: null },
+  { step: 'feature', title: 'Add a feature', detail: '', command: 'archvow feature add <name>', done: true, progress: null,
+    also: { label: '+ Feature', command: 'archvow feature add <name> -d "what the product does"' } },
+  { step: 'component', title: "Add the feature's components", detail: '2 of 2 specified', command: 'archvow component add <type> <name>', done: true, progress: null,
+    also: { label: '+ Component', command: 'archvow component add <type> <name> -d "what it must do" --feature orders' } },
+  { step: 'build', title: 'Build them, then Check', detail: '', command: 'archvow prompt --feature orders', done: false, progress: null, also: null },
+  { step: 'commit', title: 'Commit', detail: '', command: 'git commit', done: false, progress: null, also: null }] };
+steps.message({ type: 'state', state: { ...state, overview: { firstSteps, itemsDone: 0, itemsTotal: 0, itemsOpen: 0, projectItems: 0, errors: 0, warnings: 0, firstFinding: null } } });
+assert.match(steps.app.innerHTML, /<button class="link step-also" data-a="addFeature"[^>]*>\+ Feature<\/button>/, '+ Feature on a done step');
+assert.match(steps.app.innerHTML, /<button class="link step-also" data-a="addComponent"[^>]*>\+ Component<\/button>/, '+ Component on a done step');
+assert.match(steps.app.innerHTML, /data-a="walk" data-kind="build"[^>]*>Build ▸<\/button>/, 'the current step keeps its button');
+firstSteps.current = 2; firstSteps.steps[2].done = false; firstSteps.steps[2].command = 'archvow specify enrich_orders';
+firstSteps.steps[3].also = { label: 'Build the 1 specified', command: 'archvow prompt --feature orders' };
+steps.message({ type: 'state', state: { ...state, overview: { firstSteps, itemsDone: 0, itemsTotal: 0, itemsOpen: 0, projectItems: 0, errors: 0, warnings: 0, firstFinding: null } } });
+assert.match(steps.app.innerHTML, /\+ Component<\/button><button class="" data-a="walk" data-kind="specify"/, 'a new component reopens step 3: + Component, then Specify');
+assert.match(steps.app.innerHTML, /<button class="link step-also" data-a="walk" data-kind="build" data-scope="feature" data-value="orders"[^>]*>Build the 1 specified<\/button>/, 'build what is specified');
+console.log('First steps: + Feature, + Component, Build the N specified beside the steps: OK');

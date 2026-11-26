@@ -66,7 +66,7 @@ says, for each command and parameter, what the form offers, from what archvow pr
 | `hazard add/dismiss` guide word, `invariant add --prevents` | the safety questions (open first) / the component's hazards |
 | `hazard remove`, `invariant remove`, `rule edit/remove`, `dependency remove` | the project's ids; `rule edit` fills the rule's text |
 | `component add` type and `--kind` | the types of the project's template only; the kinds of the chosen type, the default first (archvow 1.18's catalog, else `contract/cli/kinds.json` for 1.17) |
-| `pack template --extends` | the templates of the catalog (`<pack>/<template>`, 0.22.0) |
+| `template new --extends` | the templates of the catalog (1.0.0: plain names; empty: a template from scratch) |
 | `--base`, `changes` start/end | the branches and tags of the repository |
 
 A `select` field takes only what it lists; a list that depends on the component or the type waits for it
@@ -120,16 +120,23 @@ feature: `feature rename`) and `{each_feature}` (`doc`), and a 4th item makes an
 same tree shows **where** a feature is (its page: its vows, code and tests) and a component (its Spec view:
 `componentFiles()`, `ArchvowFilePlan.componentFiles`).
 
-## The AI skills (0.16.0)
+## The AI skills (0.16.0, run by archvow since 1.3.0)
 
 After archvow's own groups, Commands has **AI skills** (`aiSkillsGroup()`, a `SkillNode` in IntelliJ's tree): the
-five in plain words. Each opens the **launch form** (`skillForm()`, `ArchvowSkillForm` in a dialog), design A:
-the component (or the brief section for draft-spec), at most how many questions (clarify), where the request goes
-(the project's `ai_tools`); on the right what will happen, what the AI may add, what the person still decides and
-the exact request (`request()`, `ArchvowAiSkills.request`: the tool's own slash command, else the sentence in the
-page's language). Nothing runs: VS Code opens Copilot Chat with the request typed
-(`workbench.action.chat.open`, `isPartialQuery`), else copies it; IntelliJ copies it. What the assistant adds
-comes back marked as the AI's at the next refresh.
+five in plain words. Each opens the **launch form** (`skillForm()`, `ArchvowSkillForm`): the component (or the
+brief section for draft-spec), at most how many questions (clarify); on the right what will happen, what the AI
+may add, what the person still decides, and the instructions. The instructions are archvow's
+(`archvow skill <skill> <target> --prompt`): neither plugin writes its own.
+
+**▶ Run with <AI> ▾** (1.3.0; with archvow 3.4, `skills` in the project's `ai_runs`) runs `archvow skill <skill> <target> --with
+<tool> --json` in the background (`background()` in VS Code, `ArchvowCli.background` in IntelliJ). The name on the
+button is the project's AI assistant (`ai_skills.tools` in `workspace --json`, from `ai_tools`); ▾ picks another,
+one that is not on this computer greyed with its command. While it runs, a strip says who does what, with
+Show log and ■ Stop. At the end: what was added and **Review them ›**, or the tool's own reason. When archvow runs
+no skill here (not in `ai_runs`, or a sandbox needed and archvow is not in one), archvow's reason is written under
+the buttons (`runWhy()`, 1.4.0) and Copy instructions stays. **Implement** is
+a handoff only (Copy, and Copy and open AI chat): it writes code, so it runs in the person's own agent.
+**Review** runs `archvow review --with <reviewer>`, with the project's approved `reviewers`.
 
 ## Confirming before changing
 
@@ -164,29 +171,29 @@ question and its state ("Load question") before you answer.
 
 In a folder without `.archvow/project.vow`, **Initialize Archvow** opens the `init` form with a wizard:
 the template, then its questions (the essential ones; the others under "advanced settings"). The
-questions come from `archvow catalog --json` run in the project's folder (0.22.0, archvow 1.26: archvow's
-templates and those of the packs `archvow pack add` copied there, named `<pack>/<template>`), otherwise from
+questions come from `archvow catalog --json` run in the project's folder (archvow 3.0: archvow's templates and
+those of the installed packages that declare some, by name; in a project, its own first, as it uses them), otherwise from
 the bundled copy of the catalog
 (`ArchvowInitCatalog`, the catalog of `contract/cli/catalog.json`). `ArchvowInitQuestions` (VS Code:
 `initWizard()`) emits only documented answers, `--answer KEY=VALUE`, and only those shown or changed.
 The template is chosen **once**, in "Template and its questions", right under the package's name
-(0.13.0: the form's `--template` field made it a second place): a template of the catalog; a short name
-(`python-app`) is a pack's template (`archvow/python-app`), as for `init --template`; in a project, its own
-template first, with a line saying `init` needs `--force` there. A company template is first added to the
-project through its pack (**Add a pack**, below).
+(0.13.0: the form's `--template` field made it a second place): a template of the catalog, or a company
+template's folder (`-t <folder>`: its questions are not in the catalog); without one, the template archvow marks
+`default` (`python-app`); in a project, its own template first, with a line saying `init` needs `--force` there.
 
-## Packs (0.22.0, archvow 1.26)
+## Templates (1.0.0, archvow 3.0)
 
-A pack brings a company's templates, agents and rules. The **Packs** group of the commands has a form for
-each of the eight `archvow pack` commands: `pack new` (create a pack, `--dir` for a company pack outside the
-project), `pack template`, `pack agent`, `pack rule` (add a part to it), `pack add`, `pack update`, `pack
-remove` (the pack in this project) and `pack check` (test a pack before sharing it). Each form's file plan
-shows what it will write, in the pack's folder (`--dir`, or the named pack in `.archvow/packs/`). The
-overview has a **Packs** row (see page 7).
+A template brings layers, questions, rules, agents, regimes and files. The **Templates** group of the commands has
+a form for each of the six `archvow template` commands: `template new` (a template extending others, or from
+scratch; `--dir` where to create it), `template rule` (with **Final**), `template question`, `template agent`
+(add a part to a template's folder, or to `project`: this project's own additions, `.archvow/template/`),
+`template check` (test a template before sharing it) and `template update` (take the project's templates again
+from their sources). Each form's file plan shows what it will write (`{template}`: the folder, or
+`.archvow/template` for `project`). The overview has a **Templates** row (see page 7).
 
 ## Making a company template
 
-`pack template` (0.22.0; `template new` before archvow 1.26): choosing the base template (`--extends`, the catalog's list) fills "Settings of <base>"
+`template new` (1.0.0; `pack template` from 0.22.0 to 0.26): choosing the base template (`--extends`, the catalog's list; the first of a list) fills "Settings of <base>"
 under it with the base's values (`ArchvowTemplateSettings`; VS Code: `templateWizard()`). What the company
 may set - the defaults of the init answers, the folder of each layer - can be changed, within what the base
 allows: its choices only (a list, nothing to type), its formats (the field turns red, running is refused

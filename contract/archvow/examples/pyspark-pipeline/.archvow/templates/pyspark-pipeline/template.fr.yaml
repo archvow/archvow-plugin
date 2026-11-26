@@ -1,0 +1,281 @@
+# French texts of pyspark-pipeline (projects initialised with -a language=fr, the default).
+# Merged over template.yaml: mappings key by key, layers by name, lists replaced. Only the texts
+# that end up in the project are here; keywords (guide words, statuses, codes) stay as they are.
+
+layers:
+  - name: p0_common
+    description: Fondations partagées - fabrique de SparkSession, configuration, constantes
+    must_never: ["effectuer d'E/S", "contenir de logique métier"]
+  - name: p1_domain
+    description: Schémas et transformations pures et paresseuses DataFrame -> DataFrame
+    must_never:
+      - "lire ou écrire des données (pas de spark.read, .write, open())"
+      - "déclencher d'actions Spark (collect, count, show, toPandas, cache...)"
+      - "créer de SparkSession"
+  - name: p2_io
+    description: Lecteurs et écrivains - le seul endroit qui touche au stockage
+    must_never: ["transformer les données métier au-delà de l'application du schéma"]
+  - name: p3_jobs
+    description: Jobs qui relient lecteurs, transformations et écrivains
+    must_never: ["lire ou écrire directement (passer par les composants p2_io)"]
+  - name: p4_entrypoints
+    description: Points d'entrée du processus (ligne de commande, ordonnanceur, job Databricks/EMR)
+    must_never: ["contenir de logique du pipeline"]
+
+# Suggested answers to the safety questions (archvow show): `hazard add <component> S<number>
+# <severity>` without text takes the hazard, and for critical or high its invariant too.
+safety_suggestions:
+  missing:
+    hazard: "une entrée absente, vide ou en retard est traitée comme si elle était complète"
+    invariant: "une entrée absente ou vide arrête le job avec une erreur claire"
+  more:
+    hazard: "des lignes sont comptées deux fois (doublons, jointure qui multiplie les lignes, fichier livré deux fois)"
+    invariant: "la sortie a au plus une ligne par clé"
+  less:
+    hazard: "une ligne valide est supprimée en silence"
+    invariant: "chaque ligne d'entrée valide se retrouve dans la sortie"
+  wrong:
+    hazard: "une valeur nulle, négative ou hors limites arrive dans la sortie"
+    invariant: "chaque valeur de sortie a son type et reste dans ses limites"
+  partial:
+    hazard: "l'aval lit une sortie à moitié écrite"
+    invariant: "la sortie est complète ou absente, jamais à moitié écrite"
+  repeated:
+    hazard: "une relance donne un résultat différent ou en double"
+    invariant: "deux exécutions sur la même entrée donnent la même sortie"
+  stale:
+    hazard: "des données anciennes sont traitées comme actuelles"
+    invariant: "le job ne traite que la date qu'on lui donne"
+  exposed:
+    hazard: "des données personnelles ou secrètes sont écrites là où elles ne doivent pas l'être"
+    invariant: "les colonnes personnelles et secrètes n'arrivent jamais dans la sortie"
+
+guide_words:
+  missing: "Entrée absente, vide ou en retard : qu'est-ce qui ne doit jamais arriver ?"
+  more: "Trop de lignes (doublons, jointure qui multiplie les lignes, fichier livré deux fois) : qu'est-ce qui ne doit jamais arriver ?"
+  less: "Lignes perdues (supprimées par un filtre, une jointure interne ou une mauvaise date) : qu'est-ce qui ne doit jamais arriver ?"
+  wrong: "Valeurs fausses (nulles, négatives, hors limites, mauvais types, une colonne qui change de type ou disparaît) : qu'est-ce qui ne doit jamais arriver ?"
+  partial: "Sortie à moitié écrite (échec au milieu d'une écriture) : qu'est-ce qui ne doit jamais arriver ?"
+  repeated: "Exécuté deux fois (relance ou nouvel essai) : qu'est-ce qui ne doit jamais arriver ?"
+  stale: "Des données anciennes traitées comme celles du jour (le job lit la mauvaise date) : qu'est-ce qui ne doit jamais arriver ?"
+  exposed: "Données exposées (personnelles ou secrètes écrites là où elles ne doivent pas l'être) : qu'est-ce qui ne doit jamais arriver ?"
+
+test_kinds:
+  unit: >-
+    Purs et rapides : de petits DataFrames construits en mémoire, sans fichiers, tables ni réseau.
+    Lancés à chaque commit.
+  integration: >-
+    De vraies E/S dans un dossier temporaire (fichiers, tables, metastore Derby local), marqués
+    @pytest.mark.integration. Jamais un vrai metastore, bucket ou base de données.
+
+component_types:
+  foundation:
+    description: Module de fondation fourni par le template.
+  utility:
+    description: Fonction utilitaire ou constantes partagées (pas d'action Spark, pas d'E/S).
+    edge_cases:
+      - {id: invalid_input, question: "Que doit-il se passer pour une entrée invalide (quelle exception lever, ou que renvoyer) - par ex. lever ValueError(\"montant doit être >= 0\"), ou renvoyer None ?"}
+  schema:
+    description: Contrat StructType explicite d'un jeu de données.
+    edge_cases:
+      - {id: nullable, question: "Quelles colonnes peuvent être nulles, et lesquelles ne doivent jamais l'être - par ex. id et date_effet jamais nulles, commentaire nullable ?"}
+      - {id: personal_columns, question: "Quelles colonnes contiennent des données personnelles (nom, e-mail, numéro de compte...), et quelles sorties peuvent les recevoir - par ex. email, seulement la sortie interne - ou aucune ?"}
+  transformation:
+    description: Fonction pure et paresseuse DataFrame -> DataFrame.
+    edge_cases:
+      # ce qu'elle calcule
+      - {id: rows_kept, question: "Quelles lignes garde-t-elle (conditions du filtre) - par ex. montant > 0 et statut = 'PAYE' - ou toutes ?"}
+      - {id: output_columns, question: "Quelles colonnes produit-elle en sortie, et comment chacune est-elle calculée (type, nullable) - par ex. montant_eur double not null = montant * taux ?"}
+      - {id: grouping, question: "Regroupe-t-elle des lignes ? Par quelles clés, avec quels agrégats - par ex. par id_client, sum(montant) as total - ou pas de regroupement ?", choices: ["Pas de regroupement", "Regrouper par (clés), avec (agrégats)"]}
+      - {id: join, question: "Fait-elle une jointure avec un autre jeu de données ? Lequel, sur quelles clés, quel type de jointure, que se passe-t-il si une clé n'a pas de correspondance - par ex. clients sur id_client, left join, sans correspondance la ligne reste avec des colonnes client vides - ou pas de jointure ? (une jointure demande une deuxième entrée : archvow component edit <composant> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")", choices: ["Pas de jointure", "Jointure avec (jeu) sur (clés), left join ; sans correspondance : (quoi)"]}
+      # cas limites
+      - {id: empty_input, question: "Entrée vide (par ex. aucune commande un jour férié) : renvoyer un DataFrame vide avec le schéma de sortie, ou échouer ?", suggested: "Renvoyer un DataFrame vide avec le schéma de sortie"}
+      - {id: null_keys, question: "Valeurs vides (null) dans les colonnes qui identifient une ligne (par ex. id est null) : supprimer la ligne, la garder, ou arrêter le job ?", suggested: "Arrêter le job avec une erreur qui nomme la colonne"}
+      - {id: duplicate_keys, question: "Clés en double dans l'entrée (par ex. deux lignes avec l'id 42) : garder la première, la dernière, agréger ou échouer ?", suggested: "Échouer avec une erreur qui nomme la clé en double"}
+      - {id: out_of_range, question: "Valeurs négatives ou hors limites (par ex. montant = -5) : les garder, les remplacer par la limite la plus proche, supprimer la ligne, ou arrêter le job ?", choices: ["Les garder", "Les remplacer par la limite la plus proche", "Supprimer la ligne", "Arrêter le job, en nommant la valeur"]}
+      - {id: extra_columns, question: "Colonnes d'entrée en trop, absentes du schéma (par ex. une colonne ajoutée en amont) : les supprimer en silence ou échouer ?", suggested: "Les supprimer : ne sélectionner que les colonnes du schéma"}
+  reader:
+    description: Lit un jeu de données et applique son schéma.
+    edge_cases:
+      - {id: missing_path, question: "Le chemin n'existe pas ou est vide (par ex. le fichier du jour n'a pas été livré) : échouer ou renvoyer un DataFrame vide ?", suggested: "Échouer avec une erreur qui nomme le chemin"}
+      - {id: bad_rows, question: "Lignes non conformes au schéma (mauvais type, colonne manquante) - par ex. montant = \"abc\" : arrêter le job, les supprimer, ou les mettre de côté dans un fichier de rejets (où) ?", suggested: "Arrêter le job (mode FAILFAST), en nommant le fichier"}
+      - {id: each_run, question: "À chaque exécution, que lit-il : tout le chemin, ou une seule date (par ex. le dossier date=2026-10-12) ? Si les données de cette date ne sont pas encore là : échouer, attendre, ou lire la date précédente ?", choices: ["Tout le chemin", "Une date ; échouer si elle manque", "Une date ; l'attendre", "Une date ; lire la précédente"]}
+      - {id: shared_library, question: "Une bibliothèque partagée approuvée lit-elle déjà ces fichiers (par ex. acme_io.read_csv, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu de les lire avec Spark.", choices: ["Non : Spark le lit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+    kinds:
+      table:
+        description: Lit une table du catalogue (metastore Hive, Unity, Glue ; Delta, Iceberg ou Hudi) et applique son schéma.
+        edge_cases:
+          - {id: which_table, question: "Quelle table, et qui la crée - par ex. finance.commandes, créée par ddl/001_commandes.sql, ou par une autre équipe (laquelle) ?"}
+          - {id: each_run, question: "Que lit chaque exécution : toute la table, ou seulement certaines lignes (par ex. WHERE date_commande = la date du run, ou les lignes modifiées depuis le dernier run) ?", choices: ["Toute la table", "Seulement les lignes de la date du run", "Seulement les lignes modifiées depuis le dernier run"]}
+          - {id: missing_table, question: "La table manque ou n'a aucune ligne pour le run (par ex. le job amont n'a pas encore tourné) : échouer, ou continuer avec un DataFrame vide ?", suggested: "Échouer avec une erreur qui nomme la table"}
+          - {id: columns_change, question: "Ses colonnes changent en amont (par ex. une colonne est ajoutée ou renommée) : échouer, ou ne lire que les colonnes du schéma et ignorer les autres ?", suggested: "Ne lire que les colonnes du schéma ; échouer s'il en manque une"}
+          - {id: table_version, question: "Une table Delta ou Iceberg : lire sa dernière version, ou une version fixe, pour qu'une relance lise les mêmes données (par ex. versionAsOf, ou un identifiant d'instantané enregistré par le job) ?", choices: ["Sa dernière version", "Une version fixe enregistrée par le job"]}
+          - {id: shared_library, question: "Une bibliothèque partagée approuvée la lit-elle déjà (par ex. acme_io.read_table, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu de la lire avec Spark.", choices: ["Non : Spark le lit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+        safety_suggestions:
+          stale:
+            hazard: "une ancienne version de la table est lue comme si c'étaient les données du run"
+            invariant: "chaque run ne lit que les lignes (ou la version) de sa propre date"
+      jdbc:
+        description: Lit une table ou une requête d'une base de données en JDBC (spark.read.jdbc) et applique son schéma.
+        edge_cases:
+          - {id: which_database, question: "Quelle base, quelle table ou requête, et quel pilote JDBC - par ex. PostgreSQL, la table ventes.commandes ou SELECT ... WHERE date_commande = la date du run, le pilote org.postgresql.Driver du dépôt interne ?"}
+          - {id: credentials, question: "D'où viennent l'utilisateur et le mot de passe (par ex. la variable d'environnement DB_PASSWORD, un gestionnaire de secrets, un keytab Kerberos) ? Jamais dans le code, la spec ni la ligne de commande.", suggested: "Des variables d'environnement, de type secret dans la décision de config"}
+          - {id: parallel_read, question: "Une grosse table : la lire en une requête, ou en tranches parallèles sur une colonne numérique ou de date (par ex. partitionColumn=id_commande, lowerBound, upperBound, numPartitions=8), et combien de lignes par aller-retour (par ex. fetchsize=10000) ?", choices: ["Une seule requête", "Tranches parallèles sur une colonne (partitionColumn, bornes, numPartitions)"]}
+          - {id: each_run, question: "Que lit chaque exécution : tout, ou seulement les nouvelles lignes (par ex. updated_at après le maximum du dernier run - enregistré où) ?", choices: ["Tout", "Seulement les nouvelles lignes depuis le maximum du dernier run"]}
+          - {id: database_down, question: "La base est arrêtée ou trop lente (par ex. pas de réponse au bout de 10 minutes) : faire échouer le job, ou réessayer (combien de fois, à quel intervalle) ?", suggested: "Échouer avec une erreur qui nomme la base ; l'ordonnanceur relance"}
+          - {id: shared_library, question: "Une bibliothèque partagée approuvée la lit-elle déjà (par ex. acme_io.read_jdbc, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu de la lire avec Spark.", choices: ["Non : Spark le lit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "un mot de passe ou un jeton apparaît dans le code, les journaux ou la ligne de commande"
+            invariant: "les identifiants viennent seulement de l'environnement ou d'un gestionnaire de secrets, et ne sont jamais journalisés"
+          stale:
+            hazard: "des lignes déjà lues sont relues, ou de nouvelles lignes sont manquées, entre deux runs"
+            invariant: "chaque run lit exactement les lignes qui suivent la dernière qu'il a enregistrée"
+      connector:
+        description: Lit avec un connecteur Spark (spark.read.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka lu en batch... - et applique son schéma.
+        edge_cases:
+          - {id: which_connector, question: "Quel connecteur et quelle version, et d'où vient son jar (par ex. spark-bigquery-with-dependencies 0.41 du dépôt interne, donné avec SPARK_ARGS --jars - jamais --packages, qui télécharge) ?"}
+          - {id: pushdown, question: "Que lit-il, et que fait la source elle-même plutôt que Spark (par ex. une requête, ou un filtre sur date_commande fait par BigQuery) ?"}
+          - {id: credentials, question: "D'où viennent les identifiants (par ex. un fichier de compte de service nommé par une variable d'environnement, un gestionnaire de secrets) ? Jamais dans le code, la spec ni la ligne de commande.", suggested: "De l'environnement ou d'un gestionnaire de secrets, nommés dans la décision de config"}
+          - {id: staging, question: "Le connecteur a-t-il besoin d'une zone de transit (par ex. un bucket temporaire gs://acme-tmp pour BigQuery, S3 pour Redshift), et qui la vide ?"}
+          - {id: source_down, question: "La source est arrêtée ou son quota est atteint (par ex. HTTP 429 ou 503) : échouer, ou réessayer (combien de fois, à quel intervalle) ?", suggested: "Échouer avec une erreur qui nomme la source ; l'ordonnanceur relance"}
+          - {id: shared_library, question: "Une bibliothèque partagée approuvée la lit-elle déjà (par ex. acme_io.read_bigquery, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu de la lire avec Spark.", choices: ["Non : Spark le lit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "un mot de passe ou un jeton apparaît dans le code, les journaux ou la ligne de commande"
+            invariant: "les identifiants viennent seulement de l'environnement ou d'un gestionnaire de secrets, et ne sont jamais journalisés"
+      custom:
+        description: Lit une source sans lecteur Spark (une API REST, du SFTP, un export d'outil SaaS, un format maison) avec son propre code Python - une source de données Python (Spark 4.0) ou des appels sur les exécuteurs - et applique son schéma.
+        edge_cases:
+          - {id: which_source, question: "Quelle est la source et comment est-elle lue - par ex. GET https://api.acme.com/v1/orders, 100 lignes par page, jusqu'à une page vide ?"}
+          - {id: volume, question: "Combien de données par run, donc où les lire : sur le driver, puis spark.createDataFrame (peu, par ex. moins de 100 000 lignes), ou réparties sur les exécuteurs (une source de données Python en Spark 4.0, ou mapPartitions) ?", choices: ["Sur le driver, puis spark.createDataFrame (petit)", "Réparti sur les exécuteurs (gros)"]}
+          - {id: credentials, question: "D'où vient le jeton ou le mot de passe (par ex. la variable d'environnement ORDERS_API_TOKEN, un gestionnaire de secrets) ? Jamais dans le code, la spec ni la ligne de commande.", suggested: "Des variables d'environnement, de type secret dans la décision de config"}
+          - {id: limits, question: "Limites et erreurs (par ex. au plus 10 appels par seconde, HTTP 429 ou 503) : combien de temps un appel peut-il durer, combien de nouvelles tentatives, à quel intervalle ?", suggested: "30 secondes par appel, 3 nouvelles tentatives à 10 secondes d'écart, puis échouer en nommant la source"}
+          - {id: source_down, question: "La source est arrêtée pendant tout le run (par ex. l'API est fermée toute la nuit) : échouer, ou continuer avec les dernières données lues (gardées où) ?", suggested: "Échouer avec une erreur qui nomme la source"}
+          - {id: shared_library, question: "Une bibliothèque partagée approuvée la lit-elle déjà (par ex. acme_io.read_api, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu d'écrire les appels ici.", choices: ["Non : Spark le lit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "un mot de passe ou un jeton apparaît dans le code, les journaux ou la ligne de commande"
+            invariant: "les identifiants viennent seulement de l'environnement ou d'un gestionnaire de secrets, et ne sont jamais journalisés"
+  writer:
+    description: Écrit un jeu de données.
+    edge_cases:
+      - {id: existing_output, question: "La sortie existe déjà (par ex. le job tourne deux fois pour la même date) : écraser, ajouter ou échouer ?", choices: ["Écraser", "Ajouter", "Échouer"]}
+      - {id: half_written, question: "Si le job échoue pendant l'écriture (par ex. il s'arrête après 3 fichiers sur 10), comment les lecteurs évitent-ils une sortie à moitié écrite : écrire dans un dossier temporaire puis renommer, un fichier _SUCCESS, ou une transaction de table ?", choices: ["Dossier temporaire, puis renommage", "Un fichier _SUCCESS que les lecteurs attendent", "Une transaction (format de table)"]}
+      - {id: rerun, question: "Si le job est relancé sur la même entrée (par ex. une relance après un échec), la sortie doit-elle être exactement la même, sans lignes en double ?", suggested: "Oui : la même sortie, sans lignes en double"}
+      - {id: format, question: "Comment la sortie est-elle stockée : quel format de fichier (parquet, csv...), et est-elle découpée en dossiers selon une colonne (par ex. date=2026-10-12) ou non ?", choices: ["Parquet, sans découpage", "Parquet, découpé par date du run", "CSV avec en-tête, sans découpage"]}
+      - {id: shared_library, question: "Une bibliothèque partagée approuvée écrit-elle déjà ces fichiers (par ex. acme_io.write_parquet, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu de les écrire avec Spark.", choices: ["Non : Spark l'écrit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+    kinds:
+      table:
+        description: Écrit une table du catalogue (metastore Hive, Unity, Glue ; Delta, Iceberg ou Hudi).
+        edge_cases:
+          - {id: which_table, question: "Quelle table, créée par quel script (par ex. finance.commandes par ddl/001_commandes.sql - les tables existent avant le job : le déploiement ou l'ordonnanceur lance `./entrypoint.sh --ddl`, le job ne les crée jamais) ?"}
+          - {id: write_mode, question: "Comment les lignes sont-elles écrites : ajoutées, seules les lignes de la date du run remplacées (par ex. insertInto avec overwrite et partitionOverwriteMode=dynamic), tout remplacé, ou fusionnées sur des clés (par ex. MERGE INTO sur id_commande, avec Delta ou Iceberg) ?", choices: ["Ajoutées", "Seulement les lignes de la date du run remplacées", "Tout remplacé", "Fusionnées sur des clés"]}
+          - {id: rerun, question: "Si le job est relancé sur la même entrée (par ex. une relance après un échec), la table doit-elle être exactement la même, sans lignes en double ?", suggested: "Oui : la même table, sans lignes en double"}
+          - {id: half_written, question: "Si le job échoue pendant l'écriture, comment les lecteurs évitent-ils des données à moitié écrites (par ex. une transaction Delta ou Iceberg, ou une table de transit puis un échange) ?", choices: ["Une transaction Delta ou Iceberg", "Une table de préparation, puis un échange"]}
+          - {id: schema_change, question: "Le schéma gagne ou perd une colonne (par ex. une nouvelle colonne en amont) : échouer, ou laisser la table changer (par ex. mergeSchema avec Delta) ?", suggested: "Échouer : le script ddl/ change d'abord, relu"}
+          - {id: shared_library, question: "Une bibliothèque partagée approuvée l'écrit-elle déjà (par ex. acme_io.write_table, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu de l'écrire avec Spark.", choices: ["Non : Spark l'écrit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+        test_hints:
+          - "Dans le test, exécuter les scripts ddl/ avec spark.sql sur le catalogue local de test, puis vérifier que spark.table(<table>).schema est égal au schéma (noms, types, ordre) - le script et le code ne peuvent plus diverger. Écrire avec df.select(*spark.table(<table>).columns).write.insertInto(<table>, overwrite=True) et spark.sql.sources.partitionOverwriteMode=dynamic, jamais saveAsTable sur une table existante."
+      jdbc:
+        description: Écrit une table d'une base de données en JDBC (df.write.jdbc).
+        edge_cases:
+          - {id: which_database, question: "Quelle base, quelle table, et quel pilote JDBC (par ex. PostgreSQL, la table ventes.chiffre_affaires, le pilote org.postgresql.Driver du dépôt interne) ?"}
+          - {id: credentials, question: "D'où viennent l'utilisateur et le mot de passe (par ex. la variable d'environnement DB_PASSWORD, un gestionnaire de secrets, un keytab Kerberos) ? Jamais dans le code, la spec ni la ligne de commande.", suggested: "Des variables d'environnement, de type secret dans la décision de config"}
+          - {id: write_mode, question: "Comment les lignes sont-elles écrites : ajoutées, la table vidée d'abord (par ex. le mode overwrite avec truncate=true), ou fusionnées sur des clés (par ex. dans une table de transit, puis un seul INSERT ... ON CONFLICT lancé par la base) ?", choices: ["Ajoutées", "La table vidée d'abord (truncate)", "Fusionnées sur des clés via une table de préparation"]}
+          - {id: half_written, question: "Si le job échoue en cours de route (par ex. après 3 lots sur 10), comment les lecteurs évitent-ils des données à moitié écrites : une table de transit puis une seule instruction, ou une transaction (par ex. isolationLevel=SERIALIZABLE) ?", choices: ["Une table de préparation, puis une seule instruction", "Une seule transaction"]}
+          - {id: rerun, question: "Si le job est relancé sur la même entrée (par ex. une relance après un échec), la table doit-elle être exactement la même, sans lignes en double ?", suggested: "Oui : la même table, sans lignes en double"}
+          - {id: batch_size, question: "Combien de lignes par aller-retour et combien de connexions à la fois, pour ne pas surcharger la base (par ex. batchsize=10000, 4 connexions) ?"}
+          - {id: shared_library, question: "Une bibliothèque partagée approuvée l'écrit-elle déjà (par ex. acme_io.write_jdbc, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu de l'écrire avec Spark.", choices: ["Non : Spark l'écrit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "un mot de passe ou un jeton apparaît dans le code, les journaux ou la ligne de commande"
+            invariant: "les identifiants viennent seulement de l'environnement ou d'un gestionnaire de secrets, et ne sont jamais journalisés"
+      connector:
+        description: Écrit avec un connecteur Spark (df.write.format(...)) - BigQuery, Snowflake, Redshift, Synapse, MongoDB, Cassandra, Elasticsearch, Kafka...
+        edge_cases:
+          - {id: which_connector, question: "Quel connecteur et quelle version, et d'où vient son jar (par ex. spark-snowflake 3.1 du dépôt interne, donné avec SPARK_ARGS --jars - jamais --packages, qui télécharge) ?"}
+          - {id: write_mode, question: "Comment les lignes sont-elles écrites : ajoutées, la cible remplacée, ou fusionnées sur des clés (par ex. un MERGE dans Snowflake, writeMethod=indirect pour BigQuery) ?", choices: ["Ajoutées", "La cible remplacée", "Fusionnées sur des clés"]}
+          - {id: credentials, question: "D'où viennent les identifiants (par ex. une clé privée nommée par une variable d'environnement, un gestionnaire de secrets) ? Jamais dans le code, la spec ni la ligne de commande.", suggested: "De l'environnement ou d'un gestionnaire de secrets, nommés dans la décision de config"}
+          - {id: staging, question: "Le connecteur a-t-il besoin d'une zone de transit (par ex. un bucket temporaire pour BigQuery, S3 pour Redshift), et qui la vide ?"}
+          - {id: rerun, question: "Si le job est relancé sur la même entrée (par ex. une relance après un échec), la cible doit-elle être exactement la même, sans lignes en double ?", suggested: "Oui : la même cible, sans lignes en double"}
+          - {id: shared_library, question: "Une bibliothèque partagée approuvée l'écrit-elle déjà (par ex. acme_io.write_snowflake, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu de l'écrire avec Spark.", choices: ["Non : Spark l'écrit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+        safety_suggestions:
+          exposed:
+            hazard: "un mot de passe ou un jeton apparaît dans le code, les journaux ou la ligne de commande"
+            invariant: "les identifiants viennent seulement de l'environnement ou d'un gestionnaire de secrets, et ne sont jamais journalisés"
+      custom:
+        description: Écrit vers une cible sans écrivain Spark (une API REST, du SFTP, un import d'outil SaaS, un format maison) avec son propre code Python - foreachPartition, ou un écrivain de source de données Python (Spark 4.0).
+        edge_cases:
+          - {id: which_target, question: "Qu'est-ce qui reçoit les données et comment - par ex. POST https://api.acme.com/v1/invoices, 100 lignes par appel ?"}
+          - {id: where_calls, question: "Où les appels sont-ils faits : sur le driver après collect (peu, par ex. moins de 10 000 lignes), ou sur les exécuteurs (par ex. foreachPartition, ou un écrivain de source de données Python en Spark 4.0) ?", choices: ["Sur le driver après collect (petit)", "Sur les exécuteurs (foreachPartition)"]}
+          - {id: credentials, question: "D'où vient le jeton ou le mot de passe (par ex. la variable d'environnement INVOICES_API_TOKEN, un gestionnaire de secrets) ? Jamais dans le code, la spec ni la ligne de commande.", suggested: "Des variables d'environnement, de type secret dans la décision de config"}
+          - {id: limits, question: "Limites et erreurs (par ex. au plus 10 appels par seconde, HTTP 429 ou 503) : combien de temps un appel peut-il durer, combien de nouvelles tentatives, à quel intervalle ?", suggested: "30 secondes par appel, 3 nouvelles tentatives à 10 secondes d'écart, puis échouer en nommant la cible"}
+          - {id: rerun, question: "Si le job est relancé (par ex. après un échec en cours de route), comment rien n'est-il envoyé deux fois (par ex. une clé par ligne que le destinataire vérifie, ou un registre de ce qui a déjà été envoyé) ?"}
+          - {id: shared_library, question: "Une bibliothèque partagée approuvée l'écrit-elle déjà (par ex. acme_io.post_rows, listée dans requirements.txt) ? Le code l'appelle alors - quelle fonction - au lieu d'écrire les appels ici.", choices: ["Non : Spark l'écrit lui-même", "Oui : il appelle la fonction de la bibliothèque (laquelle)"]}
+        safety_suggestions:
+          repeated:
+            hazard: "des lignes sont envoyées deux fois quand le job est relancé"
+            invariant: "une relance n'envoie rien que le destinataire a déjà"
+          exposed:
+            hazard: "un mot de passe ou un jeton apparaît dans le code, les journaux ou la ligne de commande"
+            invariant: "les identifiants viennent seulement de l'environnement ou d'un gestionnaire de secrets, et ne sont jamais journalisés"
+  job:
+    description: Orchestre lecture -> transformation -> écriture pour une sortie.
+    requirements:
+      - "Journaliser une ligne au début et une à la fin (avec sa durée), et les lignes lues et écrites à chaque étape, prises dans ce que Spark a déjà calculé (les métriques de l'écriture, un DataFrame déjà en cache) : un df.count() à part relance tout le job."
+    edge_cases:
+      - {id: missing_input, question: "Si une de ses entrées manque (par ex. le fichier des remboursements n'a pas été livré) : s'arrêter avec une erreur, sauter cette exécution (rien n'est écrit), ou continuer sans elle ?", suggested: "S'arrêter avec une erreur qui nomme l'entrée manquante"}
+      - {id: retries, question: "Si une exécution échoue, est-elle relancée automatiquement, combien de fois, et une relance après une exécution à moitié faite peut-elle se faire sans dupliquer les données - par ex. 2 relances à 10 minutes d'intervalle, la sortie est écrasée ?"}
+      - {id: run_date, question: "Quelle date une exécution traite-t-elle (par ex. les données d'hier), et d'où vient cette date : un argument donné par l'ordonnanceur, ou calculée par le job ?", choices: ["L'argument --run-date donné par l'ordonnanceur", "Hier, calculé par le job"]}
+    test_hints:
+      - "De bout en bout avec des fichiers de référence : les exemples métier de la spec (archvow example add : tests/examples/<composant>/<exemple>/input/ et expected/, verrouillés, avec un scenario.feature facultatif qui le dit en Given/When/Then), et un test par exemple dans tests/integration/ qui lance le job sur input/ et compare le résultat à expected/ (trié, mêmes colonnes et types). Lus tels quels, jamais modifiés : sans exemple, une personne en enregistre un d'abord."
+  entrypoint:
+    description: Point d'entrée du processus qui lit les arguments et lance un job.
+    requirements:
+      - "Terminer le fichier par `if __name__ == \"__main__\": raise SystemExit(main())` : entrypoint.sh le lance avec spark-submit."
+      - "Créer la SparkSession avec p0_common.spark.get_spark_session et l'arrêter avant de rendre la main."
+      - "Accepter un argument --nom-avec-tirets par paramètre obligatoire de la décision de config (archvow next les donne dans sa ligne de lancement), en accord avec ce que le job lit et écrit."
+      - "Appeler setup_logging une fois, en premier, avec l'identifiant et la date de l'exécution qu'il mettra sur chaque ligne."
+    edge_cases:
+      - {id: invalid_arguments, question: "Arguments invalides (par ex. --run-date 2026-13-01) : quel code de sortie et quel message ?", suggested: "Code de sortie 2 avec le message d'usage (argparse)"}
+      - {id: code, question: "Quel code de sortie pour quel problème, pour que l'ordonnanceur sache ce qui s'est passé (par ex. 0 ok, 1 erreur, 2 arguments invalides, 3 entrée pas prête) ?", suggested: "0 ok, 1 erreur, 2 arguments invalides"}
+
+initial_components:
+  - id: spark
+    name: spark
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.spark"
+    description: "Crée la SparkSession avec les réglages Spark du projet (clés spark.*) ; avec le master local[*], fixe aussi spark.driver.bindAddress=127.0.0.1 et spark.driver.host=127.0.0.1, pour que Spark démarre sur un portable (VPN, plusieurs réseaux)."
+    uses: []
+    symbols:
+      - {kind: function, name: get_spark_session, signature: "(app_name: str, master: str | None = None) -> SparkSession"}
+    edge_cases:
+      - {id: spark_settings, question: "Réglages Spark de chaque session, clé=valeur séparés par des virgules - par ex. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - ou aucun ?"}
+  - id: config
+    name: config
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.config"
+    description: Les paramètres propres au job (chemins, date d'exécution, options), donnés par le point d'entrée au job.
+    uses: []
+    symbols:
+      - {kind: class, name: JobConfig}
+    edge_cases:
+      - {id: parameters, question: "Paramètres du job, nom: type = défaut séparés par des virgules (sans défaut = obligatoire) - par ex. input_path: str, run_date: date, output_format: str = \"parquet\" - ou aucun ?"}
+      - {id: invalid_value, question: "Que se passe-t-il quand une valeur manque ou est invalide (quelle exception, levée où) - par ex. ConfigError(\"run_date est obligatoire\") levée dans JobConfig, le point d'entrée sort avec le code 2 ?", suggested: "ConfigError qui nomme la valeur, levée à la création de JobConfig ; le point d'entrée sort avec le code 2"}
+  - id: logging_setup
+    name: logging_setup
+    type: foundation
+    layer: p0_common
+    module: "{{ package }}.p0_common.logging_setup"
+    description: Configure la journalisation une fois, pour le point d'entrée - le seul endroit qui la configure (ARCH059 - aucun basicConfig, handler ni niveau du journal racine ailleurs) ; chaque module prend son propre journal avec logging.getLogger(__name__). Niveau tiré de la config, une ligne par événement sur stderr - le cluster la garde - avec l'identifiant et la date de l'exécution, jamais un secret, une ligne de données ni une donnée personnelle ; les tests remettent la journalisation comme avant après chaque test (une fixture commune de tests/conftest.py - les journaux suivants, ceux de Spark aussi, ne doivent pas écrire dans le flux fermé d'un test).
+    uses: []
+    symbols:
+      - {kind: function, name: setup_logging, signature: "(level: str = \"INFO\") -> None"}
+    edge_cases:
+      - {id: destination, question: "Où vont les journaux et dans quel format - par ex. stderr, une ligne par événement avec l'heure, le niveau, le composant et le message ?", suggested: "stderr, une ligne par événement : heure, niveau, composant, message"}
+
+rule_families:
+  SPK: {title: "Style PySpark et pureté des couches"}

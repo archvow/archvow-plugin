@@ -58,8 +58,8 @@ assert.equal(text([
   '    └── refunds/',
   '        └── components/',
   '            └── compute_vat.vow'].join('\n'));
-// an absolute folder (pack rule --pack /srv/packs/acme)
-assert.equal(text([{ change: 'new', path: '/srv/packs/acme/rules/' }]), ['/srv/', '└── packs/', '    └── acme/', '        └── rules/'].join('\n'));
+// an absolute folder (template rule /srv/templates/acme ...)
+assert.equal(text([{ change: 'new', path: '/srv/templates/acme/rules/' }]), ['/srv/', '└── templates/', '    └── acme/', '        └── rules/'].join('\n'));
 // a check's location: the folders that only lead to the file are one line
 assert.equal(text([{ change: 'location', path: 'src/sales/p2_io/orders_reader.py' }], true), ['src/sales/p2_io/', '└── orders_reader.py'].join('\n'));
 assert.equal(text([{ change: 'location', path: 'AGENTS.md' }], true), 'AGENTS.md');

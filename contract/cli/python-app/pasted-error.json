@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "error": {
     "error": "ValueError: invoice F-1 is a draft: send it before it is paid",
     "known": [],

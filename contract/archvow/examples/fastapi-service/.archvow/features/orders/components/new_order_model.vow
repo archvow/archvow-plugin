@@ -15,18 +15,21 @@ symbol NewOrder
 
 # --- decisions
 decision 1
+  id fields
   question "Which fields are required, and which are optional (with which default)?"
   answer "amount required"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 2
+  id valid_values
   question "Which values are valid for each field (ranges, formats, lengths, allowed states)?"
   answer "amount > 0 with at most 2 decimals"
   by architect@example.com
   on 2026-10-09T12:00:00+00:00
 
 decision 3
+  id never_shown
   question "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?"
   answer "None"
   by architect@example.com

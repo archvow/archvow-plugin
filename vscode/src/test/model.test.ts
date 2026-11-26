@@ -5,8 +5,9 @@ import * as path from 'node:path';
 import { test } from 'node:test';
 import {
   buildTree, CheckResult, componentOfViolation, componentView, describe, knownVersion, Node, NextRow, problemsOf, Spec, statusIcon,
-  contractWarning, parseContract, readWorkspace,
+  parseContract, readWorkspace,
 } from '../model';
+import { compatibility, headerLine, parseRange, placeOf, projectPin } from '../compat';
 
 const CLI = path.resolve(__dirname, '..', '..', '..', 'contract', 'cli');
 // an example is a folder with its show.json (contract/cli/errors holds failures, not a project)
@@ -76,21 +77,34 @@ test('a violation names its component by its vow file', () => {
   assert.equal(componentOfViolation({ code: 'ARCH002', severity: 'error', message: '', file: 'src/a/b.py', line: 3, col: 0 }), null);
 });
 
-test('the CLI contract: the same MAJOR and a MINOR at least the plugin\'s; older, newer, none, absent (EN and FR)', () => {
+test('the CLI contract and the range: what the plugin says of the installed archvow, EN and FR (contract/compat/expected.json)', () => {
   const tested = knownVersion(fs.readFileSync(path.join(CLI, 'version.txt'), 'utf8'));
   const wanted = fs.readFileSync(path.join(CLI, 'contract.txt'), 'utf8').trim();
   assert.match(tested, /^\d+\.\d+\.\d+$/);
-  assert.deepEqual(parseContract(wanted), [2, 5]);  // 2.5: show of a pasted error; 2.4 pack rule's scope; 2.3 feature accept, FileAccessError; 2.2 AgentRefused
+  assert.deepEqual(parseContract(wanted), [3, 0]);  // 3.0: templates; 2.5 show of a pasted error; 2.4 a rule's scope
   assert.equal(parseContract('1.0.0'), null);
-  assert.equal(contractWarning({ version: tested, contract: wanted }, wanted, tested), null);
-  assert.equal(contractWarning({ version: '1.24.3', contract: '1.4' }, '1.0', tested), null, 'a later minor contract');
-  assert.match(contractWarning({ version: '1.24.0', contract: '1.0' }, '1.2', tested) ?? '', /older.*update archvow/);
-  assert.match(contractWarning({ version: '1.22.0', contract: '' }, '1.0', tested) ?? '', new RegExp(`1\\.22\\.0 is older .*archvow ${tested.replace(/\./g, '\\.')}.*update archvow`));
-  assert.match(contractWarning({ version: '2.0.0', contract: '2.0' }, '1.0', tested) ?? '', /newer.*contract 2\.0.*update the plugin/);
-  assert.match(contractWarning({ version: '1.22.0', contract: '' }, '1.0', tested, true) ?? '', /plus ancien.*mets archvow à jour/);
-  assert.match(contractWarning({ version: '3.0.0', contract: '3.0' }, '1.0', tested, true) ?? '', /plus récent.*mets le plugin à jour/);
-  assert.match(contractWarning({ version: '', contract: '' }, wanted, tested) ?? '', /installed/);
-  assert.match(contractWarning(null, wanted, tested, true) ?? '', /installé/);
+  const range = parseRange(fs.readFileSync(path.join(CLI, '..', 'archvow-range.txt'), 'utf8'))!;
+  assert.deepEqual([range.low, range.high], [[3, 4], [4]]);
+  assert.equal(placeOf(tested, range), 'in', 'the archvow the plugin is tested with is in its range');
+  assert.deepEqual(projectPin([{ name: 'requirements.txt', text: 'pytest\narchvow==2.8.0\n' }]), { version: '2.8.0', file: 'requirements.txt' });
+  assert.deepEqual(projectPin([{ name: 'pyproject.toml', text: 'dev = ["archvow==3.0.1", "ruff"]' }]), { version: '3.0.1', file: 'pyproject.toml' });
+  assert.equal(projectPin([{ name: 'requirements.txt', text: 'archvow>=3' }]), null);
+  const file = path.join(CLI, '..', 'compat', 'expected.json');
+  const cases = (JSON.parse(fs.readFileSync(file, 'utf8')) as { cases: CompatCase[] }).cases;
+  const actual = cases.map((c) => ({ ...c, expected: compatibility(c.installed, range, c.wanted, c.tested, c.pin, c.fr) }));
+  if (process.env.UPDATE_COMPAT === '1') fs.writeFileSync(file, JSON.stringify({ about: ABOUT_COMPAT, cases: actual }, null, 2) + '\n');
+  else assert.deepEqual(actual, cases);
+  const byName = Object.fromEntries(actual.map((c) => [c.name, c.expected]));
+  assert.equal(byName['tested'].state, 'ok');
+  assert.equal(byName['a later minor contract'].state, 'ok');
+  assert.match(byName['pinned below the range'].text, /pins archvow==2\.8\.0 \(requirements\.txt\).*init <package> --force.*nothing over the pin/);
+  assert.equal(byName['pinned below the range'].install, '', 'never installed over the pin');
+  assert.equal(byName['not pinned, older'].install, tested);
+  assert.equal(byName['pinned in the range, missing'].install, '3.4.2', 'the pin, when it is in the range');
+  assert.match(byName['newer'].text, /newer.*update the plugin/);
+  assert.match(byName['newer, fr'].text, /plus récent.*mets le plugin à jour/);
+  assert.match(byName['missing'].text, /not installed.*python -m pip install archvow==/);
+  assert.equal(headerLine('3.4.1', 'ok', range), 'archvow 3.4.1 ✓ · this plugin works with archvow >=3.4,<4');
 });
 
 test('show <id> --json is a component\'s view only when it names that component (a search result never is)', () => {
@@ -124,3 +138,17 @@ test('workspace --json is every command the extension reads, in one answer (arch
   assert.equal(readWorkspace({ digest: 'abc', project: {} }), null);  // a part missing
   assert.equal(readWorkspace(null), null);
 });
+
+interface CompatCase {
+  name: string;
+  installed: { version: string; contract: string } | null;
+  wanted: string;
+  tested: string;
+  pin: { version: string; file: string } | null;
+  fr: boolean;
+  expected: unknown;
+}
+
+const ABOUT_COMPAT = 'What both plugins say of the installed archvow (1.0.0): each case - the installed archvow (null: it did not answer), '
+  + 'the contract the plugin speaks, the archvow it is tested with, the project\'s pin - against contract/archvow-range.txt. '
+  + 'Written by UPDATE_COMPAT=1 npm test (vscode/compat.ts); the IntelliJ plugin must give the same (CompatRegression).';

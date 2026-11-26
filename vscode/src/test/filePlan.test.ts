@@ -37,8 +37,8 @@ const SCENARIOS: [string, Record<string, string>, string][] = [
   ['rule add', { words: 'Readers fail on a missing file', type: 'reader' }, 'pyspark-pipeline'],
   ['example add', { component: 'compute_vat', name: 'vat-20' }, 'pyspark-pipeline'],
   ['dependency add', { name: 'acme_io', supplier: 'ACME', licence: 'MIT', criticality: 'important' }, 'pyspark-pipeline'],
-  ['pack new', { name: 'acme', description: 'ACME', dir: '/srv/packs/' }, 'pyspark-pipeline'],
-  ['pack template', { pack: 'acme', name: 'acme-pyspark', extends: 'pyspark-pipeline' }, 'pyspark-pipeline'],
+  ['template new', { name: 'acme-pyspark', description: 'ACME', extends: 'pyspark-pipeline', dir: '/srv/templates/' }, 'pyspark-pipeline'],
+  ['template question', { template: 'project', type: 'transformation', id: 'late_orders', text: 'Late orders?' }, 'pyspark-pipeline'],
   ['changes', { start: 'v1.0.0', output: 'CHANGES.md' }, 'pyspark-pipeline'],
   ['changes', { start: 'v1.0.0' }, 'pyspark-pipeline'],
   ['check', {}, 'pyspark-pipeline'],
@@ -126,9 +126,10 @@ test('the other commands: what they update, remove or keep; a component\'s vow i
     '.archvow/features/my_pipeline/components/orders_reader.vow']);
   assert.equal(filePlan('component add', SCENARIOS[0][1], p)[0].path, '.archvow/features/vat_report/components/orders_reader.vow', 'an existing feature is not made again');
   assert.deepEqual(filePlan('example add', { component: 'compute_vat', name: 'vat-20' }, p).map((r) => r.path).pop(), 'tests/examples/compute_vat/vat-20/');
-  assert.deepEqual(filePlan('pack new', { name: 'team', dir: '' }, p).map((r) => r.path), ['.archvow/packs/team/pack.yaml',
-    '.archvow/packs/team/README.md', '.archvow/packs/team/examples/']);  // a pack of this project
-  assert.deepEqual(filePlan('pack rule', { pack: '/srv/packs/acme', code: 'ACME001' }, p).map((r) => r.path), ['/srv/packs/acme/rules/']);
+  assert.deepEqual(filePlan('template new', { name: 'acme-app', dir: '/srv/templates' }, p).map((r) => r.path), ['/srv/templates/acme-app/template.yaml',
+    '/srv/templates/acme-app/template.fr.yaml', '/srv/templates/acme-app/README.md', '/srv/templates/acme-app/files/']);
+  assert.deepEqual(filePlan('template rule', { template: '/srv/templates/acme', code: 'ACME001' }, p).map((r) => r.path), ['/srv/templates/acme/rules/']);
+  assert.deepEqual(filePlan('template rule', { template: 'project', code: 'TEAM001' }, p).map((r) => r.path), ['.archvow/template/rules/']);  // this project only
   // no component chosen yet: nothing about it is shown
   assert.deepEqual(filePlan('decision make', {}, p), []);
   assert.deepEqual(filePlan('check', {}, p), [], 'a command that reads only writes nothing');

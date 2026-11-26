@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "digest": "<digest>",
   "project": {
     "schema_version": 2,
@@ -10,7 +10,7 @@
     "containers": [
       {
         "id": "orders_api",
-        "template": "archvow/fastapi-service@2.8.0",
+        "template": "fastapi-service",
         "package": "orders_api",
         "path": "src/orders_api",
         "components": [
@@ -34,12 +34,14 @@
               {
                 "question": "What does it provide, and for how long (one request, the whole app)?",
                 "answer": "The customer id (str) from the X-Customer header, for one request",
+                "id": "provides",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end?",
                 "answer": "Header missing or empty: 401 Unauthorized",
+                "id": "cannot",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -66,6 +68,7 @@
               {
                 "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id and message?",
                 "answer": "stderr, one line per event: time, level, request id, message",
+                "id": "destination",
                 "by": "update@archvow.invalid",
                 "on": "2026-11-08T23:13:06.642908+00:00"
               }
@@ -96,12 +99,14 @@
               {
                 "question": "Which settings, with which defaults (name: type = default), and which are required?",
                 "answer": "app_name: str = 'orders'; nothing else yet",
+                "id": "settings",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Which settings are secrets (never logged, never in a response), and where do they come from?",
                 "answer": "No secret yet",
+                "id": "secrets",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -128,18 +133,21 @@
               {
                 "question": "Which fields are required, and which are optional (with which default)?",
                 "answer": "amount required",
+                "id": "fields",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
                 "answer": "amount > 0 with at most 2 decimals",
+                "id": "valid_values",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
                 "answer": "None",
+                "id": "never_shown",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -169,18 +177,21 @@
               {
                 "question": "Which fields are required, and which are optional (with which default)?",
                 "answer": "All fields required",
+                "id": "fields",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
                 "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled",
+                "id": "valid_values",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
                 "answer": "None: the customer id is returned only to its owner",
+                "id": "never_shown",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -213,12 +224,14 @@
               {
                 "question": "Which HTTP status does the app answer with it (404, 409, 422...)?",
                 "answer": "404 Not Found",
+                "id": "code",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "What does its message say - and never say (internal ids, personal data, whether the resource exists)?",
                 "answer": "\"Order not found\" - never the id's owner, never whether it exists",
+                "id": "message",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -247,24 +260,28 @@
               {
                 "question": "Not found: return None, or raise which domain error?",
                 "answer": "Return None",
+                "id": "not_found",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Who opens and commits the transaction (the service, never the repository)?",
                 "answer": "No transaction: memory; the service decides what is saved",
+                "id": "commit",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Two updates of the same record at the same time: last write wins, a version check, or a lock?",
                 "answer": "Last write wins: an order is only created, never updated yet",
+                "id": "same_record",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Which queries can return many rows, and what is their maximum?",
                 "answer": "None: no list query yet",
+                "id": "many_rows",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -307,30 +324,35 @@
               {
                 "question": "What does it do, step by step (read, check, change, save, call)?",
                 "answer": "Build a pending order with the next id, save it, return it",
+                "id": "steps",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Something it needs does not exist: which domain error?",
                 "answer": "Not applicable: it needs nothing that may be missing",
+                "id": "not_found",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
                 "answer": "Two orders: a retry is a new order (customers cancel the extra one)",
+                "id": "twice",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Who may perform it, and is that checked here or in the router?",
                 "answer": "Any authenticated customer, for themselves; checked by the router",
+                "id": "who_may",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
                 "answer": "One save, nothing else to undo",
+                "id": "all_or_nothing",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -361,30 +383,35 @@
               {
                 "question": "What does it do, step by step (read, check, change, save, call)?",
                 "answer": "Find the order; check it belongs to the customer; return it",
+                "id": "steps",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Something it needs does not exist: which domain error?",
                 "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing",
+                "id": "not_found",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
                 "answer": "Same result: it only reads",
+                "id": "twice",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Who may perform it, and is that checked here or in the router?",
                 "answer": "The owner only; checked here",
+                "id": "who_may",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
                 "answer": "Nothing to undo: it only reads",
+                "id": "all_or_nothing",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -415,24 +442,28 @@
               {
                 "question": "Which routers, under which prefix (e.g. /v1)?",
                 "answer": "orders_router under /v1",
+                "id": "routers",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?",
                 "answer": "OrderNotFoundError -> 404, as decided by the error",
+                "id": "domain_errors",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?",
                 "answer": "Nothing to start or stop yet",
+                "id": "lifespan",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "CORS: which origins may call it from a browser - or none?",
                 "answer": "No CORS: not called from browsers",
+                "id": "cors",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -477,30 +508,35 @@
               {
                 "question": "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?",
                 "answer": "Authenticated customers (get_current_user), each only on their own orders",
+                "id": "who_may_call",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Status codes: success, not found, conflict, forbidden - and the error body format?",
                 "answer": "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}",
+                "id": "status_codes",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Invalid input: FastAPI's 422, or 400 with your own error format?",
                 "answer": "FastAPI's 422",
+                "id": "invalid_input",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "Lists: pagination, default and maximum page size - or no list route?",
                 "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+                "id": "pagination",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               },
               {
                 "question": "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?",
                 "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+                "id": "twice",
                 "by": "architect@example.com",
                 "on": "2026-10-09T12:00:00+00:00"
               }
@@ -542,6 +578,7 @@
     "ai_tools": [
       "copilot"
     ],
+    "ai_runs": [],
     "dependencies": [],
     "init_answers": {
       "language": "en",
@@ -570,6 +607,18 @@
     "families": [
       "all"
     ],
+    "templates": {
+      "fastapi-service": {
+        "version": "3.4.1",
+        "source": "archvow",
+        "digest": "9653a014f4a4"
+      },
+      "python-base": {
+        "version": "3.4.1",
+        "source": "archvow",
+        "digest": "d55071fac333"
+      }
+    },
     "features": [
       {
         "name": "orders",
@@ -3376,15 +3425,19 @@
   "catalog": {
     "templates": [
       {
-        "name": "archvow/fastapi-service",
-        "pack": "archvow",
-        "version": "2.8.0",
+        "name": "fastapi-service",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "fastapi-service"
+        ],
         "language": "python",
         "kind": "web-service",
         "style": "layered (common -> domain -> io -> services -> api)",
         "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -3566,6 +3619,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -3751,23 +3822,6 @@
             "signature_overridable": true,
             "kinds": []
           },
-          "dependency": {
-            "layer": "p0_common",
-            "description": "Something routes receive through Depends (the database session, the current user...).",
-            "addable": true,
-            "name_pattern": "^get_[a-z0-9_]+$",
-            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
-            "module": "{name}",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "{name}"
-              }
-            ],
-            "implicit_dependency": true,
-            "signature_overridable": true,
-            "kinds": []
-          },
           "model": {
             "layer": "p1_domain",
             "description": "A Pydantic model - the shape and the validation of one kind of data.",
@@ -3816,6 +3870,23 @@
               }
             ],
             "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "dependency": {
+            "layer": "p0_common",
+            "description": "Something routes receive through Depends (the database session, the current user...).",
+            "addable": true,
+            "name_pattern": "^get_[a-z0-9_]+$",
+            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": true,
             "signature_overridable": true,
             "kinds": []
           },
@@ -3907,18 +3978,23 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/fastapi-service"
+        "source": "archvow",
+        "abstract": false
       },
       {
-        "name": "archvow/langgraph-agent",
-        "pack": "archvow",
-        "version": "2.8.0",
+        "name": "langgraph-agent",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "langgraph-agent"
+        ],
         "language": "python",
         "kind": "ai-application",
         "style": "layered (common -> domain -> tools -> agents -> app)",
         "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -4100,6 +4176,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -4551,18 +4645,23 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/langgraph-agent"
+        "source": "<archvow>/templates/langgraph-agent",
+        "abstract": false
       },
       {
-        "name": "archvow/pyspark-pipeline",
-        "pack": "archvow",
-        "version": "2.8.0",
+        "name": "pyspark-pipeline",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "pyspark-pipeline"
+        ],
         "language": "python",
         "kind": "data-pipeline",
         "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
         "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -4744,6 +4843,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -5106,18 +5223,23 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/pyspark-pipeline"
+        "source": "<archvow>/templates/pyspark-pipeline",
+        "abstract": false
       },
       {
-        "name": "archvow/python-app",
-        "pack": "archvow",
-        "version": "2.8.0",
+        "name": "python-app",
+        "version": "3.4.1",
+        "default": true,
+        "chain": [
+          "python-base",
+          "python-app"
+        ],
         "language": "python",
         "kind": "application",
         "style": "layered (common -> domain -> io -> services -> entrypoints)",
         "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -5299,6 +5421,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -5595,55 +5735,58 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/python-app"
+        "source": "<archvow>/templates/python-app",
+        "abstract": false
       }
     ],
-    "packs": [
+    "project_templates": [
       {
-        "name": "archvow",
-        "version": "2.8.0",
-        "description": "The templates, agents and languages archvow ships.",
-        "archvow": "",
-        "builtin": true,
-        "templates": [
-          "fastapi-service",
-          "langgraph-agent",
-          "pyspark-pipeline",
-          "python-app",
+        "name": "fastapi-service",
+        "version": "3.4.1",
+        "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
+        "archvow": ">=3.4,<4",
+        "languages": [
+          "en",
+          "fr"
+        ],
+        "extends": [
           "python-base"
         ],
-        "agents": [
-          "aider",
-          "amazonq",
-          "antigravity",
-          "claude-code",
-          "cline",
-          "codex",
-          "continue",
-          "copilot",
-          "cursor",
-          "gemini-cli",
-          "jetbrains-ai-chat",
-          "junie",
-          "kiro",
-          "opencode",
-          "roo",
-          "windsurf"
+        "abstract": false,
+        "agents": [],
+        "rule_families": [],
+        "regimes": [],
+        "source": "archvow",
+        "digest": "9653a014f4a4"
+      },
+      {
+        "name": "python-base",
+        "version": "3.4.1",
+        "description": "Shared answers, guards and CI of the Python templates.",
+        "archvow": ">=3.4,<4",
+        "languages": [
+          "en",
+          "fr"
         ],
+        "extends": [],
+        "abstract": true,
+        "agents": [],
         "rule_families": [],
         "regimes": [
           "dora",
           "gdpr",
           "glba",
           "us-privacy"
-        ]
+        ],
+        "source": "archvow",
+        "digest": "d55071fac333"
       }
     ],
     "agents": [
       {
         "name": "aider",
         "title": "Aider",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5660,13 +5803,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "amazonq",
         "title": "Amazon Q Developer",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5683,13 +5828,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "antigravity",
         "title": "Google Antigravity",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5709,13 +5856,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "claude-code",
         "title": "Claude Code",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills",
@@ -5747,13 +5896,15 @@
           "fix": "start Claude Code with its sandbox on (/sandbox; on Windows inside WSL2) and without --dangerously-skip-permissions or --permission-mode bypassPermissions"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "cline",
         "title": "Cline",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5770,13 +5921,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "codex",
         "title": "OpenAI Codex",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5801,13 +5954,15 @@
           "fix": "start Codex with --sandbox workspace-write (its default) and without --yolo or --dangerously-bypass-approvals-and-sandbox"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "continue",
         "title": "Continue",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5826,13 +5981,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "copilot",
         "title": "GitHub Copilot",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5865,13 +6022,15 @@
           "fix": "run Copilot inside a container (the CLI has no sandbox of its own; in VS Code, a dev container) and start it without --yolo, --allow-all or --allow-all-tools"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
       },
       {
         "name": "cursor",
         "title": "Cursor",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5901,13 +6060,15 @@
           "fix": "in Cursor, choose a run mode with the sandbox on (not Run Everything); start cursor-agent without --force or --yolo"
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "gemini-cli",
         "title": "Gemini CLI",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5925,13 +6086,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": true,
+        "skill": true,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "jetbrains-ai-chat",
         "title": "JetBrains AI chat, with its own built-in assistant",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5950,13 +6113,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "junie",
         "title": "JetBrains Junie",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -5978,13 +6143,15 @@
           "fix": "start Junie CLI in its sandbox, with brave mode off"
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": "in the IDE plugin (it sets no variable archvow knows)"
       },
       {
         "name": "kiro",
         "title": "Kiro",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6001,13 +6168,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "opencode",
         "title": "OpenCode",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6025,13 +6194,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "roo",
         "title": "Roo Code",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6048,13 +6219,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "windsurf",
         "title": "Windsurf",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -6072,6 +6245,8 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       }
@@ -6081,7 +6256,7 @@
         "id": "dora",
         "name": "DORA",
         "kind": "resilience",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "DORA",
         "letter": "O",
         "default": false,
@@ -6103,7 +6278,7 @@
         "id": "gdpr",
         "name": "GDPR",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "GDPR",
         "letter": "P",
         "default": true,
@@ -6122,7 +6297,7 @@
         "id": "glba",
         "name": "GLBA",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "GLBA",
         "letter": "G",
         "default": false,
@@ -6146,7 +6321,7 @@
         "id": "us-privacy",
         "name": "US-PRIVACY",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "USP",
         "letter": "U",
         "default": false,
@@ -6168,7 +6343,51 @@
       }
     ]
   },
-  "packs": [],
+  "templates": [
+    {
+      "name": "fastapi-service",
+      "version": "3.4.1",
+      "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
+      "archvow": ">=3.4,<4",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "extends": [
+        "python-base"
+      ],
+      "abstract": false,
+      "agents": [],
+      "rule_families": [],
+      "regimes": [],
+      "source": "archvow",
+      "state": "ok",
+      "why": ""
+    },
+    {
+      "name": "python-base",
+      "version": "3.4.1",
+      "description": "Shared answers, guards and CI of the Python templates.",
+      "archvow": ">=3.4,<4",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "extends": [],
+      "abstract": true,
+      "agents": [],
+      "rule_families": [],
+      "regimes": [
+        "dora",
+        "gdpr",
+        "glba",
+        "us-privacy"
+      ],
+      "source": "archvow",
+      "state": "ok",
+      "why": ""
+    }
+  ],
   "first_steps": [
     {
       "step": "foundations",
@@ -6182,21 +6401,33 @@
       "title": "Add a feature",
       "detail": "What the product does",
       "command": "archvow feature add <name> -d \"what the product does\"",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Feature",
+        "command": "archvow feature add <name> -d \"what the product does\""
+      }
     },
     {
       "step": "component",
-      "title": "Add its first component and answer its decisions",
-      "detail": "Next then shows it ready to build",
+      "title": "Add the feature's components and answer their decisions",
+      "detail": "Their decisions are made",
       "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Component",
+        "command": "archvow component add <type> <name> -d \"what it must do\" --feature orders"
+      }
     },
     {
       "step": "build",
-      "title": "Build it, then Check",
-      "detail": "Its code and tests, checked against the spec",
+      "title": "Build them, then Check",
+      "detail": "Their code and tests, checked against the spec",
       "command": "archvow check",
-      "done": true
+      "done": true,
+      "progress": {
+        "done": 7,
+        "total": 7
+      }
     },
     {
       "step": "commit",
@@ -6205,5 +6436,36 @@
       "command": "git add -A && git commit",
       "done": false
     }
-  ]
+  ],
+  "ai_runs": [],
+  "ai_drafts": {
+    "on": false,
+    "why_not": "archvow does not start AI drafts in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds drafts: archvow init <package> --force -a ai_runs=drafts",
+    "tools": [
+      {
+        "name": "copilot",
+        "title": "GitHub Copilot",
+        "program": "copilot",
+        "installed": false
+      }
+    ]
+  },
+  "ai_skills": {
+    "on": false,
+    "why_not": "archvow does not start AI skill runs in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds skills: archvow init <package> --force -a ai_runs=skills",
+    "runs": [
+      "draft-spec",
+      "clarify",
+      "analyze"
+    ],
+    "tools": [
+      {
+        "name": "copilot",
+        "title": "GitHub Copilot",
+        "program": "copilot",
+        "installed": false
+      }
+    ]
+  },
+  "reviewers": []
 }

@@ -50,8 +50,16 @@ public final class UiPolishRegression {
         require(panel.contains("new ArchvowOverviewCards.MenuCommand(\"spark\", \"AI review\""),
             "AI review must use the supported spark icon, not the fallback circle");
         require(!panel.contains("\"Project status\", \"État du projet\""), "no Project status strip: the cards say it");
-        require(panel.contains("backButton.setText(\"← Briefs\")"),
-            "AI skill editor needs a Back to Briefs button");
+        // 1.4.1: light themes - the First steps button painted here (the IDE's default button drew white on white),
+        // and a see-through list hover made opaque in menus (the page showed through the AI ▾ menu)
+        require(Files.readString(Path.of("src/main/java/org/archvow/idea/ArchvowOverviewCards.java"))
+            .contains("JButton b = main ? ArchvowSplitView.primary(text) : new JButton(text);"), "First steps' button painted in every theme");
+        java.awt.Color seeThrough = new java.awt.Color(0, 0, 0, 20);
+        java.awt.Color solid = ArchvowMenu.solid(seeThrough, java.awt.Color.WHITE);
+        require(solid.getAlpha() == 255 && solid.getRed() > 230, "a see-through hover becomes opaque over the menu: " + solid);
+        // 1.4.1: ← Back to the page the editor showed - a component, Briefs, Find, Checks or a result
+        require(panel.contains("case \"briefs\" -> \"Briefs\";") && panel.contains("backButton.setText(\"← \" + home)")
+            && panel.contains("rememberBack(onComponent, knownComponent);"), "AI skill editor needs a Back to Briefs button");
         SwingUtilities.invokeAndWait(() -> {
             require(!Arrays.equals(overviewPixels("folder"), overviewPixels("check")), "Briefs icon must differ from Check");
             require(!Arrays.equals(overviewPixels("spark"), overviewPixels("check")), "AI review icon must differ from Check");

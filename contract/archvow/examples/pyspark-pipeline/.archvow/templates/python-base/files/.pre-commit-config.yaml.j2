@@ -1,0 +1,67 @@
+# Local hooks only: pre-commit downloads nothing. ruff and archvow come from your
+# environment (install them from your internal package index). Enable: pre-commit install
+# If your pre-commit version reports `language: system` as deprecated, use `unsupported`.
+{%- set warn_ticket = branch_naming != 'none' and not ticket_pattern_set %}
+{%- if 'dora' in compliance or warn_ticket or agents_approved %}
+default_stages: [pre-commit]   # the hooks below run before the commit, unless they name their own stage
+{%- endif %}
+repos:
+  - repo: local
+    hooks:
+      - id: no-commit-on-main-or-develop
+        name: no commit on main or develop (gitflow - work on feature/<ticket>-<short-name>)
+        entry: >-
+          sh -c 'git rev-parse -q --verify HEAD >/dev/null || exit 0; b=$(git symbolic-ref --short -q HEAD); for p in ${ARCHVOW_PROTECTED_BRANCHES-main develop}; do [ "$b" != "$p" ] || { echo "no commit on $b (gitflow) - git switch -c feature/<ticket>-<short-name> develop"; exit 1; }; done'
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: branch-name
+        name: branch name (feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>)
+        entry: >-
+          sh -c 'git rev-parse -q --verify HEAD >/dev/null || exit 0; b=$(git symbolic-ref --short -q HEAD); case "$b" in ""|main|master|develop) exit 0;; esac; [ "${ARCHVOW_BRANCH_NAMING-{{ branch_naming }}}" = none ] || printf "%s\n" "$b" | grep -Eq "{{ branch_regex }}" || { echo "branch $b - rename it: git branch -m feature/<ticket>-<short-name>"; exit 1; }'
+        language: system
+        pass_filenames: false
+        always_run: true
+{%- if 'dora' in compliance %}
+      - id: commit-ticket
+        name: the commit message names its ticket (DORA) - enable once with pre-commit install --hook-type commit-msg
+        entry: >-
+          sh -c 'grep -Eq "{{ ticket_pattern }}" "$1" && exit 0; head -n 1 "$1" | grep -Eq "^(Merge|Revert|fixup!|squash!)" && exit 0; t=$(git symbolic-ref --short -q HEAD | grep -Eo "{{ ticket_pattern }}" | head -n 1); [ -n "$t" ] || { echo "name the ticket in the message (e.g. {{ ticket(1) }}: ...)"; exit 1; }; printf "%s: %s\\n" "$t" "$(cat "$1")" > "$1.tmp" && mv "$1.tmp" "$1"' --
+        language: system
+        stages: [commit-msg]
+{%- endif %}
+{%- if agents_approved %}
+      - id: archvow-agent
+        name: how each AI agent that wrote this commit's code ran (Archvow-Agent line, ARCH053) - enable once with pre-commit install --hook-type commit-msg
+        entry: >-
+          sh -c 't=.archvow/trailer.local; [ -f "$t" ] || exit 0; while IFS= read -r l; do [ -z "$l" ] || git interpret-trailers --in-place --if-exists addIfDifferent --trailer "Archvow-Agent: $l" "$1"; done < "$t"; rm -f "$t"' --
+        language: system
+        stages: [commit-msg]
+{%- endif %}
+{%- if warn_ticket %}
+      - id: ticket-pattern-not-set
+        name: no ticket pattern yet - warns after git switch (enable once with pre-commit install --hook-type post-checkout)
+        entry: >-
+          sh -c 'case "$(git symbolic-ref --short -q HEAD)" in feature/*|hotfix/*) echo "this project has no ticket pattern yet: archvow init {{ package }} --force -a ticket_pattern=FATTRIB-[0-9]+ (architects approve it)";; esac; exit 0'
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true
+        stages: [post-checkout]
+{%- endif %}
+      - id: ruff-check
+        name: ruff check (PEP 8, Zen of Python)
+        entry: ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format --check
+        entry: ruff format --check
+        language: system
+        types: [python]
+      - id: archvow-check
+        name: archvow check (code matches the spec)
+        entry: archvow check
+        language: system
+        pass_filenames: false
+        always_run: true

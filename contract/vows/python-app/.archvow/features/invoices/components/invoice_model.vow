@@ -15,24 +15,28 @@ symbol Invoice
 
 # --- decisions
 decision 1
+  id fields
   question "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?"
   answer "All fields required"
   by noreply@anthropic.com
   on 2026-10-21T16:20:49.515640+00:00
 
 decision 2
+  id valid_values
   question "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?"
   answer "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty"
   by noreply@anthropic.com
   on 2026-10-21T16:20:49.798659+00:00
 
 decision 3
+  id never_shown
   question "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?"
   answer "None"
   by noreply@anthropic.com
   on 2026-10-21T16:20:50.138638+00:00
 
 decision 4
+  id frozen
   question "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?"
   answer "Frozen: a change builds a new one (dataclasses.replace)"
   by noreply@anthropic.com

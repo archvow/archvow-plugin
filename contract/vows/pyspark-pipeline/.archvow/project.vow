@@ -10,13 +10,14 @@ system
 
 # --- containers
 container my_pipeline
-  template archvow/pyspark-pipeline@2.8.0
+  template pyspark-pipeline
   package my_pipeline
   path src/my_pipeline
 
 rules {}
 language en
 ai_tools [claude-code]
+ai_runs []
 dependencies []
 compliance [gdpr, tst]
 mode strict
@@ -55,3 +56,13 @@ rule R2
     type transformation
   by architect@example.com
   on 2026-11-11T19:07:01.516139+00:00
+
+templates
+  pyspark-pipeline
+    version 3.4.1
+    source archvow
+    digest 8e433af5b377
+  python-base
+    version 3.4.1
+    source archvow
+    digest d55071fac333

@@ -71,7 +71,7 @@ final class ArchvowInitQuestions extends JPanel {
         setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(
                 french ? "Modèle et ses questions" : "Template and its questions"),
                 BorderFactory.createEmptyBorder(7, 8, 7, 8)));
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
+        JPanel toolbar = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 8, 2));
         toolbar.add(new JLabel(french ? "Modèle" : "Template"));
         templatePicker.setPreferredSize(new Dimension(225, 28));
         templatePicker.addActionListener(e -> {
@@ -97,7 +97,7 @@ final class ArchvowInitQuestions extends JPanel {
         status.setForeground(UIManager.getColor("Label.disabledForeground"));
         head.add(toolbar);
         // or a company template's folder: its questions come from archvow's catalog of that folder
-        JPanel custom = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
+        JPanel custom = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 8, 2));
         custom.setAlignmentX(LEFT_ALIGNMENT);
         custom.add(new JLabel(french ? "ou le dossier d'un modèle d'entreprise :" : "or the folder of a company template:"));
         folder.setToolTipText("/path/to/templates/acme-pipeline");
@@ -195,7 +195,9 @@ final class ArchvowInitQuestions extends JPanel {
         boolean manualPath = requested != null && !requested.isBlank() && match == null;
         if (match == null && !manualPath && (requested == null || requested.isBlank())) {
             match = matchedTemplate(preferred);   // in a project: its own template
-            if (match == null) match = matchedTemplate("python-app"); // archvow's default template
+            for (JsonObject t : catalog)  // archvow 3.0: the template marked default (python-app)
+                if (match == null && t.has("default") && t.get("default").isJsonPrimitive() && t.get("default").getAsBoolean()) match = string(t, "name");
+            if (match == null) match = matchedTemplate("python-app");
         }
         if (manualPath && !requested.equals(folder.getText().trim())) folder.setText(requested);
         if (match != null) templatePicker.setSelectedItem(match);
@@ -227,9 +229,7 @@ final class ArchvowInitQuestions extends JPanel {
             String source = string(t, "source");
             if (requested.equals(name) || requested.equals(source) || requested.endsWith("/" + name)) return name;
         }
-        // a short name (python-app) is a pack's template (archvow/python-app), as archvow's init --template reads it
-        for (JsonObject t : catalog) if (string(t, "name").endsWith("/" + requested)) return string(t, "name");
-        return null;
+        return null;  // a company template's folder: its questions are not in this catalog
     }
 
     private void showTemplate(String name) {
@@ -286,7 +286,7 @@ final class ArchvowInitQuestions extends JPanel {
                 // AI assistants (0.26.1): picked from those archvow knows, or any other by name
                 field = new ArchvowAgentPicker(ArchvowAgentPicker.suggestions(question), def, french);
             } else if (multi && !choices.isEmpty()) {
-                JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+                JPanel chips = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
                 LinkedHashSet<String> defaults = new LinkedHashSet<>(List.of(def.split(",")));
                 for (String choice : choices) {
                     JCheckBox chip = new JCheckBox(choice, defaults.contains(choice));
@@ -366,7 +366,7 @@ final class ArchvowInitQuestions extends JPanel {
     private String questionGroup(String id) {
         if (List.of("language", "architects", "mode", "sandbox", "rules", "auto_approve").contains(id))
             return french ? "Gouvernance" : "Governance";
-        if (List.of("ai_tools", "reviewers", "briefs", "ticket_pattern").contains(id))
+        if (List.of("ai_tools", "ai_runs", "reviewers", "briefs", "ticket_pattern").contains(id))
             return french ? "IA et briefs" : "AI & briefs";
         if (List.of("platform", "ci", "sonar", "git_hooks", "branch_naming", "line_length").contains(id))
             return french ? "CI et qualité" : "CI & quality";

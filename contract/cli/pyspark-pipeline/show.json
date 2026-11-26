@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "schema_version": 2,
   "system": {
     "name": "my_pipeline",
@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "my_pipeline",
-      "template": "archvow/pyspark-pipeline@2.8.0",
+      "template": "pyspark-pipeline",
       "package": "my_pipeline",
       "path": "src/my_pipeline",
       "components": [
@@ -31,12 +31,14 @@
             {
               "question": "The job's parameters, name: type = default separated by commas (no default = required) - e.g. input_path: str, run_date: date, output_format: str = \"parquet\" - or none?",
               "answer": "input_path: str, output_path: str",
+              "id": "parameters",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:55.438752+00:00"
             },
             {
               "question": "What happens when a value is missing or invalid (which exception, raised where) - e.g. ConfigError(\"run_date is required\") raised in JobConfig, the entry point exits with code 2?",
               "answer": "ValueError raised in __post_init__, naming the field, for an empty or blank path",
+              "id": "invalid_value",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:55.678901+00:00"
             }
@@ -63,6 +65,7 @@
             {
               "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, component and message?",
               "answer": "stderr, one line per event: time, level, component, message",
+              "id": "destination",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:55.222737+00:00"
             }
@@ -89,6 +92,7 @@
             {
               "question": "Spark settings every session sets, key=value separated by commas - e.g. spark.sql.session.timeZone=UTC, spark.sql.shuffle.partitions=200 - or none?",
               "answer": "spark.sql.session.timeZone=UTC, nothing else",
+              "id": "spark_settings",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:54.996388+00:00"
             }
@@ -116,54 +120,63 @@
             {
               "question": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
               "answer": "Rows where order_id is not null and amount >= 0",
+              "id": "rows_kept",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:57.511014+00:00"
             },
             {
               "question": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
               "answer": "The schema columns, unchanged",
+              "id": "output_columns",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:57.730649+00:00"
             },
             {
               "question": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
               "answer": "No grouping",
+              "id": "grouping",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:57.982258+00:00"
             },
             {
               "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
               "answer": "No join",
+              "id": "join",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:58.218911+00:00"
             },
             {
               "question": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
               "answer": "Return an empty DataFrame with the output schema",
+              "id": "empty_input",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:58.450589+00:00"
             },
             {
               "question": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
               "answer": "Drop rows with a null order_id",
+              "id": "null_keys",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:58.685578+00:00"
             },
             {
               "question": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
               "answer": "Keep one row per order_id",
+              "id": "duplicate_keys",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:58.910478+00:00"
             },
             {
               "question": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
               "answer": "Drop rows where amount is negative",
+              "id": "out_of_range",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:59.145793+00:00"
             },
             {
               "question": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
               "answer": "Drop them: output only the schema columns",
+              "id": "extra_columns",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:59.389243+00:00"
             }
@@ -218,54 +231,63 @@
             {
               "question": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
               "answer": "All rows",
+              "id": "rows_kept",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:59.639864+00:00"
             },
             {
               "question": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
               "answer": "The input columns plus vat decimal(18,2) = amount * 0.2, not null",
+              "id": "output_columns",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:59.880187+00:00"
             },
             {
               "question": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
               "answer": "No grouping",
+              "id": "grouping",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:00.099733+00:00"
             },
             {
               "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
               "answer": "No join",
+              "id": "join",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:00.326719+00:00"
             },
             {
               "question": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
               "answer": "Return an empty DataFrame with the output schema",
+              "id": "empty_input",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:00.523733+00:00"
             },
             {
               "question": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
               "answer": "Not possible here: clean_orders runs first",
+              "id": "null_keys",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:00.760615+00:00"
             },
             {
               "question": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
               "answer": "Not possible here: clean_orders runs first",
+              "id": "duplicate_keys",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:00.776642+00:00"
             },
             {
               "question": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
               "answer": "Not possible here: clean_orders runs first",
+              "id": "out_of_range",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:00.792858+00:00"
             },
             {
               "question": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
               "answer": "Keep them unchanged",
+              "id": "extra_columns",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:01.036934+00:00"
             }
@@ -307,39 +329,48 @@
           "decisions": [
             {
               "question": "Which rows does it keep (filter conditions) - e.g. amount > 0 and status = 'PAID' - or all of them?",
-              "answer": null
+              "answer": null,
+              "id": "rows_kept"
             },
             {
               "question": "Which output columns does it produce, and how is each one computed (type, nullable) - e.g. amount_eur double not null = amount * rate?",
-              "answer": null
+              "answer": null,
+              "id": "output_columns"
             },
             {
               "question": "Does it group rows? By which keys, with which aggregates - e.g. by customer_id, sum(amount) as total - or no grouping?",
-              "answer": null
+              "answer": null,
+              "id": "grouping"
             },
             {
               "question": "Does it join another dataset? Which one, on which keys, which join type, what if a key has no match - e.g. customers on customer_id, left join, no match keeps the row with empty customer columns - or no join? (a join needs a second input: archvow component edit <component> --signature \"(left: DataFrame, right: DataFrame) -> DataFrame\")",
-              "answer": null
+              "answer": null,
+              "id": "join"
             },
             {
               "question": "Empty input (e.g. no orders on a holiday): return an empty DataFrame with the output schema, or fail?",
-              "answer": null
+              "answer": null,
+              "id": "empty_input"
             },
             {
               "question": "Empty (null) values in the columns that identify a row (e.g. id is null): drop the row, keep it, or stop the job?",
-              "answer": null
+              "answer": null,
+              "id": "null_keys"
             },
             {
               "question": "Duplicate keys in the input (e.g. two rows with id 42): keep first, keep last, aggregate, or fail?",
-              "answer": null
+              "answer": null,
+              "id": "duplicate_keys"
             },
             {
               "question": "Negative or out-of-range values (e.g. amount = -5): keep them, replace them by the nearest limit, drop the row, or stop the job?",
-              "answer": null
+              "answer": null,
+              "id": "out_of_range"
             },
             {
               "question": "Extra input columns not in the schema (e.g. a column added upstream): drop silently or fail?",
-              "answer": null
+              "answer": null,
+              "id": "extra_columns"
             }
           ],
           "assumptions": []
@@ -365,12 +396,14 @@
             {
               "question": "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?",
               "answer": "order_id and amount are never null; customer_id may be null",
+              "id": "nullable",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:55.893812+00:00"
             },
             {
               "question": "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?",
               "answer": "None: the input holds no personal data",
+              "id": "personal_columns",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:56.089632+00:00"
             }
@@ -404,12 +437,14 @@
             {
               "question": "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?",
               "answer": "order_id, amount and vat are never null; customer_id may be null",
+              "id": "nullable",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:07.022040+00:00"
             },
             {
               "question": "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?",
               "answer": "None: the output holds no personal data",
+              "id": "personal_columns",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:07.221374+00:00"
             }
@@ -447,24 +482,28 @@
             {
               "question": "The path does not exist or is empty (e.g. today's file was not delivered): fail or return an empty DataFrame?",
               "answer": "Fail with a clear error: a missing input is an operations problem",
+              "id": "missing_path",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:56.526320+00:00"
             },
             {
               "question": "Rows that do not match the schema (wrong type, missing column) - e.g. amount = \"abc\": stop the job, drop them, or set them aside in a reject file (where)?",
               "answer": "Fail the job (FAILFAST): a malformed file must be fixed upstream",
+              "id": "bad_rows",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:56.749135+00:00"
             },
             {
               "question": "On each run, what does it read: everything at the path, or only one date (e.g. the folder date=2026-10-12)? If that date's data is not there yet: fail, wait, or read the previous date?",
               "answer": "Everything under the given path, no partitions",
+              "id": "each_run",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:57.015876+00:00"
             },
             {
               "question": "Does an approved shared library already read these files (e.g. acme_io.read_csv, listed in requirements.txt)? Then the code calls it - which function - instead of reading them with Spark.",
               "answer": "No: Spark reads it itself",
+              "id": "shared_library",
               "by": "architect@example.com",
               "on": "2026-11-11T19:06:57.244572+00:00"
             }
@@ -495,30 +534,35 @@
             {
               "question": "Output already exists (e.g. the job runs twice for the same date): overwrite, append, or fail?",
               "answer": "Overwrite",
+              "id": "existing_output",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:01.748316+00:00"
             },
             {
               "question": "If the job fails while writing (e.g. it stops after 3 of 10 files), how do readers avoid a half-written output: write to a temporary folder then rename, a _SUCCESS file, or a table transaction?",
               "answer": "Write to a temporary folder next to the output, then rename it",
+              "id": "half_written",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:01.977915+00:00"
             },
             {
               "question": "If the job runs again on the same input (e.g. a re-run after a failure), must the output be exactly the same, with no duplicated rows?",
               "answer": "Yes: the same input gives the same output",
+              "id": "rerun",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:02.203667+00:00"
             },
             {
               "question": "How is the output stored: which file format (parquet, csv...), and is it split into folders by a column (e.g. date=2026-10-12) or not?",
               "answer": "Parquet, not partitioned",
+              "id": "format",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:02.431744+00:00"
             },
             {
               "question": "Does an approved shared library already write these files (e.g. acme_io.write_parquet, listed in requirements.txt)? Then the code calls it - which function - instead of writing them with Spark.",
               "answer": "No: Spark writes them itself",
+              "id": "shared_library",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:02.657617+00:00"
             }
@@ -551,18 +595,21 @@
             {
               "question": "If one of its inputs is missing (e.g. the refunds file was not delivered): stop with an error, skip this run (nothing written), or continue without it?",
               "answer": "Fail",
+              "id": "missing_input",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:02.918672+00:00"
             },
             {
               "question": "If a run fails, is it retried automatically, how many times, and can a retry run after a half-finished run without duplicating data - e.g. 2 retries 10 minutes apart, the output is overwritten?",
               "answer": "No automatic retry; a re-run is safe (the writer overwrites)",
+              "id": "retries",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:03.145824+00:00"
             },
             {
               "question": "Which date does one run process (e.g. yesterday's data), and where does that date come from: an argument from the scheduler, or computed by the job?",
               "answer": "No run date: the job processes the input it is given",
+              "id": "run_date",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:03.379962+00:00"
             }
@@ -592,12 +639,14 @@
             {
               "question": "Invalid arguments (e.g. --run-date 2026-13-01): which exit code and message?",
               "answer": "Exit code 2 with a usage message",
+              "id": "invalid_arguments",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:03.587374+00:00"
             },
             {
               "question": "Which exit code for which problem, so the scheduler knows what happened (e.g. 0 ok, 1 error, 2 bad arguments, 3 input not ready)?",
               "answer": "0 success, 1 job failure, 2 invalid arguments",
+              "id": "code",
               "by": "architect@example.com",
               "on": "2026-11-11T19:07:03.845914+00:00"
             }
@@ -612,6 +661,7 @@
   "ai_tools": [
     "claude-code"
   ],
+  "ai_runs": [],
   "dependencies": [],
   "compliance": [
     "gdpr",
@@ -663,6 +713,18 @@
       "on": "2026-11-11T19:07:01.516139+00:00"
     }
   ],
+  "templates": {
+    "pyspark-pipeline": {
+      "version": "3.4.1",
+      "source": "archvow",
+      "digest": "8e433af5b377"
+    },
+    "python-base": {
+      "version": "3.4.1",
+      "source": "archvow",
+      "digest": "d55071fac333"
+    }
+  },
   "features": [
     {
       "name": "shared",

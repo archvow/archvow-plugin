@@ -289,10 +289,10 @@ export function choiceBook(commands: Command[], input: ChoiceInput): Book {
       } else if (name === 'dependency remove' && p === 'name') {
         field = { kind: 'select', choices: objects(input.spec, 'dependencies').map((d) => item(str(d, 'name'), str(d, 'supplier'))),
           empty: tr(fr, 'No dependency declared.', 'Aucune dépendance déclarée.') };
-      } else if (name === 'pack template' && p === 'extends') {
+      } else if (name === 'template new' && p === 'extends') {
         field = { kind: 'suggest', choices: objects(input.catalog, 'templates').map((t) => item(str(t, 'name'), str(t, 'description'))),
-          note: tr(fr, "Its settings are filled in below: change what the company wants different; what the base imposes cannot be changed.",
-            "Ses réglages sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas.") };
+          note: tr(fr, "Empty: a template from scratch. A base's settings are filled in below: change what the company wants different; what the base imposes cannot be changed.",
+            "Vide : un template de zéro. Les réglages d'une base sont remplis ci-dessous : changer ce que l'entreprise veut autrement ; ce que la base impose ne se change pas.") };
       } else if (name === 'component add' && p === 'type') {
         field = { kind: 'select', choices: type, note: projectTemplates(input.spec).length
           ? tr(fr, `The types of ${projectTemplates(input.spec).join(', ')}, the template of this project.`,

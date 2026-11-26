@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "component": "new_order_model",
   "type": "model",
   "layer": "p1_domain",

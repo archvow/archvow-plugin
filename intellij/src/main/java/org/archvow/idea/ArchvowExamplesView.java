@@ -63,7 +63,7 @@ final class ArchvowExamplesView extends JPanel {
             if (example != null) actions.copy(ArchvowExamples.command(view, example));
         });
         record.addActionListener(e -> actions.record(view == null ? "" : ArchvowGrammar.str(view, "component")));
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+        JPanel buttons = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
         buttons.add(openTest);
         buttons.add(copyCommand);
         JPanel answer = new JPanel(new BorderLayout(0, 6));
@@ -74,7 +74,7 @@ final class ArchvowExamplesView extends JPanel {
         JScrollPane listScroll = new JScrollPane(list);
         listScroll.setBorder(BorderFactory.createEmptyBorder());
         body.add(ArchvowSplitView.create(list, listScroll, answer), "examples");
-        JPanel none = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
+        JPanel none = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 6));
         none.add(empty);
         none.add(record);
         body.add(none, "empty");

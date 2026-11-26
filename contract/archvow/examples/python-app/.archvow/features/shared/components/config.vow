@@ -18,12 +18,14 @@ symbol load_config
 
 # --- decisions
 decision 1
+  id settings
   question "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?"
   answer "data_dir: str (required), log_level: str = \"INFO\""
   by noreply@anthropic.com
   on 2026-10-21T16:20:48.666456+00:00
 
 decision 2
+  id secrets
   question "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?"
   answer "None"
   by noreply@anthropic.com

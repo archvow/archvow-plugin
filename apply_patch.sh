@@ -43,3 +43,6 @@ git apply "$TEMP_FILE"
 
 # Overwrite original file
 # mv "$TEMP_FILE" "$INPUT_FILE"
+
+echo "Checking for whitespace errors..."
+git diff --check

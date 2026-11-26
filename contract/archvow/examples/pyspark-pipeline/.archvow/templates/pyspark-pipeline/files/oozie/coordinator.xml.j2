@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- When the {{ package }} workflow runs: once a day by default (frequency in job.properties). -->
+<coordinator-app name="{{ package }}-coordinator" frequency="${frequency}" start="${start}" end="${end}"
+                 timezone="UTC" xmlns="uri:oozie:coordinator:0.4">
+    <action>
+        <workflow>
+            <app-path>${appPath}/workflow.xml</app-path>
+        </workflow>
+    </action>
+</coordinator-app>

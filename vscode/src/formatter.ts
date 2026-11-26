@@ -20,8 +20,7 @@ class Out {
   html = '';
   heading(title: string, tone: Tone): void {
     this.html += `<div class="result-heading tone-border-${tone}"><span class="result-heading-icon tone-${tone}" aria-hidden="true">◆</span>`
-      + `<div class="result-heading-copy"><span class="result-heading-eyebrow">ARCHVOW · RESULT</span>`
-      + `<h3 class="tone-${tone}">${esc(title)}</h3></div></div>`;
+      + `<div class="result-heading-copy"><h3 class="tone-${tone}">${esc(title)}</h3></div></div>`;  // 1.2.0: the tab already says "Result"
   }
   section(label: string): void { this.html += `<h4 class="result-section">${esc(label)}</h4>`; }
   chips(chips: [string, Tone][]): void {
@@ -288,8 +287,8 @@ function catalog(out: Out, data: Json, fr: boolean): void {
   out.heading(tr(fr, 'Template catalog', 'Catalogue de modèles'), 'blue');
   out.chips([[templates.length + tr(fr, ' templates', ' modèles'), 'blue']]);
   if (templates.length === 0) {
-    out.paragraph(tr(fr, "No templates found. A company's templates come in a pack: archvow pack add <folder>.",
-      "Aucun modèle trouvé. Les modèles d'une entreprise viennent dans un pack : archvow pack add <dossier>."), 'muted');
+    out.paragraph(tr(fr, "No templates found. A company's template is given by its folder: archvow init <package> -t <folder>.",
+      "Aucun modèle trouvé. Le template d'une entreprise se donne par son dossier : archvow init <package> -t <dossier>."), 'muted');
     return;
   }
   templates.slice(0, 25).forEach((t) => out.card(str(t, 'name'), str(t, 'description'), 'blue', [
@@ -360,25 +359,35 @@ function initResult(out: Out, r: InitReport, fr: boolean): void {
 /** `archvow try --json` (2.1): a finished example copied to a scratch folder, the change an AI often makes, and
  *  what check says - each finding with its rule in words and what to do. */
 function tryResult(out: Out, r: Json, fr: boolean): void {
+  // 1.2.0: every word in the page's language (archvow try --language: the findings' names and what to do); the
+  // folder once, at the top; the change in the editor's font
   const errors = num(r, 'errors');
   const before = isObject(r.before) ? r.before : {};
+  const folder = str(r, 'folder');
+  const parts = folder.split(/[\\/]/).filter(Boolean);
+  const shortFolder = parts.length > 2 ? '…/' + parts.slice(-2).join('/') : folder;
+  const kind = (c: Json): string => {
+    const k = str(c, 'kind');
+    return k === 'new_module' ? tr(fr, 'new module', 'nouveau module') : k === 'import_added' ? tr(fr, 'one import added', 'un import ajouté') : str(c, 'change');
+  };
   out.heading(errors > 0 ? tr(fr, 'archvow caught both changes, before any review', 'archvow a attrapé les deux changements, avant toute relecture')
-    : tr(fr, 'archvow try', 'archvow try'), errors > 0 ? 'good' : 'warn');
+    : 'archvow try', errors > 0 ? 'good' : 'warn');
   out.paragraph(tr(fr, 'On a copy of the finished example, in a scratch folder. Your repository was not touched.',
     "Sur une copie de l'exemple fini, dans un dossier jetable. Ton dépôt n'a pas été touché."), 'muted');
-  // where it is, first (0.25.1): the folder archvow made, to open or delete
-  out.html += `<div class="result-entry-details try-folder"><div class="field result-detail"><span class="key">${esc(tr(fr, 'Copied to', 'Copié dans'))}</span>`
-    + `<span class="result-detail-value"><code>${esc(str(r, 'folder'))}</code></span></div></div>`;
+  out.html += `<div class="try-folder"><span class="key">${esc(tr(fr, 'Folder', 'Dossier'))}</span><code title="${esc(folder)}">${esc(shortFolder)}</code>`
+    + `<button class="link" data-a="tryOpen" data-path="${esc(folder)}">${esc(tr(fr, 'Open', 'Ouvrir'))}</button>`
+    + `<button class="link" data-a="copyText" data-text="${esc(folder)}">${esc(tr(fr, 'Copy path', 'Copier le chemin'))}</button>`
+    + `<button class="link" data-a="trySpec" data-path="${esc(folder)}">${esc(tr(fr, "Read the example's spec", "Lire la spec de l'exemple"))}</button></div>`;
   const changes = objects(r, 'changes');
   out.html += '<ol class="try-steps">'
-    + `<li><b>${esc(tr(fr, 'Copied the example', "Copié l'exemple"))}</b><span>${esc(str(r, 'example'))} · ${esc(num(before, 'errors') + num(before, 'warnings') === 0
+    + `<li><b>${esc(tr(fr, 'Copied the example', "Copié l'exemple"))}</b> <span>· ${esc(str(r, 'example'))} · ${esc(num(before, 'errors') + num(before, 'warnings') === 0
       ? tr(fr, 'all checks green', 'tous les contrôles au vert') : tr(fr, `${num(before, 'errors')} errors before`, `${num(before, 'errors')} erreurs avant`))}</span></li>`
-    + `<li><b>${esc(tr(fr, 'Made a change an AI often makes', 'Fait un changement que fait souvent une IA'))}</b><span>${esc(changes.map((c) => str(c, 'change')).join(', '))}</span></li>`
-    + `<li><b>${esc(tr(fr, `Ran Check: ${errors} error${errors === 1 ? '' : 's'}`, `Lancé Check : ${errors} erreur${errors === 1 ? '' : 's'}`))}</b><span>${esc(tr(fr, 'The commit and CI would stop here', "Le commit et la CI s'arrêteraient ici"))}</span></li></ol>`;
+    + `<li><b>${esc(tr(fr, 'Made a change an AI often makes', 'Fait un changement que fait souvent une IA'))}</b> <span>· ${esc(changes.map(kind).join(', '))}</span></li>`
+    + `<li><b>${esc(tr(fr, `Ran Check: ${errors} error${errors === 1 ? '' : 's'}`, `Lancé Check : ${errors} erreur${errors === 1 ? '' : 's'}`))}</b> <span>· ${esc(tr(fr, 'the commit and the CI would stop here', "le commit et la CI s'arrêteraient ici"))}</span></li></ol>`;
   out.section(tr(fr, 'The change', 'Le changement'));
-  out.html += '<pre class="try-change">' + changes.map((c) => esc(str(c, 'file')) + `   (${esc(str(c, 'change'))})
-`
-    + (Array.isArray(c.lines) ? c.lines : []).map((l: unknown) => '+     ' + esc(String(l))).join('\n')).join('\n') + '</pre>';
+  const shortcut = tr(fr, '# a shortcut to the code of another layer', '# un raccourci vers une autre couche');
+  out.html += '<div class="try-change">' + changes.map((c) => `<div class="try-file">${esc(str(c, 'file'))} <span class="muted">(${esc(kind(c))})</span></div>`
+    + (Array.isArray(c.lines) ? c.lines : []).map((l: unknown) => `<div class="try-add">+ ${esc(String(l).replace('# a shortcut to the code of another layer', shortcut))}</div>`).join('')).join('') + '</div>';
   out.paragraph(tr(fr, 'Both look harmless. Neither is in the spec: one module nobody decided on, and a shortcut across layers.',
     "Les deux ont l'air inoffensifs. Aucun n'est dans la spec : un module que personne n'a décidé, et un raccourci entre couches."));
   out.section(tr(fr, 'What caught it', "Ce qui l'a attrapé"));
@@ -386,11 +395,13 @@ function tryResult(out: Out, r: Json, fr: boolean): void {
     const file = str(v, 'file');
     const name = file.split('/').pop() ?? '';
     const where = str(v, 'code') + (name ? ' · ' + name + (num(v, 'line') ? ':' + num(v, 'line') : '') : '');
-    const fix = isObject(v.guide) ? str(v.guide, 'fix') : '';
-    out.card(str(v, 'title') || str(v, 'code'), where, str(v, 'severity') === 'error' ? 'bad' : 'warn',
-      fix ? [[tr(fr, 'What to do', 'Que faire'), fix]] : []);
+    const guide = isObject(v.guide) ? v.guide : {};
+    const fix = str(guide, 'fix');
+    const title = str(guide, 'title') || str(v, 'title') || str(v, 'code');
+    out.html += `<div class="card result-entry tone-border-${str(v, 'severity') === 'error' ? 'bad' : 'warn'} try-finding">`
+      + `<div class="try-finding-head"><b>${esc(title)}</b> <span class="muted">· ${esc(where)}</span></div>`
+      + (fix ? `<div class="try-fix"><span class="muted">${esc(tr(fr, 'What to do:', 'Que faire :'))}</span><span>${esc(fix).replace(/`([^`]+)`/g, '<code>$1</code>')}</span></div>` : '') + '</div>';
   }
-  out.paragraph(tr(fr, `The copy stays in ${str(r, 'folder')}: read the example's spec there.`, `La copie reste dans ${str(r, 'folder')} : lis-y la spec de l'exemple.`), 'muted');
 }
 
 // no heading of its own: the card around it already says "Command result" (it said it twice, 0.12.1)

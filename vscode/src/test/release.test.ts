@@ -8,6 +8,7 @@ import { test } from 'node:test';
 import { Command, DESTRUCTIVE, label, LONG_TEXT, READ_ONLY } from '../grammar';
 import { knownVersion } from '../model';
 import { requirement } from '../install';
+import { parseRange, placeOf } from '../compat';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const read = (...parts: string[]): string => fs.readFileSync(path.join(ROOT, ...parts), 'utf8');
@@ -69,6 +70,24 @@ test('one archvow: the contract\'s version is the one both plugins install, name
     const newest = read(ide, 'CHANGELOG.md').split(/^## /m)[1].replace(/\s+/g, ' ');
     assert.ok(newest.includes(`Built on archvow ${ARCHVOW}`), `${ide}/CHANGELOG.md`);
   }
+});
+
+test('one range: the archvow versions the plugins work with, said everywhere a person reads it (1.0.0)', () => {
+  const text = read('contract', 'archvow-range.txt').trim();
+  const range = parseRange(text);
+  assert.ok(range, `contract/archvow-range.txt: ${text}`);
+  assert.equal(placeOf(ARCHVOW, range), 'in', 'the archvow the plugins are tested with is in their range');
+  assert.equal(range.low[0], Number(read('contract', 'cli', 'contract.txt').trim().split('.')[0]), 'the range is the contract\'s MAJOR');
+  assert.ok(prose('README.md').includes(`They work with archvow ${text}`), 'README: Versions');
+  assert.ok(prose('vscode', 'README.md').includes(`this extension works with archvow ${text}`), 'vscode/README.md (Marketplace)');
+  const xml = read('intellij', 'src', 'main', 'resources', 'META-INF', 'plugin.xml').replace(/&gt;/g, '>').replace(/&lt;/g, '<');
+  assert.ok(xml.includes(`this plugin works with archvow ${text}`), 'plugin.xml <description> (Marketplace)');
+  for (const ide of ['vscode', 'intellij']) {
+    const newest = read(ide, 'CHANGELOG.md').split(/^## /m)[1].replace(/\s+/g, ' ');
+    assert.ok(newest.includes(`Works with archvow ${text}`), `${ide}/CHANGELOG.md`);
+  }
+  assert.match(read('vscode', 'scripts', 'sync-contract.js'), /archvow-range\.txt/, 'packaged with VS Code');
+  assert.match(read('intellij', 'build.gradle.kts'), /include\("archvow-range\.txt"\)/, 'packaged with IntelliJ');
 });
 
 test('both builds package the same files of the contract (what archvow says about itself)', () => {

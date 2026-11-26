@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "digest": "<digest>",
   "project": {
     "schema_version": 2,
@@ -10,7 +10,7 @@
     "containers": [
       {
         "id": "invoicing",
-        "template": "archvow/python-app@2.8.0",
+        "template": "python-app",
         "package": "invoicing",
         "path": "src/invoicing",
         "components": [
@@ -38,12 +38,14 @@
               {
                 "question": "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?",
                 "answer": "data_dir: str (required), log_level: str = \"INFO\"",
+                "id": "settings",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:48.666456+00:00"
               },
               {
                 "question": "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?",
                 "answer": "None",
+                "id": "secrets",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:48.945785+00:00"
               }
@@ -70,6 +72,7 @@
               {
                 "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?",
                 "answer": "stderr, one line per event: time, level, message",
+                "id": "destination",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:49.235795+00:00"
               }
@@ -96,24 +99,28 @@
               {
                 "question": "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?",
                 "answer": "All fields required",
+                "id": "fields",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:49.515640+00:00"
               },
               {
                 "question": "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?",
                 "answer": "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty",
+                "id": "valid_values",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:49.798659+00:00"
               },
               {
                 "question": "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?",
                 "answer": "None",
+                "id": "never_shown",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:50.138638+00:00"
               },
               {
                 "question": "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?",
                 "answer": "Frozen: a change builds a new one (dataclasses.replace)",
+                "id": "frozen",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:50.522554+00:00"
               }
@@ -146,12 +153,14 @@
               {
                 "question": "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?",
                 "answer": "Exit code 3",
+                "id": "code",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:50.822682+00:00"
               },
               {
                 "question": "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?",
                 "answer": "A short fixed message, without personal data or secrets",
+                "id": "message",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:51.141043+00:00"
               }
@@ -180,24 +189,28 @@
               {
                 "question": "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?",
                 "answer": "One file NUMBER.json in data_dir, the fields of the invoice, amount as a string",
+                "id": "storage",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:51.531837+00:00"
               },
               {
                 "question": "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?",
                 "answer": "Return None; the service raises the domain error",
+                "id": "not_found",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:51.850312+00:00"
               },
               {
                 "question": "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?",
                 "answer": "Write to a temporary file next to it, then rename it",
+                "id": "crash_write",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:52.163044+00:00"
               },
               {
                 "question": "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?",
                 "answer": "The last one wins: marking paid twice gives the same file",
+                "id": "same_record",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:52.567662+00:00"
               }
@@ -241,24 +254,28 @@
               {
                 "question": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
                 "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
+                "id": "steps",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:52.845862+00:00"
               },
               {
                 "question": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
                 "answer": "InvoiceNotFoundError",
+                "id": "not_found",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:53.155922+00:00"
               },
               {
                 "question": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
                 "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
+                "id": "twice",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:53.455983+00:00"
               },
               {
                 "question": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
                 "answer": "Only one change, one save: nothing to undo",
+                "id": "all_or_nothing",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:53.785062+00:00"
               }
@@ -301,18 +318,21 @@
               {
                 "question": "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?",
                 "answer": "Exit code 2 with the usage message (argparse)",
+                "id": "invalid_arguments",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:54.114836+00:00"
               },
               {
                 "question": "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?",
                 "answer": "0 ok, 1 error, 2 bad arguments, 3 not found",
+                "id": "code",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:54.414007+00:00"
               },
               {
                 "question": "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?",
                 "answer": "The invoice on one line on stdout; errors on stderr",
+                "id": "output",
                 "by": "noreply@anthropic.com",
                 "on": "2026-10-21T16:20:54.764143+00:00"
               }
@@ -341,6 +361,7 @@
     "ai_tools": [
       "claude-code"
     ],
+    "ai_runs": [],
     "dependencies": [],
     "compliance": [
       "gdpr",
@@ -367,6 +388,18 @@
       "branch_naming": "gitflow",
       "pip_index_url": "",
       "ci_image": ""
+    },
+    "templates": {
+      "python-app": {
+        "version": "3.4.1",
+        "source": "archvow",
+        "digest": "0d991b44d9d7"
+      },
+      "python-base": {
+        "version": "3.4.1",
+        "source": "archvow",
+        "digest": "d55071fac333"
+      }
     },
     "features": [
       {
@@ -1913,15 +1946,19 @@
   "catalog": {
     "templates": [
       {
-        "name": "archvow/fastapi-service",
-        "pack": "archvow",
-        "version": "2.8.0",
+        "name": "python-app",
+        "version": "3.4.1",
+        "default": true,
+        "chain": [
+          "python-base",
+          "python-app"
+        ],
         "language": "python",
-        "kind": "web-service",
-        "style": "layered (common -> domain -> io -> services -> api)",
-        "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
+        "kind": "application",
+        "style": "layered (common -> domain -> io -> services -> entrypoints)",
+        "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -2103,6 +2140,536 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "rules",
+            "ask": true,
+            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
+            "multiple": true,
+            "choices_from": "rule_families",
+            "default": "ARCH,STYLE,GDPR,TST",
+            "choices": [
+              "ARCH",
+              "STYLE",
+              "DORA",
+              "GDPR",
+              "GLBA",
+              "US-PRIVACY",
+              "TST",
+              "all",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "dependencies",
+            "prompt": "Approved third-party packages besides pytest and hypothesis, comma-separated, as imported (e.g. requests, yaml)",
+            "default": "",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "briefs",
+            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
+            "default": "briefs",
+            "multiple": true,
+            "required": false
+          },
+          {
+            "id": "max_components",
+            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "max_code_lines",
+            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
+            "default": "",
+            "pattern": "^([1-9][0-9]*)?$",
+            "pattern_hint": "a whole number, or empty for no limit",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "git_hooks",
+            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
+            "default": "githooks",
+            "choices": [
+              "githooks",
+              "pre-commit",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "branch_naming",
+            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
+            "default": "gitflow",
+            "choices": [
+              "gitflow",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ticket_pattern",
+            "ask": true,
+            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
+            "default": "[A-Z][A-Z0-9]*-[0-9]+",
+            "pattern": "^[^'\"\\s/]+$",
+            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "pip_index_url",
+            "prompt": "Internal Python package index for CI (empty = public PyPI)",
+            "default": "",
+            "pattern": "^(https?://\\S+)?$",
+            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci_image",
+            "prompt": "Internal CI image with Python and git (empty = public python image)",
+            "default": "",
+            "pattern": "^(\\S+)?$",
+            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
+            "required": false,
+            "multiple": false
+          }
+        ],
+        "layers": [
+          {
+            "name": "p0_common",
+            "description": "Shared foundations - settings, logging, small helpers every layer may use",
+            "may_import": []
+          },
+          {
+            "name": "p1_domain",
+            "description": "Business rules - data classes, domain errors and pure functions, no I/O",
+            "may_import": [
+              "p0_common"
+            ]
+          },
+          {
+            "name": "p2_io",
+            "description": "Repositories and clients - the only place that reads and writes files, databases and other services",
+            "may_import": [
+              "p0_common",
+              "p1_domain"
+            ]
+          },
+          {
+            "name": "p3_services",
+            "description": "Services - one operation each, calling repositories and clients and applying the domain's rules",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p2_io"
+            ]
+          },
+          {
+            "name": "p4_entrypoints",
+            "description": "Entry points - the command line, which parses arguments, calls a service and sets the exit code",
+            "may_import": [
+              "p0_common",
+              "p1_domain",
+              "p3_services"
+            ]
+          }
+        ],
+        "component_types": {
+          "foundation": {
+            "layer": "p0_common",
+            "description": "Template-owned foundation module.",
+            "addable": false,
+            "name_pattern": null,
+            "name_hint": "",
+            "module": null,
+            "symbols": [],
+            "implicit_dependency": true,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "utility": {
+            "layer": "p0_common",
+            "description": "A small helper every layer may use (no business rule, no I/O beyond what it says).",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. parse_date",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "model": {
+            "layer": "p1_domain",
+            "description": "A data class - the shape and the validation of one kind of data.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, e.g. invoice",
+            "module": "{name}_model",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "error": {
+            "layer": "p1_domain",
+            "description": "A domain error - raised by the domain and the services, turned into a message and an exit code by the entry point.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "what went wrong, e.g. invoice_not_found",
+            "module": "{name}_error",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Error"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "logic": {
+            "layer": "p1_domain",
+            "description": "A pure business rule - a function of its inputs, no I/O.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. compute_total",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "repository": {
+            "layer": "p2_io",
+            "description": "Stores and finds one kind of data (files, a database).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the data, plural, e.g. invoices",
+            "module": "{name}_repository",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Repository"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "client": {
+            "layer": "p2_io",
+            "description": "Talks to one other system (an HTTP API, a mail server, a message broker...).",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the other system, e.g. mailer",
+            "module": "{name}_client",
+            "symbols": [
+              {
+                "kind": "class",
+                "name": "{Name}Client"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          },
+          "service": {
+            "layer": "p3_services",
+            "description": "One operation - calls repositories and clients and applies the domain's rules.",
+            "addable": true,
+            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
+            "name_hint": "verb_noun, e.g. send_invoice",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "cli": {
+            "layer": "p4_entrypoints",
+            "description": "The command line - parses the arguments, calls a service, prints the result, sets the exit code.",
+            "addable": true,
+            "name_pattern": "^[a-z][a-z0-9_]*$",
+            "name_hint": "the program, e.g. invoices",
+            "module": "{name}_cli",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "main",
+                "signature": "(argv: Sequence[str] | None = None) -> int"
+              }
+            ],
+            "implicit_dependency": false,
+            "signature_overridable": false,
+            "kinds": []
+          }
+        },
+        "source": "archvow",
+        "abstract": false
+      },
+      {
+        "name": "fastapi-service",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "fastapi-service"
+        ],
+        "language": "python",
+        "kind": "web-service",
+        "style": "layered (common -> domain -> io -> services -> api)",
+        "description": "FastAPI web service. Business rules live in a pure domain, the database and other services behind repositories and clients, each operation in a service, and HTTP only in the API layer.",
+        "extends": [
+          "python-base"
+        ],
+        "questions": [
+          {
+            "id": "language",
+            "ask": true,
+            "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
+            "default": "en",
+            "choices": [
+              "en",
+              "fr"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "python_version",
+            "prompt": "Minimum Python version",
+            "default": "3.12",
+            "choices": [
+              "3.11",
+              "3.12",
+              "3.13"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "line_length",
+            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
+            "default": "88",
+            "choices": [
+              "79",
+              "88",
+              "99"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "platform",
+            "ask": true,
+            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
+            "default": "gitlab",
+            "choices": [
+              "gitlab",
+              "github",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ci",
+            "ask": true,
+            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
+            "default": "auto",
+            "choices": [
+              "auto",
+              "gitlab",
+              "github",
+              "jenkins",
+              "none"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "architects",
+            "ask": true,
+            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
+            "required": true,
+            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
+            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
+            "multiple": false
+          },
+          {
+            "id": "ai_tools",
+            "ask": true,
+            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
+            "default": "copilot",
+            "multiple": true,
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
+              "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
+              "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "reviewers",
+            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
+            "default": "",
+            "multiple": true,
+            "choices_from": "agents",
+            "suggestions": [
+              "aider",
+              "amazonq",
+              "antigravity",
+              "claude-code",
+              "cline",
+              "codex",
+              "continue",
+              "copilot",
+              "cursor",
+              "gemini-cli",
+              "jetbrains-ai-chat",
+              "junie",
+              "kiro",
+              "opencode",
+              "roo",
+              "windsurf",
+              "none"
+            ],
+            "required": false
+          },
+          {
+            "id": "sonar",
+            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
+            "default": "no",
+            "choices": [
+              "no",
+              "yes"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "auto_approve",
+            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
+            "default": "yes",
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "mode",
+            "ask": true,
+            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
+            "default": "strict",
+            "choices": [
+              "strict",
+              "guided",
+              "free"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "sandbox",
+            "ask": true,
+            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
+            "default": "no",
+            "default_from": {
+              "mode": {
+                "strict": "yes"
+              }
+            },
+            "choices": [
+              "yes",
+              "no"
+            ],
+            "required": false,
+            "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -2288,23 +2855,6 @@
             "signature_overridable": true,
             "kinds": []
           },
-          "dependency": {
-            "layer": "p0_common",
-            "description": "Something routes receive through Depends (the database session, the current user...).",
-            "addable": true,
-            "name_pattern": "^get_[a-z0-9_]+$",
-            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
-            "module": "{name}",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "{name}"
-              }
-            ],
-            "implicit_dependency": true,
-            "signature_overridable": true,
-            "kinds": []
-          },
           "model": {
             "layer": "p1_domain",
             "description": "A Pydantic model - the shape and the validation of one kind of data.",
@@ -2353,6 +2903,23 @@
               }
             ],
             "implicit_dependency": false,
+            "signature_overridable": true,
+            "kinds": []
+          },
+          "dependency": {
+            "layer": "p0_common",
+            "description": "Something routes receive through Depends (the database session, the current user...).",
+            "addable": true,
+            "name_pattern": "^get_[a-z0-9_]+$",
+            "name_hint": "get_<what it provides>, e.g. get_session, get_current_user",
+            "module": "{name}",
+            "symbols": [
+              {
+                "kind": "function",
+                "name": "{name}"
+              }
+            ],
+            "implicit_dependency": true,
             "signature_overridable": true,
             "kinds": []
           },
@@ -2444,18 +3011,23 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/fastapi-service"
+        "source": "<archvow>/templates/fastapi-service",
+        "abstract": false
       },
       {
-        "name": "archvow/langgraph-agent",
-        "pack": "archvow",
-        "version": "2.8.0",
+        "name": "langgraph-agent",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "langgraph-agent"
+        ],
         "language": "python",
         "kind": "ai-application",
         "style": "layered (common -> domain -> tools -> agents -> app)",
         "description": "AI assistant or workflow on LangGraph and LangChain: the models behind one foundation, tools and retrieval of company data behind access rights, agents and graphs that ask a person before they act, served by FastAPI or as an MCP server. Fake models in the tests, never a real one.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -2637,6 +3209,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -3088,18 +3678,23 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/langgraph-agent"
+        "source": "<archvow>/templates/langgraph-agent",
+        "abstract": false
       },
       {
-        "name": "archvow/pyspark-pipeline",
-        "pack": "archvow",
-        "version": "2.8.0",
+        "name": "pyspark-pipeline",
+        "version": "3.4.1",
+        "default": false,
+        "chain": [
+          "python-base",
+          "pyspark-pipeline"
+        ],
         "language": "python",
         "kind": "data-pipeline",
         "style": "layered (common -> domain -> io -> jobs -> entrypoints)",
         "description": "Batch PySpark pipeline. Pure, lazy DataFrame transformations are isolated from I/O, sessions and orchestration so each piece is testable on its own.",
         "extends": [
-          "archvow/python-base"
+          "python-base"
         ],
         "questions": [
           {
@@ -3281,6 +3876,24 @@
             ],
             "required": false,
             "multiple": false
+          },
+          {
+            "id": "ai_runs",
+            "ask": true,
+            "prompt": "The AI work archvow may start itself with the approved AI assistants (drafts = Draft with AI on every answer, the person saves it as theirs; skills = Run for draft from a brief, find missing questions, find risks - what it adds is the AI's, To review; none). Anyone can still copy the instructions to their own AI; with sandbox yes, archvow starts them only from inside the sandbox",
+            "default": "drafts,skills",
+            "default_from": {
+              "mode": {
+                "strict": "none"
+              }
+            },
+            "multiple": true,
+            "choices": [
+              "drafts",
+              "skills",
+              "none"
+            ],
+            "required": false
           },
           {
             "id": "rules",
@@ -3643,544 +4256,58 @@
             "kinds": []
           }
         },
-        "source": "<archvow>/templates/pyspark-pipeline"
-      },
-      {
-        "name": "archvow/python-app",
-        "pack": "archvow",
-        "version": "2.8.0",
-        "language": "python",
-        "kind": "application",
-        "style": "layered (common -> domain -> io -> services -> entrypoints)",
-        "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
-        "extends": [
-          "archvow/python-base"
-        ],
-        "questions": [
-          {
-            "id": "language",
-            "ask": true,
-            "prompt": "Language of the generated documents (README, AGENTS.md, guide, the docs and tasks; archvow's commands stay English). One per project",
-            "default": "en",
-            "choices": [
-              "en",
-              "fr"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "python_version",
-            "prompt": "Minimum Python version",
-            "default": "3.12",
-            "choices": [
-              "3.11",
-              "3.12",
-              "3.13"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "line_length",
-            "prompt": "Maximum line length (PEP 8 says 79; teams may agree on up to 99)",
-            "default": "88",
-            "choices": [
-              "79",
-              "88",
-              "99"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "platform",
-            "ask": true,
-            "prompt": "Where the code lives (decides CODEOWNERS and the branch rules that make the architects' approval binding)",
-            "default": "gitlab",
-            "choices": [
-              "gitlab",
-              "github",
-              "none"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ci",
-            "ask": true,
-            "prompt": "What runs the checks and the tests (auto = the platform's own CI - GitLab CI or GitHub Actions; jenkins works with any platform)",
-            "default": "auto",
-            "choices": [
-              "auto",
-              "gitlab",
-              "github",
-              "jenkins",
-              "none"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "architects",
-            "ask": true,
-            "prompt": "Architects who approve guard changes (CODEOWNERS users or groups, e.g. @acme/architects)",
-            "required": true,
-            "pattern": "^@[A-Za-z0-9_./-]+( +@[A-Za-z0-9_./-]+)*$",
-            "pattern_hint": "one or more @user or @group/subgroup, separated by spaces",
-            "multiple": false
-          },
-          {
-            "id": "ai_tools",
-            "ask": true,
-            "prompt": "Approved AI assistants, comma-separated (only these get instructions; others are flagged)",
-            "default": "copilot",
-            "multiple": true,
-            "choices_from": "agents",
-            "suggestions": [
-              "aider",
-              "amazonq",
-              "antigravity",
-              "claude-code",
-              "cline",
-              "codex",
-              "continue",
-              "copilot",
-              "cursor",
-              "gemini-cli",
-              "jetbrains-ai-chat",
-              "junie",
-              "kiro",
-              "opencode",
-              "roo",
-              "windsurf",
-              "none"
-            ],
-            "required": false
-          },
-          {
-            "id": "reviewers",
-            "prompt": "Approved AI reviewers, comma-separated (they read the change and write a report, never code; never the tool that wrote the code; empty = no AI review)",
-            "default": "",
-            "multiple": true,
-            "choices_from": "agents",
-            "suggestions": [
-              "aider",
-              "amazonq",
-              "antigravity",
-              "claude-code",
-              "cline",
-              "codex",
-              "continue",
-              "copilot",
-              "cursor",
-              "gemini-cli",
-              "jetbrains-ai-chat",
-              "junie",
-              "kiro",
-              "opencode",
-              "roo",
-              "windsurf",
-              "none"
-            ],
-            "required": false
-          },
-          {
-            "id": "sonar",
-            "prompt": "Analyse the code with SonarQube (sonar-project.properties, test reports, a scan step in the CI)",
-            "default": "no",
-            "choices": [
-              "no",
-              "yes"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "auto_approve",
-            "prompt": "Let the approved AI assistants run the safe commands (archvow check/next/show, ruff, pytest, git status/diff/log...) and edit the code in src/ and tests/ without asking each time (no = they ask; the spec commands, the guard files, commits and pushes are never auto-approved)",
-            "default": "yes",
-            "choices": [
-              "yes",
-              "no"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "mode",
-            "ask": true,
-            "prompt": "How much the AI decides on its own (strict = every open question stops the code until a person answers; guided = the AI takes the suggested answer or proposes its own and goes on, a person reviews before the release; free = the AI decides and goes on, its choices are listed, never blocking)",
-            "default": "strict",
-            "choices": [
-              "strict",
-              "guided",
-              "free"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "sandbox",
-            "ask": true,
-            "prompt": "Refuse to run inside an AI agent that is not in a sandbox (yes = an agent that can write outside the project is stopped; whatever you choose, an agent in YOLO mode is always stopped)",
-            "default": "no",
-            "default_from": {
-              "mode": {
-                "strict": "yes"
-              }
-            },
-            "choices": [
-              "yes",
-              "no"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "rules",
-            "ask": true,
-            "prompt": "Rules archvow check applies (several, all or none); a few safety checks always run whatever you choose",
-            "multiple": true,
-            "choices_from": "rule_families",
-            "default": "ARCH,STYLE,GDPR,TST",
-            "choices": [
-              "ARCH",
-              "STYLE",
-              "DORA",
-              "GDPR",
-              "GLBA",
-              "US-PRIVACY",
-              "TST",
-              "all",
-              "none"
-            ],
-            "required": false
-          },
-          {
-            "id": "dependencies",
-            "prompt": "Approved third-party packages besides pytest and hypothesis, comma-separated, as imported (e.g. requests, yaml)",
-            "default": "",
-            "multiple": true,
-            "required": false
-          },
-          {
-            "id": "briefs",
-            "prompt": "Folders holding the briefs the spec is drawn from with --from (user stories, functional specs, a Spec Kit `specs` folder), comma-separated (e.g. briefs,specs)",
-            "default": "briefs",
-            "multiple": true,
-            "required": false
-          },
-          {
-            "id": "max_components",
-            "prompt": "The most components this project may hold, foundations included (empty = no limit; past it, split the project) (e.g. 40)",
-            "default": "",
-            "pattern": "^([1-9][0-9]*)?$",
-            "pattern_hint": "a whole number, or empty for no limit",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "max_code_lines",
-            "prompt": "The most lines of code under the package's folder - not blank, comments or docstrings; tests not counted (empty = no limit) (e.g. 8000)",
-            "default": "",
-            "pattern": "^([1-9][0-9]*)?$",
-            "pattern_hint": "a whole number, or empty for no limit",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "git_hooks",
-            "prompt": "Local checks before each commit (githooks = plain Git hook, no extra tool, no download)",
-            "default": "githooks",
-            "choices": [
-              "githooks",
-              "pre-commit",
-              "none"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "branch_naming",
-            "prompt": "Branch names (gitflow = feature/<ticket>-<short-name>, hotfix/<ticket>-<short-name>, release/<version>; none = free)",
-            "default": "gitflow",
-            "choices": [
-              "gitflow",
-              "none"
-            ],
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ticket_pattern",
-            "ask": true,
-            "prompt": "How this project's tickets are written, as a regular expression - branch names and `component add -s` must follow it (e.g. FATTRIB-[0-9]+ for FATTRIB-002, US-[0-9]+ for US-001; Enter = any Jira-style key)",
-            "default": "[A-Z][A-Z0-9]*-[0-9]+",
-            "pattern": "^[^'\"\\s/]+$",
-            "pattern_hint": "a regular expression without quotes, spaces or slashes, such as [A-Z]+-[0-9]+",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "pip_index_url",
-            "prompt": "Internal Python package index for CI (empty = public PyPI)",
-            "default": "",
-            "pattern": "^(https?://\\S+)?$",
-            "pattern_hint": "an http(s) URL such as https://nexus.acme.local/repository/pypi/simple, or empty",
-            "required": false,
-            "multiple": false
-          },
-          {
-            "id": "ci_image",
-            "prompt": "Internal CI image with Python and git (empty = public python image)",
-            "default": "",
-            "pattern": "^(\\S+)?$",
-            "pattern_hint": "an image reference such as registry.acme.local/data/python-spark:3.12, or empty",
-            "required": false,
-            "multiple": false
-          }
-        ],
-        "layers": [
-          {
-            "name": "p0_common",
-            "description": "Shared foundations - settings, logging, small helpers every layer may use",
-            "may_import": []
-          },
-          {
-            "name": "p1_domain",
-            "description": "Business rules - data classes, domain errors and pure functions, no I/O",
-            "may_import": [
-              "p0_common"
-            ]
-          },
-          {
-            "name": "p2_io",
-            "description": "Repositories and clients - the only place that reads and writes files, databases and other services",
-            "may_import": [
-              "p0_common",
-              "p1_domain"
-            ]
-          },
-          {
-            "name": "p3_services",
-            "description": "Services - one operation each, calling repositories and clients and applying the domain's rules",
-            "may_import": [
-              "p0_common",
-              "p1_domain",
-              "p2_io"
-            ]
-          },
-          {
-            "name": "p4_entrypoints",
-            "description": "Entry points - the command line, which parses arguments, calls a service and sets the exit code",
-            "may_import": [
-              "p0_common",
-              "p1_domain",
-              "p3_services"
-            ]
-          }
-        ],
-        "component_types": {
-          "foundation": {
-            "layer": "p0_common",
-            "description": "Template-owned foundation module.",
-            "addable": false,
-            "name_pattern": null,
-            "name_hint": "",
-            "module": null,
-            "symbols": [],
-            "implicit_dependency": true,
-            "signature_overridable": false,
-            "kinds": []
-          },
-          "utility": {
-            "layer": "p0_common",
-            "description": "A small helper every layer may use (no business rule, no I/O beyond what it says).",
-            "addable": true,
-            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
-            "name_hint": "verb_noun, e.g. parse_date",
-            "module": "{name}",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "{name}"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": true,
-            "kinds": []
-          },
-          "model": {
-            "layer": "p1_domain",
-            "description": "A data class - the shape and the validation of one kind of data.",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "the data, e.g. invoice",
-            "module": "{name}_model",
-            "symbols": [
-              {
-                "kind": "class",
-                "name": "{Name}"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": []
-          },
-          "error": {
-            "layer": "p1_domain",
-            "description": "A domain error - raised by the domain and the services, turned into a message and an exit code by the entry point.",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "what went wrong, e.g. invoice_not_found",
-            "module": "{name}_error",
-            "symbols": [
-              {
-                "kind": "class",
-                "name": "{Name}Error"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": []
-          },
-          "logic": {
-            "layer": "p1_domain",
-            "description": "A pure business rule - a function of its inputs, no I/O.",
-            "addable": true,
-            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
-            "name_hint": "verb_noun, e.g. compute_total",
-            "module": "{name}",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "{name}"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": true,
-            "kinds": []
-          },
-          "repository": {
-            "layer": "p2_io",
-            "description": "Stores and finds one kind of data (files, a database).",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "the data, plural, e.g. invoices",
-            "module": "{name}_repository",
-            "symbols": [
-              {
-                "kind": "class",
-                "name": "{Name}Repository"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": []
-          },
-          "client": {
-            "layer": "p2_io",
-            "description": "Talks to one other system (an HTTP API, a mail server, a message broker...).",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "the other system, e.g. mailer",
-            "module": "{name}_client",
-            "symbols": [
-              {
-                "kind": "class",
-                "name": "{Name}Client"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": []
-          },
-          "service": {
-            "layer": "p3_services",
-            "description": "One operation - calls repositories and clients and applies the domain's rules.",
-            "addable": true,
-            "name_pattern": "^[a-z]+_[a-z0-9_]+$",
-            "name_hint": "verb_noun, e.g. send_invoice",
-            "module": "{name}",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "{name}"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": true,
-            "kinds": []
-          },
-          "cli": {
-            "layer": "p4_entrypoints",
-            "description": "The command line - parses the arguments, calls a service, prints the result, sets the exit code.",
-            "addable": true,
-            "name_pattern": "^[a-z][a-z0-9_]*$",
-            "name_hint": "the program, e.g. invoices",
-            "module": "{name}_cli",
-            "symbols": [
-              {
-                "kind": "function",
-                "name": "main",
-                "signature": "(argv: Sequence[str] | None = None) -> int"
-              }
-            ],
-            "implicit_dependency": false,
-            "signature_overridable": false,
-            "kinds": []
-          }
-        },
-        "source": "<archvow>/templates/python-app"
+        "source": "<archvow>/templates/pyspark-pipeline",
+        "abstract": false
       }
     ],
-    "packs": [
+    "project_templates": [
       {
-        "name": "archvow",
-        "version": "2.8.0",
-        "description": "The templates, agents and languages archvow ships.",
-        "archvow": "",
-        "builtin": true,
-        "templates": [
-          "fastapi-service",
-          "langgraph-agent",
-          "pyspark-pipeline",
-          "python-app",
+        "name": "python-app",
+        "version": "3.4.1",
+        "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
+        "archvow": ">=3.4,<4",
+        "languages": [
+          "en",
+          "fr"
+        ],
+        "extends": [
           "python-base"
         ],
-        "agents": [
-          "aider",
-          "amazonq",
-          "antigravity",
-          "claude-code",
-          "cline",
-          "codex",
-          "continue",
-          "copilot",
-          "cursor",
-          "gemini-cli",
-          "jetbrains-ai-chat",
-          "junie",
-          "kiro",
-          "opencode",
-          "roo",
-          "windsurf"
+        "abstract": false,
+        "agents": [],
+        "rule_families": [],
+        "regimes": [],
+        "source": "archvow",
+        "digest": "0d991b44d9d7"
+      },
+      {
+        "name": "python-base",
+        "version": "3.4.1",
+        "description": "Shared answers, guards and CI of the Python templates.",
+        "archvow": ">=3.4,<4",
+        "languages": [
+          "en",
+          "fr"
         ],
+        "extends": [],
+        "abstract": true,
+        "agents": [],
         "rule_families": [],
         "regimes": [
           "dora",
           "gdpr",
           "glba",
           "us-privacy"
-        ]
+        ],
+        "source": "archvow",
+        "digest": "d55071fac333"
       }
     ],
     "agents": [
       {
         "name": "aider",
         "title": "Aider",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4197,13 +4324,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "amazonq",
         "title": "Amazon Q Developer",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4220,13 +4349,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "antigravity",
         "title": "Google Antigravity",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4246,13 +4377,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "claude-code",
         "title": "Claude Code",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills",
@@ -4284,13 +4417,15 @@
           "fix": "start Claude Code with its sandbox on (/sandbox; on Windows inside WSL2) and without --dangerously-skip-permissions or --permission-mode bypassPermissions"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "cline",
         "title": "Cline",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4307,13 +4442,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "codex",
         "title": "OpenAI Codex",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4338,13 +4475,15 @@
           "fix": "start Codex with --sandbox workspace-write (its default) and without --yolo or --dangerously-bypass-approvals-and-sandbox"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "continue",
         "title": "Continue",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4363,13 +4502,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "copilot",
         "title": "GitHub Copilot",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4402,13 +4543,15 @@
           "fix": "run Copilot inside a container (the CLI has no sandbox of its own; in VS Code, a dev container) and start it without --yolo, --allow-all or --allow-all-tools"
         },
         "review": true,
+        "draft": true,
+        "skill": true,
         "seen": true,
         "unseen": "in JetBrains IDEs (the Copilot plugin sets no variable archvow knows)"
       },
       {
         "name": "cursor",
         "title": "Cursor",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4438,13 +4581,15 @@
           "fix": "in Cursor, choose a run mode with the sandbox on (not Run Everything); start cursor-agent without --force or --yolo"
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": ""
       },
       {
         "name": "gemini-cli",
         "title": "Gemini CLI",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4462,13 +4607,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": true,
+        "skill": true,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "jetbrains-ai-chat",
         "title": "JetBrains AI chat, with its own built-in assistant",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4487,13 +4634,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "junie",
         "title": "JetBrains Junie",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4515,13 +4664,15 @@
           "fix": "start Junie CLI in its sandbox, with brave mode off"
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": true,
         "unseen": "in the IDE plugin (it sets no variable archvow knows)"
       },
       {
         "name": "kiro",
         "title": "Kiro",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4538,13 +4689,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "opencode",
         "title": "OpenCode",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4562,13 +4715,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "roo",
         "title": "Roo Code",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4585,13 +4740,15 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       },
       {
         "name": "windsurf",
         "title": "Windsurf",
-        "pack": "archvow",
+        "source": "archvow",
         "standard": false,
         "skills": [
           ".agents/skills"
@@ -4609,6 +4766,8 @@
           "fix": ""
         },
         "review": false,
+        "draft": false,
+        "skill": false,
         "seen": false,
         "unseen": ""
       }
@@ -4618,7 +4777,7 @@
         "id": "dora",
         "name": "DORA",
         "kind": "resilience",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "DORA",
         "letter": "O",
         "default": false,
@@ -4640,7 +4799,7 @@
         "id": "gdpr",
         "name": "GDPR",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "GDPR",
         "letter": "P",
         "default": true,
@@ -4659,7 +4818,7 @@
         "id": "glba",
         "name": "GLBA",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "GLBA",
         "letter": "G",
         "default": false,
@@ -4683,7 +4842,7 @@
         "id": "us-privacy",
         "name": "US-PRIVACY",
         "kind": "privacy",
-        "pack": "archvow",
+        "template": "python-base",
         "prefix": "USP",
         "letter": "U",
         "default": false,
@@ -4705,7 +4864,51 @@
       }
     ]
   },
-  "packs": [],
+  "templates": [
+    {
+      "name": "python-app",
+      "version": "3.4.1",
+      "description": "Python application or library, no framework imposed. Business rules live in a pure domain, files, databases and other services behind repositories and clients, each operation in a service, the command line in an entry point. src layout, pyproject.toml, ruff, pytest, mypy.",
+      "archvow": ">=3.4,<4",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "extends": [
+        "python-base"
+      ],
+      "abstract": false,
+      "agents": [],
+      "rule_families": [],
+      "regimes": [],
+      "source": "archvow",
+      "state": "ok",
+      "why": ""
+    },
+    {
+      "name": "python-base",
+      "version": "3.4.1",
+      "description": "Shared answers, guards and CI of the Python templates.",
+      "archvow": ">=3.4,<4",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "extends": [],
+      "abstract": true,
+      "agents": [],
+      "rule_families": [],
+      "regimes": [
+        "dora",
+        "gdpr",
+        "glba",
+        "us-privacy"
+      ],
+      "source": "archvow",
+      "state": "ok",
+      "why": ""
+    }
+  ],
   "first_steps": [
     {
       "step": "foundations",
@@ -4719,21 +4922,33 @@
       "title": "Add a feature",
       "detail": "What the product does",
       "command": "archvow feature add <name> -d \"what the product does\"",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Feature",
+        "command": "archvow feature add <name> -d \"what the product does\""
+      }
     },
     {
       "step": "component",
-      "title": "Add its first component and answer its decisions",
-      "detail": "Next then shows it ready to build",
+      "title": "Add the feature's components and answer their decisions",
+      "detail": "Their decisions are made",
       "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices",
-      "done": true
+      "done": true,
+      "also": {
+        "label": "+ Component",
+        "command": "archvow component add <type> <name> -d \"what it must do\" --feature invoices"
+      }
     },
     {
       "step": "build",
-      "title": "Build it, then Check",
-      "detail": "Its code and tests, checked against the spec",
+      "title": "Build them, then Check",
+      "detail": "Their code and tests, checked against the spec",
       "command": "archvow check",
-      "done": true
+      "done": true,
+      "progress": {
+        "done": 5,
+        "total": 5
+      }
     },
     {
       "step": "commit",
@@ -4742,5 +4957,36 @@
       "command": "git add -A && git commit",
       "done": false
     }
-  ]
+  ],
+  "ai_runs": [],
+  "ai_drafts": {
+    "on": false,
+    "why_not": "archvow does not start AI drafts in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds drafts: archvow init <package> --force -a ai_runs=drafts",
+    "tools": [
+      {
+        "name": "claude-code",
+        "title": "Claude Code",
+        "program": "claude",
+        "installed": false
+      }
+    ]
+  },
+  "ai_skills": {
+    "on": false,
+    "why_not": "archvow does not start AI skill runs in this project (ai_runs [] in project.vow) - copy the instructions to your own AI, or an architect adds skills: archvow init <package> --force -a ai_runs=skills",
+    "runs": [
+      "draft-spec",
+      "clarify",
+      "analyze"
+    ],
+    "tools": [
+      {
+        "name": "claude-code",
+        "title": "Claude Code",
+        "program": "claude",
+        "installed": false
+      }
+    ]
+  },
+  "reviewers": []
 }

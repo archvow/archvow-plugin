@@ -18,7 +18,8 @@ product does - and each component has its own vow.
 | `features/shared/` | What every feature uses: settings, logging, the app or job that plugs the features in |
 | `features/<feature>/proposals.vow` | Decisions the AI proposed, waiting for a person (modes guided and free; only while some wait) |
 | `frozen.json` | Violations that existed before archvow was adopted (may only shrink) |
-| `packs/` | The company packs the project uses (templates, agents, rules, laws), when it uses some |
+| `templates/` | The copies of the project's templates, its whole chain (`archvow template update` takes a new version) |
+| `template/` | The project's own additions to its templates: rules, questions, agents (`archvow template rule\|question project`) |
 | `doc/` | What `archvow doc` writes to read: the project, each feature, the local status - ignored by Git |
 | `README.md` | This file: how the rules work and why |
 

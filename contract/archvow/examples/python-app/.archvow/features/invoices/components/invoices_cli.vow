@@ -16,18 +16,21 @@ symbol main
 
 # --- decisions
 decision 1
+  id invalid_arguments
   question "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?"
   answer "Exit code 2 with the usage message (argparse)"
   by noreply@anthropic.com
   on 2026-10-21T16:20:54.114836+00:00
 
 decision 2
+  id code
   question "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?"
   answer "0 ok, 1 error, 2 bad arguments, 3 not found"
   by noreply@anthropic.com
   on 2026-10-21T16:20:54.414007+00:00
 
 decision 3
+  id output
   question "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?"
   answer "The invoice on one line on stdout; errors on stderr"
   by noreply@anthropic.com

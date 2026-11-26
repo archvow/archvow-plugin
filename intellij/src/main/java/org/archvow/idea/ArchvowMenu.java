@@ -26,6 +26,8 @@ final class ArchvowMenu {
     static JPopupMenu create(String heading, List<List<Item>> groups) {
         JPopupMenu menu = new JPopupMenu();
         menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
+        menu.setBackground(background());
+        menu.setOpaque(true);
         menu.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(border(), 1), BorderFactory.createEmptyBorder(4, 4, 4, 4)));
         if (heading != null && !heading.isBlank()) {
@@ -105,7 +107,7 @@ final class ArchvowMenu {
 
     // ------------------------------------------------------------------ the theme's colours, with fallbacks
 
-    static Color background() { return color("PopupMenu.background", color("Panel.background", Color.WHITE)); }
+    static Color background() { return solid(color("PopupMenu.background", color("Panel.background", Color.WHITE)), Color.WHITE); }
     static Color foreground() { return color("MenuItem.foreground", color("Label.foreground", Color.BLACK)); }
     static Color muted() { return color("Label.disabledForeground", ArchvowMotion.blend(background(), foreground(), .55)); }
     static Color border() { return color("Separator.foreground", ArchvowMotion.blend(background(), foreground(), .2)); }
@@ -115,7 +117,14 @@ final class ArchvowMenu {
     static Color hover() {
         Color c = UIManager.getColor("List.hoverBackground");
         if (c == null) c = UIManager.getColor("Tree.hoverBackground");
-        return c != null ? c : ArchvowMotion.blend(background(), foreground(), .12);
+        return c != null ? solid(c, background()) : ArchvowMotion.blend(background(), foreground(), .12);
+    }
+
+    /** 1.4.1: a light theme's list hover is see-through; an opaque row painted with it let the page under the
+     *  menu show through (the next row's text over the item list). Mixed over what is below, it covers it. */
+    static Color solid(Color c, Color under) {
+        if (c.getAlpha() == 255) return c;
+        return ArchvowMotion.blend(under, new Color(c.getRed(), c.getGreen(), c.getBlue()), c.getAlpha() / 255.0);
     }
 
     static boolean dark() {

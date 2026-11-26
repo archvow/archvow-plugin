@@ -6,7 +6,7 @@
 Marks invoices paid, from the command line
 
 A **Python application**, specified and guarded with [archvow](.archvow/README.md)
-(template `archvow/python-app@2.8.0`).
+(template `python-app`).
 
 ## For developers
 
@@ -125,8 +125,8 @@ complete application, from the empty project to a run: archvow's documentation, 
 **1. Create the project** - this one was created with:
 
 ```bash
-archvow init invoicing -t archvow/python-app -d 'Marks invoices paid, from the command line' \
-    -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@acme/architects -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a ai_tools=claude-code -a mode=strict -a rules=ARCH,STYLE,GDPR,TST
+archvow init invoicing -t python-app -d 'Marks invoices paid, from the command line' \
+    -a language=en -a python_version=3.12 -a line_length=88 -a platform=gitlab -a ci=auto -a architects=@acme/architects -a sonar=no -a auto_approve=yes -a sandbox=yes -a briefs=briefs -a git_hooks=githooks -a branch_naming=gitflow -a ai_tools=claude-code -a mode=strict -a ai_runs=none -a rules=ARCH,STYLE,GDPR,TST
 pip install -r requirements.txt
 git add -A && git commit -m "archvow init"          # the only commit on main
 git switch -c develop                            # once, from main
@@ -147,9 +147,9 @@ source code, and runs once: developers clone the repository instead.
 chain, from the data to the entry point:
 
 ```bash
-archvow component add model invoice -d "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid" -s US-001
-archvow component add service send_invoice -d "Refuse an invoice that is not a draft, mark it sent, return it" -u invoice_model -s US-001
-archvow component add cli invoices -d "Command line: send NUMBER - sends the invoice and prints it" -u send_invoice -s US-001
+archvow component add model invoice -d "An invoice: number str, customer str, amount Decimal >= 0, status draft | sent | paid" --ticket US-001
+archvow component add service send_invoice -d "Refuse an invoice that is not a draft, mark it sent, return it" -u invoice_model --ticket US-001
+archvow component add cli invoices -d "Command line: send NUMBER - sends the invoice and prints it" -u send_invoice --ticket US-001
 ```
 
 The type fixes the structure: the file, the public class or function, the layer, the test file;
@@ -255,10 +255,11 @@ make run CLI=invoices ARGS="--help"                   # the command line of the 
 | add a pure business rule | `archvow component add logic compute_total -d "Sum of the lines" --signature "(lines: list[Line]) -> Decimal"` |
 | ask a question, as a developer | `archvow question add invoice_model "May an invoice have an amount of zero?"` |
 | let the AI find what is unclear | `archvow prompt invoice_model --clarify` (in the chat: `/archvow-clarify invoice_model`) |
+| check a whole feature before coding (where its components disagree) | `archvow prompt --feature <feature> --clarify` (in the chat: `/archvow-clarify <feature>`) |
 | add a rule for every component of a type | `archvow rule add --type model "Given an unknown field, when it is parsed, then it is refused"` |
 | dismiss a safety question that does not apply | `archvow hazard dismiss invoice_model S2 "invoices hold no personal data"` |
 | see everything about a component | `archvow show invoice_model` |
-| record a business example (files in `tests/examples/invoices_cli/<example>/`) | `archvow example add invoices_cli US-001-pay-a-sent-invoice -s US-001 --from briefs/<brief>.md#<section>`; `archvow show invoices_cli` gives its test's verdict and where `actual/` differs from `expected/` |
+| record a business example (files in `tests/examples/invoices_cli/<example>/`) | `archvow example add invoices_cli US-001-pay-a-sent-invoice --ticket US-001 --from briefs/<brief>.md#<section>`; `archvow show invoices_cli` gives its test's verdict and where `actual/` differs from `expected/` |
 | find a name everywhere (a function, a column, a ticket, an example) | `archvow show <name>`: the spec, the code, the tests, the briefs, the problems naming it |
 | answer what is open, one question at a time | `archvow specify invoice_model` (in a terminal) |
 | let the AI propose the risks of a component | in the chat: `/archvow-analyze invoice_model` |

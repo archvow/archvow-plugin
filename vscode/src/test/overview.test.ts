@@ -23,7 +23,7 @@ test('the first steps: the first not done is the current one; all done, the card
   assert.deepEqual([some?.done, some?.current, some?.steps.length], [1, 1, 3]);
   // a spec-phase project (pyspark-pipeline recorded without its code): built not yet, so the card shows
   const spec = firstSteps(workspace('pyspark-pipeline').first_steps);
-  assert.ok(spec !== null && spec.steps[spec.current].step === 'build');
+  assert.ok(spec !== null && spec.steps[spec.current].step === 'component');  // 3.1: until every component of the feature is answered
   assert.deepEqual(spec.steps.map((s) => s.step), ['foundations', 'feature', 'component', 'build', 'commit']);
 });
 

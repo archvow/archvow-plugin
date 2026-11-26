@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "schema_version": 2,
   "system": {
     "name": "orders_api",
@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "orders_api",
-      "template": "archvow/fastapi-service@2.8.0",
+      "template": "fastapi-service",
       "package": "orders_api",
       "path": "src/orders_api",
       "components": [
@@ -32,12 +32,14 @@
             {
               "question": "What does it provide, and for how long (one request, the whole app)?",
               "answer": "The customer id (str) from the X-Customer header, for one request",
+              "id": "provides",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "What happens when it cannot (no token, the database is down): which error, which HTTP status in the end?",
               "answer": "Header missing or empty: 401 Unauthorized",
+              "id": "cannot",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -64,6 +66,7 @@
             {
               "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level, request id and message?",
               "answer": "stderr, one line per event: time, level, request id, message",
+              "id": "destination",
               "by": "update@archvow.invalid",
               "on": "2026-11-08T23:13:06.642908+00:00"
             }
@@ -94,12 +97,14 @@
             {
               "question": "Which settings, with which defaults (name: type = default), and which are required?",
               "answer": "app_name: str = 'orders'; nothing else yet",
+              "id": "settings",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Which settings are secrets (never logged, never in a response), and where do they come from?",
               "answer": "No secret yet",
+              "id": "secrets",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -126,18 +131,21 @@
             {
               "question": "Which fields are required, and which are optional (with which default)?",
               "answer": "amount required",
+              "id": "fields",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
               "answer": "amount > 0 with at most 2 decimals",
+              "id": "valid_values",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
               "answer": "None",
+              "id": "never_shown",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -167,18 +175,21 @@
             {
               "question": "Which fields are required, and which are optional (with which default)?",
               "answer": "All fields required",
+              "id": "fields",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Which values are valid for each field (ranges, formats, lengths, allowed states)?",
               "answer": "amount >= 0 with 2 decimals; status pending, paid or cancelled",
+              "id": "valid_values",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Which fields must never appear in a response or a log (passwords, internal ids, personal data)?",
               "answer": "None: the customer id is returned only to its owner",
+              "id": "never_shown",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -211,12 +222,14 @@
             {
               "question": "Which HTTP status does the app answer with it (404, 409, 422...)?",
               "answer": "404 Not Found",
+              "id": "code",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "What does its message say - and never say (internal ids, personal data, whether the resource exists)?",
               "answer": "\"Order not found\" - never the id's owner, never whether it exists",
+              "id": "message",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -245,24 +258,28 @@
             {
               "question": "Not found: return None, or raise which domain error?",
               "answer": "Return None",
+              "id": "not_found",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Who opens and commits the transaction (the service, never the repository)?",
               "answer": "No transaction: memory; the service decides what is saved",
+              "id": "commit",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Two updates of the same record at the same time: last write wins, a version check, or a lock?",
               "answer": "Last write wins: an order is only created, never updated yet",
+              "id": "same_record",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Which queries can return many rows, and what is their maximum?",
               "answer": "None: no list query yet",
+              "id": "many_rows",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -305,30 +322,35 @@
             {
               "question": "What does it do, step by step (read, check, change, save, call)?",
               "answer": "Build a pending order with the next id, save it, return it",
+              "id": "steps",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Something it needs does not exist: which domain error?",
               "answer": "Not applicable: it needs nothing that may be missing",
+              "id": "not_found",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
               "answer": "Two orders: a retry is a new order (customers cancel the extra one)",
+              "id": "twice",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Who may perform it, and is that checked here or in the router?",
               "answer": "Any authenticated customer, for themselves; checked by the router",
+              "id": "who_may",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
               "answer": "One save, nothing else to undo",
+              "id": "all_or_nothing",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -359,30 +381,35 @@
             {
               "question": "What does it do, step by step (read, check, change, save, call)?",
               "answer": "Find the order; check it belongs to the customer; return it",
+              "id": "steps",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Something it needs does not exist: which domain error?",
               "answer": "OrderNotFoundError - also when it belongs to someone else, so ids reveal nothing",
+              "id": "not_found",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Called twice with the same input (a client retry): same result and no duplicate effect (idempotent), or a duplicate error?",
               "answer": "Same result: it only reads",
+              "id": "twice",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Who may perform it, and is that checked here or in the router?",
               "answer": "The owner only; checked here",
+              "id": "who_may",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "What must be all or nothing (one transaction), and what happens if a call to another service fails in the middle?",
               "answer": "Nothing to undo: it only reads",
+              "id": "all_or_nothing",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -413,24 +440,28 @@
             {
               "question": "Which routers, under which prefix (e.g. /v1)?",
               "answer": "orders_router under /v1",
+              "id": "routers",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Which domain errors map to which HTTP status (not found -> 404, conflict -> 409...)?",
               "answer": "OrderNotFoundError -> 404, as decided by the error",
+              "id": "domain_errors",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "What happens at startup and shutdown (lifespan: connections, warm-up), and what if startup fails?",
               "answer": "Nothing to start or stop yet",
+              "id": "lifespan",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "CORS: which origins may call it from a browser - or none?",
               "answer": "No CORS: not called from browsers",
+              "id": "cors",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -475,30 +506,35 @@
             {
               "question": "Who may call each route: anyone, an authenticated user, the owner of the resource, which role?",
               "answer": "Authenticated customers (get_current_user), each only on their own orders",
+              "id": "who_may_call",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Status codes: success, not found, conflict, forbidden - and the error body format?",
               "answer": "201 created, 200 read, 404 not found; errors as {\"detail\": \"...\"}",
+              "id": "status_codes",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Invalid input: FastAPI's 422, or 400 with your own error format?",
               "answer": "FastAPI's 422",
+              "id": "invalid_input",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "Lists: pagination, default and maximum page size - or no list route?",
               "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+              "id": "pagination",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             },
             {
               "question": "A POST or PUT repeated by a client retry: an idempotency key, or duplicates accepted?",
               "answer": "No list route; POST repeated: two orders (no idempotency key yet)",
+              "id": "twice",
               "by": "architect@example.com",
               "on": "2026-10-09T12:00:00+00:00"
             }
@@ -540,6 +576,7 @@
   "ai_tools": [
     "copilot"
   ],
+  "ai_runs": [],
   "dependencies": [],
   "init_answers": {
     "language": "en",
@@ -568,6 +605,18 @@
   "families": [
     "all"
   ],
+  "templates": {
+    "fastapi-service": {
+      "version": "3.4.1",
+      "source": "archvow",
+      "digest": "9653a014f4a4"
+    },
+    "python-base": {
+      "version": "3.4.1",
+      "source": "archvow",
+      "digest": "d55071fac333"
+    }
+  },
   "features": [
     {
       "name": "orders",

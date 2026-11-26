@@ -1,0 +1,57 @@
+# PEP 8 + Zen of Python, enforced by ruff. Architecture, safety and {{ rules_label }} are
+# enforced by `archvow check` (archvow doc: Checks). Guard file: changes need review.
+line-length = {{ line_length }}
+target-version = "py{{ python_version | replace('.', '') }}"
+src = ["{{ src }}", "tests"]
+extend-exclude = [".archvow"]      # the spec: documentation, not code
+
+[lint]
+select = [
+    "E", "W",   # PEP 8 errors and warnings ("Readability counts")
+    "N",        # PEP 8 naming
+    "F",        # pyflakes: unused/undefined names
+    "I",        # import order (PEP 8 import grouping)
+    "D",        # docstrings ("If the implementation is hard to explain, it's a bad idea")
+    "ANN",      # type annotations ("Explicit is better than implicit")
+    "UP",       # modern syntax for the target Python version
+    "B",        # likely bugs
+    "BLE",      # no blind except ("Errors should never pass silently")
+    "C90",      # complexity ("Simple is better than complex")
+    "SIM",      # simplifications ("Flat is better than nested")
+    "RET",      # consistent returns
+    "PL",       # pylint: max args/branches/statements, magic values
+    "ERA",      # no commented-out code (Palantir guide: rely on git)
+    "RUF",
+    "S",        # security (Bandit): hard-coded passwords and secrets, unsafe calls ("Errors should never pass silently")
+    "T20",      # no print(): output goes through logging, or through the command line's own layer
+    "LOG",      # logging: a logger per module (getLogger(__name__)), never the root logger directly
+    "G",        # logging format: no f-string or % in a log call (logging formats it, only when it is shown)
+    "TRY400",   # an error logged in an except block keeps its traceback (logger.exception)
+{%- for code, why in ruff_select | default([]) %}
+    {{ '"' ~ code ~ '",' }}{{ " " * (9 - code | length) }}# {{ why }}
+{%- endfor %}
+]
+ignore = [
+{%- for code, why in ruff_ignore | default([]) %}
+    {{ '"' ~ code ~ '",' }}{{ " " * (9 - code | length) }}# {{ why }}
+{%- endfor %}
+]
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.mccabe]
+max-complexity = 8
+
+[lint.pylint]
+max-args = 5
+max-branches = 8
+max-returns = 4
+max-statements = 40
+
+[lint.isort]
+known-first-party = ["{{ package }}"]
+
+[lint.per-file-ignores]
+"tests/**" = ["D", "PLR2004", "S101", "T20"]   # tests use assert{% for layer in layers if layer.name.endswith("entrypoints") %}
+"**/{{ layer.name }}/**" = ["T20"]   # a command line prints its result{% endfor %}

@@ -56,6 +56,16 @@ SPEC_PHASE = {"pyspark-pipeline": [
      "-d", "The day's total per customer: customer_id, total decimal(18,2) = sum(amount) + sum(vat)"]]}
 
 
+
+def unplug(whole: dict) -> None:
+    """The AI assistants' commands as on a machine with none installed (the CI): `installed` says what this computer
+    has (claude, copilot...), not what archvow prints. The live test reads the answer the same way."""
+    lists = [(whole.get(key) or {}).get("tools") or [] for key in ("ai_drafts", "ai_skills")] + [whole.get("reviewers") or []]
+    for tools in lists:
+        for tool in tools:
+            if isinstance(tool, dict) and "installed" in tool:
+                tool["installed"] = False
+
 def without_code(project: Path) -> None:
     """The project before its code: no src/, no tests but the business examples (tests/examples/)."""
     shutil.rmtree(project / "src", ignore_errors=True)
@@ -78,16 +88,14 @@ def write(path, data):
 
 def portable(catalog):
     """A built-in template's `source` is where archvow is installed on this machine: recorded as
-    <archvow>/templates/<name> (archvow 1.26: resources/archvow/templates/<name>; before, packs/<name>), so the
+    <archvow>/templates/<name> (archvow 3.0: its wheel's archvow/resources/templates/<name>), so the
     contract is the same wherever it is regenerated (the CI job `contract` regenerates it and fails on any
     difference). The plugins do not read it."""
     for template in catalog.get("templates", []):
         source = Path(str(template.get("source") or ""))
-        if source.parent.name == "templates" and source.parent.parent.name == "archvow" \
-                and source.parent.parent.parent.name == "resources":
+        if source.parent.name == "templates" and source.parent.parent.name == "resources" \
+                and source.parent.parent.parent.name == "archvow":
             template["source"] = f"<archvow>/templates/{source.name}"
-        elif source.parent.name == "packs" and source.parent.parent.name == "archvow":
-            template["source"] = f"<archvow>/packs/{source.name}"
     return catalog
 
 
@@ -139,6 +147,7 @@ def main():
             write(out / "check.json", run([*archvow, "check", "--json"], project))
             whole = run([*archvow, "workspace", "--json"], project)
             whole["digest"] = "<digest>"  # file times: different at every copy
+            unplug(whole)  # whether an AI assistant's command is installed: this machine's, not archvow's
             portable(whole.get("catalog") or {})  # its catalog too: where archvow is installed
             write(out / "workspace.json", whole)
             for container in spec["containers"]:

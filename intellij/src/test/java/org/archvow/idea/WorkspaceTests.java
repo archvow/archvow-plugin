@@ -15,6 +15,7 @@ public final class WorkspaceTests {
 
     public static void main(String[] args) throws Exception {
         run("ArchitectureViewRegression", () -> ArchitectureViewRegression.main(NONE));
+        run("ResponsiveViewsRegression", () -> ResponsiveViewsRegression.main(NONE));
         run("AnswerEditorRegression", () -> AnswerEditorRegression.main(NONE));
         run("ArchvowDataViewSmoke", () -> ArchvowDataViewSmoke.main(NONE));
         run("BriefsRegression", () -> BriefsRegression.main(NONE));
@@ -65,9 +66,12 @@ public final class WorkspaceTests {
         run("SkillFormRegression", () -> SkillFormRegression.main(NONE));
         run("LoadChainRegression", () -> LoadChainRegression.main(NONE));
         run("WorkspaceAnswerRegression", () -> WorkspaceAnswerRegression.main(NONE));
-        run("PacksRegression", () -> PacksRegression.main(NONE));
+        run("TemplatesRegression", () -> TemplatesRegression.main(NONE));
+        run("CompatRegression", () -> CompatRegression.main(NONE));
+        run("WalksRegression", () -> WalksRegression.main(NONE));
         run("ListFilterRegression", () -> ListFilterRegression.main(NONE));
         run("SplitViewRegression", () -> SplitViewRegression.main(NONE));
+        run("DraftBoxRegression", () -> DraftBoxRegression.main(NONE));
         run("StatusPaletteRegression", () -> StatusPaletteRegression.main(NONE));
         run("TaskPromptRegression", () -> TaskPromptRegression.main(NONE));
         run("UsesAndFileRegression", () -> UsesAndFileRegression.main(NONE));
@@ -85,6 +89,9 @@ public final class WorkspaceTests {
         run("VowWatcherRegression", () -> VowWatcherRegression.main(NONE));
         run("WslRegression", () -> WslRegression.main(NONE));
         System.out.println("workspace tests: " + passed + " test classes passed");
+        // 1.4.2: done - end the JVM now. Headless Swing stays up while its event queue gets events (a form's
+        // running clock, an animation's timer): the JVM lingered minutes after this line, and CI waited on it.
+        System.exit(0);
     }
 
     private static void run(String name, Test test) throws Exception {

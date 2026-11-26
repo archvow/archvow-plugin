@@ -16,12 +16,14 @@ symbol VAT_SCHEMA
 
 # --- decisions
 decision 1
+  id nullable
   question "Which columns are nullable, and which must never be null - e.g. id and effective_date never null, comment nullable?"
   answer "order_id, amount and vat are never null; customer_id may be null"
   by architect@example.com
   on 2026-11-11T19:07:07.022040+00:00
 
 decision 2
+  id personal_columns
   question "Which columns hold personal data (name, email, account number...), and which outputs may receive them - e.g. email, only the internal output - or none?"
   answer "None: the output holds no personal data"
   by architect@example.com

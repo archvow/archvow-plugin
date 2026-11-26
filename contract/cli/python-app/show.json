@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "schema_version": 2,
   "system": {
     "name": "invoicing",
@@ -8,7 +8,7 @@
   "containers": [
     {
       "id": "invoicing",
-      "template": "archvow/python-app@2.8.0",
+      "template": "python-app",
       "package": "invoicing",
       "path": "src/invoicing",
       "components": [
@@ -36,12 +36,14 @@
             {
               "question": "Settings, name: type = default separated by commas - e.g. data_dir: str (required), log_level: str = \"INFO\" - or none?",
               "answer": "data_dir: str (required), log_level: str = \"INFO\"",
+              "id": "settings",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:48.666456+00:00"
             },
             {
               "question": "Which settings are secrets (never logged, never printed), and where do they come from - e.g. smtp_password, from an environment variable - or none?",
               "answer": "None",
+              "id": "secrets",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:48.945785+00:00"
             }
@@ -68,6 +70,7 @@
             {
               "question": "Where do the logs go and in which format - e.g. stderr, one line per event with time, level and message?",
               "answer": "stderr, one line per event: time, level, message",
+              "id": "destination",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:49.235795+00:00"
             }
@@ -94,24 +97,28 @@
             {
               "question": "Which fields are required, and which are optional (with which default) - e.g. number: str required, note: str = \"\"?",
               "answer": "All fields required",
+              "id": "fields",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:49.515640+00:00"
             },
             {
               "question": "Which values are valid for each field (ranges, formats, lengths, allowed states) - e.g. amount >= 0 with 2 decimals, status draft, sent or paid?",
               "answer": "amount >= 0 with at most 2 decimals; status draft, sent or paid; number and customer not empty",
+              "id": "valid_values",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:49.798659+00:00"
             },
             {
               "question": "Which fields must never appear in a log, an output or an error message (passwords, internal ids, personal data) - e.g. iban - or none?",
               "answer": "None",
+              "id": "never_shown",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:50.138638+00:00"
             },
             {
               "question": "Is it changed after it is built, or frozen (a new one for every change) - e.g. frozen dataclass?",
               "answer": "Frozen: a change builds a new one (dataclasses.replace)",
+              "id": "frozen",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:50.522554+00:00"
             }
@@ -144,12 +151,14 @@
             {
               "question": "Which exit code does the command line give for it - e.g. InvoiceNotFound -> 3?",
               "answer": "Exit code 3",
+              "id": "code",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:50.822682+00:00"
             },
             {
               "question": "What does its message say - and never say (internal ids, personal data, secrets) - e.g. \"Invoice not found\", without the customer?",
               "answer": "A short fixed message, without personal data or secrets",
+              "id": "message",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:51.141043+00:00"
             }
@@ -178,24 +187,28 @@
             {
               "question": "Where and in which format is the data kept - e.g. one JSON file per invoice in data/invoices/, or a SQLite table?",
               "answer": "One file NUMBER.json in data_dir, the fields of the invoice, amount as a string",
+              "id": "storage",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:51.531837+00:00"
             },
             {
               "question": "Not found (e.g. get(\"F-42\") when it does not exist): return None, or raise which domain error?",
               "answer": "Return None; the service raises the domain error",
+              "id": "not_found",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:51.850312+00:00"
             },
             {
               "question": "A crash while writing (e.g. the disk is full after half a file): how does a reader never see a half-written record - write to a temporary file then rename, or a transaction?",
               "answer": "Write to a temporary file next to it, then rename it",
+              "id": "crash_write",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:52.163044+00:00"
             },
             {
               "question": "Two runs write the same record at the same moment: the last one wins, the second one is refused, or the second one waits (a lock)?",
               "answer": "The last one wins: marking paid twice gives the same file",
+              "id": "same_record",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:52.567662+00:00"
             }
@@ -239,24 +252,28 @@
             {
               "question": "What does it do, step by step (read, check, change, save, call) - e.g. read the invoice, check it is a draft, send it, mark it sent?",
               "answer": "Read the invoice; refuse a draft (ValueError); set status paid; save; return it",
+              "id": "steps",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:52.845862+00:00"
             },
             {
               "question": "Something it needs does not exist: which domain error - e.g. InvoiceNotFound?",
               "answer": "InvoiceNotFoundError",
+              "id": "not_found",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:53.155922+00:00"
             },
             {
               "question": "Run twice with the same input (a retry, a re-run) - e.g. \"send invoice F-42\" twice: same result and no duplicate effect, or a domain error?",
               "answer": "The same result: an invoice already paid stays paid, saved again unchanged",
+              "id": "twice",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:53.455983+00:00"
             },
             {
               "question": "What must be all or nothing, and what happens if a step fails in the middle - e.g. the e-mail is sent but marking it sent fails?",
               "answer": "Only one change, one save: nothing to undo",
+              "id": "all_or_nothing",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:53.785062+00:00"
             }
@@ -299,18 +316,21 @@
             {
               "question": "Invalid arguments (e.g. an unknown option, a wrong date): which exit code and message?",
               "answer": "Exit code 2 with the usage message (argparse)",
+              "id": "invalid_arguments",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:54.114836+00:00"
             },
             {
               "question": "Which exit code for which problem, so a script or a scheduler knows what happened - e.g. 0 ok, 1 error, 2 bad arguments, 3 not found?",
               "answer": "0 ok, 1 error, 2 bad arguments, 3 not found",
+              "id": "code",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:54.414007+00:00"
             },
             {
               "question": "What does it print on success, and where do errors go - e.g. one line per invoice on stdout, errors on stderr?",
               "answer": "The invoice on one line on stdout; errors on stderr",
+              "id": "output",
               "by": "noreply@anthropic.com",
               "on": "2026-10-21T16:20:54.764143+00:00"
             }
@@ -339,6 +359,7 @@
   "ai_tools": [
     "claude-code"
   ],
+  "ai_runs": [],
   "dependencies": [],
   "compliance": [
     "gdpr",
@@ -365,6 +386,18 @@
     "branch_naming": "gitflow",
     "pip_index_url": "",
     "ci_image": ""
+  },
+  "templates": {
+    "python-app": {
+      "version": "3.4.1",
+      "source": "archvow",
+      "digest": "0d991b44d9d7"
+    },
+    "python-base": {
+      "version": "3.4.1",
+      "source": "archvow",
+      "digest": "d55071fac333"
+    }
   },
   "features": [
     {

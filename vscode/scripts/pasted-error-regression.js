@@ -27,7 +27,7 @@ handlers.message({ data: { type: 'init', commands: [], forms: {}, catalog: {}, t
 handlers.message({ data: { type: 'state', state: { fr: false, project: { name: 't', root: '/tmp/t' }, install: {}, snapshots: {} } } });
 
 // 1. archvow's real answer: no known error, the file where it broke
-assert.equal(real.contract, '2.5');
+assert.equal(real.contract, '3.0');
 handlers.message({ data: { type: 'search', name: real.error.error, result: { ...real, around: [{ n: 28, text: '        raise ValueError(...)' }] } } });
 let html = app.innerHTML;
 assert.match(html, /class="card pasted-error"/, 'an error page, not a search');

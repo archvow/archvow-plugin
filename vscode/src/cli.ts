@@ -1,6 +1,6 @@
 // Runs the archvow CLI: no shell, in the project folder, one command at a time (the next one waits),
 // stdout and stderr apart, stopped after the time-out. The extension never writes a vow itself.
-import { spawn } from 'node:child_process';
+import { ChildProcess, spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 
@@ -339,7 +339,27 @@ export class ArchvowCli {
     return this.spawnOnce({ ...settings, executable: chosen.executable, python: chosen.python }, args, stdin, settings.timeoutSeconds);
   }
 
-  private spawnOnce(settings: CliSettings, args: string[], stdin: string | undefined, timeoutSeconds: number): Promise<CliResult> {
+  /**
+   * 1.3.0: a long command beside the queue - an AI skill run, a review: minutes, while the other calls go on. Its
+   * own time-out; `stop()` ends archvow, which stops the assistant it started.
+   */
+  background(args: string[], timeoutSeconds: number): { done: Promise<CliResult>; stop: () => void } {
+    let child: ChildProcess | undefined;
+    let stopped = false;
+    const done = (async () => {
+      const settings = this.settings();
+      const chosen = await this.choose(settings);
+      if (chosen === null) return { args, exitCode: -1, stdout: '', stderr: '', timedOut: false, startError: this.notFound, millis: 0 };
+      const result = await this.spawnOnce({ ...settings, executable: chosen.executable, python: chosen.python }, args, undefined, timeoutSeconds,
+        (c) => { child = c; if (stopped) c.kill(); });
+      this.onCall(result, true);
+      return result;
+    })();
+    return { done, stop: () => { stopped = true; child?.kill(); } };
+  }
+
+  private spawnOnce(settings: CliSettings, args: string[], stdin: string | undefined, timeoutSeconds: number,
+    onStart?: (child: ChildProcess) => void): Promise<CliResult> {
     let program: string;
     let argv: string[];
     try {
@@ -383,6 +403,7 @@ export class ArchvowCli {
         windowsHide: true,
         env,
       });
+      onStart?.(child);
       const timer = setTimeout(() => {
         timedOut = true;
         child.kill();

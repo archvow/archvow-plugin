@@ -1,0 +1,77 @@
+# The Gramm-Leach-Bliley Act for banks and other financial institutions: customers' nonpublic personal
+# information - the columns tagged `financial` (archvow column set <schema> <columns> personal --tag financial).
+# Its two parts as questions:
+# - the Privacy Rule (Regulation P, 12 CFR 1016): a privacy notice, and the customer's opt-out before sharing
+#   with nonaffiliated third parties outside the rule's exceptions;
+# - safeguarding the information: the Interagency Guidelines Establishing Information Security Standards for
+#   banks (with the Computer-Security Incident Notification Rule: the primary federal regulator told within 36
+#   hours of a notification incident), the FTC Safeguards Rule (16 CFR 314) for other financial institutions
+#   (encryption at rest and in transit, access limited, multi-factor authentication, service providers
+#   overseen, disposal no later than two years after the information was last used to serve the customer, the
+#   FTC told within 30 days of an event involving 500 or more consumers).
+# While glba is on, us-privacy leaves these columns out: the states exempt GLBA-covered data.
+# archvow supports compliance work; it does not certify it and is not legal advice.
+name: GLBA
+prefix: GLBA
+letter: G
+default: false
+title: "GLBA (US financial institutions): nonpublic personal information shared only after notice and opt-out, encrypted, limited, disposed of, incidents reported"
+title_fr: "GLBA (institutions financières américaines) : informations personnelles non publiques partagées seulement après information et refus possible, chiffrées, limitées, détruites, incidents signalés"
+law: "Gramm-Leach-Bliley Act, Title V: the Privacy Rule (Regulation P, 12 CFR 1016); the Interagency Guidelines Establishing Information Security Standards and the Computer-Security Incident Notification Rule (banks); the FTC Safeguards Rule (16 CFR 314, other financial institutions)"
+law_fr: "Gramm-Leach-Bliley Act, titre V : la Privacy Rule (Regulation P, 12 CFR 1016) ; les Interagency Guidelines Establishing Information Security Standards et la Computer-Security Incident Notification Rule (banques) ; la Safeguards Rule de la FTC (16 CFR 314, autres institutions financières)"
+checked: "2026-11-11"
+sources:
+  - https://www.law.cornell.edu/cfr/text/16/314.4
+  - https://www.ftc.gov/business-guidance/resources/ftc-safeguards-rule-what-your-business-needs-know
+  - https://www.troutman.com/insights/think-fast-banking-regulators-release-final-computer-security-incident-notification-requirements/
+covers: [financial]
+
+rules:
+  GLBA001: {title: "Nonpublic personal information shared without a decided notice and opt-out", title_fr: "Informations personnelles non publiques partagées sans information ni refus décidés"}
+  GLBA002: {title: "Nonpublic personal information without decided access limits", title_fr: "Informations personnelles non publiques sans limites d'accès décidées"}
+  GLBA003: {title: "Nonpublic personal information stored without decided encryption at rest and in transit", title_fr: "Informations personnelles non publiques stockées sans chiffrement au repos et en transit décidé"}
+  GLBA004: {title: "Nonpublic personal information stored without decided secure disposal", title_fr: "Informations personnelles non publiques stockées sans destruction sécurisée décidée"}
+  GLBA005: {title: "Nonpublic personal information stored without a decided way to detect and report incidents", title_fr: "Informations personnelles non publiques stockées sans moyen décidé de détecter et signaler les incidents"}
+  GLBA006: {title: "Nonpublic personal information sent to a service provider without decided oversight", title_fr: "Informations personnelles non publiques envoyées à un prestataire sans surveillance décidée"}
+
+questions:
+  purpose:
+    - id: sharing
+      rule: GLBA001
+      text: "Privacy notice and opt-out: is this nonpublic personal information shared with nonaffiliated third parties outside the Privacy Rule's exceptions (service providers, processing the customer's transaction, legal duties) - if so, where is the customer told and how does their opt-out reach this component first - e.g. not shared outside the exceptions?"
+      text_fr: "Information et refus : ces informations personnelles non publiques sont-elles partagées avec des tiers non affiliés hors des exceptions de la Privacy Rule (prestataires, traitement de l'opération du client, obligations légales) - si oui, où le client en est-il informé et comment son refus atteint-il ce composant d'abord - par ex. aucun partage hors des exceptions ?"
+    - id: access
+      rule: GLBA002
+      text: "Access: who may read this information (people and services), how is access limited to those who need it, and do people sign in with multi-factor authentication - e.g. the payments service account and the fraud team only, through access policy AP-4; MFA for every person?"
+      text_fr: "Accès : qui peut lire ces informations (personnes et services), comment l'accès est-il limité à ceux qui en ont besoin, et les personnes se connectent-elles avec une authentification multifacteur - par ex. seulement le compte de service des paiements et l'équipe fraude, selon la politique d'accès AP-4 ; MFA pour chaque personne ?"
+  store:
+    - id: encryption
+      rule: GLBA003
+      when: writes
+      text: "Encryption: how is it encrypted at rest and in transit - or which compensating control the qualified individual (your CISO) approved in writing - e.g. AES-256 storage encryption with keys in the KMS; TLS 1.2 or later for every connection?"
+      text_fr: "Chiffrement : comment est-il chiffré au repos et en transit - ou quel contrôle compensatoire la personne qualifiée (votre RSSI) a approuvé par écrit - par ex. chiffrement AES-256 du stockage avec les clés dans le KMS ; TLS 1.2 ou plus pour chaque connexion ?"
+    - id: disposal
+      rule: GLBA004
+      when: writes
+      text: "Disposal: how is it securely disposed of no later than two years after it was last used to serve the customer, unless a law or a documented business need requires keeping it - e.g. deleted two years after the account closes, except what the 5-year record-keeping law requires?"
+      text_fr: "Destruction : comment est-il détruit de façon sûre au plus tard deux ans après sa dernière utilisation au service du client, sauf si une loi ou un besoin métier documenté exige de le garder - par ex. supprimé deux ans après la clôture du compte, sauf ce que la loi de conservation de 5 ans exige ?"
+    - id: incidents
+      rule: GLBA005
+      when: writes
+      text: "Incidents: how is unauthorized access to it detected, and who tells the regulator in time - a bank's primary federal regulator within 36 hours of a notification incident; for another financial institution, the FTC within 30 days of an event involving 500 or more consumers - e.g. access alerts to the security team; incident plan IR-2 names who notifies?"
+      text_fr: "Incidents : comment un accès non autorisé est-il détecté, et qui prévient le régulateur à temps - le régulateur fédéral principal d'une banque dans les 36 heures d'un incident à notifier ; pour une autre institution financière, la FTC dans les 30 jours d'un événement touchant 500 consommateurs ou plus - par ex. alertes d'accès vers l'équipe sécurité ; le plan d'incident IR-2 désigne qui notifie ?"
+  share:
+    - id: service_provider
+      rule: GLBA006
+      when: writes
+      text: "Service provider: which provider receives it, was it chosen able to protect it, does its contract require the safeguards, and how often is it assessed - e.g. the card processor, contract with a security clause, assessed every year (in the DORA third-party register when DORA is on)?"
+      text_fr: "Prestataire : quel prestataire le reçoit, a-t-il été choisi capable de le protéger, son contrat exige-t-il les mesures de protection, et à quelle fréquence est-il évalué - par ex. le processeur de cartes, contrat avec clause de sécurité, évalué chaque année (dans le registre des tiers DORA quand DORA est actif) ?"
+
+register:
+  file: NONPUBLIC_PERSONAL_INFORMATION.md
+  title: "Nonpublic personal information (GLBA)"
+  title_fr: "Informations personnelles non publiques (GLBA)"
+  intro: "Every column tagged financial - customers' nonpublic personal information - and the components that read, change and write it, with what each answered on sharing, access, encryption, disposal, incidents and service providers. Input for the information security program and the privacy notice."
+  intro_fr: "Chaque colonne étiquetée financial - les informations personnelles non publiques des clients - et les composants qui la lisent, la modifient et l'écrivent, avec ce que chacun a répondu sur le partage, l'accès, le chiffrement, la destruction, les incidents et les prestataires. Entrée du programme de sécurité de l'information et de la notice de confidentialité."
+  answers: "Sharing, access, encryption, disposal, incidents, service providers"
+  answers_fr: "Partage, accès, chiffrement, destruction, incidents, prestataires"

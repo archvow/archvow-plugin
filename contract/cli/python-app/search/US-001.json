@@ -1,5 +1,5 @@
 {
-  "contract": "2.5",
+  "contract": "3.0",
   "name": "US-001",
   "summary": "the ticket of invoice_model",
   "total": 12,
@@ -35,7 +35,7 @@
         {
           "group": "spec",
           "file": ".archvow/features/invoices/components/invoices_cli.vow",
-          "line": 40,
+          "line": 43,
           "component": "invoices_cli",
           "part": "example US-001-pay-a-sent-invoice ticket",
           "text": "ticket US-001"

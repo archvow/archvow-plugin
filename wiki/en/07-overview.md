@@ -22,7 +22,7 @@ only, without starting Python for a project that is not an archvow project:
 
 From the top, the same in both IDEs (VS Code: `overviewTab()` in `vscode/media/workspace.js`; IntelliJ:
 `overviewPanel()`, the cards of `ArchvowOverviewCards`): the branch advice, **First steps** (for a new
-project), the commands bar, **Architecture**, **Checks**, **Packs**. The "Project status" strip (pending,
+project), the commands bar, **Architecture**, **Checks**, **Templates**. The "Project status" strip (pending,
 resolved) is gone in 0.25.0: its counters are the Architecture card's links.
 
 On `main`, `master`, `develop` or `development`, an advice: create a feature branch (`ArchvowBranchAdvice`,
@@ -116,17 +116,20 @@ form). Its count is the sections not used plus the ones changed; More ▾ › Br
 opens it. **Add a briefs folder (architect)…** opens the init form prefilled. VS Code: `briefsView()`,
 `briefsDue()`; IntelliJ: `ArchvowBriefs.statusHtml`, `ArchvowBriefs.due`, links `DRAFT_LINK`, `ACCEPT_LINK`.
 
-## Packs (0.22.0)
+## Templates (1.0.0)
 
-A third row under Architecture and Checks, from `packs` of archvow 1.26's `workspace --json` (read with the rest,
-no extra call): "2 packs · 1 changed by hand". **Open Packs →** lists each pack of `.archvow/packs/`: its
-version, what it brings (templates, agents, rules, privacy regimes), its source (a folder by its path from the
-project's root, an installed package, or an earlier archvow's absolute path; 0.26.0), and whether it is as added or changed by hand
-(ARCH060, with what differs). Each has **Update**, **Remove** and **Check** (the forms of `pack update`, `pack
-remove`, `pack check`, its name filled in); a changed pack also has **See the change** (`diff`). At the top,
-**Add a pack** and **New pack** (`pack add`, `pack new`). Both plugins do the same: VS Code `packsSummary()` /
-`packsView()` in `vscode/media/workspace.js`; IntelliJ `ArchvowPacks` (the row, the list, what each
-`archvow-pack:` link opens), tested by `PacksRegression`.
+A third row under Architecture and Checks, from `templates` of archvow 3.0's `workspace --json` (read with the
+rest, no extra call): the project's chain, bases first - "python-base ← pyspark-pipeline ← acme-pyspark · 1
+changed by hand". **Open Templates →** lists each template of `.archvow/templates/`: its version, description,
+what it `extends`, where it came from (`archvow`, a folder by its path from the project's root, or an installed
+package) and its state (ARCH060 when its copy was edited by hand, with **See the change**: `diff`). At the top,
+**Update** (`template update`) and **New template** (`template new`); at the bottom, the project's own additions
+(`.archvow/template/`: its rules and agents) with **Add a question** and **Add a rule** (`template question` /
+`template rule`, `project` filled in). Above the Overview, the header line: `archvow 3.4.0 ✓ · this plugin works
+with archvow >=3.4,<4` (`compatLine()`; IntelliJ: `compatHeader`), and, when the installed archvow is outside the
+range, what to do (`compatCard()`). Both plugins do the same: VS Code `templatesSummary()` / `templatesView()` in
+`vscode/media/workspace.js`; IntelliJ `ArchvowTemplates` (the row, the list, what each `archvow-template:` link
+opens), tested by `TemplatesRegression`.
 
 ## The language
 

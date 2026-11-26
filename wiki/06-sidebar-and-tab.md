@@ -100,7 +100,7 @@ proches d'archvow, chacun un bouton qui relance la recherche.
 
 **Une erreur collée** (0.26.1, archvow 2.7.0) : une erreur ou une trace collée dans le champ est ce que lit
 `archvow show "<l'erreur>" --json`. Sa réponse a un objet `error`, et le panneau montre une page d'erreur au lieu
-d'une recherche : ce qui a mal tourné, les erreurs connues du template qu'elle reconnaît (les règles de pack gardées
+d'une recherche : ce qui a mal tourné, les erreurs connues du template qu'elle reconnaît (les règles de template gardées
 avec cette erreur, leur correction et leur raison), puis où ça a cassé avec les lignes autour, **Ouvrir à la ligne**
 et **Afficher <composant>**, et où va la leçon une fois corrigée. Le champ d'une ligne garde les lignes d'une trace
 séparées (celui d'IntelliJ met une espace à chaque saut de ligne ; celui de VS Code, `joinLines` au collage).

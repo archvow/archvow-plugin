@@ -68,7 +68,7 @@ final class ArchvowDataView {
     static JTextPane create() {
         JTextPane pane = new JTextPane();
         pane.setEditable(false);
-        pane.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        pane.setFont(ArchvowFonts.ui(Font.PLAIN, 13));
         pane.setBorder(BorderFactory.createEmptyBorder(14, 16, 14, 16));
         pane.setBackground(UIManager.getColor("Panel.background"));
         pane.setForeground(UIManager.getColor("Label.foreground"));
@@ -86,7 +86,7 @@ final class ArchvowDataView {
         pane.setDocument(document);
         pane.setBackground(UIManager.getColor("Panel.background"));
         pane.setForeground(main);
-        pane.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        pane.setFont(ArchvowFonts.ui(Font.PLAIN, 13));
         SimpleAttributeSet plain = style(main, false, 13);
         SimpleAttributeSet sub = style(muted, false, 12);
         SimpleAttributeSet header = style(heading, true, 16);
@@ -96,21 +96,11 @@ final class ArchvowDataView {
 
         try {
             List<Item> items = items(component);
-            long outstanding = items.stream().filter(Item::pending).count();
-            append(document, french ? "Données et tâches\n" : "Data & tasks\n", header);
-            append(document, (french ? "Actions en attente : " : "Pending actions: ") + outstanding + "\n", outstanding > 0 ? warning : success);
-            if (outstanding == 0) {
-                append(document, french ? "Aucune action en attente dans cette vue.\n" : "No pending actions in this view.\n", sub);
-            } else {
-                for (Item item : items) {
-                    if (!item.pending()) continue;
-                    String kind = item.kind() == Kind.COLUMN ? (french ? "Colonne" : "Column") : (french ? "Tâche" : "Task");
-                    append(document, "  ● " + kind + " : " + item.title() + "\n", warning);
-                    if (!item.detail().isBlank()) append(document, "     " + localizedDetail(item, french) + "\n", sub);
-                }
-            }
-
-            append(document, "\n" + (french ? "Colonnes et classifications" : "Columns and classifications") + "\n", section);
+            // 1.1.0: the tasks are listed once, above (the list with Copy task prompt): here only the columns and
+            // the personal data - no second "Data & tasks / Pending actions" listing of the same tasks
+            long columnsOpen = items.stream().filter(i -> i.kind() == Kind.COLUMN && i.pending()).count();
+            append(document, (french ? "Colonnes et classifications" : "Columns and classifications")
+                + (columnsOpen > 0 ? (french ? " · " + columnsOpen + " à classer" : " · " + columnsOpen + " to classify") : "") + "\n", section);
             boolean columns = false;
             for (Item item : items) {
                 if (item.kind() != Kind.COLUMN) continue;
@@ -120,23 +110,11 @@ final class ArchvowDataView {
             }
             if (!columns) append(document, french ? "Aucune colonne déclarée.\n" : "No columns declared.\n", sub);
 
-            append(document, "\n" + (french ? "Tâches" : "Tasks") + "\n", section);
-            boolean tasks = false;
-            for (Item item : items) {
-                if (item.kind() != Kind.TASK) continue;
-                tasks = true;
-                append(document, "  " + (item.pending() ? "● " : "✓ ") + item.title() + "\n", item.pending() ? warning : success);
-                if (!item.detail().isBlank()) append(document, "    " + item.detail() + "\n", plain);
-            }
-            if (!tasks) append(document, french ? "Aucune tâche pour ce composant.\n" : "No tasks for this component.\n", sub);
-
             append(document, "\n" + (french ? "Données personnelles" : "Personal data") + "\n", section);
-            JsonElement personal = component == null ? null : component.get("personal");
-            if (personal != null && personal.isJsonObject() && !personal.getAsJsonObject().entrySet().isEmpty()) {
-                for (Map.Entry<String, JsonElement> entry : personal.getAsJsonObject().entrySet()) {
-                    append(document, "  " + entry.getKey() + ": " + readable(entry.getValue()) + "\n", plain);
-                }
-            } else append(document, french ? "Aucun flux de données personnelles déclaré.\n" : "No personal data flows declared.\n", sub);
+            // 1.2.1: only the flows that hold something ("Handles: customer (personal)"); none: one line that says so
+            List<String> flows = flows(component, french);
+            for (String flow : flows) append(document, "  " + flow + "\n", plain);
+            if (flows.isEmpty()) append(document, french ? "Aucune déclarée.\n" : "None declared.\n", sub);
         } catch (BadLocationException ex) {
             pane.setText((french ? "Affichage indisponible : " : "Unable to render: ") + ex.getMessage());
         }
@@ -178,6 +156,26 @@ final class ArchvowDataView {
         pane.setCaretPosition(0);
     }
 
+    /** The personal data a component handles, writes, removes or pseudonymises, one line each; empty ones left out. */
+    static List<String> flows(JsonObject component, boolean french) {
+        List<String> out = new ArrayList<>();
+        JsonElement personal = component == null ? null : component.get("personal");
+        if (personal == null || !personal.isJsonObject()) return out;
+        String[][] names = {{"handles", "Handles", "Manipule"}, {"writes", "Writes", "Écrit"},
+            {"removed", "Removes", "Retire"}, {"pseudonymised", "Pseudonymises", "Pseudonymise"}};
+        for (String[] name : names) {
+            JsonElement value = personal.getAsJsonObject().get(name[0]);
+            List<String> words = new ArrayList<>();
+            if (value != null && value.isJsonArray())
+                for (JsonElement e : value.getAsJsonArray()) words.add(e.isJsonPrimitive() ? e.getAsString() : e.toString());
+            else if (value != null && value.isJsonObject())
+                for (Map.Entry<String, JsonElement> e : value.getAsJsonObject().entrySet())
+                    words.add(e.getKey() + " (" + (e.getValue().isJsonPrimitive() ? e.getValue().getAsString() : e.getValue()) + ")");
+            if (!words.isEmpty()) out.add((french ? name[2] : name[1]) + ": " + String.join(", ", words));
+        }
+        return out;
+    }
+
     private static String localizedDetail(Item item, boolean french) {
         if (!french || item.kind() != Kind.COLUMN) return item.detail();
         return item.pending() ? "Classification à renseigner" : item.detail().replace("Classification:", "Classification :");
@@ -203,7 +201,7 @@ final class ArchvowDataView {
         SimpleAttributeSet s = new SimpleAttributeSet();
         StyleConstants.setForeground(s, color);
         StyleConstants.setBold(s, bold);
-        StyleConstants.setFontFamily(s, Font.SANS_SERIF);
+        StyleConstants.setFontFamily(s, ArchvowFonts.family());
         StyleConstants.setFontSize(s, size);
         StyleConstants.setSpaceAbove(s, 1);
         StyleConstants.setSpaceBelow(s, 2);

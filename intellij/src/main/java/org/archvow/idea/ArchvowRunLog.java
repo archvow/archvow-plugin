@@ -148,11 +148,22 @@ final class ArchvowRunLog {
         changed.accept(project);
     }
 
+    /**
+     * The command as a person would type it, without what the plugin adds (1.2.0): no interpreter, no "-m archvow",
+     * no --root or --cd and their folder, no --json - "check", "decision make orders_reader 2 ...". The whole command
+     * line stays in idea.log.
+     */
     static String display(List<String> args) {
         List<String> words = new ArrayList<>();
-        words.add("archvow");
-        for (String a : args) words.add(a.matches("[A-Za-z0-9_@%+=:,./-]+") ? a : '"' + a.replace("\"", "\\\"") + '"');
-        return String.join(" ", words);
+        int start = 0;
+        for (int i = 0; i + 1 < args.size(); i++) if ("-m".equals(args.get(i)) && "archvow".equals(args.get(i + 1))) start = i + 2;
+        for (int i = start; i < args.size(); i++) {
+            String a = args.get(i);
+            if (("--root".equals(a) || "--cd".equals(a)) && i + 1 < args.size()) { i++; continue; }
+            if ("--json".equals(a)) continue;
+            words.add(a.matches("[A-Za-z0-9_@%+=:,./-]+") ? a : '"' + a.replace("\"", "\\\"") + '"');
+        }
+        return words.isEmpty() ? "archvow" : String.join(" ", words);
     }
 
     static List<String> masked(List<String> args) {
@@ -189,8 +200,23 @@ final class ArchvowRunLog {
         return !(r.exitCode() == 1 && !r.arguments().isEmpty() && "check".equals(r.arguments().get(0)));
     }
 
+    /** What came of it, in a word or two: ok, "2 errors" (check), exit 2, cancelled. */
     private static String outcome(Call r) {
-        return r.interrupted() ? "cancelled" : r.exitCode() < 0 ? "did not start" : "exit " + r.exitCode();
+        if (r.interrupted()) return "cancelled";
+        if (r.exitCode() < 0) return "did not start";
+        if (!r.arguments().isEmpty() && "check".equals(r.arguments().get(firstWord(r.arguments())))) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"errors\":\\s*(\\d+)").matcher(r.stdout());
+            if (m.find()) return "0".equals(m.group(1)) ? "ok" : m.group(1) + ("1".equals(m.group(1)) ? " error" : " errors");
+        }
+        return r.exitCode() == 0 ? "ok" : "exit " + r.exitCode();
+    }
+
+    /** Where the archvow command starts in a command line (after "-m archvow", "--root <folder>"). */
+    private static int firstWord(List<String> args) {
+        int start = 0;
+        for (int i = 0; i + 1 < args.size(); i++) if ("-m".equals(args.get(i)) && "archvow".equals(args.get(i + 1))) start = i + 2;
+        while (start + 1 < args.size() && ("--root".equals(args.get(start)) || "--cd".equals(args.get(start)))) start += 2;
+        return Math.min(start, Math.max(0, args.size() - 1));
     }
 
     static String duration(long ms) {

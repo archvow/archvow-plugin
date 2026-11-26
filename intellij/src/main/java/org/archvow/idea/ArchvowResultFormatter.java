@@ -260,48 +260,78 @@ final class ArchvowResultFormatter {
         }
     }
 
-    /** The link under a try result that opens the copy's spec (0.25.1); the panel opens it only in a folder holding a spec. */
+    /** The links of a try result (0.25.1, 1.2.0): open the copy's spec, open its folder, copy its path. */
     static final String TRY_SPEC = "archvow-try-spec:";
+    static final String TRY_OPEN = "archvow-try-open:";
+    static final String TRY_COPY = "archvow-try-copy:";
 
     /** The folder a {@link #TRY_SPEC} link names, or "". */
-    static String tryFolder(String link) {
-        if (link == null || !link.startsWith(TRY_SPEC)) return "";
-        return java.net.URLDecoder.decode(link.substring(TRY_SPEC.length()), java.nio.charset.StandardCharsets.UTF_8);
+    static String tryFolder(String link) { return tryLink(link, TRY_SPEC); }
+
+    /** The folder a try link of this {@code kind} (TRY_SPEC, TRY_OPEN, TRY_COPY) names, or "". */
+    static String tryLink(String link, String kind) {
+        if (link == null || !link.startsWith(kind)) return "";
+        return java.net.URLDecoder.decode(link.substring(kind.length()), java.nio.charset.StandardCharsets.UTF_8);
     }
 
-    /** archvow try --json (2.1): the example copied, the change an AI often makes, what check says - as formatter.ts. */
+    private static String tryChange(JsonObject c, boolean fr) {
+        String kind = str(c, "kind");
+        return "new_module".equals(kind) ? tr(fr, "new module", "nouveau module")
+            : "import_added".equals(kind) ? tr(fr, "one import added", "un import ajouté") : str(c, "change");
+    }
+
+    /**
+     * archvow try --json (2.1): the example copied, the change an AI often makes, what check says - as formatter.ts.
+     * 1.2.0: every word in the page's language (try --language gives the findings' names and what to do), the folder
+     * once at the top with Open / Copy path / Read the spec, the change in a monospace font.
+     */
     private static void tryResult(StringBuilder out, JsonObject r, Palette p, boolean fr) {
         int errors = intValue(r, "errors");
         JsonObject before = obj(r, "before");
+        String folder = str(r, "folder");
+        String[] parts = folder.split("[\\\\/]");
+        List<String> kept = new java.util.ArrayList<>();
+        for (String part : parts) if (!part.isBlank()) kept.add(part);
+        String shortFolder = kept.size() > 2 ? "…/" + kept.get(kept.size() - 2) + "/" + kept.get(kept.size() - 1) : folder;
+        String encoded = java.net.URLEncoder.encode(folder, java.nio.charset.StandardCharsets.UTF_8);
         heading(out, p, errors > 0 ? tr(fr, "archvow caught both changes, before any review", "archvow a attrapé les deux changements, avant toute relecture")
             : "archvow try", errors > 0 ? p.good : p.warn);
         paragraph(out, tr(fr, "On a copy of the finished example, in a scratch folder. Your repository was not touched.",
             "Sur une copie de l'exemple fini, dans un dossier jetable. Ton dépôt n'a pas été touché."), p.muted);
-        // where it is, first (0.25.1): the folder archvow made, and its spec one click away
-        StringBuilder copied = new StringBuilder();
-        field(copied, p, tr(fr, "Copied to", "Copié dans"), str(r, "folder"));
-        out.append(copied).append("<p><a href='").append(TRY_SPEC).append(java.net.URLEncoder.encode(str(r, "folder"), java.nio.charset.StandardCharsets.UTF_8))
-            .append("'>").append(esc(tr(fr, "Read the example's spec", "Lire la spec de l'exemple"))).append("</a></p>");
+        out.append("<p><font color='").append(p.muted).append("'>").append(esc(tr(fr, "Folder", "Dossier"))).append("</font>&nbsp;&nbsp;")
+            .append("<code>").append(esc(shortFolder)).append("</code>&nbsp;&nbsp; ")
+            .append("<a href='").append(TRY_OPEN).append(encoded).append("'>").append(esc(tr(fr, "Open", "Ouvrir"))).append("</a>&nbsp;&nbsp; ")
+            .append("<a href='").append(TRY_COPY).append(encoded).append("'>").append(esc(tr(fr, "Copy path", "Copier le chemin"))).append("</a>&nbsp;&nbsp; ")
+            .append("<a href='").append(TRY_SPEC).append(encoded).append("'>").append(esc(tr(fr, "Read the example's spec", "Lire la spec de l'exemple"))).append("</a></p>");
         JsonArray changes = array(r, "changes");
         List<String> what = new java.util.ArrayList<>();
-        for (JsonElement c : changes) if (c.isJsonObject()) what.add(str(c.getAsJsonObject(), "change"));
+        for (JsonElement c : changes) if (c.isJsonObject()) what.add(tryChange(c.getAsJsonObject(), fr));
         int was = intValue(before, "errors") + intValue(before, "warnings");
-        StringBuilder steps = new StringBuilder();
-        field(steps, p, tr(fr, "Copied the example", "Copié l'exemple"), str(r, "example") + " · "
-            + (was == 0 ? tr(fr, "all checks green", "tous les contrôles au vert") : intValue(before, "errors") + tr(fr, " errors before", " erreurs avant")));
-        field(steps, p, tr(fr, "Made a change an AI often makes", "Fait un changement que fait souvent une IA"), String.join(", ", what));
-        field(steps, p, tr(fr, "Ran Check: " + errors + " error" + (errors == 1 ? "" : "s"), "Lancé Check : " + errors + " erreur" + (errors == 1 ? "" : "s")),
-            tr(fr, "The commit and CI would stop here", "Le commit et la CI s'arrêteraient ici"));
-        out.append(steps).append(spacer(10));
+        String[][] steps = {
+            {tr(fr, "Copied the example", "Copié l'exemple"), str(r, "example") + " · " + (was == 0 ? tr(fr, "all checks green", "tous les contrôles au vert")
+                : intValue(before, "errors") + tr(fr, " errors before", " erreurs avant"))},
+            {tr(fr, "Made a change an AI often makes", "Fait un changement que fait souvent une IA"), String.join(", ", what)},
+            {tr(fr, "Ran Check: " + errors + " error" + (errors == 1 ? "" : "s"), "Lancé Check : " + errors + " erreur" + (errors == 1 ? "" : "s")),
+                tr(fr, "the commit and the CI would stop here", "le commit et la CI s'arrêteraient ici")}};
+        out.append("<table cellspacing='0' cellpadding='3' border='0'>");
+        for (int i = 0; i < steps.length; i++) {
+            out.append("<tr><td valign='top'><b>").append(i + 1).append(".</b></td><td><b>").append(esc(steps[i][0])).append("</b> <font color='")
+                .append(p.muted).append("'>· ").append(esc(steps[i][1])).append("</font></td></tr>");
+        }
+        out.append("</table>").append(spacer(6));
         section(out, p, tr(fr, "The change", "Le changement"));
-        StringBuilder diff = new StringBuilder();
+        String shortcut = tr(fr, "# a shortcut to the code of another layer", "# un raccourci vers une autre couche");
+        out.append("<table width='100%' cellspacing='0' cellpadding='10' border='0' bgcolor='").append(p.raised).append("'><tr><td>");
         for (JsonElement c : changes) {
             if (!c.isJsonObject()) continue;
             JsonObject change = c.getAsJsonObject();
-            diff.append(esc(str(change, "file"))).append("   (").append(esc(str(change, "change"))).append(")\n");
-            for (JsonElement line : array(change, "lines")) diff.append("+     ").append(esc(asText(line))).append("\n");
+            out.append("<div style='font-family:monospace;'><font face='JetBrains Mono, Menlo, Consolas, monospace' color='").append(p.foreground).append("'>")
+                .append(esc(str(change, "file"))).append("</font> <font color='").append(p.muted).append("'>(").append(esc(tryChange(change, fr))).append(")</font></div>");
+            for (JsonElement line : array(change, "lines"))
+                out.append("<div style='font-family:monospace;'><font face='JetBrains Mono, Menlo, Consolas, monospace' color='").append(p.good).append("'>+ ")
+                    .append(esc(asText(line).replace("# a shortcut to the code of another layer", shortcut))).append("</font></div>");
         }
-        out.append("<pre>").append(diff).append("</pre>");
+        out.append("</td></tr></table>").append(spacer(8));
         paragraph(out, tr(fr, "Both look harmless. Neither is in the spec: one module nobody decided on, and a shortcut across layers.",
             "Les deux ont l'air inoffensifs. Aucun n'est dans la spec : un module que personne n'a décidé, et un raccourci entre couches."), p.foreground);
         section(out, p, tr(fr, "What caught it", "Ce qui l'a attrapé"));
@@ -313,13 +343,12 @@ final class ArchvowResultFormatter {
             int line = intValue(v, "line");
             String where = str(v, "code") + (name.isBlank() ? "" : " · " + name + (line > 0 ? ":" + line : ""));
             JsonObject guide = obj(v, "guide");
-            StringBuilder extra = new StringBuilder();
-            field(extra, p, tr(fr, "What to do", "Que faire"), str(guide, "fix"));
-            String title = str(v, "title");
-            card(out, p, title.isBlank() ? str(v, "code") : title, where, "error".equalsIgnoreCase(str(v, "severity")) ? p.bad : p.warn, extra.toString());
+            String title = !str(guide, "title").isBlank() ? str(guide, "title") : !str(v, "title").isBlank() ? str(v, "title") : str(v, "code");
+            String fix = str(guide, "fix");
+            String extra = fix.isBlank() ? "" : "<table cellspacing='0' cellpadding='0' border='0'><tr><td valign='top' nowrap><font color='" + p.muted + "'>"
+                + esc(tr(fr, "What to do:", "Que faire :")) + "</font>&nbsp;&nbsp;</td><td>" + esc(fix).replaceAll("`([^`]+)`", "<code>$1</code>") + "</td></tr></table>";
+            card(out, p, title, where, "error".equalsIgnoreCase(str(v, "severity")) ? p.bad : p.warn, extra);
         }
-        paragraph(out, tr(fr, "The copy stays in " + str(r, "folder") + ": read the example's spec there.",
-            "La copie reste dans " + str(r, "folder") + " : lis-y la spec de l'exemple."), p.muted);
     }
 
     private static void next(StringBuilder out, JsonElement json, Palette p, boolean fr) {
@@ -382,8 +411,8 @@ final class ArchvowResultFormatter {
         heading(out, p, tr(fr, "Template catalog", "Catalogue de modèles"), p.blue);
         summary(out, p, List.of(chip(templates.size() + tr(fr, " templates", " modèles"), p.blue)));
         if (templates.size() == 0) {
-            empty(out, p, tr(fr, "No templates found. A company's templates come in a pack: archvow pack add <folder>.",
-                "Aucun modèle trouvé. Les modèles d'une entreprise viennent dans un pack : archvow pack add <dossier>."));
+            empty(out, p, tr(fr, "No templates found. A company's template is given by its folder: archvow init <package> -t <folder>.",
+                "Aucun modèle trouvé. Le template d'une entreprise se donne par son dossier : archvow init <package> -t <dossier>."));
             return;
         }
         int shown = 0;
@@ -567,8 +596,7 @@ final class ArchvowResultFormatter {
             .append("<td width='48' align='center'><font color='")
             .append(accent).append("' size='+2'><b>&#9670;</b></font></td>")
             .append("<td style='padding:9px 10px;'>")
-            .append("<font color='").append(p.muted).append("'><small><b>ARCHVOW &#183; RESULT</b></small></font>")
-            .append("<div style='margin-top:3px;'>")
+            .append("<div>")  // 1.2.0: no "ARCHVOW · RESULT" over it - the tab already says Result
             .append(ArchvowHtml.heading(esc(title), 1.1, "color:" + accent + "; margin:3px 0;"))
             .append("</div></td></tr></table>")
             .append(spacer(14));

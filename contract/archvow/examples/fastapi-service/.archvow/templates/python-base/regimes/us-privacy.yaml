@@ -1,0 +1,98 @@
+# The US state comprehensive privacy laws as one regime: there is no federal comprehensive privacy law (bills
+# only, November 2026) and about twenty states have one in force. Each question takes the strictest rule the
+# states share, so a project that answers it answers every state - no per-state option to choose:
+# - sensitive personal information: opt-in consent before processing (the Virginia model most states follow)
+#   and the right to limit its use (California); a few states ban its sale outright: never sell it;
+# - opt-out of sale, sharing / targeted advertising and profiling, with universal opt-out signals honoured
+#   (Global Privacy Control: California, Colorado, Connecticut, Delaware, Maryland, Minnesota, Montana,
+#   New Jersey, New Hampshire, Oregon, Texas);
+# - consumer requests (access, delete, correct, portability), answered within 45 days in most states;
+# - notice at collection and a retention period per category (California);
+# - a risk assessment before high-risk processing: sale or sharing, sensitive data, profiling, automated
+#   decisions with significant effects (California's regulations in force since 2026-01-01; their ADMT
+#   duties - notice before use, opt-out or appeal - from 2027-01-01);
+# - minors: no sale or targeted advertising with data of a consumer known to be under 18 (Maryland, and
+#   Connecticut from 2026-07-01), verifiable parental consent under 13 (COPPA, amended rule in force
+#   2026-04-22).
+# Data covered by GLBA is left out while the glba regime is on: California, Oregon, Minnesota, Montana and
+# Connecticut exempt only that data (not the whole institution) - the strictest reading.
+# archvow supports compliance work; it does not certify it and is not legal advice.
+name: US-PRIVACY
+prefix: USP
+letter: U
+default: false
+title: "US state privacy laws (CCPA/CPRA and the other state laws, strictest common rule): notice, opt-outs, sensitive data, requests, assessments, minors"
+title_fr: "Lois des États américains sur la vie privée (CCPA/CPRA et les autres lois d'État, règle commune la plus stricte) : information, refus, données sensibles, demandes, évaluations, mineurs"
+law: "California Consumer Privacy Act as amended by the CPRA and its regulations (11 CCR 7000 ff.), and the other state comprehensive privacy laws; COPPA (16 CFR 312) for children under 13"
+law_fr: "California Consumer Privacy Act modifié par le CPRA et ses règlements (11 CCR 7000 et s.), et les autres lois d'État sur la vie privée ; COPPA (16 CFR 312) pour les enfants de moins de 13 ans"
+checked: "2026-11-11"
+sources:
+  - https://cppa.ca.gov/regulations/
+  - https://fpf.org/wp-content/uploads/2025/10/FPF_CCPA-Regulations-Issue-Brief.pdf
+  - https://www.enzuzo.com/blog/us-state-privacy-laws
+  - https://www.orrick.com/en/Insights/2025/07/Where-is-the-GLBA-Entity-Level-Exemption-Two-More-State-Privacy-Laws
+  - https://www.hunton.com/privacy-and-cybersecurity-law-blog/coppa-rule-amendment-compliance-deadline-approaches
+leaves_out:
+  glba: [financial]
+
+rules:
+  USP001: {title: "Personal information collected without a decided notice at collection", title_fr: "Informations personnelles collectées sans information décidée à la collecte"}
+  USP002: {title: "Sale, sharing or profiling not decided, or without an opt-out that honours universal signals", title_fr: "Vente, partage ou profilage non décidés, ou sans refus qui respecte les signaux universels"}
+  USP003: {title: "Sensitive personal information used without decided consent and limits", title_fr: "Informations personnelles sensibles utilisées sans consentement ni limites décidés"}
+  USP004: {title: "Data of minors used without decided age checks and parental consent", title_fr: "Données de mineurs utilisées sans contrôle d'âge ni consentement parental décidés"}
+  USP005: {title: "High-risk processing without a decided risk assessment (or automated decision without notice and opt-out)", title_fr: "Traitement à haut risque sans évaluation des risques décidée (ou décision automatisée sans information ni refus)"}
+  USP006: {title: "Personal information stored without a decided way for consumer requests to reach it", title_fr: "Informations personnelles stockées sans moyen décidé pour que les demandes des consommateurs les atteignent"}
+  USP007: {title: "Personal information stored without a decided retention per category", title_fr: "Informations personnelles stockées sans durée de conservation décidée par catégorie"}
+  USP008: {title: "Personal information sent to a third party without a decided contract and opt-out check", title_fr: "Informations personnelles envoyées à un tiers sans contrat ni vérification du refus décidés"}
+
+questions:
+  purpose:
+    - id: notice
+      rule: USP001
+      text: "Notice at collection: which categories of personal information does it use, for which purposes, and where is the consumer told before or when they are collected - e.g. contact details and order history, to fulfil orders; the privacy notice linked from the sign-up form?"
+      text_fr: "Information à la collecte : quelles catégories d'informations personnelles utilise-t-il, pour quelles finalités, et où le consommateur en est-il informé avant ou lors de la collecte - par ex. coordonnées et historique de commandes, pour exécuter les commandes ; la notice de confidentialité liée au formulaire d'inscription ?"
+    - id: sale_sharing
+      rule: USP002
+      text: "Sale, sharing and profiling: is any of this personal information sold, shared for targeted (cross-context behavioural) advertising, or used for profiling with legal or similar effects - and if so, how does a consumer's opt-out, including a Global Privacy Control signal, reach this component before it acts - e.g. none of it is sold, shared or profiled?"
+      text_fr: "Vente, partage et profilage : une partie de ces informations est-elle vendue, partagée pour de la publicité ciblée (comportementale inter-contextes), ou utilisée pour un profilage aux effets juridiques ou similaires - et si oui, comment le refus d'un consommateur, y compris un signal Global Privacy Control, atteint-il ce composant avant qu'il agisse - par ex. rien n'est vendu, partagé ni profilé ?"
+    - id: sensitive
+      rule: USP003
+      when: special
+      text: "Sensitive personal information (the special columns: health, biometrics, precise location, racial or ethnic origin, religion, sexual orientation, government ids, account credentials...): for which purpose only, where is the consumer's opt-in consent recorded before processing, and how is a request to limit its use honoured - it is never sold - e.g. explicit consent at sign-up, stored with its date; used only to provide the service?"
+      text_fr: "Informations personnelles sensibles (les colonnes particulières : santé, biométrie, localisation précise, origine raciale ou ethnique, religion, orientation sexuelle, identifiants officiels, identifiants de compte...) : pour quelle seule finalité, où le consentement explicite du consommateur est-il enregistré avant le traitement, et comment une demande de limiter leur usage est-elle respectée - elles ne sont jamais vendues - par ex. consentement explicite à l'inscription, enregistré avec sa date ; utilisées seulement pour fournir le service ?"
+    - id: minors
+      rule: USP004
+      when: personal
+      tags: [children]
+      text: "Minors: how does it know a consumer is under 18, how is it ensured their data is never sold nor used for targeted advertising, and where is a parent's verifiable consent recorded for a child under 13 (COPPA) - e.g. age asked at sign-up; under-18 accounts excluded from every ad audience; no account under 13?"
+      text_fr: "Mineurs : comment sait-il qu'un consommateur a moins de 18 ans, comment garantit-il que ses données ne sont jamais vendues ni utilisées pour de la publicité ciblée, et où est enregistré le consentement vérifiable d'un parent pour un enfant de moins de 13 ans (COPPA) - par ex. âge demandé à l'inscription ; comptes de moins de 18 ans exclus de toute audience publicitaire ; aucun compte de moins de 13 ans ?"
+    - id: assessment
+      rule: USP005
+      text: "High-risk processing: does it sell or share personal information, process sensitive data, profile, train an automated decision technology, or make or substantially support significant decisions (credit, employment, housing, education, health care) - if so, where is the risk assessment done before processing, and for an automated significant decision the notice before use and the way to opt out or appeal - e.g. none of these; or assessment RA-12 of 2026-03, decision reviewed by a person on appeal?"
+      text_fr: "Traitement à haut risque : vend-il ou partage-t-il des informations personnelles, traite-t-il des données sensibles, profile-t-il, entraîne-t-il une technologie de décision automatisée, ou prend-il ou étaye-t-il largement des décisions importantes (crédit, emploi, logement, éducation, soins) - si oui, où est faite l'évaluation des risques avant le traitement, et pour une décision importante automatisée, l'information avant usage et le moyen de refuser ou de faire appel - par ex. rien de cela ; ou évaluation RA-12 de 2026-03, décision revue par une personne en appel ?"
+  store:
+    - id: requests
+      rule: USP006
+      when: writes
+      text: "Consumer requests: how does a request to access, delete, correct or port one consumer's data reach what it stores, and within what time (45 days in most states) - e.g. the privacy request job finds and deletes rows by consumer id within 30 days?"
+      text_fr: "Demandes des consommateurs : comment une demande d'accès, de suppression, de rectification ou de portabilité des données d'un consommateur atteint-elle ce qu'il stocke, et dans quel délai (45 jours dans la plupart des États) - par ex. le job des demandes trouve et supprime les lignes par id de consommateur sous 30 jours ?"
+    - id: retention
+      rule: USP007
+      when: writes
+      text: "Retention: how long is each category of personal information it stores kept, and how is it deleted then - e.g. order history 3 years after the account closes, then deleted?"
+      text_fr: "Conservation : combien de temps chaque catégorie d'informations personnelles stockée est-elle gardée, et comment est-elle supprimée ensuite - par ex. l'historique de commandes 3 ans après la clôture du compte, puis supprimé ?"
+  share:
+    - id: recipient
+      rule: USP008
+      when: writes
+      text: "Recipient: which third party receives the personal information, is it a service provider or contractor under a written contract that limits its use (else it is a sale or sharing), and is a consumer's opt-out checked before sending - e.g. a payment processor, as a service provider under contract; nothing sent for advertising?"
+      text_fr: "Destinataire : quel tiers reçoit les informations personnelles, est-il un prestataire ou sous-traitant sous un contrat écrit qui limite leur usage (sinon c'est une vente ou un partage), et le refus d'un consommateur est-il vérifié avant l'envoi - par ex. un prestataire de paiement, sous contrat ; rien n'est envoyé pour la publicité ?"
+
+register:
+  file: PERSONAL_INFORMATION.md
+  title: "Personal information inventory"
+  title_fr: "Inventaire des informations personnelles"
+  intro: "Every column the spec classifies as personal or special (sensitive personal information), what it is tagged, and the components that read, change and write it - with what each answered on notice, sale and sharing, retention and recipients. Input for the privacy notice and the risk assessments of the US state privacy laws."
+  intro_fr: "Chaque colonne que la spec classe comme personnelle ou particulière (informations personnelles sensibles), ses étiquettes, et les composants qui la lisent, la modifient et l'écrivent - avec ce que chacun a répondu sur l'information, la vente et le partage, la conservation et les destinataires. Entrée de la notice de confidentialité et des évaluations des risques des lois des États américains."
+  answers: "Notice, sale and sharing, sensitive data, requests, retention, recipients"
+  answers_fr: "Information, vente et partage, données sensibles, demandes, conservation, destinataires"

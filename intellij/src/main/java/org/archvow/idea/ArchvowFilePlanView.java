@@ -19,6 +19,18 @@ final class ArchvowFilePlanView extends JPanel {
     private static final Map<String, String> FR = Map.of(
         "new", "nouveau", "updated", "modifié", "removed", "retiré", "kept", "gardé", "planned", "prévu");
 
+    /** What a click on a file does (1.1.0: the Spec view's "Where it is"): open it; its right-click menu, more. */
+    interface FileActions {
+        void open(String path);
+        void reveal(String path);
+        void copyPath(String path);
+    }
+
+    private FileActions actions;
+
+    /** Files that open on a click, with a right-click menu: Open, Show in the project view, Copy path. */
+    void clickable(FileActions actions) { this.actions = actions; }
+
     ArchvowFilePlanView() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setOpaque(false);
@@ -67,7 +79,9 @@ final class ArchvowFilePlanView extends JPanel {
                 file.add(icon);
                 file.add(Box.createHorizontalStrut(5));
                 if (row != null) {
-                    file.add(fileName(line.name()));
+                    JLabel name = fileName(line.name());
+                    if (actions != null && !"planned".equals(row.change())) menuOn(name, row.path(), fr);
+                    file.add(name);
                     file.add(Box.createHorizontalStrut(5));
                     String statusText = "location".equals(row.change()) ? row.note()
                         : (fr ? FR : EN).getOrDefault(row.change(), "");  // "here": a file that exists, no badge
@@ -94,6 +108,30 @@ final class ArchvowFilePlanView extends JPanel {
         setVisible(!rows.isEmpty());
         revalidate();
         repaint();
+    }
+
+    /** A file's name, when the view is clickable: a click opens it, a right-click offers the three actions. */
+    private void menuOn(JLabel name, String path, boolean fr) {
+        name.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        name.setToolTipText(fr ? "Ouvrir " + path + " · clic droit : plus" : "Open " + path + " · right-click: more");
+        name.addMouseListener(new java.awt.event.MouseAdapter() {
+            private void menu(java.awt.event.MouseEvent e) {
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem open = new JMenuItem(fr ? "Ouvrir" : "Open");
+                open.addActionListener(a -> actions.open(path));
+                JMenuItem reveal = new JMenuItem(fr ? "Afficher dans la vue Projet" : "Show in the project view");
+                reveal.addActionListener(a -> actions.reveal(path));
+                JMenuItem copy = new JMenuItem(fr ? "Copier le chemin" : "Copy path");
+                copy.addActionListener(a -> actions.copyPath(path));
+                menu.add(open); menu.add(reveal); menu.add(copy);
+                menu.show(name, e.getX(), e.getY());
+            }
+            @Override public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) menu(e); }
+            @Override public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) menu(e); }
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e) && !e.isPopupTrigger()) actions.open(path);
+            }
+        });
     }
 
     /** One level of the tree, in pixels (0.25.1: a monospaced "│   " took ~32 px a level; VS Code's tree takes 23). */

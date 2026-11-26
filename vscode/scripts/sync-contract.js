@@ -9,6 +9,8 @@ fs.mkdirSync(to, { recursive: true });
 for (const name of ['commands.json', 'catalog.json', 'kinds.json', 'rules.md', 'rules.fr.md', 'version.txt', 'contract.txt']) {
   fs.copyFileSync(path.join(from, name), path.join(to, name));
 }
+// the archvow versions the plugins work with (1.0.0): the plugins' own statement, one value for both
+fs.copyFileSync(path.join(__dirname, '..', '..', 'contract', 'archvow-range.txt'), path.join(to, 'archvow-range.txt'));
 // how the plugins lay out each command's form, and the trees' icons (the plugins' own files, not archvow's)
 for (const name of ['forms.json', 'icons.json']) {
   fs.copyFileSync(path.join(__dirname, '..', '..', 'contract', 'forms', name), path.join(to, name));

@@ -16,18 +16,21 @@ symbol run_my_pipeline
 
 # --- decisions
 decision 1
+  id missing_input
   question "If one of its inputs is missing (e.g. the refunds file was not delivered): stop with an error, skip this run (nothing written), or continue without it?"
   answer "Fail"
   by architect@example.com
   on 2026-11-11T19:07:02.918672+00:00
 
 decision 2
+  id retries
   question "If a run fails, is it retried automatically, how many times, and can a retry run after a half-finished run without duplicating data - e.g. 2 retries 10 minutes apart, the output is overwritten?"
   answer "No automatic retry; a re-run is safe (the writer overwrites)"
   by architect@example.com
   on 2026-11-11T19:07:03.145824+00:00
 
 decision 3
+  id run_date
   question "Which date does one run process (e.g. yesterday's data), and where does that date come from: an argument from the scheduler, or computed by the job?"
   answer "No run date: the job processes the input it is given"
   by architect@example.com

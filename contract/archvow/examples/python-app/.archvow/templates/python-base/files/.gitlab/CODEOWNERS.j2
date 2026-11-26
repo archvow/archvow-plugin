@@ -1,0 +1,36 @@
+# Guard files written by archvow: changes need an architect's approval. .archvow/ is listed path by
+# path (ARCH050 refuses any other file there); in mode free, the AI's proposals (each feature's
+# proposals.vow) are not the architects': the exclusion below (GitLab 17.10 or later).
+# Enforced only with GitLab Premium/Ultimate and, on the protected default branch:
+#   Settings > Repository > Branch rules > "Code owner approval" ON, "Allowed to push" = No one.
+# The [Architecture guards] section is required (no ^ prefix) and needs 1 approval.
+
+[Architecture guards][1]
+/.archvow/project.vow        {{ architects }}
+/.archvow/README.md          {{ architects }}
+/.archvow/features/          {{ architects }}
+/.archvow/frozen.json        {{ architects }}
+/.archvow/templates/         {{ architects }}
+/.archvow/template/          {{ architects }}
+{%- if mode == 'free' %}
+!/.archvow/features/*/proposals.vow
+{%- endif %}
+/AGENTS.md                  {{ architects }}
+/CLAUDE.md                  {{ architects }}
+/.aiassistant/              {{ architects }}
+/.junie/                    {{ architects }}
+/ruff.toml                  {{ architects }}
+/pytest.ini                 {{ architects }}
+/.pre-commit-config.yaml    {{ architects }}
+/.githooks/                 {{ architects }}
+/.claude/                   {{ architects }}
+/.cursor/                   {{ architects }}
+/.continue/                 {{ architects }}
+/.agents/                   {{ architects }}
+/.gitlab-ci.yml             {{ architects }}
+/.gitlab/                   {{ architects }}
+/.github/                   {{ architects }}
+/Jenkinsfile                {{ architects }}
+{%- for rel in ai_instruction_paths %}
+/{{ rel }}{{ " " * (27 - rel | length) }}{{ architects }}
+{%- endfor %}

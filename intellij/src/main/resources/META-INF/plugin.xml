@@ -55,7 +55,7 @@
       <li><b>Overview:</b> First steps for a new project; <b>Next</b> (what to build now, with the suggested answers)
           and <b>Check</b>; under <b>More</b>, Doctor, Audit, Briefs, Budget / Next, Diff and AI review; the
           <b>Architecture</b> card (items done, open and done items), the <b>Checks</b> card (errors, warnings and the
-          first finding: its rule in words, its file and line) and the project's <b>Packs</b>.</li>
+          first finding: its rule in words, its file and line) and the project's <b>Templates</b> (its chain, its own additions).</li>
       <li><b>Features:</b> what the product does, feature by feature or by layer. A feature's page: how far it is, the
           features it uses and that use it, its components by layer and what is open, with Add component, Open
           feature doc, Copy AI prompt, Next steps and Rename.</li>
@@ -91,7 +91,8 @@
        (<code>~/.local/bin</code>, <code>/opt/homebrew/bin</code>, <code>/usr/local/bin</code>). On Windows, a Python in
        WSL works. <b>Test</b> in the settings shows which one answered, or what each said.</p>
 
-    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; the ArchVow CLI 2.8.0 (contract 2.5) in Python 3.11+.
+    <p><b>Requirements:</b> IntelliJ-based IDEs 2024.3 or later; <b>this plugin works with archvow &gt;=3.4,&lt;4</b> (tested with 3.4.1, contract 3.0), in Python 3.11+ - the header of
+       the tool window says it.
        <b>Languages:</b> English (default) and French. The same workspace exists for VS Code.</p>
   ]]></description>
 
@@ -121,7 +122,8 @@
     <toolWindow id="Archvow" anchor="left" icon="/icons/archvowToolWindow.svg"
                 factoryClass="org.archvow.idea.ArchvowToolWindowFactory"/>
     <!-- The session log opens only when its existing header button is clicked. -->
-    <toolWindow id="Archvow Output" anchor="bottom" icon="/icons/archvowToolWindow.svg"
+    <!-- 1.2.0: its own icon, the Y with log lines, so the two windows tell apart -->
+    <toolWindow id="Archvow Output" anchor="bottom" icon="/icons/archvowOutput.svg"
                 factoryClass="org.archvow.idea.ArchvowOutputToolWindowFactory"/>
     <editorTabTitleProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>
     <fileIconProvider implementation="org.archvow.idea.ArchvowEditorTabPresentation"/>

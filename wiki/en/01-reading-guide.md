@@ -6,7 +6,7 @@
 
 ```bash
 git clone <archvow-plugin repository> && cd archvow-plugin
-python3 -m pip install archvow==2.8.0        # the CLI the plugins are tested with (archvow version)
+python3 -m pip install archvow==3.4.0        # the CLI the plugins are tested with (they work with archvow >=3.4,<4)
 
 # IntelliJ: a JDK 21 (IntelliJ's own works)
 export JAVA_HOME="/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home"

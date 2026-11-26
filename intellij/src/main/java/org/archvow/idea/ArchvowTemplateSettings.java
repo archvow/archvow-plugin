@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * {@code pack template}: the settings of the template it extends, filled in with the base's values (0.12.1).
+ * {@code template new}: the settings of the template it extends, filled in with the base's values (0.12.1).
  * What the company may set - the defaults of the init answers, the folder of each layer - is editable,
  * within what the base allows (its choices only, its formats); what the base imposes - what it extends,
  * its version, its layers, its choices - is shown, not editable. Only what differs from the base becomes
@@ -111,7 +111,7 @@ final class ArchvowTemplateSettings extends JPanel {
             if (ArchvowAgentPicker.names(q)) {
                 field = new ArchvowAgentPicker(ArchvowAgentPicker.suggestions(q), value, french);  // 0.26.1
             } else if (isTrue(q, "multiple") && !choices.isEmpty()) {
-                JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+                JPanel chips = new JPanel(new ArchvowWrapLayout(FlowLayout.LEFT, 6, 2));
                 Set<String> picked = new LinkedHashSet<>(List.of(value.split(",")));
                 for (String choice : choices) chips.add(new JCheckBox(choice, picked.contains(choice.trim())));
                 field = chips;
