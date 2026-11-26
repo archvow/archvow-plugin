@@ -95,6 +95,14 @@ final class ArchvowInstall {
         List<String> args = pipArgs(version, source);
         ArchvowWsl.Target wsl = ArchvowWsl.program(python, windows);
         List<String> argv = new ArrayList<>();
+        ArchvowDevContainer.Target container = ArchvowDevContainer.parse(python);
+        if (container != null) {
+            String folder = ArchvowDevContainer.folder(container, root, ArchvowDevContainer.mounts);
+            if (folder == null) throw new IllegalArgumentException("The dev container cannot see the project folder: " + root);
+            argv.add(container.path());
+            for (String a : args) argv.add(ArchvowDevContainer.argument(a));
+            return ArchvowDevContainer.command(ArchvowDevContainer.docker(), container, folder, argv);
+        }
         if (wsl != null) {
             String folder = ArchvowWsl.linuxPath(root);
             if (folder == null) throw new IllegalArgumentException("WSL cannot reach the project folder: " + root);
@@ -138,7 +146,7 @@ final class ArchvowInstall {
 
     /** The folder pip runs in: the project, or the home folder when it runs in WSL (wsl.exe --cd gives the project). */
     static String workingFolder(List<String> argv, String root) {
-        return ArchvowWsl.isWsl(argv) ? System.getProperty("user.home", root) : root;
+        return ArchvowWsl.isWsl(argv) || ArchvowDevContainer.isDocker(argv) ? System.getProperty("user.home", root) : root;
     }
 
     /** The card's text: what is wrong, then what the button will do. */

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.4 - 2026-11-26
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- The README names archvow 3.4.2 to install (it still said 2.6.0). Nothing else changes in VS Code; the IntelliJ
+  plugin runs archvow in a dev container IntelliJ opened natively.
+
 ## 1.4.3 - 2026-11-26
 
 Works with archvow >=3.4,<4. Built on archvow 3.4.1.

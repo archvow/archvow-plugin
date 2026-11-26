@@ -37,6 +37,7 @@ what it protects:
 | `PastedErrorRegression` | An error pasted in Find (archvow 2.7.0): shown as an error from archvow's real output - known errors with their fix and why, where it broke, buttons that go there - never as a search found nowhere |
 | `PlatformApiRegression` | No API the Plugin Verifier reported (2024.3 to 2026.3 EAP): files open through `OpenFileDescriptor.navigate`; the trust check is the platform's newest that exists (2025.1 `isProjectTrusted`, else 2024.3 `isTrusted`), none or a failing one means not trusted |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, the `\\wsl.localhost\...` paths |
+| `DevContainerRegression` | `docker exec` for a `/$devcontainer.ij/...` Python, the project folder in the container or through a mount, the paths translated |
 | `TextDialogRegression` | a dialog's size, Copy command |
 | `TextSizeRegression` | no `px` and no `<h1>`-`<h6>` in the HTML shown, the branch advice over several lines |
 | `ToolWindowLayoutRegression`, `ResponsiveOverflowRegression`, `CompactViewsRegression` | narrow screens |

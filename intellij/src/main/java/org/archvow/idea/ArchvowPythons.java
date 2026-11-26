@@ -48,7 +48,7 @@ final class ArchvowPythons {
         java.util.function.BiConsumer<String, String> add = (path, where) -> {
             if (path == null || path.isBlank()) return;
             String p = path.trim();
-            boolean wsl = ArchvowWsl.program(p, windows) != null;
+            boolean wsl = ArchvowWsl.program(p, windows) != null || ArchvowDevContainer.is(p);
             if (!wsl && !exists.test(p)) return;
             out.putIfAbsent(wsl ? p : canonical.apply(p), new String[] {p, where});
         };
@@ -132,7 +132,7 @@ final class ArchvowPythons {
         catch (java.io.IOException e) { return out; }
         try {
             for (String[] place : places) {
-                if (ArchvowWsl.program(place[0], windows) != null) { out.add(new Found(place[0], place[1], "", "")); continue; }
+                if (ArchvowWsl.program(place[0], windows) != null || ArchvowDevContainer.is(place[0])) { out.add(new Found(place[0], place[1], "", "")); continue; }
                 try {
                     Process process = new ProcessBuilder(place[0], "-c", PROBE).directory(empty).redirectErrorStream(true).start();
                     if (!process.waitFor(5, TimeUnit.SECONDS)) { process.destroyForcibly(); continue; }

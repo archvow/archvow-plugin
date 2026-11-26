@@ -2,6 +2,17 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 1.4.4 - 2026-11-26
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **Dev containers opened natively:** a Python IntelliJ names
+  `/$devcontainer.ij/<container>@<daemon>/usr/local/bin/python3.12` now runs. archvow runs in the container through
+  `docker exec`, in the project folder as the container sees it (its own path, or the mount of a folder of the
+  computer), with every path argument translated. It had said the Python was not found: the computer cannot start a
+  program that only exists in the container. The settings' Test, Install archvow and the Python list do the same.
+  `docker` is found on the PATH or where Docker Desktop, Homebrew or Rancher put it.
+
 ## 1.4.3 - 2026-11-26
 
 Works with archvow >=3.4,<4. Built on archvow 3.4.1.

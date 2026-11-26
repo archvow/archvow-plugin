@@ -119,6 +119,17 @@ et l'ancienne forme `python3 -m archvow`, qu'il découpe en trois arguments (sin
 chercherait un fichier nommé « python3 -m archvow »). Un chemin avec des espaces reste un seul
 argument ; des guillemets autour sont retirés. Toute autre option dans le champ est refusée.
 
+## archvow dans un dev container ouvert nativement par IntelliJ (1.4.4)
+
+Avec « ouvrir les projets dev container nativement », IntelliJ reste sur l'ordinateur et nomme les fichiers du
+conteneur `/$devcontainer.ij/<conteneur>@<démon>/<chemin>` (le démon `u~var~run~docker.sock` est
+`unix:///var/run/docker.sock`). L'ordinateur ne peut pas lancer un tel Python. `ArchvowDevContainer` le lance dans le
+conteneur par `docker exec`, avec les chemins du conteneur (le dossier du projet : son chemin dans le conteneur, ou un
+dossier de l'ordinateur par les montages du conteneur, `docker inspect` ; sinon refusé). `docker` est cherché dans le
+PATH puis aux endroits de Docker Desktop, Homebrew et Rancher. Le Test des réglages, Installer archvow et la liste
+des Python font de même. Avec le backend de l'IDE dans le conteneur (dev containers classiques, Gateway), rien de
+cela ne sert ; VS Code non plus.
+
 ## archvow dans WSL, l'IDE sous Windows
 
 Un programme Linux ne se lance pas par son chemin Windows (`\\wsl.localhost\Ubuntu\home\...\python3`) :

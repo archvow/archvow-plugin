@@ -130,6 +130,20 @@ final class ArchvowProcessCommand {
         if (program.isBlank())
             throw new IllegalArgumentException("The path of the Python is empty.");
 
+        ArchvowDevContainer.Target container = ArchvowDevContainer.parse(program);
+        if (container != null) {
+            // archvow in a dev container IntelliJ opened natively (1.4.4): docker exec, with the container's paths
+            String folder = ArchvowDevContainer.folder(container, root, ArchvowDevContainer.mounts);
+            if (root != null && folder == null)
+                throw new IllegalArgumentException("The dev container " + container.container() + " cannot see the project folder: " + root);
+            ArrayList<String> inner = new ArrayList<>();
+            inner.add(container.path());
+            if (pythonMode) { inner.add("-P"); inner.add("-m"); inner.add("archvow"); }
+            if (folder != null) { inner.add("--root"); inner.add(folder); }
+            for (String argument : arguments) inner.add(ArchvowDevContainer.argument(argument));
+            return List.copyOf(ArchvowDevContainer.command(ArchvowDevContainer.docker(), container, folder, inner));
+        }
+
         ArchvowWsl.Target wsl = ArchvowWsl.program(program, windows);
         if (wsl != null) {
             // archvow in WSL: wsl.exe runs the Linux program in the project folder, as Linux paths

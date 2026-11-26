@@ -177,7 +177,7 @@ final class ArchvowCli {
         return ArchvowProcessCommand.candidates(opts.useProjectInterpreter,
             opts.useProjectInterpreter ? ArchvowInterpreter.projectPython(project) : "", opts.executable, opts.python,
             ArchvowProcessCommand.found(root, opts.useProjectInterpreter ? ArchvowInterpreter.idePythons() : List.of(),
-                System.getProperty("user.home", ""), windows, path -> new File(path).canExecute()));
+                System.getProperty("user.home", ""), windows, path -> ArchvowDevContainer.is(path) || new File(path).canExecute()));
     }
 
     /** What trying the candidates gave: the first that answered (or null), and a line per candidate tried. */
@@ -204,8 +204,8 @@ final class ArchvowCli {
                 ProcessBuilder builder = new ProcessBuilder(argv).redirectErrorStream(true);
                 prepare(builder, argv, root);
                 Process process = builder.start();
-                // WSL may have to start its machine first: a longer wait through wsl.exe
-                int seconds = ArchvowWsl.isWsl(argv) ? 60 : 10;
+                // WSL or docker may have to start their machine first: a longer wait
+                int seconds = ArchvowWsl.isWsl(argv) || ArchvowDevContainer.isDocker(argv) ? 60 : 10;
                 if (!process.waitFor(seconds, TimeUnit.SECONDS)) {
                     process.destroyForcibly();
                     said = (french ? "pas de réponse en " : "no answer within ") + seconds + " s";
@@ -241,6 +241,9 @@ final class ArchvowCli {
             // the Linux folder is given by --cd; wsl.exe itself starts from the user's home (never a \\wsl$ folder)
             builder.directory(new File(System.getProperty("user.home", ".")));
             builder.environment().put("WSLENV", ArchvowWsl.wslenv(builder.environment().get("WSLENV")));
+        } else if (ArchvowDevContainer.isDocker(argv)) {
+            // the container's folder is given by -w; docker itself starts from the user's home (never a /$devcontainer.ij folder)
+            builder.directory(new File(System.getProperty("user.home", ".")));
         } else if (root != null) {
             builder.directory(new File(root));
         }
@@ -316,15 +319,15 @@ final class ArchvowCli {
             String base = project.getBasePath();
             if (base == null) throw new IllegalStateException("Aucun dossier racine pour ce projet IntelliJ");
             // init --dir <an existing folder> runs there (0.25.1), as in a terminal: its .venv counts
-            String root = ArchvowProcessCommand.workingFolder(arguments, base, path -> new File(path).isDirectory());
+            String root = ArchvowProcessCommand.workingFolder(arguments, base, ArchvowDevContainer::isDirectory);
             workingDirectory = new File(root);
-            if (!workingDirectory.isDirectory())
+            if (!ArchvowDevContainer.isDirectory(root))
                 throw new IllegalStateException("Le dossier du projet n'existe pas : " + root);
             ArchvowProcessCommand.Candidate chosen = choose(opts, root);
             argv = ArchvowProcessCommand.build(chosen.executable(), chosen.python(), root, arguments);
         }
         // stdout and stderr apart: a warning on stderr must never be read as part of the JSON on stdout.
-        ProcessBuilder builder = new ProcessBuilder(argv).directory(workingDirectory);
+        ProcessBuilder builder = new ProcessBuilder(argv);
         prepare(builder, argv, workingDirectory.getPath());
         Process process = builder.start();
         StringBuilder buffer = new StringBuilder();
