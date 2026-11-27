@@ -61,6 +61,8 @@ public final class TrustRegression {
                 int allowed = switch (name) {
                     case "ArchvowCli.java", "ArchvowPanel.java" -> 2;
                     case "ArchvowSettingsConfigurable.java", "ArchvowPythons.java" -> 1;
+                    // 1.4.4: docker inspect reads a container's mounts, nothing of the project; asked while the command is built
+                    case "ArchvowDevContainer.java" -> 1;
                     default -> 0;
                 };
                 check(count == allowed, name + " starts " + count + " process(es), " + allowed + " reviewed for trust");

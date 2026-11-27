@@ -253,7 +253,7 @@ public final class ArchvowSettingsConfigurable implements Configurable {
         new SwingWorker<String, Void>() {
             @Override protected String doInBackground() {
                 try {
-                    if (root == null || !new File(root).isDirectory()) return ArchvowSettingsText.noFolder(fr, root);
+                    if (!ArchvowDevContainer.isDirectory(root)) return ArchvowSettingsText.noFolder(fr, root);
                     if (!ArchvowTrust.trusted(project)) return ArchvowTrust.message(fr);  // safe mode: the Test runs nothing either
                     ArchvowCli.Probe probe = ArchvowCli.probe(ArchvowCli.candidates(project, values, root), root, fr);
                     if (probe.chosen() == null) return probe.report();

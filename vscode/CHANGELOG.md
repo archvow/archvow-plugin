@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.4.5 - 2026-11-27
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **Commands can be selected everywhere:** the terminal's command text is selectable (the `$` is not, so it is not
+  copied), and ending a selection there no longer counts as a click on what holds it.
+
+## 1.4.4 - 2026-11-26
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- The README names archvow 3.4.2 to install (it still said 2.6.0). Nothing else changes in VS Code; the IntelliJ
+  plugin runs archvow in a dev container IntelliJ opened natively.
+
+## 1.4.3 - 2026-11-26
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **An archvow older than the plugin's range:** a command form (init, and every other) no longer runs. It says
+  "archvow X is older than this plugin works with (archvow >=3.4,<4)" with **Install archvow**. The forms come from
+  the archvow the plugin is tested with: an older one lacked their options (`init --adopt` failed with
+  "unrecognized arguments").
+- **New project, langgraph-agent:** `langgraph_version` is asked in Runtime, with the Python, Spark and FastAPI
+  versions (it was alone under Other answers).
+
 ## 1.4.2 - 2026-11-25
 
 Works with archvow >=3.4,<4. Built on archvow 3.4.1.

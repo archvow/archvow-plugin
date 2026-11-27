@@ -2,6 +2,40 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 1.4.5 - 2026-11-27
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **Commands can be selected everywhere:** the welcome card's pip command is now in the same terminal as the forms
+  and confirmations (a text area, with its copy button); it was HTML in a label, which cannot be selected.
+- **Install archvow names the version it installs:** the button said the plugin's (3.4.1) while the command
+  installed the project's pin (3.4.2).
+- **A dev container that was recreated:** instead of docker's "No such container", the plugin says the container
+  has a new id: open it again, choose its Python again, and empty the Python of Settings > Tools > Archvow if it
+  still names the old id (Install archvow had saved it there).
+
+## 1.4.4 - 2026-11-26
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **Dev containers opened natively:** a Python IntelliJ names
+  `/$devcontainer.ij/<container>@<daemon>/usr/local/bin/python3.12` now runs. archvow runs in the container through
+  `docker exec`, in the project folder as the container sees it (its own path, or the mount of a folder of the
+  computer), with every path argument translated. It had said the Python was not found: the computer cannot start a
+  program that only exists in the container. The settings' Test, Install archvow and the Python list do the same.
+  `docker` is found on the PATH or where Docker Desktop, Homebrew or Rancher put it.
+
+## 1.4.3 - 2026-11-26
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **An archvow older than the plugin's range:** a command form (init, and every other) no longer runs. It says
+  "archvow X is older than this plugin works with (archvow >=3.4,<4)" with **Install archvow**. The forms come from
+  the archvow the plugin is tested with: an older one lacked their options (`init --adopt` failed with
+  "unrecognized arguments").
+- **New project, langgraph-agent:** `langgraph_version` is asked in Runtime, with the Python, Spark and FastAPI
+  versions (it was alone under Other answers).
+
 ## 1.4.2 - 2026-11-25
 
 Works with archvow >=3.4,<4. Built on archvow 3.4.1.

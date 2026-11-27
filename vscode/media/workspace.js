@@ -2801,7 +2801,7 @@
       qStage('Governance', 'Gouvernance', ['language', 'architects', 'mode', 'sandbox', 'rules', 'auto_approve']);
       qStage('AI & briefs', 'IA et briefs', ['ai_tools', 'ai_runs', 'reviewers', 'briefs', 'ticket_pattern']);
       qStage('CI & quality', 'CI et qualité', ['platform', 'ci', 'sonar', 'git_hooks', 'branch_naming', 'line_length']);
-      qStage('Runtime', 'Exécution', ['python_version', 'spark_version', 'fastapi_version', 'scheduler', 'dependencies']);
+      qStage('Runtime', 'Exécution', ['python_version', 'spark_version', 'fastapi_version', 'langgraph_version', 'scheduler', 'dependencies']);
       qStage('Limits & integration', 'Limites et intégration', ['max_components', 'max_code_lines', 'pip_index_url', 'ci_image']);
       const rest = questions.map((q) => str(q, 'id')).filter((id) => !used.has(id));
       for (let i = 0; i < rest.length; i += 5) stages.push({ title: t('Other template answers', 'Autres réponses du modèle'), names: [], questions: rest.slice(i, i + 5) });
@@ -4134,6 +4134,8 @@
   });
 
   document.body.addEventListener('click', (event) => {
+    // 1.4.5: selecting a command in a terminal is not a click on what holds it (the page is not drawn again)
+    if (event.target.closest && event.target.closest('.terminal-content') && String(window.getSelection ? window.getSelection() : '').length) return;
     if (ui.ctxMenu) {  // a click closes the menu; on one of its items, the item runs below
       ui.ctxMenu = null;
       if (!event.target.closest('.ctx-menu [data-a]')) { render(); return; }

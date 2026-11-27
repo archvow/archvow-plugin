@@ -37,6 +37,7 @@ nom de ce qu'elle protège :
 | `PastedErrorRegression` | Une erreur collée dans Chercher (archvow 2.7.0) : montrée comme une erreur depuis la vraie sortie d'archvow - erreurs connues avec correction et raison, où ça a cassé, boutons qui y vont - jamais comme une recherche introuvable |
 | `PlatformApiRegression` | Aucune API signalée par le Plugin Verifier (2024.3 à 2026.3 EAP) : les fichiers s'ouvrent par `OpenFileDescriptor.navigate` ; la vérification de confiance est la plus récente de la plateforme qui existe (2025.1 `isProjectTrusted`, sinon 2024.3 `isTrusted`), aucune ou une qui échoue veut dire non approuvé |
 | `WslRegression` | `wsl.exe -d ... --cd ... --exec`, les chemins `\\wsl.localhost\...` |
+| `DevContainerRegression` | `docker exec` pour un Python `/$devcontainer.ij/...`, le dossier du projet dans le conteneur ou par un montage, les chemins traduits |
 | `TextDialogRegression` | la taille d'un dialogue, Copier la commande |
 | `TextSizeRegression` | aucun `px` ni `<h1>`-`<h6>` dans le HTML affiché, le conseil de branche sur plusieurs lignes |
 | `ChoicesRegression` | les formulaires de commande proposent ce qui existe (`ArchvowChoices`) : sur les trois exemples, en anglais et en français, exactement ce que propose VS Code (`contract/choices/expected.json`), et la même base de comparaison |

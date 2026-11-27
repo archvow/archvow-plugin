@@ -57,6 +57,11 @@ public final class UiPolishRegression {
         java.awt.Color seeThrough = new java.awt.Color(0, 0, 0, 20);
         java.awt.Color solid = ArchvowMenu.solid(seeThrough, java.awt.Color.WHITE);
         require(solid.getAlpha() == 255 && solid.getRed() > 230, "a see-through hover becomes opaque over the menu: " + solid);
+        // 1.4.3: a form does not run on an archvow older than the range (init --adopt: "unrecognized arguments")
+        require(panel.contains("if (\"older\".equals(known.state())) {") && panel.indexOf("ArchvowCompat.Compatibility known = knownCompat();")
+            < panel.indexOf("if (\"specify\".equals(command.label)) {"), "an older archvow: forms stop before running, with Install archvow");
+        require(Files.readString(Path.of("src/main/java/org/archvow/idea/ArchvowInitQuestions.java"))
+            .contains("\"fastapi_version\", \"langgraph_version\", \"scheduler\""), "langgraph_version in Runtime");
         // 1.4.1: ← Back to the page the editor showed - a component, Briefs, Find, Checks or a result
         require(panel.contains("case \"briefs\" -> \"Briefs\";") && panel.contains("backButton.setText(\"← \" + home)")
             && panel.contains("rememberBack(onComponent, knownComponent);"), "AI skill editor needs a Back to Briefs button");
@@ -80,6 +85,19 @@ public final class UiPolishRegression {
         require("Testé".equals(ArchvowArchitectureView.localizedState("tested", true)), "French translation of tested");
         require("Écart détecté".equals(ArchvowArchitectureView.localizedState("drifted", true)), "French translation of drifted");
         require("drift".equals(ArchvowArchitectureView.localizedState("drift", false)), "English technical state unchanged");
-        System.out.println("OK: 12");
+        // 1.4.5: every command in the terminal look can be selected: the shared terminal is a focusable text area, and
+        // the welcome card's pip command is in it (it was HTML in a JLabel); the button names the version pip installs
+        javax.swing.JTextArea line = new javax.swing.JTextArea("archvow check");
+        ArchvowTerminal.wrap(line);
+        require(line.isFocusable() && line.getHighlighter() != null && !line.isEditable(), "the terminal's command can be selected");
+        require(!panel.contains("welcomeInstallCommand.setText(") && panel.contains("welcomeInstallLine.setText(offer.display())"),
+            "the install command is in the selectable terminal");
+        require(panel.contains("welcomeInstall.setText(ArchvowI18n.text(project, \"Install archvow \" + offer.version()"),
+            "the Install button names the version of the command");
+        for (String host : java.util.List.of("ArchvowPanel.java", "ArchvowExamples.java")) {
+            String text = Files.readString(Path.of("src/main/java/org/archvow/idea/" + host));
+            require(!text.matches("(?s).*JLabel[^;]*ArchvowTerminal\\.html.*"), host + ": a terminal in a JLabel cannot be selected");
+        }
+        System.out.println("OK: 13");
     }
 }

@@ -143,6 +143,25 @@ wsl.exe -d Ubuntu --cd /home/marc/proj --exec /home/marc/.venv/bin/python3 -m ar
 - With VS Code opened *inside* WSL (Remote - WSL), the extension runs on the Linux side: none of this
   is needed.
 
+## archvow in a dev container IntelliJ opened natively (1.4.4)
+
+With "open dev container projects natively", IntelliJ stays on the computer and names the container's files
+`/$devcontainer.ij/<container>@<daemon>/<path>` (the daemon `u~var~run~docker.sock` is `unix:///var/run/docker.sock`).
+The computer cannot start such a Python. `ArchvowDevContainer` runs it in the container through `docker exec`:
+
+```
+docker -H unix:///var/run/docker.sock exec -i -w /lab/p -e NO_COLOR -e PYTHONIOENCODING -e ARCHVOW_LOG 5483173dc8bf /usr/local/bin/python3.12 -P -m archvow --root /lab/p check --json
+```
+
+- The project folder: its container path when IntelliJ gives a `/$devcontainer.ij/` one; a folder of the computer
+  through the container's mounts (`docker inspect`, once per container, the longest mount wins); else refused.
+- Every argument that is a `/$devcontainer.ij/` path becomes the container's path.
+- `docker` is looked for on the PATH, then `/usr/local/bin`, `/opt/homebrew/bin`, Docker Desktop's and Rancher's
+  folders; it starts from the user's home. The probe waits 60 s, as for WSL.
+- The settings' Test, Install archvow (pip in the container) and the Python list (listed, not run) do the same.
+- With the IDE's backend inside the container (classic dev containers, Gateway), the plugin runs there: none of this
+  is needed. VS Code's Dev Containers run the extension in the container too.
+
 ## Installing archvow (0.12.0)
 
 When archvow does not start, or is not one the plugin works with (1.0.0: its range, page [The contract](/en/04-contract)), the plugins offer
