@@ -4134,6 +4134,8 @@
   });
 
   document.body.addEventListener('click', (event) => {
+    // 1.4.5: selecting a command in a terminal is not a click on what holds it (the page is not drawn again)
+    if (event.target.closest && event.target.closest('.terminal-content') && String(window.getSelection ? window.getSelection() : '').length) return;
     if (ui.ctxMenu) {  // a click closes the menu; on one of its items, the item runs below
       ui.ctxMenu = null;
       if (!event.target.closest('.ctx-menu [data-a]')) { render(); return; }

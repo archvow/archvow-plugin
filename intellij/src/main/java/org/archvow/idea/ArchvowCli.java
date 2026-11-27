@@ -214,7 +214,8 @@ final class ArchvowCli {
                     if (process.exitValue() == 0 && out.toLowerCase(java.util.Locale.ROOT).contains("archvow"))
                         return new Probe(c, report.toString());
                     String last = out.isEmpty() ? "" : out.lines().reduce((a, b) -> b).orElse("");
-                    said = "exit " + process.exitValue() + (last.isBlank() ? "" : ": " + last);
+                    String gone = ArchvowDevContainer.gone(argv, out, french);
+                    said = !gone.isEmpty() ? gone : "exit " + process.exitValue() + (last.isBlank() ? "" : ": " + last);
                 }
             } catch (IOException | IllegalArgumentException e) {
                 said = e.getMessage();
@@ -366,6 +367,8 @@ final class ArchvowCli {
         if (out.length() >= MAX_OUTPUT)
             err += "\nSortie tronquée à " + MAX_OUTPUT / 1_000_000 + " Mo : le résultat est incomplet.";
         if (cancelled) err += "\nCommande annulée ou délai dépassé.";
+        String gone = ArchvowDevContainer.gone(argv, err, ArchvowI18n.isFrench(project));
+        if (!gone.isEmpty()) err += "\n" + gone;
         int exit = process.isAlive() ? -1 : process.exitValue();
         return new Result(argv, cancelled ? -1 : exit, out, err, cancelled);
     }

@@ -57,6 +57,11 @@ public final class DevContainerRegression {
         equal(new java.io.File(System.getProperty("user.home", ".")), builder.directory(), "docker starts from home");
         equal("1", builder.environment().get("NO_COLOR"), "the environment docker exec passes on");
         equal(System.getProperty("user.home", "x"), ArchvowInstall.workingFolder(argv, root), "pip through docker starts from home");
+        // 1.4.5: a recreated container - say what to do, not docker's error
+        String said = ArchvowDevContainer.gone(argv, "Error response from daemon: No such container: 5483173dc8bf\n", false);
+        equal(true, said.startsWith("The dev container 5483173dc8bf no longer exists") && said.contains("Python Interpreter"), "gone, said");
+        equal("", ArchvowDevContainer.gone(argv, "ModuleNotFoundError: No module named archvow", false), "another error stays");
+        equal("", ArchvowDevContainer.gone(List.of("/usr/bin/python3", "-m", "archvow"), "No such container", false), "not docker");
         System.out.println("DevContainerRegression OK");
     }
 }

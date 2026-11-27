@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.5 - 2026-11-27
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **Commands can be selected everywhere:** the terminal's command text is selectable (the `$` is not, so it is not
+  copied), and ending a selection there no longer counts as a click on what holds it.
+
 ## 1.4.4 - 2026-11-26
 
 Works with archvow >=3.4,<4. Built on archvow 3.4.1.

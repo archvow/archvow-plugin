@@ -2,6 +2,18 @@
 
 The plugin joins two former plugins in 0.5.0; their own histories follow.
 
+## 1.4.5 - 2026-11-27
+
+Works with archvow >=3.4,<4. Built on archvow 3.4.1.
+
+- **Commands can be selected everywhere:** the welcome card's pip command is now in the same terminal as the forms
+  and confirmations (a text area, with its copy button); it was HTML in a label, which cannot be selected.
+- **Install archvow names the version it installs:** the button said the plugin's (3.4.1) while the command
+  installed the project's pin (3.4.2).
+- **A dev container that was recreated:** instead of docker's "No such container", the plugin says the container
+  has a new id: open it again, choose its Python again, and empty the Python of Settings > Tools > Archvow if it
+  still names the old id (Install archvow had saved it there).
+
 ## 1.4.4 - 2026-11-26
 
 Works with archvow >=3.4,<4. Built on archvow 3.4.1.

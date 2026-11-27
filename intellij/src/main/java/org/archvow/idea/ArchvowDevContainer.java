@@ -118,6 +118,28 @@ final class ArchvowDevContainer {
         return "docker";
     }
 
+    /**
+     * What to do when docker says the container is gone (1.4.5): a dev container that was rebuilt (make up, Rebuild)
+     * has a new id, and the paths IntelliJ gave before still name the old one. "" when the output is not that.
+     */
+    static String gone(List<String> argv, String output, boolean french) {
+        if (!isDocker(argv) || output == null || !output.contains("No such container")) return "";
+        int at = argv.indexOf("exec");
+        String id = "";
+        for (int i = at + 1; i < argv.size(); i++) {
+            String a = argv.get(i);
+            if (a.equals("-w") || a.equals("-e")) { i++; continue; }
+            if (!a.startsWith("-")) { id = a; break; }
+        }
+        return french
+            ? "Le dev container " + id + " n'existe plus : il a été recréé et a un autre identifiant. Rouvre le dev container, "
+                + "puis choisis à nouveau son Python (Settings > Project > Python Interpreter) ; vide le Python de Settings > Tools > "
+                + "Archvow s'il nomme encore " + id + "."
+            : "The dev container " + id + " no longer exists: it was recreated and has another id. Open the dev container again, "
+                + "then choose its Python again (Settings > Project > Python Interpreter); empty the Python of Settings > Tools > "
+                + "Archvow if it still names " + id + ".";
+    }
+
     /** Whether a folder is there: a dev container folder counts as there (the computer cannot look; docker exec says if it is not). */
     static boolean isDirectory(String path) {
         return path != null && (is(path) || new File(path).isDirectory());

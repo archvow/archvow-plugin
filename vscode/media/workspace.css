@@ -790,7 +790,7 @@ button.terminal-copy:hover:not(:disabled), button.terminal-copy:focus-visible { 
 .terminal-copy svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
 .terminal-content { margin: 0; padding: 10px 11px; min-width: 0; font-family: var(--vscode-editor-font-family, monospace), monospace;
   font-size: var(--vscode-editor-font-size, 13px); font-weight: 400; font-style: normal; line-height: 1.5;
-  white-space: pre-wrap; overflow-wrap: anywhere; }
+  white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; cursor: text; }
 .terminal-prompt { color: #1a9b65; font-weight: 700; font-style: normal; user-select: none; }
 .terminal-text { font: inherit; white-space: inherit; overflow-wrap: inherit; }
 .terminal-text.missing { color: var(--vscode-descriptionForeground); font-style: normal; }

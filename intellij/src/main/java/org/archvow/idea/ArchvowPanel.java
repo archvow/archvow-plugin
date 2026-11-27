@@ -210,7 +210,11 @@ final class ArchvowPanel extends JPanel {
     private JButton welcomeInit;
     /** Install archvow, guided (0.12.0): shown when archvow does not start or does not speak the plugin's contract. */
     private JButton welcomeInstall;
-    private final JLabel welcomeInstallCommand = new JLabel();
+    // 1.4.5: the reason, then the pip command in the shared terminal - a JTextArea, so the command can be selected
+    private final JPanel welcomeInstallCommand = new JPanel();
+    private final ArchvowWrapLabel welcomeInstallText = new ArchvowWrapLabel();
+    private final JTextArea welcomeInstallLine = new JTextArea(1, 30);
+    private final JPanel welcomeInstallTerminal = ArchvowTerminal.wrap(welcomeInstallLine);
     private final ArchvowConfirmPanel welcomeConfirmation = new ArchvowConfirmPanel();
     /** 0.25.0: a folder without archvow offers to try it on an example first; its result shows under it. */
     private JPanel welcomeTry;
@@ -1320,7 +1324,14 @@ final class ArchvowPanel extends JPanel {
             this::askInstall);
         welcomeInstall.setVisible(false);
         actions.add(welcomeInstall, 0);
-        welcomeInstallCommand.setFont(new Font(Font.MONOSPACED, Font.PLAIN, welcomeInstallCommand.getFont().getSize()));
+        welcomeInstallCommand.setLayout(new BoxLayout(welcomeInstallCommand, BoxLayout.Y_AXIS));
+        welcomeInstallCommand.setOpaque(false);
+        welcomeInstallText.setOpaque(false);
+        welcomeInstallText.setAlignmentX(0f);
+        welcomeInstallTerminal.setAlignmentX(0f);
+        welcomeInstallCommand.add(welcomeInstallText);
+        welcomeInstallCommand.add(Box.createVerticalStrut(6));
+        welcomeInstallCommand.add(welcomeInstallTerminal);
         welcomeInstallCommand.setVisible(false);
         JPanel south = new JPanel();
         south.setLayout(new BoxLayout(south, BoxLayout.Y_AXIS));
@@ -1500,8 +1511,13 @@ final class ArchvowPanel extends JPanel {
         welcomeInstallCommand.setVisible(offered);
         if (offer != null) {
             String text = ArchvowInstall.explain(offer, ArchvowI18n.isFrench(project));
-            welcomeInstallCommand.setText("<html>" + escape(text) + (offer.display().isEmpty() ? "" : "<br>" + ArchvowTerminal.html(offer.display())) + "</html>");
+            welcomeInstallText.setText(text);
+            welcomeInstallLine.setText(offer.display());
+            welcomeInstallLine.setCaretPosition(0);
+            welcomeInstallTerminal.setVisible(!offer.display().isEmpty());
             welcomeInstall.setToolTipText(offer.display().isEmpty() ? null : offer.display());
+            // the version pip installs, not the one the plugin was built on (the project's pin may differ)
+            welcomeInstall.setText(ArchvowI18n.text(project, "Install archvow " + offer.version(), "Installer archvow " + offer.version()));
         }
         if (!offered) welcomeConfirmation.hideConfirmation();
     }
@@ -1573,7 +1589,8 @@ final class ArchvowPanel extends JPanel {
                 String[] result;
                 try { result = get(); } catch (Exception e) { result = new String[] {"1", e.toString()}; }
                 boolean ok = "0".equals(result[0]);
-                String tail = shorten(result[1].strip(), 600);
+                String gone = ArchvowDevContainer.gone(job, result[1], ArchvowI18n.isFrench(project));
+                String tail = !gone.isEmpty() ? gone : shorten(result[1].strip(), 600);
                 com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Archvow")
                     .createNotification(ok
                         ? ArchvowI18n.text(project, "archvow installed into " + python, "archvow installé dans " + python)

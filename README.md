@@ -42,7 +42,7 @@ English by default, French as a setting. Every change runs an archvow command, a
 ## Build and test
 
 ```bash
-./build.sh            # both, after their tests -> dist/archvow-intellij-1.4.4.zip, dist/archvow-1.4.4.vsix
+./build.sh            # both, after their tests -> dist/archvow-intellij-1.4.5.zip, dist/archvow-1.4.5.vsix
 ./build.sh intellij   # or one of them
 ./build.sh vscode
 ```
@@ -114,7 +114,7 @@ both together.
 
 ## Versions
 
-Both plugins have the same version (1.4.4), their own, not archvow's: from 1.0.0 they evolve on their own
+Both plugins have the same version (1.4.5), their own, not archvow's: from 1.0.0 they evolve on their own
 versioning. **They work with archvow >=3.4,<4** - one value, `contract/archvow-range.txt`, said here, on both
 Marketplace pages and in the header of the tool window (`archvow 3.4.1 ✓ · this plugin works with archvow
 >=3.4,<4`); the release test checks they all say it. They read `.vow` format 1, speak archvow's contract 3.0
